@@ -158,11 +158,11 @@ found:
         item->param.ningyo.koro.hint = 0;
         koro->status = KORO_NORMAL;
     }
-    param->count = 90;
+    param->count = NINGYO_DURATION;
     item->locate->rotate.vx = 0;
     item->locate->rotate.vy = rand() % 0x1000;
     item->locate->rotate.vz = rand() % 68;
-    param->hp = 99;
+    param->hp = NINGYO_HP;
     SetNowMotion(item->owner, 0xf02, 1);
     return 1;
 }

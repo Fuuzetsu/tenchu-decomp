@@ -282,7 +282,7 @@ void ProcItemNinken(TItem *item)
         set_model_hide_(param->slave, 0);
         param->slave->vector.vy = 0;
         item->mode++;
-        param->count = 1800;
+        param->count = NINKEN_DURATION;
         return;
     }
 

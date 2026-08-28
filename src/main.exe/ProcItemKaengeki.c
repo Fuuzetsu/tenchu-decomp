@@ -132,7 +132,7 @@ void ProcItemKaengeki(TItem *item)
         {
             SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x28);
             item->mode++;
-            param->count = 40;
+            param->count = KAENGEKI_DELAY;
         }
         if (item->owner->motion->mid == 0xf04)
         {

@@ -41,6 +41,16 @@
 #define DMG_FIRE 30 /* also lightning */
 #define DMG_JIRAI 45
 
+/* Item effect durations, in frames. */
+#define SMOKE_DURATION 120    /* smoke-bomb cloud lifetime */
+#define SHINSOKU_DURATION 75  /* speed-potion boost length */
+#define GOSIN_DURATION 450    /* protection-charm length */
+#define NINKEN_DURATION 1800  /* summoned dog lifetime */
+#define NINGYO_DURATION 90    /* decoy-doll walk time */
+#define NINGYO_HP 99          /* decoy-doll hit points */
+#define MANEBUE_DURATION 30   /* lure-flute effect window */
+#define KAENGEKI_DELAY 40     /* flame-wave wind-up after the swing */
+
 /* Timers, in frames. */
 #define GAME_OVER_TIMEOUT 2700 /* game-over screen auto-advance (45 s) */
 

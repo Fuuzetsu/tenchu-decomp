@@ -141,7 +141,7 @@ void ProcItemGosin(TItem *item)
         NowReturnNormal(item->owner);
         SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, 0xB48C1E);
         item->owner->itmctl = item->type;
-        item->param.gosin.count = 450;
+        item->param.gosin.count = GOSIN_DURATION;
         item->mode++;
         return;
     }
