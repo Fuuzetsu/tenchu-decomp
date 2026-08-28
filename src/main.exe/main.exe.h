@@ -57,6 +57,11 @@ enum
     ARC_BLOOD_POOL_MODEL = 0x1F
 };
 
+/* Music ids the code plays by literal (usage-named: both score screens
+ * loop 12; the attract demo plays 0xb once). */
+#define MUSIC_OPENING 0xb
+#define MUSIC_RESULTS 12
+
 /* exec_process_ ids — which PS-X EXE boots next ("bad process id" is
  * the game's own error message; the value names are invented). */
 enum

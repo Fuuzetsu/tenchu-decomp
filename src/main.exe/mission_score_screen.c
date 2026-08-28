@@ -291,7 +291,7 @@ void mission_score_screen(void)
         }
     }
 
-    _PlayMusic(12, CDA_REPEAT);
+    _PlayMusic(MUSIC_RESULTS, CDA_REPEAT);
     resultX = 0x66;
     for (;;)
     {
