@@ -54,14 +54,14 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
     base = EffectSlot;
     slot = base + idx;
 loop:
-    idx = idx + 1;
-    slot = slot + 1;
+    idx++;
+    slot++;
     if (idx > 199)
     {
         slot = base;
         idx = 0;
     }
-    i = i + 1;
+    i++;
     if (slot->proc == 0)
     {
         CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;

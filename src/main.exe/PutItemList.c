@@ -161,6 +161,6 @@ void PutItemList(void)
             }
             x = x - ItemGap;
         }
-        i = i + 1;
+        i++;
     }
 }

@@ -134,8 +134,8 @@ void ComputeAllConflict(void)
                                 ConflictObject[i].model->attribute =
                                     ConflictObject[i].model->attribute | MODEL_ATTR_CONFLICT;
                                 other->model->attribute = other->model->attribute | MODEL_ATTR_CONFLICT;
-                                ConflictObject[i].offset.pad = ConflictObject[i].offset.pad + 1;
-                                other->offset.pad = other->offset.pad + 1;
+                                ConflictObject[i].offset.pad++;
+                                other->offset.pad++;
                             }
                         }
                     }

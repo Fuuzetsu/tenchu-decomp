@@ -47,7 +47,7 @@ OrnamentType *LoadOrnament(u_long *adr)
     base = (OrnamentType *)valloc(sizeof(OrnamentType));
     if (adr != 0)
     {
-        adr = adr + 1;
+        adr++;
         GsMapModelingData(adr);
         GsLinkObject4((u_long)(adr + 2), &base->object, 0);
     }

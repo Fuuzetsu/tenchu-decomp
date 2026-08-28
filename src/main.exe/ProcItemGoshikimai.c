@@ -98,7 +98,7 @@ void ProcItemGoshikimai(TItem *item)
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
         }
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:

@@ -114,7 +114,7 @@ loop1:
     item = (*slot = SetupSprite(0, image));
     item->scale = scale1;
     (*slot)->attribute = 0x1C;
-    slot = slot + 1;
+    slot++;
     if (++i < 0x14)
         goto loop1;
     if (i < 0x1A)
@@ -129,7 +129,7 @@ loop1:
         *slot = item;
         item->scale = scale2;
         (*slot)->attribute = attr2;
-        slot = slot + 1;
+        slot++;
         if (++i < 0x1A)
             goto loop2;
     }
@@ -141,8 +141,8 @@ loop1:
         image = GetImage(i + IMG_KEHAI_GREEN);
         InitSprite(image, sprite);
         sprite->attribute = attr3;
-        i = i + 1;
-        sprite = sprite + 1;
+        i++;
+        sprite++;
     } while (i < 4);
     leResetEnemyLayout();
     ResetInfoview(-1);

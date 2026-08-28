@@ -99,7 +99,7 @@ short AttackAnimal(void)
             return 0x80;
         }
     }
-    Me_THINK_C->actmode = Me_THINK_C->actmode + 1;
+    Me_THINK_C->actmode++;
     ret = turn_towards_player_(0, 0);
     am = Me_THINK_C->actmode;
     if (am < 0x1e)

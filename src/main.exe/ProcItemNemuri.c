@@ -100,7 +100,7 @@ void ProcItemNemuri(TItem *item)
     case 0:
         SetNowMotion(item->owner, 0xf02, 1);
         SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x26);
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -118,7 +118,7 @@ void ProcItemNemuri(TItem *item)
                 position = GetAbsolutePosition(
                     item->owner->model->object[14], 0, 0, 0);
                 param->count = 0;
-                item->mode = item->mode + 1;
+                item->mode++;
                 item->locate->locate.coord.t[0] = position->vx;
                 item->locate->locate.coord.t[1] = position->vy;
                 item->locate->locate.coord.t[2] = position->vz;
@@ -205,7 +205,7 @@ void ProcItemNemuri(TItem *item)
         param->count = count;
         if (count > MaxCount)
         {
-            item->mode = item->mode + 1;
+            item->mode++;
         }
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)

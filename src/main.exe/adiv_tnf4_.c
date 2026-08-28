@@ -141,7 +141,7 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
                 *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
                 subdivide_quad_(frame, work, 0);
             }
-            cnt = cnt - 1;
+            cnt--;
             primitive++;
         } while (cnt != 0);
     }

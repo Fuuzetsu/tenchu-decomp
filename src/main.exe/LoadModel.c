@@ -48,7 +48,7 @@ ModelType *LoadModel(u_long *adr)
     base = (ModelType *)valloc(sizeof(ModelType));
     if (adr != 0)
     {
-        adr = adr + 1;
+        adr++;
         GsMapModelingData(adr);
         GsLinkObject4((u_long)(adr + 2), &base->object, 0);
     }

@@ -147,7 +147,7 @@ void PauseProc(void)
                 ActionHalt = 0;
                 Sound(CamState.Owner, 0x4c);
                 SetCameraMode(CMODE_NORMAL);
-                Findenemies = Findenemies + 1;
+                Findenemies++;
                 SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
                 CamState.Owner->pad.data = 0x80;
                 break;
@@ -193,7 +193,7 @@ void PauseProc(void)
             (pad & START))
             DrawPause(cnt);
         VSync(2);
-        cnt = cnt + 1;
+        cnt++;
     }
     SsSetMVol(0x7f, 0x7f);
 }

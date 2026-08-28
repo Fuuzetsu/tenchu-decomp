@@ -72,7 +72,7 @@ mode0:
     item->owner->itmctl = item->type;
     SoundEx(0, 0x43);
     param->count = 0x1e;
-    item->mode = item->mode + 1;
+    item->mode++;
     return;
 mode1:
     count = param->count - 1;

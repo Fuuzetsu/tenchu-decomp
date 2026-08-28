@@ -176,5 +176,5 @@ skip_default:
         current_z = midz - yw;
     }
     fly->rz = current_z;
-    fly->count = fly->count - 1;
+    fly->count--;
 }

@@ -100,7 +100,7 @@ void ProcItemNapalm(TItem *item)
     {
     case 0:
         param->count = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -152,7 +152,7 @@ void ProcItemNapalm(TItem *item)
         param->count = count;
         if (count > MaxCount)
         {
-            item->mode = item->mode + 1;
+            item->mode++;
         }
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)

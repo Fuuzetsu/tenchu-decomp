@@ -182,7 +182,7 @@ void ProcItemNinken(TItem *item)
             param->count = count;
             if ((count << 16) <= 0)
             {
-                item->mode = item->mode + 1;
+                item->mode++;
             }
             UpdateCoordinate(item->locate);
             item->model->locate = item->locate->locate;
@@ -240,7 +240,7 @@ void ProcItemNinken(TItem *item)
         if (valid == 0 ||
             (NINKEN_CHARACTER_PTR->attribute & ATTR_SUSPEND) == 0)
         {
-            item->mode = item->mode - 1;
+            item->mode--;
             param->count = 15;
             return;
         }
@@ -269,7 +269,7 @@ void ProcItemNinken(TItem *item)
         param->slave->model->object[0]->attribute |= 0x4000;
         set_model_hide_(param->slave, 0);
         param->slave->vector.vy = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         param->count = 0x708;
         return;
     }

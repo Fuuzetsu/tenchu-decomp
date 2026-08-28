@@ -78,7 +78,7 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
         cur = handle->pHandle;
         do
         {
-            count = count + 1;
+            count++;
             if (cur->flagUse == 0)
             {
                 cur->info = entry;

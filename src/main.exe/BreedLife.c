@@ -189,7 +189,7 @@ Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
         base = HumanData;
         if (base[idx].type == type)
             break;
-        idx = idx + 1;
+        idx++;
     }
     if (base[idx].type != -1)
         goto type_found;
@@ -214,7 +214,7 @@ type_found:
             {
                 row->model = model;
             }
-            row = row + 1;
+            row++;
             kind = row->type;
             if (kind != -1)
                 goto scan_next;

@@ -133,7 +133,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
                 dim->object.tmd = objp->object.tmd;
             }
             newmad->object[i] = dim;
-            i = i + 1;
+            i++;
         } while (i < newmad->n);
     }
     newmad->rotate.pad = (short)newmad->object[0]->locate.coord.t[1];

@@ -134,7 +134,7 @@ coordinate_init:
     objp->locate.coord.t[1] = prntp[i].dy;
     objp->locate.coord.t[2] = prntp[i].dz;
     UpdateOrnament(objp, 0);
-    i = i + 1;
+    i++;
     objp->object.attribute |= 0x400;
     goto loop2;
 

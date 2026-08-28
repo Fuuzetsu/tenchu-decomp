@@ -98,7 +98,7 @@ void ProcItemKawarimi(TItem *item)
     {
     case 0:
         param->count = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -133,7 +133,7 @@ void ProcItemKawarimi(TItem *item)
             if (cnt < 0x1f)
                 return;
         }
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 2:

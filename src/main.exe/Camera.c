@@ -102,11 +102,11 @@ void Camera(void)
         }
         if (pad_dat & 0x8000)
         {
-            Projection = Projection - 1;
+            Projection--;
         }
         else if (pad_dat & 0x2000)
         {
-            Projection = Projection + 1;
+            Projection++;
         }
         model = CamState.Owner->model;
         FntPrint(fmt_owner_r, model->locate.coord.t[0], model->locate.coord.t[1], model->locate.coord.t[2], model->rotate.vy);

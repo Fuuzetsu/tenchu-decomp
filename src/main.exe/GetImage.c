@@ -86,8 +86,8 @@ GsIMAGE *GetImage(int index)
             adr = get_tim_from_archive(pt, i);
             GetTIMInfo(adr, image);
             LoadTIM(adr);
-            i = i + 1;
-            image = image + 1;
+            i++;
+            image++;
         } while (i < 0x3e);
         vfree(pt);
         Images_fInitialize = 1;

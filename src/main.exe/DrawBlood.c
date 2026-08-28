@@ -213,7 +213,7 @@ void DrawBlood(TEffectSlot *ef)
         if ((s16)oldtime <= 0)
         {
             blood->time = 0x80;
-            blood->mode = blood->mode + 1;
+            blood->mode++;
         }
         break;
     }
@@ -230,7 +230,7 @@ void DrawBlood(TEffectSlot *ef)
         blood->time = oldtime - 1;
         if ((s16)oldtime <= 0)
         {
-            blood->mode = blood->mode + 1;
+            blood->mode++;
             time_rnd = rand();
             blood->time = time_rnd % 90;
         }

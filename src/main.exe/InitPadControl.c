@@ -56,7 +56,7 @@ void InitPadControl(void)
         do
         {
             VSync(0);
-            i = i - 1;
+            i--;
         } while (i > 0);
         PadSetMainMode(0, 1, 0);
     }

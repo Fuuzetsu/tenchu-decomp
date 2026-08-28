@@ -76,7 +76,7 @@ do_create:
 do_check:
     if (m->mode != 0)
         return;
-    m->count = m->count - 1;
+    m->count--;
     if (m->count < 1)
     {
         vec = svec_y_n35[0];

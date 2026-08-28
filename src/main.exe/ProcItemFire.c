@@ -300,7 +300,7 @@ void ProcItemFire(TItem *item)
                 return;
             }
         }
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -339,7 +339,7 @@ void ProcItemFire(TItem *item)
         item->collision.ofsY = 0;
         item->collision.mode = mode;
         item->collision.pause = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         param->count = 3;
         reset_alert_duration();
         return;

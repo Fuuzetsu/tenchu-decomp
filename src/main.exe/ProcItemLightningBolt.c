@@ -92,7 +92,7 @@ void ProcItemLightningBolt(TItem *item)
     {
     case 0:
         param->count = 0xf;
-        item->mode = item->mode + 1;
+        item->mode++;
         if (item->owner == CamState.Owner)
         {
             SoundEx((VECTOR *)0, 0x39);
@@ -119,7 +119,7 @@ void ProcItemLightningBolt(TItem *item)
         item->collision.ofsY = 0;
         item->collision.mode = 1;
         item->collision.pause = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         break;
 
     case 2:

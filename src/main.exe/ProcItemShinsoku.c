@@ -111,7 +111,7 @@ void ProcItemShinsoku(TItem *item)
     case 0:
         SetNowMotion(item->owner, 0xf05, 1);
         Sound(item->owner, 0x4c);
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -172,7 +172,7 @@ void ProcItemShinsoku(TItem *item)
         }
         spawn_smoke_burst_(item->owner->locate, 0x96, 0xc, 8);
         param->count = 0x4b;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
     }
 
@@ -266,7 +266,7 @@ void ProcItemShinsoku(TItem *item)
             RotateVectorS(&param->vec, 0, rotate, 0);
         }
 
-        param->count = param->count - 1;
+        param->count--;
         if (param->count != 0 && (item->owner->pad.trig & 0xf0) == 0)
         {
             return;

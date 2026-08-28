@@ -137,7 +137,7 @@ void ProcItemHenshin(TItem *item)
     case 0:
         SetNowMotion(human, 0xf04, 1);
         Sound(item->owner, 0x4c);
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -209,7 +209,7 @@ void ProcItemHenshin(TItem *item)
             }
         }
         HenshinItem = item;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
     }
 
@@ -239,7 +239,7 @@ void ProcItemHenshin(TItem *item)
             } while (i < mad->n);
         }
         vitem = item;
-        vitem->mode = vitem->mode + 1;
+        vitem->mode++;
         HenshinCount = 600;
         mode_owner = vitem->owner;
         itemID = *(volatile u16 *)&vitem->type;

@@ -130,7 +130,7 @@ void ProcItemNingyo(TItem *item)
                     humans++;
                 } while (i < limit);
             }
-            NingyoCount = NingyoCount - 1;
+            NingyoCount--;
         }
         item->mode = 0;
         return;
@@ -153,7 +153,7 @@ void ProcItemNingyo(TItem *item)
         if ((u8)count == 0)
         {
             param->count = 0;
-            item->mode = item->mode + 1;
+            item->mode++;
             scratch.drop.sv = svec_y_n25[0];
             SetSmoke((VECTOR *)item->locate->locate.coord.t,
                      &scratch.drop.sv, 10, 6);
@@ -161,7 +161,7 @@ void ProcItemNingyo(TItem *item)
             if (NingyoCount < 3)
             {
                 param->hp = 3;
-                NingyoCount = NingyoCount + 1;
+                NingyoCount++;
                 goto draw_mode0;
             }
             else
@@ -237,7 +237,7 @@ void ProcItemNingyo(TItem *item)
         ConflictObjectType *conflicts;
         ConflictObjectType *conflict;
 
-        param->count = param->count + 1;
+        param->count++;
         memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
         scratch.vectors.pos.vx = param->count << 8;
         scratch.vectors.pos.vy = param->count << 8;
@@ -279,7 +279,7 @@ void ProcItemNingyo(TItem *item)
         item->collision.ofsY = offset_y;
         item->collision.pause = 0;
         param->count = 3;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
     }
 
@@ -360,7 +360,7 @@ void ProcItemNingyo(TItem *item)
                         item->owner = 0;
                         item->proc = 0;
                     }
-                    item->mode = item->mode + 1;
+                    item->mode++;
                 }
                 else
                 {

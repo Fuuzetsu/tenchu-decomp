@@ -87,8 +87,8 @@ void SetImpact(VECTOR *pos, short size, short type)
     slot = base + idx;
     do
     {
-        idx = idx + 1;
-        slot = slot + 1;
+        idx++;
+        slot++;
         if (idx > 199)
         {
             slot = base;
@@ -104,7 +104,7 @@ void SetImpact(VECTOR *pos, short size, short type)
             ef = slot;
             goto found;
         }
-        count = count + 1;
+        count++;
     } while (count < 200);
     ef = &dmy;
 found:

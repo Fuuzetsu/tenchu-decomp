@@ -111,14 +111,14 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         slot = base + idx;
         do
         {
-            idx = idx + 1;
-            slot = slot + 1;
+            idx++;
+            slot++;
             if (idx > 199)
             {
                 slot = base;
                 idx = 0;
             }
-            count = count + 1;
+            count++;
             if (slot->proc == 0)
             {
                 CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
@@ -144,7 +144,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         smoke->vec.vz = vect->vz + (rand() % 100 - 50);
         smoke->time = time + rand() % 0xa0;
         r = rand();
-        i = i + 1;
+        i++;
         smoke->sprite = 0;
         m = smoke->time - 1;
         smoke->evtime = m - (time / 2 + r % time);

@@ -119,7 +119,7 @@ void ProcItemKaengeki(TItem *item)
             MoveHumanoid(human, motion->orderspd, motion->sidespd);
         }
         Sound(item->owner, 0x4c);
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
     }
 
@@ -131,7 +131,7 @@ void ProcItemKaengeki(TItem *item)
         if (motion->count == 0 && motion->loop != 0)
         {
             SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x28);
-            item->mode = item->mode + 1;
+            item->mode++;
             param->count = 0x28;
         }
         if (item->owner->motion->mid == 0xf04)

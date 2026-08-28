@@ -41,7 +41,7 @@ MotionRegistType *SetupMotionRegist(MotionRegistType *mrp)
     while (mrp[i].mid != -1)
     {
         mrp[i].motion = SearchMotion(mrp[i].id);
-        i = i + 1;
+        i++;
     }
     return mrp;
 }

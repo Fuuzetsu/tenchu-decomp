@@ -48,7 +48,7 @@ short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
     u_long *p;
     u_long *offsets;
 
-    adr = adr + 1;
+    adr++;
     if (idx < 0 || (offsets = adr + 1, (int)adr[0] <= idx))
     {
         return 0;
@@ -59,8 +59,8 @@ short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
     {
         do
         {
-            i = i + 1;
-            p = p + 1;
+            i++;
+            p++;
         } while (i < idx);
     }
     GsGetTimInfo((u_long *)((int)offsets + p[0] + 4), image);

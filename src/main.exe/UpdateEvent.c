@@ -131,6 +131,6 @@ void UpdateEvent(short n, short id)
             Event[n] = 0;
             return;
         }
-        i = i + 1;
+        i++;
     } while (*(s32 *)&StageEvent[i] != -1);
 }

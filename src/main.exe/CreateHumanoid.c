@@ -155,7 +155,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
         ConflictObject[idx].offset.vz = 0xC0;
     }
     oldHumans = Humans;
-    Humans = Humans + 1;
+    Humans++;
     HumanGroup[oldHumans] = human;
     return human;
 }

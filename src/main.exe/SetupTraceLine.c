@@ -72,7 +72,7 @@ TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
     pad = point->pad;
     while (pad != -1)
     {
-        point = point + 1;
+        point++;
         pad = point->pad;
     }
     point->x = human->locate->vx;

@@ -150,7 +150,7 @@ void ProcItemSmoke(TItem *item)
             return;
         SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
         param->count = 0x78;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -214,7 +214,7 @@ void ProcItemSmoke(TItem *item)
                             if (dist < find->find_dist)
                                 goto hit;
                         }
-                        i = i + 1;
+                        i++;
                         continue;
                     }
                     found = 0;

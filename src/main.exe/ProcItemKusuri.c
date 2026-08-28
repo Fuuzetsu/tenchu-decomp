@@ -139,7 +139,7 @@ void ProcItemKusuri(TItem *item)
         item->locate->locate.coord.t[0] = 0;
         item->locate->locate.coord.t[1] = 0x32;
         item->locate->locate.coord.t[2] = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:

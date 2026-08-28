@@ -56,7 +56,7 @@ void return_to_menu_(void)
 
         idx = (s16)i;
         PSTATE->gItem[idx + PSTATE->CharType * 0x20] = PSTATE->saveItem[idx];
-        i = i + 1;
+        i++;
     } while ((s16)i < 0x14);
     FadeOutDirect(0x20, 2, 8, 8, 8);
     clear_screen_();

@@ -153,7 +153,7 @@ void ProcItemJirai(TItem *item)
         item->collision.ofsY = 0;
         item->collision.mode = collision_mode;
         item->collision.pause = 0;
-        item->mode = item->mode + 1;
+        item->mode++;
         break;
     }
 
@@ -215,7 +215,7 @@ void ProcItemJirai(TItem *item)
         scratch.explosion.vec.vz = 0;
         SetSmoke(&scratch.explosion.pos, &scratch.explosion.vec, 20, 6);
         SoundEx(&scratch.explosion.pos, 0x25);
-        item->mode = item->mode + 1;
+        item->mode++;
         param->count = 3;
         reset_alert_duration();
         break;

@@ -147,11 +147,11 @@ mode0:
     spr->b = 0x80;
     spr->g = 0x80;
     spr->r = 0x80;
-    param->count = param->count - 1;
+    param->count--;
     if (param->count <= 0)
     {
         param->count = 0x80;
-        param->mode = param->mode + 1;
+        param->mode++;
     }
     goto draw;
 mode1:

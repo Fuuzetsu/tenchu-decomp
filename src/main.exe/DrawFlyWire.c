@@ -54,7 +54,7 @@ void DrawFlyWire(TEffectSlot *ef)
         if ((s16)sum >= 0x1001)
         {
             param->count = 0;
-            param->mode = param->mode + 1;
+            param->mode++;
             SetBleeds(&param->end, 0, 0x32, 0xA, 0x1E, 0xFFFF00);
             Sound(CamState.Owner, 0x31);
         }
@@ -82,7 +82,7 @@ void DrawFlyWire(TEffectSlot *ef)
         {
             ef->proc = 0;
         }
-        param->count = param->count + 1;
+        param->count++;
         return;
     }
     }

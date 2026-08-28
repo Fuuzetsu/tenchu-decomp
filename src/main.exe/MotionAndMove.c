@@ -52,7 +52,7 @@ short MotionAndMove(void)
             {
                 return 0;
             }
-            i = i + 1;
+            i++;
         } while (i < 5);
     }
     result = SetNowMotion(Me_MOTION_C, motID, motMODE);

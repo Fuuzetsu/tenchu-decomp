@@ -278,7 +278,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     nf->vp[0] = pv;
                     gte_stsxy3(m23sxy, (u_long *)&fp->mid[3].sxy, (u_long *)&fp->mid[4].sxy);
                     gte_stsz3((u_long *)&fp->mid[2].sz, (u_long *)&fp->mid[3].sz, (u_long *)&fp->mid[4].sz);
-                    depth = depth + 1;
+                    depth++;
                     subdivide_quad_(next, work, depth);
                     {
                         ADIV_VERT *va;

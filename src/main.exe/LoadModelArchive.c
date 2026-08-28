@@ -108,7 +108,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             dim->locate.flg = 0;
             dim->attribute = 0;
             mad->object[i] = dim;
-            i = i + 1;
+            i++;
         } while (i < mad->n);
     }
     if (prnt == 0)
@@ -148,7 +148,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
                         super = mad->object[j];
                         goto coordinate_init;
                     }
-                    j = j + 1;
+                    j++;
                 } while (j < limit);
             }
         coordinate_init:
@@ -157,7 +157,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             objp->locate.coord.t[1] = prntp[i].dy;
             objp->locate.coord.t[2] = prntp[i].dz;
             RotMatrixYXZ(&objp->rotate, &objp->locate.coord);
-            i = i + 1;
+            i++;
             objp->locate.flg = 0;
             count = *(u16 *)&mad->n;
         } while (i < mad->n);

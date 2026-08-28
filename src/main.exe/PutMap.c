@@ -141,7 +141,7 @@ void PutMap(void)
         x = x - 0x28;
         if (x <= 0)
         {
-            PutMapMode = PutMapMode + 1;
+            PutMapMode++;
         }
         break;
     case 2:

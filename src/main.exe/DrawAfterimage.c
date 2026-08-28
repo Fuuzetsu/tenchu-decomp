@@ -134,7 +134,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
     {
         if (afi->n < afi->maxn - 1)
         {
-            afi->n = afi->n + 1;
+            afi->n++;
         }
         for (i = afi->n - 1; i > 0; i--)
         {
@@ -157,7 +157,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         {
             return 0;
         }
-        afi->n = afi->n - 1;
+        afi->n--;
     }
 
     *(s32 *)&poly->x0 = *afi->p1;

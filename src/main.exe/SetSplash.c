@@ -58,8 +58,8 @@ void SetSplash(VECTOR *pos, short sx, short sy, int speed)
     base = EffectSlot;
     slot = base + idx;
 loop:
-    idx = idx + 1;
-    slot = slot + 1;
+    idx++;
+    slot++;
     if (idx > 199)
     {
         slot = base;
@@ -75,7 +75,7 @@ loop:
         ef = slot;
         goto found;
     }
-    count = count + 1;
+    count++;
     if (count > 199)
     {
         ef = &dmy;

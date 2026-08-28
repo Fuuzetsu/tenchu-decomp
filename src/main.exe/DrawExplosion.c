@@ -107,7 +107,7 @@ void DrawExplosion(TEffectSlot *ef)
         if (param->time == 0)
         {
             param->time = 3;
-            param->mode = param->mode + 1;
+            param->mode++;
         }
         else
         {
@@ -120,7 +120,7 @@ void DrawExplosion(TEffectSlot *ef)
         if (param->time == 0)
         {
             param->time = fo;
-            param->mode = param->mode + 1;
+            param->mode++;
         }
         param->scale = param->scale + 0x2000;
         param->rotate = param->rotate + 0x64000;
@@ -137,7 +137,7 @@ void DrawExplosion(TEffectSlot *ef)
         spr = sprBomb[1];
         break;
     }
-    param->time = param->time - 1;
+    param->time--;
     param->pos.vx = param->pos.vx + param->vec.vx;
     param->pos.vy = param->pos.vy + param->vec.vy;
     param->pos.vz = param->pos.vz + param->vec.vz;

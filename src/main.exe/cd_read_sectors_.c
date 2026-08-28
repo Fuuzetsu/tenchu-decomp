@@ -194,7 +194,7 @@ full_retry:
             dst = dst + chunk;
             remaining = remaining - chunk;
             off = 0;
-            curSector = curSector + 1;
+            curSector++;
         }
     }
 

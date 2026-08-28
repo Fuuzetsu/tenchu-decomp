@@ -70,7 +70,7 @@ s16 Think4chase(void)
         }
         else
         {
-            Me_THINK_C->actcnt = Me_THINK_C->actcnt + 1;
+            Me_THINK_C->actcnt++;
             result = 0x1000;
             if (Me_THINK_C->actcnt < 0x1E)
             {
@@ -89,7 +89,7 @@ s16 Think4chase(void)
     {
         s32 dx, dz;
 
-        Me_THINK_C->actscnt = Me_THINK_C->actscnt + 1;
+        Me_THINK_C->actscnt++;
         dx = Me_THINK_C->chase[0] - Me_THINK_C->locate->vx;
         dz = Me_THINK_C->chase[1] - Me_THINK_C->locate->vz;
         result = turn_towards_player_(dx, dz);

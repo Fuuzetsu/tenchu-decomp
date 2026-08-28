@@ -73,7 +73,7 @@ s16 Think1watch(void)
         {
             Me_THINK_C->actflg = rand() & 1;
             Me_THINK_C->actscnt = 0;
-            Me_THINK_C->actcnt = Me_THINK_C->actcnt + 1;
+            Me_THINK_C->actcnt++;
         }
     }
     else

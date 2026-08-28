@@ -106,14 +106,14 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         slot = base + idx;
         do
         {
-            idx = idx + 1;
-            slot = slot + 1;
+            idx++;
+            slot++;
             if (idx > 199)
             {
                 slot = base;
                 idx = 0;
             }
-            count = count + 1;
+            count++;
             if (slot->proc == 0)
             {
                 CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;

@@ -117,8 +117,8 @@ s32 remap_buttons_(s16 pad)
             rp = &ButtonAssign[row];
             acc = acc & ~*rp;
         }
-        i = i + 1;
-        row = row + 1;
+        i++;
+        row++;
     } while (i < 8);
     return (s32)(s16)acc;
 }

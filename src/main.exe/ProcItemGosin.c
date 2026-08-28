@@ -91,7 +91,7 @@ void ProcItemGosin(TItem *item)
     case 0:
         SetNowMotion(item->owner, 0xf04, 1);
         Sound(item->owner, 0x4c);
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -139,7 +139,7 @@ void ProcItemGosin(TItem *item)
         SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, 0xB48C1E);
         item->owner->itmctl = item->type;
         item->param.gosin.count = 0x1c2;
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
     }
 

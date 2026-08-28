@@ -101,14 +101,14 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
         do
         {
-            idx = idx + 1;
-            slot = slot + 1;
+            idx++;
+            slot++;
             if (idx > 199)
             {
                 slot = base;
                 idx = 0;
             }
-            count = count + 1;
+            count++;
             if (slot->proc == 0)
             {
                 CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
@@ -132,7 +132,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         param->vec.vy = -(rand() % power->vy + power->vy / 2);
         param->vec.vz = rand() % power->vz - power->vz / 2;
         r = rand();
-        i = i + 1;
+        i++;
         param->mode = 0;
         param->time = r % 15 + 15;
         ef->proc = (void (*)())DrawHinoko;

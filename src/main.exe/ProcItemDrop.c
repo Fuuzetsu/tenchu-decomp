@@ -151,7 +151,7 @@ void ProcItemDrop(TItem *item)
             item->collision.ofsY = 0;
             item->collision.mode = m;
             item->collision.pause = 0;
-            item->mode = item->mode + 1;
+            item->mode++;
             return;
         }
         return;
@@ -179,7 +179,7 @@ void ProcItemDrop(TItem *item)
             MoveHumanoid(human, md->orderspd, md->sidespd);
         }
         item->owner = human;
-        item->mode = item->mode + 1;
+        item->mode++;
         param->count = 0;
         return;
 

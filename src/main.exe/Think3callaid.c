@@ -169,8 +169,8 @@ short Think3callaid(void)
         ret = 0;
         if ((Me_THINK_C->type & 0xF0) == 0x90)
         {
-            StageEnemies = StageEnemies + 1;
-            StageCitizens = StageCitizens - 1;
+            StageEnemies++;
+            StageCitizens--;
             ret = 0;
         }
         return ret;

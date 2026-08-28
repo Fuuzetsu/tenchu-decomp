@@ -59,8 +59,8 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     slot = base + idx;
     do
     {
-        idx = idx + 1;
-        slot = slot + 1;
+        idx++;
+        slot++;
         if (idx > 199)
         {
             slot = base;
@@ -76,7 +76,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
             ef = slot;
             goto found;
         }
-        count = count + 1;
+        count++;
     } while (count < 200);
     ef = &dmy;
 found:

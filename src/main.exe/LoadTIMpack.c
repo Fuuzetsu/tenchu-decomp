@@ -110,9 +110,9 @@ short LoadTIMpack(unsigned long *adr)
     {
         SystemOut(msg_no_image_pack_data);
     }
-    adr = adr + 1;
+    adr++;
     hw = *(u16 *)adr;
-    adr = adr + 1;
+    adr++;
     i = 0;
     n = (short)hw;
     p = adr;
@@ -137,8 +137,8 @@ short LoadTIMpack(unsigned long *adr)
                 {
                 } while (0);
             }
-            i = i + 1;
-            adr = adr + 1;
+            i++;
+            adr++;
         } while (i < n);
     }
     DrawSync(0);

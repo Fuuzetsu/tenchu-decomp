@@ -172,8 +172,8 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             base = EffectSlot;
             slot = base + idx;
         loop:
-            idx = idx + 1;
-            slot = slot + 1;
+            idx++;
+            slot++;
             if (idx > 199)
             {
                 slot = base;
@@ -189,7 +189,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
                 ef = slot;
                 goto found;
             }
-            count = count + 1;
+            count++;
             if (count > 199)
             {
                 ef = &dmy;
@@ -197,7 +197,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             }
             goto loop;
         found:
-            n = n - 1;
+            n--;
             param = &ef->param.bleed;
             r = col >> 16;
             ef->param.bleed.pos = *pos;

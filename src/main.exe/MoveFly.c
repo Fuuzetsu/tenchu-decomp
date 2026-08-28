@@ -118,7 +118,7 @@ fly:
     }
     else
     {
-        param->p.fly.count = param->p.fly.count - 1;
+        param->p.fly.count--;
     }
     item->locate->locate.coord.t[0] = xs;
     item->locate->locate.coord.t[1] = ys;

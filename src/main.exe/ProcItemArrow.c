@@ -202,7 +202,7 @@ void ProcItemArrow(TItem *item)
                     item->locate->locate.coord.t[1] = 0;
                     item->locate->locate.coord.t[2] = 0;
                     param->count = 0x78;
-                    item->mode = item->mode + 1;
+                    item->mode++;
                     DeleteConflict(item->locate);
                     break;
                 }
@@ -250,7 +250,7 @@ void ProcItemArrow(TItem *item)
             SetBleeds((VECTOR *)item->locate->locate.coord.t,
                       0, 0x19, 0x1e, 0x1e, 0xffff00);
             param->count = 0x1e;
-            item->mode = item->mode + 1;
+            item->mode++;
             DeleteConflict(item->locate);
             return;
         }
@@ -283,7 +283,7 @@ void ProcItemArrow(TItem *item)
             break;
         }
         param->count = 0xf;
-        item->mode = item->mode + 1;
+        item->mode++;
         break;
     }
 

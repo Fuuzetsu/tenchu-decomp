@@ -76,7 +76,7 @@ void KillHumanoid(Humanoid *human)
         }
         if (i < Humans)
         {
-            Humans = Humans - 1;
+            Humans--;
             HumanGroup[i] = HumanGroup[Humans];
         }
     }

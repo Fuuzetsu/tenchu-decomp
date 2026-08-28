@@ -132,7 +132,7 @@ void SetCameraMode(TCameraMode mode)
     loop:
         if (!(i < MaxCriticalValiation + 1))
             goto giveup;
-        cs->OldMode = cs->OldMode + 1;
+        cs->OldMode++;
         if (cs->OldMode > MaxCriticalValiation)
             cs->OldMode = 0;
         camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);

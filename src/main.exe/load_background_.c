@@ -43,7 +43,7 @@ BackGround *load_background_(u_long *tim)
         do
         {
             bg->index[i] = (u16)i;
-            i = i + 1;
+            i++;
         } while (i < bg->map.ncellw * bg->map.ncellh);
     }
     return bg;

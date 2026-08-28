@@ -166,7 +166,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
                 }
             }
         }
-        i = i + 1;
+        i++;
     }
     return ret;
 }

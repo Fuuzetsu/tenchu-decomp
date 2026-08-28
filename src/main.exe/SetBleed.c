@@ -72,8 +72,8 @@ void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)
     slot = base + idx;
     count = 0;
 loop:
-    idx = idx + 1;
-    slot = slot + 1;
+    idx++;
+    slot++;
     if (idx > 199)
     {
         slot = base;
@@ -89,7 +89,7 @@ loop:
         ef = slot;
         goto found;
     }
-    count = count + 1;
+    count++;
     if (count > 199)
     {
         ef = &dmy;

@@ -248,11 +248,11 @@ void DamageControl(void)
             {
                 if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                 {
-                    Criticals = Criticals + 1;
+                    Criticals++;
                 }
                 else
                 {
-                    Murders = Murders + 1;
+                    Murders++;
                 }
             }
             if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) != 0)
@@ -312,7 +312,7 @@ attack_break:
         motID = 0;
         motMODE = 1;
     }
-    dtL->vy = dtL->vy - 1;
+    dtL->vy--;
     return;
 resolve_hit:
     dtM->mask = 0x7fff;
@@ -344,7 +344,7 @@ resolve_hit:
                 }
                 if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
                 {
-                    Me_MOTION_C->item[ITEM_SHURIKEN] = Me_MOTION_C->item[ITEM_SHURIKEN] + 1;
+                    Me_MOTION_C->item[ITEM_SHURIKEN]++;
                 }
                 /* fall through: the shared zero-damage test preserves an existing 20 */
             case ITEM_HAPPOU:
@@ -460,15 +460,15 @@ resolve_hit:
                         {
                             if ((Me_MOTION_C->type & 0xf0U) == PAGE_CIVILIAN)
                             {
-                                FriendHits = FriendHits + 1;
+                                FriendHits++;
                             }
                             else if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                             {
-                                Criticals = Criticals + 1;
+                                Criticals++;
                             }
                             else
                             {
-                                Murders = Murders + 1;
+                                Murders++;
                             }
                         }
                     }
@@ -620,7 +620,7 @@ resolve_hit:
                             pv.vy = rand() % 100 - 0x32;
                             pv.vz = rand() % 100 - 0x32;
                             SetBleed(blood_pos, &pv, rand() % 0x14 + 0x14, 0xffff00);
-                            t = t + 1;
+                            t++;
                         } while (t < 10);
                     }
                     {
@@ -799,15 +799,15 @@ resolve_hit:
                     {
                         if ((Me_MOTION_C->type & 0xf0U) == PAGE_CIVILIAN)
                         {
-                            FriendHits = FriendHits + 1;
+                            FriendHits++;
                         }
                         else if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) == 0)
                         {
-                            Criticals = Criticals + 1;
+                            Criticals++;
                         }
                         else
                         {
-                            Murders = Murders + 1;
+                            Murders++;
                         }
                     }
                     if ((Me_MOTION_C->attribute & (ATTR_ALERT | 0x2)) != 0)

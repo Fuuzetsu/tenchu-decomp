@@ -133,7 +133,7 @@ void ProcItemDokudango(TItem *item)
             {
                 return;
             }
-            item->mode = item->mode + 1;
+            item->mode++;
             return;
         }
 
@@ -323,7 +323,7 @@ void ProcItemDokudango(TItem *item)
                 item->locate->locate.coord.t[1] = 0;
                 item->locate->locate.coord.t[2] = -150;
             }
-            item->mode = item->mode + 1;
+            item->mode++;
             return;
         }
 
@@ -382,7 +382,7 @@ void ProcItemDokudango(TItem *item)
                 param->eater = human;
                 NowReturnNormal(human);
                 param->count = 600;
-                item->mode = item->mode + 1;
+                item->mode++;
                 return;
             }
             if ((eater->attribute & ATTR_ALERT) != 0 &&

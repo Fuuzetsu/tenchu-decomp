@@ -143,7 +143,7 @@ loop:
     DrawPrim((u8 *)&ply.tpage);
     DrawSync(0);
     VSync(0);
-    time = time - 1;
+    time--;
     goto loop;
 end:
     PutDrawEnv(&o_draw);

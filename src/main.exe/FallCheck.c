@@ -113,7 +113,7 @@ fall:
             {
                 goto found;
             }
-            i = i + 1;
+            i++;
         } while (i < 5);
     }
     SetNowMotion(Me_MOTION_C, motID, motMODE);

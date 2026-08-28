@@ -74,7 +74,7 @@ short ControlAllHumanoid(void)
                     ControlHumanoid(human);
                 }
             }
-            i = i + 1;
+            i++;
         } while (result = i < Humans);
     return result;
 }

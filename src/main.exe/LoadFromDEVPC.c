@@ -74,7 +74,7 @@ u_long *LoadFromDEVPC(u8 *filename)
     s32 size;
     u_long *buff;
 
-    TotalIO = TotalIO + 1;
+    TotalIO++;
     fd = PCopen((char *)filename, 0, 0);
     if (fd != -1)
     {

@@ -101,7 +101,7 @@ int leFindEnemy(void)
                 r = rr;
             }
         }
-        i = i + 1;
+        i++;
     }
 
     if (find != -1)

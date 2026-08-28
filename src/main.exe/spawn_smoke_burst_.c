@@ -70,8 +70,8 @@ loop:
     slot = (TEffectSlot *)((idx * sizeof(TEffectSlot)) + (int)base);
     do
     {
-        idx = idx + 1;
-        slot = slot + 1;
+        idx++;
+        slot++;
         if (idx > 199)
         {
             slot = base;
@@ -87,7 +87,7 @@ loop:
             ef = slot;
             goto found;
         }
-        searched = searched + 1;
+        searched++;
     } while (searched < 200);
     ef = &dmy;
 found:
@@ -146,7 +146,7 @@ found:
     smoke->rotate = 0;
     smoke->time = 15;
     r = rand();
-    i = i + 1;
+    i++;
     m = smoke->time - 8;
     smoke->sprite = 1;
     smoke->evtime = m - ((s32)r % 15);

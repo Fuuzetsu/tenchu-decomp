@@ -52,10 +52,10 @@ s32 PutLifeBarS(void)
         if (LifeBar[i].count > 0)
         {
             PutLifeBar(x, -0x5A, LifeBar[i].life, LifeBar[i].max, LifeBar[i].style);
-            LifeBar[i].count = LifeBar[i].count - 1;
+            LifeBar[i].count--;
         }
         x = x + 0x3C;
-        i = i + 1;
+        i++;
     } while (i < nLifeBar);
     return 0;
 }

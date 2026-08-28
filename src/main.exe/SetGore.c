@@ -71,8 +71,8 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         slot = base + idx;
         do
         {
-            idx = idx + 1;
-            slot = slot + 1;
+            idx++;
+            slot++;
             if (idx > 199)
             {
                 slot = base;
@@ -88,7 +88,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
                 ef = slot;
                 goto found;
             }
-            count = count + 1;
+            count++;
         } while (count < 200);
         ef = &dmy;
     found:
@@ -135,8 +135,8 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         slot = base + idx;
         do
         {
-            idx = idx + 1;
-            slot = slot + 1;
+            idx++;
+            slot++;
             if (idx > 199)
             {
                 slot = base;
@@ -152,7 +152,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
                 ef = slot;
                 goto impact_found;
             }
-            count = count + 1;
+            count++;
         } while (count < 200);
         ef = &dmy;
     impact_found:

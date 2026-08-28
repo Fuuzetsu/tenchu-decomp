@@ -86,7 +86,7 @@ u_long *LoadFromCDROM(u8 *filename)
     s32 size;
     u_long *buff;
 
-    TotalIO = TotalIO + 1;
+    TotalIO++;
     quiet = AdtQuiet(ADT_NORMAL);
     fd = AfsOpen(&systemAFS, (char *)filename);
     if (fd != 0)

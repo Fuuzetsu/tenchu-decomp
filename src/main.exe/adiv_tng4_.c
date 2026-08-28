@@ -284,7 +284,7 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
                 *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
                 subdivide_quad_(po, work, 0);
             }
-            count = count - 1;
+            count--;
             primitive++;
         } while (count != 0);
     }

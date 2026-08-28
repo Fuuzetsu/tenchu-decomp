@@ -341,5 +341,5 @@ void DrawImpact(TEffectSlot *ef)
     {
         ef->proc = 0;
     }
-    param->count = param->count + 1;
+    param->count++;
 }

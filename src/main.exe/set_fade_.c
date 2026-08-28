@@ -44,8 +44,8 @@ void set_fade_(u8 r, u8 g, u8 b, long priority)
     base = EffectSlot;
     slot = base + idx;
 loop:
-    idx = idx + 1;
-    slot = slot + 1;
+    idx++;
+    slot++;
     if (idx > 199)
     {
         slot = base;
@@ -61,7 +61,7 @@ loop:
         ef = slot;
         goto found;
     }
-    count = count + 1;
+    count++;
     if (count > 199)
     {
         ef = &dmy;

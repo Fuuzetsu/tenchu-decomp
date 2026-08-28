@@ -102,7 +102,7 @@ void ProcItemGun(TItem *item)
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
         SetImpact((VECTOR *)item->locate->locate.coord.t, 0x2000, 0);
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, 0x7F7F7F);
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 1:
@@ -153,7 +153,7 @@ void ProcItemGun(TItem *item)
             }
         }
     }
-        item->mode = item->mode + 1;
+        item->mode++;
         return;
 
     case 2:

@@ -100,7 +100,7 @@ void DrawSplash(TEffectSlot *ef)
             {
             case 0:
                 param->count = 0;
-                param->mode = param->mode + 1;
+                param->mode++;
                 {
                     VECTOR pos = {param->px, param->py, param->pz};
                     SVECTOR direction = svec_y_n20_2[0];
@@ -110,18 +110,18 @@ void DrawSplash(TEffectSlot *ef)
                 /* fall through */
             case 1:
                 spr->scaley = (spr->scaley * param->count) / param->speed;
-                param->count = param->count + 1;
+                param->count++;
                 if (param->count >= param->speed)
                 {
                     param->count = 0;
-                    param->mode = param->mode + 1;
+                    param->mode++;
                 }
                 break;
             case 2:
                 spr->scaley = (spr->scaley * (param->speed - param->count)) /
                               param->speed;
                 spr->scalex = spr->scalex / 2;
-                param->count = param->count + 1;
+                param->count++;
                 if (param->count >= param->speed)
                 {
                     ef->proc = 0;
