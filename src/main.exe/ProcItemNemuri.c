@@ -239,6 +239,10 @@ void ProcItemNemuri(TItem *item)
                 random_buf.vx = rand() % 200 - 100;
                 random_buf.vy = rand() % 200 - 100;
                 random_buf.vz = rand() % 200 - 100;
+                /* Dead copy, but retail's own: the 12-byte struct copy is in
+                 * the shipped bytes (removal measures -32). The jittered
+                 * position is computed and then never passed anywhere --
+                 * SetSmoke below gets the body position instead. */
                 random_pos = random_buf;
                 SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
 

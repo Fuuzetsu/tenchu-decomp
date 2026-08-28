@@ -146,8 +146,6 @@ void ActATTACK(void)
     short warid;
     short t;
     short n;
-    short move_y;
-    short updated;
     MotionDataType *mot;
     VECTOR *pos;
     int wid;
@@ -692,7 +690,6 @@ dispatch:
         ModelType *waist;
         short saved_mid;
         short motion_flag;
-        short updated;
 
         if (dtM->count == 1)
         {

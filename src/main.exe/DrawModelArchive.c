@@ -101,7 +101,7 @@ extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 short DrawModelArchive(ModelArchiveType *mad, long gap)
 {
     MATRIX mat;
-    SVECTOR pos;
+    SVECTOR pos; /* unused in retail, but present in the demo symbols */
     short atr;
     long sz;
     long result;

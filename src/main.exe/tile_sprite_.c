@@ -58,6 +58,8 @@ void tile_sprite_(Sprite3D *g, u16 dir)
     width = 0xa0;
     height = 0x78;
     flags = g->sprite.attribute & 0x8fffffff;
+    /* Dead store, but retail's own bytes (removal breaks the image): the
+     * masked word is written back once plain before the blend bit lands. */
     g->sprite.attribute = flags;
     g->sprite.attribute = flags | (0 < signedDir ? SPR_TRANS_SUB : SPR_TRANS_ADD);
     sp = &g->sprite;

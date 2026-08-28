@@ -89,7 +89,6 @@ void DrawGore(TEffectSlot *ef)
     case 3:
     {
         u16 fade;
-        s32 fade_shift;
         s32 brightness;
         s32 half_brightness;
         s32 x;
@@ -120,7 +119,6 @@ void DrawGore(TEffectSlot *ef)
         param->py = y;
         rotate = param->rotate;
         fade = param->brightness;
-        fade_shift = (u32)fade << 16;
         brightness = (s16)fade;
         GetScreenPosition(x, y, z, &scratch.screen);
         otz = scratch.screen.vz;

@@ -234,24 +234,9 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         if (result == 4)
         {
             __builtin_memcpy(sel, sel_okcancel, sizeof(sel));
-            if (msg != 0)
-            {
-                do
-                {
-                    src = (u8 *)msg_format_card;
-                } while (0);
-                dst = (u8 *)sel;
-                end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
-            }
-            else
-            {
-                do
-                {
-                    src = (u8 *)msg_format_card;
-                } while (0);
-                dst = (u8 *)sel;
-                end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
-            }
+            src = (u8 *)msg_format_card;
+            dst = (u8 *)sel;
+            end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
             if (end == 0)
             {
                 msg = msg_not_formatted;

@@ -103,7 +103,6 @@ void mission_score_screen(void)
     register GsSPRITE *sprite;
     register GsSPRITE *medal;
     register GsSPRITE *medalDraw;
-    register u8 *unlock;
     register TLinkInfo *statePtr;
     register s16 i;
     register s16 newPress;

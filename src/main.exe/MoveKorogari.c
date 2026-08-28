@@ -115,6 +115,9 @@ void MoveKorogari(TItem *item, param_korogari *param)
             param->vz = rand() % 20 - 10;
             if (param->vy > 20)
             {
+                /* Dead copy, but retail's own bytes (removal mismatches);
+                 * `vec` is in the demo symbols -- an older SetSplash likely
+                 * took the splash direction it still loads here. */
                 vec = svec_y_n20[0];
                 SetSplash((VECTOR *)item->locate->locate.coord.t,
                           0x2000, 0x2000, 4);
