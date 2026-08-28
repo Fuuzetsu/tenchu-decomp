@@ -119,18 +119,22 @@ void StartStageSequence(void)
             {
                 goto chrid_ready;
             }
-            tp = 2;
+            /* chrid -1: the partner ninja — whichever of the pair the
+             * player did not pick. */
+            tp = RIKIMARU_1;
             if (StagePlayer->type == 0)
             {
-                tp = 3;
+                tp = AYAME_1;
             }
             goto chrid_ready;
 
         chrid_minus_two:
-            tp = 5;
+            /* chrid -2: the player-specific story NPC — Rikimaru's
+             * stages place the lord, Ayame's the princess. */
+            tp = HIME;
             if (StagePlayer->type == 0)
             {
-                tp = 6;
+                tp = TONO;
             }
 
         chrid_ready:
