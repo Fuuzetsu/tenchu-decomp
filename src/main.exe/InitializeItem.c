@@ -66,13 +66,13 @@ void InitializeItem(void)
     s32 i;
     u32 attr;
 
-    arc = GetArcData(ARC_SYURIKEN_MODEL);
+    arc = GetArcData(MODEL_SYURIKEN);
     SyurikenModel = LoadModel(arc);
-    arc = GetArcData(ARC_ARROW_MODEL);
+    arc = GetArcData(MODEL_ARROW);
     ArrowModel = LoadModel(arc);
-    arc = GetArcData(ARC_NINGYO_MODEL);
+    arc = GetArcData(MODEL_NINGYO);
     NingyoModel = LoadModel(arc);
-    arc = GetArcData(ARC_HAPPOU_MODEL);
+    arc = GetArcData(MODEL_HAPPOU);
     HappouModel = LoadModel(arc);
 
     for (i = 0; i < MAX_ITEMS; i++)

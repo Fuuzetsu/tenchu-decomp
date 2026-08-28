@@ -41,19 +41,24 @@ enum
     ITEMSIZE = 2000
 };
 
-/* models.arc slots (GetArcData indices) whose contents the code pins:
- * each name is read off what the loaded entry becomes. Invented names. */
+/* models.arc slots (GetArcData indices) — official names from the demo
+ * debug symbols' MODEL_/ICON_ enum, whose values line up 1:1 with the
+ * retail slots the code pins (…SYURIKEN 0x14, ARROW 0x15, CARD1-3,
+ * SHADOW 0x19, KAGIHEAD 0x1A, NINGYO 0x1B, HAPPOU 0x1C — so retail
+ * kept the demo's archive order; the demo list runs MON6B 0 .. AKINb
+ * 0x1E with MODEL_N = 0x1F). Retail appends entries past MODEL_N;
+ * ARC_BLOOD_POOL_MODEL is our invented name for one of them. */
 enum
 {
-    ARC_SYURIKEN_MODEL = 0x14,
-    ARC_ARROW_MODEL = 0x15,
-    ARC_CARD_ICON1 = 0x16,
-    ARC_CARD_ICON2 = 0x17,
-    ARC_CARD_ICON3 = 0x18,
-    ARC_SHADOW_MODEL = 0x19,
-    ARC_HOOK_MODEL = 0x1A,
-    ARC_NINGYO_MODEL = 0x1B,
-    ARC_HAPPOU_MODEL = 0x1C,
+    MODEL_SYURIKEN = 0x14,
+    MODEL_ARROW = 0x15,
+    ICON_CARD1 = 0x16,
+    ICON_CARD2 = 0x17,
+    ICON_CARD3 = 0x18,
+    MODEL_SHADOW = 0x19,
+    MODEL_KAGIHEAD = 0x1A,
+    MODEL_NINGYO = 0x1B,
+    MODEL_HAPPOU = 0x1C,
     ARC_BLOOD_POOL_MODEL = 0x1F
 };
 

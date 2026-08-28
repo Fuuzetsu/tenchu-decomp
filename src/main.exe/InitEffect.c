@@ -185,10 +185,10 @@ void InitEffect(void)
         }
     }
 
-    ShadowMdl = LoadModel(GetArcData(ARC_SHADOW_MODEL));
+    ShadowMdl = LoadModel(GetArcData(MODEL_SHADOW));
     BLOOD_POOL_MODEL_ = LoadModel(GetArcData(ARC_BLOOD_POOL_MODEL));
     AfterIMG = GetImage(IMG_AFTERIMAGE);
-    ModelHook = LoadModel(GetArcData(ARC_HOOK_MODEL));
+    ModelHook = LoadModel(GetArcData(MODEL_KAGIHEAD));
 
     {
         Sprite3D *sprite;
