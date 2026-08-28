@@ -97,7 +97,7 @@ short AttackLong(void)
         } while (0);
 
     choose_status7:
-        if (Degree >= 301)
+        if (Degree > 300)
         {
             pad = PADLright;
         }
@@ -191,7 +191,7 @@ short AttackLong(void)
         Me_THINK_C->actmode = 0;
     }
 
-    if (Degree >= 301)
+    if (Degree > 300)
     {
         pad = PADLright;
     }

@@ -101,7 +101,7 @@ short AttackGeneral(void)
         } while (0);
 
     choose_status7:
-        if (Degree >= 301)
+        if (Degree > 300)
         {
             pad = PADLright;
         }

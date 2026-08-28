@@ -122,23 +122,34 @@ short AttackShort(void)
         }
 
     choose_status7:
-        if (Degree >= 301)
+        /* Turn toward the target, then slash: pad = PADLright/PADLleft
+         * by Degree, |= PADRleft. The demo compiled the natural if/else
+         * spelling of exactly this (thresholds 500), but retail's bytes
+         * need this topology: the twin-arm head keeps status_raw's zero
+         * opaque so the rand-fail return reads the register; the else
+         * arm's early |= plus the goto give the middle path its slash
+         * while keeping status7_value REFERENCED — that label is the
+         * basic-block fence that stops combine fusing the final ori
+         * into the return copy (retail: ori s0; move v0,s0). A natural
+         * s16 ladder variant instead costs a second callee-saved
+         * register across the rand() call. */
+        if (Degree > 300)
         {
-            status_raw = 0x2000;
+            status_raw = PADLright;
         }
         else
         {
-            status_raw |= 0x80;
+            status_raw |= PADRleft;
             if (Degree < -300)
             {
-                status_raw = -0x8000;
+                status_raw = (s16)PADLleft;
             }
             else
             {
                 goto status7_value;
             }
         }
-        status_raw |= 0x80;
+        status_raw |= PADRleft;
 
     status7_value:
         status7_result = status_raw;

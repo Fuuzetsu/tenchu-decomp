@@ -568,6 +568,16 @@ negated. Everything else here is corollaries:
   cast. The demo build has no such construct (plain jal everywhere); an
   earlier in-repo note claiming the cast forced a jalr was wrong, and a
   block-scope conflicting extern is a cc1 error.
+- **Decode `<<16 >>N` compounds as fused narrowing casts**: combine merges a
+  narrowing cast's sll/sra pair with an adjacent shift, so retail's
+  `sll 16; sra 18` is source `(s16)x >> 2` (an lhu-read wants `(s16)(u16)x`),
+  `sra 14` is `(s16)x << 2`, ProcMiscDoor's `*0x10000 >> 15` was
+  `(s16)(w / 3) * 2`, and UpdateSplineControl's `*0x1000000 >> 16` was
+  `(s8)diff << 8` on an s16 temp (the temp keeps operand loads wide).
+  CAVEAT (SetupThinkFunction): when several sites narrow the SAME value,
+  the shared `(s16)x` subexpression cse-unifies into one pair feeding all
+  shifts — if retail keeps independent fused pairs per site, each site must
+  spell the full `((s32)x << 16) >> N` compound.
 - **Biased switches usually unbias**: a draft's `switch ((s16)(X - K))`
   with rebased case labels almost always compiles identically as plain
   `switch (X)` with the real case values — cc1's expand_case subtracts the
