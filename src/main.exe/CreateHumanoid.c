@@ -149,7 +149,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     half2 = (s16)ww / 2;
     ConflictObject[idx].size.vz = half2;
     ConflictObject[idx].size.vx = half2;
-    if (type == 0x86 || type == 0x89)
+    if (type == KUMA_0 || type == KUMA_1)
     {
         ConflictObject[idx].offset.vy = -0x1C5;
         ConflictObject[idx].offset.vz = 0xC0;

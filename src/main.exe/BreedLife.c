@@ -230,7 +230,7 @@ type_found:
     human->model->rotate.vy = r;
     UpdateCoordinate((ModelType *)human->model);
 
-    if (type == 0x87)
+    if (type == NINJA_0)
     {
         human->item[ITEM_KUSURI] = 1;
     }
