@@ -252,6 +252,9 @@ void ActENGAGE(void)
         }
         if (mask & 0x10)
         {
+            /* Byte-required biased spelling (its six siblings unbias
+             * cleanly to switch (SelectedItem) with -1-based cases; this
+             * one's (short) cast feeds a promotion retail keeps). */
             switch ((short)(SelectedItem + 1))
             {
             case 2:

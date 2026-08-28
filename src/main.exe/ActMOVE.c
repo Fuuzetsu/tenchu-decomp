@@ -142,28 +142,28 @@ void ActMOVE(void)
     }
     if (trig & 0x10)
     {
-        switch ((short)(SelectedItem + 1))
+        switch (SelectedItem)
         {
-        case 2:
+        case 1:
             motID = MOT_SYURI;
             break;
-        case 1:
+        case 0:
             motID = MOT_KAGI;
             break;
-        case 3:
+        case 2:
             motID = MOT_ITEM;
-            break;
-        case 6:
-            motID = 0xf02;
             break;
         case 5:
             motID = 0xf02;
             break;
-        case 7:
+        case 4:
+            motID = 0xf02;
+            break;
+        case 6:
             motID = 0xf03;
             break;
-        case 0:
-        case 11:
+        case -1:
+        case 10:
             goto item_sound;
         default:
             goto item_default;
