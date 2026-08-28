@@ -605,7 +605,12 @@ enum TCameraMode
     CMODE_FALL = 14,
     /* Invented name: zeroes DirectionRX/RY and enters the direction view
      * looking straight ahead — the kaginawa first-person aim. */
-    CMODE_AIM = 15
+    CMODE_AIM = 15,
+    /* Invented names — one-shot poses that snap back to CMODE_NORMAL:
+     * the heavy-damage knockback view (motions 0x1005-0x1009/0x100C,
+     * with a near-wall fallback pose) and the ledge-hang view. */
+    CMODE_KNOCKBACK = 0x10,
+    CMODE_HANG = 0x11
 };
 
 /* CAMERA.C's global camera state. Retail rearranges the demo PSX.SYM

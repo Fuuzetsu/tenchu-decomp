@@ -79,7 +79,7 @@ typedef union
 } CameraScratch;
 
 /* the CAMERA.C statics, named by the CMODE (or trigger) each one serves;
- * CamPosKnockback fires on mids 0x1005..0x1009/0x100C, CamPosStunned on
+ * CamPosKnockback fires on mids 0x1005..0x1009/0x100C, CamPosHang on
  * status 7. CamVecL/R seed the probe's vecl/vecr. */
 extern SVECTOR CamVecL[];
 extern SVECTOR CamVecR[];
@@ -92,7 +92,7 @@ extern TCameraPos CamPosRun;
 extern TCameraPos CamPosSwim;
 extern TCameraPos CamPosKnockback;
 extern TCameraPos CamPosKnockbackAlt;
-extern TCameraPos CamPosStunned;
+extern TCameraPos CamPosHang;
 
 extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
                               SVECTOR *campos, GsRVIEW2 *vDif);
@@ -194,7 +194,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         CamState.Mode = CMODE_SWIM;
         break;
     case STAT_HANG:
-        CamState.Mode = 0x11;
+        CamState.Mode = CMODE_HANG;
         break;
     case STAT_CHASE:
         cs = &CamState;
@@ -216,12 +216,12 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         mid = cs->Owner->motion->mid;
         if ((u16)(mid - 0x1005) < 5)
         {
-            cs->Mode = 0x10;
+            cs->Mode = CMODE_KNOCKBACK;
             break;
         }
         if ((s16)mid != 0x100C)
             break;
-        cs->Mode = 0x10;
+        cs->Mode = CMODE_KNOCKBACK;
         break;
     }
     default:
@@ -272,7 +272,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
                            &scratch.camera.r1, vDif);
         CamState.Mode = CMODE_NORMAL;
         return;
-    case 0x10:
+    case CMODE_KNOCKBACK:
         scratch.camera = CamPosKnockback;
         alternate = CamPosKnockbackAlt;
 
@@ -284,8 +284,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         }
         CamState.Mode = CMODE_NORMAL;
         return;
-    case 0x11:
-        scratch.camera = CamPosStunned;
+    case CMODE_HANG:
+        scratch.camera = CamPosHang;
         MakeCameraPosition(&pos, &pl->model->rotate,
                            &scratch.camera.r1, vDif);
         CamState.Mode = CMODE_NORMAL;
