@@ -89,13 +89,13 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
     do
     {
         ic++;
-        if (ic > 0x1d)
+        if (ic >= MAX_ITEMS)
             ic = 0;
         item = items + ic;
         if (item->proc == 0)
             goto found;
         i++;
-    } while (i < 0x1d);
+    } while (i < MAX_ITEMS - 1);
 
     /* pool exhausted: force-dispose the slot the counter landed on */
     item->mode = ITEM_MODE_DISPOSE;
@@ -124,6 +124,8 @@ found:
     item->locate->locate.coord.t[2] = pos->vz;
     item->locate->locate.super = 0;
     UpdateCoordinate(item->locate);
+    /* model-then-size, the reverse of every sibling's order, is
+     * measured byte-required here (swapping them mismatches). */
     item->model = (ModelType *)sprSmoke[0];
     item->collision.size = 0;
     param->vec.vx = p->end.vx;

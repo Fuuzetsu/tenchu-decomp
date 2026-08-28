@@ -97,7 +97,7 @@ void ProcItemJirai(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = ITEM_INFINITE;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -123,7 +123,7 @@ void ProcItemJirai(TItem *item)
             u8 count;
 
             count = item->owner->item[item->type];
-            if (count != ff)
+            if (count != ITEM_INFINITE)
             {
                 item->owner->item[item->type] = count + 1;
             }

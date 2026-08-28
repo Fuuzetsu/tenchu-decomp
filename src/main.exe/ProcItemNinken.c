@@ -36,6 +36,16 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
+/*
+ * ProcItemNinken (0x80043dd4) — the ninja-dog item. mode 0: countdown, then
+ * probe the drop spot (CGetLevel) and either refuse (dispose message) or
+ * burst smoke and advance; mode 1: summon the pooled dog character
+ * (NINKEN_CHARACTER_PTR), refill its life, teleport it to the spawn spot
+ * facing the owner's yaw, and hand it the attack think; mode 2: watch the
+ * countdown and the dog's life, expiring into a second smoke burst that
+ * despawns the dog and disposes the item.
+ */
+
 /* Retail reuses the spawn query slot for the case-1 smoke vector. The inner
  * union makes that lifetime overlap explicit and restores PSX.SYM's `vec`
  * name without casting a VECTOR. The case-2 `vec` is a separate block local

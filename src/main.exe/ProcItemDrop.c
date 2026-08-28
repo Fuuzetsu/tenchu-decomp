@@ -66,7 +66,7 @@
  *    into the inner (status) tree's `case KORO_WATER` compare: one pseudo, live
  *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
  *    slot. Plain nested switches produce all of it — no source trick.
- *  - `m = 8` (int) feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
+ *  - `collision_mode = 8` (int) feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
  *    load-bearing: written as literals, pad's 8 becomes an HImode pseudo and
  *    a separate collision.mode literal becomes a second SImode pseudo (two
  *    `li`s, function one insn too long). cse can only reuse a WIDER-mode
@@ -77,8 +77,8 @@
  *    are the same variable; the -100/-200 offsets belong to the stores
  *    (`param->koro.vx = x - 100`), which is why they sit after the third rand.
  *    The 0x51EB851F magic is shared by %200/%100 via cse in $s2.
- *  - `cnt`/`ic` are u8 temps (Manebue's timer idiom): increment-then-store
- *    with the compare on the masked register (andi 0xFF), no reload; ic's
+ *  - `cnt`/`count` are u8 temps (Manebue's timer idiom): increment-then-store
+ *    with the compare on the masked register (andi 0xFF), no reload; count's
  *    `+ 1` lands in the beq delay slot.
  *  - The dispose tail is written out twice (KORO_WATER + mode-2); cross-jump
  *    merges from the jalr on. Null-check via `ppu` but call through
@@ -98,12 +98,12 @@ void ProcItemDrop(TItem *item)
     MotionDataType *md;
     s32 i;
     s32 n;
-    s32 m;
+    s32 collision_mode;
     s32 x;
     s32 y;
     s32 z;
     u8 cnt;
-    u8 ic;
+    u8 count;
 
     model = (Sprite3D *)item->model;
     param = &item->param.drop;
@@ -138,7 +138,7 @@ void ProcItemDrop(TItem *item)
         case KORO_STAY:
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
-            m = 8;
+            collision_mode = 8;
             ConflictObject[n].offset.vx = 0;
             ConflictObject[n].offset.vz = 0;
             ConflictObject[n].offset.vy = 0;
@@ -146,10 +146,10 @@ void ProcItemDrop(TItem *item)
             ConflictObject[n].size.vy = 0xb4;
             ConflictObject[n].size.vx = 0xb4;
             ConflictObject[n].common = (void *)0x1;
-            ConflictObject[n].size.pad = m;
+            ConflictObject[n].size.pad = collision_mode;
             item->collision.size = 0xb4;
             item->collision.ofsY = 0;
-            item->collision.mode = m;
+            item->collision.mode = collision_mode;
             item->collision.pause = 0;
             item->mode++;
             return;
@@ -204,10 +204,10 @@ void ProcItemDrop(TItem *item)
         if (cnt == 10)
         {
             SoundEx(item->owner->locate, 0xd);
-            ic = item->owner->item[item->type];
-            if (ic != ITEM_INFINITE)
+            count = item->owner->item[item->type];
+            if (count != ITEM_INFINITE)
             {
-                item->owner->item[item->type] = ic + 1;
+                item->owner->item[item->type] = count + 1;
             }
             ppu = item->proc;
             if (ppu == 0)

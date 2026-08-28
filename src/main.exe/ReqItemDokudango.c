@@ -122,17 +122,17 @@ found:
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
     {
-        param_korogari *param;
+        param_korogari *koro; /* second pointer pseudo, byte-required (writing through the full member path re-colors the stores) */
 
-        param = &item->param.dokudango.koro;
+        koro = &item->param.dokudango.koro;
         x = p->end.vx;
         y = p->end.vy;
         z = p->end.vz;
-        param->vx = x;
-        param->vy = y;
-        param->vz = z;
+        koro->vx = x;
+        koro->vy = y;
+        koro->vz = z;
         item->param.dokudango.koro.hint = 0;
-        param->status = KORO_NORMAL;
+        koro->status = KORO_NORMAL;
     }
     param->count = 10;
     param->eater = 0;

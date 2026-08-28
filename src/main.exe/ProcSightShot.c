@@ -82,7 +82,7 @@ void ProcSightShot(TItem *item)
     Humanoid *human;
 
     launch = &item->param.launch;
-    ff = 0xff;
+    ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
         item->owner->item[ITEM_N] = 0;
@@ -96,7 +96,7 @@ void ProcSightShot(TItem *item)
         u8 item_count;
 
         item_count = human->item[item->type];
-        if (item_count != ff)
+        if (item_count != ITEM_INFINITE)
         {
             human->item[item->type] = item_count + 1;
         }

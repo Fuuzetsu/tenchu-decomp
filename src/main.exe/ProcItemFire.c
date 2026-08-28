@@ -333,6 +333,11 @@ void ProcItemFire(TItem *item)
         ConflictObject[n].size.vz = 1500;
         ConflictObject[n].size.vy = 1500;
         ConflictObject[n].size.vx = 1500;
+        /* This arm runs with mode == 1, and retail reuses that register as
+         * the owner tag (CONFLICT_OWNER_ITEM == 1), the size pad, and the
+         * collision mode below -- the same one-register trick as the
+         * file's other box (`one`) and ProcItemArrow's. Separate named
+         * constants load fresh immediates and do not match. */
         ConflictObject[n].common = (void *)(s32)mode;
         ConflictObject[n].size.pad = mode;
         item->collision.size = 1500;

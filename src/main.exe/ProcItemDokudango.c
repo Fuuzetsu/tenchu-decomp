@@ -58,6 +58,15 @@ extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1target(void);
 
 /*
+ * ProcItemDokudango (0x80041090) — the poisoned rice-ball lure. mode 0:
+ * roll out of the thrower's hand (MoveKorogari) until it settles; mode 1:
+ * scan the stage for the hungriest nearby guard (closest with clear sight,
+ * within 10000), turn them toward the bait and walk them in; mode 2+: the
+ * eater crouches over it, takes poison damage on a timer, and the bait
+ * finally expires into disposal.
+ */
+
+/*
  * Matching notes (2,468 bytes / 617 instructions):
  *  - The entry comparison and fast disposal use ITEM_MODE_DISPOSE, allowing
  *    CSE to retain its 0xff value in $s1 across MoveKorogari. The two later

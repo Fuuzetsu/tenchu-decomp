@@ -121,16 +121,16 @@ found:
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
     {
-        param_korogari *param;
+        param_korogari *koro; /* second pointer pseudo, byte-required (writing through the full member path re-colors the stores) */
 
-        param = &item->param.ninken.koro;
+        koro = &item->param.ninken.koro;
         x = p->end.vx;
         z = p->end.vz;
-        param->vx = x;
-        param->vy = -250;
-        param->vz = z;
+        koro->vx = x;
+        koro->vy = -250;
+        koro->vz = z;
         item->param.ninken.koro.hint = 0;
-        param->status = KORO_NORMAL;
+        koro->status = KORO_NORMAL;
     }
     param->slave = 0;
     param->count = 15;

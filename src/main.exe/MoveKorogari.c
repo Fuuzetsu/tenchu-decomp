@@ -109,7 +109,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
             return;
         }
 
-        if (mv.attrib & 4)
+        if (mv.attrib & MAP_WATER)
         {
             param->vx = rand() % 20 - 10;
             param->vz = rand() % 20 - 10;
