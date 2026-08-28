@@ -146,7 +146,13 @@ def build_import_header(functions, prep):
     with open(combined, "w") as w:
         w.write(BASE_PREAMBLE)
         w.write("\n")
-        w.write(open(GAME_TYPES).read())
+        # Strip #include lines: SDK headers are intentionally not pulled in —
+        # their type names pass through as identifiers (resolved by CParser
+        # against the program's existing data types), and cpp runs -nostdinc.
+        for line in open(GAME_TYPES):
+            if line.lstrip().startswith("#include"):
+                continue
+            w.write(line)
         w.write("\n/* --- prototypes (pull in all referenced types) --- */\n")
         for _name, proto in functions:
             w.write(f"extern {normalize_proto(proto)};\n")
