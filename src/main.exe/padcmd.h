@@ -18,6 +18,12 @@ struct PADtype;
 #define CMD_ROLL_LEFT 0x13
 #define CMD_ROLL_RIGHT 0x14
 #define CMD_LUNGE 0x21
+/* The remaining two command streams (each with two accepted input
+ * variants in the retail table): the down-variant Square special that
+ * plays attack motion 0x712, and the Cross flip that plays jump motion
+ * 0x907 with a forward push. */
+#define CMD_LUNGE_BACK 0x22
+#define CMD_FLIP 0x31
 
 /* check_cheat_command_ results (the recognized input combos; retail
  * table @ 0x8008eddc). Consumers: the briefing/shop screen (item cap,

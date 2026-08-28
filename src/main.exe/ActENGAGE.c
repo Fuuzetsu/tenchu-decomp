@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "padcmd.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -67,13 +68,13 @@ void ActENGAGE(void)
             motMODE = 0;
             goto engage_case_post;
         }
-        if (dtCMD == 0x22)
+        if (dtCMD == CMD_LUNGE_BACK)
         {
             motID = 0x712;
             motMODE = 1;
             goto engage_case_post;
         }
-        if (dtCMD == 0x31)
+        if (dtCMD == CMD_FLIP)
         {
             motID = 0x907;
             motMODE = 0;
@@ -245,12 +246,12 @@ void ActENGAGE(void)
     else
     {
         mask = Me_MOTION_C->pad.trig;
-        if (mask & 0x40)
+        if (mask & PADRdown)
         {
             JumpControl();
             return;
         }
-        if (mask & 0x10)
+        if (mask & PADRup)
         {
             switch (SelectedItem)
             {
@@ -292,7 +293,7 @@ void ActENGAGE(void)
         {
             if (dtPAD & PADRright)
             {
-                if (mask & 0x80)
+                if (mask & PADRleft)
                 {
                     motID = 0x70c;
                     motMODE = 1;
@@ -304,7 +305,7 @@ void ActENGAGE(void)
             }
             else
             {
-                if (mask & 0x80)
+                if (mask & PADRleft)
                 {
                     AttackControl();
                     return;

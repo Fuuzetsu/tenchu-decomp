@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "padcmd.h"
 #include "humanoid.h"
 #include "item.h"
 
@@ -175,7 +176,7 @@ void ActCHASE(void)
             motID = 0x501;
             motMODE = 1;
         }
-        else if (dtCMD == 0x22)
+        else if (dtCMD == CMD_LUNGE_BACK)
         {
             motID = 0x712;
             motMODE = 1;
@@ -251,7 +252,7 @@ void ActCHASE(void)
         break;
     }
 
-    if (dtCMD == 0x31)
+    if (dtCMD == CMD_FLIP)
     {
         motID = 0x907;
         motMODE = 0;
