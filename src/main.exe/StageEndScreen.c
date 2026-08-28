@@ -485,7 +485,7 @@ void StageEndScreen(void)
                     (pulse >> 12) + 0x7f;
                 GsSortSprite(&rank, OTablePt, 1);
 
-                if (current.grade == 4)
+                if (current.grade == RANK_GRAND_MASTER)
                 {
                     icon = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
                     icon->x = -0x78;

@@ -33,6 +33,10 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     s16 remaining;
     u8 *row;
 
+    /* The worse the rank, the bigger the consolation award (a Grand
+     * Master run gets nothing). A locked special item takes +2 before
+     * the common +1 so 0xFE wraps to exactly 1 — the award unlocks it
+     * with one unit. */
     kind = 4 - (u16)result->grade;
     if (kind >= 3)
     {
@@ -46,7 +50,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             i = rand() % 18 + 1;
             if (i < 9)
             {
-                if (state->gItem[i + state->CharType * 0x20] == 0xfe)
+                if (state->gItem[i + state->CharType * 0x20] == ITEM_LOCKED)
                 {
                     state->gItem[i + state->CharType * 0x20] =
                         state->gItem[i + state->CharType * 0x20] + 2;
@@ -55,7 +59,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
                     state->gItem[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
-            else if (state->gItem[i + state->CharType * 0x20] != 0xfe)
+            else if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 1;
@@ -68,7 +72,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         i = 1;
         do
         {
-            if (state->gItem[i + state->CharType * 0x20] == 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] == ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 2;
@@ -79,7 +83,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->gItem[i + state->CharType * 0x20] != 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 1;
@@ -92,7 +96,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         i = 1;
         do
         {
-            if (state->gItem[i + state->CharType * 0x20] == 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] == ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 2;
@@ -103,7 +107,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->gItem[i + state->CharType * 0x20] != 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 1;
@@ -117,7 +121,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             i = rand() % 18 + 1;
             if (i < 9)
             {
-                if (state->gItem[i + state->CharType * 0x20] == 0xfe)
+                if (state->gItem[i + state->CharType * 0x20] == ITEM_LOCKED)
                 {
                     state->gItem[i + state->CharType * 0x20] =
                         state->gItem[i + state->CharType * 0x20] + 2;
@@ -126,7 +130,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
                     state->gItem[i + state->CharType * 0x20] + 1;
                 remaining--;
             }
-            else if (state->gItem[i + state->CharType * 0x20] != 0xfe)
+            else if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 1;
@@ -139,7 +143,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         i = 1;
         do
         {
-            if (state->gItem[i + state->CharType * 0x20] == 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] == ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 2;
@@ -150,7 +154,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         } while (i < 9);
         while (i < 0x14)
         {
-            if (state->gItem[i + state->CharType * 0x20] != 0xfe)
+            if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
                 state->gItem[i + state->CharType * 0x20] =
                     state->gItem[i + state->CharType * 0x20] + 2;
@@ -159,7 +163,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         }
 
         i = StageItem[state->StageNo];
-        if (state->gItem[i + state->CharType * 0x20] == 0xfe)
+        if (state->gItem[i + state->CharType * 0x20] == ITEM_LOCKED)
         {
             state->gItem[i + state->CharType * 0x20] =
                 state->gItem[i + state->CharType * 0x20] + 3;
@@ -167,7 +171,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
 
     row = (u8 *)state + state->CharType * 0x20;
-    if (row[0x41f] != 0xfe)
+    if (row[0x41f] != ITEM_LOCKED)
     {
         row[0x41f] = 1;
     }
