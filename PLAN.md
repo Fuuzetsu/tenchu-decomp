@@ -373,6 +373,27 @@ Deliberately left: motion ids as hex (original style), SE ids (no
 evidence), tuning numbers, per-proc mode counters, ACM base-material
 bits 1/2 and the reader-less 0x200/0x2000.
 
+HUMANISING LOOP 4 (2026-08-28, self-directed): the CVA script grammar
+(CVA_CMD_SEQUENCE header rows carrying the CD track, CVA_CMD_WAIT
+frame markers), full official-vocabulary harvests from the demo debug
+symbols' anonymous enums (MUSIC_ decoded retail's MusicIDTable —
+start_demo_ was really the game-over screen and is now
+game_over_screen_; MaxImpacts; ITEM_SYSFLAG divergence note) and a
+struct-field audit that verified every repo/demo field diff is a
+documented retail redesign. The game's OWN debug data named more:
+ThinkDB labels every think program (TRACE/WATCH/RANDOM/NINJA/SLEEP/
+CHASE..., verified against Think*Func addresses; 0x2222 is
+THINK_MIX_PAD2 "PAD 2"), the debug language menu yields LANG_ENGLISH..
+LANG_JAPANESE, the camera editor's own r1/r2/p1/p2 strings prove
+TCameraPos's field names, and the item picker contributes flavor
+labels ("the world", "rikimarukochan"). Ghidra-era screaming
+placeholders renamed (EFFECT_CURSOR_, CamPos, DEBUG_CAMERA_*/
+DEBUG_PAD_*, CHEAT_COMMANDS_/PAD_HISTORY_/check_cheat_command_,
+ARMOUR_EQUIPPED_, is_humanoid_on_stage_) — lesson relearned: renames
+must also update the NAME-KEYED maspsxGpExterns lists in
+shake/src/Build.hs. BattleType/WeaponType/AIDHumanType annotated from
+retail data (parry-stun's conflict-slot cross-index quirk documented).
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
