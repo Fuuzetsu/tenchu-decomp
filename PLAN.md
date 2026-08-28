@@ -357,6 +357,22 @@ jump.c/loop.c; the scratchpad casts and label loops proven original
 the demo's PSX.SYM were never renamed — confusing ones carry
 clarifying comments at their definitions instead.
 
+HUMANISING LOOP 3 (2026-08-28, the continuous "& X | X and casts"
+audit): every remaining semantic constant is now named or documented —
+the AI awareness phases (ATTR_PHASE + PHASE_CALM/SUSPICIOUS/ALERT/
+INVESTIGATE, written from SearchTarget's SR), ATTR_SEARCH/FLOAT/
+NOFLOOR/LEDGE/WALLANGLE from setter/reader hunts (no runtime needed),
+the MODEL_ATTR_ draw/cull family + COLLIDE, MAP_WOOD identified from
+the stage ACM data itself (tools/voldump.py, committed — parses
+AFS_VOL_200/IX and STAGE.ACM), official PsyQ CdlStat/Cdl-command/
+CdlMode/SS_SERIAL constants, SPR_TRANS_ADD/SUB blends, TMD_BANK_
+PLAIN/FOG renderer banks, pad.data holds, think mixes, CMODE_AIM.
+Measured-and-documented: Humanoid.attribute's s16-with-u16-views mix
+is retail's own per-site choice (the u16 flip changes plain lh sites).
+Deliberately left: motion ids as hex (original style), SE ids (no
+evidence), tuning numbers, per-proc mode counters, ACM base-material
+bits 1/2 and the reader-less 0x200/0x2000.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
