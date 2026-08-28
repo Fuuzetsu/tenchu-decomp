@@ -587,8 +587,14 @@ void StageEndScreen(void)
             layout_record = (ScoreStats *)(layout_character_offset +
                                            layout_stage_offset);
             layout_index = 0;
-            /* A structured for(;;)+break spelling gets loop-rotated by cc1
-             * (duplicated exit test, +7 insns) — the label loop is source. */
+            /* A goto loop, and provably so: the empty-exit branch's delay
+             * slot holds the POST-loop `li v0,3` (the != 3 compare) — a
+             * branch-target fill reorg only performs when it predicts the
+             * branch taken, which needs a note-free (goto) loop. Every real
+             * loop construct gets loop notes and the opposite prediction:
+             * for(;;)+break also duplicates the entry test (+7 insns);
+             * do/while({break;}while(1)) and do/while(idx<3) both keep the
+             * shape but fill that slot from the fallthrough instead. */
         layout_loop:
             if (layout_record->stageBosses + layout_record->stageEnemies == 0)
                 goto layout_done;
