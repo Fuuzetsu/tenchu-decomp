@@ -51,9 +51,9 @@ void ActENGAGE(void)
     short mask;
     int random;
 
-    switch ((short)(dtM->mid - MOT_ENGAGE))
+    switch (dtM->mid)
     {
-    case 1:
+    case 0x501:
     {
         if (dtPAD & PADLright)
         {
@@ -105,7 +105,7 @@ void ActENGAGE(void)
         break;
     }
 
-    case 4:
+    case 0x504:
         dtR->vy = dtR->vy + Me_MOTION_C->turn;
         one = 1;
         if (dtM->count == one)
@@ -117,7 +117,7 @@ void ActENGAGE(void)
         }
         break;
 
-    case 5:
+    case 0x505:
         dtR->vy = dtR->vy - Me_MOTION_C->turn;
         one = 1;
         if (dtM->count == one)
@@ -129,7 +129,7 @@ void ActENGAGE(void)
         }
         break;
 
-    case 0:
+    case 0x500:
     {
         SVECTOR *velocity;
         MotionManager *motion;
@@ -189,7 +189,7 @@ void ActENGAGE(void)
         return;
     }
 
-    case 3:
+    case 0x503:
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)
@@ -198,7 +198,7 @@ void ActENGAGE(void)
         motMODE = 1;
         return;
 
-    case 2:
+    case 0x502:
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)
