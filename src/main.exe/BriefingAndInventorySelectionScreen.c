@@ -378,10 +378,10 @@ void BriefingAndInventorySelectionScreen(void)
                     }
                 }
                 j = 0x10;
-                if ((np & 0x2000) == 0)
+                if ((np & PADLright) == 0)
                 {
                     j = 0;
-                    if ((np & 0x8000) != 0)
+                    if ((np & PADLleft) != 0)
                     {
                         j = -0x10;
                     }

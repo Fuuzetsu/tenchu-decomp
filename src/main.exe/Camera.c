@@ -92,7 +92,7 @@ void Camera(void)
     GsSetRefView2(&ViewInfo);
 
     if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != 1 &&
-        (pad_dat & 0x100) != 0)
+        (pad_dat & PADselect) != 0)
     {
         ModelType *model;
 
@@ -100,11 +100,11 @@ void Camera(void)
         {
             Projection = 300;
         }
-        if (pad_dat & 0x8000)
+        if (pad_dat & PADLleft)
         {
             Projection--;
         }
-        else if (pad_dat & 0x2000)
+        else if (pad_dat & PADLright)
         {
             Projection++;
         }
