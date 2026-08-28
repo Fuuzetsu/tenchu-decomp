@@ -80,7 +80,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
 {
     s32 pos;
 
-    memset(&loc->minute, 0, 4);
+    memset(loc, 0, sizeof(CdlLOC));
     loc->minute = min;
     loc->second = sec;
     pos = CdPosToInt(loc);
@@ -195,8 +195,8 @@ void PlayVoice(int id)
     CdlLOC end;
 
     __builtin_memcpy(tables, VoiceTables, sizeof(tables));
-    memset(&start.minute, 0, 4);
-    memset(&end.minute, 0, 4);
+    memset(&start, 0, sizeof(start));
+    memset(&end, 0, sizeof(end));
 
     if (id >= 100)
     {

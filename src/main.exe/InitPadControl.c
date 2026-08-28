@@ -45,8 +45,8 @@ void InitPadControl(void)
 
     MemCardInit(0);
     MemCardStart();
-    memset(ComBuf[0], 0, 0x44);
-    memset(PadPort, 0, 0x70);
+    memset(ComBuf[0], 0, sizeof(ComBuf));
+    memset(PadPort, 0, sizeof(PadPort));
     PadInitDirect(ComBuf[0], ComBuf[1]);
     PadStartCom();
     if ((((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->analog_pad_present &

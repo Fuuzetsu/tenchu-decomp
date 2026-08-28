@@ -38,7 +38,7 @@ void RotateVector(VECTOR *vec, int rx, int ry, int rz)
     SVECTOR rot;
     VECTOR vo;
 
-    memset(&rot, 0, 8);
+    memset(&rot, 0, sizeof(rot));
     rot.vx = (short)rx;
     rot.vy = (short)ry;
     rot.vz = (short)rz;

@@ -61,7 +61,7 @@ void InitConflict(void)
         ConflictObject[i].position = UnitVector2;
         ConflictObject[i].offset = UnitVector;
         ConflictObject[i].size = UnitVector;
-        memset(ConflictObject[i].result, 0, 0x50);
+        memset(ConflictObject[i].result, 0, sizeof(ConflictObject[i].result));
     }
     ConflictModel = 0;
     ConflictDistance = UnitVector;

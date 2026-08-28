@@ -89,7 +89,7 @@ short InsertConflict(ModelType *model)
     ConflictObject[idx].position = UnitVector2;
     ConflictObject[idx].offset = UnitVector;
     ConflictObject[idx].size = UnitVector;
-    memset(ConflictObject[idx].result, 0, 0x50);
+    memset(ConflictObject[idx].result, 0, sizeof(ConflictObject[idx].result));
     model->id = cnt;
     model->attribute = (model->attribute | 0x4000) & 0x7fff;
     return idx;

@@ -107,7 +107,7 @@ int leFindEnemy(void)
     if (find != -1)
     {
         pow = svec_y_n100[0];
-        memset((void *)&epos, 0, 0x10);
+        memset(&epos, 0, sizeof(epos));
         epos.vx = enemy[find].x;
         epos.vy = enemy[find].y;
         epos.vz = enemy[find].z;

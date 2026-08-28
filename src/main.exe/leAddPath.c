@@ -73,7 +73,7 @@ void leAddPath(s32 id, s32 x, s32 y, s32 z)
             (&e->path[0])[e->nPath].vy = y;
             (&e->path[0])[e->nPath].vz = z;
             e->nPath = e->nPath + 1;
-            memset((void *)&pos, 0, 0x10);
+            memset(&pos, 0, sizeof(pos));
             pos.vx = x;
             pos.vy = y;
             pos.vz = z;

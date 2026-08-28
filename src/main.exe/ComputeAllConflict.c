@@ -92,7 +92,7 @@ void ComputeAllConflict(void)
         model = confop->model;
         if (model->attribute & 0x4000)
         {
-            memset(confop->result, 0, 0x50);
+            memset(confop->result, 0, sizeof(confop->result));
             confop->offset.pad = 0;
             model->attribute = model->attribute & 0x7fff;
             if (model->locate.super == &World.locate)
