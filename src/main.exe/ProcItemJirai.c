@@ -97,7 +97,7 @@ void ProcItemJirai(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = 0xff;
+    ff = ITEM_INFINITE;
     if (item->mode == ff)
     {
         item->mode = 0;
@@ -280,7 +280,7 @@ void ProcItemJirai(TItem *item)
 
         count = param->count - 1;
         param->count = count;
-        if ((u8)count != 0xff)
+        if ((u8)count != ITEM_INFINITE)
         {
             return;
         }

@@ -205,7 +205,7 @@ void ProcItemDrop(TItem *item)
         {
             SoundEx(item->owner->locate, 0xd);
             ic = item->owner->item[item->type];
-            if (ic != 0xff)
+            if (ic != ITEM_INFINITE)
             {
                 item->owner->item[item->type] = ic + 1;
             }

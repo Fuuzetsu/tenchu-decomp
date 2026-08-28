@@ -279,7 +279,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     s32 z;
 
     c = p->user->item[p->type];
-    if (c != 0 && c != 0xff)
+    if (c != 0 && c != ITEM_INFINITE)
     {
         p->user->item[p->type] = c - 1;
     }

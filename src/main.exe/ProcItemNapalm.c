@@ -89,7 +89,7 @@ void ProcItemNapalm(TItem *item)
 
     model = (Sprite3D *)item->model;
     param = &item->param.napalm;
-    ff = 0xff;
+    ff = ITEM_INFINITE;
     if (item->mode == ff)
     {
         item->mode = 0;
