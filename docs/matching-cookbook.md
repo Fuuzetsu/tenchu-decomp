@@ -544,11 +544,18 @@ negated. Everything else here is corollaries:
   construct classes confirmed each is byte-load-bearing. (1) `goto
   return_pad` ladders: spelling every site as `return pad;` and letting
   cross-jump re-merge came out 12 bytes short with ~29 scattered
-  scheduling diffs (AttackShort). (2) one-shot fence TOWERS: flattening
-  DefaultActionHumanoid's 14-deep tower, or shrinking it to depth 5 with
-  the same statement interleave, both cost the same ~114-instruction
-  allocation cascade — the weight MAGNITUDE (2^depth ref-weighting)
-  matters, not just relative order. (3) `while (1) { if (i >= N) break; }`
+  scheduling diffs (AttackShort). (2) one-shot fence TOWERS are
+  register-pressure DIALS, measured to the unit with regalloc.py --order:
+  each level adds +1 weighted ref to the enclosed variable's pseudo, and
+  DefaultActionHumanoid's 14 levels are exactly what lifts zz from 18 to
+  32 refs — over global-alloc's floor_log2 priority cliff (allocno_compare:
+  floor_log2(refs)*refs/live_length) — so it outranks the STAT_DEAD
+  constant's pseudo and wins $s0. Use regalloc.py --order/--compare to
+  read the needed delta instead of guessing depths; extra source reads
+  cannot substitute (cse folds them), and non-call-crossing block locals
+  cannot take a callee-saved at all. A ref-starved pseudo needing a big
+  dial is also a HINT the surrounding reconstruction under-uses that
+  variable vs the original (check the PSX.SYM locals inventory). (3) `while (1) { if (i >= N) break; }`
   loops: the natural `for` spelling changes the emitted length
   (InitEffect). (4) plain single-level fences: collapsing every
   previously-undocumented `do{}while(0)` across ten files (AfsGetEntry,
