@@ -419,6 +419,22 @@ DONE 2026-08-28: the Ghidra program was resynced (sync_to_ghidra.py
 game_types.h's #include lines so SDK types keep passing through as
 identifiers).
 
+HUMANISING LOOP 6 (2026-08-28, the construct scan-and-dive): every
+scaffold construct class in the matched sources was censused and
+experimentally adjudicated with matchdiff-gated rewrites — goto
+return ladders (AttackShort: structured spelling 12 bytes short, ~29
+scheduling diffs), one-shot fence towers (DefaultActionHumanoid's
+14-deep tower is a 2^depth loop-note weight amplifier; flat and
+depth-5 fail identically), while(1)-with-break loops (for-form changes
+length), twin identical arms (10 sites: only SaveSI's icon3 twin was
+removable — collapsed; the rest documented), and every
+previously-undocumented plain fence across ten files (all
+load-bearing, all now noted). The broadened census (self-assignments,
+empty arms, no-effect statements) found zero true hits. Result: each
+remaining un-human construct carries its measured justification, and
+the cookbook's scaffold entry records the campaign so nothing gets
+re-tried blind.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
