@@ -747,6 +747,22 @@ struct StageCharType
     TThinkType think; /* 0x0C */
 }; /* 0x0E */
 
+/* CVA cutscene-script opcodes (the CVAupdate event dispatch; invented
+ * names, read off each case's behavior): music/CD control, forcing an
+ * actor's motion, setting or despawning an actor, camera cut/pose/pan,
+ * point effects (blood, screen fade), and subtitles. */
+enum
+{
+    CVA_CMD_MUSIC = 0,
+    CVA_CMD_MOTION = 2,
+    CVA_CMD_ACTOR = 3,
+    CVA_CMD_CAMERA_CUT = 4,
+    CVA_CMD_CAMERA_POSE = 5,
+    CVA_CMD_CAMERA_PAN = 6,
+    CVA_CMD_EFFECT = 7,
+    CVA_CMD_TELOP = 8
+};
+
 /* Stage uids, named from StageConfig's own title strings (retail data
  * @ 0x80011f18). StageNo is the reorderable campaign SLOT (0..7 via
  * StageOrder); these are the per-stage uid values the code compares. */

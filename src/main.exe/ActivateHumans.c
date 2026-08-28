@@ -122,6 +122,9 @@ void ActivateHumans(void)
         return;
     }
 
+    /* GPU-packet headroom: how many more humans may think this frame at
+     * a worst-case ~5000 packet bytes each, keeping PacketUsed under the
+     * 0xec78 reserve line (the Packet buffer itself spans 0x26728). */
     n = (0xec78 - PacketUsed) / 5000 - 1;
     ThinkBudgetRaw = n;
     if ((s16)n < 2)

@@ -112,12 +112,12 @@ s16 CVAupdate(void)
         {
             switch (cursor->mode)
             {
-            case 0:
+            case CVA_CMD_MUSIC:
                 if (CVAnow->p == invalid)
                     CdaStop();
                 break;
 
-            case 2:
+            case CVA_CMD_MOTION:
                 human = GetHumanoid(CVAnow->id);
                 if (human == 0)
                     return 0;
@@ -180,7 +180,7 @@ s16 CVAupdate(void)
                 }
                 break;
 
-            case 3:
+            case CVA_CMD_ACTOR:
                 human = GetHumanoid(CVAnow->id);
                 if (human == 0)
                     return 0;
@@ -189,7 +189,7 @@ s16 CVAupdate(void)
                 if ((s32)packed >> 16 == invalid)
                 {
                     human->life = invalid;
-                    human->attribute = (human->attribute | 0x82) & 0xFFFB;
+                    human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~4;
                     human->motion->mid = invalid;
                     SetNowMotion(human, 0, 1);
                     PlayMotion(human->motion, 1);
@@ -263,12 +263,12 @@ s16 CVAupdate(void)
                 }
                 break;
 
-            case 4:
+            case CVA_CMD_CAMERA_CUT:
                 AVCameraSetup();
                 CVAflag = 1;
                 break;
 
-            case 5:
+            case CVA_CMD_CAMERA_POSE:
                 if (CVAnow->id == 0)
                 {
                     ViewInfo.vrx = CVAnow->x * 100;
@@ -288,7 +288,7 @@ s16 CVAupdate(void)
                 GsSetRefView2(&ViewInfo);
                 break;
 
-            case 6:
+            case CVA_CMD_CAMERA_PAN:
                 CameraPanMode = (u16)CVAnow->id;
                 pan_value = 20;
                 if (CVAnow->p != 0)
@@ -296,7 +296,7 @@ s16 CVAupdate(void)
                 CameraSpeed = pan_value;
                 break;
 
-            case 7:
+            case CVA_CMD_EFFECT:
                 event = CVAnow;
                 vect.vx = event->x * 10;
                 vect.vy = event->y * 10;
@@ -306,14 +306,14 @@ s16 CVAupdate(void)
                 case 1:
                     SetBlood(&vect, event->p, 30);
                     break;
-                case 3:
+                case CVA_CMD_ACTOR:
                     set_fade_((u8)event->x, (u8)event->y,
                               (u8)event->z, event->p);
                     break;
                 }
                 break;
 
-            case 8:
+            case CVA_CMD_TELOP:
                 if (CVAnow->id != invalid)
                 {
                     SetupTelop((u8 *)strcpy((char *)TelopText,
