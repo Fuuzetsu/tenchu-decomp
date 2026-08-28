@@ -363,6 +363,10 @@ struct ObjectSlotManager
     s32 max;              /* 0x08 */
 }; /* 0x0C */
 
+/* One cell of the stage's 8x8x8 spatial hash (WorldMap):
+ * LoadConstruction buckets every ornament object into its cell's
+ * slot list, and DrawConstruction walks only the cells near the
+ * camera. */
 typedef struct WorldType WorldType;
 struct WorldType
 {
