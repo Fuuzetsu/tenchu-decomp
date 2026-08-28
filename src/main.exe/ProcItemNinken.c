@@ -349,7 +349,7 @@ void ProcItemNinken(TItem *item)
             return;
         }
         status = slave->status;
-        if (status == 0x10 || status == 8 || status == 7)
+        if (status == STAT_DAMAGE || status == STAT_STATE || status == STAT_ATTACK)
         {
             return;
         }

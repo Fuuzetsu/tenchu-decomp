@@ -161,7 +161,7 @@ s16 Think3attack(void)
         goto action_ready;
     }
 
-    if (StagePlayer->status == 14)
+    if (StagePlayer->status == STAT_SYURI)
     {
         s32 command;
         s32 random;

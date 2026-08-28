@@ -116,7 +116,7 @@ void UpdateEvent(short n, short id)
             }
             if (eTarget[n] != 0)
             {
-                if (!(eTarget[n]->status == 0x11 && eTarget[n]->motion->loop == -1))
+                if (!(eTarget[n]->status == STAT_DEAD && eTarget[n]->motion->loop == -1))
                 {
                     if (!((u16)(id - 2) < 2))
                     {

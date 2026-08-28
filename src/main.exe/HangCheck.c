@@ -203,7 +203,7 @@ short HangCheck(void)
         return 0;
     }
     dtL->vy = dtL->vy - (0x69 - y);
-    if (Me_MOTION_C->status == 0xA)
+    if (Me_MOTION_C->status == STAT_HANG)
     {
         return 1;
     }
