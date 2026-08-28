@@ -414,6 +414,12 @@ arc slots (the archive kept demo order), STAGE_CURE_PRINCESS in the
 score formula, and the consolation award's 0xFE-to-1 wraparound
 unlock. config/functions.main.exe.tsv resynced (203 stale names).
 
+Follow-up: push the loop 4-5 renames/types into the Ghidra program
+(tools/sync_to_ghidra.py + ImportToGhidra.java — it is now ~65
+commits behind: game_over_screen_, CamPos, EFFECT_CURSOR_,
+check_cheat_command_, is_humanoid_on_stage_, GsSortFixBg16,
+kernel_start_pad_, the new enums/defines).
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
