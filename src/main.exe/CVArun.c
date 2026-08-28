@@ -105,7 +105,7 @@ short CVArun(void)
     DrawTelop();
     draw_visible_characters_();
 
-    if (StageID == 10 && CHOSEN_CHARACTER == RIKIMARU_0)
+    if (StageID == STAGE_FREE_PRINCESS && CHOSEN_CHARACTER == RIKIMARU_0)
     {
         for (i = 0; i < 6; i++)
         {

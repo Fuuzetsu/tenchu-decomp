@@ -299,7 +299,7 @@ short LoadConstruction(u_long *data)
                 sprintf((char *)name, fmt_acm, wlddt[i].real.common.name);
                 DisposeAreaMap(GlobalAreaMap);
                 GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
-                if (StageID == 4)
+                if (StageID == STAGE_CHECKPOINT)
                 {
                     BalmaAreaMap = load_balma_area_map_(
                         PathFileRead(ImagePath, (u8 *)path_balmer_acm));

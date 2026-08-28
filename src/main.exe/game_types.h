@@ -735,6 +735,24 @@ struct StageCharType
     TThinkType think; /* 0x0C */
 }; /* 0x0E */
 
+/* Stage uids, named from StageConfig's own title strings (retail data
+ * @ 0x80011f18). StageNo is the reorderable campaign SLOT (0..7 via
+ * StageOrder); these are the per-stage uid values the code compares. */
+enum
+{
+    STAGE_TRAINING = 0,
+    STAGE_EVIL_MERCHANT = 1,
+    STAGE_SECRET_MESSAGE = 2,
+    STAGE_CAPTIVE_NINJA = 3,
+    STAGE_CHECKPOINT = 4,
+    STAGE_CORRUPT_MINISTER = 5,
+    STAGE_MANJI_CULT = 6,
+    STAGE_PIRATES = 7,
+    STAGE_CURE_PRINCESS = 8,
+    STAGE_RECLAIM_CASTLE = 9,
+    STAGE_FREE_PRINCESS = 10
+};
+
 /* STAGE.C's stage metadata and starting transform. */
 typedef struct TStageConfig TStageConfig;
 struct TStageConfig

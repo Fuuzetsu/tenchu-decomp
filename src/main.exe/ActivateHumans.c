@@ -176,7 +176,7 @@ void ActivateHumans(void)
             active = initial_active;
             goto active_done;
         }
-        if (GameClock == 30 || StageID == 8)
+        if (GameClock == 30 || StageID == STAGE_CURE_PRINCESS)
         {
             goto set_active;
         }
@@ -242,7 +242,7 @@ void ActivateHumans(void)
                 ThinkCount++;
                 goto next_human;
             }
-            if (StageID != 8 && human->life >= 0 && GameClock != 30 &&
+            if (StageID != STAGE_CURE_PRINCESS && human->life >= 0 && GameClock != 30 &&
                 (ThinkCount >= ThinkBudget || distance <= 13000))
             {
                 goto next_human;

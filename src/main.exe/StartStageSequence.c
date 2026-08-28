@@ -261,7 +261,7 @@ void StartStageSequence(void)
     {
         if (StageID >= 4)
         {
-            if (StageID != 10)
+            if (StageID != STAGE_FREE_PRINCESS)
             {
                 goto init_stats;
             }

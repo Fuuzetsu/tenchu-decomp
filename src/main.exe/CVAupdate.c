@@ -320,7 +320,7 @@ s16 CVAupdate(void)
                                             (char *)CVAdata + CVAnow->id),
                                0);
                     CVAflag = 1;
-                    if (StageID != 10 || CHOSEN_CHARACTER != 0)
+                    if (StageID != STAGE_FREE_PRINCESS || CHOSEN_CHARACTER != 0)
                         break;
 
                     ch = TelopText[0];

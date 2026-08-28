@@ -113,7 +113,7 @@ void CVAsetup(void)
     TelopbgP.x3 = 0xA0;
     TelopbgP.x1 = 0xA0;
 
-    if (StageID == 10 && PSTATE->CharType == RIKIMARU_0)
+    if (StageID == STAGE_FREE_PRINCESS && PSTATE->CharType == RIKIMARU_0)
     {
         adr = FileRead((u8 *)path_anim_tanka_tpd);
         for (i = 0; i < 6; i++)

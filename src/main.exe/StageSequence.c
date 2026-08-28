@@ -284,7 +284,7 @@ s32 StageSequence(void)
                     goto run_event;
                 }
                 sid = ev->event;
-                if (sid == 0 && StageID == 8)
+                if (sid == 0 && StageID == STAGE_CURE_PRINCESS)
                 {
                     ScoreResult *score;
 
