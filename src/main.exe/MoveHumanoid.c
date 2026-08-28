@@ -62,8 +62,8 @@ void MoveHumanoid(Humanoid *human, short ordr, short side)
     si = side;
     if (io != 0 || side != 0)
     {
-        s = -rsin((int)human->rotate->vy);
-        c = -rcos((int)human->rotate->vy);
+        s = -rsin(human->rotate->vy);
+        c = -rcos(human->rotate->vy);
         if ((io & 0xff80) == 0x80)
         {
             o = ordr - 0x100;
