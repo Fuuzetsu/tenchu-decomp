@@ -91,6 +91,8 @@ void SetupAppearance(short mode, short stage)
         ((HumanDataType *)resource)[0].name = str_rikimaua;
         ((HumanDataType *)resource)[1].name =
             appearance != 0xff ? str_ayamea : str_ayames;
+        /* +0x1a = TLinkInfo.selItem[ITEM_ARMOUR]: wearing the armour
+         * consumes it from the mission loadout. */
         *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
         ARMOUR_EQUIPPED_ = -1;
     }
