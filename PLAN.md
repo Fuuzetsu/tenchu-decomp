@@ -394,6 +394,26 @@ must also update the NAME-KEYED maspsxGpExterns lists in
 shake/src/Build.hs. BattleType/WeaponType/AIDHumanType annotated from
 retail data (parry-stun's conflict-slot cross-index quirk documented).
 
+HUMANISING LOOP 5 (2026-08-28, continued self-iteration): the AI layer
+returns synthesized PAD words, so its literals are buttons — spelled
+across 15 files (scan turn PADLright, approach PADLup, Square attacks,
+the 0xA000 turn-only filter; byte-required negative spellings kept and
+cross-noted; cookbook rule added). ATTR_TRACE (bit 8, the patrol-route
+flag found via TracePoint's per-waypoint button overlay) COMPLETES the
+Humanoid.attribute map. Input archaeology finished: both hidden debug
+sequences and all seven pause/briefing combo streams decoded
+(newest-first storage; header = result code), CHEAT_QUIT/CHEAT_ARMOUR
+and CMD_LUNGE_BACK/CMD_FLIP named from their consumers. The humanoid
+skeleton's pinned part indices mapped at ModelArchiveType (head 2,
+ONININ pair 8/0xb, hands 0xd/0xe) and MotionManager.mask decoded as
+the per-bone animation mask. More vocabularies closed: WEP_KATAOKA
+(the boss's matchlock), PAGE_BOSS/CIVILIAN census, RANK_GRAND_MASTER,
+ITEM_LOCKED/ITEM_INFINITE stock markers both sides, MOT_ITEM sub-ids,
+LANG_ + item flavor labels from the debug menus, official MODEL_/ICON_
+arc slots (the archive kept demo order), STAGE_CURE_PRINCESS in the
+score formula, and the consolation award's 0xFE-to-1 wraparound
+unlock. config/functions.main.exe.tsv resynced (203 stale names).
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
