@@ -76,12 +76,12 @@ void ActSTATE(void)
                 kind = Me_MOTION_C->wpatk;
                 switch (kind)
                 {
-                case 2:
+                case WEP_ONININ:
                     DeleteConflict(Me_MOTION_C->model->object[8]);
                     DeleteConflict(Me_MOTION_C->model->object[0xb]);
                     cleanup_guard = 3;
                     break;
-                case 3:
+                case WEP_BEAST:
                     DeleteConflict(Me_MOTION_C->model->object[2]);
                     cleanup_guard = 3;
                     break;
@@ -193,12 +193,12 @@ void ActSTATE(void)
                 kind = Me_MOTION_C->wpatk;
                 switch (kind)
                 {
-                case 2:
+                case WEP_ONININ:
                     DeleteConflict(Me_MOTION_C->model->object[8]);
                     DeleteConflict(Me_MOTION_C->model->object[0xb]);
                     cleanup_guard = 3;
                     break;
-                case 3:
+                case WEP_BEAST:
                     DeleteConflict(Me_MOTION_C->model->object[2]);
                     cleanup_guard = 3;
                     break;

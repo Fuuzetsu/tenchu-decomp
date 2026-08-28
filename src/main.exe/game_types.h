@@ -677,6 +677,23 @@ struct WeaponModelType
 }; /* 0x0C */
 
 /* APPEAR.C's character database row. */
+/* Weapon kinds (HumanDataType.wepid, copied into Humanoid.wpatk by
+ * SetupWeapon). The high nibble is the RANGE CLASS the think layer
+ * extracts with `wpatk >> 4` to pick the Attack* controller (0 short /
+ * 1 general / 2 long / 3 indirect-ranged: every *_YUMI archer is 0x32).
+ * Named here are only the kinds game code compares against, read off
+ * the retail HumanData roster (which carries each wielder's name):
+ * WEP_NONE — civilians and Princess Kiku; WEP_ONININ — the great-ninja
+ * twins (two blade slots, model objects 8/0xb); WEP_BEAST — rat/cat/dog
+ * (the jaw conflict, model object 2); WEP_MEIOU — the final boss;
+ * WEP_TWIN_KATANA — the two-sword bosses HANBE and TUZI, whose Act
+ * handlers swap weapon[0] with the [2]/[3] sheath slots mid-combo. */
+#define WEP_NONE 0
+#define WEP_ONININ 2
+#define WEP_BEAST 3
+#define WEP_MEIOU 0x29
+#define WEP_TWIN_KATANA 0x2a
+
 typedef struct HumanDataType HumanDataType;
 struct HumanDataType
 {

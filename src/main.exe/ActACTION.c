@@ -116,11 +116,11 @@ void ActACTION(void)
             kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
-            case 2:
+            case WEP_ONININ:
                 DeleteConflict(Me_MOTION_C->model->object[8]);
                 model = Me_MOTION_C->model->object[0xb];
                 break;
-            case 3:
+            case WEP_BEAST:
                 model = Me_MOTION_C->model->object[2];
                 break;
             case 0:
@@ -154,7 +154,7 @@ void ActACTION(void)
                 motion->mask = 0x7fff;
             } while (0);
             weapon = human->weapon;
-            if (human->wpatk == 0x2a && weapon[3] != 0)
+            if (human->wpatk == WEP_TWIN_KATANA && weapon[3] != 0)
             {
                 weapon[2] = human->weapon[0];
                 human->weapon[0] = weapon[3];

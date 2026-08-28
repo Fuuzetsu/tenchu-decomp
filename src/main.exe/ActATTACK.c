@@ -329,7 +329,7 @@ dispatch:
         OrnamentType **weapon;
 
         t = Me_MOTION_C->wpatk;
-        if (t == 0x2a)
+        if (t == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x34)
@@ -350,7 +350,7 @@ dispatch:
                 Sound(Me_MOTION_C, 0);
             }
         }
-        else if (t == 0x29)
+        else if (t == WEP_MEIOU)
         {
             handle_char_state_attacking_SEVEN_(0xd);
         }
@@ -380,7 +380,7 @@ dispatch:
         break;
     }
     case 4:
-        if (Me_MOTION_C->wpatk == 0x29)
+        if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
             handle_char_state_attacking_SEVEN_(0xd);
         }
@@ -409,7 +409,7 @@ dispatch:
         }
         break;
     case 5:
-        if (Me_MOTION_C->wpatk == 0x29)
+        if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
             handle_char_state_attacking_SEVEN_(0xd);
         }
@@ -418,7 +418,7 @@ dispatch:
     {
         OrnamentType **weapon;
 
-        if (Me_MOTION_C->wpatk == 0x2a)
+        if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x34)
@@ -475,7 +475,7 @@ dispatch:
     {
         OrnamentType **weapon;
 
-        if (Me_MOTION_C->wpatk == 0x2a)
+        if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
         {
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x2b)
@@ -608,12 +608,12 @@ dispatch:
             kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
-            case 2:
+            case WEP_ONININ:
                 DeleteConflict(Me_MOTION_C->model->object[8]);
                 DeleteConflict(Me_MOTION_C->model->object[0xb]);
                 cleanup_guard = 3;
                 break;
-            case 3:
+            case WEP_BEAST:
                 DeleteConflict(Me_MOTION_C->model->object[2]);
                 cleanup_guard = 3;
                 break;
@@ -661,12 +661,12 @@ dispatch:
             kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
-            case 2:
+            case WEP_ONININ:
                 DeleteConflict(Me_MOTION_C->model->object[8]);
                 DeleteConflict(Me_MOTION_C->model->object[0xb]);
                 cleanup_guard = 3;
                 break;
-            case 3:
+            case WEP_BEAST:
                 DeleteConflict(Me_MOTION_C->model->object[2]);
                 cleanup_guard = 3;
                 break;
@@ -797,16 +797,16 @@ dispatch:
         kind = Me_MOTION_C->wpatk;
         switch (kind)
         {
-        case 2:
+        case WEP_ONININ:
             DeleteConflict(Me_MOTION_C->model->object[8]);
             DeleteConflict(Me_MOTION_C->model->object[0xb]);
             cleanup_guard = 3;
             break;
-        case 3:
+        case WEP_BEAST:
             DeleteConflict(Me_MOTION_C->model->object[2]);
             cleanup_guard = 3;
             break;
-        case 0:
+        case WEP_NONE:
             cleanup_guard = 3;
             break;
         default:
@@ -869,11 +869,11 @@ dispatch:
         hand_kind = Me_MOTION_C->wpatk;
         switch (hand_kind)
         {
-        case 3:
+        case WEP_BEAST:
             hand[0] = object[2];
             hand[1] = object[1];
             break;
-        case 2:
+        case WEP_ONININ:
             hand[0] = object[8];
             hand[1] = object[0xb];
             break;
@@ -929,7 +929,7 @@ dispatch:
             kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
-            case 2:
+            case WEP_ONININ:
                 DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);
                 /* The value-typed cast is load-bearing, but NOT as an indirect
                  * call (retail emits a plain jal here — an earlier note claimed
@@ -942,7 +942,7 @@ dispatch:
                  * DeleteConflict();` is a conflicting-types error. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[0xb]);
                 break;
-            case 3:
+            case WEP_BEAST:
                 DeleteConflict(Me_MOTION_C->model->object[2], hand_kind);
                 break;
             case 0:
