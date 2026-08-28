@@ -52,6 +52,11 @@
  *    introduces one extra load.
  *  - The separate SImode result carrier keeps the three status-7 edges joined
  *    at one shared sign-extension tail without narrowing either copy.
+ *  - The `goto return_pad` ladder is byte-required, not scaffold: spelling
+ *    every site as `return pad;` (letting cross-jump re-merge the tails)
+ *    was measured 12 bytes SHORT with ~29 scattered scheduling diffs —
+ *    each goto must stay a plain `j` to one tail, and the label's single
+ *    basic block anchors the delay-slot fills around it.
  */
 
 extern Humanoid *Me_THINK_C;
