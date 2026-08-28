@@ -98,12 +98,12 @@ void DrawShadow(Humanoid *human)
 
     if (human->map.level < position->vy || human->map.level == (s32)0x80000000)
     {
-        human->map.attrib |= 8;
+        human->map.attrib |= MAP_WOOD; /* airborne overload */
     }
     position->vy = human->map.level;
     attribute = human->map.attrib;
 
-    if (attribute & 8)
+    if (attribute & MAP_WOOD)
     {
         s32 vector_xy;
 

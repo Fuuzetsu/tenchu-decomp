@@ -202,15 +202,20 @@ struct AreaNodeType
  *   MAP_SLOPE_X 0x4000 / MAP_SLOPE_Z 0x8000 — the node's dy interpolates
  *                        along x resp. z (camera_terrain_pitch_;
  *                        StickonCheck rejects wall-stick on slopes)
- * Bits 1/2/8/0x2000 are observed but not yet confidently nameable:
- * 2 clamps vy upward with height forced to 1 (buoyancy-ish), 8 is a
- * floor-material flag (ActCHASE picks footstep sound 0x14 over 0x12 on
- * it) that DrawShadow additionally overloads as an airborne marker
- * (set when map.level is above the model or missing, suppressing the
- * ground shadow), 0x2000 gates a GetAreaMapLevel path. Naming them
- * needs runtime observation of which floor materials carry which
- * bits. */
+ *   MAP_WOOD    0x0008 — wooden planking, identified from the stage ACM
+ *                        data itself (data.vol): the training stage's one
+ *                        pond-deck node and CAVE2's 17 mine walkways carry
+ *                        it, and ActCHASE switches to the hollow footstep
+ *                        (sound 0x14) on it. DrawShadow overloads the same
+ *                        bit on the humanoid's map COPY as an airborne
+ *                        marker (level above the model → no ground shadow)
+ * Bits 1/2 are the two base ground materials in the ACM data (bit 1
+ * dominant everywhere, bit 2 clustered in the caves — no code reader
+ * found), 2-as-map->attrib also drives the buoyancy clamp, and 0x2000
+ * (on most floor nodes, co-occurring with the slope bits) gates a
+ * GetAreaMapLevel path — both left unnamed. */
 #define MAP_WATER 0x0004
+#define MAP_WOOD 0x0008
 #define MAP_DEATH 0x0200
 #define MAP_SLOPE_X 0x4000
 #define MAP_SLOPE_Z 0x8000
