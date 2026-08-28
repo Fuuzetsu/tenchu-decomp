@@ -52,6 +52,15 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
                 if ((u16)entry[1] == outer_end)
                     goto matched;
 
+                /* Identical arms, and byte-required (measured both ways):
+                 * the CONDITIONAL assignment survives loop.c's invariant
+                 * motion, so inner_end's `li 0xffff` re-materializes inside
+                 * the outer loop exactly where retail has it; jump threading
+                 * later folds the branch and the dead [1] read away. A plain
+                 * assignment gets hoisted (12B off), and literal 0xffff
+                 * comparisons let cse unify the two end-marker constants
+                 * into ONE register where retail keeps two (t3 outer, t1
+                 * inner). No demo homolog exists to consult. */
                 if (RECENTLY_PRESSED_BUTTONS[1] != 0)
                     inner_end = 0xffff;
                 else
