@@ -1149,7 +1149,7 @@ enum TItemType
     ITEM_HENSHIN = 0x0b,
     ITEM_GOSIN = 0x0c,
     ITEM_SHINSOKU = 0x0d,
-    ITEM_NINGYO = 0x0e,
+    ITEM_NINGYO = 0x0e, /* debug menu: "rikimarukochan" */
     ITEM_HAPPOU = 0x0f,
     ITEM_NINKEN = 0x10,
     ITEM_KAENGEKI = 0x11,
@@ -1159,7 +1159,7 @@ enum TItemType
     ITEM_ARROW = 0x15,
     ITEM_NAPALM = 0x16,
     ITEM_LIGHTNINGBOLT = 0x17,
-    ITEM_TELEPORT = 0x18,
+    ITEM_TELEPORT = 0x18, /* debug menu: "the world" */
     /* Kind count — and retail reuses the item[ITEM_N] inventory slot as
      * the aimed-projectile flag (ProcKaginawa's hook flag; item.h sizes
      * Humanoid.item[] to 0x1A to cover it). The demo enum had a dedicated
@@ -1185,6 +1185,16 @@ enum TItemType
 // original roles.
 // The 0x80010000 instance keeps splat's descriptive symbol name
 // PersistentState — the demo names only the type, not the retail instance.
+/* Language ids (TLinkInfo.language) — values and names from the game's
+ * own debug language menu (DEBUG_MENU_LANGUAGE_CHOICES). */
+enum
+{
+    LANG_ENGLISH = 0,
+    LANG_FRENCH = 1,
+    LANG_ITALIAN = 2,
+    LANG_JAPANESE = 3
+};
+
 // Offsets proven by BriefingAndInventorySelectionScreen.
 // Splat also names some fields as standalone globals (CHOSEN_CHARACTER = +4,
 // CHOSEN_STAGE = +5, STAGE_LAYOUT_NUMBER = +6, CHOSEN_LANGUAGE = +0x5E,

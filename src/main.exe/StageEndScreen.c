@@ -226,7 +226,7 @@ void StageEndScreen(void)
 
         state = PSTATE;
         state->mission_flags |= 1 << (item_index - 1);
-        if (state->StageNo == 7 && state->language == 0)
+        if (state->StageNo == 7 && state->language == LANG_ENGLISH)
         {
             state->mission_flags |= 0x400;
         }
@@ -289,7 +289,7 @@ void StageEndScreen(void)
         } while (0);
         if (((TLinkInfo *)best_x)->StageNo == 7)
         {
-            if (((TLinkInfo *)best_x)->language == 0)
+            if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)
             {
                 ((TLinkInfo *)best_x)->mission_flags |= 0x400;
             }
