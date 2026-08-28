@@ -64,6 +64,10 @@ s32 update_card_message_(s16 *state, u16 *message)
         break;
 
     case 4:
+        /* The two-stage card_status dispatch (pre-tests ==2/>=3 feeding two
+         * tiny switches) is source, not a rendered decision tree: a single
+         * switch over {1,2,4,default} would emit ONE default body, but
+         * retail carries TWO separate next_state = 0x28 stores. */
         card_status = ChkCard();
         if (card_status == 2)
         {

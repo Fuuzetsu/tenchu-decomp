@@ -352,12 +352,14 @@ resolve_hit:
                 {
                     dmg = 0x1e;
                 }
-            set_damage_20:
+                /* fall through */
+            case ITEM_GUN:
                 if ((short)dmg == 0)
                 {
                     dmg = 0x14;
                 }
-            set_damage_10:
+                /* fall through */
+            case ITEM_ARROW:
                 if ((short)dmg == 0)
                 {
                     dmg = 10;
@@ -375,10 +377,6 @@ resolve_hit:
                 motMODE = 1;
                 SetBlood(&p, 5, 0x5a);
                 break;
-            case ITEM_GUN:
-                goto set_damage_20;
-            case ITEM_ARROW:
-                goto set_damage_10;
             case ITEM_NAPALM:
                 dmg = 0x19;
                 if ((rand() & 1) == 0)
