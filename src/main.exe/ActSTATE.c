@@ -381,7 +381,10 @@ void ActSTATE(void)
             }
             if (Me_MOTION_C == StagePlayer)
             {
-                ((s16 (*)(s32))SetCameraMode)(0);
+                /* The cast is load-bearing: calling through a cast function
+                 * type makes cc1 emit the retail indirect call (lui/addiu +
+                 * jalr, +8 bytes vs a plain jal). */
+                ((s16 (*)(s32))SetCameraMode)(CMODE_NORMAL);
             }
             {
                 s32 positive_motion_id;

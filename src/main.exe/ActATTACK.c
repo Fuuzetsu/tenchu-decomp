@@ -931,6 +931,9 @@ dispatch:
             {
             case 2:
                 DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);
+                /* The cast is load-bearing: calling through a cast function
+                 * type makes cc1 emit the retail indirect call (lui/addiu +
+                 * jalr, +8 bytes vs a plain jal). */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[0xb]);
                 break;
             case 3:
