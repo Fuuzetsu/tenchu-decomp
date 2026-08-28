@@ -61,7 +61,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     {
         idx = idx + 1;
         slot = slot + 1;
-        if (199 < idx)
+        if (idx > 199)
         {
             slot = base;
             idx = 0;

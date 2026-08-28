@@ -108,7 +108,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         {
             idx = idx + 1;
             slot = slot + 1;
-            if (199 < idx)
+            if (idx > 199)
             {
                 slot = base;
                 idx = 0;

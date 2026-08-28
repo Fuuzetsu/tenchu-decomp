@@ -316,7 +316,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         i = 0;
         while (1)
         {
-            if (!(i < 5))
+            if (i >= 5)
                 break;
             i++;
             param.end.vx = ((VECTOR *)&work)->vx + rand() % D - D2;
@@ -343,7 +343,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             do
             {
                 ic++;
-                if (0x1d < ic)
+                if (ic > 0x1d)
                     ic = 0;
                 cur = items + ic;
                 if (cur->proc == 0)
@@ -745,7 +745,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         do
         {
             ic++;
-            if (0x1d < ic)
+            if (ic > 0x1d)
                 ic = 0;
             z = ic * sizeof(*items);
             cur = (TItem *)(z + sz);
@@ -834,7 +834,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         do
         {
             ic++;
-            if (0x1d < ic)
+            if (ic > 0x1d)
                 ic = 0;
             cur = items + ic;
             if (cur->proc == 0)
@@ -954,7 +954,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         do
         {
             ic++;
-            if (0x1d < ic)
+            if (ic > 0x1d)
                 ic = 0;
             cur = items + ic;
             if (cur->proc == 0)

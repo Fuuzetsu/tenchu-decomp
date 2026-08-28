@@ -105,7 +105,7 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
 loop:
     idx = idx + 1;
     slot = slot + 1;
-    if (199 < idx)
+    if (idx > 199)
     {
         slot = base;
         idx = 0;
@@ -121,7 +121,7 @@ loop:
         goto found;
     }
     count = count + 1;
-    if (199 < count)
+    if (count > 199)
     {
         ef = &dmy;
         goto found;
@@ -178,7 +178,7 @@ found:
     tscr->vx = vx;
     tscr->vy = vy;
     ef->proc = (void (*)())UpdateTexScroll;
-    if (0x200 < TexScrollY)
+    if (TexScrollY > 0x200)
     {
         TexScrollY = 0x100;
         TexScrollX = TexScrollX + 0x40;

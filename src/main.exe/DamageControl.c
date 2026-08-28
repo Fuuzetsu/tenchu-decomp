@@ -521,7 +521,7 @@ resolve_hit:
                 }
                 p = *dtL;
                 p.vy = p.vy - 1000;
-                if (GetAreaMapPassage(GlobalAreaMap, &p, &dir, t) != (VECTOR *)0x0)
+                if (GetAreaMapPassage(GlobalAreaMap, &p, &dir, t) != 0)
                 {
                     return;
                 }
@@ -708,7 +708,7 @@ resolve_hit:
                     dmg = ((short)dmg * 7) / 10;
                 }
                 deg = (short)dmg >> 3;
-                if (3 < deg)
+                if (deg > 3)
                 {
                     deg = 3;
                 }
@@ -787,7 +787,7 @@ resolve_hit:
                     {
                         ad = -ad;
                     }
-                    if (0x400 < ad)
+                    if (ad > 0x400)
                     {
                         deg = deg + 4;
                     }
@@ -825,7 +825,7 @@ resolve_hit:
                     {
                         ad = -ad;
                     }
-                    if (0x400 < ad)
+                    if (ad > 0x400)
                     {
                         deg = deg + 4;
                     }

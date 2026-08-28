@@ -77,7 +77,7 @@ void RestoreItemLayout(void *buf)
     i = 0;
     it = items;
 loop1:
-    if (!(i < 0x1e))
+    if (i >= 0x1e)
         goto loop1_end;
     if (it->proc != 0)
     {
@@ -101,7 +101,7 @@ loop1_end:
     sentinel = -0x80000000;
     slot = buf;
 loop2:
-    if (!(j < 0x1e))
+    if (j >= 0x1e)
         return;
     if (slot->type != -1)
     {

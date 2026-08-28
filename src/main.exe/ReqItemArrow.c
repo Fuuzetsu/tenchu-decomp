@@ -111,7 +111,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     do
     {
         ic++;
-        if (0x1d < ic)
+        if (ic > 0x1d)
             ic = 0;
         slot = items + ic;
         if (slot->proc == 0)

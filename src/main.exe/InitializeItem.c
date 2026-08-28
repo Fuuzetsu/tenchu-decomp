@@ -86,7 +86,7 @@ void InitializeItem(void)
     sprite = TargetSprite;
     while (1)
     {
-        if (!(i < 1))
+        if (i >= 1)
             break;
         image = GetImage(IMG_SIGHT);
         InitSprite(image, sprite);

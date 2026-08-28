@@ -76,7 +76,7 @@ void ProcMiscSprite(TMisc *m, TMiscMessage msg)
 
 do_create:
     type = m->param.init.a;
-    if (1 < type)
+    if (type > 1)
     {
         AdtMessageBox(msg_unknown_sprite_type);
         type = 0;

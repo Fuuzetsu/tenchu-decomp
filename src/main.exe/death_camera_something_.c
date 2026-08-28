@@ -51,7 +51,7 @@ void death_camera_something_(Humanoid *human)
 
     timer = human->chase[0] + 0x88;
     human->chase[0] = timer;
-    if (0x1000 < timer)
+    if (timer > 0x1000)
     {
         human->chase[0] = 0x1000;
     }

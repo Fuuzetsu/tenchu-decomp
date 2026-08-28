@@ -108,7 +108,7 @@ s16 Think1trace(void)
                 turn = self->turn;
                 abs_degree = degree;
             }
-            if (0 > degree)
+            if (degree < 0)
             {
                 abs_degree = -abs_degree;
             }

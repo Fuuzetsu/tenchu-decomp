@@ -140,7 +140,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
     i = 0;
     while (1)
     {
-        if (!(i < 8))
+        if (i >= 8)
             break;
         {
             s32 i;
@@ -149,7 +149,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
             do
             {
                 ic++;
-                if (0x1d < ic)
+                if (ic > 0x1d)
                     ic = 0;
                 slot = items + ic;
                 if (slot->proc == 0)

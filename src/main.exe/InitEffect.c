@@ -120,7 +120,7 @@ void InitEffect(void)
     i = 0;
     while (1)
     {
-        if (!(i < MaxFrames))
+        if (i >= MaxFrames)
             break;
         image = GetImage(pat[i]);
         InitSprite(image, &sprFrame[i]);
@@ -131,7 +131,7 @@ void InitEffect(void)
     i = 0;
     while (1)
     {
-        if (!(i < 5))
+        if (i >= 5)
             break;
         image = GetImage(Effect_img[i]);
         InitSprite(image, &sprImpact[i]);
@@ -150,7 +150,7 @@ void InitEffect(void)
         i = 0;
         while (1)
         {
-            if (!(i < 2))
+            if (i >= 2)
                 break;
             smoke_id = 6;
             do
@@ -173,7 +173,7 @@ void InitEffect(void)
         i = 0;
         while (1)
         {
-            if (!(i < 3))
+            if (i >= 3)
                 break;
             __builtin_memcpy(img, EffectImages, sizeof(img));
             image = GetImage(img[i]);

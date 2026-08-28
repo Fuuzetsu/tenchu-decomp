@@ -86,7 +86,7 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     t = step;
     while (1)
     {
-        if (!(t < 0x1000))
+        if (t >= 0x1000)
             break;
         rawx = dx * t;
         if (rawx < 0)

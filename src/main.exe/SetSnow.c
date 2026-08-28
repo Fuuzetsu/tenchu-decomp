@@ -48,7 +48,7 @@ void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
 loop:
     idx = idx + 1;
     slot = slot + 1;
-    if (199 < idx)
+    if (idx > 199)
     {
         slot = base;
         idx = 0;
@@ -64,7 +64,7 @@ loop:
         goto found;
     }
     count = count + 1;
-    if (199 < count)
+    if (count > 199)
     {
         ef = &dmy;
         goto found;

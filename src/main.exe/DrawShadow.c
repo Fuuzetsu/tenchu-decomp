@@ -141,7 +141,7 @@ void DrawShadow(Humanoid *human)
         loop:
             idx++;
             slot++;
-            if (199 < idx)
+            if (idx > 199)
             {
                 slot = base;
                 idx = 0;
@@ -157,7 +157,7 @@ void DrawShadow(Humanoid *human)
                 goto found;
             }
             count++;
-            if (199 < count)
+            if (count > 199)
             {
                 effect = &dmy;
                 goto found;

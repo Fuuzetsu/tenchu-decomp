@@ -72,7 +72,7 @@ static void UpdateItemState(void)
     conflicts = ConflictObject;
     item = items;
 loop:
-    if (!(i < 0x1e))
+    if (i >= 0x1e)
         goto done;
     {
         if (item->proc != 0)

@@ -310,7 +310,7 @@ void ProcItemNingyo(TItem *item)
                 Humanoid *human;
                 s32 len;
 
-                if (!(i < Humans))
+                if (i >= Humans)
                 {
                     break;
                 }
@@ -422,7 +422,7 @@ void ProcItemNingyo(TItem *item)
                 xbase = vx >> 3;
                 xrem = random_x % 20;
                 vy = 0;
-                if (-501 < ConflictDistance.vy)
+                if (ConflictDistance.vy > -501)
                 {
                     vy = -R;
                 }

@@ -89,7 +89,7 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
     do
     {
         ic++;
-        if (0x1d < ic)
+        if (ic > 0x1d)
             ic = 0;
         item = items + ic;
         if (item->proc == 0)

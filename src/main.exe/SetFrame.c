@@ -76,7 +76,7 @@ void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
 loop:
     idx = idx + 1;
     slot = slot + 1;
-    if (199 < idx)
+    if (idx > 199)
     {
         slot = base;
         idx = 0;
@@ -92,7 +92,7 @@ loop:
         goto found;
     }
     count = count + 1;
-    if (199 < count)
+    if (count > 199)
     {
         ef = &dmy;
         goto found;

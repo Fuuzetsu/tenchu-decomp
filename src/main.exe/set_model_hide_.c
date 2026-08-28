@@ -48,7 +48,7 @@ void set_model_hide_(Humanoid *human, s16 hide)
     s16 i;
 
     model = human->model;
-    if (0xc < model->n)
+    if (model->n > 0xc)
     {
         last = 0xc;
     }

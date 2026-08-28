@@ -318,7 +318,7 @@ void ProcItemHenshin(TItem *item)
 //       iVar12 = 0;
 //       (pMVar13->rotate).pad = DAT_800c0630;
 //       puVar6 = &DAT_800c0630;
-//       if (0 < pMVar13->n) {
+//       if (pMVar13->n > 0) {
 //         do {
 //           (pMVar13->object[iVar12]->object).tmd = *(ulong **)(puVar6 + 2);
 //           (pMVar13->object[iVar12]->locate).coord.t[0] = (int)(short)puVar6[4];
@@ -332,7 +332,7 @@ void ProcItemHenshin(TItem *item)
 //       if (item->owner->status == STAT_SQUAT) {
 //         NowReturnNormal(item->owner);
 //       }
-//       DAT_80097aec = (tag_TItem *)0x0;
+//       DAT_80097aec = 0;
 //       item->owner->itmctl = 0;
 //     }
 //     item->mode = '\0';
@@ -359,7 +359,7 @@ void ProcItemHenshin(TItem *item)
 //       local_40.end.vz = iVar12 % 200 + -100;
 //       ReqItemDrop(&local_40);
 //       ppuVar8 = item->proc;
-//       if (ppuVar8 == (undefined **)0x0) {
+//       if (ppuVar8 == 0) {
 //         return;
 //       }
 //       item->mode = 0xff;
@@ -377,26 +377,26 @@ void ProcItemHenshin(TItem *item)
 //     SetSmoke((VECTOR *)(pMVar13->locate).coord.t,(SVECTOR *)&local_40,10,6);
 //     ptVar4 = DAT_80097aec;
 //     ptVar5 = item;
-//     if ((DAT_80097aec != (tag_TItem *)0x0) &&
-//        (pppuVar1 = &DAT_80097aec->proc, ptVar5 = item, *pppuVar1 != (undefined **)0x0)) {
+//     if ((DAT_80097aec != 0) &&
+//        (pppuVar1 = &DAT_80097aec->proc, ptVar5 = item, *pppuVar1 != 0)) {
 //       DAT_80097aec->mode = 0xff;
 //       (*(code *)*pppuVar1)(ptVar4);
 //       DeleteConflict(ptVar4->locate);
 //       if (ptVar4->mode != 0) {
 //         AdtMessageBox("item dispose fail   id %d  mode %d",ptVar4->type,(uint)ptVar4->mode);
 //       }
-//       ptVar4->owner = (Humanoid *)0x0;
-//       ptVar4->proc = (undefined **)0x0;
+//       ptVar4->owner = 0;
+//       ptVar4->proc = 0;
 //       ptVar5 = item;
 //     }
 //   }
 //   else {
-//     if (1 < bVar2) {
+//     if (bVar2 > 1) {
 //       if (bVar2 == 2) {
 //         iVar12 = 0;
 //         (pMVar13->rotate).pad = DAT_800c06f0;
 //         puVar6 = &DAT_800c06f0;
-//         if (0 < pMVar13->n) {
+//         if (pMVar13->n > 0) {
 //           do {
 //             (pMVar13->object[iVar12]->object).tmd = *(ulong **)(puVar6 + 2);
 //             (pMVar13->object[iVar12]->locate).coord.t[0] = (int)(short)puVar6[4];
@@ -431,7 +431,7 @@ void ProcItemHenshin(TItem *item)
 //       local_40.user = DAT_80097af8;
 //       SetSmoke((VECTOR *)(pMVar13->locate).coord.t,(SVECTOR *)&local_40,10,6);
 //       ppuVar8 = item->proc;
-//       if (ppuVar8 == (undefined **)0x0) {
+//       if (ppuVar8 == 0) {
 //         return;
 //       }
 //       item->mode = 0xff;
@@ -441,8 +441,8 @@ void ProcItemHenshin(TItem *item)
 //       if (item->mode != 0) {
 //         AdtMessageBox("item dispose fail   id %d  mode %d",item->type,(uint)item->mode);
 //       }
-//       item->owner = (Humanoid *)0x0;
-//       item->proc = (undefined **)0x0;
+//       item->owner = 0;
+//       item->proc = 0;
 //       return;
 //     }
 //     if (bVar2 != 0) {

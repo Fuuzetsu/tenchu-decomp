@@ -76,7 +76,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
     {
         s32 t;
 
-        if (!(i < n))
+        if (i >= n)
         {
             break;
         }
@@ -96,7 +96,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
         j = 0;
         while (1)
         {
-            if (!(j < n))
+            if (j >= n)
             {
                 break;
             }

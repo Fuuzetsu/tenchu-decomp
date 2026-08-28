@@ -70,7 +70,7 @@ void ProcItemManebue(TItem *item)
 mode0:
     EmergencyNotice = 0;
     item->owner->itmctl = item->type;
-    SoundEx((VECTOR *)0x0, 0x43);
+    SoundEx(0, 0x43);
     param->count = 0x1e;
     item->mode = item->mode + 1;
     return;

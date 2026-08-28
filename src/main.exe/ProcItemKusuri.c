@@ -131,7 +131,7 @@ void ProcItemKusuri(TItem *item)
             ModelArchiveType *arc;
 
             arc = item->owner->model;
-            if (0xe < arc->n)
+            if (arc->n > 0xe)
                 item->locate->locate.super = &arc->object[0xe]->locate;
             else
                 item->locate->locate.super = &arc->object[2]->locate;
@@ -206,7 +206,7 @@ void ProcItemKusuri(TItem *item)
         item->owner->life = item->owner->lifemax;
         while (1)
         {
-            if (!(i < 0x14))
+            if (i >= 0x14)
                 break;
             memset(&scratch.bleed.build.pos_build, 0,
                    sizeof(scratch.bleed.build.pos_build));

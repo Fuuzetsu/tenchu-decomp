@@ -102,7 +102,7 @@ Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
     human->life = life;
 
     idx = -1;
-    if (1 < (u16)type)
+    if ((u16)type > 1)
     {
         idtbl = StageAppearance[NowStage];
         idx = 0;

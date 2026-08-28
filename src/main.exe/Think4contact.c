@@ -58,7 +58,7 @@ s16 Think4contact(void)
 
     if (Me_THINK_C->chase[0] == 0 && Me_THINK_C->chase[1] == 0)
     {
-        if (0x5B <= Me_THINK_C->actcnt)
+        if (Me_THINK_C->actcnt >= 0x5B)
         {
             return Think4abandon();
         }

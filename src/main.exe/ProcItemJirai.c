@@ -252,7 +252,7 @@ void ProcItemJirai(TItem *item)
                     ModelType **objects;
                     ModelType *frame_model;
 
-                    if (!(i < 10))
+                    if (i >= 10)
                     {
                         break;
                     }

@@ -56,7 +56,7 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
 loop:
     idx = idx + 1;
     slot = slot + 1;
-    if (199 < idx)
+    if (idx > 199)
     {
         slot = base;
         idx = 0;
@@ -72,7 +72,7 @@ loop:
         ef = slot;
         goto found;
     }
-    if (199 < i)
+    if (i > 199)
     {
         ef = &dmy;
         goto found;

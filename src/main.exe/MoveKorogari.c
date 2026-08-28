@@ -184,7 +184,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
 //     (item->locate->locate).coord.t[1] = (item->locate->locate).coord.t[1] - (int)param->vy;
 //     (item->locate->locate).coord.t[2] = (item->locate->locate).coord.t[2] - (int)param->vz;
 //     GetAreaMapVector((MapVector *)GlobalAreaMap,&local_30,(long)(item->locate->locate).coord.t);
-//     if (param->hint == (AreaNodeType *)0x0) {
+//     if (param->hint == 0) {
 //       pMVar2 = item->locate;
 //       lVar3 = CGetLevel(&param->hint,(pMVar2->locate).coord.t[0],(pMVar2->locate).coord.t[1],
 //                         (pMVar2->locate).coord.t[2]);
@@ -257,7 +257,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
 //       param->vx = (short)iVar4 + (short)(iVar4 / 0x14) * -0x14 + -10;
 //       iVar4 = rand();
 //       param->vz = (short)iVar4 + (short)(iVar4 / 0x14) * -0x14 + -10;
-//       if (0x14 < param->vy) {
+//       if (param->vy > 0x14) {
 //         local_18 = DAT_80097ad0;
 //         local_14 = DAT_80097ad4;
 //         SetSplash((VECTOR *)(item->locate->locate).coord.t,0x2000,0x2000,4);

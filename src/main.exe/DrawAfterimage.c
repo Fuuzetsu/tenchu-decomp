@@ -166,7 +166,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
     i = 1;
     while (1)
     {
-        if (!(i < afi->n))
+        if (i >= afi->n)
         {
             break;
         }

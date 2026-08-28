@@ -113,7 +113,7 @@ void SetBlood(VECTOR *pos, short n, short time)
     base = EffectSlot;
     i = 0;
 outer:
-    if (!(i < n))
+    if (i >= n)
     {
         goto end;
     }
@@ -125,7 +125,7 @@ outer:
         {
             idx = idx + 1;
             slot = slot + 1;
-            if (199 < idx)
+            if (idx > 199)
             {
                 slot = base;
                 idx = 0;

@@ -328,7 +328,7 @@ void DrawGore(TEffectSlot *ef)
         {
             cursor++;
             slot++;
-            if (199 < cursor)
+            if (cursor > 199)
             {
                 slot = base;
                 cursor = 0;
@@ -338,7 +338,7 @@ void DrawGore(TEffectSlot *ef)
             {
                 CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = cursor + 1;
                 bleed = &slot->param.bleed;
-                if (199 < CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_)
+                if (CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ > 199)
                 {
                     CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
                 }

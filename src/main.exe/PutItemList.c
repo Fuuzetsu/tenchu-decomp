@@ -114,7 +114,7 @@ void PutItemList(void)
     {
         u32 s;
 
-        if (!(i < 0x19))
+        if (i >= 0x19)
             break;
 
         s = CamState.Owner->item[i];

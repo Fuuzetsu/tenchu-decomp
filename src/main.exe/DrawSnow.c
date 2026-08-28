@@ -62,7 +62,7 @@ void DrawSnow(TEffectSlot *effect)
 
     delta_y = y - view_y;
     delta = x - view_x;
-    if (3000 < (s32)delta_y)
+    if ((s32)delta_y > 3000)
     {
         state = 1;
         offset = delta_y % 6000 - 3000;
@@ -101,7 +101,7 @@ void DrawSnow(TEffectSlot *effect)
     size = particle->size;
     GetScreenPosition(x, y, z, &screen);
     depth = screen.vz;
-    if (0x24 < depth)
+    if (depth > 0x24)
     {
         scale = (s16)((size * 300) / depth) + 1;
         sprite->scaley = scale;

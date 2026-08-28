@@ -104,7 +104,7 @@ int ReqItemMakibishi(PARAM_ITEM_DROP *p)
     do
     {
         ic++;
-        if (0x1d < ic)
+        if (ic > 0x1d)
             ic = 0;
         slot = items + ic;
         if (slot->proc == 0)

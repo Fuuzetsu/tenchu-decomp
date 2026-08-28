@@ -77,7 +77,7 @@ void leLayoutEnemy(int mode)
     group = HumanGroup;
     while (1)
     {
-        if (!(1 < Humans))
+        if (1 >= Humans)
         {
             break;
         }
@@ -105,7 +105,7 @@ void leLayoutEnemy(int mode)
     {
         TEnemyLayout *en;
 
-        if (!(i < 30))
+        if (i >= 30)
         {
             break;
         }

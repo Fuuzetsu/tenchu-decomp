@@ -114,13 +114,13 @@ short SoundEx(VECTOR *locate, short seid)
     dx = locate->vx - pp->vx;
     dz = locate->vz - pp->vz;
     dist = SquareRoot0(dx * dx + dz * dz);
-    if (17999 < dist)
+    if (dist > 17999)
     {
         return -1;
     }
     raw = locate->vy - pp->vy;
     dy = (raw >= 0) ? raw : -raw;
-    if (9999 < dy)
+    if (dy > 9999)
     {
         return -1;
     }
@@ -140,7 +140,7 @@ short SoundEx(VECTOR *locate, short seid)
         {
             angle -= CamState.DirectionRY;
         }
-        if (0x800 < angle)
+        if (angle > 0x800)
         {
             angle = 0x1000 - angle;
         }

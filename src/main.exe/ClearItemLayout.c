@@ -42,7 +42,7 @@ void ClearItemLayout(void)
     i = 0;
     it = items;
 loop:
-    if (!(i < 0x1e))
+    if (i >= 0x1e)
         goto end;
     if (it->proc != 0)
     {

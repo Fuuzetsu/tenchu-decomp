@@ -132,7 +132,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         if (index == (NodeIndexType *)area)
             goto walked;
     down:
-        if (!(y2 < index->y))
+        if (y2 >= index->y)
             goto walked;
         index--;
         if (index != (NodeIndexType *)area)

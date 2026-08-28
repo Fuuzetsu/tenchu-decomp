@@ -269,7 +269,7 @@ degree_done:
 //   local_30.vz = pVVar2->vz;
 //   local_30.pad = pVVar2->pad;
 //   n = 1;
-//   if (human->target == (ModelType *)0x0) {
+//   if (human->target == 0) {
 //     return 0;
 //   }
 //   local_40 = (human->target->locate).coord.t[0] - local_30.vx;
@@ -296,7 +296,7 @@ degree_done:
 //   }
 //   uVar5 = (uint)((ushort)StagePlayer->status - 0xb < 2);
 //   if (StagePlayer->status == STAT_HANG) {
-//     if (-1 < iVar3) {
+//     if (iVar3 > -1) {
 //       return -2;
 //     }
 //     if ((iVar3 < -3000) && (*distance < 4000)) {
@@ -307,7 +307,7 @@ degree_done:
 //   if (iVar3 < 0) {
 //     iVar6 = -iVar3;
 //   }
-//   if (2999 < iVar6) {
+//   if (iVar6 > 2999) {
 //     if (EmergencyNotice == 0) {
 //       return -2;
 //     }
@@ -382,7 +382,7 @@ degree_done:
 //     local_20.vx = (short)local_40;
 //     local_20.vy = (short)local_3c;
 //     pVVar2 = GetAreaMapPassage(GlobalAreaMap,&local_30,&local_20,n);
-//     if (pVVar2 != (VECTOR *)0x0) {
+//     if (pVVar2 != 0) {
 //       return -2;
 //     }
 //     if (*distance < *(int *)((int)searchsight + uVar5 * 0xc + 4)) {

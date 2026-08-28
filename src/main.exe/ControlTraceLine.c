@@ -84,7 +84,7 @@ short ControlTraceLine(Humanoid *human)
         ang = ratan2(-dx, -dz);
         t = ang - roty;
         a0 = (s16)t;
-        if (0x801 <= a0)
+        if (a0 >= 0x801)
         {
             t = 0x1000 - t;
         }

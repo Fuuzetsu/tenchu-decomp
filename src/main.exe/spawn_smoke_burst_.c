@@ -62,7 +62,7 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
     base = EffectSlot;
 loop:
     searched = 0;
-    if (!(i < count))
+    if (i >= count)
     {
         return;
     }
@@ -72,7 +72,7 @@ loop:
     {
         idx = idx + 1;
         slot = slot + 1;
-        if (199 < idx)
+        if (idx > 199)
         {
             slot = base;
             idx = 0;

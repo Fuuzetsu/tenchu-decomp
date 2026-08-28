@@ -105,7 +105,7 @@ void ProcItemKawarimi(TItem *item)
         i = 0;
         while (1)
         {
-            if (!(i < 0x14))
+            if (i >= 0x14)
                 break;
             memset(&scratch.work.position, 0, sizeof(VECTOR));
             scratch.work.position.vx =

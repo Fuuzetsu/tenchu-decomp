@@ -249,7 +249,7 @@ void DoInfoViewProc(void)
             do
             {
                 i++;
-                if (0x19 < i)
+                if (i > 0x19)
                     i = 0;
             } while (CamState.Owner->item[i] == 0 && i != cur);
         }
@@ -261,7 +261,7 @@ void DoInfoViewProc(void)
         SoundEx(0, 0xB);
     }
 nosel:
-    if (10 < GameClock)
+    if (GameClock > 10)
     {
         PauseProc();
     }

@@ -167,7 +167,7 @@ void ActATTACK(void)
         battle = &BattleDB[warid];
         target = human->target;
     }
-    if (((target != (ModelType *)0x0) && (dtM->count < battle->revise)) && (dtM->count >= 0))
+    if (((target != 0) && (dtM->count < battle->revise)) && (dtM->count >= 0))
     {
         Humanoid *human;
         short turn;
@@ -206,19 +206,19 @@ dispatch:
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x2a)
             {
-                if (weapon[3] != (OrnamentType *)0x0)
+                if (weapon[3] != 0)
                 {
                     weapon[2] = weapon[0];
                     weapon[0] = weapon[3];
-                    weapon[3] = (OrnamentType *)0x0;
+                    weapon[3] = 0;
                     Sound(Me_MOTION_C, 1);
                 }
             }
-            else if ((dtM->count == 6) && (weapon[2] != (OrnamentType *)0x0))
+            else if ((dtM->count == 6) && (weapon[2] != 0))
             {
                 weapon[3] = weapon[0];
                 weapon[0] = weapon[2];
-                weapon[2] = (OrnamentType *)0x0;
+                weapon[2] = 0;
                 Sound(Me_MOTION_C, 0);
             }
             break;
@@ -334,19 +334,19 @@ dispatch:
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x34)
             {
-                if (weapon[3] != (OrnamentType *)0x0)
+                if (weapon[3] != 0)
                 {
                     weapon[2] = weapon[0];
                     weapon[0] = weapon[3];
-                    weapon[3] = (OrnamentType *)0x0;
+                    weapon[3] = 0;
                     Sound(Me_MOTION_C, 1);
                 }
             }
-            else if ((dtM->count == 1) && (weapon[2] != (OrnamentType *)0x0))
+            else if ((dtM->count == 1) && (weapon[2] != 0))
             {
                 weapon[3] = weapon[0];
                 weapon[0] = weapon[2];
-                weapon[2] = (OrnamentType *)0x0;
+                weapon[2] = 0;
                 Sound(Me_MOTION_C, 0);
             }
         }
@@ -423,19 +423,19 @@ dispatch:
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x34)
             {
-                if (weapon[3] != (OrnamentType *)0x0)
+                if (weapon[3] != 0)
                 {
                     weapon[2] = weapon[0];
                     weapon[0] = weapon[3];
-                    weapon[3] = (OrnamentType *)0x0;
+                    weapon[3] = 0;
                     Sound(Me_MOTION_C, 1);
                 }
             }
-            else if ((dtM->count == 0x10) && (weapon[2] != (OrnamentType *)0x0))
+            else if ((dtM->count == 0x10) && (weapon[2] != 0))
             {
                 weapon[3] = weapon[0];
                 weapon[0] = weapon[2];
-                weapon[2] = (OrnamentType *)0x0;
+                weapon[2] = 0;
                 Sound(Me_MOTION_C, 0);
             }
         }
@@ -480,19 +480,19 @@ dispatch:
             weapon = Me_MOTION_C->weapon;
             if (dtM->count == 0x2b)
             {
-                if (weapon[3] != (OrnamentType *)0x0)
+                if (weapon[3] != 0)
                 {
                     weapon[2] = weapon[0];
                     weapon[0] = weapon[3];
-                    weapon[3] = (OrnamentType *)0x0;
+                    weapon[3] = 0;
                     Sound(Me_MOTION_C, 1);
                 }
             }
-            else if ((dtM->count == 0xd) && (weapon[2] != (OrnamentType *)0x0))
+            else if ((dtM->count == 0xd) && (weapon[2] != 0))
             {
                 weapon[3] = weapon[0];
                 weapon[0] = weapon[2];
-                weapon[2] = (OrnamentType *)0x0;
+                weapon[2] = 0;
                 Sound(Me_MOTION_C, 0);
             }
         }
@@ -628,15 +628,15 @@ dispatch:
             }
             if ((cleanup_guard & 2) != 0)
             {
-                if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0)
+                if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
                 {
                     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = (void *)0x0;
+                    Me_MOTION_C->illusion[0] = 0;
                 }
-                if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0)
+                if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
                 {
                     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = (void *)0x0;
+                    Me_MOTION_C->illusion[1] = 0;
                 }
             }
             dtM->mask = 0x7fff;
@@ -681,15 +681,15 @@ dispatch:
             }
             if ((cleanup_guard & 2) != 0)
             {
-                if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0)
+                if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
                 {
                     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = (void *)0x0;
+                    Me_MOTION_C->illusion[0] = 0;
                 }
-                if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0)
+                if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
                 {
                     DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = (void *)0x0;
+                    Me_MOTION_C->illusion[1] = 0;
                 }
             }
             mmp = dtM;
@@ -817,15 +817,15 @@ dispatch:
         }
         if ((cleanup_guard & 2) != 0)
         {
-            if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0)
+            if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
             {
                 DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-                Me_MOTION_C->illusion[0] = (void *)0x0;
+                Me_MOTION_C->illusion[0] = 0;
             }
-            if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0)
+            if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
             {
                 DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-                Me_MOTION_C->illusion[1] = (void *)0x0;
+                Me_MOTION_C->illusion[1] = 0;
             }
         }
         motID = 0x501;
@@ -988,15 +988,15 @@ dispatch:
         {
             return;
         }
-        if ((AfterimageType *)Me_MOTION_C->illusion[0] != (AfterimageType *)0x0)
+        if ((AfterimageType *)Me_MOTION_C->illusion[0] != 0)
         {
             DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[0]);
-            Me_MOTION_C->illusion[0] = (void *)0x0;
+            Me_MOTION_C->illusion[0] = 0;
         }
-        if ((AfterimageType *)Me_MOTION_C->illusion[1] != (AfterimageType *)0x0)
+        if ((AfterimageType *)Me_MOTION_C->illusion[1] != 0)
         {
             DisposeAfterimage((AfterimageType *)Me_MOTION_C->illusion[1]);
-            Me_MOTION_C->illusion[1] = (void *)0x0;
+            Me_MOTION_C->illusion[1] = 0;
         }
         mmp = dtM;
     unmask:

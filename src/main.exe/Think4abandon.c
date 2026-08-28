@@ -144,7 +144,7 @@ s16 Think4abandon(void)
             return 0;
 
         sr_low:
-            if (0 <= SR)
+            if (SR >= 0)
             {
                 return 0;
             }

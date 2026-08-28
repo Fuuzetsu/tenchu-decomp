@@ -289,7 +289,7 @@ void ActSTATE(void)
                 return;
             }
             {
-                if (-0x15 < dtM->count)
+                if (dtM->count > -0x15)
                 {
                     if ((human->type & 0xf0) == PAGE_GUARD)
                     {

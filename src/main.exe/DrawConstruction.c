@@ -111,11 +111,11 @@ void DrawConstruction(void)
     if (SkipFrame == 1)
         return;
 
-    if (0 <= ViewInfo.vpx)
+    if (ViewInfo.vpx >= 0)
         nx = ViewInfo.vpx / 16000;
     else
         nx = ViewInfo.vpx / 16000 - 1;
-    if (0 <= ViewInfo.vpy)
+    if (ViewInfo.vpy >= 0)
         ny = ViewInfo.vpy / 16000;
     else
         ny = ViewInfo.vpy / 16000 - 1;

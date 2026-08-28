@@ -81,7 +81,7 @@ loop1:
 {
     int idx = i;
     s32 offset;
-    if (!(idx < mad->n))
+    if (idx >= mad->n)
         goto loop1_end;
     do
     {

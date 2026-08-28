@@ -291,7 +291,7 @@ short LoadConstruction(u_long *data)
         i = 0;
         while (1)
         {
-            if (!(i < n))
+            if (i >= n)
                 break;
             switch (wlddt[i].mode)
             {
@@ -419,7 +419,7 @@ short LoadConstruction(u_long *data)
 
         while (1)
         {
-            if (!(i < mma->n))
+            if (i >= mma->n)
                 break;
             parent = ix[i].np;
             mma->object[i]->locate.coord.t[0] *= 10;

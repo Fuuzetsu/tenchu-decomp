@@ -318,7 +318,7 @@ void ProcItemKaengeki(TItem *item)
 //     local_48.end.vz = iVar10 % 200 + -100;
 //     ReqItemDrop(&local_48);
 //     ppuVar7 = item->proc;
-//     if (ppuVar7 == (undefined **)0x0) {
+//     if (ppuVar7 == 0) {
 //       return;
 //     }
 //     item->mode = 0xff;
@@ -328,8 +328,8 @@ void ProcItemKaengeki(TItem *item)
 //     if (item->mode != 0) {
 //       AdtMessageBox("item dispose fail   id %d  mode %d",item->type,(uint)item->mode);
 //     }
-//     item->owner = (Humanoid *)0x0;
-//     item->proc = (undefined **)0x0;
+//     item->owner = 0;
+//     item->proc = 0;
 //     return;
 //   }
 //   if (bVar1 < 2) {
@@ -355,7 +355,7 @@ void ProcItemKaengeki(TItem *item)
 //      (uVar3 = (item->param).kaengeki.count + 0xff, (item->param).kaengeki.count = uVar3,
 //      uVar3 == '\0')) {
 //     ppuVar7 = item->proc;
-//     if (ppuVar7 == (undefined **)0x0) {
+//     if (ppuVar7 == 0) {
 //       return;
 //     }
 //     item->mode = 0xff;

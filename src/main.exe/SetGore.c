@@ -73,7 +73,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         {
             idx = idx + 1;
             slot = slot + 1;
-            if (199 < idx)
+            if (idx > 199)
             {
                 slot = base;
                 idx = 0;
@@ -137,7 +137,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         {
             idx = idx + 1;
             slot = slot + 1;
-            if (199 < idx)
+            if (idx > 199)
             {
                 slot = base;
                 idx = 0;

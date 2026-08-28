@@ -408,7 +408,7 @@ void ProcItemArrow(TItem *item)
 //             return;
 //           }
 //           ppuVar5 = item->proc;
-//           if (ppuVar5 == (undefined **)0x0) {
+//           if (ppuVar5 == 0) {
 //             return;
 //           }
 //           item->mode = 0xff;
@@ -418,8 +418,8 @@ void ProcItemArrow(TItem *item)
 //           if (item->mode != 0) {
 //             AdtMessageBox("item dispose fail   id %d  mode %d",item->type,(uint)item->mode);
 //           }
-//           item->owner = (Humanoid *)0x0;
-//           item->proc = (undefined **)0x0;
+//           item->owner = 0;
+//           item->proc = 0;
 //           return;
 //         }
 //       }
@@ -429,7 +429,7 @@ void ProcItemArrow(TItem *item)
 //         if (iVar4 != 0) {
 //           if ((ConflictObject[iVar9].size.pad & 1U) != 0) {
 //             ppuVar5 = item->proc;
-//             if (ppuVar5 == (undefined **)0x0) {
+//             if (ppuVar5 == 0) {
 //               return;
 //             }
 //             item->mode = 0xff;
@@ -480,7 +480,7 @@ void ProcItemArrow(TItem *item)
 //     (item->param).arrow.count = bVar7;
 //     if (uVar2 == '\x01') {
 //       ppuVar5 = item->proc;
-//       if (ppuVar5 == (undefined **)0x0) {
+//       if (ppuVar5 == 0) {
 //         return;
 //       }
 //       item->mode = 0xff;

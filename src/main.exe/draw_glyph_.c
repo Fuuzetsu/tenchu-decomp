@@ -74,11 +74,11 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
         c0 = 0x27;
     }
     t1 = c0;
-    if (0x1f < t1)
+    if (t1 > 0x1f)
     {
         t1 = t1 - 0x20;
     }
-    if (0xbf < c0)
+    if (c0 > 0xbf)
     {
         t1 = t1 - 0x40;
     }

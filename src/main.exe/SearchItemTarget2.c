@@ -139,7 +139,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
     i = 0;
     while (1)
     {
-        if (!(i < Humans))
+        if (i >= Humans)
             break;
         human = HumanGroup[i];
         tv = *GetAbsolutePosition(*human->model->object, 0, 0, 0);
@@ -151,7 +151,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
             lv.vz = lv.vz - start->vz;
             ApplyMatrixLV(&mat, &lv, &lv);
             lv.vz = -lv.vz;
-            if (100 < lv.vz)
+            if (lv.vz > 100)
             {
                 cond = 0;
                 if (abs(lv.vx) < 500)

@@ -174,7 +174,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         loop:
             idx = idx + 1;
             slot = slot + 1;
-            if (199 < idx)
+            if (idx > 199)
             {
                 slot = base;
                 idx = 0;
@@ -190,7 +190,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
                 goto found;
             }
             count = count + 1;
-            if (199 < count)
+            if (count > 199)
             {
                 ef = &dmy;
                 goto found;

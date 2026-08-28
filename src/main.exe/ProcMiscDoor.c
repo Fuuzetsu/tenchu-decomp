@@ -75,7 +75,7 @@ do_create:
 
     type = m->param.init.b;
     t = m->param.init.a;
-    if (10 < type)
+    if (type > 10)
     {
         AdtMessageBox(fmt_unknown_door_type, type);
         type = 0;

@@ -311,7 +311,7 @@ void BriefingAndInventorySelectionScreen(void)
                                 }
                                 ps->selItem[0x13] = 0xFF;
                                 (&ps->gItem[0x13])[ps->CharType * 0x20] = 0;
-                                SoundEx((VECTOR *)0x0, 8);
+                                SoundEx(0, 8);
                             }
                         } while (0);
                     } while (0);
@@ -406,7 +406,7 @@ void BriefingAndInventorySelectionScreen(void)
         }
         if ((np & 0xF000) != 0)
         {
-            SoundEx((VECTOR *)0x0, 0xB);
+            SoundEx(0, 0xB);
             help = -1;
         }
         if (np != 0)
@@ -437,18 +437,18 @@ void BriefingAndInventorySelectionScreen(void)
                                         taken++;
                                         (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
                                     }
-                                    SoundEx((VECTOR *)0x0, 0xD);
+                                    SoundEx(0, 0xD);
                                 }
                                 else
                                 {
-                                    SoundEx((VECTOR *)0x0, 0xC);
+                                    SoundEx(0, 0xC);
                                     help = 0x14;
                                     nsel--;
                                 }
                             }
                             else
                             {
-                                SoundEx((VECTOR *)0x0, 0xC);
+                                SoundEx(0, 0xC);
                                 help = 0x13;
                             }
                         }
@@ -480,7 +480,7 @@ void BriefingAndInventorySelectionScreen(void)
                             }
                         }
                         taken--;
-                        SoundEx((VECTOR *)0x0, 0x1F);
+                        SoundEx(0, 0x1F);
                     }
                 }
                 help = -1;
@@ -523,7 +523,7 @@ void BriefingAndInventorySelectionScreen(void)
                 t = scale + 0x10;
                 scale = t;
             } while (0);
-            if (0x1400 < (s16)t)
+            if ((s16)t > 0x1400)
             {
                 bounce ^= 1;
             }
