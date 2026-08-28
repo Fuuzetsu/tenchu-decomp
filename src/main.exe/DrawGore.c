@@ -322,7 +322,7 @@ void DrawGore(TEffectSlot *ef)
         *velocity = *temporary;
 
         base = EffectSlot;
-        cursor = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        cursor = EFFECT_CURSOR_;
         slot = base + cursor;
         searched = 0;
         do
@@ -337,11 +337,11 @@ void DrawGore(TEffectSlot *ef)
             searched++;
             if (slot->proc == 0)
             {
-                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = cursor + 1;
+                EFFECT_CURSOR_ = cursor + 1;
                 bleed = &slot->param.bleed;
-                if (CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ > 199)
+                if (EFFECT_CURSOR_ > 199)
                 {
-                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                    EFFECT_CURSOR_ = 0;
                 }
                 found = slot;
                 goto bleed_found;

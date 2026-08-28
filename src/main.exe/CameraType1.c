@@ -292,7 +292,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         return;
     default:
         MakeCameraPosition(&pos, &pl->model->rotate,
-                           &CAMERA_R1.r1, vDif);
+                           &CamPos.r1, vDif);
         return;
     }
 }

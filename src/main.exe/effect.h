@@ -229,7 +229,7 @@ typedef struct tag_EffectSlot /* size 76 */
 } TEffectSlot;
 
 extern TEffectSlot EffectSlot[200];
-extern int CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_; /* the pool's round-robin cursor */
+extern int EFFECT_CURSOR_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy;                                     /* pool-full fallback write target, discarded */
 /* Retail expands the demo's singleton blood sprites into four variants. */
 extern GsSPRITE sprBlood[4];

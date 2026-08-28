@@ -167,7 +167,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             BleedType *param;
             u8 r;
 
-            idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+            idx = EFFECT_CURSOR_;
             count = 0;
             base = EffectSlot;
             slot = base + idx;
@@ -181,10 +181,10 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             }
             if (slot->proc == 0)
             {
-                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                EFFECT_CURSOR_ = idx + 1;
                 if (199 < idx + 1)
                 {
-                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                    EFFECT_CURSOR_ = 0;
                 }
                 ef = slot;
                 goto found;

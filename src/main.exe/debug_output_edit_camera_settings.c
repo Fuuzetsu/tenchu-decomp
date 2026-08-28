@@ -24,12 +24,12 @@
  *    pointer lives in `$s3` across the four FntPrint calls.
  */
 
-extern u16 BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT;
-extern u16 BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT;
-extern s16 DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX;
-extern u8 *CAMERA_PTR_ARRAY_START;
-extern SVECTOR *CAMERA_POINTERS[4];
-extern char *CAMERA_PROPERTIES[4];
+extern u16 DEBUG_PAD_HELD_;
+extern u16 DEBUG_PAD_PRESS_;
+extern s16 DEBUG_CAMERA_INDEX_;
+extern u8 *DEBUG_CAMERA_BASE_;
+extern SVECTOR *DEBUG_CAMERA_SLOTS_[4];
+extern char *DEBUG_CAMERA_LABELS_[4];
 extern char fmt_camera_edit[];
 
 void debug_output_edit_camera_settings(s16 pad)
@@ -39,53 +39,53 @@ void debug_output_edit_camera_settings(s16 pad)
     s32 marker;
     s32 i;
 
-    BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT =
-        BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT;
-    BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT = pad;
-    BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT =
-        BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT &
-        (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT ^
-         BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT);
+    DEBUG_PAD_PRESS_ =
+        DEBUG_PAD_HELD_;
+    DEBUG_PAD_HELD_ = pad;
+    DEBUG_PAD_PRESS_ =
+        DEBUG_PAD_HELD_ &
+        (DEBUG_PAD_HELD_ ^
+         DEBUG_PAD_PRESS_);
 
-    if (BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT & 4)
+    if (DEBUG_PAD_PRESS_ & PADL1)
     {
-        DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX =
-            DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX + 1;
-        if (DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX >= 4)
+        DEBUG_CAMERA_INDEX_ =
+            DEBUG_CAMERA_INDEX_ + 1;
+        if (DEBUG_CAMERA_INDEX_ >= 4)
         {
-            DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX = 0;
+            DEBUG_CAMERA_INDEX_ = 0;
         }
     }
 
-    camera = CAMERA_POINTERS[DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX];
-    if (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 0x1000)
+    camera = DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_INDEX_];
+    if (DEBUG_PAD_HELD_ & PADLup)
     {
         camera->vz -= 0x32;
     }
-    if (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 0x4000)
+    if (DEBUG_PAD_HELD_ & PADLdown)
     {
         camera->vz += 0x32;
     }
-    if (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 0x10)
+    if (DEBUG_PAD_HELD_ & PADRup)
     {
         camera->vy -= 0x32;
     }
-    if (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 0x40)
+    if (DEBUG_PAD_HELD_ & PADRdown)
     {
         camera->vy += 0x32;
     }
-    if (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 0x80)
+    if (DEBUG_PAD_HELD_ & PADRleft)
     {
         camera->vx -= 0x32;
     }
-    if (BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 0x20)
+    if (DEBUG_PAD_HELD_ & PADRright)
     {
         camera->vx += 0x32;
     }
 
-    if ((BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT & 3) == 3)
+    if ((DEBUG_PAD_HELD_ & (PADL2 | PADR2)) == (PADL2 | PADR2))
     {
-        *(TCameraPos *)CAMERA_PTR_ARRAY_START = CamPosDefault;
+        *(TCameraPos *)DEBUG_CAMERA_BASE_ = CamPosDefault;
     }
 
     i = 0;
@@ -93,12 +93,12 @@ void debug_output_edit_camera_settings(s16 pad)
     for (; i < 4; i++)
     {
         marker = ' ';
-        if (DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX == i)
+        if (DEBUG_CAMERA_INDEX_ == i)
         {
             marker = '*';
         }
-        FntPrint(format, marker, CAMERA_PROPERTIES[i],
-                 CAMERA_POINTERS[i]->vx, CAMERA_POINTERS[i]->vy,
-                 CAMERA_POINTERS[i]->vz);
+        FntPrint(format, marker, DEBUG_CAMERA_LABELS_[i],
+                 DEBUG_CAMERA_SLOTS_[i]->vx, DEBUG_CAMERA_SLOTS_[i]->vy,
+                 DEBUG_CAMERA_SLOTS_[i]->vz);
     }
 }

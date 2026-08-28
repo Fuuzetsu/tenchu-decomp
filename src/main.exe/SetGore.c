@@ -67,7 +67,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 
         count = 0;
         base = EffectSlot;
-        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        idx = EFFECT_CURSOR_;
         slot = base + idx;
         do
         {
@@ -80,10 +80,10 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
             }
             if (slot->proc == 0)
             {
-                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                EFFECT_CURSOR_ = idx + 1;
                 if (199 < idx + 1)
                 {
-                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                    EFFECT_CURSOR_ = 0;
                 }
                 ef = slot;
                 goto found;
@@ -131,7 +131,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         count = 0;
         rotated[1].vz = position->vz;
         base = EffectSlot;
-        idx = CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_;
+        idx = EFFECT_CURSOR_;
         slot = base + idx;
         do
         {
@@ -144,10 +144,10 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
             }
             if (slot->proc == 0)
             {
-                CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = idx + 1;
+                EFFECT_CURSOR_ = idx + 1;
                 if (199 < idx + 1)
                 {
-                    CURRENT_OFFSET_INTO_SOME_SELF_CALL_STRUCT_AREA_ = 0;
+                    EFFECT_CURSOR_ = 0;
                 }
                 ef = slot;
                 goto impact_found;

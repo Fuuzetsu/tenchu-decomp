@@ -32,9 +32,8 @@
 
 /*
  * AVCameraSetup (0x80051074, 0x1b4 bytes) — sets ViewInfo's target position
- * (vpx/vpy/vpz) from a "camera event" record (CHOSEN_EVENT_LIST_THING_
- * LOCATION, already-named — a cursor into CVAdata) whose
- * `.mode`@0x2 dispatches: 4 = fixed point (x/y/z@0x4/0x6/0x8, scaled *100);
+ * (vpx/vpy/vpz) from a camera-command CVA row (read through CVAnow, the
+ * CVA script cursor) whose `.id`@0x2 sub-dispatches: 4 = fixed point (x/y/z@0x4/0x6/0x8, scaled *100);
  * 0..3 = orbit CameraTarget (the active camera-owner Humanoid, set by
  * CVAsequence to StagePlayer) at a computed angle via GetMoveSpeed, offset
  * by CameraTarget->locate; 5 = re-target a NEW humanoid (GetHumanoid(event's

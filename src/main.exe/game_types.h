@@ -611,9 +611,10 @@ enum TSystemFlag
     SYSFLAG_DEBUG_SELECT = 0x10
 };
 
-/* The demo's TCameraPos contained one pos/ref pair. Retail replaces it with
- * reference and position endpoint pairs, reflected by the live
- * CAMERA_R1/R2/P1/P2 objects. */
+/* The demo's TCameraPos contained one pos/ref pair. Retail replaces it
+ * with reference and position endpoint pairs; r1/r2/p1/p2 are the game's
+ * OWN labels (the debug camera editor prints exactly these strings for
+ * the four slots of the live CamPos block). */
 typedef struct TCameraPos TCameraPos;
 struct TCameraPos
 {
