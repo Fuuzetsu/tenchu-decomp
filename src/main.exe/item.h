@@ -85,9 +85,11 @@ typedef struct Humanoid
 {
     s16 type;                 /* 0x00 */
     s16 status;               /* 0x02 */
-    s16 attribute; /* 0x04 (the ATTR_* bit word — see humanoid.h; some
-                      TUs read it unsigned via *(u16 *)& casts, matching
-                      retail's mixed lh/lhu loads) */
+    s16 attribute; /* 0x04 (the ATTR_* bit word — see humanoid.h. The s16
+                      declaration with per-site *(u16 *)& views is measured:
+                      flipping the field to u16 changes the plain sites'
+                      retail lh loads to lhu — the signed/unsigned mix is
+                      the original's own per-site choice) */
     s16 turn;                 /* 0x06 */
     s16 life;                 /* 0x08 */
     s16 lifemax;              /* 0x0A (PSX.SYM's original signed maximum-life field) */
