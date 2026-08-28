@@ -128,9 +128,9 @@ skip:
     VSync(2);
     if (mode == 0)
     {
-        while (AdtPadRead(0) & 0x800)
+        while (AdtPadRead(0) & PADstart)
             VSync(0);
-        while (!(AdtPadRead(0) & 0x800))
+        while (!(AdtPadRead(0) & PADstart))
             VSync(0);
         DrawPrim(&ad.bg);
         DrawSync(0);
