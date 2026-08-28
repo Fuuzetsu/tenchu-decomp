@@ -27,7 +27,6 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
     s16 *pattern_start;
     u32 outer_end;
     u32 inner_end;
-    s32 offset;
     s32 i;
 
     if (newly_pressed != 0)
@@ -72,18 +71,15 @@ s16 check_for_known_button_combination(u16 buttons, s16 newly_pressed)
 
                     if ((u16)*pattern != *history)
                     {
-                        offset = i << 1;
                         goto compare_end;
                     }
                     pattern++;
                     history++;
                     i++;
                 } while ((u16)*pattern != inner_end);
-                offset = i * 2;
 
             compare_end:
-                offset += (s32)pattern_start;
-                if (*(u16 *)offset == outer_end)
+                if ((u16)pattern_start[i] == outer_end)
                 {
                 matched:
                     i = 11;
