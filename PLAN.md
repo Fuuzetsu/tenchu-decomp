@@ -530,6 +530,14 @@ new knobs there when a quantity recurs or is a gameplay lever; keep
 one-off frame counts inline. Changing a value deliberately fails
 ./Build check (mod flow: ./Build mod).
 
+PARKED: shared names for the memory-card status codes (0/2/3/4/6/7
+recur across SaveSI/LoadSI/SaveCard/update_card_*) -- needs a careful
+semantic derivation of each code (libmcrd result space vs the game's
+own returns) before inventing enumerators in memcard.h; the two
+preserved retail prototype drifts (update_card_message_ /
+update_card_screen_ externs) show this family shipped without shared
+headers, so per-TU views may deliberately disagree.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
