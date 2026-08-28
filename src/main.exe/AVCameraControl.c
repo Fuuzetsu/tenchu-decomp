@@ -76,6 +76,8 @@ void AVCameraControl(void)
     case 2:
     case 3:
         move_base = ry;
+        /* The twin `speed = CameraSpeed;` on both arms is byte-required
+         * (hoisting it above the if mismatches). */
         if (CameraPanMode == 2)
         {
             speed = CameraSpeed;
