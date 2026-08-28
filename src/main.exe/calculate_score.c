@@ -44,7 +44,8 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
     {
         spotted = 300;
     }
-    if (stage == 8)
+    /* The medicine-herb stage doubles the per-spot penalty. */
+    if (stage == STAGE_CURE_PRINCESS)
     {
         penalty = hidden * 40;
     }
