@@ -59,7 +59,7 @@
  * `.locate.coord.t[0]/.t[2]` are the MATRIX translation X/Z (offsets
  * 0x18/0x20 from `model`, matching the raw `lw 0x18(v1)`/`lw 0x20(v1)`).
  * The 3rd arg is `&MapPlacement[StageID]` (a still-unnamed per-stage table,
- * stride 0x10). NOTE: MapPlacement/x/y were only
+ * stride 0x10). NOTE: MapPlacement/MapSlideX/MapSlideY (splat's x/y) were only
  * auto-labeled by splat while PutMap's OWN asm carve referenced them; once
  * this file compiles as plain C, nothing else references them, so they
  * needed explicit `config/symbols.main.exe.txt` entries (same lever as
@@ -82,8 +82,8 @@
  * cascading through ~15 register-only diffs; interleaved order matches
  * the target exactly with no register diffs at all.
  */
-extern s32 x;
-extern s32 y;
+extern s32 MapSlideX;
+extern s32 MapSlideY;
 extern s32 MapPlacement[][4];
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
@@ -110,13 +110,13 @@ void PutMap(void)
     ply->ply.y2 = 0x78;
     ply->ply.x3 = 0xA0;
     ply->ply.y3 = 0x78;
-    rgb = (0xA0 - x) / 4;
+    rgb = (0xA0 - MapSlideX) / 4;
 
     switch (PutMapMode)
     {
     case 0:
-        x = 0xA0;
-        y = 0;
+        MapSlideX = 0xA0;
+        MapSlideY = 0;
         PutMapMode = 1;
         ply->ply.r0 = 0;
         ply->ply.g0 = 0;
@@ -129,8 +129,8 @@ void PutMap(void)
         MapImage.b = 0x3C;
         MapImage.scalex = size;
         MapImage.scaley = size;
-        MapImage.x = x;
-        MapImage.y = y;
+        MapImage.x = MapSlideX;
+        MapImage.y = MapSlideY;
         GsSortSprite(&MapImage, OTablePt, 2);
         MapImage.r = 0x80;
         MapImage.g = 0x80;
@@ -138,15 +138,15 @@ void PutMap(void)
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
-        x = x - 0x28;
-        if (x <= 0)
+        MapSlideX = MapSlideX - 0x28;
+        if (MapSlideX <= 0)
         {
             PutMapMode++;
         }
         break;
     case 2:
-        x = 0;
-        y = 0;
+        MapSlideX = 0;
+        MapSlideY = 0;
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
@@ -158,8 +158,8 @@ void PutMap(void)
 
     MapImage.scalex = size;
     MapImage.scaley = size;
-    MapImage.x = x;
-    MapImage.y = y;
+    MapImage.x = MapSlideX;
+    MapImage.y = MapSlideY;
     GsSortSprite(&MapImage, OTablePt, 1);
     AddXF4((void *)((u8 *)OTablePt->org + 8), ply);
 }

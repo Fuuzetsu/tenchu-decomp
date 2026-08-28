@@ -541,7 +541,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     -- PutMap.c is also part of the info-view TU; it DEFINES PutMapMode (the
     -- "PutMap latch" DoInfoViewProc.c also references) plus the wipe
     -- position pair.
-    syms "PutMap" = ["PutMapMode", "x", "y"]
+    syms "PutMap" = ["PutMapMode", "MapSlideX", "MapSlideY"]
     -- UpdateEvent.c is also part of the original STAGE.C TU.
     syms "UpdateEvent" = ["StageEvent", "StagePlayer"]
     syms "KillHumanoid" = ["Humans"]
