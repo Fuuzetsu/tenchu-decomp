@@ -171,7 +171,7 @@ short DrawModel(ModelType *objp)
                 goto reject;
             }
         reject_check:
-            if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > 1250)
+            if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
             {
                 sz = -1;
                 goto ret;

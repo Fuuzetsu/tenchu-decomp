@@ -30,7 +30,7 @@ void reset_effects_(void)
 {
     s32 i;
 
-    for (i = 0; i < 200; i++)
+    for (i = 0; i < N_EFFECT_SLOTS; i++)
     {
         if (EffectSlot[i].proc != UpdateTexScroll)
         {

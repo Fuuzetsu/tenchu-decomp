@@ -256,7 +256,7 @@ void ActCHASE(void)
     {
         motID = 0x907;
         motMODE = 0;
-        MoveHumanoid(Me_MOTION_C, 120, 0);
+        MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
         return;
     }
 

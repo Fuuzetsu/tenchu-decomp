@@ -115,7 +115,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     mad = pl->model;
     memset(&scratch.init, 0, sizeof(scratch.init));
     scratch.init.vx = pl->model->locate.coord.t[0];
-    scratch.init.vy = pl->model->locate.coord.t[1] - 1550;
+    scratch.init.vy = pl->model->locate.coord.t[1] - CAMERA_EYE_HEIGHT;
     scratch.init.vz = pl->model->locate.coord.t[2];
     pos = scratch.init;
     mad->attribute |= 2;

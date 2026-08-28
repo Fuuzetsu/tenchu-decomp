@@ -228,7 +228,7 @@ typedef struct tag_EffectSlot /* size 76 */
     union EffectParam param;
 } TEffectSlot;
 
-extern TEffectSlot EffectSlot[200];
+extern TEffectSlot EffectSlot[N_EFFECT_SLOTS];
 extern int EFFECT_CURSOR_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy;                                     /* pool-full fallback write target, discarded */
 /* Retail expands the demo's singleton blood sprites into four variants. */

@@ -17,7 +17,7 @@
  * DrawEffect (0x80039bbc, 0x58 bytes) — walks the EffectSlot[] pool (200
  * entries) and runs every live slot's `proc` callback, passing the slot itself.
  * Same pool/stride as reset_effects_.c (0x4C-byte tag_EffectSlot, 0xC8
- * entries) — a real `for` loop whose i<0xC8 entry test provably folds away,
+ * entries) — a real `for` loop whose i<200 entry test provably folds away,
  * leaving the bottom-test-only do-while shape and a strength-reduced
  * walking pointer (cookbook Loops/leResetEnemyLayout).
  *
@@ -31,7 +31,7 @@ void DrawEffect(void)
     TEffectSlot *p;
     s32 i;
 
-    for (i = 0; i < 200; i++)
+    for (i = 0; i < N_EFFECT_SLOTS; i++)
     {
         p = &EffectSlot[i];
         if (p->proc != 0)

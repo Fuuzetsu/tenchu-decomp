@@ -151,7 +151,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
             goto tail;
         }
     reject_check:
-        if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > 1250)
+        if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
         {
             result = -1;
             goto tail;

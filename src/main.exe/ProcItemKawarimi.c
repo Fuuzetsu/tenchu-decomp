@@ -113,7 +113,7 @@ void ProcItemKawarimi(TItem *item)
                 (rand() % 1000 - 500);
             scratch.work.position.vy =
                 item->owner->model->locate.coord.t[1] +
-                (rand() % 1000 - 1200);
+                (rand() % 1000 - THROW_HEIGHT);
             scratch.work.position.vz =
                 item->owner->model->locate.coord.t[2] +
                 (rand() % 1000 - 500);

@@ -478,7 +478,7 @@ void SetupTelop(u8 *telop, short line)
         }
 
         memset(&TelopP, 0xff, sizeof(TelopP));
-        final_v = 240 - line_y;
+        final_v = SCREEN_H - line_y;
         final_v2 = (u8)rect.h + final_v;
         u = (u16)rect.x - 0x301;
         setlen(&TelopP, 9);

@@ -233,7 +233,7 @@ void StateTransition(Humanoid *human)
                  (s16)(Me_THINK_C->width * 2), 0);
     ProbeLevelLow = GetAreaMapLevel(GlobalAreaMap,
                                     Me_THINK_C->locate->vx + vect.vx,
-                                    Me_THINK_C->locate->vy - 3050,
+                                    Me_THINK_C->locate->vy - EYE_HEIGHT,
                                     Me_THINK_C->locate->vz + vect.vz, 0x1a);
     {
         u16 field_attrib;
@@ -241,7 +241,7 @@ void StateTransition(Humanoid *human)
         field_attrib = FieldAttrib;
         ProbeLevelHigh = GetAreaMapLevel(GlobalAreaMap,
                                          Me_THINK_C->locate->vx - vect.vx,
-                                         Me_THINK_C->locate->vy - 3050,
+                                         Me_THINK_C->locate->vy - EYE_HEIGHT,
                                          Me_THINK_C->locate->vz - vect.vz,
                                          (ProbeAttrib[0] = field_attrib, 0x1a));
     }
@@ -596,11 +596,11 @@ void StateTransition(Humanoid *human)
                              (s16)(Me_THINK_C->width * 5), 0);
                 level = GetAreaMapLevel(GlobalAreaMap,
                                         Me_THINK_C->locate->vx,
-                                        Me_THINK_C->locate->vy - 3050,
+                                        Me_THINK_C->locate->vy - EYE_HEIGHT,
                                         Me_THINK_C->locate->vz, 25);
                 next_level = GetAreaMapLevel(GlobalAreaMap,
                                              Me_THINK_C->locate->vx + vect.vx,
-                                             Me_THINK_C->locate->vy - 3050,
+                                             Me_THINK_C->locate->vy - EYE_HEIGHT,
                                              Me_THINK_C->locate->vz + vect.vz,
                                              0x1a);
                 if (level == Me_THINK_C->map.level)

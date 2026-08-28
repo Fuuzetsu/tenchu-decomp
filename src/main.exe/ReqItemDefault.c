@@ -79,7 +79,7 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     param.type = ItemID;
     param.user = user;
     param.start.vx = user->model->locate.coord.t[0];
-    param.start.vy = user->model->locate.coord.t[1] - 1200;
+    param.start.vy = user->model->locate.coord.t[1] - THROW_HEIGHT;
     param.start.vz = user->model->locate.coord.t[2];
     v = vec_z_n100[0];
     memset(&v0, 0, sizeof(v0));

@@ -78,14 +78,14 @@ extern void srand(u32 seed);
 void InitGraphicsSystem(void)
 {
     SetDispMask(0);
-    GsInitGraph(320, 240, 0x34, 1, 0);
-    GsDefDispBuff(0, 0, 0, 240);
+    GsInitGraph(SCREEN_W, SCREEN_H, 0x34, 1, 0);
+    GsDefDispBuff(0, 0, 0, SCREEN_H);
     GsInit3D();
     GsInitCoordinate2((GsCOORDINATE2 *)0, &World.locate);
     UpdateCoordinate(&World);
     DrawTMDmode = TMD_BANK_PLAIN;
     SetDepthQ(-0x7ef4, 0x2f282e0);
-    DepthPoint = 1250;
+    DepthPoint = DEPTH_LIMIT;
     SlightPoint = 150;
     Fog.dqa = -0x7ef4;
     Fog.dqb = 0x2f282e0;

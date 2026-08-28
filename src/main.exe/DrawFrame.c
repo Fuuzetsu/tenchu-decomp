@@ -201,7 +201,7 @@ draw:
         if (t >= 0)
         {
             pri = 0x4e1;
-            if (t < 1250)
+            if (t < DEPTH_LIMIT)
             {
                 pri = t;
             }

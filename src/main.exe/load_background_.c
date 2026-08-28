@@ -34,7 +34,7 @@ BackGround *load_background_(u_long *tim)
     GsIMAGE im;
 
     GetTIMInfo(tim, &im);
-    bg = SetupBG(&im, 320, 240);
+    bg = SetupBG(&im, SCREEN_W, SCREEN_H);
     bg->sz = 100;
     LoadTIM(tim);
     i = 0;

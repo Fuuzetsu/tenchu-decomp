@@ -208,7 +208,7 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
                     line.y1 = scr.vy;
                     if (z >= 0)
                     {
-                        if (z < 1250)
+                        if (z < DEPTH_LIMIT)
                             p = z;
                         else
                             p = 0x4e1;

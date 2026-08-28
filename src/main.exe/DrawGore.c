@@ -151,7 +151,7 @@ void DrawGore(TEffectSlot *ef)
         if (value >= 0)
         {
             priority = 0x4e1;
-            if (value < 1250)
+            if (value < DEPTH_LIMIT)
             {
                 priority = value;
             }
@@ -166,7 +166,7 @@ void DrawGore(TEffectSlot *ef)
         if (value >= 0)
         {
             priority = 0x4e1;
-            if (value < 1250)
+            if (value < DEPTH_LIMIT)
             {
                 priority = value;
             }
@@ -393,7 +393,7 @@ void DrawGore(TEffectSlot *ef)
         if (value >= 0)
         {
             priority = 0x4e1;
-            if (value < 1250)
+            if (value < DEPTH_LIMIT)
             {
                 priority = value;
             }

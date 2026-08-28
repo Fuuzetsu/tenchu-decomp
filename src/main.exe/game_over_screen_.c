@@ -322,7 +322,7 @@ void game_over_screen_(void)
                     state = 4;
                 } while (0);
             }
-            if ((new_press & PADstart) != 0 || GameClock >= 2700)
+            if ((new_press & PADstart) != 0 || GameClock >= GAME_OVER_TIMEOUT)
             {
                 do
                 {

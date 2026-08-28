@@ -136,7 +136,7 @@ void DrawSplash(TEffectSlot *ef)
                 if (t >= 0)
                 {
                     priority = 0x4E1;
-                    if (t < 1250)
+                    if (t < DEPTH_LIMIT)
                     {
                         priority = t;
                     }

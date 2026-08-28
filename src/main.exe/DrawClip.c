@@ -121,7 +121,7 @@ long DrawClip(ModelType *objp, long *xy)
             goto ret;
         }
     reject_check:
-        if ((attr & MODEL_ATTR_CULL_FAR) != 0 && sz > 1250)
+        if ((attr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
         {
             result = -1;
             goto ret;

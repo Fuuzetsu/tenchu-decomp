@@ -112,7 +112,7 @@ void DrawSnow(TEffectSlot *effect)
         if (depth >= 0)
         {
             priority = 0x4e1;
-            if (depth < 1250)
+            if (depth < DEPTH_LIMIT)
             {
                 priority = depth;
             }

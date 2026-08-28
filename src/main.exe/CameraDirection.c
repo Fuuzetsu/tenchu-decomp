@@ -95,14 +95,14 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     ry = rcos(mad->rotate.vy) / 6;
     r.vx = 0;
     r.vy = 0;
-    r.vz = 1200;
+    r.vz = THROW_HEIGHT;
     RotateVectorS(&r,
                   mad->rotate.vx + CamState.DirectionRX,
                   mad->rotate.vy + CamState.DirectionRY,
                   mad->rotate.vz);
 
     CamLoc.vx = mad->locate.coord.t[0];
-    CamLoc.vy = mad->locate.coord.t[1] - 1550;
+    CamLoc.vy = mad->locate.coord.t[1] - CAMERA_EYE_HEIGHT;
     CamLoc.vz = mad->locate.coord.t[2];
     push_from_walls_(&CamLoc, 1000);
     CamLoc.vx -= rx;
