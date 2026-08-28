@@ -26,13 +26,20 @@ struct PADtype;
  * Start+Select combo sharing the table: it restores the saved loadout
  * and returns to the menu. CHEAT_ARMOUR selects the armour
  * (selItem[ITEM_ARMOUR]) for non-Rikimaru characters. */
-#define CHEAT_ITEM_CAP 0x1
-#define CHEAT_ITEM_REFILL 0x2
-#define CHEAT_ITEM_UNLOCK 0x4
-#define CHEAT_QUIT 0x8
-#define CHEAT_REVIVE 0x10
-#define CHEAT_ARMOUR 0x20
-#define CHEAT_DEBUG_MENU 0x1000
+/* Each CHEAT_COMMANDS_ stream is {result code, presses NEWEST-first,
+ * -1}: pattern[0] compares against the latest press, so the code is
+ * ENTERED in reverse of the stored order below (retail data). */
+#define CHEAT_ITEM_CAP 0x1    /* Tri+Left Tri+Down Tri+Right Tri+Up
+                               * R1+Tri L1+Tri */
+#define CHEAT_ITEM_REFILL 0x2 /* Tri+Left Tri+Right Tri+Down Tri+Up
+                               * R1+Tri L1+Tri */
+#define CHEAT_ITEM_UNLOCK 0x4 /* Squ+Up Squ+Right Squ+Down Squ+Left
+                               * R1+Squ L1+Squ */
+#define CHEAT_QUIT 0x8        /* the single Select+Start chord */
+#define CHEAT_REVIVE 0x10     /* Right Left Up Down R1 L1 */
+#define CHEAT_ARMOUR 0x20     /* Up Left Down Right R1 L1 */
+#define CHEAT_DEBUG_MENU 0x1000 /* R2 L2 R1 L1 then R2+L1 chorded with
+                                 * Cir Right Squ Left Cro Down Tri Up */
 
 extern void GetPadXY(short no, short *x, short *y);
 extern short GetPad(short no);
