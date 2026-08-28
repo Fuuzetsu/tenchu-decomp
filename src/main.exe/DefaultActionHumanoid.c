@@ -303,7 +303,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 }
                 else
                 {
-                    i = ((s32)((u16)human->width << 16)) >> 18;
+                    i = ((u16)human->width << 16) >> 18; /* width / 4; the u16 view is the retail lhu access width */
                     xx = RefrectMove[direction][0] * i;
                     zz = RefrectMove[direction][1] * i;
                 }

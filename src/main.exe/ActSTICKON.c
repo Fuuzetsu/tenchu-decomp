@@ -375,6 +375,10 @@ void ActSTICKON(void)
             break;
         }
 
+        /* dtPAD parked in a register's high half so BOTH extractions below
+         * share the one sll: >>16 recovers the whole pad word, >>28 & 1
+         * isolates PADLup (bit 12). Masking `pad` directly does not match
+         * (andi vs the retail sra pair). */
         pad_bits = (u32)(u16)dtPAD << 16;
         pad = (s32)pad_bits >> 16;
         if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) == 0)

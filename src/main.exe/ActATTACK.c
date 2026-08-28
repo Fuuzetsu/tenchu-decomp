@@ -729,7 +729,6 @@ dispatch:
         Humanoid *human;
         ModelType *waist;
         short saved_mid;
-        u32 shifted_mid;
         short motion_flag;
         short updated;
 
@@ -759,13 +758,17 @@ dispatch:
         saved_mid = motID;
         motion_flag = motMODE;
         human = Me_MOTION_C;
-        if (((human->status != STAT_DEAD) || (human->motion->loop != -1)) &&
-            ((shifted_mid = (u32)(u16)saved_mid << 16,
-              updated = UpdateMotion(human->motion, (s16)(shifted_mid >> 16)), updated != 0) &&
-             (human->status = (s8)(shifted_mid >> 24), motion_flag != 0)))
+        if (human->status != STAT_DEAD || human->motion->loop != -1)
         {
-            mot = human->motion->motion;
-            MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
+            if (UpdateMotion(human->motion, saved_mid) != 0)
+            {
+                human->status = saved_mid >> 8;
+                if (motion_flag != 0)
+                {
+                    mot = human->motion->motion;
+                    MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
+                }
+            }
         }
         dtM->count = 0;
         dtM->loop = 0;
@@ -847,9 +850,13 @@ dispatch:
         dtR->vy = dtR->vy + (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
         is_player = Me_MOTION_C == StagePlayer;
         ((*Me_MOTION_C->model->object)->rotate).vy = dtM->motion->rotate[0]->y;
-        if ((is_player) && (SetCameraMode(CMODE_NORMAL), saved_mid == 0x712))
+        if (is_player)
         {
-            CamState.snap_pending = 1;
+            SetCameraMode(CMODE_NORMAL);
+            if (saved_mid == 0x712)
+            {
+                CamState.snap_pending = 1;
+            }
         }
         (Me_MOTION_C->pad).time = 0;
         return;

@@ -187,6 +187,10 @@ s16 CVAupdate(void)
                 if (human == 0)
                     return 0;
 
+                /* For ACTOR commands the x slot packs two bytes: the low
+                 * byte rides >>16 into the life/invalid test, the high byte
+                 * (>>24) is the think index below. One sll serves both
+                 * extractions -- separate (s8)/(s16) spellings do not match. */
                 packed = (u32)(u16)CVAnow->x << 16;
                 if ((s32)packed >> 16 == invalid)
                 {

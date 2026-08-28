@@ -124,6 +124,10 @@ void AttackControl(void)
                     enemy->target = target;
 
                     if (dtL->vy == enemy->locate->vy &&
+                        /* one lw over {vector,direct,angleL,angleH}; the mask
+                         * skips byte 1 so this is vector==0 && angleL==0 &&
+                         * angleH==0 (flat footing, no wall push -- direct is
+                         * ignored). Three separate byte loads do not match. */
                         (*(u32 *)&Me_MOTION_C->map.vector & 0xffff00ff) == 0)
                     {
                         s16 myid;
