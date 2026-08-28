@@ -52,9 +52,9 @@ ModelType *LoadModel(u_long *adr)
         GsMapModelingData(adr);
         GsLinkObject4((u_long)(adr + 2), &base->object, 0);
     }
-    base->object.coord2 = (GsCOORDINATE2 *)base;
+    base->object.coord2 = &base->locate;
     base->object.attribute = 0;
-    GsInitCoordinate2(&World.locate, (GsCOORDINATE2 *)base);
+    GsInitCoordinate2(&World.locate, &base->locate);
     base->locate.coord.t[0] = 0;
     base->locate.coord.t[1] = 0;
     base->locate.coord.t[2] = 0;

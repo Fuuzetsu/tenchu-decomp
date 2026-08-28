@@ -44,9 +44,9 @@ OrnamentType *CreateCloneOrnament(OrnamentType *objp)
     OrnamentType *base;
 
     base = (OrnamentType *)valloc(sizeof(OrnamentType));
-    base->object.coord2 = (GsCOORDINATE2 *)base;
+    base->object.coord2 = &base->locate;
     base->object.attribute = 0;
-    GsInitCoordinate2(&World.locate, (GsCOORDINATE2 *)base);
+    GsInitCoordinate2(&World.locate, &base->locate);
     base->locate.coord.t[0] = 0;
     base->locate.coord.t[1] = 0;
     base->locate.coord.t[2] = 0;
