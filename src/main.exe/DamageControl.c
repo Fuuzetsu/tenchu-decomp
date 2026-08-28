@@ -201,8 +201,6 @@ void DamageControl(void)
         enemy = (Humanoid *)ConflictObject[(short)id].common;
         if (enemy != (Humanoid *)CONFLICT_OWNER_ITEM)
         {
-            int h;
-
             Sound(enemy, 4);
             DeleteConflict(ConflictObject[(short)id].model);
             deg = GetAttackDBID(enemy, enemy->motion->mid);
@@ -217,9 +215,7 @@ void DamageControl(void)
                 }
             }
             p.vx = dtL->vx;
-            h = (u32)(u16)Me_MOTION_C->height << 0x10;
-            p.vy = dtL->vy -
-                   (((h >> 0x10) + (int)((u32)h >> 0x1f)) >> 1);
+            p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
             SetImpact(&p, 0x6000, 2);
             if (StagePlayer == enemy)
@@ -365,13 +361,9 @@ resolve_hit:
                     dmg = 10;
                 }
                 {
-                    int h;
-
                     p.vx = dtL->vx;
                     motID = MOT_DAMAGE;
-                    h = (u32)(u16)Me_MOTION_C->height << 0x10;
-                    p.vy = dtL->vy -
-                           (((h >> 0x10) + (int)((u32)h >> 0x1f)) >> 1);
+                    p.vy = dtL->vy - Me_MOTION_C->height / 2;
                     p.vz = dtL->vz;
                 }
                 motMODE = 1;
@@ -845,15 +837,9 @@ resolve_hit:
                 }
             }
             DeleteConflict(ConflictObject[(short)id].model);
-            {
-                int h;
-
-                p.vx = dtL->vx;
-                h = (u32)(u16)Me_MOTION_C->height << 0x10;
-                p.vy = dtL->vy -
-                       (((h >> 0x10) + (int)((u32)h >> 0x1f)) >> 1);
-                p.vz = dtL->vz;
-            }
+            p.vx = dtL->vx;
+            p.vy = dtL->vy - Me_MOTION_C->height / 2;
+            p.vz = dtL->vz;
             SetBlood(&p, 5, 0x78);
             SetImpact(&p, 0x6000, 2);
             {
