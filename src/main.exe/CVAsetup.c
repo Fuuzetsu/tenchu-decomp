@@ -96,7 +96,7 @@ void CVAsetup(void)
         vfree(CVAdata);
     }
     letter = 0x41;
-    if (PSTATE->CharType == 0)
+    if (PSTATE->CharType == RIKIMARU_0)
     {
         letter = 0x52;
     }
@@ -113,7 +113,7 @@ void CVAsetup(void)
     TelopbgP.x3 = 0xA0;
     TelopbgP.x1 = 0xA0;
 
-    if (StageID == 10 && PSTATE->CharType == 0)
+    if (StageID == 10 && PSTATE->CharType == RIKIMARU_0)
     {
         adr = FileRead((u8 *)path_anim_tanka_tpd);
         for (i = 0; i < 6; i++)

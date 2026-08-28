@@ -302,7 +302,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
             break;
         case 0x1F:
-            if (ps->CharType != 0)
+            if (ps->CharType != RIKIMARU_0)
             {
                 u8 already = ps->selItem[0x13];
                 if (already != 0 || (&ps->gItem[0x13])[ps->CharType * 0x20] == 1)
