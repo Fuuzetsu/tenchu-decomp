@@ -91,6 +91,10 @@ void WeaponHitWeapon(ModelType *hand)
             }
 
             hand->attribute = hand->attribute & ~MODEL_ATTR_COLLIDE;
+            /* Retail quirk, byte-matched as-is: `id` is a conflict-POOL
+             * slot index, but BattleDB is the warid-keyed attack table —
+             * the parry-stun length is read from whichever row shares
+             * the slot number, not from either fighter's attack. */
             dtM->loop = BattleDB[id].power / -3 - 1;
             Sound(Me_MOTION_C, 0x36);
             if (StagePlayer == Me_MOTION_C)

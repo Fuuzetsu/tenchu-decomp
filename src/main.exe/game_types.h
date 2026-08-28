@@ -423,7 +423,17 @@ struct MotionPackType
     MotionDataType *motion[1]; /* 0x04 */
 }; /* 0x08 */
 
-/* MOTION.C's continuous-attack window table. */
+/* MOTION.C's per-attack tuning row (BattleDB, indexed by warid; official
+ * field names). Frame fields compare against the attack motion's
+ * rising dtM->count (retail data: atks < atke) in ActATTACK:
+ *   mid          the attack motion's id in GetMotionID's space
+ *                (GetAttackDBID linear-searches it; -1 terminates)
+ *   power        damage (DamageControl; parry stun derives from it)
+ *   atks/atke    the frames where the weapon hitbox switches on/off
+ *   contfrm      latest frame at which the next combo input is accepted
+ *   revise       while count < this, the swing still steers toward the
+ *                target (early aim-correction window)
+ *   ilus/ilue    afterimage trail start/stop frames */
 typedef struct BattleType BattleType;
 struct BattleType
 {
