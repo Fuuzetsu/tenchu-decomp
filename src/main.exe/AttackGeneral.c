@@ -4,6 +4,7 @@
 #include "game_globals.h"
 #include "item.h"
 #include "padcmd.h"
+#include "humanoid.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -139,7 +140,7 @@ short AttackGeneral(void)
         s32 chase_degree;
 
         pad = ChasetoTarget(3000);
-        if (pad == 0 || (ATTRIB_BITS & 0x4000) != 0)
+        if (pad == 0 || (ATTRIB_BITS & ATTR_TOUCH) != 0)
         {
             Me_THINK_C->actmode = 1;
         }
@@ -201,7 +202,7 @@ short AttackGeneral(void)
         return 0;
     }
 
-    if ((ATTRIB_BITS & 0x400) != 0)
+    if ((ATTRIB_BITS & ATTR_WALL) != 0)
     {
         Me_THINK_C->actmode = 0;
     }

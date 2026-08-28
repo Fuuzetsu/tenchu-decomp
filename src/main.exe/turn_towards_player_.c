@@ -108,7 +108,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     }
     if (!(ATTRIB_BITS & 3))
     {
-        if (ATTRIB_BITS & 0x400)
+        if (ATTRIB_BITS & ATTR_WALL)
         {
             s32 cached;
 

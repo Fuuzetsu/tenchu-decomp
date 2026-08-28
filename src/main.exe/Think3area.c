@@ -99,7 +99,7 @@ s16 Think3area(void)
         goto return_pad;
     }
 
-    if ((ATTRIB_BITS & 0x4000) != 0)
+    if ((ATTRIB_BITS & ATTR_TOUCH) != 0)
     {
         Me_THINK_C->actflg = 1;
     }
@@ -146,7 +146,7 @@ s16 Think3area(void)
     }
 
     pad = turn_towards_player_(xx, zz);
-    if ((ATTRIB_BITS & 0x400) != 0)
+    if ((ATTRIB_BITS & ATTR_WALL) != 0)
     {
         Me_THINK_C->actflg = 1;
     }

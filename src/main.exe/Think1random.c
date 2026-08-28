@@ -68,7 +68,7 @@ s16 Think1random(void)
         vz = Me_THINK_C->chase[1] - locate->vz;
         if ((((vx >= 0) ? vx : -vx) < 1000 &&
              ((vz >= 0) ? vz : -vz) < 1000) ||
-            (Attrib & 0x400))
+            (Attrib & ATTR_WALL))
         {
             Me_THINK_C->actcnt = 0;
         }

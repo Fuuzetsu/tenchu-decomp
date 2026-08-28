@@ -66,12 +66,12 @@ short ChasetoTarget(long length)
 
     if (((xx >= 0 ? xx : -xx) < 500 &&
          (zz >= 0 ? zz : -zz) < 500) ||
-        (Attrib & 0x400) != 0 || Distance < 1000)
+        (Attrib & ATTR_WALL) != 0 || Distance < 1000)
     {
         return 0;
     }
 
-    if ((Attrib & 0xc000) != 0 ||
+    if ((Attrib & (ATTR_TOUCH | ATTR_PUSH)) != 0 ||
         (me->chase[0] | chase[1]) == 0)
     {
         deg = rand();

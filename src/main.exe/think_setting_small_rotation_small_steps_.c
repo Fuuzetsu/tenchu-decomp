@@ -49,7 +49,7 @@ s16 think_setting_small_rotation_small_steps_(void)
 
         result = turn_towards_player_(x_diff, z_diff);
         distance = SquareRoot0(x_diff * x_diff + z_diff * z_diff);
-        if (distance < 2000 || (ATTRIB_BITS & 0x400))
+        if (distance < 2000 || (ATTRIB_BITS & ATTR_WALL))
         {
             s32 alertTime;
             s32 nextState;
@@ -185,7 +185,7 @@ s16 think_setting_small_rotation_small_steps_(void)
             result = turnBits | 0x1000;
         }
 
-        if (ATTRIB_BITS & 0x400)
+        if (ATTRIB_BITS & ATTR_WALL)
         {
             s32 degree;
             s32 absoluteDegree;

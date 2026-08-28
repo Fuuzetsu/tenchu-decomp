@@ -333,7 +333,7 @@ void StateTransition(Humanoid *human)
             pad = Me_THINK_C->think[1]();
         }
 
-        if (SR == 1 || ((ATTRIB_BITS & 0x4000) != 0 && SR > 0))
+        if (SR == 1 || ((ATTRIB_BITS & ATTR_TOUCH) != 0 && SR > 0))
         {
             Attrib = atr0 | 2;
             if ((ATTRIB_BITS & ATTR_ALERT) == 0)
@@ -488,7 +488,7 @@ void StateTransition(Humanoid *human)
             StrainRatio = -0x8000;
         }
         pad = Me_THINK_C->think[3]();
-        if ((ATTRIB_BITS & 0x400) && Me_THINK_C->pad_hold == 0)
+        if ((ATTRIB_BITS & ATTR_WALL) && Me_THINK_C->pad_hold == 0)
         {
             Me_THINK_C->pad_hold =
                 Degree > 0 ? 0x20000008 : 0x80000008;

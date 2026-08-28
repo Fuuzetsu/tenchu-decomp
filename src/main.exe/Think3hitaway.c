@@ -3,6 +3,7 @@
 #include "game_types.h"
 #include "game_globals.h"
 #include "item.h"
+#include "humanoid.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -121,7 +122,7 @@ s16 Think3hitaway(void)
                 result |= 0x40;
             }
         }
-        if (Distance > 4000 || (ATTRIB_BITS & 0x400))
+        if (Distance > 4000 || (ATTRIB_BITS & ATTR_WALL))
         {
             Me_THINK_C->actflg = 1;
         }

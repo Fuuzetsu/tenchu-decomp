@@ -3,6 +3,7 @@
 #include "game_types.h"
 #include "game_globals.h"
 #include "item.h"
+#include "humanoid.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -28,7 +29,7 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 
 s16 Think2contact(void)
 {
-    if ((ATTRIB_BITS & 0x400) && (Me_THINK_C->pad_hold == 0))
+    if ((ATTRIB_BITS & ATTR_WALL) && (Me_THINK_C->pad_hold == 0))
     {
         s32 hint;
 

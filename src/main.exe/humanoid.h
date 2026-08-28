@@ -21,13 +21,33 @@
  *                  think budget and sets it on far ones;
  *                  ControlAllHumanoid/GetNearestHumanoid/CVA skip suspended
  *                  humans; the ninken summon template stays suspended
- *   0x0400         ActKAGI raises it on a grapple; also observed as a fast
- *                  player-side transient during engage-family motions
- *   0x8000         spotted-the-player alarm trigger (DefaultActionHumanoid)
- * The other observed player-side transients (0x0100/0x0800/0x1000/0x2000/
- * 0x4000) toggle during damage/turning and are not yet named. */
+ *   ATTR_FALL      0x0100 — airborne: DefaultActionHumanoid raises it while
+ *                  map->height > 0 and accumulates gravity (vy += 20)
+ *   ATTR_WALL      0x0400 — terrain contact: DefaultActionHumanoid raises it
+ *                  whenever map->vector is nonzero (a wall in the movement
+ *                  probe); ActKAGI raises it on a grapple (you are on a
+ *                  wall). The think layer treats it as "blocked": Think1random
+ *                  stops random-walking, Think2contact/StateTransition stop
+ *                  when pushing against it, ChasetoTarget gives up
+ *   ATTR_TOUCH    0x4000 — touching another character's conflict slot
+ *                  (size.pad & 1); the slot index is saved in vector.pad.
+ *                  contact"; the Attack and Think3area layers read it as
+ *                  "target in contact"
+ *   ATTR_PUSH     0x8000 — being pushed out of a solid conflict object
+ *                  (an earlier note called this the spotted-the-player
+ *                  trigger — wrong: the only setter is the object-collision
+ *                  resolver). Cleared together with ATTR_FALL (& 0x7eff)
+ *                  when the character stands on the object's top
+ * Still unnamed (evidence too thin): 0x0010 (alarm-reaction, ActSTATE sets
+ * 0x12 on body pickup), 0x0020 (gravity/collision exemption), 0x0200
+ * (map->attrib & 2 head clamp), 0x0800 (no footing), 0x1000/0x2000 (wall
+ * step/snap pair, set as | 0x3000 on deep wall contact). */
 #define ATTR_ALERT 0x0040
 #define ATTR_SUSPEND 0x0080
+#define ATTR_FALL 0x0100
+#define ATTR_WALL 0x0400
+#define ATTR_TOUCH 0x4000
+#define ATTR_PUSH 0x8000
 
 
 struct Humanoid;

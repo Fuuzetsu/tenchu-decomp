@@ -3,6 +3,7 @@
 #include "game_types.h"
 #include "game_globals.h"
 #include "item.h"
+#include "humanoid.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -75,7 +76,7 @@ s16 Think3escape(void)
     {
         result |= 0x1000;
     }
-    if (ATTRIB_BITS & 0x400)
+    if (ATTRIB_BITS & ATTR_WALL)
     {
         Humanoid *human;
         s32 degree2;

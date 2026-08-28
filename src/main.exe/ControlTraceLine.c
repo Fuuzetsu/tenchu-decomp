@@ -72,7 +72,7 @@ short ControlTraceLine(Humanoid *human)
     dx = point->x - human->locate->vx;
     dz = point->z - human->locate->vz;
     dist = SquareRoot0(dx * dx + dz * dz);
-    if ((human->attribute & 0x400) != 0)
+    if ((human->attribute & ATTR_WALL) != 0)
     {
         trcl->count = -0x1e;
     }

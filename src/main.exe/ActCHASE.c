@@ -109,7 +109,7 @@ void ActCHASE(void)
                 break;
             }
 
-            if (Me_MOTION_C->attribute & 0x400)
+            if (Me_MOTION_C->attribute & ATTR_WALL)
             {
                 long y;
                 long height;

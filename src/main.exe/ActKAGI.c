@@ -267,7 +267,7 @@ void ActKAGI(void)
                     }
                     if (abs_z < 400)
                     {
-                        *(u16 *)&Me_MOTION_C->attribute |= 0x400;
+                        *(u16 *)&Me_MOTION_C->attribute |= ATTR_WALL;
                     }
                 }
             }

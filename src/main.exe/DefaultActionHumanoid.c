@@ -158,7 +158,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
     if (map->height > 0 && (human->attribute & 0x20) == 0)
     {
-        human->attribute |= 0x100;
+        human->attribute |= ATTR_FALL;
         if (vector->vy < 400)
         {
             vector->vy += 20;
@@ -225,7 +225,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
     if (map->vector != 0)
     {
-        human->attribute |= 0x400;
+        human->attribute |= ATTR_WALL;
         zz = map->level;
         if (zz == (s32)0x80000000)
         {
@@ -359,7 +359,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
                     attribute = human->attribute;
                     human->vector.pad = i;
-                    human->attribute = attribute | 0x4000;
+                    human->attribute = attribute | ATTR_TOUCH;
                 }
                 continue;
             }
@@ -372,7 +372,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 s32 object_id;
                 ConflictObjectType *conflict;
 
-                human->attribute |= 0x8000;
+                human->attribute |= ATTR_PUSH;
                 xx = locate->vx;
                 zz = locate->vz;
 
@@ -416,7 +416,7 @@ short DefaultActionHumanoid(Humanoid *human)
                         locate->vy = top;
                         map->height = 0;
                         map->attrib &= 0xff80;
-                        human->attribute &= 0x7eff;
+                        human->attribute &= ~(ATTR_PUSH | ATTR_FALL);
                     }
                     else
                     {
