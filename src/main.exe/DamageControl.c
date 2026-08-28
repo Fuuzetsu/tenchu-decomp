@@ -399,7 +399,7 @@ resolve_hit:
                 {
                     dmg = 0x2d;
                 }
-                if ((Me_MOTION_C->map.attrib & 4U) == 0)
+                if ((Me_MOTION_C->map.attrib & MAP_WATER) == 0)
                 {
                     (Me_MOTION_C->map).height = 1;
                 }

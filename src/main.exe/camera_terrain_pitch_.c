@@ -57,9 +57,9 @@ s32 camera_terrain_pitch_(Humanoid *human)
     z = z - (u16)node->z1;
     zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
-    if ((node->attribute & 0xc000) == 0x4000)
+    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
         goto first_x_slope;
-    if ((node->attribute & 0xc000) == 0x8000)
+    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
         goto first_z_slope;
     goto first_done;
 
@@ -82,9 +82,9 @@ first_done:
     z = z - (u16)node->z1;
     zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
-    if ((node->attribute & 0xc000) == 0x4000)
+    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
         goto second_x_slope;
-    if ((node->attribute & 0xc000) == 0x8000)
+    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
         goto second_z_slope;
     goto second_done;
 

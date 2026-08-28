@@ -140,7 +140,7 @@ void HumanActionControl(Humanoid *human)
         }
         else
         {
-            if ((*(u16 *)&Me_MOTION_C->map.attrib & 4) != 0)
+            if ((*(u16 *)&Me_MOTION_C->map.attrib & MAP_WATER) != 0)
             {
                 SwimCheck();
             }

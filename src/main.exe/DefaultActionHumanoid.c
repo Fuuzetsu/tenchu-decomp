@@ -163,7 +163,7 @@ short DefaultActionHumanoid(Humanoid *human)
         {
             vector->vy += 20;
         }
-        if (map->attrib & 0x200)
+        if (map->attrib & MAP_DEATH)
         {
             if (map->height < 25000 && human->life != 0)
             {
@@ -189,7 +189,7 @@ short DefaultActionHumanoid(Humanoid *human)
     {
         if (vector->vy > 0 || map->level == (s32)0x80000000)
         {
-            if ((map->attrib & 0x200) == 0)
+            if ((map->attrib & MAP_DEATH) == 0)
             {
                 human->attribute |= 0x800;
             }
@@ -200,7 +200,7 @@ short DefaultActionHumanoid(Humanoid *human)
             vector->vy = 0;
         }
     ground_motion:
-        if ((map->attrib & 0x200) && map->height == 0 && human->status != STAT_DEAD)
+        if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
         {
             SetNowMotion(human, 0x1100, 1);
         }

@@ -192,6 +192,23 @@ struct AreaNodeType
     s16 division;  /* 0x0E */
 }; /* 0x10 */
 
+/* Area/terrain attribute bits — shared vocabulary of
+ * AreaMapNodeType.attribute, the FieldAttrib mirror, and each character's
+ * MapVector.attrib copy:
+ *   MAP_WATER   0x0004 — water surface (SwimCheck's gate; the grapple and
+ *                        damage checks test it)
+ *   MAP_DEATH   0x0200 — kill floor: standing on it at height 0 forces the
+ *                        MOT_DEAD motion (DefaultActionHumanoid)
+ *   MAP_SLOPE_X 0x4000 / MAP_SLOPE_Z 0x8000 — the node's dy interpolates
+ *                        along x resp. z (camera_terrain_pitch_;
+ *                        StickonCheck rejects wall-stick on slopes)
+ * Bits 1/2/8/0x2000 are observed (buoyancy clamp, shadow bookkeeping,
+ * field flag) but not yet confidently nameable. */
+#define MAP_WATER 0x0004
+#define MAP_DEATH 0x0200
+#define MAP_SLOPE_X 0x4000
+#define MAP_SLOPE_Z 0x8000
+
 /* CONFLICT.C's area-map row index. */
 typedef struct NodeIndexType NodeIndexType;
 struct NodeIndexType

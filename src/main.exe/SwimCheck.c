@@ -66,7 +66,7 @@ short SwimCheck(void)
 
     if (Me_MOTION_C->map.height <= 0)
     {
-        if ((Me_MOTION_C->map.attrib & 4) == 0)
+        if ((Me_MOTION_C->map.attrib & MAP_WATER) == 0)
         {
             return 0;
         }

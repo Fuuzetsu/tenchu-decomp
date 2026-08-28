@@ -59,13 +59,13 @@ MapVector *StickonCheck(void)
     {
         return 0;
     }
-    if ((Me_MOTION_C->map.attrib & 0xC000) != 0)
+    if ((Me_MOTION_C->map.attrib & (MAP_SLOPE_X | MAP_SLOPE_Z)) != 0)
     {
         return 0;
     }
     GetAreaMapVector(GlobalAreaMap, &map, dtL,
                      Me_MOTION_C->width + 0x64, 5);
-    if ((map.attrib & 0xC000) == 0)
+    if ((map.attrib & (MAP_SLOPE_X | MAP_SLOPE_Z)) == 0)
     {
         rv = RefrectVector[map.vector];
         if (Me_MOTION_C->status != STAT_STICKON && (rv & 0x200) != 0)
