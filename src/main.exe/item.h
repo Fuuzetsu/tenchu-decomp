@@ -71,7 +71,9 @@ typedef struct Humanoid
 {
     s16 type;                 /* 0x00 */
     s16 status;               /* 0x02 */
-    s16 attribute; /* 0x04 */ /* bit 15 = MODEL_ATTR_CONFLICT */
+    s16 attribute; /* 0x04 (the ATTR_* bit word — see humanoid.h; some
+                      TUs read it unsigned via *(u16 *)& casts, matching
+                      retail's mixed lh/lhu loads) */
     s16 turn;                 /* 0x06 */
     s16 life;                 /* 0x08 */
     s16 lifemax;              /* 0x0A (PSX.SYM's original signed maximum-life field) */
