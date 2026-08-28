@@ -52,14 +52,14 @@ void ActITEM(void)
     flag = 0;
     switch (dtM->mid)
     {
-    case 0xf00:
+    case 0xf00: /* scatter makibishi */
         if (dtM->count != 10)
             break;
         flag = 1;
         item.type = ITEM_MAKIBISHI;
         break;
 
-    case 0xf02:
+    case 0xf02: /* throw (fire/smoke/nemuri) */
         if (dtM->count != 5)
             break;
         mode = ITEM_FIRE;
@@ -77,15 +77,15 @@ void ActITEM(void)
         }
         break;
 
-    case 0xf03:
+    case 0xf03: /* plant (jirai/goshikimai) */
         if (dtM->count != 5)
             break;
         flag = 1;
         item.type = ITEM_JIRAI;
         break;
 
-    case 0xf04:
-    case 0xf05:
+    case 0xf04: /* kaengeki flame */
+    case 0xf05: /* shinsoku cast */
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)

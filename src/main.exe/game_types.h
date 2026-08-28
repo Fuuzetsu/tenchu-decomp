@@ -565,6 +565,10 @@ enum motion_family
     MOT_STICKON = 0xC00,
     MOT_CEILHANG = 0xD00,
     MOT_SYURI = 0xE00,
+    /* MOT_ITEM sub-ids: +0 scatter makibishi, +1 drink/eat (kusuri,
+     * dokudango), +2 throw (fire/smoke/nemuri), +3 plant (jirai,
+     * goshikimai), +4 kaengeki flame, +5 shinsoku cast (exempt from
+     * ActivateHumans' think budget while playing). */
     MOT_ITEM = 0xF00,
     MOT_DAMAGE = 0x1000,
     MOT_DEAD = 0x1100
