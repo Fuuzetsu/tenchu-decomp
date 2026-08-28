@@ -102,6 +102,7 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     w = pw << sh;
     x = x + w;
     y = y + ph;
+    /* Empty one-shot: a zero-code scheduling barrier (fence class; see cookbook). */
     do
     {
     } while (0);
