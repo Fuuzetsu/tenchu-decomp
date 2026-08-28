@@ -1164,7 +1164,7 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   zero bytes). rtlguide prints `HARD-CONFLICT`; the fix is lifetime/identity/
   interference, e.g. delay-slot-overwrite chains (`i = MotionUpdateMode;
   if (i != 0) { i = 0; … }`, ActCHASE), reusing a dead named local for the
-  operand (think_setting_small_rotation_small_steps_), duplicating a pointer
+  operand (think_alarm_reaction_), duplicating a pointer
   assignment into both arms so it can reuse the dead condition register
   (remap_buttons_), or one function-scope local across mutually-exclusive arms to
   move the value from local- to global-alloc (ProcMiscPitfall).
@@ -1528,7 +1528,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
 - **Independent row and element scaling identifies a MULTI-DIMENSIONAL table**
   (`row << a` and `col << b` scaled separately, then added): declare the real
   second dimension (`s16 AIDHumanType[][2]`) — a flattened `t[r*C+c]` folds the
-  indices first (think_setting_small_rotation_small_steps_). Build a dynamic
+  indices first (think_alarm_reaction_). Build a dynamic
   row base BEFORE a large constant field displacement when retail folds the
   displacement onto a register (`row = (u8 *)state + chr * stride;
   row[field]` — award_stage_items_). Name a scaled byte offset in its own `s32`

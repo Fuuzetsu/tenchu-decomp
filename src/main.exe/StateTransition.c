@@ -91,7 +91,7 @@ extern s32 PlayerSSR;
 
 extern void reset_alert_duration();
 extern s16 Think2confirm(void);
-extern s16 think_setting_small_rotation_small_steps_(void);
+extern s16 think_alarm_reaction_(void);
 extern s16 Think3firstattack(void);
 extern s16 turn_towards_player_(s32 x, s32 z);
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
@@ -317,7 +317,7 @@ void StateTransition(Humanoid *human)
             }
             if (ATTRIB_BITS & 0x10)
             {
-                pad = think_setting_small_rotation_small_steps_();
+                pad = think_alarm_reaction_();
             }
             else
             {

@@ -153,14 +153,14 @@ history. The promoted functions were:
   `AVCameraControl`;
 - `FUN_8004a6bc`, `DrawTargetS`, `FallCheck`, `ComPad`, `CVAsequence`,
   `GetAreaMapPassage`, `ProcMiscPitfall`, `Think1ninja`, `AttackShort`, and
-  `think_setting_small_rotation_small_steps_`.
+  `think_alarm_reaction_`.
 
 The last assignments closed as follows:
 
 | Function | Result | Integrated/preserved commits | Useful result |
 |---|---|---|---|
 | `AttackShort` | exact 1668 B / 417 instructions | `ad08550`, reflection `9a617b8` | an HImode round trip plus an empty loop and identical widening arms removes a false literal-zero equivalence before `jump2` |
-| `think_setting_small_rotation_small_steps_` | exact 1392 B / 346 instructions | `2416459`, reflection `11a249c` | make one signed-word carrier absorb the entire condition/result chain; reuse a dead local for the other operand to remove a hard `$v0` conflict |
+| `think_alarm_reaction_` | exact 1392 B / 346 instructions | `2416459`, reflection `11a249c` | make one signed-word carrier absorb the entire condition/result chain; reuse a dead local for the other operand to remove a hard `$v0` conflict |
 | `GetAreaMapVector` | guarded 548 B checkpoint, 40 bytes remain | isolated `f2d0a6e`, fuzzy `3764437`; only reflection `36afb3b` integrated | identical arms preserve distinct raw/cached source identities and fix every persistent saved-register assignment, but entry/early-return scheduling remains |
 | `ProcItemNingyo` | best guarded checkpoint has 15 bytes remaining | isolated `c10c3ab`; not integrated | clearing a short-lived launch pointer after `memset` breaks stack-address CSE; destructive model-pointer reuse makes the full derived-position/modulus block exact |
 | `mission_score_screen` | guarded 4636 B checkpoint, 1266 bytes remain | fuzzy 81.45%; exact 1159-instruction extent | the established decimal identities plus a split colour seed, a signed table-shift predecessor, and one pivot-reset scheduler boundary preserve exact extent/frame while removing another 241 differing bytes |

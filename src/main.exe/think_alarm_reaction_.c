@@ -27,7 +27,7 @@ extern int rand(void);
  * delay-slot assignments.
  */
 
-s16 think_setting_small_rotation_small_steps_(void)
+s16 think_alarm_reaction_(void)
 {
     s32 x_diff;
     s32 z_diff;
