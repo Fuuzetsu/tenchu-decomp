@@ -56,6 +56,10 @@
  *  - The blood image IDs must stay a flat byte array.  Indexing it with
  *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
  *    formed addresses; caching a row of a two-dimensional array does not.
+ *  - The `while (1) { if (i >= N) break; ... }` loop spelling is
+ *    byte-required: the natural `for` form changes the emitted length
+ *    (measured) — the manual top test suppresses the for-loop's
+ *    entry-test/rotation treatment.
  *  - Each SetupSprite loop has its own block-scoped `sprite` temporary.
  *    Sharing one function-scoped pointer extends its lifetime and emits
  *    three extra return-value moves.
