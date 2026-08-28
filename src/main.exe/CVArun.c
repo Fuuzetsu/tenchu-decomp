@@ -34,7 +34,7 @@
 /*
  * CVArun (0x80050e60, 0x214 bytes) — the once-per-frame CVA cutscene body:
  * runs the normal per-frame draw/update pipeline (ComputeAllConflict through
- * update_something_for_each_visible_enemy_, matched — Ghidra's own
+ * draw_visible_characters_, matched — Ghidra's own
  * `FUN_80029368`), then two CVA-specific passes:
  *  1. stage 10 (a specific cutscene stage) + CHOSEN_CHARACTER==0 only:
  *     6-entry TENCHU_POSITIONAL_DATA_AREA_ sprite-fade-and-sort pass — each
@@ -81,7 +81,7 @@ extern void DrawEffect(void);
 extern void DoItemProc(void);
 extern void DoMiscProc(void);
 extern void DrawTelop(void);
-extern void update_something_for_each_visible_enemy_(void);
+extern void draw_visible_characters_(void);
 extern short CVAupdate(void);
 
 short CVArun(void)
@@ -103,7 +103,7 @@ short CVArun(void)
     DoItemProc();
     DoMiscProc();
     DrawTelop();
-    update_something_for_each_visible_enemy_();
+    draw_visible_characters_();
 
     if (StageID == 10 && CHOSEN_CHARACTER == 0)
     {

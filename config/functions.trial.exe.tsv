@@ -177,7 +177,7 @@
 0x8002c56c	1144	FUN_8002c56c
 0x8002c9e4	868	FUN_8002c9e4
 0x8002cd48	140	FUN_8002cd48
-0x8002cdd4	260	update_something_for_each_visible_enemy_
+0x8002cdd4	260	draw_visible_characters_
 0x8002ced8	112	GetHumanoid
 0x8002cf48	80	is_character_state_present_on_stage_
 0x8002cf98	308	MoveHumanoid
@@ -258,7 +258,7 @@
 0x80039678	984	SetFlyWire
 0x80039a50	1488	SetWire
 0x8003a020	896	FUN_8003a020
-0x8003a3a0	520	death_camera_something_
+0x8003a3a0	520	spread_blood_pool_
 0x8003a5a8	1120	DrawShadow
 0x8003aa08	632	DrawAfterimage
 0x8003ac80	416	FadeOutDirect

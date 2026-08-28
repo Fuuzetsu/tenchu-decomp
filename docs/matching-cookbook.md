@@ -1603,7 +1603,7 @@ LUID, barriers). The levers:
   reorg rule was correctly stated and irrelevant; byte-account fills — a nop
   and a lui at the same address shift nothing). For a returning guard, the slot
   is won by SOURCE POSITION: put the producer as the first statement AFTER the
-  returning if (death_camera_something_; AddEnemy −6 — free when the variable
+  returning if (spread_blood_pool_; AddEnemy −6 — free when the variable
   is dead on the else path; inside the arm it loses on priority). A skip
   label's leader + LABEL_NUSES decide a guard's fill (StickonCheck's header:
   the four-guard control). `li` in a branch delay slot = the constant was

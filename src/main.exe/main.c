@@ -88,7 +88,7 @@ extern void DrawEffect(void);
 extern void DoItemProc(void);
 extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);
-extern void update_something_for_each_visible_enemy_(void);
+extern void draw_visible_characters_(void);
 int main(void)
 {
     short seq;
@@ -145,7 +145,7 @@ int main(void)
         DoItemProc();
         DoInfoViewProc();
         DoMiscProc();
-        update_something_for_each_visible_enemy_();
+        draw_visible_characters_();
         pad = GetPad(0);
         if ((pad & PADselect) != 0 && SkipFrame == 0)
         {

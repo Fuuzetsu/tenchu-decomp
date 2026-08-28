@@ -115,7 +115,7 @@
 0x8002b238	196	ItemControl	main	-
 0x8002b304	508	CreateHumanoid	main	-
 0x8002b500	292	KillHumanoid	calls-contain	psxsym
-0x8002cdd4	260	update_something_for_each_visible_enemy_	main	-
+0x8002cdd4	260	draw_visible_characters_	main	-
 0x8002ced8	112	GetHumanoid	main	-
 0x8002cf48	80	is_character_state_present_on_stage_	main	-
 0x8002cf98	308	MoveHumanoid	main	-
@@ -189,7 +189,7 @@
 0x80039678	984	SetFlyWire	main	-
 0x80039a50	1488	SetWire	main	-
 0x8003a020	896	FUN_80037e0c	main	-
-0x8003a3a0	520	death_camera_something_	main	-
+0x8003a3a0	520	spread_blood_pool_	main	-
 0x8003a5a8	1120	DrawShadow	main	-
 0x8003aa08	632	DrawAfterimage	main	-
 0x8003ac80	416	FadeOutDirect	main	-

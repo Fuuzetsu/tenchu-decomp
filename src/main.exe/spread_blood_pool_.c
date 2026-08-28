@@ -18,7 +18,7 @@ extern ModelType *LOCAL_COORDINATES_;
 extern void spawn_damage_effect_(Humanoid *human, s32 mode);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 
-void death_camera_something_(Humanoid *human)
+void spread_blood_pool_(Humanoid *human)
 {
     VECTOR scale;
     MATRIX matrix;

@@ -19,7 +19,7 @@
  * ControlAllHumanoid (0x800292a4, 0xc4 bytes) — same "Humanoid control" TU
  * as GetHumanoid.c/MoveHumanoid.c/GetMoveSpeed.c/GetTargetDistance.c
  * (HUMAN.C). Clears VISIBLE_ENEMIES_ (proven s16, DoInfoViewProc.c/
- * update_something_for_each_visible_enemy_.c), then walks the live
+ * draw_visible_characters_.c), then walks the live
  * HumanGroup[]/Humans array (the same short-counter fused sign-extend+scale
  * loop shape as GetHumanoid), calling ControlHumanoid(human) on every entry
  * whose attribute bit 0x80 is clear — bracketing the call with

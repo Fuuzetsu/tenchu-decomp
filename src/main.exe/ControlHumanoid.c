@@ -111,7 +111,7 @@ extern char fmt_dbg_rot[];
 extern void StateTransition(Humanoid *human);
 extern void DrawShadow(Humanoid *human);
 extern void register_character_death(Humanoid *human);
-extern void death_camera_something_(Humanoid *human);
+extern void spread_blood_pool_(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
 extern s32 DrawClip(ModelType *model, s32 *xy);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
@@ -139,7 +139,7 @@ void ControlHumanoid(Humanoid *human)
         if (human->status == STAT_DEAD)
         {
             register_character_death(human);
-            death_camera_something_(human);
+            spread_blood_pool_(human);
         }
     }
     HumanActionControl(human);

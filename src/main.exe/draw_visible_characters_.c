@@ -4,7 +4,7 @@
 #include "afterimage.h"
 
 /*
- * update_something_for_each_visible_enemy_ (0x80029368, 0x104 bytes) — per
+ * draw_visible_characters_ (0x80029368, 0x104 bytes) — per
  * visible enemy: pick a DrawTMDmode from a parallel s16 table, draw its
  * model archive (id = -i, per DrawAfterimage/DrawOrnament's existing
  * per-item-index convention), then draw any active weapon ornaments and
@@ -38,7 +38,7 @@ extern s16 DrawModeSave[];
 extern short DrawModelArchive(ModelArchiveType *mad, long gap);
 extern short DrawOrnament(OrnamentType *objp);
 
-void update_something_for_each_visible_enemy_(void)
+void draw_visible_characters_(void)
 {
     s16 i;
     Humanoid *cs;

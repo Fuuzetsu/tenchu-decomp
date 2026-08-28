@@ -345,7 +345,7 @@ GP_EXTERNS = {
     "init_score_stats": ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"],
     "is_character_state_present_on_stage_": ["Humans"],
     "Think2contact": ["Attrib", "Me_THINK_C", "Degree"],
-    "update_something_for_each_visible_enemy_": ["VISIBLE_ENEMIES_"],
+    "draw_visible_characters_": ["VISIBLE_ENEMIES_"],
     "turn_towards_player_": ["Me_THINK_C", "Degree", "Attrib", "ProbeLevelLow"],
     "Think1trace": ["Me_THINK_C", "Degree", "Attrib"],
     "Think3chase": ["Distance", "SR", "EngageLevel", "AttackActionCount", "Degree", "Me_THINK_C"],
@@ -471,7 +471,7 @@ GP_EXTERNS = {
     "reset_alert_duration": ["EmergencyNotice"],
     "Think3area": ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"],
     "create_ninken_character_": ["NINKEN_CHARACTER_PTR"],
-    "death_camera_something_": ["LOCAL_COORDINATES_"],
+    "spread_blood_pool_": ["LOCAL_COORDINATES_"],
     "debug_output_edit_camera_settings": ["BUTTONS_HELD_DURING_EXPANDED_DEBUG_OUTPUT", "BUTTONS_REGISTERED_FOR_ONE_FRAME_DURING_EXPANDED_DEBUG_OUTPUT", "DEBUG_PRINT_CHOSEN_CAMERA_TYPE_INDEX", "CAMERA_PTR_ARRAY_START"],
     "debug_menu_file_animation_test": ["CVAdata"],
 }

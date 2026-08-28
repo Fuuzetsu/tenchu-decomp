@@ -141,7 +141,7 @@ GUIDANCE = [
     "If a returning guard's branch delay slot contains the fallthrough's first "
     "arithmetic producer, keep that producer AFTER the returning `if`; hoisting "
     "it before the guard lengthens its lifetime and can make reorg steal the "
-    "wrong later instruction instead (death_camera_something_).",
+    "wrong later instruction instead (spread_blood_pool_).",
     "When an inlined endian/byte-pack helper's target loads use two already-live "
     "cursor registers, pass both cursor identities to the helper and load each "
     "byte through its target base. This can preserve both inline pseudos and an "
