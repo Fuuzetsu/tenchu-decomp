@@ -384,7 +384,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             it->collision.size = 0;
             it->model = SyurikenModel;
             param->count = 5;
-            it->owner->item[0x19] = 1;
+            it->owner->item[ITEM_N] = 1;
         }
         else
         {
@@ -395,7 +395,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             param.start.vz = p->start.vz;
             SearchItemTarget2(param.user, &param.user->model->rotate, &param.start, &param.end);
             ReqItemLaunch(&param);
-            p->user->item[0x19] = 0;
+            p->user->item[ITEM_N] = 0;
         }
         break;
     }
@@ -786,7 +786,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         UpdateCoordinate(it->locate);
         it->collision.size = 0;
         it->model = 0;
-        it->owner->item[0x19] = 1;
+        it->owner->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
         CamState.DirectionRY = 0;

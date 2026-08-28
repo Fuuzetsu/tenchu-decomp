@@ -1069,6 +1069,9 @@ enum TItemType
     ITEM_NAPALM = 0x16,
     ITEM_LIGHTNINGBOLT = 0x17,
     ITEM_TELEPORT = 0x18,
+    /* Kind count — and retail reuses the item[ITEM_N] inventory slot as
+     * the aimed-projectile flag (ProcKaginawa's hook flag; item.h sizes
+     * Humanoid.item[] to 0x1A to cover it). */
     ITEM_N = 0x19,
 };
 // s32 AdtSelect(char *screen_header, TAdtSelect *choices, char *param_3);

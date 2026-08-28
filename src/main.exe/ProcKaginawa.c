@@ -65,7 +65,7 @@
  *    cross-jump merges the identical `jalr`-onward suffix into one shared
  *    tail after the third branch (the mode-store instruction differs — $s1
  *    vs rematerialised $v1 — so the merge starts at the call, not earlier).
- *  - The hook flag lives at Humanoid+0xCD, i.e. `own->item[0x19]` one past
+ *  - The hook flag lives at Humanoid+0xCD, i.e. `own->item[ITEM_N]` one past
  *    the DoInfoViewProc-indexed slots (item.h sizes item[] to 0x1A to cover
  *    it); read `lbu`, written `sb 0`.
  *  - `w.vx = v.vx; …; w.vx += ViewInfo.vpx; …` is the two-phase raw-copy-
@@ -97,7 +97,7 @@ void ProcKaginawa(TItem *item)
         return;
     }
     own = item->owner;
-    if (own->item[0x19] == 0)
+    if (own->item[ITEM_N] == 0)
     {
         SetCameraMode(CMODE_DIRECTION);
         ppu = item->proc;
@@ -163,7 +163,7 @@ void ProcKaginawa(TItem *item)
             CamState.TargetVector = *(VECTOR *)CamState.Owner->model->locate.coord.t;
         }
         SetCameraMode(CMODE_LOCK);
-        item->owner->item[0x19] = 0;
+        item->owner->item[ITEM_N] = 0;
         ppu = item->proc;
         if (ppu == 0)
             return;

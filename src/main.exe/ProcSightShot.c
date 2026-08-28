@@ -85,13 +85,13 @@ void ProcSightShot(TItem *item)
     ff = 0xff;
     if (item->mode == ff)
     {
-        item->owner->item[0x19] = 0;
+        item->owner->item[ITEM_N] = 0;
         item->mode = 0;
         return;
     }
 
     human = item->owner;
-    if (human->item[0x19] == 0)
+    if (human->item[ITEM_N] == 0)
     {
         u8 item_count;
 
