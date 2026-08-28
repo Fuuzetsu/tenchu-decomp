@@ -368,8 +368,11 @@ to demo FUN_80087138/FUN_800871b0) and the 2D_BG22 sort worker
 FUN_80063b94 takes four args where official GsSortFixBg16 takes three —
 both stay honestly unidentified rather than guessed. Every remaining
 humanscan row is a documented byte-required spelling. Reopen conditions:
-new PSX.SYM-grade evidence for the library internals, or runtime
-evidence for the unnamed attribute bits.
+new PSX.SYM-grade evidence for the library internals, or evidence for the few remaining
+data-dependent bits (the challenge "why runtime?" was right: setter/
+reader hunts later named ATTR_SEARCH/FLOAT/NOFLOOR/LEDGE statically;
+what genuinely needs data or runtime is only map bit 8's floor-material
+identity, and 0x200/0x2000 are reader-less set-only bits).
 
 ## Current resume point (2026-07-20)
 
