@@ -32,6 +32,48 @@
         Sound(Me_MOTION_C, 0);                                                \
     }
 
+/* End-of-attack weapon cleanup: drop the striking-limb conflict boxes
+ * for the weapon class and dispose both afterimage trails. Retail
+ * copy-pastes this block three times; the macro is reconstruction
+ * shorthand (expands to the identical text; `kind` and `cleanup_guard`
+ * are each site's locals). */
+#define DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES()                             \
+    kind = Me_MOTION_C->wpatk;                                                \
+    switch (kind)                                                             \
+    {                                                                         \
+    case WEP_ONININ:                                                          \
+        DeleteConflict(Me_MOTION_C->model->object[8]);                        \
+        DeleteConflict(Me_MOTION_C->model->object[0xb]);                      \
+        cleanup_guard = 3;                                                    \
+        break;                                                                \
+    case WEP_BEAST:                                                           \
+        DeleteConflict(Me_MOTION_C->model->object[2]);                        \
+        cleanup_guard = 3;                                                    \
+        break;                                                                \
+    case WEP_NONE:                                                            \
+        cleanup_guard = 3;                                                    \
+        break;                                                                \
+    default:                                                                  \
+        DeleteConflict(Me_MOTION_C->model->object[0xd]);                      \
+        DeleteConflict(Me_MOTION_C->model->object[0xe]);                      \
+        cleanup_guard = 3;                                                    \
+        break;                                                                \
+    }                                                                         \
+    if ((cleanup_guard & 2) != 0)                                             \
+    {                                                                         \
+        if (Me_MOTION_C->illusion[0] != 0)                                    \
+        {                                                                     \
+            DisposeAfterimage(Me_MOTION_C->illusion[0]);                      \
+            Me_MOTION_C->illusion[0] = 0;                                     \
+        }                                                                     \
+        if (Me_MOTION_C->illusion[1] != 0)                                    \
+        {                                                                     \
+            DisposeAfterimage(Me_MOTION_C->illusion[1]);                      \
+            Me_MOTION_C->illusion[1] = 0;                                     \
+        }                                                                     \
+    }
+
+
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -567,40 +609,7 @@ dispatch:
             short cleanup_guard;
             short kind;
 
-            kind = Me_MOTION_C->wpatk;
-            switch (kind)
-            {
-            case WEP_ONININ:
-                DeleteConflict(Me_MOTION_C->model->object[8]);
-                DeleteConflict(Me_MOTION_C->model->object[0xb]);
-                cleanup_guard = 3;
-                break;
-            case WEP_BEAST:
-                DeleteConflict(Me_MOTION_C->model->object[2]);
-                cleanup_guard = 3;
-                break;
-            case WEP_NONE:
-                cleanup_guard = 3;
-                break;
-            default:
-                DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                DeleteConflict(Me_MOTION_C->model->object[0xe]);
-                cleanup_guard = 3;
-                break;
-            }
-            if ((cleanup_guard & 2) != 0)
-            {
-                if (Me_MOTION_C->illusion[0] != 0)
-                {
-                    DisposeAfterimage(Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = 0;
-                }
-                if (Me_MOTION_C->illusion[1] != 0)
-                {
-                    DisposeAfterimage(Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = 0;
-                }
-            }
+            DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             dtM->mask = 0x7fff;
             SetCameraMode(CMODE_NORMAL);
             if (motID == 0x803)
@@ -620,40 +629,7 @@ dispatch:
         }
         if ((dtM->count == 0) && (dtM->loop != 0))
         {
-            kind = Me_MOTION_C->wpatk;
-            switch (kind)
-            {
-            case WEP_ONININ:
-                DeleteConflict(Me_MOTION_C->model->object[8]);
-                DeleteConflict(Me_MOTION_C->model->object[0xb]);
-                cleanup_guard = 3;
-                break;
-            case WEP_BEAST:
-                DeleteConflict(Me_MOTION_C->model->object[2]);
-                cleanup_guard = 3;
-                break;
-            case WEP_NONE:
-                cleanup_guard = 3;
-                break;
-            default:
-                DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                DeleteConflict(Me_MOTION_C->model->object[0xe]);
-                cleanup_guard = 3;
-                break;
-            }
-            if ((cleanup_guard & 2) != 0)
-            {
-                if (Me_MOTION_C->illusion[0] != 0)
-                {
-                    DisposeAfterimage(Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = 0;
-                }
-                if (Me_MOTION_C->illusion[1] != 0)
-                {
-                    DisposeAfterimage(Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = 0;
-                }
-            }
+            DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             mmp = dtM;
             motID = 0x501;
             motMODE = 1;
@@ -758,40 +734,7 @@ dispatch:
         short i;
 
         saved_mid = motID;
-        kind = Me_MOTION_C->wpatk;
-        switch (kind)
-        {
-        case WEP_ONININ:
-            DeleteConflict(Me_MOTION_C->model->object[8]);
-            DeleteConflict(Me_MOTION_C->model->object[0xb]);
-            cleanup_guard = 3;
-            break;
-        case WEP_BEAST:
-            DeleteConflict(Me_MOTION_C->model->object[2]);
-            cleanup_guard = 3;
-            break;
-        case WEP_NONE:
-            cleanup_guard = 3;
-            break;
-        default:
-            DeleteConflict(Me_MOTION_C->model->object[0xd]);
-            DeleteConflict(Me_MOTION_C->model->object[0xe]);
-            cleanup_guard = 3;
-            break;
-        }
-        if ((cleanup_guard & 2) != 0)
-        {
-            if (Me_MOTION_C->illusion[0] != 0)
-            {
-                DisposeAfterimage(Me_MOTION_C->illusion[0]);
-                Me_MOTION_C->illusion[0] = 0;
-            }
-            if (Me_MOTION_C->illusion[1] != 0)
-            {
-                DisposeAfterimage(Me_MOTION_C->illusion[1]);
-                Me_MOTION_C->illusion[1] = 0;
-            }
-        }
+        DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
         motID = 0x501;
         motMODE = 1;
         dtM->mask = 0x7fff;
