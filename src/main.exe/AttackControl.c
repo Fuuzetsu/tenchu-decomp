@@ -136,19 +136,19 @@ void AttackControl(void)
                         if (__builtin_abs(deg) > 1000 &&
                             __builtin_abs(mydeg) < 1000)
                         {
-                            myid = 0x714;
-                            emid = 0x1109;
+                            myid = MOT_ATTACK_STEALTH_BACK;
+                            emid = MOT_DEAD_STEALTH_BACK;
                         }
                         else if (__builtin_abs(deg) < 1000 &&
                                  __builtin_abs(mydeg) < 1000)
                         {
-                            myid = 0x715;
-                            emid = 0x110a;
+                            myid = MOT_ATTACK_STEALTH_FRONT;
+                            emid = MOT_DEAD_STEALTH_FRONT;
                         }
                         else
                         {
-                            myid = 0x716;
-                            emid = 0x110b;
+                            myid = MOT_ATTACK_STEALTH_SIDE;
+                            emid = MOT_DEAD_STEALTH_SIDE;
                         }
                         if (Me_MOTION_C->type == AYAME_0)
                         {

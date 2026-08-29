@@ -700,7 +700,10 @@ enum
     MOT_DEAD_DROWN = 0x1108,
     MOT_DEAD_STEALTH_BACK = 0x1109,  /* stealth-kill collapses, paired */
     MOT_DEAD_STEALTH_FRONT = 0x110A, /* with the attacker's 0x714-0x719 */
-    MOT_DEAD_STEALTH_SIDE = 0x110B
+    MOT_DEAD_STEALTH_SIDE = 0x110B,  /* (AttackControl adds 3 to both   */
+    MOT_DEAD_STEALTH_BACK_AYAME = 0x110C,  /* ids when playing Ayame)   */
+    MOT_DEAD_STEALTH_FRONT_AYAME = 0x110D,
+    MOT_DEAD_STEALTH_SIDE_AYAME = 0x110E
 };
 
 /* Camera-mode names recovered from the demo's CAMERA.C. This list is not
