@@ -426,6 +426,22 @@ extern void *memset(void *s, int c, u32 n);
 /* "item dispose fail   id %d  mode %d" */
 extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 /* The global item pool. */
+/* The item-teardown sequence ITEM.C pastes at every dispose site: run
+ * the handler once in dispose mode, drop the collision entry, report a
+ * handler that failed to clear its mode, and free the slot. Macro is
+ * reconstruction shorthand for that copy-paste (expands to the
+ * identical text). */
+#define DISPOSE_ITEM(item)                                                    \
+    item->mode = ITEM_MODE_DISPOSE;                                           \
+    item->proc(item);                                                         \
+    DeleteConflict(item->locate);                                             \
+    if (item->mode != 0)                                                      \
+    {                                                                         \
+        AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);    \
+    }                                                                         \
+    item->owner = 0;                                                          \
+    item->proc = 0;
+
 #define MAX_ITEMS 30
 extern TItem items[MAX_ITEMS];
 /* ITEM.C's shared model and sprite resources. */

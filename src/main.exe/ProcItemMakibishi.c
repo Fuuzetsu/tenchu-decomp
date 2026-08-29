@@ -152,15 +152,7 @@ void ProcItemMakibishi(TItem *item)
             ppu = item->proc;
             if (ppu == 0)
                 return;
-            item->mode = ITEM_MODE_DISPOSE;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != 0)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
         break;
