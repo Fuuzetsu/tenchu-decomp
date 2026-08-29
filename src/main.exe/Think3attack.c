@@ -77,7 +77,7 @@ s16 Think3attack(void)
     }
 
     if (SR != SR_GONE &&
-        ((idx == 3 && Distance < 14000) || Distance < SR_CLEAR_RANGE))
+        ((idx == WPATK_CLASS_RANGED && Distance < 14000) || Distance < SR_CLEAR_RANGE))
     {
         SR = SR_NONE;
     }
@@ -124,7 +124,7 @@ s16 Think3attack(void)
 
     if (Distance < atkd[idx])
     {
-        if (idx == 3)
+        if (idx == WPATK_CLASS_RANGED)
         {
             if (pad == 0 && rand() % (EngageLevel * 4) == 0)
             {
