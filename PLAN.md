@@ -551,7 +551,19 @@ protocol) fully triaged. The scripted extern-vs-definition audit
 measured ~20 drifts: 8 free artifacts unified, 11 RETAIL prototype
 bugs preserved+annotated (return narrowings, param views, cd_open's
 dead extra argument) -- cookbook 3.17b records the rule. Combat-family
-lens pending.
+lens done (constants named, div-mul roll respelled, gloss added,
+cooldown/SR-range knobs).
+
+HUMANISING CAMPAIGN STATUS (2026-08-29): converged. Lenses run:
+expression, control-flow, naming/API, data-tables, dead-code,
+doc-accuracy, Act*/think headers, item family, effect family, card
+family, combat family. Systematic sweeps: hex/decimal (constants now
+read as quantities), extern cross-check, extern-vs-definition drift
+audit (retail's no-shared-headers bugs preserved + cookbook 3.17b),
+weird casts, goto shapes, pad packs, tuning.h knob extraction. Each
+class is either fixed repo-wide or adjudicated in place with a
+measurement. Future passes should target NEW code as it gets matched,
+not re-sweep the existing corpus.
 
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
