@@ -71,6 +71,27 @@ extern short DrawModel(ModelType *objp);
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
+/*
+ * ProcItemNingyo (0x80042120) — the decoy doll, thrown to pull enemy
+ * attention off the player. ITEM_MODE_DISPOSE first repoints every
+ * HumanGroup entry still targeting the doll back at CamState.Owner's
+ * model and decrements NingyoCount (both skipped while hp is 99), then
+ * clears mode. Otherwise MoveKorogari rolls the thrown doll and a
+ * KORO_WATER landing disposes it. mode 0 counts down; at zero it puffs
+ * smoke and plays sound 0x23, then either arms the doll (hp 3,
+ * NingyoCount++) if fewer than 3 are out or hands the item straight
+ * back through ReqItemDrop with a randomized launch vector and
+ * disposes. mode 1 inflates the doll over 16 frames by rebuilding and
+ * scaling its matrix, then installs a 500-unit
+ * CONFLICT_STAND|CONFLICT_SOFT box and reloads the countdown to 3.
+ * mode 2 draws NingyoModel every frame and, when the countdown wraps,
+ * retargets every non-PAGE_BOSS humanoid within 10000 units whose
+ * current target is farther away, then resets to 30; a CONFLICT_HIT
+ * touch either bursts yellow blood and disposes (hp 0) or knocks the
+ * doll back off ConflictDistance and spends one hp, while any
+ * non-CONFLICT_SOFT contact bounces it with a randomized velocity.
+ */
+
 /* MATCH (retail): the pure-C body has the exact 0x68 frame, 564 instructions,
  * exact 36/12/33/1 branch/jump/call/return inventory, and target
  * item/param/sentinel homes s3/s4/s5.  The short-lived loaded_model alias is

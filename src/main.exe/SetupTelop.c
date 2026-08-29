@@ -32,6 +32,25 @@
  *     extern struct POLY_FT4 TelopP;
  * END PSX.SYM */
 
+/*
+ * SetupTelop (0x80057218) — rasterizes one caption line into VRAM and
+ * queues it as the TelopP quad that draw_telop_line_ later blits. Bails
+ * entirely unless both the first and third bytes of `telop` have bit 7
+ * set (a Shift-JIS double-byte pair), then ClearImages a 256x15 strip
+ * at VRAM (768, 496 - line * 16). It walks up to 32 bytes two at a
+ * time, stopping at a NUL: the pair 0x81 0x99 takes the built-in
+ * TelopFont, anything else goes through Krom2RawAdd, and a -1 lookup
+ * skips the glyph. Each glyph's 15 one-bit rows are byte-swapped and
+ * expanded column-mirrored into a 16x16 bitmap of white (0x7fff) and
+ * transparent pixels; a second pass fills every transparent pixel that
+ * has two orthogonally adjacent white neighbours with the grey outline
+ * colour 0x1ce7, and LoadImage pushes the glyph out before the cursor
+ * advances 16 pixels. The tail builds TelopP as a nine-word textured
+ * quad (code 0x2c) spanning the drawn width in u and rows SCREEN_H -
+ * line * 16 through +15 in v, with a tpage pointing at the strip just
+ * written.
+ */
+
 /* STATUS: MATCHED — exact 1076 bytes / 269 instructions.
  *
  * ROUND 5 disproved the parked allocation floor by replacing the byte-chased

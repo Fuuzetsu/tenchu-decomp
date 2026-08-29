@@ -42,6 +42,19 @@
  * END PSX.SYM */
 
 /*
+ * SetBleeds (0x80034590) — spawns n blood droplets as a scattered burst.
+ * Each droplet jitters its spawn point per axis by rand() % (grange * 2)
+ * - grange (a flat -grange when grange is zero or negative) and its
+ * velocity the same way from srange, takes a lifetime of rand() % (time
+ * - time / 2) + time / 2, and unpacks col into the r/g/b bytes with mode
+ * 0. Slots come from the shared EffectSlot[200] pool, scanned
+ * round-robin from EFFECT_CURSOR_ for an entry with a null proc; after
+ * 200 occupied slots the droplet is written to the throwaway `dmy` slot
+ * instead. Each claimed slot gets DrawBleed as its proc, and the loop
+ * returns as soon as n runs out.
+ */
+
+/*
  * Matching notes (MATCHED — byte-identical; all verified against the raw .s,
  * the demo build's disassembly, and cc1 -da RTL dumps):
  *  - Outer loop is `do { if (n <= 0) return; ...; } while (1);` (the guard

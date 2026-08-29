@@ -42,6 +42,20 @@
  * END PSX.SYM */
 
 /*
+ * SetBleedsDir (0x800352c0) — the aimed variant of SetBleeds: spawns n
+ * blood droplets that all travel along the caller's `vec`. The spawn
+ * point still jitters per axis by rand() % (grange * 2) - grange (a
+ * flat -grange when grange is zero or negative), but the velocity is
+ * copied from vec verbatim with no scatter — that is the whole
+ * difference. Lifetime is rand() % (time - time / 8) + time / 8, an
+ * eighth-split rather than SetBleeds' half, and col unpacks into the
+ * r/g/b bytes with mode 0. Slots come round-robin from the shared
+ * EffectSlot[200] pool starting at EFFECT_CURSOR_, falling back to the
+ * throwaway `dmy` slot after 200 occupied entries, and each claimed
+ * slot gets DrawBleed as its proc.
+ */
+
+/*
  * Matched. Notes (against SetBleed.c/SetBleeds.c, the same EffectSlot[200]
  * pool spawner family — see their headers for the idiom writeups):
  *  - `SetBleedsDir` is the "given direction" variant: `pos` is jittered by

@@ -52,6 +52,25 @@ extern s16 Think1sleep(void);
  * END PSX.SYM */
 
 /*
+ * ProcItemNemuri (0x800458a8) — the sleeping-powder item. mode 0 starts
+ * the owner's throw motion 0xf02 and plays sound 0x26. mode 1 waits for
+ * that motion to reach count 3, then places the item at the owner's
+ * model object[14] and installs a 1000-unit CONFLICT_SOFT gas cloud;
+ * any other motion means the throw was interrupted and the item
+ * disposes. mode 2 is the live cloud: it drifts along param->vec,
+ * pulses its colour, scale and spin off rsin of its own frame counter,
+ * sheds two grey (0x6e6e6e) bleed particles per frame, and expires past
+ * 100 frames. A conflict against any on-stage humanoid other than the
+ * owner puffs smoke, plays sound 0x23, and — for a living victim not
+ * already in MOT_ACTION — disarms it (EquipWeapon 0), plays motion
+ * 0x80f, installs Think1sleep and clears the phase bits unless it is a
+ * PAGE_BOSS, then forces MOT_ACTION and Sound 6 before disposing.
+ * Leaving the area map (GetAreaMapLevel returning LEVEL_NONE) and mode
+ * 3 both dispose; every surviving frame redraws the sprite at the
+ * item's coordinate.
+ */
+
+/*
  * Advances the sleeping-powder projectile, draws its pulsing sprite, puts a
  * collided humanoid to sleep, and disposes the item after impact, expiry, or
  * leaving the area map.

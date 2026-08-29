@@ -21,6 +21,31 @@
  * END PSX.SYM */
 
 /*
+ * StageEndScreen (0x80053384) — the mission-complete tally and the branch
+ * out of a finished stage. Fades out, marks the cleared mission in the
+ * persistent state's mission_flags (plus bit 0x400 for the English final
+ * mission at campaign slot 7), scores the run through init_score_stats
+ * and calculate_score, and overwrites the saved [CharType][StageNo]
+ * [layout] record when the new score wins or ties with a faster clock; a
+ * StageConfig uid of 0 detours through mission_score_screen. Unless the
+ * finished slot is 7 it loads the digit TIM, the language's result-screen
+ * background and rank archive, plays the completion music, and spins a
+ * draw loop showing the clear time and five rows — stealth kills, kills,
+ * sightings, friendly hits, total — each pairing its raw counters with
+ * this run's score at x 82 and the record's at 127, the grade sprite
+ * pulsed by rsin over GameClock and, at RANK_GRAND_MASTER, the stage's
+ * reward icon pulsed by rcos. PADRright leaves with selection 0,
+ * PADRdown with 2, PADstart with 1. Afterwards it awards stage items,
+ * raises StageNoMAX, folds CamState.Owner's items 1-19 into gItem (255
+ * stays infinite, ITEM_LOCKED unlocks with a +2 first, sums capped at
+ * 99), mirrors 20 entries into saveItem, and dispatches: selection 0
+ * clears the retry bit and either enters PROCESS_ENDING at slot 7 or
+ * advances StageOrder and picks the first of three layouts with no
+ * recorded enemies (255 when all are used), 1 sets the retry bit, 2 goes
+ * to PROCESS_MENU. It always ends in exec_process_(PROCESS_MAIN).
+ */
+
+/*
  * Byte-identical C reconstruction (6084 bytes).
  *
  * The five current-score fields deliberately capture x = 0x52 in separate
