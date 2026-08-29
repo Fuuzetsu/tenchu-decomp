@@ -42,6 +42,32 @@
  * END PSX.SYM */
 
 /*
+ * SearchTarget (0x80028b48) — the enemy perception test: how well
+ * `human` can currently see human->target, reported as one of the SR_
+ * codes. With no target it returns 0 at once. It always fills
+ * *distance (SquareRoot0 of the 3D delta) and *degree (ratan2 bearing
+ * minus the human's own rotate->vy, folded into +/-0x800 of the
+ * 4096-unit circle), then throttles: unless ((GameClock +
+ * model->object[0]->id) & 0x1f) is 0 it returns 0, so the real
+ * evaluation runs one frame in 32, staggered per model id. mode picks
+ * the searchsight row — 1 while the player is STAT_SQUAT or
+ * STAT_STICKON, which shortens every range by about a quarter, else 0.
+ * Vertical rejects come first: while the player is STAT_HANG a
+ * non-negative vy reports SR_GONE, as does a vy under -3000 within
+ * 4000 units; any |vy| >= 3000 is SR_GONE unless EmergencyNotice is
+ * set, and even then SR_GONE inside 4000. Beyond far_distance is
+ * SR_GONE. Outside a |*degree| of 900 (of 4096) it is SR_UNSEEN, as is
+ * 450 or more while sneaking, or anything at or past sight_distance.
+ * Otherwise it casts a ray: the eye is lifted to position.vy + 300 -
+ * human->height, the delta re-based by the same amounts and lowered by
+ * the player's height (half of it while squatting), then halved
+ * (n <<= 1, components >>= 1) until every component is within limit —
+ * 500, or 300 while sneaking — and walked through GlobalAreaMap by
+ * GetAreaMapPassage over n steps. A blocked ray is SR_GONE; a clear
+ * one is SR_SEEN inside clear_distance, else SR_GLIMPSE.
+ */
+
+/*
  * STATUS: MATCHING — exact 1128-byte / 282-instruction pure-C match.
  * The stack plan is frame 0x50, `vect` VECTOR at sp+0x10, position VECTOR at
  * sp+0x20, and passage SVECTOR at sp+0x30.

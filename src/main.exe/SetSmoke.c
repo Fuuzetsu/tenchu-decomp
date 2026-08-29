@@ -34,6 +34,26 @@
  * END PSX.SYM */
 
 /*
+ * SetSmoke (0x800336bc) — spawns n smoke puffs into the shared
+ * 200-slot EffectSlot pool, each rendered by DrawSmoke. The outer loop
+ * fills one particle per pass and returns as soon as i >= n, so a
+ * non-positive n spawns nothing. Each pass claims a slot with the
+ * pool's round-robin scan: EFFECT_CURSOR_ advances from where it last
+ * stopped, wraps past 199, takes the first slot with a null proc, and
+ * after 200 misses fills the throwaway dmy slot. The SmokeType fill is
+ * randomized fresh every particle: scale is rand() % 0x2000 + 0x1000,
+ * rotate a whole degree (rand() % 360, degrees<<12), pos is copied
+ * from *pos, and each velocity component is vect->v? +
+ * (rand() % 100 - 50), a +/-50 jitter around the caller's direction.
+ * Lifetime is time + rand() % 160 — the caller's floor plus up to 159
+ * extra frames — and sprite is 0, the first sprSmoke bank. evtime
+ * schedules DrawSmoke's first damping/re-scale event: set to
+ * (lifetime - 1) - (time / 2 + rand() % time), it fires
+ * 1 + time / 2 + rand() % time frames into the countdown. proc is
+ * assigned last. Callers pass n from 1 to 20 and time from 3 to 30.
+ */
+
+/*
  * Matching notes (all verified against the raw .s; the loop.c mechanics were
  * root-caused in the gcc-2.8.1 sources with -da RTL dumps — see the cookbook's
  * "loop.c invariant motion is a THRESHOLD economy" section, which this
@@ -135,7 +155,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         smoke = &ef->param.smoke;
         r = rand();
         smoke->scale = r % 0x2000 + 0x1000;
-        smoke->rotate = (rand() % 360) * 0x1000;
+        smoke->rotate = (rand() % 360) * 4096;
         smoke->pos.vx = pos->vx;
         smoke->pos.vy = pos->vy;
         smoke->pos.vz = pos->vz;

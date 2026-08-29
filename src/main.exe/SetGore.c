@@ -26,6 +26,28 @@
  *     param $a3       long col
  * END PSX.SYM */
 
+/*
+ * SetGore (0x80035f44) — spawns the wound spray for a killing blow:
+ * one DrawGore blood particle from a model-local hit point, plus a
+ * DrawImpact flash on one frame in four. coord is the wounded object's
+ * GsCOORDINATE2 (ActDEAD passes model->object[blood]->locate) and
+ * position/vector are model-local, so GsGetLw + GsSetLsMatrix +
+ * RotTrans turn the point into world space and ApplyRotMatrix turns
+ * the direction into the particle's world velocity. The slot comes
+ * from the shared 200-entry EffectSlot pool by the usual round-robin
+ * scan: EFFECT_CURSOR_ advances from where it stopped, wraps past 199,
+ * takes the first null proc, and after 200 misses writes the throwaway
+ * dmy slot instead. The BloodType fill randomizes sprite = rand() % 2,
+ * rotate to a whole degree (rand() % 360, degrees<<12) and
+ * time = rand() % 15 + 10, with scale 0x2000, hint 0, brightness 0x80,
+ * mode 0 and proc = DrawGore. Then, only when (GameClock & 3) == 0, a
+ * second slot is claimed for an ImpactType that keeps the RAW
+ * model-local px/py/pz and carries super = coord, so DrawImpact rides
+ * the moving limb: start and end size both 0x2000, start and end
+ * colour both 0x808080, rotate 0, rotate_speed 80, time 3, count 0,
+ * type 2, proc = DrawImpact.
+ */
+
 extern void DrawImpact(TEffectSlot *ef);
 
 /*
@@ -95,7 +117,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         param = &ef->param.blood;
         param->sprite = rand() % 2;
         param->scale = 0x2000;
-        param->rotate = (rand() % 360) * 0x1000;
+        param->rotate = (rand() % 360) * 4096;
         param->px = world.vx;
         param->py = world.vy;
         param->pz = world.vz;

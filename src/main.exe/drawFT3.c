@@ -1,6 +1,33 @@
 #include "common.h"
 #include "main.exe.h"
 
+/*
+ * drawFT3 (0x8005d1fc) — the textured-flat-triangle (POLY_FT3) handler
+ * of the DrawTMD primitive family; still canonical assembly per
+ * config/handwritten-asm.txt. Non-ABI entry, the same live-register
+ * contract drawF3 documents: $v0 batch primitive count (0x607 sentinel
+ * means 1), $t0 the deferred ordering-table slot from the previous
+ * primitive, $t2 OT base, $t3 output packet cursor (0x20 bytes per
+ * POLY_FT3), $t4 transformed-vertex base, $t5 input record cursor
+ * (0x1c bytes per TMD FT3 record), $t6 the running item budget it
+ * decrements by the batch count, $t9 OT length, $s0 the pending code
+ * byte carried across iterations. Per record it reads three u16 vertex
+ * indices at +0x14, +0x16 and +0x18, scales them by 8 into the vertex
+ * bank, loads all three into the GTE and runs rtpt. It then completes
+ * any primitive left pending by the previous pass: the packet address
+ * goes into that OT slot with the tag's length byte cleared, the
+ * depth-cued RGB2 and the code byte 0x24 are written, the previous
+ * record's three UV/CLUT/TPAGE words at +0x4/+0x8/+0xc are copied in,
+ * and the packet cursor advances 0x20. Culling is threefold: FLAG
+ * masked with 0x1c66000 (projection overflow), nclip's MAC0 at or
+ * below 0 (back-facing), and the averaged OTZ — (sz1+sz2+sz3) reduced
+ * by (>>4) + (>>2) then >>4 — at or below 0 or at/past the OT length.
+ * A survivor loads the record's packed RGB at +0x10, runs dpcs, chains
+ * the existing OT tag word into the packet, writes length 7 and the
+ * three projected SXY values, and leaves 0x24 pending. After the loop
+ * a copy of the deferred block flushes the last primitive.
+ */
+
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/drawFT3", drawFT3);
 
 // triage: VERY-HARD — 86 insns, 3 GTE CMD — UN-SPLITTABLE (as can't assemble), 1 loop, 0 callees, ~0.04 to swap_balma_area_map_

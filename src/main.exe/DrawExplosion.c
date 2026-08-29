@@ -30,6 +30,26 @@
  * END PSX.SYM */
 
 /*
+ * DrawExplosion (0x8003655c) — the per-frame effect callback for a
+ * bomb blast: a three-phase sprBomb sprite that grows, then shrinks
+ * while fading out. param is the slot's ExplosionType view. alfa
+ * defaults to 0x80 and switch (param->mode) picks the phase. Mode 0 is
+ * the flash: while time is non-zero it grows scale by 0x2000 and spins
+ * rotate by 100 degrees (100 * 4096) a frame, and when time reaches 0
+ * it instead reloads time = 3 and advances to mode 1; it draws
+ * sprBomb[0]. Mode 1 grows and spins by the same amounts
+ * unconditionally, reloading time = 5 and advancing to mode 2 on the
+ * frame time hits 0. Mode 2 is the fade: alfa = (time << 7) / 5 ramps
+ * the sprite's r/g/b from 0x80 down to 0 across those 5 frames, scale
+ * shrinks by 0x333, rotate slows to 90 degrees a frame, and ef->proc
+ * is cleared once time is 0 — before the shared tail, so the last
+ * frame is still drawn. Modes 1 and 2 both draw sprBomb[1]. The tail
+ * decrements time, integrates pos += vec, copies pos into the sprite's
+ * coordinate translation, writes scale, the flat alfa colour and
+ * rotate, then UpdateCoordinate and DrawSprite.
+ */
+
+/*
  * Matching notes (all verified against the original bytes):
  *  - `ef->param` here is `ExplosionType` (see DrawHinoko.c, an almost
  *    identical sibling in this same family), NOT `BloodType`/`smoke` as
