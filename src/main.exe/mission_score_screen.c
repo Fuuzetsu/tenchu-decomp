@@ -5,6 +5,35 @@
 #include "images.h"
 
 /*
+ * mission_score_screen (0x80054b48) — the post-mission results and
+ * high-score screen. It runs init_score_stats/calculate_score for
+ * CHOSEN_STAGE, then loads the 12-wide digit sprite, five rank sprites
+ * and two character sprites out of the language's rank archive, and
+ * the language's background. Any empty high-score slot is seeded with
+ * time 108002, character 0 and rank 0; the run is then placed by
+ * grade, ties broken by the faster clock, shifting the five entries
+ * down and storing the clock, CharType and grade. The completion music
+ * plays on repeat and the frame loop draws: the clock through
+ * draw_time_, then three rows of decimal counters, each a raw count on
+ * the left and its score at x 102 — criticals with the enemy total
+ * minus bosses and criticalScore, murders with stageEnemies and
+ * murderScore, findEnemies with spottedScore — and the total score
+ * below them. RANK_GRAND_MASTER additionally draws the stage's bonus
+ * item sprite (ItemImage[StageItem[CHOSEN_STAGE]]) pulsing on an rcos
+ * of GameClock, and the top three table rows are drawn with their row
+ * number, draw_time_ of the stored time, the stored character's sprite
+ * (the newly inserted row pulsing on rsin, everything else at 128) and
+ * the stored rank scaled to 0xB33. Circle leaves with goNext 0, Start
+ * with 1. On the way out a RANK_GRAND_MASTER run unlocks the stage's
+ * bonus item in both gItem (at CharType * 32) and saveItem — the
+ * locked marker 0xFE plus 3 wraps the byte to a stock of one — then it
+ * fades out, runs score_screen_input_ behind gfMemory (loading
+ * font.tim first), disposes the background, and exec_process_es to
+ * PROCESS_MAIN on Start or, after resetting the layout to 0xFF, to
+ * PROCESS_MENU.
+ */
+
+/*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
  * STATUS: MATCHING — pure C, all 4636 bytes (1159 instructions) exact.

@@ -49,6 +49,31 @@
  * END PSX.SYM */
 
 /*
+ * CreateStage (0x8003a3a0) — builds an entire mission for a
+ * stage/character pair. A stage id of 11 or more prints the "illigal
+ * stage id" box (retail's own spelling) and returns; otherwise the
+ * depth cue is set up (SetDepthQ, DepthPoint = DEPTH_LIMIT) and every
+ * surviving humanoid is torn down through DestroyTraceLine/
+ * KillHumanoid. It then takes the StageConfig row for the stage,
+ * publishes its path as ImagePath and the index as StageID, sets up
+ * the stage's sound effects and runs DoBriefingAndInventorySelection.
+ * The title card follows: the language's title TIM is read from
+ * ImagePath, the IMG_TEN_LOGO image is turned into a POLY_FT4 at
+ * (52, 67), and the pair is held for two SkipFrame-2 frames before the
+ * background is disposed. Next it loads the mission proper —
+ * SetupAppearance, LoadConstruction of STAGE.CON, initialise_font,
+ * InitializeImage and ResetInfoview — then BreedLife spawns the
+ * player, SetupThinkFunction gives it THINK_MIX_PLAYER, it is placed
+ * at the row's px/py/pz and yaw, becomes CamState.Owner and receives
+ * the 20 selected items. Finally the ninken companion is created, a
+ * persistent layout of 3 or more is randomised into 0..2 with
+ * SYSFLAG_RANDOM_LAYOUT raised (and the flag cleared otherwise),
+ * load_layout and leLayoutEnemy(1) populate the map, ViewInfo is aimed
+ * at the spawn from 10000 above it, and CVAsetup/SetupStageSequence/
+ * PadProc run inside one drawing frame.
+ */
+
+/*
  * Build a mission from scratch: resolve the TStageConfig row for the
  * stage/character pair, run briefing and inventory selection, then load
  * and wire every subsystem — construction, layouts, enemies (and the

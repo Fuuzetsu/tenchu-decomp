@@ -37,6 +37,35 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
+/*
+ * ActivateHumans (0x8003b80c) — the once-a-second AI think-budget
+ * sweep that decides which humanoids stay awake around the camera
+ * target. It bails unless GameClock is a multiple of 30 with SkipFrame
+ * clear, takes the target's position from CamState.Owner, and uses an
+ * activation radius of 26000 while StagePlayer is casting motion 0xf05,
+ * 13000 otherwise. The budget comes from GPU-packet headroom —
+ * (0xec78 - PacketUsed) / 5000 - 1 into ThinkBudgetRaw, falling back
+ * to one less than the previous budget below 2 and clamped into 3..6 —
+ * after which ThinkCount is reset and every HumanGroup entry is
+ * classified. The camera target is skipped; past 17000 units a human
+ * is inactive; PAGE_BOSS, NINKEN, negative life, GameClock 30 and
+ * STAGE_CURE_PRINCESS force it active; otherwise it is active while
+ * the budget has room, and once the budget is spent only if it is
+ * inside the radius or still listed in VISIBLE_CHARACTERS_ON_STAGE_.
+ * An active human that is awake just consumes budget; a suspended one
+ * is woken — ATTR_SUSPEND cleared and MODEL_ATTR_COLLIDE raised on its
+ * root object — only on STAGE_CURE_PRINCESS, on the first tick, with
+ * negative life, or when the budget has room and it sits beyond 13000
+ * units. Going inactive skips humans already suspended or of type ON,
+ * relocates NINJA_0 on stages 6-7 and GOO to their StageChar[]
+ * placement for StageID + 1 (in units of 1000, with a dead GOO given
+ * one life point back), and otherwise teleports a live non-ATTR_FLOAT
+ * human back to its point[] spawn column 1500 above its current height
+ * when that spot is more than 17000 away, snapped to GetAreaMapLevel
+ * unless the probe returns LEVEL_NONE; then ATTR_SUSPEND goes up and
+ * MODEL_ATTR_COLLIDE comes down.
+ */
+
 extern s32 PacketUsed; /* u32 in EndDrawing.c; the signed view here is measured byte-required */
 extern s16 ThinkBudgetRaw;
 extern s16 ThinkCount;
