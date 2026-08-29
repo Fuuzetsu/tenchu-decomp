@@ -80,7 +80,10 @@ s16 Think4chase(void)
                 }
                 else if (Degree < -Me_THINK_C->turn)
                 {
-                    result = -0x7000;
+                    /* PADLleft | PADLup as a negative constant: fits addiu (the
+             * positive OR needs an ori pair; same lever as
+             * SuccessionAttack's documented spellings). */
+            result = -0x7000;
                 }
             }
         }

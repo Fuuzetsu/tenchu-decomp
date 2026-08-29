@@ -5,6 +5,24 @@
 #include "misc.h"
 #include "vmemory.h"
 
+/* Map a world coordinate to its 8x8x8 WorldMap cell index (floor
+ * division by the 16000-unit cell, wrapped to 3 bits). Repeated per
+ * axis at both construction passes; macro is reconstruction shorthand
+ * (expands to the identical text). The copy interleaved with the msize
+ * computation stays open-coded. */
+#define WORLD_CELL(src, out)                                                  \
+    {                                                                         \
+        long a = src;                                                         \
+        long q;                                                               \
+                                                                              \
+        if (a >= 0)                                                           \
+            q = a / 16000;                                                    \
+        else                                                                  \
+            q = a / 16000 - 1;                                                \
+        out = q & 7;                                                          \
+    }
+
+
 /* Free an ornament archive: every ornament, then the object table, the
  * model data, and the archive record itself. Retail repeats the block
  * for the mission archive and the shared object archive; the macro is
@@ -311,36 +329,9 @@ short LoadConstruction(u_long *data)
                 model->locate.coord.t[2] = wlddt[i].real.common.z;
                 UpdateOrnament(model, wlddt[i].real.common.r);
 
-                {
-                    long a = wlddt[i].real.common.x;
-                    long q;
-
-                    if (a >= 0)
-                        q = a / 16000;
-                    else
-                        q = a / 16000 - 1;
-                    x = q & 7;
-                }
-                {
-                    long a = wlddt[i].real.common.y;
-                    long q;
-
-                    if (a >= 0)
-                        q = a / 16000;
-                    else
-                        q = a / 16000 - 1;
-                    y = q & 7;
-                }
-                {
-                    long a = wlddt[i].real.common.z;
-                    long q;
-
-                    if (a >= 0)
-                        q = a / 16000;
-                    else
-                        q = a / 16000 - 1;
-                    z = q & 7;
-                }
+                WORLD_CELL(wlddt[i].real.common.x, x);
+                WORLD_CELL(wlddt[i].real.common.y, y);
+                WORLD_CELL(wlddt[i].real.common.z, z);
 
                 GetCenterAndSize(model->object.tmd, &center, &size);
                 nModel = (z << 2) + ((x << 8) + (y << 5));
@@ -425,26 +416,8 @@ short LoadConstruction(u_long *data)
                     q = a / 16000 - 1;
                 x = q & 7;
             }
-            {
-                long a = mma->object[i]->locate.coord.t[1];
-                long q;
-
-                if (a >= 0)
-                    q = a / 16000;
-                else
-                    q = a / 16000 - 1;
-                y = q & 7;
-            }
-            {
-                long a = mma->object[i]->locate.coord.t[2];
-                long q;
-
-                if (a >= 0)
-                    q = a / 16000;
-                else
-                    q = a / 16000 - 1;
-                z = q & 7;
-            }
+            WORLD_CELL(mma->object[i]->locate.coord.t[1], y);
+            WORLD_CELL(mma->object[i]->locate.coord.t[2], z);
 
             mma->object[i]->object.attribute |= 0x400; /* libgs GsDOBJ2 bit 10 — consumed
                               inside the linked libgs sorter, set

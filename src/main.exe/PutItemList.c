@@ -87,7 +87,7 @@ static inline void PutNumberInline(int x, int y, int cols, int n)
     NumberImage.y = (s16)y;
 loop:
     q = cols / 10;
-    NumberImage.u = ou + (cols - q * 10) * 4;
+    NumberImage.u = ou + (cols % 10) * 4;
     GsSortSprite(&NumberImage, OTablePt, 0);
     NumberImage.x = NumberImage.x - 6;
     cols = q;

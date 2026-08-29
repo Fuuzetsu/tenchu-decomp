@@ -62,6 +62,8 @@ s16 Think1watch(void)
     result = 0;
     if ((actcnt & 0x7F) == 0)
     {
+        /* PADLleft as a negative constant: fits addiu (same lever as
+         * SuccessionAttack's documented spellings). */
         result = -0x8000;
         if (Me_THINK_C->actflg != 0)
         {

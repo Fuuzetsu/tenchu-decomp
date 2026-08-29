@@ -92,7 +92,7 @@ void PutNumber(int x, int y, int cols, int n)
     } while (0);
 loop:
     q = cols / 10;
-    img->u = base + (cols - q * 10) * NW;
+    img->u = base + (cols % 10) * NW;
     GsSortSprite(img, OTablePt, 0);
     img->x = img->x - GAP;
     cols = q;

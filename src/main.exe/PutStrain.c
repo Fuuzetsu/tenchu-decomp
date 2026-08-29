@@ -148,7 +148,7 @@ void PutStrain(s32 x, s32 y)
             newpow = (powrange - ratio) / 200;
         strainloop:
             r = newpow / 10;
-            img->u = base + (newpow - r * 10) * 4;
+            img->u = base + (newpow % 10) * 4;
             GsSortSprite(img, OTablePt, 0);
             img->x = img->x - 6;
             newpow = r;

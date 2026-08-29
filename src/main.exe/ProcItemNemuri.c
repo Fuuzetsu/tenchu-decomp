@@ -172,22 +172,11 @@ void ProcItemNemuri(TItem *item)
         {
             wave += 0x3f;
         }
-        if (bleed_n != 0)
-        {
-            env = 0x6e0000;
-            env |= 0x6e6e;
-            item->locate->locate.coord.t[0] +=
-                item->param.napalm.vec.vx;
-            bleed_range = 300;
-        }
-        else
-        {
-            env = 0x6e0000;
-            env |= 0x6e6e;
-            item->locate->locate.coord.t[0] +=
-                item->param.napalm.vec.vx;
-            bleed_range = 300;
-        }
+        env = 0x6e0000;
+        env |= 0x6e6e;
+        item->locate->locate.coord.t[0] +=
+            item->param.napalm.vec.vx;
+        bleed_range = 300;
         bleed_n = 2;
         item->locate->locate.coord.t[1] += param->vec.vy;
         item->locate->locate.coord.t[2] += param->vec.vz;
