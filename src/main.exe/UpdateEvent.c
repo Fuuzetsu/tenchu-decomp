@@ -102,6 +102,8 @@ void UpdateEvent(short n, short id)
 
     do
     {
+        /* Offset spelling is byte-required (&StageEvent[i] flips the
+         * address addu to base-first; measured). */
         ev = (EventSeqType *)(i * 20 + (s32)StageEvent);
         if (ev->id == id)
         {
@@ -118,7 +120,7 @@ void UpdateEvent(short n, short id)
             {
                 if (!(eTarget[n]->status == STAT_DEAD && eTarget[n]->motion->loop == -1))
                 {
-                    if (!((u16)(id - 2) < 2))
+                    if ((u16)(id - 2) >= 2)
                     {
                         return;
                     }

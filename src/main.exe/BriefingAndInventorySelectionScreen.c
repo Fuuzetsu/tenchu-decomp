@@ -168,7 +168,7 @@ void BriefingAndInventorySelectionScreen(void)
     s16 cheat;
 
     pad.s = -1;
-    cap = 0xF;
+    cap = 15;
     cursor = 0;
     taken = 0;
     help = -1;
@@ -199,10 +199,13 @@ void BriefingAndInventorySelectionScreen(void)
     bg = load_background_(buf);
     vfree(buf);
     buf = FileRead(NUMBER_TIM_PATH);
+    /* The p alias over spr is byte-required (direct spr. member writes
+     * recolor the address register; measured — the help block below gets
+     * away without one). */
     p = &spr;
     TimToSprite(buf, p);
     spr.attribute |= SPR_TRANS_ADD;
-    p->x = -0xA0;
+    p->x = -160;
     p->y = -120;
     p->r = 0x80;
     p->g = 0x80;
@@ -316,7 +319,7 @@ void BriefingAndInventorySelectionScreen(void)
                     {
                         do
                         {
-                            if ((s16)nsel < 6)
+                            if ((s16)nsel < MAX_SELECTED_ITEMS)
                             {
                                 if (already == 0)
                                 {
@@ -335,7 +338,7 @@ void BriefingAndInventorySelectionScreen(void)
         case CHEAT_QUIT - 1:
             for (j7 = 0; j7 < 0x14; j7++)
             {
-                (&ps->gItem[0])[(int)j7 + (CHOSEN_CHARACTER << 5)] =
+                (&ps->gItem[0])[j7 + (CHOSEN_CHARACTER << 5)] =
                     (&ps->saveItem[0])[j7];
             }
             FadeOutDirect(0x20, 2, 8, 8, 8);
@@ -418,14 +421,14 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             } while (0);
         }
-        if ((np & 0xF000) != 0)
+        if ((np & (PADLup | PADLright | PADLdown | PADLleft)) != 0)
         {
             SoundEx(0, 0xB);
             help = -1;
         }
         if (np != 0)
         {
-            if ((s16)pad.u == 0x20)
+            if (pad.s == PADRright)
             {
                 np = 0;
                 bounce = 1;
@@ -443,7 +446,7 @@ void BriefingAndInventorySelectionScreen(void)
                                 {
                                     nsel++;
                                 }
-                                if ((s16)nsel < 6)
+                                if ((s16)nsel < MAX_SELECTED_ITEMS)
                                 {
                                     if (idx != ITEM_ARMOUR || ARMOUR_USED == 0)
                                     {
@@ -469,7 +472,7 @@ void BriefingAndInventorySelectionScreen(void)
                     }
                 }
             }
-            if (np != 0 && (s16)pad.u == 0x40)
+            if (np != 0 && pad.s == PADRdown)
             {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                 bounce = 2;
@@ -567,7 +570,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
         }
         shown = 0;
-        for (j = shown; j < 0x14; j++)
+        for (j = 0; j < 0x14; j++)
         {
             u8 c;
             y = (s16)j;

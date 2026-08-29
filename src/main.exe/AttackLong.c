@@ -61,7 +61,7 @@ short AttackLong(void)
 {
     s16 ad;
     s16 pad;
-    s16 status7_result;
+    s16 attack_result;
     s32 degree;
 
     pad = 0;
@@ -75,8 +75,8 @@ short AttackLong(void)
             if (Me_THINK_C->motion->count !=
                 BattleDB[Me_THINK_C->warid].contfrm)
             {
-                status7_result = 0;
-                goto status7_return;
+                attack_result = 0;
+                goto attack_return;
             }
             if (Distance < 3000)
             {
@@ -87,17 +87,17 @@ short AttackLong(void)
                 }
                 if (status_degree < 1500)
                 {
-                    goto choose_status7;
+                    goto choose_attack;
                 }
             }
             if (rand() % (EngageLevel + 1) != 0)
             {
-                status7_result = pad;
-                goto status7_return;
+                attack_result = pad;
+                goto attack_return;
             }
         } while (0);
 
-    choose_status7:
+    choose_attack:
         if (Degree > 300)
         {
             pad = PADLright;
@@ -111,15 +111,15 @@ short AttackLong(void)
             }
             else
             {
-                goto status7_value;
+                goto attack_value;
             }
         }
         pad |= PADRleft;
 
-    status7_value:
-        status7_result = pad;
-    status7_return:
-        return status7_result;
+    attack_value:
+        attack_result = pad;
+    attack_return:
+        return attack_result;
     }
 
     if (Me_THINK_C->status == STAT_JUMP)

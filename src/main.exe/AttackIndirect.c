@@ -41,12 +41,12 @@
  * range/facing, and applies a small rotation correction for the 0x80 result.
  *
  * Matching notes:
- *  - `pad` is the original s16 local.  `status7_result` is a distinct s16
+ *  - `pad` is the original s16 local.  `attack_result` is a distinct s16
  *    return island: keeping its three edge assignments separate produces the
  *    target's moves into $v0 before one shared sign-extension tail.
  *  - The one-shot `do` encloses a CONTIGUOUS RANGE of three statements, not
  *    just one `if`.  Its loop notes stop cse/local-copy propagation from
- *    replacing `status7_result = 0` with a copy of the already-zero `$s0`.
+ *    replacing `attack_result = 0` with a copy of the already-zero `$s0`.
  *    A bounded permuter found this final one-byte fix.  This extends the
  *    cookbook's loop-fence rule: guided tooling should enumerate safe
  *    contiguous statement ranges as well as individual statements.
@@ -64,7 +64,7 @@ extern s16 ItemUse(void);
 short AttackIndirect(void)
 {
     s16 pad;
-    s16 status7_result;
+    s16 attack_result;
     s32 degree;
 
     pad = 0;
@@ -75,10 +75,10 @@ short AttackIndirect(void)
             if (Me_THINK_C->motion->count !=
                 BattleDB[Me_THINK_C->warid].contfrm)
             {
-                status7_result = 0;
-                goto status7_return;
+                attack_result = 0;
+                goto attack_return;
             }
-            if (Distance < 20000)
+            if (Distance < INDIRECT_RANGE)
             {
                 degree = Degree;
                 if (degree < 0)
@@ -92,8 +92,8 @@ short AttackIndirect(void)
             }
             if (rand() % (EngageLevel + 1) != 0)
             {
-                status7_result = pad;
-                goto status7_return;
+                attack_result = pad;
+                goto attack_return;
             }
         } while (0);
 
@@ -111,22 +111,22 @@ short AttackIndirect(void)
             }
             else
             {
-                goto status7_value;
+                goto attack_value;
             }
         }
         pad |= PADRleft;
 
-    status7_value:
-        status7_result = pad;
-    status7_return:
-        return status7_result;
+    attack_value:
+        attack_result = pad;
+    attack_return:
+        return attack_result;
     }
     if (Me_THINK_C->status == STAT_JUMP)
     {
         return pad;
     }
 
-    if (Distance < 20000 && SR != SR_GONE)
+    if (Distance < INDIRECT_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
     }
@@ -165,44 +165,42 @@ short AttackIndirect(void)
         goto action_ready;
     }
 
+    if (rand() % (EngageLevel * 4) == 0)
     {
-        if (rand() % (EngageLevel * 4) == 0)
+        degree = Degree;
+        if (degree < 0)
         {
-            degree = Degree;
-            if (degree < 0)
-            {
-                degree = -degree;
-            }
-            if (degree < 200 && Me_THINK_C->motion->mid == MOT_ENGAGE_STANCE)
-            {
-                pad = PADRleft;
-            }
+            degree = -degree;
         }
+        if (degree < 200 && Me_THINK_C->motion->mid == MOT_ENGAGE_STANCE)
+        {
+            pad = PADRleft;
+        }
+    }
 
-        if (Distance > 15000)
-        {
-            pad = turn_towards_player_(0, 0);
-        }
-        else if (Degree > 200)
-        {
-            pad = PADLright;
-        }
-        else if (Degree > 100)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
-        }
-        else if (Degree < -200)
-        {
-            pad = PADLleft;
-        }
-        else if (Degree < -100)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
-        }
-        else
-        {
-            ItemUse();
-        }
+    if (Distance > 15000)
+    {
+        pad = turn_towards_player_(0, 0);
+    }
+    else if (Degree > 200)
+    {
+        pad = PADLright;
+    }
+    else if (Degree > 100)
+    {
+        pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
+    }
+    else if (Degree < -200)
+    {
+        pad = PADLleft;
+    }
+    else if (Degree < -100)
+    {
+        pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
+    }
+    else
+    {
+        ItemUse();
     }
 
 action_ready:

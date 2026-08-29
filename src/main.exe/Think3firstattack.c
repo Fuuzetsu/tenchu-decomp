@@ -68,7 +68,7 @@ s16 Think3firstattack(void)
         ATTRIB_BITS |= ATTR_SEARCH;
     }
     idx = WPATK_CLASS(Me_THINK_C->wpatk);
-    if (idx == 3)
+    if (idx == WPATK_CLASS_RANGED)
     {
         s32 masked;
 

@@ -42,7 +42,7 @@ extern char msg_double_memory_release[]; /* DOUBLE MEMORY RELEASE */
 extern void *valloc(u32 size);
 extern void *memcpy(void *dst, void *src, u32 n);
 
-static inline void FreePoolBlockInline(void *pt, u32 cmask)
+static inline void free_block(void *pt, u32 cmask)
 {
     struct VMhead *header;
     struct VMhead *next;
@@ -183,12 +183,12 @@ void *vmemoryGC(void *pt)
         if ((void *)vmpt < pt)
         {
             memcpy(vmpt, pt, size);
-            FreePoolBlockInline(pt, cmask);
+            free_block(pt, cmask);
             return vmpt;
         }
         else
         {
-            FreePoolBlockInline(vmpt, cmask);
+            free_block(vmpt, cmask);
         }
     }
 
@@ -197,30 +197,30 @@ void *vmemoryGC(void *pt)
         struct VMhead *n2;
         void *newpt;
         struct VMhead vh;
-        s32 sz2;
+        s32 sz;
 
         prev = (struct VMhead *)virtual_memory_pool;
         if (prev != 0)
         {
-        search3:
+        search:
             n2 = prev->next;
             if (n2 == header)
-                goto found3;
+                goto found;
             prev = n2;
             if (prev != 0)
-                goto search3;
-        found3:
+                goto search;
+        found:
             if (prev != 0)
             {
-                sz2 = prev->size;
-                if (sz2 >= 0)
+                sz = prev->size;
+                if (sz >= 0)
                 {
                     do
                     {
                         mask = 0x80000000;
                     } while (0);
                     newpt = (void *)(prev + 1);
-                    vh.size = sz2;
+                    vh.size = sz;
                     vh.next = header->next;
                     vmpt = (u32 *)((u8 *)prev + ((header->size << 2) + 8));
                     prev->size = header->size;

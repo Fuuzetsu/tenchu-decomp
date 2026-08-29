@@ -70,6 +70,7 @@
 /* Combat pacing. */
 #define ATTACK_COOLDOWN_PER_LEVEL 10 /* frames per EngageLevel between AI attacks */
 #define SR_CLEAR_RANGE 10000         /* beyond this, the search-result state clears */
+#define INDIRECT_RANGE 20000         /* bow/gun AI: engagement + search-clear radius */
 
 /* The alert-refresh block the think TUs paste inline (the same body as
  * reset_alert_duration(); `tmp` names each site's local). Macro is
@@ -102,6 +103,9 @@
 /* Grapple wire rendering (SetWire). */
 #define WIRE_SEG_LEN 300 /* world units per drawn segment */
 #define WIRE_SAG_DIV 32  /* midpoint sags by length / this */
+
+/* Loadout: how many item stacks fit in the mission inventory. */
+#define MAX_SELECTED_ITEMS 6
 
 /* End-of-stage scoring (calculate_score). */
 #define SCORE_PER_CRITICAL 20

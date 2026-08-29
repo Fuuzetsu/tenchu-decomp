@@ -125,7 +125,7 @@ void AttackBowControl(s16 n)
     }
     else
     {
-        idx = (s16)n << 2;
+        idx = n << 2;
         p = (u8 *)BowTiming + idx;
         if (*(s16 *)p <= count && count < *(s16 *)(p + 2))
         {

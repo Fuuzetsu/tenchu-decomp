@@ -56,8 +56,8 @@
  * filename to point at the freshly-loaded model too — a cache shared by
  * name, not by index), then CreateHumanoid's the instance and positions it
  * (point[]/model->locate.coord.t[] snap Y to GetAreaMapLevel's terrain
- * height), before applying two type-range special cases (ninja-dog leash
- * flag; auto-equip a weapon for player-ish/low types; a "guard" attribute
+ * height), before applying the type special cases (a starter kusuri for
+ * NINJA_0; auto-equip a weapon for player-ish/low types; a float attribute
  * bit for a high type range).
  *
  * The demo's PSX.SYM register roles for the 4 register params ($s4=type,
@@ -144,11 +144,10 @@
  *    (the m2c/Ghidra call-arg-undercount family) — the raw `.s` sets up
  *    a3=z and a stack mode=1 that are never otherwise touched, so the real
  *    call is `GetAreaMapLevel(area, x, y, z, 1)`.
- *  - The two type-range special cases are a plain `if (type<0x8b) {...}
- *    else if (type<0xa8 && 0xa5<type) {...}` — the raw `.s` tests `type<0x8b`
- *    FIRST and branches to the nested block on true, matching this polarity
- *    directly (no De Morgan inversion needed here, unlike several other
- *    guard-clause functions in this TU family).
+ *  - The type-range dispatch is the goto ladder as written: the raw `.s`
+ *    tests `type < ANI` FIRST and branches to the low-type block on true,
+ *    matching this polarity directly (no De Morgan inversion needed here,
+ *    unlike several other guard-clause functions in this TU family).
  */
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -162,7 +161,6 @@ Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
 {
     /* PSX.SYM and the retail multiply both show a full-width counter. */
     u32 idx;
-    s32 kind;
     HumanDataType *row;
     HumanDataType *base;
     u_long *model;
@@ -204,8 +202,7 @@ type_found:
         sprintf((char *)name, fmt_mad, path_human, pp->name);
         model = FileRead(name);
         pp->model = model;
-        kind = HumanData[0].type;
-        if (kind != -1)
+        if (HumanData[0].type != -1)
         {
             q = pp;
             row = HumanData;
@@ -215,8 +212,7 @@ type_found:
                 row->model = model;
             }
             row++;
-            kind = row->type;
-            if (kind != -1)
+            if (row->type != -1)
                 goto scan_next;
         }
     }

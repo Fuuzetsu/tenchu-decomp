@@ -70,16 +70,16 @@ void debug_menu_stage_option(void)
                       stats.friendHits, sr.score);
         return;
     case 3:
-        CHOSEN_LANGUAGE = 0;
+        CHOSEN_LANGUAGE = LANG_ENGLISH;
         break;
     case 4:
-        CHOSEN_LANGUAGE = 1;
+        CHOSEN_LANGUAGE = LANG_FRENCH;
         break;
     case 5:
-        CHOSEN_LANGUAGE = 2;
+        CHOSEN_LANGUAGE = LANG_ITALIAN;
         break;
     case 6:
-        CHOSEN_LANGUAGE = 3;
+        CHOSEN_LANGUAGE = LANG_JAPANESE;
         break;
     default:
         return;

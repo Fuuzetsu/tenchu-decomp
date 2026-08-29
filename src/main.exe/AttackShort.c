@@ -70,7 +70,7 @@ short AttackShort(void)
 {
     MotionManager *motion;
     s16 pad;
-    s32 status7_result;
+    s32 attack_result;
 
     pad = 0;
     if ((Me_THINK_C->type & PAGE_MASK) == PAGE_BEAST)
@@ -102,12 +102,12 @@ short AttackShort(void)
         if (status_human->motion->count ==
             BattleDB[status_human->warid].contfrm)
         {
-            goto status7_continue;
+            goto attack_continue;
         }
-        status7_result = 0;
-        goto status7_return;
+        attack_result = 0;
+        goto attack_return;
 
-    status7_continue:
+    attack_continue:
         if (Distance < 2000)
         {
             status_degree = Degree;
@@ -117,23 +117,23 @@ short AttackShort(void)
             }
             if (status_degree < 1000)
             {
-                goto choose_status7;
+                goto choose_attack;
             }
         }
         if (rand() % (EngageLevel + 1) != 0)
         {
-            status7_result = status_raw;
-            goto status7_return;
+            attack_result = status_raw;
+            goto attack_return;
         }
 
-    choose_status7:
+    choose_attack:
         /* Turn toward the target, then slash: pad = PADLright/PADLleft
          * by Degree, |= PADRleft. The demo compiled the natural if/else
          * spelling of exactly this (thresholds 500), but retail's bytes
          * need this topology: the twin-arm head keeps status_raw's zero
          * opaque so the rand-fail return reads the register; the else
          * arm's early |= plus the goto give the middle path its slash
-         * while keeping status7_value REFERENCED — that label is the
+         * while keeping attack_value REFERENCED — that label is the
          * basic-block fence that stops combine fusing the final ori
          * into the return copy (retail: ori s0; move v0,s0). A natural
          * s16 ladder variant instead costs a second callee-saved
@@ -151,15 +151,15 @@ short AttackShort(void)
             }
             else
             {
-                goto status7_value;
+                goto attack_value;
             }
         }
         status_raw |= PADRleft;
 
-    status7_value:
-        status7_result = status_raw;
-    status7_return:
-        return (s16)status7_result;
+    attack_value:
+        attack_result = status_raw;
+    attack_return:
+        return (s16)attack_result;
     }
 
     if (Me_THINK_C->status == STAT_JUMP)
