@@ -276,7 +276,7 @@ void DrawBleed(TEffectSlot *ef)
         if (pri >= 0)
         {
             pri = DEPTH_LIMIT - 1;
-            if ((t >> 18) < 0x4e2)
+            if ((t >> 18) < DEPTH_LIMIT)
             {
                 pri = t >> 18;
             }

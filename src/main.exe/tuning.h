@@ -23,7 +23,7 @@
 
 /* Heights above the feet, in world units. */
 #define EYE_HEIGHT 3050        /* AI sight-probe origin (StateTransition, Think1ninja) */
-#define THROW_HEIGHT 1200      /* launch origin for thrown/scattered items */
+#define THROW_HEIGHT 1200      /* launch origin for thrown items (ReqItemDefault) */
 #define CAMERA_EYE_HEIGHT 1550 /* first-person camera origin */
 
 /* Size of the shared effect pool (effect.h's EffectSlot[]). */

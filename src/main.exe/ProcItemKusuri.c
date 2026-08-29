@@ -213,7 +213,7 @@ void ProcItemKusuri(TItem *item)
             scratch.bleed.build.pos_build.vx =
                 item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
             scratch.bleed.build.pos_build.vy =
-                item->owner->model->locate.coord.t[1] + (rand() % 1000 - THROW_HEIGHT);
+                item->owner->model->locate.coord.t[1] + (rand() % 1000 - 1200);
             scratch.bleed.build.pos_build.vz =
                 item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
             scratch.bleed.pos = scratch.bleed.build.pos_build;

@@ -95,7 +95,7 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     ry = rcos(mad->rotate.vy) / 6;
     r.vx = 0;
     r.vy = 0;
-    r.vz = THROW_HEIGHT;
+    r.vz = 1200;
     RotateVectorS(&r,
                   mad->rotate.vx + CamState.DirectionRX,
                   mad->rotate.vy + CamState.DirectionRY,
