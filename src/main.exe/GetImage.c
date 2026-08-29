@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -63,7 +64,7 @@ extern char msg_bad_image_file[];    /* bad image file */
 extern char msg_bad_image_index[];   /* bad image index */
 /* Qualified because INFOVIEW.C has its own static fInitialize. */
 extern u8 Images_fInitialize;
-extern GsIMAGE Images[62];
+extern GsIMAGE Images[N_IMAGES];
 
 GsIMAGE *GetImage(int index)
 {
@@ -75,7 +76,7 @@ GsIMAGE *GetImage(int index)
     if (Images_fInitialize == 0)
     {
         pt = FileRead(path_image_images_arc);
-        if ((short)*pt < 0x3e)
+        if ((short)*pt < N_IMAGES)
         {
             AdtMessageBox(msg_bad_image_file);
         }
@@ -88,11 +89,11 @@ GsIMAGE *GetImage(int index)
             LoadTIM(adr);
             i++;
             image++;
-        } while (i < 0x3e);
+        } while (i < N_IMAGES);
         vfree(pt);
         Images_fInitialize = 1;
     }
-    if ((unsigned)index >= 0x3e)
+    if ((unsigned)index >= N_IMAGES)
     {
         AdtMessageBox(msg_bad_image_index);
         return Images;

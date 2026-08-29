@@ -45,7 +45,7 @@
  *
  * The loop counter is `short i` (PSX.SYM's own `reg $s0 short i`; Ghidra's
  * `iVar7 * 0x10000 >> 0x10` bound-test is the short-loop-counter idiom —
- * cookbook Loops), a guarded `for (i = 0; i < 0x50; i++)`.
+ * cookbook Loops), a guarded `for (i = 0; i < N_CONFLICT_OBJECTS; i++)`.
  */
 
 extern void *memset(void *s, int c, u32 n);

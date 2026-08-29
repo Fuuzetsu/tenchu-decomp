@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -39,7 +40,7 @@ extern void AdtMessageBox(char *fmt, ...);
 extern void vfree(void *p);
 extern char path_image_images_arc[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\images.arc */
 extern char msg_bad_image_file[];    /* bad image file */
-extern GsIMAGE Images[62];
+extern GsIMAGE Images[N_IMAGES];
 
 void InitializeImage(void)
 {
@@ -49,7 +50,7 @@ void InitializeImage(void)
     GsIMAGE *image;
 
     pt = FileRead(path_image_images_arc);
-    if ((short)*pt < 0x3e)
+    if ((short)*pt < N_IMAGES)
     {
         AdtMessageBox(msg_bad_image_file);
     }
@@ -62,6 +63,6 @@ void InitializeImage(void)
         LoadTIM(adr);
         i++;
         image++;
-    } while (i < 0x3e);
+    } while (i < N_IMAGES);
     vfree(pt);
 }

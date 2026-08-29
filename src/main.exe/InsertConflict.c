@@ -77,7 +77,7 @@ short InsertConflict(ModelType *model)
     {
         return id;
     }
-    if (ConflictObjects >= 0x50)
+    if (ConflictObjects >= N_CONFLICT_OBJECTS)
     {
         SystemOut(msg_conflict_regist_failure);
     }

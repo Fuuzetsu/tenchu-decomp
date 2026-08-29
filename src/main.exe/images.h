@@ -10,6 +10,8 @@
 /* GetImage slots the code pins, named by what each becomes (invented
  * names): the afterimage texture, the water-splash sprite, the item
  * icon sheet, the title kanji poly, and the snowflake sprite. */
+#define N_IMAGES 62
+
 enum
 {
     IMG_AFTERIMAGE = 0xA,
