@@ -129,7 +129,7 @@ s16 think_alarm_reaction_(void)
 
                 degree = Degree;
                 absoluteDegree = __builtin_abs(degree);
-                if (absoluteDegree >= 0x2BD)
+                if (absoluteDegree > 700)
                 {
                     result = -0x8000;
                     if (degree > 0)
@@ -170,19 +170,19 @@ s16 think_alarm_reaction_(void)
         direction = GetDirection(x_diff, z_diff,
                                  Me_THINK_C->rotate->vy);
         absoluteDirection = direction;
-        turnBits = 0x2000;
+        turnBits = PADLright;
         if (absoluteDirection > 0)
         {
-            turnBits = 0x8000;
+            turnBits = PADLleft;
         }
         if (absoluteDirection < 0)
         {
             absoluteDirection = -absoluteDirection;
         }
-        result = turnBits | 0x4000;
+        result = turnBits | PADLdown;
         if (absoluteDirection >= 1000)
         {
-            result = turnBits | 0x1000;
+            result = turnBits | PADLup;
         }
 
         if (ATTRIB_BITS & ATTR_WALL)

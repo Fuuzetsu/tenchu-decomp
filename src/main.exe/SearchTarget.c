@@ -111,14 +111,14 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
     raw_degree = ratan2(-vect.vx, -vect.vz) - roty;
     signed_degree = raw_degree;
     result_degree = raw_degree;
-    if (signed_degree < 0x801)
+    if (signed_degree <= 0x800)
     {
         goto degree_nested;
     }
     result_degree = 0x1000 - raw_degree;
     goto degree_done;
 degree_nested:
-    if (signed_degree < -0x7ff)
+    if (signed_degree <= -0x800)
     {
         result_degree = raw_degree + 0x1000;
     }
@@ -132,7 +132,7 @@ degree_done:
 
     /* Sneaking (STAT_SQUAT or STAT_STICKON) selects the short-range
      * sight row. */
-    mode = (u16)(StagePlayer->status - 0xb) < 2;
+    mode = (u16)(StagePlayer->status - STAT_SQUAT) < 2;
     if (StagePlayer->status == STAT_HANG)
     {
         if (vect.vy >= 0)

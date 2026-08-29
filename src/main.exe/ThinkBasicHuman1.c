@@ -50,7 +50,7 @@ s16 ThinkBasicHuman1(void)
     }
     if (pad & PADR1)
     {
-        pad = (pad & (PADLleft | PADLdown | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADL1 | PADR2 | PADL2)) | 0x20;
+        pad = (pad & (PADLleft | PADLdown | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADL1 | PADR2 | PADL2)) | PADRright;
     }
     return pad;
 }

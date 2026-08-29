@@ -35,7 +35,7 @@ void register_character_death(Humanoid *dead)
     s32 chase_z;
 
     scale = 1;
-    if ((dead->attribute & 0x10) == 0 && gNannido != DIFFICULTY_EASY)
+    if ((dead->attribute & ATTR_SEARCH) == 0 && gNannido != DIFFICULTY_EASY)
     {
         next = DeathIndex + 1;
         DeathIndex = next;
@@ -50,7 +50,7 @@ void register_character_death(Humanoid *dead)
             delta.vx = dead->locate->vx - human->locate->vx;
             delta.vz = dead->locate->vz - human->locate->vz;
             if (__builtin_abs(GetDirection(delta.vx, delta.vz,
-                                           human->rotate->vy)) < 0x385 &&
+                                           human->rotate->vy)) <= 900 &&
                 SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) <= 20000)
             {
                 delta.vy = dead->locate->vy - human->locate->vy - human->height;
@@ -71,10 +71,10 @@ void register_character_death(Humanoid *dead)
                 if (GetAreaMapPassage(GlobalAreaMap, human->locate,
                                       &passage, scale) == 0)
                 {
-                    alert_time = 300;
+                    alert_time = ALERT_DURATION;
                     if (gNannido == DIFFICULTY_HARD)
                     {
-                        alert_time = 600;
+                        alert_time = ALERT_DURATION_HARD;
                     }
                     EmergencyNotice = alert_time;
                     Sound(human, 0xc);

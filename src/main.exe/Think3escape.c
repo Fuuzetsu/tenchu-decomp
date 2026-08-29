@@ -41,7 +41,7 @@ s16 Think3escape(void)
     s32 degree;
 
     result = 0;
-    if (Distance < 0x4074 && SR != SR_GONE)
+    if (Distance < 16500 && SR != SR_GONE)
     {
         SR = SR_NONE;
     }
@@ -70,11 +70,11 @@ s16 Think3escape(void)
     }
     if (degree < 1000)
     {
-        result |= 0x4000;
+        result |= PADLdown;
     }
     else
     {
-        result |= 0x1000;
+        result |= PADLup;
     }
     if (ATTRIB_BITS & ATTR_WALL)
     {

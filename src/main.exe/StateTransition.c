@@ -462,12 +462,12 @@ void StateTransition(Humanoid *human)
         if (Me_THINK_C->pad_hold == 0)
         {
             if ((pad & PADLdown) &&
-                ((ProbeAttrib[1] & 0x204) || ProbeLevelHigh > 5000))
+                ((ProbeAttrib[1] & (MAP_DEATH | MAP_WATER)) || ProbeLevelHigh > 5000))
             {
                 Me_THINK_C->pad_hold = (PADLup << 16) | 30;
             }
             if ((pad & PADLup) &&
-                ((ProbeAttrib[0] & 0x204) || ProbeLevelLow > 5000))
+                ((ProbeAttrib[0] & (MAP_DEATH | MAP_WATER)) || ProbeLevelLow > 5000))
             {
                 pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
             }
@@ -559,20 +559,20 @@ void StateTransition(Humanoid *human)
                 {
                     s32 hint;
 
-                    hint = 0x8000000f;
+                    hint = (PADLleft << 16) | 15;
                     if (degree > 0)
                     {
-                        hint = 0x2000000f;
+                        hint = (PADLright << 16) | 15;
                     }
                     me->pad_hold = hint;
                 }
             }
         }
-        else if ((ProbeAttrib[0] & 0x204) && (pad & PADLup))
+        else if ((ProbeAttrib[0] & (MAP_DEATH | MAP_WATER)) && (pad & PADLup))
         {
             pad &= (PADLleft | PADLdown | PADLright | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
-        else if ((ProbeAttrib[1] & 0x204) && (pad & PADLdown))
+        else if ((ProbeAttrib[1] & (MAP_DEATH | MAP_WATER)) && (pad & PADLdown))
         {
             pad &= (PADLleft | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
@@ -624,7 +624,7 @@ void StateTransition(Humanoid *human)
         else
         {
         periodic_check:
-            if (GameClock == (GameClock / 90) * 90 &&
+            if (GameClock % 90 == 0 &&
                 (((u16)Me_THINK_C->map.attrib & 0x100) ||
                  ((pad & PADLup) && ProbeLevelLow < 0x899 &&
                   ProbeLevelLow != LEVEL_NONE) ||

@@ -327,7 +327,7 @@ void briefing_screen_(void)
         previous_pad = old_pad;
         pad = GetRealPad(0);
         old_pad = pad;
-        if ((pad & (pad ^ previous_pad) & 0x820) != 0)
+        if ((pad & (pad ^ previous_pad) & (PADstart | PADRright)) != 0)
         {
             fade_step = 8;
         }

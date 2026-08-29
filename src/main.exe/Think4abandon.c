@@ -36,7 +36,7 @@
  * chase" handler, same THINK_4.C TU as Think4contact/Think4chase (both
  * parked). Clears the chase target (some_other_x/z_position), then either
  * plays an idle bark while an ECHIGOYA-family enemy (character_kind &
- * 0xF0 == 0x80) is alert (SR in {1,2}, motion looped back to frame 0, 1-in-
+ * 0xF0 == PAGE_BOSS) is alert (SR in {1,2}, motion looped back to frame 0, 1-in-
  * 60 roll), or — for everyone else — turns to face Degree while alert
  * (EmergencyNotice != 0) or runs a short SR state machine that
  * settles into a stand/give-up motion once the alert timer expires.
@@ -101,7 +101,7 @@ s16 Think4abandon(void)
                 s32 r;
 
                 r = rand();
-                if (r == (r / 60) * 60)
+                if (r % 60 == 0)
                 {
                     Sound(Me_THINK_C, 0xD);
                 }

@@ -114,13 +114,13 @@ short SoundEx(VECTOR *locate, short seid)
     dx = locate->vx - pp->vx;
     dz = locate->vz - pp->vz;
     dist = SquareRoot0(dx * dx + dz * dz);
-    if (dist > 17999)
+    if (dist >= 18000)
     {
         return -1;
     }
     raw = locate->vy - pp->vy;
     dy = (raw >= 0) ? raw : -raw;
-    if (dy > 9999)
+    if (dy >= 10000)
     {
         return -1;
     }

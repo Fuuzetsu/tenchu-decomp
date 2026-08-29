@@ -106,7 +106,7 @@ s16 Think3hitaway(void)
         if (degree < 1000)
         {
             result = turn_towards_player_(0, 0);
-            result = (result & 0xe000) | 0x4000;
+            result = (result & (PADLleft | PADLdown | PADLright)) | PADLdown;
         }
         else
         {

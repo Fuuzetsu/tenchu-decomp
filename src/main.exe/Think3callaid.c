@@ -49,14 +49,14 @@
  * Think3callaid (0x8002cddc, 0x198 bytes) — same "think" TU as
  * Think3chase.c/Think3escape.c/Think1trace.c (s16 return; gp-relative
  * Me_THINK_C/Distance/SR/Degree/Pad/Attrib — see gpsyms). When close
- * (Distance < 0x4074) just forwards to Think3escape(); otherwise "calls for
+ * (Distance < 16500) just forwards to Think3escape(); otherwise "calls for
  * aid": spawns a fresh Humanoid via BreedLife (a random ally/foe type from
  * AIDHumanType[], indexed by StageID and a coin-flip), kills the CURRENT
  * character (Me_THINK_C), and possesses the new Humanoid — copying its
  * think[]/attribute/pad, equipping a weapon, kicking off a motion, and (a
  * RETAIL-ONLY addition absent from the demo, so PSX.SYM doesn't mention it)
  * bumping StageEnemies/StageCitizens by +1/-1 when the new character is a
- * civilian-turned-enemy (character_kind & 0xF0 == 0x90).
+ * civilian-turned-enemy (character_kind & 0xF0 == PAGE_CIVILIAN).
  *
  * `human_00->think[0..3] = Think1Func[4]/Think2Func[4]/Think3Func[4]/
  * Think4Func[4]` — PSX.SYM's original `short (*think[4])()` field, shifted
@@ -164,7 +164,7 @@ short Think3callaid(void)
         SetNowMotion(Me_THINK_C, 0x501, 1);
         Attrib = Me_THINK_C->attribute | PHASE_ALERT;
         ret = 0;
-        if ((Me_THINK_C->type & 0xF0) == 0x90)
+        if ((Me_THINK_C->type & 0xF0) == PAGE_CIVILIAN)
         {
             StageEnemies++;
             StageCitizens--;

@@ -99,7 +99,7 @@ second_done:
         return 0;
 
     delta = height1 - height0;
-    if (delta < -699)
+    if (delta <= -700)
         return 0;
 
     angle = ratan2(delta, 0x100);

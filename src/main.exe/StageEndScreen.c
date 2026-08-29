@@ -520,9 +520,9 @@ void StageEndScreen(void)
     item_index = 1;
     do
     {
-        if (CamState.Owner->item[item_index] == 0xff)
+        if (CamState.Owner->item[item_index] == ITEM_INFINITE)
         {
-            PSTATE->gItem[item_index + (PSTATE->CharType << 5)] = 0xff;
+            PSTATE->gItem[item_index + (PSTATE->CharType << 5)] = ITEM_INFINITE;
         }
         else if (CamState.Owner->item[item_index] != 0)
         {
