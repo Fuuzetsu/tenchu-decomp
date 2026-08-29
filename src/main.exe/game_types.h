@@ -214,6 +214,10 @@ struct AreaNodeType
  * found), 2-as-map->attrib also drives the buoyancy clamp, and 0x2000
  * (on most floor nodes, co-occurring with the slope bits) gates a
  * GetAreaMapLevel path — both left unnamed. */
+/* CGetLevel/GetAreaMapLevel/ComputeAreaLevel return this when the probe
+ * point is outside the area map ("no floor here"). */
+#define LEVEL_NONE ((s32)0x80000000)
+
 #define MAP_WATER 0x0004
 #define MAP_WOOD 0x0008
 #define MAP_DEATH 0x0200

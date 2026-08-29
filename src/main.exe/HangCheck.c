@@ -180,7 +180,7 @@ short HangCheck(void)
     if (y < dtL->vy)
     {
         y = GetAreaMapLevel(GlobalAreaMap, dtL->vx - vect.vx, yy - 0x122, dtL->vz - vect.vz, 0);
-        if (y == 0x80000000)
+        if (y == (u32)LEVEL_NONE)
         {
             return 0;
         }
@@ -198,7 +198,7 @@ short HangCheck(void)
     }
     GetMoveSpeed(&vect, dtR->vy, (Me_MOTION_C->width >> 1) + 300, 0);
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, yy - 400, dtL->vz + vect.vz, 2);
-    if (y == 0x80000000 || y >= 0x191)
+    if (y == (u32)LEVEL_NONE || y > 400)
     {
         return 0;
     }
@@ -222,7 +222,7 @@ short HangCheck(void)
     GetMoveSpeed(&vect, rys, (Me_MOTION_C->width >> 1) + 300, 0);
     dy = (dtL->vy - Me_MOTION_C->height) - 400;
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy, dtL->vz + vect.vz, 2);
-    if (y == 0x80000000 || y >= 0x191)
+    if (y == (u32)LEVEL_NONE || y > 400)
     {
         dtL->vy = dtL->vy - (oy - 5);
         return 0;
@@ -230,7 +230,7 @@ short HangCheck(void)
     dtR->vy = ry;
     GetMoveSpeed(&vect, rys, (Me_MOTION_C->width >> 1) + 100, 0);
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy, dtL->vz + vect.vz, 2);
-    if (y != 0x80000000 && y < 0x191)
+    if (y != (u32)LEVEL_NONE && y <= 400)
     {
         GetMoveSpeed(&vect, dtR->vy, -200, 0);
         dtL->vx = dtL->vx + vect.vx;

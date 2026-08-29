@@ -117,7 +117,7 @@ void ProcItemJirai(TItem *item)
                             item->locate->locate.coord.t[0],
                             item->locate->locate.coord.t[1],
                             item->locate->locate.coord.t[2], 1);
-        if (item->locate->locate.coord.t[1] == (long)0x80000000 ||
+        if (item->locate->locate.coord.t[1] == LEVEL_NONE ||
             ((u16)FieldArea->attribute & MAP_WATER) != 0)
         {
             u8 count;

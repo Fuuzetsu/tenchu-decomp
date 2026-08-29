@@ -111,7 +111,7 @@ void ActHANG(void)
             motID = 0xA03;
             motMODE = 1;
         }
-        else if ((MOTION_PAD_BITS & PADLup) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != 0x80000000)
+        else if ((MOTION_PAD_BITS & PADLup) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != (u32)LEVEL_NONE)
         {
             motID = 0xA04;
             motMODE = 1;

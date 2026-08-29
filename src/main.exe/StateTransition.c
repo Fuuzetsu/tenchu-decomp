@@ -627,9 +627,9 @@ void StateTransition(Humanoid *human)
             if (GameClock == (GameClock / 90) * 90 &&
                 (((u16)Me_THINK_C->map.attrib & 0x100) ||
                  ((pad & PADLup) && ProbeLevelLow < 0x899 &&
-                  ProbeLevelLow != (s32)0x80000000) ||
+                  ProbeLevelLow != LEVEL_NONE) ||
                  ((pad & PADLdown) && ProbeLevelHigh < 0x899 &&
-                  ProbeLevelHigh != (s32)0x80000000)))
+                  ProbeLevelHigh != LEVEL_NONE)))
             {
                 pad |= PADRdown;
             }

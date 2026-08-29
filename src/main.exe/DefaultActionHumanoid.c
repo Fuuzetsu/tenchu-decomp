@@ -219,13 +219,13 @@ short DefaultActionHumanoid(Humanoid *human)
     }
     else
     {
-        if (vector->vy > 0 || map->level == (s32)0x80000000)
+        if (vector->vy > 0 || map->level == LEVEL_NONE)
         {
             if ((map->attrib & MAP_DEATH) == 0)
             {
                 human->attribute |= ATTR_NOFLOOR;
             }
-            if (map->level != (s32)0x80000000)
+            if (map->level != LEVEL_NONE)
             {
                 locate->vy = map->level;
             }
@@ -261,7 +261,7 @@ short DefaultActionHumanoid(Humanoid *human)
     {
         human->attribute |= ATTR_WALL;
         zz = map->level;
-        if (zz == (s32)0x80000000)
+        if (zz == LEVEL_NONE)
         {
             {
                 MapVector mv;

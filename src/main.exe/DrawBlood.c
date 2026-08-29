@@ -280,7 +280,7 @@ void DrawBlood(TEffectSlot *ef)
         else if (area->dy != 0)
         {
             rety = ComputeAreaLevel(area, sx, sz);
-            if (rety != (long)0x80000000)
+            if (rety != LEVEL_NONE)
             {
                 rety = rety * 10;
             }
@@ -295,7 +295,7 @@ void DrawBlood(TEffectSlot *ef)
             blood->vz = 0;
             blood->vy = 0;
             blood->vx = 0;
-            if (rety != (long)0x80000000)
+            if (rety != LEVEL_NONE)
             {
                 blood->py = rety;
             }

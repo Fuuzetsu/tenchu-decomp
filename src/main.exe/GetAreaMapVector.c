@@ -120,7 +120,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     {
         mode = rawmode;
     }
-    if ((initial_level ^ 0x80000000) == 0)
+    if ((initial_level ^ (u32)LEVEL_NONE) == 0)
     {
         mvp->height = 0;
         if (!(mode & 4))
@@ -171,7 +171,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     for (; i < 4; i++)
     {
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
-        if (level2 == 0x80000000 ||
+        if (level2 == (u32)LEVEL_NONE ||
             ((level2 - y < -500) && !(mode2 & 4) &&
              !(((u16)mvp->attrib | *(u16 *)&FieldAttrib) & 0xC000)))
         {

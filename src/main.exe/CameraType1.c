@@ -153,12 +153,12 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
                                 mad->locate.coord.t[1],
                                 mad->locate.coord.t[2] - scratch.probe.vecr.vz, 1);
 
-        levmap = levfl == (s32)0x80000000 ? FL : 0;
-        if (levfr == (s32)0x80000000)
+        levmap = levfl == LEVEL_NONE ? FL : 0;
+        if (levfr == LEVEL_NONE)
             levmap |= FR;
-        if (levbl == (s32)0x80000000)
+        if (levbl == LEVEL_NONE)
             levmap |= BL;
-        if (levbr == (s32)0x80000000)
+        if (levbr == LEVEL_NONE)
             levmap |= BR;
 
         if ((levmap & (FL | FR | BL | BR)) == BL)

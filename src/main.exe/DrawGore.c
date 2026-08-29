@@ -263,7 +263,7 @@ void DrawGore(TEffectSlot *ef)
         else if (node->dy != 0)
         {
             level = ComputeAreaLevel(node, x10, z10);
-            if (level != (s32)0x80000000)
+            if (level != LEVEL_NONE)
             {
                 level *= 10;
             }
@@ -277,7 +277,7 @@ void DrawGore(TEffectSlot *ef)
             param->vz = 0;
             param->vy = 0;
             param->vx = 0;
-            if (level != (s32)0x80000000)
+            if (level != LEVEL_NONE)
             {
                 param->py = level;
             }

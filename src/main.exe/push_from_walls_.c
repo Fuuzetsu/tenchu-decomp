@@ -59,7 +59,7 @@ void push_from_walls_(VECTOR *pos, s32 amount)
     s32 newz;
 
     GetAreaMapVector(GlobalAreaMap, &v1, pos, amount, 0);
-    if (v1.level == (s32)0x80000000)
+    if (v1.level == LEVEL_NONE)
     {
         return;
     }

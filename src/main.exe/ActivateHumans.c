@@ -295,7 +295,7 @@ void ActivateHumans(void)
             {
                 level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
                                         query.vz, 1);
-                if (level != 0x80000000)
+                if (level != (u32)LEVEL_NONE)
                 {
                     human->model->locate.coord.t[0] = query.vx;
                     human->model->locate.coord.t[1] = level;

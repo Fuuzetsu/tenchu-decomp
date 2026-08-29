@@ -98,7 +98,7 @@ loop1_end:
 
     j = 0;
     one = 1;
-    sentinel = -0x80000000;
+    sentinel = LEVEL_NONE;
     slot = buf;
 loop2:
     if (j >= MAX_ITEMS)

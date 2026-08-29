@@ -121,7 +121,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
     FieldAttrib = 0x81;
     z = z / 10;
     y2 = y / 10;
-    yy = 0x80000000;
+    yy = LEVEL_NONE;
     /* The do{}while(0) wrapper is load-bearing: its loop notes double flow.c's
      * loop_depth ref-weighting for everything inside, which is what pushes the
      * allocation priorities into the original's order (p above index, nn above
@@ -161,7 +161,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                 p = &index->index;
                 f8 = mode16 & 8;
             loop:
-                if (yy != 0x80000000)
+                if (yy != (u32)LEVEL_NONE)
                     goto calc;
                 if (((short *)p)[2] <= x && x <= ((short *)p)[4] && ((short *)p)[3] <= z && z <= ((short *)p)[5])
                 {
@@ -198,7 +198,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                                 goto next;
                             }
                             sy = ComputeAreaLevel(node, x, z);
-                            if ((yy == 0x80000000 || sy < yy) && y2 <= sy)
+                            if ((yy == (u32)LEVEL_NONE || sy < yy) && y2 <= sy)
                             {
                                 FieldAttrib = FieldArea->attribute;
                                 yy = sy;
@@ -219,7 +219,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                     goto loop;
             }
         }
-        if (yy == 0x80000000)
+        if (yy == (u32)LEVEL_NONE)
             goto ret_min;
     calc:
         if (FieldAttrib & 2)
@@ -229,7 +229,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         if (y2 < -1000 && (mode16 & 4) == 0)
         {
         ret_min:
-            return 0x80000000;
+            return LEVEL_NONE;
         }
         ret = yy;
     } while (0);

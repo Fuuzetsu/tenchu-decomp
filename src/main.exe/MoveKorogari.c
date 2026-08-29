@@ -81,7 +81,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                               item->locate->locate.coord.t[0],
                               item->locate->locate.coord.t[1],
                               item->locate->locate.coord.t[2], 0);
-            if (level == (s32)0x80000000)
+            if (level == LEVEL_NONE)
             {
                 if (param->status == KORO_OUT)
                 {
@@ -130,7 +130,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
         {
             param->vx /= 2;
             param->vz /= 2;
-            if (mv.level == (s32)0x80000000 || mv.height > 1500)
+            if (mv.level == LEVEL_NONE || mv.height > 1500)
             {
                 goto bounce;
             }

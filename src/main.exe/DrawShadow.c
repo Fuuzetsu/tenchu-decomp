@@ -96,7 +96,7 @@ void DrawShadow(Humanoid *human)
     height = -human->model->rotate.pad;
     position = GetAbsolutePosition(human->model->object[0], 0, 0, 0);
 
-    if (human->map.level < position->vy || human->map.level == (s32)0x80000000)
+    if (human->map.level < position->vy || human->map.level == LEVEL_NONE)
     {
         human->map.attrib |= MAP_WOOD; /* airborne overload */
     }

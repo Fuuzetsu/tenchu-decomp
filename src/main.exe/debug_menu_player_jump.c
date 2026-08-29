@@ -84,7 +84,7 @@ void debug_menu_player_jump(void)
                                  pos.vy *= 1000,
                                  pos.vz *= 1000,
                                  1);
-        if (pos.vy != (s32)0x80000000)
+        if (pos.vy != LEVEL_NONE)
         {
             player = StagePlayer;
             ViewInfo.vpx = ViewInfo.vrx = player->locate->vx = pos.vx;

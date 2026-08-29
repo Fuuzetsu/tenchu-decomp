@@ -65,7 +65,7 @@
  *    only when every path funnels through one `return yy;` — three separate
  *    `return` statements each compiled their OWN full tail instead, 10+
  *    bytes over target).
- *  - **The `return 0x80000000;` guard must be a `goto ret_min;` to a label at
+ *  - **The `return LEVEL_NONE;` guard must be a `goto ret_min;` to a label at
  *    the very END of the function, past the main tail** — inline as
  *    `if (cond) return 0x80000000;` right at the test floats the constant's
  *    `lui` into the guard branch's delay slot (6-byte tie: a stray `lui`
@@ -109,5 +109,5 @@ tail:
     return yy;
 
 ret_min:
-    return 0x80000000;
+    return LEVEL_NONE;
 }

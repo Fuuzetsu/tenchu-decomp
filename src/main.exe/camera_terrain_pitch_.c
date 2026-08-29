@@ -70,7 +70,7 @@ first_z_slope:
     yy = yy + z * node->dy / zspan;
 first_done:
     height0 = (short)yy * 10;
-    if (height0 == (s32)0x80000000)
+    if (height0 == LEVEL_NONE)
         return 0;
 
     x = (human->locate->vx + xshift) / 10;
@@ -95,7 +95,7 @@ second_z_slope:
     yy = yy + z * node->dy / zspan;
 second_done:
     height1 = (short)yy * 10;
-    if (height1 == (s32)0x80000000)
+    if (height1 == LEVEL_NONE)
         return 0;
 
     delta = height1 - height0;
