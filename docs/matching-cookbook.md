@@ -1860,6 +1860,21 @@ guards, no flag.
   (ProcMiscSprite's error string, 8+ pages off as a fresh literal).
 - `-fdollars-in-identifiers` is required for `reference/ghidra_types.h`.
 
+### 3.17b Per-TU prototype drift is AUTHENTIC
+
+The original game shipped with hand-copied per-TU prototypes and no
+shared headers, and the drifts are load-bearing at the CALLER: an
+extern whose return is narrower than the definition (s16 view of an
+s32 function) keeps the caller's $v0 sll/sra narrowing; a param view
+of different signedness/width keeps an andi/li spelling or a frame
+size; a stale extra parameter (cd_open's dead mode=0) emits its own
+argument setup. A 2026 systematic audit measured ~11 such drifts
+byte-required (annotated in place at each extern) vs ~8 that were
+free artifacts to unify — only measurement tells them apart, so NEVER
+"fix" an extern to match its definition without a matchdiff on the
+caller. Same-width alias respellings (int vs s32, void* vs u8*) are
+always free; signedness and width changes are the dangerous ones.
+
 ### 3.18 Toolchain boundaries and distinctive expression clues
 
 - **The PsyQ SDK block (0x80060000+) is a different compiler.** Trivial-frame
