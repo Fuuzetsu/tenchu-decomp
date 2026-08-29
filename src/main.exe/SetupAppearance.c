@@ -52,11 +52,12 @@
  *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
  *    preserves their adjacent halfword layout and their mode-cache/stage-cache
  *    roles despite other globals inserted ahead of them since the demo.
- *  - `resource` gives the two HumanData name stores one shared array base and
- *    is later reused for the StageMotion null-check/free. Keeping one pointer
- *    pseudo is load-bearing: it makes global.c color the early appearance
- *    flag/HumanData base as the target's $v1/$a0. The neutral pointer type is
- *    intentional because those two uses point at unrelated object types.
+ *  - `resource` holds the StageMotion pointer for the null-check/free. An
+ *    earlier draft also routed the two HumanData name stores through it as
+ *    an allocation lever; re-measured 2026-08-29, the direct
+ *    HumanData[i].name spellings are byte-identical, so only the
+ *    StageMotion use remains (that stale measurement is why the type is a
+ *    neutral void *).
  */
 extern s16 ARMOUR_EQUIPPED_;
 extern s16 smode;
@@ -83,14 +84,12 @@ void SetupAppearance(short mode, short stage)
 
     NowStage = stage;
     pt = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    EngageLevel = 3 - pt[0x58]; /* 3 - gNannido (difficulty) */
-    appearance = pt[0x1a];
+    EngageLevel = 3 - ((TLinkInfo *)pt)->Nannido;
+    appearance = ((TLinkInfo *)pt)->selItem[ITEM_ARMOUR];
     if (appearance != 0)
     {
-        resource = HumanData;
-        ((HumanDataType *)resource)[0].name = str_rikimaua;
-        ((HumanDataType *)resource)[1].name =
-            appearance != 0xff ? str_ayamea : str_ayames;
+        HumanData[0].name = str_rikimaua;
+        HumanData[1].name = appearance != 0xff ? str_ayamea : str_ayames;
         /* +0x1a = TLinkInfo.selItem[ITEM_ARMOUR]: wearing the armour
          * consumes it from the mission loadout. */
         *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
