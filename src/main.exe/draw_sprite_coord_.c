@@ -45,7 +45,7 @@
  *    comparing `(scr.vz + d) >> 2` instead of the twin's `(u16)otz << 16 >>
  *    0x12`. The RHS must re-read the struct field `scr.vz`, not the
  *    already-live `otz` local: the target's asm re-loads it fresh (`lh`)
- *    right there even though `otz` (from the `if (otz > 0x24)` test) is
+ *    right there even though `otz` (from the `if (otz > NEAR_DEPTH)` test) is
  *    numerically identical and already in a register — same "target's own
  *    SSA rendering tells you it reloads" tell as `vrealloc`/DrawSpriteXYZ's
  *    own `scr.vz` re-read for `t`. Reusing `otz` here is 4 bytes short
@@ -77,7 +77,7 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
         GetScreenPosition(x, y, z, &scr);
     }
     otz = scr.vz;
-    if (otz > 0x24)
+    if (otz > NEAR_DEPTH)
     {
         sc = (s16)((size * 300) / otz) + 1;
         sp->scaley = sc;

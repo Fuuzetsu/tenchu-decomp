@@ -57,7 +57,7 @@
  * the slot (`ef->proc = 0`) once `time` runs out; every frame regardless
  * decrements `time`, then projects `pos` (camera-relative, via the
  * DrawTarget-style Scratchpad SetTransMatrix/SetRotMatrix/RotTransPers
- * idiom) and, if visible (`otz > 0x24`), fills the shared `plyBleed` POLY_F4
+ * idiom) and, if visible (`otz > NEAR_DEPTH`), fills the shared `plyBleed` POLY_F4
  * quad (a diagonal streak from `(x,y)` to `(x+sz,y+sz)`, `sz` a distance-
  * scaled length) and GsSortPoly's it into the OT with the same
  * `[0, 0x4e1]` OTZ-derived priority clamp as DrawSpriteXYZ/draw_sprite_coord_.
@@ -258,7 +258,7 @@ void DrawBleed(TEffectSlot *ef)
 
     t = (s32)((u32)(u16)scr.vz << 16);
     otz = t >> 16;
-    if (otz > 0x24)
+    if (otz > NEAR_DEPTH)
     {
         plyBleed.x0 = scr.vx;
         plyBleed.y0 = scr.vy;

@@ -189,7 +189,7 @@ draw:
     }
 
     otz = scr.vz;
-    if (otz > 0x24)
+    if (otz > NEAR_DEPTH)
     {
         sc = (s16)((size * 300) / otz) + 1;
         spr->scaley = sc;

@@ -13,6 +13,10 @@
 #define SCREEN_W 320
 #define SCREEN_H 240
 
+/* Effects closer than this screen depth are not drawn (near-plane cull
+ * shared by the sprite-effect emitters). */
+#define NEAR_DEPTH 36
+
 /* Every Draw* emitter culls primitives at or beyond this ordering-table
  * depth; DepthPoint starts here and EndDrawing splices this row. */
 #define DEPTH_LIMIT 1250

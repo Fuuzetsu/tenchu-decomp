@@ -105,7 +105,7 @@ void DrawSnow(TEffectSlot *ef)
     size = param->size;
     GetScreenPosition(x, y, z, &screen);
     depth = screen.vz;
-    if (depth > 0x24)
+    if (depth > NEAR_DEPTH)
     {
         scale = (s16)((size * 300) / depth) + 1;
         sprite->scaley = scale;

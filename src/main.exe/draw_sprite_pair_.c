@@ -63,7 +63,7 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
 
     GetScreenPosition(x, y, z, &out);
     otz = out.vz;
-    if (otz > 0x24)
+    if (otz > NEAR_DEPTH)
     {
         sc = (s16)((size * 300) / otz) + 1;
         sp2->scaley = sc;

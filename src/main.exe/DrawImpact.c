@@ -313,7 +313,7 @@ void DrawImpact(TEffectSlot *ef)
     }
 
     z = scr.vz;
-    if (z > 0x24)
+    if (z > NEAR_DEPTH)
     {
         scale = (s16)((size * 300) / z) + 1;
         spr->scaley = scale;

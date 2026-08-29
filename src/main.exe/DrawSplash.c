@@ -89,7 +89,7 @@ void DrawSplash(TEffectSlot *ef)
         s32 z;
 
         z = scr.vz;
-        if (z > 0x24)
+        if (z > NEAR_DEPTH)
         {
             spr->x = scr.vx;
             spr->y = scr.vy;

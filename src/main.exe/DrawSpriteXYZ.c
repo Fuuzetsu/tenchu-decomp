@@ -80,7 +80,7 @@ void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
 
     GetScreenPosition(x, y, z, &scr);
     otz = scr.vz;
-    if (otz > 0x24)
+    if (otz > NEAR_DEPTH)
     {
         sc = (s16)((scale * 300) / otz) + 1;
         sprt->scaley = sc;
