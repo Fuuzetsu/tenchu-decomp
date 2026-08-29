@@ -366,7 +366,7 @@ short DefaultActionHumanoid(Humanoid *human)
         }
     }
 
-    if (object->attribute & 0x8000)
+    if (object->attribute & MODEL_ATTR_CONFLICT)
     {
         while (1)
         {

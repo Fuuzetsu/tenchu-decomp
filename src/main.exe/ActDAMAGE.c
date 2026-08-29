@@ -245,7 +245,7 @@ void ActDAMAGE(void)
             short weapon_kind;
 
             weapon_kind = Me_MOTION_C->wpatk;
-            if (weapon_kind != 0x2a)
+            if (weapon_kind != WEP_TWIN_KATANA)
             {
                 done = true;
                 break;

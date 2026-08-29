@@ -346,7 +346,7 @@ dispatch:
         {
             launch_lightning_bolt_(0xd);
         }
-        else if (t == 0x35)
+        else if (t == WEP_KATAOKA)
         {
             AttackBowControl(1);
         }

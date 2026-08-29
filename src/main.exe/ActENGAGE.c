@@ -219,23 +219,23 @@ void ActENGAGE(void)
     {
         switch (dtCMD)
         {
-        case 1:
+        case CMD_DASH_FORWARD:
             motID = 0x607;
             motMODE = 1;
             return;
-        case 0x21:
+        case CMD_LUNGE:
             motID = 0x70d;
             motMODE = 1;
             return;
-        case 2:
+        case CMD_DASH_BACKWARD:
             motID = 0x604;
             motMODE = 1;
             return;
-        case 4:
+        case CMD_DASH_RIGHT:
             motID = 0x605;
             motMODE = 1;
             return;
-        case 3:
+        case CMD_DASH_LEFT:
             motID = 0x606;
             motMODE = 1;
             return;
@@ -255,28 +255,28 @@ void ActENGAGE(void)
         {
             switch (SelectedItem)
             {
-            case 1:
+            case ITEM_SHURIKEN:
                 motID = MOT_SYURI;
                 motMODE = 1;
                 return;
-            case 0:
+            case ITEM_KAGINAWA:
                 motID = MOT_KAGI;
                 motMODE = 1;
                 return;
-            case 2:
+            case ITEM_MAKIBISHI:
                 motID = MOT_ITEM;
                 motMODE = 1;
                 return;
-            case 5:
-                motID = 0xf02;
+            case ITEM_SMOKE:
+                motID = MOT_ITEM + 2;
                 motMODE = 1;
                 return;
-            case 4:
-                motID = 0xf02;
+            case ITEM_FIRE:
+                motID = MOT_ITEM + 2;
                 motMODE = 1;
                 return;
-            case 6:
-                motID = 0xf03;
+            case ITEM_JIRAI:
+                motID = MOT_ITEM + 3;
                 motMODE = 1;
                 return;
             case -1:

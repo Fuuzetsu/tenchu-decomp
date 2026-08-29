@@ -93,7 +93,7 @@ void ActSWIM(void)
         {
             Humanoid *human;
 
-            speed = -0x3c;
+            speed = -SWIM_SPEED;
             human = Me_MOTION_C;
             if (human->map.angleH != 0)
                 break;
@@ -164,7 +164,7 @@ void ActSWIM(void)
                         result = current + Me_MOTION_C->turn;
                     rotation->vy = result;
                 }
-                speed = -0x3c;
+                speed = -SWIM_SPEED;
             }
             else
             {
@@ -266,26 +266,26 @@ void ActSWIM(void)
 
     switch (SelectedItem)
     {
-    case 1:
+    case ITEM_SHURIKEN:
         motID = MOT_SYURI;
         break;
-    case 0:
+    case ITEM_KAGINAWA:
         motID = MOT_KAGI;
         break;
-    case 2:
+    case ITEM_MAKIBISHI:
         motID = MOT_ITEM;
         break;
-    case 5:
-        motID = 0xf02;
+    case ITEM_SMOKE:
+        motID = MOT_ITEM + 2;
         break;
-    case 4:
-        motID = 0xf02;
+    case ITEM_FIRE:
+        motID = MOT_ITEM + 2;
         break;
-    case 6:
-        motID = 0xf03;
+    case ITEM_JIRAI:
+        motID = MOT_ITEM + 3;
         break;
     case -1:
-    case 10:
+    case ITEM_KAWARIMI:
         goto item_sound;
     default:
         goto item_default;

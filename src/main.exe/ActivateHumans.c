@@ -250,7 +250,7 @@ void ActivateHumans(void)
             {
                 goto next_human;
             }
-            human->attribute = (u16)human->attribute & 0xff7f; /* clear ATTR_SUSPEND */
+            human->attribute = (u16)human->attribute & ~ATTR_SUSPEND; /* clear ATTR_SUSPEND */
             ThinkCount++;
             model = *human->model->object;
             model->attribute |= MODEL_ATTR_COLLIDE;

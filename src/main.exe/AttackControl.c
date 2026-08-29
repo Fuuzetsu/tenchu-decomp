@@ -95,9 +95,9 @@ void AttackControl(void)
                 goto enemy_type_ok;
 
             check_high_group:
-                if (group == 0x90)
+                if (group == PAGE_CIVILIAN)
                     goto reject_enemy;
-                if (group == 0xa0)
+                if (group == PAGE_BEAST)
                     goto reject_enemy;
                 goto enemy_type_ok;
 
@@ -150,7 +150,7 @@ void AttackControl(void)
                             myid = 0x716;
                             emid = 0x110b;
                         }
-                        if (Me_MOTION_C->type == 1)
+                        if (Me_MOTION_C->type == AYAME_0)
                         {
                             myid += 3;
                             emid += 3;

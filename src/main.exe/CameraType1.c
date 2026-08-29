@@ -118,7 +118,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
     scratch.init.vy = pl->model->locate.coord.t[1] - CAMERA_EYE_HEIGHT;
     scratch.init.vz = pl->model->locate.coord.t[2];
     pos = scratch.init;
-    mad->attribute |= 2;
+    mad->attribute |= MODEL_ATTR_NOCULL;
 
     switch (CamState.Owner->status)
     {
