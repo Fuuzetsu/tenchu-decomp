@@ -54,6 +54,8 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
         penalty = hidden * 20;
     }
     penalty = spotted - penalty;
+    /* Identical arms on a never-zero test: retail's own dead branch,
+     * byte-required (collapsing mismatches; measured). */
     if (spotted != 0)
     {
         store_result->spottedScore = penalty;

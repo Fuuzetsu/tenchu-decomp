@@ -81,11 +81,11 @@ void DrawTargetS(long x, long y, long z, long color)
         p = &line;
         otz = (u16)otz;
         callpri = otz;
-        nearx = x - 0x14;
-        neary = y - 0x14;
-        x = x + 0x14;
+        nearx = x - 20;
+        neary = y - 20;
+        x = x + 20;
         ot = OTablePt;
-        y = y + 0x14;
+        y = y + 20;
     }
     else
     {

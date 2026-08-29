@@ -446,7 +446,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
     {
     }
 
-    pages = count / 0x12 + 1;
+    pages = count / 18 + 1;
     AdtGetDisp(&ad);
 
     for (;;)
@@ -455,9 +455,9 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
         trg = pad;
         pad = AdtPadRead(0);
         trg = ~trg & pad;
-        page = mode / 0x12;
+        page = mode / 18;
         first = page * 0x12;
-        last = first + 0x12;
+        last = first + 18;
         if (count < last)
             last = count;
         FntPrint(fmt_str, title);
@@ -489,9 +489,9 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
         else if (trg & PADLdown)
             i = 1;
         else if (trg & PADLleft)
-            i = -0x12;
+            i = -18;
         else if (trg & PADLright)
-            i = 0x12;
+            i = 18;
         else
             i = 0;
         mode += i;
