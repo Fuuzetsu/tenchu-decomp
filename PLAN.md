@@ -567,8 +567,8 @@ not re-sweep the existing corpus.
 
 GLOSS-COVERAGE PASS (STOPPED 2026-08-29 by owner: "I don't need you
 to add comments about what functions do, stop that"). Five batches had
-landed before the correction; they were left in place but NO further
-glosses are to be written — matching notes (measured adjudications)
+landed before the correction and were then removed on request
+(commit 1612d927); NO glosses are to be written — matching notes (measured adjudications)
 remain wanted, narrative headers do not. Originally parked as: ~40 large files carry matching notes but
 no behavior gloss (what the function does) -- e.g. StageEndScreen,
 ControlHumanoid, SetBleeds/SetBleedsDir, ProcItemNingyo/Nemuri/Jirai,
