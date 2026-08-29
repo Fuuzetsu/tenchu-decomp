@@ -84,6 +84,7 @@
  * masks (ActJUMP's ATTR_NOFLOOR|0x200 dive check, ActKAGI's
  * any-contact mask). */
 #define ATTR_PHASE 0x0003
+#define ATTR_CUSTOMAI 0x0004 /* invented name; "non-template AI", see above */
 #define PHASE_CALM 0
 #define PHASE_SUSPICIOUS 1
 #define PHASE_ALERT 2

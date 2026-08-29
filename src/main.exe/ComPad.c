@@ -68,7 +68,7 @@ void ComPad(int port, u8 *rxbuf)
     int i;
     int raw;
     int initlevel;
-    int t1, t2;
+    int hi, lo;
 
     if ((rxbuf[1] >> 4) == 8)
     {
@@ -90,11 +90,11 @@ void ComPad(int port, u8 *rxbuf)
         return;
     }
 
-    t1 = rxbuf[2];
-    t2 = rxbuf[3];
+    hi = rxbuf[2];
+    lo = rxbuf[3];
     pad->y = 0;
     pad->x = 0;
-    raw = ~(t2 | (t1 << 8));
+    raw = ~(lo | (hi << 8));
     {
         int i;
 
@@ -102,16 +102,21 @@ void ComPad(int port, u8 *rxbuf)
         do
         {
         } while (0);
+        /* Identical arms on the port test: retail's own dead branch,
+         * byte-required (collapsing moves the store to v1; measured). */
         if (port != 0)
             i = raw;
         else
             i = raw;
-        if (i & 0x2000)
+        /* 0x2D = 45: the synthesized stick deflection for digital pads.
+         * The raw recycle is byte-required (a direct store loses the
+         * branch shape; measured). */
+        if (i & PADLright)
         {
             raw = 0x2D;
             pad->x = raw;
         }
-        else if (i & 0x8000)
+        else if (i & PADLleft)
         {
             raw = -0x2D;
             pad->x = raw;

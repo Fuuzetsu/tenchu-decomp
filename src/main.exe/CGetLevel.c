@@ -40,12 +40,9 @@
  *    parameter. The `(short)flag` call expression deliberately narrows and
  *    sign-extends `flag` before passing it through the shared `int mode` ABI,
  *    matching the raw asm's `sll/sra` pair.
- *  - `x10`/`z10` get named locals (each used twice in the guard); `y/10`
- *    is written INLINE at both uses instead of through a matching named
- *    local — cc1 CSEs the repeated inline division into the target's
- *    single computation either way, and this spelling reproduces the
- *    exact register pairing (cookbook: "keep a compared value inline in
- *    both operands; hoisting it into a temp can swap two registers").
+ *  - `x10`/`y10`/`z10` are all named locals, each read twice in the
+ *    guard; cc1 CSEs the divisions into the target's single computation
+ *    and this spelling reproduces the exact register pairing.
  *  - **Ghidra's polarity is backwards for this guard.** It renders
  *    `if (node != 0 && <6 conditions>) { foundBody } elseBody;` (found
  *    nested, else/GetAreaMapLevel as the tail) — literally true, but an

@@ -56,7 +56,7 @@
  * StartStageSequence (0x8004d970) installs the stage-specific characters,
  * reorders HumanGroup by character class, counts enemies/citizens/bosses,
  * applies the stage-specific score exclusions, and resets the event and
- * score clocks.  INIT_STAGE_STATS is an internal symbol at the reset tail,
+ * score clocks.  init_stats is an internal label at the reset tail,
  * not a second function.
  *
  * Matching notes:
@@ -108,6 +108,8 @@ void StartStageSequence(void)
 
             chrid = (s16)stg->chrid;
             stg_think = (volatile u16 *)&stg->think;
+            /* Walked back from stg_think, not read off stg: byte-required
+             * (the target addresses chrid as lhu -10(stg_think); measured). */
             tp = ((volatile StageCharType *)((u8 *)stg_think -
                                              StageCharThinkOffset))
                      ->chrid;
@@ -122,7 +124,7 @@ void StartStageSequence(void)
             /* chrid -1: the partner ninja — whichever of the pair the
              * player did not pick. */
             tp = RIKIMARU_1;
-            if (StagePlayer->type == 0)
+            if (StagePlayer->type == RIKIMARU_0)
             {
                 tp = AYAME_1;
             }
@@ -132,7 +134,7 @@ void StartStageSequence(void)
             /* chrid -2: the player-specific story NPC — Rikimaru's
              * stages place the lord, Ayame's the princess. */
             tp = HIME;
-            if (StagePlayer->type == 0)
+            if (StagePlayer->type == RIKIMARU_0)
             {
                 tp = TONO;
             }
@@ -178,7 +180,7 @@ void StartStageSequence(void)
                 ModelType *target;
 
                 target = (ModelType *)StagePlayer->model;
-                human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~4;
+                human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
                 human->life = -1;
                 human->target = target;
             }
@@ -187,7 +189,7 @@ void StartStageSequence(void)
     }
 
     i = 0;
-    tp = i;
+    tp = 0;
     while (i < Humans)
     {
         entry = HumanGroup[i];
@@ -271,7 +273,7 @@ void StartStageSequence(void)
             }
             StageBosses--;
             StageEnemies--;
-            if (StagePlayer->type == 1)
+            if (StagePlayer->type == AYAME_0)
             {
                 goto init_stats;
             }

@@ -44,8 +44,9 @@
  *    a preheader — a real do-while's loop notes let loop.c hoist that
  *    constant (cookbook: "division magic constants moved to the
  *    preheader"). A hand-rolled goto loop has no loop notes, so nothing is
- *    hoisted; written that way. The digit is plain `cols - q*10` int
- *    arithmetic rather than Ghidra's `(char)` casts: the store to
+ *    hoisted; written that way. The digit is plain `cols % 10` int
+ *    arithmetic (cc1's mod-after-div reuses the quotient) rather than
+ *    Ghidra's `(char)` casts: the store to
  *    NumberImage.u (a uchar field) truncates to one byte regardless, so
  *    GCC's standard mod-after-div lowering (reusing the quotient `q` for the
  *    remainder) falls out with no extra casts needed.

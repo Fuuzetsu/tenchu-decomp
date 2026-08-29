@@ -4,8 +4,8 @@
 
 /* Sleeping guard: when the nap animation runs out, feed ActNORMAL the
  * AI-only PADLup|PADL2 chord that restarts the scripted nap action
- * (MOT_ACTION); clear the search request while that action plays; and
- * hand control to the pursue logic when the alarm is up or the guard is
+ * (MOT_ACTION); clear the search result while that action plays; and
+ * steer to face the player when the alarm is up or the guard is
  * being shoved out of an object (ATTR_PUSH -- not the alert bit). */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -23,22 +23,22 @@
 s16 Think1sleep(void)
 {
     MotionManager *mmp;
-    u16 mot;
+    u16 pad;
 
     mmp = Me_THINK_C->motion;
-    mot = 0;
+    pad = 0;
     if (mmp->mid == MOT_ACTION)
     {
         SR = -1;
     }
     else if (mmp->count == 0)
     {
-        mot = PADLup | PADL2;
+        pad = PADLup | PADL2;
     }
-    if ((EmergencyNotice != 0) || ((Attrib & 0x8000) != 0))
+    if ((EmergencyNotice != 0) || ((Attrib & ATTR_PUSH) != 0))
     {
-        mot = turn_towards_player_(0, 0);
-        mot = mot & (PADLleft | PADLright);
+        pad = turn_towards_player_(0, 0);
+        pad = pad & (PADLleft | PADLright);
     }
-    return mot;
+    return pad;
 }

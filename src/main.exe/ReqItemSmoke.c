@@ -61,8 +61,8 @@
  *    `param`) for this one store, same as the other twins.
  */
 extern void ProcItemSmoke(TItem *item);
-/* ITEM.C defines the counter (gp-relative): listed in Build.hs
- * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */
+/* ITEM.C's `ic` slot cursor (inside TAKE_ITEM_SLOT) is gp-relative:
+ * listed in Build.hs maspsxGpExterns for this file. */
 
 int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
 {

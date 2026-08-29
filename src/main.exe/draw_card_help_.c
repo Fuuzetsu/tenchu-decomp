@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -27,10 +28,8 @@ extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
  * acknowledge prompt; '?' selects between accept/cancel, with page 3 drawing
  * the two-choice selector.
  *
- * The one-shot loops are zero-code cc1 allocation fences.  Their loop-depth
- * weights put end/text/y/n in the target's s0/s1/s2/s3 order; rtlguide and
- * regalloc.py identify this as allocation, not control-flow.  Keeping the
- * sparse pad values as a switch also matters: cc1 emits the target's
+ * Keeping the
+ * sparse pad values as a switch matters: cc1 emits the target's
  * PADLright-centered comparison tree and separately placed case tails.  Finally,
  * `n` intentionally serves as page offset, line number, and signed result so
  * all three non-overlapping lifetimes reuse s3.
@@ -91,7 +90,7 @@ s32 draw_card_help_(s32 page, s32 pad)
             y++;
         } while (*scan != 0);
     }
-    y = (y * -0x10) / 2;
+    y = -(y * 0x10) / 2;
 
     n = 0;
     while (*text != 0)
@@ -111,7 +110,7 @@ s32 draw_card_help_(s32 page, s32 pad)
     n = 0;
     if (McardAnswered != 0)
     {
-        pad = n;
+        pad = 0;
     }
 
     if (text[-2] == '.')
@@ -125,67 +124,63 @@ s32 draw_card_help_(s32 page, s32 pad)
     goto done;
 
 period:
+GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
+if (pad != PADRright)
 {
-    GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
-    if (pad != PADRright)
-    {
-        goto done;
-    }
+    goto done;
 }
     goto accept;
 
 question:
+if (page == 3)
 {
-    if (page == 3)
+    if (McardStateFlag != 0)
     {
-        if (McardStateFlag != 0)
-        {
-            McardButtons[2]->sprite.attribute &= 0xbfffffff;
-            McardButtons[3]->sprite.attribute |= 0x40000000;
-        }
-        else
-        {
-            McardButtons[2]->sprite.attribute |= 0x40000000;
-            McardButtons[3]->sprite.attribute &= 0xbfffffff;
-        }
-        GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
-        GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);
-        GsSortSprite(&McardButtons[4]->sprite, OTablePt, 0);
-
-        switch (pad)
-        {
-        case PADRright:
-            if (McardStateFlag != 0)
-            {
-                goto accept;
-            }
-            goto cancel;
-
-        case PADLleft:
-            if (McardStateFlag != 1)
-            {
-                SoundEx(0, 0x30);
-                McardStateFlag = 1;
-            }
-            break;
-
-        case PADLright:
-            if (McardStateFlag != 0)
-            {
-                SoundEx(0, 0x30);
-                McardStateFlag = 0;
-            }
-            break;
-        }
-        goto done;
+        McardButtons[2]->sprite.attribute &= ~SPR_TRANS;
+        McardButtons[3]->sprite.attribute |= SPR_TRANS;
     }
     else
     {
-        GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
-        if (pad != PADRright)
+        McardButtons[2]->sprite.attribute |= SPR_TRANS;
+        McardButtons[3]->sprite.attribute &= ~SPR_TRANS;
+    }
+    GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
+    GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);
+    GsSortSprite(&McardButtons[4]->sprite, OTablePt, 0);
+
+    switch (pad)
+    {
+    case PADRright:
+        if (McardStateFlag != 0)
         {
-            goto check_cancel;
+            goto accept;
         }
+        goto cancel;
+
+    case PADLleft:
+        if (McardStateFlag != 1)
+        {
+            SoundEx(0, 0x30);
+            McardStateFlag = 1;
+        }
+        break;
+
+    case PADLright:
+        if (McardStateFlag != 0)
+        {
+            SoundEx(0, 0x30);
+            McardStateFlag = 0;
+        }
+        break;
+    }
+    goto done;
+}
+else
+{
+    GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
+    if (pad != PADRright)
+    {
+        goto check_cancel;
     }
 }
 
@@ -209,5 +204,6 @@ done:
     {
         McardAnswered = 1;
     }
+    /* (short) re-narrows n: byte-required (writer-width rule; measured). */
     return (short)n;
 }

@@ -41,8 +41,8 @@ extern void DrawImpact(TEffectSlot *ef);
  * `rotated` is genuinely a two-VECTOR workspace: its second element holds the
  * three signed position captures at sp+0x58..0x60 while the second pool search
  * runs.  Independent scalar captures stay in registers, shorten the function,
- * and lose the target's 0x88-byte frame.  Finally, naming `final_py` immediately
- * after the px store preserves the target's early load and late py store.
+ * and lose the target's 0x88-byte frame.  Finally, naming `final_pz` immediately
+ * after the py store preserves the target's early load and late pz store.
  */
 void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
 {
@@ -120,7 +120,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         TEffectSlot *ef;
         int count;
         ImpactType *impact;
-        long final_py;
+        long final_pz;
         long start_color;
         long end_color;
 
@@ -160,7 +160,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         ef->param.impact.px = rotated[1].vx;
         impact = &ef->param.impact;
         impact->py = rotated[1].vy;
-        final_py = rotated[1].vz;
+        final_pz = rotated[1].vz;
         impact->rotate_speed = 80;
         impact->start_size = 0x2000;
         impact->end_size = 0x2000;
@@ -171,6 +171,6 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         impact->end_color.word = end_color;
         impact->count = 0;
         impact->type = 2;
-        impact->pz = final_py;
+        impact->pz = final_pz;
     }
 }

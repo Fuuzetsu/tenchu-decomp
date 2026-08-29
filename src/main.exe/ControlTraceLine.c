@@ -82,6 +82,9 @@ short ControlTraceLine(Humanoid *human)
     {
         roty = human->rotate->vy;
         ang = ratan2(-dx, -dz);
+        /* The t/diff/d32/degree/absdeg staging is byte-required: each name
+         * fixes one width or one re-extension point (collapsing any pair
+         * mismatches; measured). */
         t = ang - roty;
         diff = t;
         if (diff > 0x800)

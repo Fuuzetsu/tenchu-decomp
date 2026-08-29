@@ -36,16 +36,16 @@
  * runs the normal per-frame draw/update pipeline (ComputeAllConflict through
  * draw_visible_characters_, matched — Ghidra's own
  * `FUN_80029368`), then two CVA-specific passes:
- *  1. stage 10 (a specific cutscene stage) + CHOSEN_CHARACTER==0 only:
+ *  1. STAGE_FREE_PRINCESS + RIKIMARU_0 only:
  *     6-entry TANKA_SPRITES_ sprite-fade-and-sort pass — each
- *     each slot is a Sprite3D with a "hidden" `attribute` bit and a
+ *     slot is a Sprite3D with a "hidden" `attribute` bit and a
  *     three-channel fade in its embedded GsSPRITE. The shared brightness
  *     increments by 8 while `sprite.r`'s sign bit is clear, then the sprite
  *     is sorted.
  *  2. CVAhuman[5] (proven HumanAnimType: human/loop/motid) reconciliation:
  *     for each live human whose queued motion has already looped enough
  *     (`CVAhuman[i].loop <= human->motion->loop`), either motid==-1 (stop:
- *     clear motion->loop and the human's x/z velocity) or (status != DEAD)
+ *     set motion->loop to -1 and clear the human's x/z velocity) or (status != DEAD)
  *     start the queued motid via SetNowMotion and clear the slot.
  * Finally advances the CVA frame counter (CVAtime) and, once it reaches
  * the current event's own duration (CVAnow->id,
@@ -67,7 +67,7 @@
  *    rendering (`*piVar4 + 0x68`, a fresh dereference of the slot address,
  *    distinct from `iVar3` which is `*piVar4`'s EARLIER read reused for
  *    the flag/fade tests). Reusing `e` here compiles one `lw` short.
- *  - The fade counter's new value is computed once (`c = e->fadeC + 8;`)
+ *  - The fade counter's new value is computed once (`c = e->sprite.b + 8;`)
  *    and stored to all three bytes from that one register — writing each
  *    store as `+8` inline would reload/recompute three times.
  */
@@ -136,6 +136,9 @@ short CVArun(void)
             if (motid == -1)
             {
                 mmp->loop = -1;
+                /* The slot is reloaded for the stores (like the sprite
+                 * pass above): byte-required (using human directly drops
+                 * the second lw; measured). */
                 reload = CVAhuman[i].human;
                 reload->vector.vz = 0;
                 reload->vector.vx = 0;

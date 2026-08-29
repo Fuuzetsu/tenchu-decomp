@@ -91,7 +91,7 @@ void ActivateHumans(void)
     VECTOR work;
     s32 active;
     s32 final;
-    s32 computed_active;
+    s32 visible;
     s32 distance;
     s32 activate_distance;
     s32 n;
@@ -104,6 +104,9 @@ void ActivateHumans(void)
     activate_distance = ACTIVATE_RADIUS_WIDE;
     if (StagePlayer->motion->mid != MOT_ITEM_SHINSOKU)
     {
+        /* Every do/while (0) in this function is a byte-required
+         * loop-depth weight (removing any of them shifts the s-register
+         * assignment; measured). */
         do
         {
             do
@@ -116,14 +119,14 @@ void ActivateHumans(void)
         } while (0);
     }
 
-    if (GameClock != (GameClock / 30) * 30 || SkipFrame != 0)
+    if (GameClock % 30 != 0 || SkipFrame != 0)
     {
         return;
     }
 
     /* GPU-packet headroom: how many more humans may think this frame at
      * a worst-case ~5000 packet bytes each, keeping PacketUsed under the
-     * 0xec78 reserve line (the Packet buffer itself spans 0x26728). */
+     * 0xec78 reserve line. */
     n = (0xec78 - PacketUsed) / 5000 - 1;
     ThinkBudgetRaw = n;
     if ((s16)n < 2)
@@ -188,8 +191,8 @@ void ActivateHumans(void)
             {
                 goto active_done;
             }
-            computed_active = distance < activate_distance;
-            goto computed_active_done;
+            visible = distance < activate_distance;
+            goto visible_done;
         }
         if (distance < activate_distance)
         {
@@ -222,10 +225,10 @@ void ActivateHumans(void)
             }
             j++;
         }
-        computed_active = j != VISIBLE_ENEMIES_;
+        visible = j != VISIBLE_ENEMIES_;
 
-    computed_active_done:
-        active = computed_active;
+    visible_done:
+        active = visible;
     active_done:
         if (human)
         {
@@ -248,7 +251,7 @@ void ActivateHumans(void)
             {
                 goto next_human;
             }
-            human->attribute = (u16)human->attribute & ~ATTR_SUSPEND; /* clear ATTR_SUSPEND */
+            human->attribute = (u16)human->attribute & ~ATTR_SUSPEND;
             ThinkCount++;
             model = *human->model->object;
             model->attribute |= MODEL_ATTR_COLLIDE;
@@ -284,6 +287,8 @@ void ActivateHumans(void)
         }
         else if (human->status != STAT_DEAD && ((u16)human->attribute & ATTR_FLOAT) == 0)
         {
+            /* Built in work, then copied whole: byte-required (filling
+             * query directly drops the struct copy; measured). */
             memset(&work, 0, sizeof(work));
             work.vx = human->point[0];
             work.vy = human->locate->vy - 1500;
@@ -293,7 +298,7 @@ void ActivateHumans(void)
             {
                 level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
                                         query.vz, 1);
-                if (level != (u32)LEVEL_NONE)
+                if (level != LEVEL_NONE)
                 {
                     human->model->locate.coord.t[0] = query.vx;
                     human->model->locate.coord.t[1] = level;

@@ -160,7 +160,7 @@ s16 CVAupdate(void)
 
                 if (StagePlayer != human && human->life == invalid)
                 {
-                    human->attribute |= 4;
+                    human->attribute |= ATTR_CUSTOMAI;
                     human->life = human->lifemax;
                 }
 
@@ -199,7 +199,7 @@ s16 CVAupdate(void)
                 if ((s32)packed >> 16 == invalid)
                 {
                     human->life = invalid;
-                    human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~4;
+                    human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
                     human->motion->mid = invalid;
                     SetNowMotion(human, 0, 1);
                     PlayMotion(human->motion, 1);

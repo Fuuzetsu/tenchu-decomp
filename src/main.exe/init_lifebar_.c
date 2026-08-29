@@ -80,7 +80,7 @@ void init_lifebar_(void)
         slot->mx = 0;
         slot->my = 0;
         slot->rotate = LifeBarParts[i].rotate;
-        slot->attribute = 0x40000000;
+        slot->attribute = SPR_TRANS;
 
         slot = &LifeBarStyle[i].fill;
         InitSprite(GetImage(LifeBarParts[i].imgB), slot);

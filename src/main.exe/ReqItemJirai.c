@@ -46,8 +46,8 @@
  * ic and the same dispose-on-exhaustion block); unlike
  * ReqItemDrop there is no GetAreaMapLevel floor check — a jirai is placed
  * unconditionally. It gets ProcItemJirai as its processor and the trigger
- * velocity packed into param (param_korogari view, same union member
- * ReqItemDrop uses).
+ * velocity packed into param (the param.smoke member — ReqItemDrop uses
+ * param.drop; identical param_korogari layout).
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - `param = &item->param.smoke;` sits BEFORE the null check, same

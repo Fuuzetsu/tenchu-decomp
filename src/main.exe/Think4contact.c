@@ -35,7 +35,7 @@
  * END PSX.SYM */
 
 /*
- * Clear the interrupted state, turn briefly while no chase point exists,
+ * On clear sight escalate to PHASE_ALERT, turn briefly while no chase point exists,
  * then abandon after 0x5b ticks. With a chase point, steer toward it and
  * clear it after arriving or when actscnt wraps.
  *
@@ -72,7 +72,7 @@ s16 Think4contact(void)
             }
             else if (Degree < -Me_THINK_C->turn)
             {
-                result = -0x8000;
+                result = -PADLleft;
             }
         }
     }

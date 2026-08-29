@@ -236,6 +236,8 @@ void ActSWIM(void)
     human = Me_MOTION_C;
     if ((human->pad.trig & PADRup) == 0)
         return;
+    /* SelectedItem is 0 past this guard, so every arm of the switch below
+     * except ITEM_KAGINAWA (= 0) is dead — retail's own code, kept as-is. */
     if (SelectedItem != 0)
         return;
     dtM->mask = -2;
@@ -276,15 +278,15 @@ void ActSWIM(void)
         motID = MOT_ITEM;
         break;
     case ITEM_SMOKE:
-        motID = MOT_ITEM + 2;
+        motID = MOT_ITEM_THROW;
         break;
     case ITEM_FIRE:
-        motID = MOT_ITEM + 2;
+        motID = MOT_ITEM_THROW;
         break;
     case ITEM_JIRAI:
-        motID = MOT_ITEM + 3;
+        motID = MOT_ITEM_PLANT;
         break;
-    case -1:
+    case ITEM_NONE:
     case ITEM_KAWARIMI:
         goto item_sound;
     default:
