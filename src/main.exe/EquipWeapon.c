@@ -43,16 +43,12 @@
  *    mode,L` branches AWAY (to the clear-bit body) when mode==0 while
  *    falling through to the set-bit body — so the THEN clause must be the
  *    mode!=0 (set) case for the fallthrough to land there.
- *  - `idx = human->wpatk - 4;` is a real source statement (not just
- *    cc1's own expand_case bias): the target sign-extends `idx` with an
- *    explicit `sll+sra` pair between the subtraction and the `sltiu` range
- *    check, which only happens for an actual `short` LOCAL being promoted
- *    for the switch (a switch directly over `human->wpatk` gets no
- *    such promotion, 2 bytes short). Ghidra's printed case labels (0,1,3,
- *    0x1b / 8,0xf,0x10,0x12,0x15,0x18) are `idx`'s values, i.e. already
- *    `-4`; the raw source likely names weapon-pattern values 4/5/7/0x1F and
- *    0xC/0x13/0x14/0x16/0x19/0x1C, but `idx`'s own literals are what
- *    reproduce the bytes.
+ *  - The switch is written directly over `human->wpatk` with the true
+ *    weapon-pattern case values (4/5/7/0x1F and 0xC/0x13/0x14/0x16/
+ *    0x19/0x1C) — re-measured 2026-08-29: this matches byte-for-byte
+ *    (cc1's own expand_case bias supplies the -4 rebase and the same
+ *    sll+sra promotion). An earlier draft believed a biased
+ *    `idx = wpatk - 4` local was required; that measurement was stale.
  *  - Case-body load/store order follows the raw .s, not Ghidra's SSA
  *    rendering (which reorders loads): the first swap loads wp[0] then
  *    wp[2] then wp[3] (Ghidra shows wp[2] first); the second swap loads
@@ -79,7 +75,6 @@ void EquipWeapon(Humanoid *human, short mode)
     OrnamentType **wp;
     OrnamentType *a, *b, *c;
     OrnamentType *d;
-    short idx;
 
     wp = human->weapon;
     dispose_weapon_data_of_char_(human, 3);
@@ -99,13 +94,12 @@ void EquipWeapon(Humanoid *human, short mode)
         }
         human->attribute = human->attribute & ~ATTR_ALERT;
     }
-    idx = human->wpatk - 4;
-    switch (idx)
+    switch (human->wpatk)
     {
-    case 0:
-    case 1:
-    case 3:
-    case 0x1b:
+    case 4:
+    case 5:
+    case 7:
+    case 0x1f:
         a = wp[0];
         b = wp[2];
         c = wp[3];
@@ -115,12 +109,12 @@ void EquipWeapon(Humanoid *human, short mode)
         wp[1] = c;
         wp[3] = a;
         break;
-    case 8:
-    case 0xf:
-    case 0x10:
-    case 0x12:
-    case 0x15:
-    case 0x18:
+    case 0xc:
+    case 0x13:
+    case 0x14:
+    case 0x16:
+    case 0x19:
+    case 0x1c:
         d = wp[2];
         a = wp[0];
         wp[0] = d;
