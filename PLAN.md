@@ -565,9 +565,11 @@ class is either fixed repo-wide or adjudicated in place with a
 measurement. Future passes should target NEW code as it gets matched,
 not re-sweep the existing corpus.
 
-GLOSS-COVERAGE PASS (COMPLETE 2026-08-29): five agent-drafted,
-address-verified batches covered the whole backlog; every large
-matched file now opens with a behavior gloss. Originally parked as: ~40 large files carry matching notes but
+GLOSS-COVERAGE PASS (STOPPED 2026-08-29 by owner: "I don't need you
+to add comments about what functions do, stop that"). Five batches had
+landed before the correction; they were left in place but NO further
+glosses are to be written — matching notes (measured adjudications)
+remain wanted, narrative headers do not. Originally parked as: ~40 large files carry matching notes but
 no behavior gloss (what the function does) -- e.g. StageEndScreen,
 ControlHumanoid, SetBleeds/SetBleedsDir, ProcItemNingyo/Nemuri/Jirai,
 SetupTelop, briefing_screen_, mission_score_screen, ActJUMP,
