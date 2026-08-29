@@ -124,7 +124,7 @@ void ActACTION(void)
             case WEP_BEAST:
                 model = Me_MOTION_C->model->object[2];
                 break;
-            case 0:
+            case WEP_NONE:
                 cleanup_guard = 3;
                 goto skip_afterimage_cleanup;
             default:

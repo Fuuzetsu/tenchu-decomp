@@ -128,6 +128,8 @@ void ActSTICKON(void)
                 wall_y += 0x400;
             }
             reflected_raw = (u16)RefrectVector[map->vector] - wall_y;
+            /* drop_index re-registers wall_y for the divide below:
+             * byte-required (direct wall_y use mismatches; measured). */
             drop_index = wall_y;
             rv = reflected_raw;
             reflected = (s16)reflected_raw;
@@ -297,9 +299,9 @@ void ActSTICKON(void)
              * re-colors the pair; measured). */
             high_item = selected_item;
             StickonItem = selected_item;
-            if (selected_item < 6)
+            if (selected_item <= ITEM_SMOKE)
             {
-                if (selected_item < 4 && selected_item != ITEM_MAKIBISHI)
+                if (selected_item < ITEM_FIRE && selected_item != ITEM_MAKIBISHI)
                 {
                     pd = 0;
                 }
@@ -518,7 +520,7 @@ void ActSTICKON(void)
                 y = next_angle;
                 item.end.vx = (rsin(y) * (-30 - rand() % 200)) >> 12;
                 item.end.vy = rand();
-                item.end.vy = (item.end.vy / 30) * 30 - item.end.vy;
+                item.end.vy = -(item.end.vy % 30);
                 item.end.vz = (rcos(y) * (-30 - rand() % 200)) >> 12;
                 ReqItemMakibishi((PARAM_ITEM_DROP *)&item);
             }

@@ -85,7 +85,7 @@ void ActSTATE(void)
                     DeleteConflict(Me_MOTION_C->model->object[2]);
                     cleanup_guard = 3;
                     break;
-                case 0:
+                case WEP_NONE:
                     cleanup_guard = 3;
                     break;
                 default:
@@ -203,7 +203,7 @@ void ActSTATE(void)
                     DeleteConflict(Me_MOTION_C->model->object[2]);
                     cleanup_guard = 3;
                     break;
-                case 0:
+                case WEP_NONE:
                     cleanup_guard = 3;
                     break;
                 default:

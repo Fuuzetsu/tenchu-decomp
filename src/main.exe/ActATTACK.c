@@ -261,6 +261,8 @@ dispatch:
             PARAM_ITEM_LAUNCH *request;
             short first_frame;
 
+            /* The frame-window constants staged in first_frame/last_frame
+             * are byte-required (direct literals recolor; measured). */
             first_frame = 0x24;
             t = dtM->count;
             request = &item;
@@ -533,8 +535,8 @@ dispatch:
             v = dtV;
             scratch.fall_velocity.vx = scratch.fall_velocity.vx + dtV->vx;
             scratch.fall_velocity.vz = scratch.fall_velocity.vz + dtV->vz;
-            if ((((scratch.fall_velocity.vx >= 0) ? scratch.fall_velocity.vx : -scratch.fall_velocity.vx) < 0x65) &&
-                (((scratch.fall_velocity.vz >= 0) ? scratch.fall_velocity.vz : -scratch.fall_velocity.vz) < 0x65))
+            if ((((scratch.fall_velocity.vx >= 0) ? scratch.fall_velocity.vx : -scratch.fall_velocity.vx) <= 100) &&
+                (((scratch.fall_velocity.vz >= 0) ? scratch.fall_velocity.vz : -scratch.fall_velocity.vz) <= 100))
             {
                 dtV->vx = scratch.fall_velocity.vx;
                 v->vz = scratch.fall_velocity.vz;
@@ -577,7 +579,7 @@ dispatch:
                 DeleteConflict(Me_MOTION_C->model->object[2]);
                 cleanup_guard = 3;
                 break;
-            case 0:
+            case WEP_NONE:
                 cleanup_guard = 3;
                 break;
             default:
@@ -630,7 +632,7 @@ dispatch:
                 DeleteConflict(Me_MOTION_C->model->object[2]);
                 cleanup_guard = 3;
                 break;
-            case 0:
+            case WEP_NONE:
                 cleanup_guard = 3;
                 break;
             default:
@@ -914,7 +916,7 @@ dispatch:
             case WEP_BEAST:
                 DeleteConflict(Me_MOTION_C->model->object[2], hand_kind);
                 break;
-            case 0:
+            case WEP_NONE:
                 break;
             default:
                 DeleteConflict(Me_MOTION_C->model->object[0xd], hand_kind);
