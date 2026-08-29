@@ -722,6 +722,13 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   sizeof(Elem)`) is usually just an indexed `base->slot[i].field` loop —
   cc1's own strength reduction produces the offset walk (LoadConstruction's
   model-slot dispose loop; hoisted mask/base constants folded too).
+- **Off-by-one bounds are `<=`/`>` in disguise**: the decompiler renders
+  `x <= N` as `x < N+1` and `x > N` as `x >= N+1` (slti encodings are
+  identical), which hides round thresholds behind odd constants — 0x7531
+  is `<= 30000`, `Degree >= 301` is `> 300`. When a comparison constant
+  is one above a round number, respell it; ~38 sites cleaned in one
+  sweep (IsVisible, the Attack* degree windows, Think3chase bands).
+
 - **Decompiler comma chains flatten to nested ifs byte-identically**
   (ActATTACK): `if (A && (x = e, f(x), y != 0) && (g(), z))` is the same
   bytes as the structured nested-if spelling with the assignments as plain
