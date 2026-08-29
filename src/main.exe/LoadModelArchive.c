@@ -37,6 +37,29 @@
  *     extern struct ModelType World;
  * END PSX.SYM */
 
+/*
+ * LoadModelArchive (0x80017394) — 3DCTRL.C's loader: turns a packed
+ * multi-part TMD archive into a live ModelArchiveType hierarchy of
+ * GsCOORDINATE2-linked ModelTypes. Returns the new archive. Complains
+ * through SystemOut(msg_no_model_archive_data) on a NULL address but
+ * carries on regardless. vallocs the archive header, reads the part
+ * count from the archive's second word into mad->n, vallocs the
+ * ModelType* table, and treats the words after the count as a
+ * ParentingType array. First pass, once per part: valloc a ModelType,
+ * and unless the entry's index is zero hand the TMD at tmdp + index to
+ * GsMapModelingData and GsLinkObject4. Each part is then reset to
+ * identity — coord2 pointed back at itself, attribute 0,
+ * GsInitCoordinate2 under World, zeroed translation/rotate/clip,
+ * RotMatrixYXZ, id -1, flg 0 — and stored in mad->object[i]. The
+ * archive node itself is parented to prnt (World when prnt is NULL)
+ * and reset the same way. Second pass re-parents: a non-negative
+ * prntp[i].np is searched against every prntp[j].nc, and the matching
+ * object becomes that part's coordinate parent; parts with no match
+ * stay attached to the archive node. The entry's dx/dy/dz become the
+ * part's local translation and RotMatrixYXZ rebuilds its matrix.
+ * Finally object[0]'s Y translation is stashed in mad->rotate.pad.
+ */
+
 #include "item.h"
 
 /*

@@ -38,6 +38,31 @@
  * END PSX.SYM */
 
 /*
+ * SwimCheck (0x8001c930) — MOTION.C's water-entry test for the
+ * character currently being updated (Me_MOTION_C). Returns 1 when that
+ * character belongs in the water, 0 otherwise. Bails with 0 unless the
+ * character has sunk to or below ground level (map.height <= 0) on a
+ * cell whose map.attrib carries MAP_WATER. Three statuses
+ * short-circuit: STAT_KAGI (grapple aiming) returns 0, STAT_SWIM
+ * returns 1 as already-swimming, and STAT_DEAD returns 1 once motID is
+ * the 0x1108 drowning motion but 0 while the current motion is still
+ * non-looping. Otherwise it commits to the entry. Unless squatting it
+ * snaps dtL's x/z onto the root object's ConflictObject position, then
+ * sprays 20 SetSplash particles at map.level scattered +/- the
+ * character's width in x and z with random 3-bit texture offsets and
+ * speed 6. AttackCancelControl(3) drops any attack; the player
+ * additionally gets SetCameraMode(CMODE_SWIM) and a PadShockAR rumble.
+ * ActionHalt clears and the model is hidden. Motion choice: if
+ * GetMotionID reports the model has no MOT_SWIM animation, or life
+ * already reached 0, it queues the 0x1108 drowning motion (a MOT_DEAD
+ * variant), plays Sound 8, forces life to 0 and refreshes the life
+ * bar; otherwise it queues MOT_SWIM. The queued motion is applied
+ * through SetNowMotion unless MotionUpdateMode is set and the
+ * character occupies one of the five CVAhuman animation slots. Either
+ * way Sound 0x16 plays and reset_alert_duration runs.
+ */
+
+/*
  * Water entry test, run when the character stands below map level on a
  * water-attributed cell: spray a ring of splashes, cancel the attack,
  * switch the player camera to swim, and start the swim motion — or the
