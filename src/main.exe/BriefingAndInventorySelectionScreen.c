@@ -267,6 +267,9 @@ void BriefingAndInventorySelectionScreen(void)
                 }
                 else
                 {
+                    /* The (&arr[0])[i] decay spelling here and below is the
+                     * measured addu operand-order lever (plain arr[i]
+                     * flips it; same class as PlayMusicFormID). */
                     (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
                 }
             }

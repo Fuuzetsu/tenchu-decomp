@@ -384,7 +384,7 @@ void mission_score_screen(void)
                 oldU = numberSprite->u;
                 colonDigit = 12;
                 numberSprite->u = oldU + numberSprite->w * colonDigit;
-                GsSortSprite((numberSprite), OTablePt, 0);
+                GsSortSprite(numberSprite, OTablePt, 0);
                 numberSprite->u = oldU;
                 drawX = 0x2F;
             } while (0);
@@ -556,7 +556,7 @@ void mission_score_screen(void)
                 oldU = numberSprite->u;
                 colonDigit = 12;
                 numberSprite->u = oldU + numberSprite->w * colonDigit;
-                GsSortSprite((numberSprite), OTablePt, 0);
+                GsSortSprite(numberSprite, OTablePt, 0);
                 numberSprite->u = oldU;
                 drawnSprite = numberSprite;
             }
@@ -888,7 +888,7 @@ void mission_score_screen(void)
                     remainder = dividend % 10;
                     baseU = rowSprite->u;
                     rowSprite->u = baseU + (s16)remainder * rowSprite->w;
-                    GsSortSprite((rowSprite), OTablePt, 0);
+                    GsSortSprite(rowSprite, OTablePt, 0);
                     rowSprite->x -= 12;
                     value = quotient;
                     quotient <<= 16;
@@ -902,7 +902,7 @@ void mission_score_screen(void)
                     ten = 10;
                     signBaseU = rowSprite->u;
                     rowSprite->u = signBaseU + rowSprite->w * ten;
-                    GsSortSprite((rowSprite), OTablePt, 0);
+                    GsSortSprite(rowSprite, OTablePt, 0);
                     rowSprite->u = signBaseU;
                 }
             } while (0);
