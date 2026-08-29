@@ -142,6 +142,9 @@ void ActSQUAT(void)
         }
         if (MOTION_PAD_BITS & (PADLleft | PADLright))
         {
+            /* The staged read-modify-write through current/result (vs the
+             * sibling arms' direct dtR->vy += turn) is measured
+             * byte-required. */
             int current;
             int result;
             SVECTOR *rotation;
