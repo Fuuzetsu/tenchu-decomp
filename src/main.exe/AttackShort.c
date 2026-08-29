@@ -170,7 +170,7 @@ short AttackShort(void)
     motion = Me_THINK_C->motion;
     if (motion->mid == MOT_ENGAGE)
     {
-        return (u16)(rand() % (EngageLevel + 1) != 0) << 14;
+        return (rand() % (EngageLevel + 1) != 0) ? PADLdown : 0;
     }
 
     if (Me_THINK_C->actmode == 0)
