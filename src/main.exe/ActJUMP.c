@@ -57,7 +57,7 @@ void ActJUMP(void)
     short reflected;
     short i;
     long level;
-    long vertical;
+    long apex_offset;
     long scaled;
     SVECTOR *velocity;
 
@@ -169,15 +169,17 @@ void ActJUMP(void)
             return;
         }
 
+        /* Staged velocity/scaled pair: byte-required (folding the two
+         * multiplies into per-arm dtV->vy stores mismatches; measured). */
         velocity = dtV;
-        vertical = dtM->count - (dtM->motion->time >> 1);
+        apex_offset = dtM->count - (dtM->motion->time >> 1);
         if (motID == MOT_JUMP_RUN)
         {
-            scaled = vertical * 10;
+            scaled = apex_offset * 10;
         }
         else
         {
-            scaled = vertical * 20;
+            scaled = apex_offset * 20;
         }
         velocity->vy = scaled;
 

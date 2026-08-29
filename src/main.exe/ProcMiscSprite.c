@@ -50,9 +50,10 @@
  *    switch at the identical address (cookbook: a param-union store whose
  *    access WIDTH differs from another view at the same offset is a
  *    distinct union member).
- *  - `rand() % 60 + 'b'` inline (not through a temp) so the magic-multiply
- *    divide operates directly on $v0 (cookbook: keep calls inline in
- *    expressions).
+ *  - `rand() % 60 + 0x62` is one expression — the call stays inline so the
+ *    magic-multiply divide operates directly on $v0 (cookbook: keep calls
+ *    inline in expressions); only the finished grey level is held in a
+ *    temp for the three channel stores.
  */
 
 extern short DrawSprite(Sprite3D *sprt);
@@ -70,7 +71,7 @@ void ProcMiscSprite(TMisc *m, TMiscMessage msg)
 
     if (msg == MM_CREATE)
         goto do_create;
-    if (MM_DO <= msg)
+    if (msg >= MM_DO)
         goto do_draw;
     return;
 

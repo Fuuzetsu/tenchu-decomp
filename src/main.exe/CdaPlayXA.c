@@ -38,13 +38,13 @@
  * CdaPlayXA (0x8004f99c, 0x164 bytes) — starts CD-XA audio playback of
  * `fname` when CD audio is enabled: stops any current playback (CdaStop,
  * idempotent), searches for the file (CdSearchFile), and on a hit computes
- * StartPos/EndPos in CD sectors (StartPos = file's own position + 0x96
- * sectors of read-ahead; EndPos defaults to StartPos + the file's own
+ * StartPos/EndPos in CD sectors (StartPos = file's own position + 150
+ * sectors — the standard 2-second pregap; EndPos defaults to StartPos + the file's own
  * length in sectors (size>>11) unless an explicit `end` CdlLOC is given;
- * `start` further offsets StartPos when given), arms the drive (cd_control
- * mode-set 0xe, VSync(3) to let it settle), resets the status/check-count
- * bookkeeping, sets the play filter (file=1, chan=channel) via cd_control
- * 0xd, and installs the vsync-driven pump callback (cbCheckCD). Returns 1
+ * `start` further offsets StartPos when given), arms the drive (CdlSetmode
+ * with speed|RT|SF|DA, VSync(3) to let it settle), resets the
+ * status/check-count bookkeeping, sets the play filter (file=1,
+ * chan=channel) via CdlSetfilter, and installs the vsync-driven pump callback (cbCheckCD). Returns 1
  * on success, 0 if CD audio is disabled or the file wasn't found. Same proven
  * TCdaStatus struct as CdaStop.c/CdaReady.c/CdaGetCurrentLength.c.
  *
@@ -124,7 +124,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     param[0] = CdlModeSpeed | CdlModeRT | CdlModeSF | CdlModeDA;
     cd_control(CdlSetmode, param, 0);
     VSync(3);
-    CdaStatus.command = 0x1b;
+    CdaStatus.command = CdlReadS;
     CdaStatus.CheckCount = 0;
     CdaStatus.status = 0;
     filter.file = 1;

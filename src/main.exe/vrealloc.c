@@ -37,12 +37,16 @@
  * valloc's own rounding, then:
  *   - if the block's CURRENT raw size (header->size, WITH the in-use flag
  *     still set) is < the requested word count — note this is an UNSIGNED
- *     compare against a value with bit31 set, so it is only true when
- *     growing past the block's real capacity — try to grow in place by
- *     absorbing the immediately-following block (`vhp->next`) if it exists,
- *     is free, and together is big enough; otherwise give up: valloc a
- *     fresh block, memcpy min(requested, vsize(pt)) bytes over, vfree the
- *     old block.
+ *     compare against a value with bit31 set, so for any pointer valloc
+ *     actually handed out it is NEVER true (the request tops out around
+ *     0x40000000 words): a live block always takes the "already fits" arm,
+ *     and the grow path only fires on a header whose flag is clear — try
+ *     to grow in place by absorbing the immediately-following block
+ *     (`vhp->next`) if it exists, is free, and together is big enough;
+ *     otherwise give up: valloc a fresh block, memcpy over, vfree the old
+ *     block. The copy length is `min(size, vsize(pt))` with `size` in
+ *     WORDS but vsize() in BYTES — retail's own unit mix (it undercopies
+ *     to a quarter), preserved as-is.
  *   - else (already fits): clear the in-use flag, and if the leftover slack
  *     is big enough (>= 0x13 words) split off a fresh free tail block,
  *     itself absorbing `vhp`'s ORIGINAL next block if that one is also
@@ -104,8 +108,7 @@ void *vrealloc(void *pt, u32 size)
     newp = pt;
     if (pt == 0)
     {
-        newp = valloc(size);
-        return newp;
+        return valloc(size);
     }
 
     vhp = (struct VMhead *)pt - 1;

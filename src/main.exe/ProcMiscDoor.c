@@ -43,7 +43,7 @@
  *    create/destroy/pause/resume bodies readable without changing that CFG.
  *  - The one-shot loop around the angle calculation emits no loop at runtime.
  *    Its RTL loop note gives `t` the original allocation priority, allowing
- *    `t`, `angle`, and `dir` to reuse $v0 at their non-overlapping lifetimes.
+ *    `t`, `wrap`, and `dir` to reuse $v0 at their non-overlapping lifetimes.
  *  - `__builtin_abs` is intentional.  This build disables ordinary builtin
  *    folding, while the explicit builtin produces the target's inline
  *    bgez/nop/negu sequence and the required DoorData register allocation.
@@ -83,13 +83,13 @@ do_create:
     }
     m->mode = 0;
     param->r = 0;
-    param->type = (u8)type;
+    param->type = type;
     param->locate = LoadModel(0);
     param->locate->locate.coord.t[0] = m->x;
     param->locate->locate.coord.t[1] = m->y;
     param->locate->locate.coord.t[2] = m->z;
     param->locate->rotate.vx = 0;
-    param->locate->rotate.vy = (s16)t;
+    param->locate->rotate.vy = t;
     param->locate->rotate.vz = 0;
     UpdateCoordinate(param->locate);
     return;
@@ -119,7 +119,7 @@ do_resume:
     ConflictObject[cid].common = CONFLICT_OWNER_DOOR;
     ConflictObject[cid].size.pad = CONFLICT_SOFT;
     ConflictObject[cid].size.vy = w;
-    w = (s16)(w / 3) * 2;
+    w = (w / 3) * 2;
     ConflictObject[cid].size.vx = w;
     ConflictObject[cid].size.vz = w;
     param->r = 0;
@@ -153,6 +153,8 @@ do_control:
                         param->locate->rotate.vy;
                 } while (0);
                 wrap = t + 0x2000;
+                /* dir stages the predicate before the speed: byte-required
+                 * (a plain if/else puts the store in a1, not v0; measured). */
                 dir = (wrap % 0x1000) <= 0x800;
                 if (dir != 0)
                     dir = 0x40;
@@ -180,18 +182,20 @@ do_control:
     }
     break;
     }
-{
-    s32 r;
+    {
+        s32 r;
 
-    w = DoorData[param->type].HitSize;
-    r = __builtin_abs(param->r);
-    w = w - (w * r) / 0x2800;
-    model = DoorData[param->type].Model[0];
-}
+        w = DoorData[param->type].HitSize;
+        r = __builtin_abs(param->r);
+        w = w - (w * r) / 0x2800;
+        model = DoorData[param->type].Model[0];
+    }
     if (model != (ModelType *)-1)
     {
         GsCOORDINATE2 *parent;
 
+        /* Staged parent pointer: byte-required (the direct &->locate
+         * store recolors the address; measured). */
         parent = &param->locate->locate;
         model->locate.coord.t[0] = -w;
         model->locate.coord.t[1] = 0;

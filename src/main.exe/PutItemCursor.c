@@ -52,12 +52,12 @@
  *    lists).
  */
 
-void PutItemCursor(short x, short y, short size, s32 rotdif)
+void PutItemCursor(s16 x, s16 y, s16 size, s32 rotdif)
 {
     CursorImage.x = x;
+    CursorImage.y = y;
     CursorImage.scalex = size;
     CursorImage.scaley = size;
-    CursorImage.y = y;
     CursorImage.rotate = CursorImage.rotate + rotdif;
     GsSortSprite(&CursorImage, OTablePt, 1);
 }

@@ -125,6 +125,8 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
         /* The promoted temporary selects signed slti after the lbu. */
         mode = m->mode;
+        /* The nested != 1 / < 2 / == 0 tree is byte-required (a flat
+         * else-if chain re-shapes the compare tree; measured). */
         if (mode != 1)
         {
             if (mode < 2)
@@ -159,7 +161,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         w = PitfallData[param->type].HitSize;
         if (model != (ModelType *)-1)
         {
-            model->locate.super = (GsCOORDINATE2 *)param->locate;
+            model->locate.super = &param->locate->locate;
             model->locate.coord.t[0] = -w;
             model->locate.coord.t[1] = 0;
             model->locate.coord.t[2] = 0;
@@ -170,7 +172,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         model = PitfallData[param->type].Model[1];
         if (model != (ModelType *)-1)
         {
-            model->locate.super = (GsCOORDINATE2 *)param->locate;
+            model->locate.super = &param->locate->locate;
             model->locate.coord.t[0] = w;
             model->locate.coord.t[1] = 0;
             model->locate.coord.t[2] = 0;

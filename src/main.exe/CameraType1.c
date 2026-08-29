@@ -60,7 +60,7 @@
  * Byte-matched retail extent: 2628 bytes / 657 instructions. CameraScratch
  * overlays the initializer, wall-probe vectors, and mutually-exclusive
  * camera presets exactly as the original 0x98-byte frame does. The stick-left
- * preset starts after the probe pair; the critical transition holds a second
+ * preset starts after the probe pair; the knockback arm holds a second
  * preset separately because both are live across the first camera call.
  */
 
@@ -114,6 +114,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
     mad = pl->model;
     memset(&scratch.init, 0, sizeof(scratch.init));
+    /* Fresh pl->model reads (not mad): byte-required (measured). */
     scratch.init.vx = pl->model->locate.coord.t[0];
     scratch.init.vy = pl->model->locate.coord.t[1] - CAMERA_EYE_HEIGHT;
     scratch.init.vz = pl->model->locate.coord.t[2];
@@ -161,6 +162,8 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         if (levbr == LEVEL_NONE)
             levmap |= BR;
 
+        /* The full four-bit mask is byte-required even though levmap only
+         * ever holds these bits (dropping it recolors the compare; measured). */
         if ((levmap & (FL | FR | BL | BR)) == BL)
         {
             CamState.Mode = CMODE_PEEP_R;
@@ -214,11 +217,13 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
         cs = &CamState;
         mid = cs->Owner->motion->mid;
-        if ((u16)(mid - MOT_DAMAGE_LAUNCH_BACK) < 5)
+        if ((u16)(mid - MOT_DAMAGE_LAUNCH_BACK) <=
+            MOT_DAMAGE_DOWNED - MOT_DAMAGE_LAUNCH_BACK)
         {
             cs->Mode = CMODE_KNOCKBACK;
             break;
         }
+        /* (s16) re-extends the lhu-loaded mid: byte-required (measured). */
         if ((s16)mid != MOT_DAMAGE_GETUP)
             break;
         cs->Mode = CMODE_KNOCKBACK;
@@ -277,7 +282,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         alternate = CamPosKnockbackAlt;
 
         if (MakeCameraPosition(&pos, &pl->model->rotate,
-                               &scratch.camera.r1, vDif) < 0x801)
+                               &scratch.camera.r1, vDif) <= 0x800)
         {
             MakeCameraPosition(&pos, &pl->model->rotate,
                                &alternate.r1, vDif);
