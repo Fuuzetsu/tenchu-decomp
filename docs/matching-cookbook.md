@@ -964,6 +964,14 @@ judgment:
   `li`+`and` — read the raw immediate (Think2confirm vs Think1sleep).
 - **Countdown idioms are per-function**: `count - 1` vs `count + 0xff` — decode
   the immediate, Ghidra's `+0xff` is real (Happou vs LightningBolt).
+- **`(s16)` on an s16 variable is only sometimes a no-op**: droppable when the
+  variable was last written from a same-width source (a plain load or another
+  s16) — measured free in draw_time_/draw_digits_/DrawConstruction/
+  ActivateHumans/DamageControl. But when a WIDER expression fed the variable
+  (`signedValue -= value;` then `(s16)signedValue`, or a loop var reassigned
+  from an s32 quotient), the pseudo is SImode and the cast materializes the
+  sll/sra re-extension — byte-required (measured: mission_score_screen,
+  return_to_menu_). Probe per site; the writer's width decides.
 - **A negative enumerator signs the whole enum**: adding `X_NONE = -1` to an
   otherwise non-negative enum flips every switch bounds check on a value of
   that enum type from `sltiu` to `slti` (measured: ITEM_NONE broke the

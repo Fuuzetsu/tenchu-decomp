@@ -57,7 +57,7 @@ short ControlTraceLine(Humanoid *human)
     u16 roty;
     s32 ang;
     short t;
-    s16 a0;
+    s16 diff;
     s16 degree;
     s32 absdeg;
     s32 d32;
@@ -83,12 +83,12 @@ short ControlTraceLine(Humanoid *human)
         roty = human->rotate->vy;
         ang = ratan2(-dx, -dz);
         t = ang - roty;
-        a0 = (s16)t;
-        if (a0 > 0x800)
+        diff = t;
+        if (diff > 0x800)
         {
             t = 0x1000 - t;
         }
-        else if (a0 <= -0x800)
+        else if (diff <= -0x800)
         {
             t = t + 0x1000;
         }

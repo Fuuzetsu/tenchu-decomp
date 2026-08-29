@@ -142,7 +142,7 @@ void AddEnemy(void)
             {
                 if (x >= 70)
                     break;
-                if ((s16)r + 0x31 == ThinkDB[i].name[0])
+                if (r + '1' == ThinkDB[i].name[0])
                 {
                     ItemName[x].name = ThinkDB[i].name;
                     ItemName[x].value = ThinkDB[i].value;

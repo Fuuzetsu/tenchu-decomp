@@ -29,7 +29,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
     /* One-shot fence: byte-required (collapse measured; see cookbook). */
     do
     {
-        signedValue = (s16)value;
+        signedValue = value;
     } while (0);
     negative = 0;
     if (signedValue < 0)
@@ -40,9 +40,9 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
 
     do
     {
-        quotient = (s16)value / 10;
+        quotient = value / 10;
         baseU = sprite->u;
-        sprite->u = baseU + ((s16)value % 10) * sprite->w;
+        sprite->u = baseU + (value % 10) * sprite->w;
         GsSortSprite(sprite, OTablePt, 0);
         value = quotient;
         sprite->u = baseU;
@@ -62,7 +62,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
     sprite->y = y;
     sprite->x = x - 12;
     value = time / 10;
-    signedValue = (s16)value;
+    signedValue = value;
     negative = 0;
     if (signedValue < 0)
     {
@@ -72,9 +72,9 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
 
     do
     {
-        quotient = (s16)value / 10;
+        quotient = value / 10;
         baseU = sprite->u;
-        sprite->u = baseU + ((s16)value % 10) * sprite->w;
+        sprite->u = baseU + (value % 10) * sprite->w;
         GsSortSprite(sprite, OTablePt, 0);
         value = quotient;
         sprite->u = baseU;
@@ -92,7 +92,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
 
     sprite->x = x;
     value = time % 10;
-    signedValue = (s16)value;
+    signedValue = value;
     sprite->y = y;
     if (signedValue < 0)
     {
@@ -106,9 +106,9 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
 
     do
     {
-        quotient = (s16)value / 10;
+        quotient = value / 10;
         baseU = sprite->u;
-        sprite->u = baseU + ((s16)value % 10) * sprite->w;
+        sprite->u = baseU + (value % 10) * sprite->w;
         GsSortSprite(sprite, OTablePt, 0);
         value = quotient;
         sprite->u = baseU;

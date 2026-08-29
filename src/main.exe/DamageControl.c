@@ -110,8 +110,8 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    `(u32)(dmg << 0x10) >> 0xf`
  *    (sll 16 / srl 15).  The old `(dmg<<16); dmg>>=0xf` truncated to zero via
  *    the short lvalue (real behavior bug, compiled to `move s1,zero`).
- *  - The armour block computes deg BEFORE the knockback: `deg=(short)dmg>>3;
- *    clamp; clamp; t=(short)dmg*5/2+0x50;` — no cached `(u16)dmg<<16`
+ *  - The armour block computes deg BEFORE the knockback: `deg=dmg>>3;
+ *    clamp; clamp; t=dmg*5/2+0x50;` — no cached `(u16)dmg<<16`
  *    temp; every read re-extends dmg so the sll is shared/rematerialized.
  *  - Both ReqLifeBar sites are if/else (`who=enemy` in the taken arm, else
  *    `who=Me_MOTION_C`), which lets who coalesce with the Me load in $a0 and
@@ -322,7 +322,7 @@ resolve_hit:
                 motMODE = 1;
                 break;
             case ITEM_SHURIKEN:
-                if ((short)dmg == 0)
+                if (dmg == 0)
                 {
                     dmg = DMG_SHURIKEN;
                 }
@@ -332,19 +332,19 @@ resolve_hit:
                 }
                 /* fall through: the shared zero-damage test preserves an existing 20 */
             case ITEM_HAPPOU:
-                if ((short)dmg == 0)
+                if (dmg == 0)
                 {
                     dmg = DMG_HAPPOU;
                 }
                 /* fall through */
             case ITEM_GUN:
-                if ((short)dmg == 0)
+                if (dmg == 0)
                 {
                     dmg = DMG_GUN;
                 }
                 /* fall through */
             case ITEM_ARROW:
-                if ((short)dmg == 0)
+                if (dmg == 0)
                 {
                     dmg = DMG_ARROW;
                 }
@@ -413,13 +413,13 @@ resolve_hit:
             }
             if ((Me_MOTION_C == StagePlayer) && (ARMOUR_EQUIPPED_ != 0))
             {
-                dmg = ((short)dmg * 7) / 10;
+                dmg = (dmg * 7) / 10;
             }
             {
                 s16 hp;
 
                 hp = (u16)Me_MOTION_C->life - dmg;
-                Me_MOTION_C->life = (short)hp;
+                Me_MOTION_C->life = hp;
                 if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
@@ -673,7 +673,7 @@ resolve_hit:
         apply_multipliers:
             if (enemy->type == NINKEN)
             {
-                dmg = (short)dmg * 6;
+                dmg = dmg * 6;
             }
             if (Me_MOTION_C->itmctl == ITEM_GOSIN)
             {
@@ -686,9 +686,9 @@ resolve_hit:
             {
                 if ((Me_MOTION_C == StagePlayer) && (ARMOUR_EQUIPPED_ != 0))
                 {
-                    dmg = ((short)dmg * 7) / 10;
+                    dmg = (dmg * 7) / 10;
                 }
-                deg = (short)dmg >> 3;
+                deg = dmg >> 3;
                 if (deg > 3)
                 {
                     deg = 3;
@@ -697,7 +697,7 @@ resolve_hit:
                 {
                     deg = 3;
                 }
-                t = (short)dmg * 5 / 2 + 0x50;
+                t = dmg * 5 / 2 + 0x50;
                 {
                     newvy = dtR->vy + did;
                     ad = __builtin_abs(did);
@@ -725,7 +725,7 @@ resolve_hit:
                 s16 hp;
 
                 hp = (u16)Me_MOTION_C->life - dmg;
-                Me_MOTION_C->life = (short)hp;
+                Me_MOTION_C->life = hp;
                 if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
@@ -804,7 +804,7 @@ resolve_hit:
             }
             if (enemy->status == STAT_ATTACK)
             {
-                enemy->motion->loop = (short)dmg / -3 - 1;
+                enemy->motion->loop = dmg / -3 - 1;
                 (enemy->vector).vz = 0;
                 (enemy->vector).vx = 0;
                 if (StagePlayer == enemy)

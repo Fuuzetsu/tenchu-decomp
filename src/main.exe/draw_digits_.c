@@ -62,9 +62,9 @@ void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
     }
     do
     {
-        quotient = (s16)value / 10;
+        quotient = value / 10;
         u = sp->u;
-        sp->u = u + ((s16)value % 10) * sp->w;
+        sp->u = u + (value % 10) * sp->w;
         GsSortSprite(sp, OTablePt, 0);
         value = quotient;
         sp->u = u;

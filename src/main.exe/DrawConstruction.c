@@ -151,22 +151,22 @@ have_z:
 
     j = sx;
 scan_x:
-    if (ex < (short)j)
+    if (ex < j)
         goto scan_done;
-    cell_x = (short)j;
+    cell_x = j;
     k = sy;
 scan_y:
-    if (ey < (short)k)
+    if (ey < k)
         goto next_x;
-    cell_y = (short)k;
+    cell_y = k;
     world_y_offset = (cell_y & 7) << 5;
     world_base = WorldMap;
     world_x_offset = (cell_x & 7) << 8;
     l = sz;
 scan_z:
-    if (ez < (short)l)
+    if (ez < l)
         goto next_y;
-    cell_z = (short)l;
+    cell_z = l;
     do
     {
         do
@@ -267,9 +267,9 @@ draw_near:
 draw_far_start:
     j = 1;
 draw_bucket:
-    if (153 <= (short)j)
+    if (153 <= j)
         goto draw_done;
-    cur = DrawList[(short)j];
+    cur = DrawList[j];
 draw_far:
     if (cur == 0)
         goto next_bucket;

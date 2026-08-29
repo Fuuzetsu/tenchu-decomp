@@ -263,16 +263,16 @@ void ActivateHumans(void)
             human->type == GOO)
         {
             j = 0;
-            while (StageChar[(s16)j].stage != -1)
+            while (StageChar[j].stage != -1)
             {
                 do
                 {
-                    if (StageChar[(s16)j].stage == StageID + 1 &&
-                        StageChar[(s16)j].chrid == human->type)
+                    if (StageChar[j].stage == StageID + 1 &&
+                        StageChar[j].chrid == human->type)
                     {
-                        human->model->locate.coord.t[0] = StageChar[(s16)j].position.vx * 1000;
-                        human->model->locate.coord.t[1] = StageChar[(s16)j].position.vy * 1000;
-                        human->model->locate.coord.t[2] = StageChar[(s16)j].position.vz * 1000;
+                        human->model->locate.coord.t[0] = StageChar[j].position.vx * 1000;
+                        human->model->locate.coord.t[1] = StageChar[j].position.vy * 1000;
+                        human->model->locate.coord.t[2] = StageChar[j].position.vz * 1000;
                     }
                 } while (0);
                 j++;
