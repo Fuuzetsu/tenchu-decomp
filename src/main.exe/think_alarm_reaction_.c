@@ -203,7 +203,7 @@ s16 think_alarm_reaction_(void)
             }
         }
 
-        if (Distance < 0x4075)
+        if (Distance <= 16500)
         {
             goto done;
         }

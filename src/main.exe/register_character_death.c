@@ -51,13 +51,13 @@ void register_character_death(Humanoid *dead)
             delta.vz = dead->locate->vz - human->locate->vz;
             if (__builtin_abs(GetDirection(delta.vx, delta.vz,
                                            human->rotate->vy)) < 0x385 &&
-                SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) < 0x4e21)
+                SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) <= 20000)
             {
                 delta.vy = dead->locate->vy - human->locate->vy - human->height;
 
-                while (__builtin_abs(delta.vx) >= 0x1f5 ||
-                       __builtin_abs(delta.vy) >= 0x1f5 ||
-                       __builtin_abs(delta.vz) >= 0x1f5)
+                while (__builtin_abs(delta.vx) > 500 ||
+                       __builtin_abs(delta.vy) > 500 ||
+                       __builtin_abs(delta.vz) > 500)
                 {
                     scale <<= 1;
                     delta.vx >>= 1;

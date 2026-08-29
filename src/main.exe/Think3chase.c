@@ -56,11 +56,11 @@ s16 Think3chase(void)
         }
         if (degree < 500)
         {
-            if (Distance >= 0xFA1)
+            if (Distance > 4000)
             {
                 result = Me_THINK_C->pad.data;
             }
-            else if (Distance >= 0xBB9)
+            else if (Distance > 3000)
             {
                 result = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
             }

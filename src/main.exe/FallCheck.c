@@ -72,7 +72,7 @@ short FallCheck(void)
         }
         if (((u16)Me_MOTION_C->attribute & ATTR_FLOAT) == 0)
         {
-            if (Me_MOTION_C->map.height < 0x3e9)
+            if (Me_MOTION_C->map.height <= 1000)
             {
                 return 0;
             }
