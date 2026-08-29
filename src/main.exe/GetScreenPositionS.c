@@ -64,6 +64,6 @@ void GetScreenPositionS(s32 x, s32 y, s32 z, SVECTOR *scr)
     sv->vy = y - (short)ViewInfo.vpy;
     sv->vz = z - (short)ViewInfo.vpz;
     scr->vz = RotTransPers(
-        sv, (s32 *)scr, (void *)TENCHU_SCRATCHPAD_ADDRESS,
-        (void *)TENCHU_SCRATCHPAD(0x10));
+        sv, (s32 *)scr, (s32 *)TENCHU_SCRATCHPAD_ADDRESS,
+        (s32 *)TENCHU_SCRATCHPAD(0x10));
 }

@@ -88,4 +88,29 @@
 /* Timers, in frames. */
 #define GAME_OVER_TIMEOUT 2700 /* game-over screen auto-advance (45 s) */
 
+/* Screen projection distance (GsSetProjection): apparent sprite size is
+ * size * PROJECTION_DISTANCE / depth in every sprite-effect renderer. */
+#define PROJECTION_DISTANCE 300
+
+/* Camera wall avoidance (AntiWall): sideways push vector magnitude. */
+#define WALL_AVOID_PUSH 1000
+
+/* Ledge/hang probe (ActMOVE/ActCHASE): height above the feet at which
+ * HangCheck looks for a grabbable edge. */
+#define LEDGE_PROBE_RISE 400
+
+/* Grapple wire rendering (SetWire). */
+#define WIRE_SEG_LEN 300 /* world units per drawn segment */
+#define WIRE_SAG_DIV 32  /* midpoint sags by length / this */
+
+/* End-of-stage scoring (calculate_score). */
+#define SCORE_PER_CRITICAL 20
+#define SCORE_PER_MURDER 5
+#define SCORE_PER_FRIEND_HIT (-30)
+#define STEALTH_BASE 400      /* stealth component when never spotted */
+#define STEALTH_BASE_SEEN 300 /* ...when spotted at least once */
+#define SPOT_PENALTY 20       /* per spot; the medicine-herb stage doubles it */
+#define SCORE_PER_GRADE 100
+#define GRADE_MAX 4
+
 #endif

@@ -129,9 +129,9 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     if (17000 < scratch[2] - s)
         return 0;
 
-    q0 = (scratch[0] * 300) / zs;
-    qs = (s * 300) / zs;
-    q2 = (scratch[1] * 300) / zs;
+    q0 = (scratch[0] * PROJECTION_DISTANCE) / zs;
+    qs = (s * PROJECTION_DISTANCE) / zs;
+    q2 = (scratch[1] * PROJECTION_DISTANCE) / zs;
     fail = 0;
     aq = abs(q0);
     if (qs + SXW < aq)

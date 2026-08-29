@@ -82,7 +82,8 @@ entry_ready:
             handle->maxElements * sizeof(TAFSElement));
 
     raw = buffer;
-    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
+    /* One-shot fences: every do/while (0) in this nest, including the lone
+     * element = elements one, is byte-required (collapse measured; cookbook). */
     do
     {
         do
@@ -105,16 +106,16 @@ entry_ready:
                 element->psize = ((u32)packed[7] << 24) |
                                  ((u32)packed[8] << 16) |
                                  ((u32)packed[9] << 8) | packed[10];
-                strncpy((char *)element->name, (char *)buffer + 0x10, 0x13);
-                element->name[0x13] = 0;
+                strncpy((char *)element->name, (char *)buffer + 0x10, sizeof(element->name) - 1);
+                element->name[sizeof(element->name) - 1] = 0;
                 AfsGetShort(&marker, buffer, packed);
-                if (marker != 0x4958)
+                if (marker != AFS_ELEMENT_MARK)
                 {
                     goto bad_index;
                 }
                 packed += sizeof(TAFSElement);
                 buffer += sizeof(TAFSElement);
-                element->name[0x13] = 0;
+                element->name[sizeof(element->name) - 1] = 0;
                 element++;
                 if (handle->maxElements > ++i)
                 {

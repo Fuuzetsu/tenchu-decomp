@@ -82,7 +82,7 @@ void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((scale * 300) / otz) + 1;
+        sc = (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
         sprt->scaley = sc;
         sprt->scalex = sc;
         sprt->x = scr.vx;

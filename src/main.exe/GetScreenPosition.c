@@ -73,6 +73,6 @@ void GetScreenPosition(long x, long y, long z, SVECTOR *scr)
     SetTransMatrix(m);
     SetRotMatrix(&GsWSMATRIX);
     scr->vz = RotTransPers(sv, (s32 *)scr,
-                           (void *)TENCHU_SCRATCHPAD(0x28),
-                           (void *)TENCHU_SCRATCHPAD(0x2c));
+                           (s32 *)TENCHU_SCRATCHPAD(0x28),
+                           (s32 *)TENCHU_SCRATCHPAD(0x2c));
 }

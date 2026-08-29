@@ -200,7 +200,7 @@ ret:
     {
         return 0;
     }
-    iv = (sprt->scale >> 2) * 300;
+    iv = (sprt->scale >> 2) * PROJECTION_DISTANCE;
     scale = (short)(iv / pri);
     sprt->sprite.scaley = scale;
     sprt->sprite.scalex = scale;

@@ -304,8 +304,8 @@ void DrawImpact(TEffectSlot *ef)
         GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         scr.vz = (s16)RotTransPers(
             (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)&scr,
-            (void *)TENCHU_SCRATCHPAD(0x28),
-            (void *)TENCHU_SCRATCHPAD(0x2c));
+            (s32 *)TENCHU_SCRATCHPAD(0x28),
+            (s32 *)TENCHU_SCRATCHPAD(0x2c));
     }
     else
     {
@@ -315,7 +315,7 @@ void DrawImpact(TEffectSlot *ef)
     z = scr.vz;
     if (z > NEAR_DEPTH)
     {
-        scale = (s16)((size * 300) / z) + 1;
+        scale = (s16)((size * PROJECTION_DISTANCE) / z) + 1;
         spr->scaley = scale;
         spr->scalex = scale;
         spr->x = scr.vx;

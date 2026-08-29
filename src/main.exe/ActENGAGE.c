@@ -265,18 +265,18 @@ void ActENGAGE(void)
                 motMODE = 1;
                 return;
             case ITEM_SMOKE:
-                motID = MOT_ITEM + 2;
+                motID = MOT_ITEM_THROW;
                 motMODE = 1;
                 return;
             case ITEM_FIRE:
-                motID = MOT_ITEM + 2;
+                motID = MOT_ITEM_THROW;
                 motMODE = 1;
                 return;
             case ITEM_JIRAI:
-                motID = MOT_ITEM + 3;
+                motID = MOT_ITEM_PLANT;
                 motMODE = 1;
                 return;
-            case -1:
+            case ITEM_NONE:
             case ITEM_KAWARIMI:
                 SoundEx(Me_MOTION_C->locate, 0xc);
                 return;

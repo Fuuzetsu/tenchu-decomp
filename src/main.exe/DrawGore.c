@@ -130,7 +130,7 @@ void DrawGore(TEffectSlot *ef)
         {
             return;
         }
-        scale = (s16)((size * 300) / otz) + 1;
+        scale = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         spr->scaley = scale;
         spr->scalex = scale;
         spr2->scaley = scale;
@@ -366,7 +366,7 @@ void DrawGore(TEffectSlot *ef)
         {
             return;
         }
-        scale = (s16)((size * 300) / otz) + 1;
+        scale = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         spr->scaley = scale;
         spr->scalex = scale;
         spr->x = scratch.screen.vx;

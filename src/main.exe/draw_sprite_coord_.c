@@ -52,7 +52,7 @@
  *    (cc1 doesn't refetch a value it can already see live).
  */
 
-void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *coord, short d)
+void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINATE2 *coord, short zbias)
 {
     SVECTOR scr;
     s32 otz;
@@ -69,8 +69,8 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
         GsGetLs(coord, (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         scr.vz = (s16)RotTransPers(
-            sv, (s32 *)&scr, (void *)TENCHU_SCRATCHPAD(0x28),
-            (void *)TENCHU_SCRATCHPAD(0x2c));
+            sv, (s32 *)&scr, (s32 *)TENCHU_SCRATCHPAD(0x28),
+            (s32 *)TENCHU_SCRATCHPAD(0x2c));
     }
     else
     {
@@ -79,12 +79,12 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((size * 300) / otz) + 1;
+        sc = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         sp->scaley = sc;
         sp->scalex = sc;
         sp->x = scr.vx;
         sp->y = scr.vy;
-        t = (scr.vz + (s32)d) >> 2;
+        t = (scr.vz + (s32)zbias) >> 2;
         CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(sp, OTablePt, (u16)pri);
     }

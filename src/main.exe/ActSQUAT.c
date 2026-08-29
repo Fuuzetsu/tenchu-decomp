@@ -315,15 +315,15 @@ void ActSQUAT(void)
             motID = MOT_ITEM;
             break;
         case ITEM_SMOKE:
-            motID = MOT_ITEM + 2;
+            motID = MOT_ITEM_THROW;
             break;
         case ITEM_FIRE:
-            motID = MOT_ITEM + 2;
+            motID = MOT_ITEM_THROW;
             break;
         case ITEM_JIRAI:
-            motID = MOT_ITEM + 3;
+            motID = MOT_ITEM_PLANT;
             break;
-        case -1:
+        case ITEM_NONE:
         case ITEM_KAWARIMI:
             goto item_sound;
         default:

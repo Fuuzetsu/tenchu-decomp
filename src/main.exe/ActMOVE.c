@@ -57,7 +57,7 @@ void ActMOVE(void)
 
             y = dtL->vy;
             height = Me_MOTION_C->map.height;
-            dtL->vy = y - 400;
+            dtL->vy = y - LEDGE_PROBE_RISE;
             Me_MOTION_C->map.height = 1;
             if (HangCheck() == 0)
             {
@@ -131,65 +131,64 @@ void ActMOVE(void)
     default:
         break;
     }
-{
-    u16 trig;
+    {
+        u16 trig;
 
-    trig = Me_MOTION_C->pad.trig;
-    if (trig & PADRdown)
-    {
-        JumpControl();
-        return;
-    }
-    if (trig & PADRup)
-    {
-        switch (SelectedItem)
+        trig = Me_MOTION_C->pad.trig;
+        if (trig & PADRdown)
         {
-        case ITEM_SHURIKEN:
-            motID = MOT_SYURI;
-            break;
-        case ITEM_KAGINAWA:
-            motID = MOT_KAGI;
-            break;
-        case ITEM_MAKIBISHI:
-            motID = MOT_ITEM;
-            break;
-        case ITEM_SMOKE:
-            motID = MOT_ITEM + 2;
-            break;
-        case ITEM_FIRE:
-            motID = MOT_ITEM + 2;
-            break;
-        case ITEM_JIRAI:
-            motID = MOT_ITEM + 3;
-            break;
-        case -1:
-        case ITEM_KAWARIMI:
-            goto item_sound;
-        default:
-            goto item_default;
+            JumpControl();
+            return;
         }
-        motMODE = 1;
-        return;
+        if (trig & PADRup)
+        {
+            switch (SelectedItem)
+            {
+            case ITEM_SHURIKEN:
+                motID = MOT_SYURI;
+                break;
+            case ITEM_KAGINAWA:
+                motID = MOT_KAGI;
+                break;
+            case ITEM_MAKIBISHI:
+                motID = MOT_ITEM;
+                break;
+            case ITEM_SMOKE:
+                motID = MOT_ITEM_THROW;
+                break;
+            case ITEM_FIRE:
+                motID = MOT_ITEM_THROW;
+                break;
+            case ITEM_JIRAI:
+                motID = MOT_ITEM_PLANT;
+                break;
+            case ITEM_NONE:
+            case ITEM_KAWARIMI:
+                goto item_sound;
+            default:
+                goto item_default;
+            }
+            motMODE = 1;
+            return;
 
-    item_sound:
-        SoundEx(Me_MOTION_C->locate, 0xc);
-        return;
+        item_sound:
+            SoundEx(Me_MOTION_C->locate, 0xc);
+            return;
 
-    item_default:
-        ReqItemDefault(Me_MOTION_C,
-                       SelectedItem);
-        return;
+        item_default:
+            ReqItemDefault(Me_MOTION_C, SelectedItem);
+            return;
+        }
+        if (dtPAD & PADRright)
+        {
+            motID = MOT_SQUAT;
+            motMODE = 1;
+            return;
+        }
+        if (trig & PADRleft)
+        {
+            motID = MOT_STATE_DRAW;
+            motMODE = 1;
+        }
     }
-    if (dtPAD & PADRright)
-    {
-        motID = MOT_SQUAT;
-        motMODE = 1;
-        return;
-    }
-    if (trig & PADRleft)
-    {
-        motID = MOT_STATE_DRAW;
-        motMODE = 1;
-    }
-}
 }

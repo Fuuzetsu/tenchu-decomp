@@ -83,8 +83,8 @@ void DrawSplash(TEffectSlot *ef)
     scrp = &scr;
     scrp->vz = (s16)RotTransPers(
         (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)scrp,
-        (void *)TENCHU_SCRATCHPAD(0x28),
-        (void *)TENCHU_SCRATCHPAD(0x2c));
+        (s32 *)TENCHU_SCRATCHPAD(0x28),
+        (s32 *)TENCHU_SCRATCHPAD(0x2c));
     {
         s32 z;
 
@@ -93,8 +93,8 @@ void DrawSplash(TEffectSlot *ef)
         {
             spr->x = scr.vx;
             spr->y = scr.vy;
-            spr->scalex = (param->sx * 300) / z + 1;
-            spr->scaley = (param->sy * 300) / z + 1;
+            spr->scalex = (param->sx * PROJECTION_DISTANCE) / z + 1;
+            spr->scaley = (param->sy * PROJECTION_DISTANCE) / z + 1;
 
             switch (param->mode)
             {

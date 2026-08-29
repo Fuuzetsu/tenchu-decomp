@@ -253,8 +253,8 @@ void DrawBleed(TEffectSlot *ef)
     scrp = &scr;
     scrp->vz = (s16)RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20),
                                  (s32 *)scrp,
-                                 (void *)TENCHU_SCRATCHPAD(0x28),
-                                 (void *)TENCHU_SCRATCHPAD(0x2c));
+                                 (s32 *)TENCHU_SCRATCHPAD(0x28),
+                                 (s32 *)TENCHU_SCRATCHPAD(0x2c));
 
     t = (s32)((u32)(u16)scr.vz << 16);
     otz = t >> 16;

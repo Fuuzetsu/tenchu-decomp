@@ -79,7 +79,7 @@ void DrawTarget(s32 x, s32 y, s32 z, s32 color)
     SetRotMatrix(&GsWSMATRIX);
     p = &scr;
     p->vz = RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)p,
-                         (void *)TENCHU_SCRATCHPAD(0x28),
-                         (void *)TENCHU_SCRATCHPAD(0x2c));
+                         (s32 *)TENCHU_SCRATCHPAD(0x28),
+                         (s32 *)TENCHU_SCRATCHPAD(0x2c));
     DrawTargetS(scr.vx, scr.vy, scr.vz - 5, color);
 }

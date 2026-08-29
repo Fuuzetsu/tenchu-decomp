@@ -180,8 +180,8 @@ draw:
         GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         scr.vz = (s16)RotTransPers(
             (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)&scr,
-            (void *)TENCHU_SCRATCHPAD(0x28),
-            (void *)TENCHU_SCRATCHPAD(0x2c));
+            (s32 *)TENCHU_SCRATCHPAD(0x28),
+            (s32 *)TENCHU_SCRATCHPAD(0x2c));
     }
     else
     {
@@ -191,7 +191,7 @@ draw:
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((size * 300) / otz) + 1;
+        sc = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         spr->scaley = sc;
         spr->scalex = sc;
         spr->x = scr.vx;

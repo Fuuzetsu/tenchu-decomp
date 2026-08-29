@@ -33,6 +33,9 @@ struct TFileHandle
     long pos;
 };
 
+/* Per-record marker in the volume's IX table: big-endian "IX". */
+#define AFS_ELEMENT_MARK 0x4958
+
 struct TAFSElement
 {
     unsigned short flag;

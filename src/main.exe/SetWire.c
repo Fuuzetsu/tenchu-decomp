@@ -92,8 +92,8 @@ static inline void GetWireScreenPosition(long x, long y, long z,
     SetTransMatrix(matrix);
     SetRotMatrix(&GsWSMATRIX);
     screen->vz = (s16)RotTransPers(
-        vector, (s32 *)screen, (void *)TENCHU_SCRATCHPAD(0x28),
-        (void *)TENCHU_SCRATCHPAD(0x2c));
+        vector, (s32 *)screen, (s32 *)TENCHU_SCRATCHPAD(0x28),
+        (s32 *)TENCHU_SCRATCHPAD(0x2c));
 }
 
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
@@ -144,12 +144,12 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         }
     }
 
-    lcount = distance / 300;
+    lcount = distance / WIRE_SEG_LEN;
     if (center == 0)
     {
         StockCenter.vx = (end->vx + start->vx) / 2;
         center = &StockCenter;
-        center->vy = (end->vy + start->vy) / 2 + distance / 32;
+        center->vy = (end->vy + start->vy) / 2 + distance / WIRE_SAG_DIV;
         center->vz = (end->vz + start->vz) / 2;
     }
 

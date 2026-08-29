@@ -95,7 +95,7 @@ void InitGraphicsSystem(void)
     GsSetFogParam(&Fog);
     GsSetLightMode(0);
     GsSetAmbient(0x800, 0x800, 0x800);
-    GsSetProjection(300);
+    GsSetProjection(PROJECTION_DISTANCE);
     ViewInfo.vpx = 0;
     ViewInfo.vpy = 0;
     ViewInfo.vpz = -1000;

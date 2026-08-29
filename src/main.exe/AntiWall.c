@@ -115,14 +115,14 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
         av.vz = 0;
         if (rmap == FL)
         {
-            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = 1000;
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = WALL_AVOID_PUSH;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
             ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS, &av);
         }
         if (rmap == FR)
         {
-            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = -1000;
+            ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = -WALL_AVOID_PUSH;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
             ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS, &av);

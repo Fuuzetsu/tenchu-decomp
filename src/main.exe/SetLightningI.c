@@ -94,8 +94,8 @@ static inline void GetLightningScreenPosition(long x, long y, long z,
     vector->vy = y - (short)ViewInfo.vpy;
     vector->vz = z - (short)ViewInfo.vpz;
     screen->vz = (s16)RotTransPers(
-        vector, (s32 *)screen, (void *)TENCHU_SCRATCHPAD_ADDRESS,
-        (void *)TENCHU_SCRATCHPAD(0x10));
+        vector, (s32 *)screen, (s32 *)TENCHU_SCRATCHPAD_ADDRESS,
+        (s32 *)TENCHU_SCRATCHPAD(0x10));
 }
 
 void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short b)

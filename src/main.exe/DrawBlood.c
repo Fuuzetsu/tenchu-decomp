@@ -152,7 +152,7 @@ void DrawBlood(TEffectSlot *ef)
         {
             return;
         }
-        sc = (s16)((scale * 300) / otz) + 1;
+        sc = (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
         spr->scaley = sc;
         spr->scalex = sc;
         sprt->scaley = sc;
@@ -348,7 +348,7 @@ void DrawBlood(TEffectSlot *ef)
     {
         return;
     }
-    sc = (s16)((scale * 300) / otz) + 1;
+    sc = (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
     spr->scaley = sc;
     spr->scalex = sc;
     spr->x = scratch.scr.vx;

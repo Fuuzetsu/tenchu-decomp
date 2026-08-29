@@ -48,6 +48,6 @@ u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length)
         }
     }
     cd_read(volume->fpVol, buffer, length);
-    fd->pos = fd->pos + length;
+    fd->pos += length;
     return length;
 }

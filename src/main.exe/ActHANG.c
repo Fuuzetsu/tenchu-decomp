@@ -153,7 +153,7 @@ void ActHANG(void)
         }
         if (dtM->count >= 0)
         {
-            dtV->vy = -0x23;
+            dtV->vy = -35;
             if (dtM->count > 40)
             {
                 MoveHumanoid(Me_MOTION_C, 100, 0);

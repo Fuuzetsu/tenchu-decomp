@@ -65,7 +65,7 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
     otz = out.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((size * 300) / otz) + 1;
+        sc = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         sp2->scaley = sc;
         sp2->scalex = sc;
         sp1->scaley = sc;
