@@ -43,7 +43,7 @@ void register_character_death(Humanoid *dead)
         human = HumanGroup[index];
         DeathIndex = index;
 
-        if ((human->attribute & 0x83) == 0 &&
+        if ((human->attribute & (ATTR_SUSPEND | ATTR_PHASE)) == 0 &&
             human->status != STAT_DEAD && human->status != STAT_DAMAGE &&
             human != StagePlayer)
         {
@@ -79,8 +79,8 @@ void register_character_death(Humanoid *dead)
                     EmergencyNotice = alert_time;
                     Sound(human, 0xc);
                     SetNowMotion(human, 0x80e, 1);
-                    dead->attribute |= 0x10;
-                    human->attribute |= 0x11;
+                    dead->attribute |= ATTR_SEARCH;
+                    human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
                     human->chase[0] = dead->locate->vx;
                     chase_z = dead->locate->vz;
                     human->actcnt = 0;

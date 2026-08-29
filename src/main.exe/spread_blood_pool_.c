@@ -34,7 +34,7 @@ void spread_blood_pool_(Humanoid *human)
     s32 depth;
 
     chase = &human->chase[0];
-    if (human->motion->loop >= 0 || (human->map.attrib & 0xc) != 0 ||
+    if (human->motion->loop >= 0 || (human->map.attrib & (MAP_WATER | MAP_WOOD)) != 0 ||
         human->chase[0] < 0)
     {
         *chase = 0;

@@ -52,7 +52,7 @@
  *    fresh or-temp of the compound-expression form is colored by local-alloc
  *    before the (longer-lived) Me_THINK_C pointer temp, stealing $v0 and
  *    pushing Me to $v1, which then pushes d2 off $v1 entirely (to $a0).
- *  - The `if (cached != 0x80000000) return result;` guard is a LITERAL EARLY
+ *  - The `if (cached != (u32)LEVEL_NONE) return result;` guard is a LITERAL EARLY
  *    RETURN, and it is load-bearing for the epilogue schedule: a second
  *    `return` statement makes expand emit a jump to return_label, so at
  *    sched2 time (which runs BEFORE jump2/cross-jump in this cc1 — verified
@@ -139,12 +139,12 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
                  * sidestep toward the clearer flank. */
                 if ((result & PADLright) && (d1 != cached))
                 {
-                    d2 = 0x20000000; /* PADLright << 16 */
+                    d2 = PADLright << 16;
                     goto apply;
                 }
-                if ((result & PADLleft) && (d2 != 0x80000000))
+                if ((result & PADLleft) && (d2 != (u32)LEVEL_NONE))
                 {
-                    d2 = 0x80000000; /* PADLleft << 16 */
+                    d2 = (u32)PADLleft << 16;
                 apply:
                     d2 |= 30;
                     Me_THINK_C->pad_hold = d2;

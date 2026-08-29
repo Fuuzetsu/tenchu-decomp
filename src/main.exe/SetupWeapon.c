@@ -90,15 +90,15 @@ void SetupWeapon(Humanoid *human)
     case 0x26:
     case 0x27:
     case 0x28:
-    case 0x29:
+    case WEP_MEIOU:
         GetWeaponData(human, 0xd, human->wpatk, 0, 0);
         break;
     case 0x14:
         GetWeaponData(human, 0xd, 0x14, 0, 2);
         GetWeaponData(human, 1, 0x15, -1, 0);
         break;
-    case 0x2a:
-        GetWeaponData(human, 0xd, 0x2a, 0, 2);
+    case WEP_TWIN_KATANA:
+        GetWeaponData(human, 0xd, WEP_TWIN_KATANA, 0, 2);
         GetWeaponData(human, 0xe, 0x2b, -1, 1);
         GetWeaponData(human, 0xe, 0x2c, -1, 0);
         break;
@@ -127,7 +127,7 @@ void SetupWeapon(Humanoid *human)
         GetWeaponData(human, 0xd, human->wpatk, -1, 0);
         break;
     case 0x32:
-    case 0x35:
+    case WEP_KATAOKA:
         GetWeaponData(human, 0xd, human->wpatk,
                       human->wpatk == WEP_KATAOKA ? 0 : -1, 0);
         GetWeaponData(human, 1, human->wpatk + 2, -1, 1);

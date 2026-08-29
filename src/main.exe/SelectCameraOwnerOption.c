@@ -92,7 +92,7 @@ void SelectCameraOwnerOption(void)
     TAdtSelect targets[36];
     u8 msg[35][10];
 
-    if (Humans < 0x23)
+    if (Humans < 35)
     {
         for (i = 0; i < Humans; i++)
         {

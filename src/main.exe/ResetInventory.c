@@ -34,7 +34,7 @@ void ResetInventory(void)
 {
     s16 i;
 
-    ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[0] = 0xff;
+    ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[0] = ITEM_INFINITE;
     i = 1;
     do
     {
@@ -43,7 +43,7 @@ void ResetInventory(void)
     } while (i < 9);
     while (i < 0x14)
     {
-        ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i] = 0xfe;
+        ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i] = ITEM_LOCKED;
         i++;
     }
 }

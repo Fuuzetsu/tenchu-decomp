@@ -72,7 +72,7 @@ loop:
         ef = slot;
         goto found;
     }
-    if (i > 199)
+    if (i > N_EFFECT_SLOTS - 1)
     {
         ef = &dmy;
         goto found;

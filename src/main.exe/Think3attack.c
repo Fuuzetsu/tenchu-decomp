@@ -169,10 +169,10 @@ s16 Think3attack(void)
         s32 random;
 
         random = rand();
-        command = 4;
+        command = CMD_DASH_RIGHT;
         if ((random & 1) != 0)
         {
-            command = 3;
+            command = CMD_DASH_LEFT;
         }
         pad = SetCommand(&Me_THINK_C->pad, command);
         goto action_ready;

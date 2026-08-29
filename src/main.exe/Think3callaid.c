@@ -90,7 +90,7 @@
  *    `AIDHumanType[...]` indexed inline after the call) is required for the
  *    table base address to be computed EARLY and survive in a
  *    callee-saved register across the call, matching target's
- *    `lui/addiu` into $s0 interleaved with `SR = -1;` before the `jal rand`
+ *    `lui/addiu` into $s0 interleaved with `SR = SR_UNSEEN;` before the `jal rand`
  *    (the "table lookup gets its own named local pointer" cookbook rule).
  *  - Keep a second `s16 *type_ptr` for the selected table entry, then load the
  *    PSX.SYM-proven `s16 type` in a separate statement. Folding those two
@@ -125,7 +125,7 @@ short Think3callaid(void)
     Humanoid *human_00;
     s32 r;
 
-    if (Distance < 0x4074)
+    if (Distance < 16500)
     {
         if (SR != SR_GONE)
         {

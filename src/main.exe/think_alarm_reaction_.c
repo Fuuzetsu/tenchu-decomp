@@ -256,7 +256,7 @@ s16 think_alarm_reaction_(void)
             SetNowMotion(human, 0x501, 1);
             human->actscnt = 0;
             human->actcnt = 1;
-            *(u16 *)&human->attribute |= 0x11;
+            *(u16 *)&human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
 
             human->chase[0] = Me_THINK_C->chase[0] +
                               (rand() % 5 - 2) * 500;

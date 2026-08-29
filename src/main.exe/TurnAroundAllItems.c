@@ -51,7 +51,7 @@ void TurnAroundAllItems(Humanoid *user)
     i = 0;
     while (1)
     {
-        if (i >= 25)
+        if (i >= ITEM_N)
             break;
         j = 0;
         while (1)

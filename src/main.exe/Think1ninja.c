@@ -109,7 +109,7 @@ s16 Think1ninja(void)
                     goto set_1040;
                 }
             }
-            if (d2 <= 0x17D4)
+            if (d2 <= 6100)
             {
                 return result;
             }

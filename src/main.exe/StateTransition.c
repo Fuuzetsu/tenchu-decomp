@@ -120,7 +120,7 @@ void StateTransition(Humanoid *human)
         StrainRatio = 0x7fffffff;
     }
 
-    if ((u16)(human->status - 0x10) < 2)
+    if ((u16)(human->status - STAT_DAMAGE) < 2)
     {
         if (human != StagePlayer && human->life > 0 && StrainRatio > 0)
         {
@@ -210,22 +210,22 @@ void StateTransition(Humanoid *human)
                 {
                     EmergencyNotice = 0;
                 }
-                SR = -2;
+                SR = SR_GONE;
             }
         }
         else if (EmergencyNotice != 0)
         {
             if (EmergencyNotice == 1)
             {
-                SR = -1;
+                SR = SR_UNSEEN;
             }
             else if ((ATTRIB_BITS & 3) == PHASE_CALM)
             {
-                SR = 2;
+                SR = SR_GLIMPSE;
             }
             else if (SR == SR_GLIMPSE)
             {
-                SR = 1;
+                SR = SR_SEEN;
             }
         }
     }
@@ -475,7 +475,7 @@ void StateTransition(Humanoid *human)
                 (rand() % (EngageLevel + 1) == 0 ||
                  (Me_THINK_C->type & 0xf0) == PAGE_BOSS))
             {
-                motid = (rand() & 1) ? 3 : 4;
+                motid = (rand() & 1) ? CMD_DASH_LEFT : CMD_DASH_RIGHT;
                 pad = SetCommand(&Me_THINK_C->pad, motid);
             }
             break;
@@ -612,7 +612,7 @@ void StateTransition(Humanoid *human)
                         goto set_obstacle_pad;
                     }
                 }
-                if (next_level >= 0x17d5)
+                if (next_level > 6100)
                 {
                 set_obstacle_pad:
                     pad = PADLup | PADRdown;
@@ -626,9 +626,9 @@ void StateTransition(Humanoid *human)
         periodic_check:
             if (GameClock % 90 == 0 &&
                 (((u16)Me_THINK_C->map.attrib & 0x100) ||
-                 ((pad & PADLup) && ProbeLevelLow < 0x899 &&
+                 ((pad & PADLup) && ProbeLevelLow <= 2200 &&
                   ProbeLevelLow != LEVEL_NONE) ||
-                 ((pad & PADLdown) && ProbeLevelHigh < 0x899 &&
+                 ((pad & PADLdown) && ProbeLevelHigh <= 2200 &&
                   ProbeLevelHigh != LEVEL_NONE)))
             {
                 pad |= PADRdown;
