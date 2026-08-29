@@ -74,7 +74,7 @@ extern u8 str_cancel_2[];               /* cancel */
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
-extern s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s32 r);
+extern s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s16 r);
 
 void AddEnemy(void)
 {

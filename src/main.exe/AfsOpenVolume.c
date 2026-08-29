@@ -28,6 +28,9 @@ extern void AfsInit(TAFS *handle);
 extern u32 strlen(const char *s);
 extern char *strcpy(char *dst, const char *src);
 extern char *strcat(char *dst, const char *src);
+/* Retail's own prototype drift: the definition is FILE *cd_open(char *name)
+ * -- one parameter. This caller's stale two-arg int prototype (and its
+ * dead mode=0 argument) is in the shipped bytes; correcting it mismatches. */
 extern int cd_open(char *name, int mode);
 extern int AfsGetHeader(TAFS *handle);
 extern int AfsGetEntry(TAFS *handle);

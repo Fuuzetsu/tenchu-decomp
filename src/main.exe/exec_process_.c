@@ -21,7 +21,7 @@
  * is also passed).
  */
 extern void AdtMessageBox(char *fmt, ...);
-extern void LoadExecEx(u8 *file, u32 addr, s32 arg2);
+extern void LoadExecEx(u8 *file, u32 stack, u32 size);
 
 extern char path_tenchu_menu_exe_1[];   /* cdrom:\\TENCHU\\MENU.EXE;1 */
 extern char path_tenchu_main_exe_1[];   /* cdrom:\\TENCHU\\MAIN.EXE;1 */

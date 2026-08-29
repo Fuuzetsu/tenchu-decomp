@@ -54,6 +54,10 @@
 #define MANEBUE_DURATION 30   /* lure-flute effect window */
 #define KAENGEKI_DELAY 40     /* flame-wave wind-up after the swing */
 
+/* Alert-state countdown (reset_alert_duration), in frames. */
+#define ALERT_DURATION 300
+#define ALERT_DURATION_HARD 600
+
 /* Memory-card retry cap (both card state machines). */
 #define CARD_RETRY_LIMIT 3
 

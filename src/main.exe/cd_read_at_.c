@@ -11,7 +11,7 @@
  * boundary (still a game-TU function, just one that calls the BIOS Cd*
  * primitives directly) so it stays in scope; it is otherwise unmatched.
  */
-extern void cd_read_sectors_(void *buffer, int sector, int byteOffset, int byteLength);
+extern void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length);
 
 void cd_read_at_(void *buffer, int sector, int count)
 {

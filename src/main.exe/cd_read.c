@@ -19,7 +19,7 @@
  */
 
 extern int puts(char *s);
-extern void cd_read_sectors_(void *buffer, int sector, int byteOffset, int byteLength);
+extern void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length);
 extern char msg_cd_read_invalid_handle[]; /* cd_read:invalid handle */ /* "cd_read:invalid handle" — lives in this TU's
                                                                         * unsplit data blob (splat auto-symbol), same
                                                                         * pattern as AfsInit's msg_afsinit_not_enough_memory. */

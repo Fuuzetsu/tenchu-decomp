@@ -54,6 +54,9 @@
  * implementation remains guarded; this matched caller contains only C.
  */
 extern void UpdateSplineControl(SplineControlType *spc);
+/* The definition's third param is SVECTOR *basis; this TU keeps the
+ * cached row address in an s32 (SplineRow) and passes it uncast --
+ * a period pointer-in-int idiom, same 32-bit value either way. */
 extern void eval_spline_gte_(SVECTOR *vect, SplineControlType *spc, s32 row);
 extern s16 SplineFracOld;
 extern s16 SplineFrac;

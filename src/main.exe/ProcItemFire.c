@@ -125,7 +125,7 @@ extern SVECTOR svec_y_n30[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
-extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, int time);
+extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time);
 extern void reset_alert_duration(void);
 
 void ProcItemFire(TItem *item)

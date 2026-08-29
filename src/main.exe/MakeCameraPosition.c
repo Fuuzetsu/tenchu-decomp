@@ -75,6 +75,7 @@ extern TMakeDifInfo pnt;
 extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 
+/* Retail's own prototype drift (def: s32 return) -- byte-required: correcting it changes the caller. */
 extern short camera_terrain_pitch_(Humanoid *h);
 extern void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target);
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);

@@ -86,6 +86,7 @@
  *     extern short Findenemies;
  * END PSX.SYM */
 
+/* Retail's own prototype drift (def: u8 get_pad_active_(short)) -- byte-required. */
 extern short get_pad_active_(s32 arg);
 extern void return_to_menu_(void);
 extern short check_cheat_command_(short pad, short trg);

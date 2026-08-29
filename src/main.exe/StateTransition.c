@@ -94,6 +94,7 @@ extern s16 Think2confirm(void);
 extern s16 think_alarm_reaction_(void);
 extern s16 Think3firstattack(void);
 extern s16 turn_towards_player_(s32 x, s32 z);
+/* Retail's own prototype drift (def: u16 pressed) -- byte-required. */
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
 extern s16 Think1ninja(void);
 extern s32 rand(void);

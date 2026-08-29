@@ -44,7 +44,7 @@ extern void SsVabTransBody(u8 *body, short vabId);
 extern void SsVabTransCompleted(int flag);
 extern void *valloc(u32 size);
 extern void *vmemoryGC(void *p);
-extern void *vrealloc(void *p, s32 size);
+extern void *vrealloc(void *p, u32 size);
 
 extern char msg_sound_setup_failure[]; /* SOUND SETUP FAILURE */
 
