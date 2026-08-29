@@ -125,7 +125,7 @@ void PutItemList(void)
             n = s;
             if (s != 0xFF)
             {
-                PutNumberInline(x + 0x16, ItemY, n, 0);
+                PutNumberInline(x + 22, ItemY, n, 0);
             }
 
             if (ItemCursor == i)
@@ -133,7 +133,7 @@ void PutItemList(void)
                 s32 ItemID;
                 GsSPRITE *spr;
 
-                PutItemCursorInline(x, ItemY - 8, 0x1000, -0x6000);
+                PutItemCursorInline(x, ItemY - 8, 0x1000, -6 * 4096); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
 
                 ItemID = i * sizeof(ItemImage[0]);
                 ItemID = *(s32 *)((u8 *)ItemImage + ItemID);

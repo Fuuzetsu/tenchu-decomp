@@ -112,7 +112,7 @@ void DrawExplosion(TEffectSlot *ef)
         else
         {
             param->scale = param->scale + 0x2000;
-            param->rotate = param->rotate + 0x64000;
+            param->rotate = param->rotate + 100 * 4096; /* 100 deg/frame */
         }
         spr = sprBomb[0];
         break;
@@ -123,13 +123,13 @@ void DrawExplosion(TEffectSlot *ef)
             param->mode++;
         }
         param->scale = param->scale + 0x2000;
-        param->rotate = param->rotate + 0x64000;
+        param->rotate = param->rotate + 100 * 4096; /* 100 deg/frame */
         spr = sprBomb[1];
         break;
     case 2:
         alfa = (u8)((param->time << 7) / fo);
         param->scale = param->scale - 0x333;
-        param->rotate = param->rotate + 0x5a000;
+        param->rotate = param->rotate + 90 * 4096; /* 90 deg/frame */
         if (param->time == 0)
         {
             ef->proc = 0;
