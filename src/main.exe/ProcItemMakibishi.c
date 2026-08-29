@@ -109,18 +109,7 @@ void ProcItemMakibishi(TItem *item)
             item->mode = item->mode + one;
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
-            ConflictObject[n].offset.vx = 0;
-            ConflictObject[n].offset.vz = 0;
-            ConflictObject[n].offset.vy = 0;
-            ConflictObject[n].size.vz = 100;
-            ConflictObject[n].size.vy = 100;
-            ConflictObject[n].size.vx = 100;
-            ConflictObject[n].common = (void *)one;
-            ConflictObject[n].size.pad = one;
-            item->collision.size = 100;
-            item->collision.ofsY = 0;
-            item->collision.mode = one;
-            item->collision.pause = 0;
+            SET_ITEM_COLLISION(n, 100, (void *)one, one);
             break;
 
         case KORO_WATER:

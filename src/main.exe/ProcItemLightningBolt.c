@@ -107,18 +107,7 @@ void ProcItemLightningBolt(TItem *item)
         item->locate->locate.coord.t[2] = target.vz;
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
-        ConflictObject[n].offset.vx = 0;
-        ConflictObject[n].offset.vz = 0;
-        ConflictObject[n].offset.vy = 0;
-        ConflictObject[n].size.vz = 100;
-        ConflictObject[n].size.vy = 100;
-        ConflictObject[n].size.vx = 100;
-        ConflictObject[n].common = CONFLICT_OWNER_ITEM;
-        ConflictObject[n].size.pad = CONFLICT_HIT;
-        item->collision.size = 100;
-        item->collision.ofsY = 0;
-        item->collision.mode = CONFLICT_HIT;
-        item->collision.pause = 0;
+        SET_ITEM_COLLISION(n, 100, CONFLICT_OWNER_ITEM, CONFLICT_HIT);
         item->mode++;
         break;
 

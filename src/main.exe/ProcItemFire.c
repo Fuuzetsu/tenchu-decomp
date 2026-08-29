@@ -267,18 +267,7 @@ void ProcItemFire(TItem *item)
                 n = InsertConflict(item->locate);
                 size = 500;
                 collision_mode = 8;
-                ConflictObject[n].offset.vx = 0;
-                ConflictObject[n].offset.vz = 0;
-                ConflictObject[n].offset.vy = 0;
-                ConflictObject[n].size.vz = size;
-                ConflictObject[n].size.vy = size;
-                ConflictObject[n].size.vx = size;
-                ConflictObject[n].common = (void *)one;
-                ConflictObject[n].size.pad = collision_mode;
-                item->collision.size = size;
-                item->collision.ofsY = 0;
-                item->collision.mode = collision_mode;
-                item->collision.pause = 0;
+                SET_ITEM_COLLISION(n, size, (void *)one, collision_mode);
             }
 
             if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)

@@ -141,18 +141,7 @@ void ProcItemJirai(TItem *item)
         n = InsertConflict(item->locate);
         size = 500;
         collision_mode = 8;
-        ConflictObject[n].offset.vx = 0;
-        ConflictObject[n].offset.vz = 0;
-        ConflictObject[n].offset.vy = 0;
-        ConflictObject[n].size.vz = size;
-        ConflictObject[n].size.vy = size;
-        ConflictObject[n].size.vx = size;
-        ConflictObject[n].common = CONFLICT_OWNER_ITEM;
-        ConflictObject[n].size.pad = collision_mode;
-        item->collision.size = size;
-        item->collision.ofsY = 0;
-        item->collision.mode = collision_mode;
-        item->collision.pause = 0;
+        SET_ITEM_COLLISION(n, size, CONFLICT_OWNER_ITEM, collision_mode);
         item->mode++;
         break;
     }
@@ -181,18 +170,7 @@ void ProcItemJirai(TItem *item)
             n = InsertConflict(item->locate);
             size = 1500;
             one = 1;
-            ConflictObject[n].offset.vx = 0;
-            ConflictObject[n].offset.vz = 0;
-            ConflictObject[n].offset.vy = 0;
-            ConflictObject[n].size.vz = size;
-            ConflictObject[n].size.vy = size;
-            ConflictObject[n].size.vx = size;
-            ConflictObject[n].common = (void *)one;
-            ConflictObject[n].size.pad = one;
-            item->collision.size = size;
-            item->collision.ofsY = 0;
-            item->collision.mode = one;
-            item->collision.pause = 0;
+            SET_ITEM_COLLISION(n, size, (void *)one, one);
             item->mode = item->mode + one;
         }
         break;

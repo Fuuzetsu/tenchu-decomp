@@ -131,18 +131,7 @@ void ProcItemDrop(TItem *item)
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
             collision_mode = 8;
-            ConflictObject[n].offset.vx = 0;
-            ConflictObject[n].offset.vz = 0;
-            ConflictObject[n].offset.vy = 0;
-            ConflictObject[n].size.vz = 180;
-            ConflictObject[n].size.vy = 180;
-            ConflictObject[n].size.vx = 180;
-            ConflictObject[n].common = CONFLICT_OWNER_ITEM;
-            ConflictObject[n].size.pad = collision_mode;
-            item->collision.size = 180;
-            item->collision.ofsY = 0;
-            item->collision.mode = collision_mode;
-            item->collision.pause = 0;
+            SET_ITEM_COLLISION(n, 180, CONFLICT_OWNER_ITEM, collision_mode);
             item->mode++;
             return;
         }

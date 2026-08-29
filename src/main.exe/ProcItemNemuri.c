@@ -125,18 +125,7 @@ void ProcItemNemuri(TItem *item)
                 DeleteConflict(item->locate);
                 n = InsertConflict(item->locate);
                 eight = 8;
-                ConflictObject[n].offset.vx = 0;
-                ConflictObject[n].offset.vz = 0;
-                ConflictObject[n].offset.vy = 0;
-                ConflictObject[n].size.vz = 1000;
-                ConflictObject[n].size.vy = 1000;
-                ConflictObject[n].size.vx = 1000;
-                ConflictObject[n].common = CONFLICT_OWNER_ITEM;
-                ConflictObject[n].size.pad = eight;
-                item->collision.size = 1000;
-                item->collision.ofsY = 0;
-                item->collision.mode = eight;
-                item->collision.pause = 0;
+                SET_ITEM_COLLISION(n, 1000, CONFLICT_OWNER_ITEM, eight);
                 return;
             }
         }
