@@ -613,6 +613,23 @@ its shared `+= 3` documented the Ayame dead variants 0x110C-0x110E.
 Unidentified ids stay hex on purpose: 0x103, 0x502, 0x802 (case labels
 whose arms gave no semantic evidence). Commits ab6da043 + 6fe505a0.
 
+SPOT-CHECK ROUNDS (2026-08-29/30, converged-phase loop): random
+16-file whole-read reader pairs, three rounds (48 files audited), each
+finding landed or measured. Round 1: PROJECTION_DISTANCE 300 + score
+table + WALL_AVOID_PUSH/LEDGE_PROBE_RISE/wire knobs to tuning.h,
+ITEM_NONE (#define — a negative enumerator signs the enum, cookbook
+rule), SetWire probes (ONE, CLAMP_SORT_DEPTH, inline GetWireRotation;
+big/alias fills byte-required). Round 2: status7_*->attack_* in four
+Attack controllers, vmemoryGC draft suffixes, BreedLife wrong-comment
+fixes, Briefing pad names + MAX_SELECTED_ITEMS. Round 3: (s16)-on-s16
+cast sweep (36 dropped, 2 required — writer-width rule in cookbook),
+residual motion ids under unrelated variable names (y/pd/value/id),
+MOT_NORMAL_TURN_R/L, ProcMisc/CameraType1/vrealloc comment corrections
+(vrealloc's bit31 compare + words-vs-bytes memcpy quirk now stated
+straight), ~10 new measured adjudications. Probe economy holds: ~60%
+of flagged constructs are free respells, the rest get notes. Round 4
+in flight.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
