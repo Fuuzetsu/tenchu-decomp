@@ -32,6 +32,25 @@
  * END PSX.SYM */
 
 /*
+ * FadeOutDirect (0x80038a6c) — blocks for `time` frames while washing
+ * the visible screen toward the colour (r, g, b), bypassing the normal
+ * ordering-table path by drawing straight into the display area. Saves
+ * the current DRAWENV and DISPENV, then installs a copy of the draw
+ * env whose clip rect and drawing offset are the current display rect,
+ * so primitives land on what is on screen. Builds one POLY_XF4 — the
+ * game's DR_TPAGE-plus-POLY_F4 packet — as a flat semi-transparent
+ * quad covering (0,0) to (disp.w, disp.h) in that colour, with the
+ * tpage word's semi-transparency rate taken from `attrib & 3`. The
+ * loop then runs exactly `time` iterations, each submitting the quad
+ * and the tpage packet with DrawPrim and waiting on DrawSync(0) and
+ * VSync(0) — one blend accumulation per displayed frame, so the
+ * picture converges on the colour as the count runs out. Nothing else
+ * advances meanwhile; the caller is stalled for the whole fade, and a
+ * `time` of 0 draws nothing at all. The saved DRAWENV is put back
+ * before returning.
+ */
+
+/*
  * STATUS: MATCH (exact).
  *
  * Matching notes (all verified against the original bytes):

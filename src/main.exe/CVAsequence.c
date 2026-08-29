@@ -42,6 +42,34 @@
  * END PSX.SYM */
 
 /*
+ * CVAsequence (0x800502b4) — plays one CVA cutscene by sequence id and
+ * does not return until it finishes; 1 if it ran, 0 if it never
+ * started. Rewinds CVAnow to CVAdata and bails immediately when the
+ * table head's mode is -1. Otherwise it scans forward for a
+ * CVA_CMD_SEQUENCE row whose id matches `sid`, stopping at the -1
+ * terminator, and bails if it landed on it. On a hit it clears the
+ * five-slot CVAhuman queue, keeps the header's `p` as the CD track,
+ * points CameraTarget at StagePlayer, advances CVAnow past the header
+ * and empties TelopText. Every humanoid in HumanGroup that is neither
+ * STAT_DEAD nor ATTR_SUSPEND is neutralised first:
+ * dispose_weapon_data_of_char_(human, 3), NowReturnNormal, and a
+ * zeroed pad.data. CVAflag is cleared and CVAupdate() must succeed, or
+ * it returns 0. Running: raises ActionHalt (unless it is pinned at -1)
+ * and MotionUpdateMode, drops StagePlayer->target, kills rumble
+ * (PadShockAR/PadShock) and pumps PadProc. A positive track starts
+ * PlayMusicFormID and spins until CdaGetCurrentLength() reports
+ * progress or CdaStatus goes idle. Then CVAtime = 0, VoiceMode = 1,
+ * and CVArun() is driven to completion before VoiceMode, ActionHalt
+ * and MotionUpdateMode are restored and the camera returns to
+ * CMODE_NORMAL. Finally each of the five CVAhuman actors that is still
+ * alive gets a closing motion via SetNowMotion: 0x501 (MOT_ENGAGE)
+ * when ATTR_ALERT is set, 0x80e (the MOT_STATE startle motion) for
+ * un-alerted characters on the PAGE_BOSS type page, and 0 (MOT_NORMAL
+ * idle) for everyone else. If a track was played it waits VSync(60);
+ * CdaStop, two more rumble cancels and two PadProc calls end it.
+ */
+
+/*
  * The post-memset cursor is deliberately separate from the scan's `event`.
  * Updating that short-lived carrier in place preserves the source dependency
  * that makes cc1 keep the cursor in v0 while loading StagePlayer into v1.

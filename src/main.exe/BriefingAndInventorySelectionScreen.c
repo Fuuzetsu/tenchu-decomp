@@ -16,6 +16,30 @@
 /*
  * Pre-mission briefing / item selection screen (0x80052084, 0xE24 bytes).
  *
+ * Entry: backs the chosen character's 20 gItem counts up into saveItem,
+ * zeroes selItem[0..0x13], and forces selItem[ITEM_KAGINAWA] to 0xFF
+ * (ITEM_INFINITE). If StageConfig[StageNo].uid is 0 (the training
+ * stage) it hands out five ITEM_SHURIKEN and returns with no screen at
+ * all. Otherwise it runs briefing_screen_() unless GameRetry bit 0 is
+ * set, loads the language's item-select background and help archive
+ * plus the number-font TIM, and clamps every shop row's stock to its
+ * maxStock (skipping ITEM_LOCKED entries). Each loop frame:
+ * edge-detects GetRealPad(0) into np, feeds the pad to
+ * check_cheat_command_, and dispatches the cheats (raise the carry cap
+ * 15 -> 30, refill, unlock, force armour, or quit to the menu). np
+ * exactly equal to PADstart leaves the loop. Then it draws the
+ * background, the 19-cell item grid (icon plus count, ITEM_LOCKED
+ * cells skipped, 0xFF drawn iconless) and the cursor; the D-pad moves
+ * the cursor by nearest-neighbour search, Circle takes one of the item
+ * under the cursor (refused at zero stock, at the cap — help page
+ * 0x13 — or as a sixth distinct kind — page 0x14), Cross puts one
+ * back. The cursor pulses between 0x1000 and 0x1400, help follows the
+ * cursor item, the selected loadout draws as a right-to-left strip,
+ * and the remaining capacity is drawn digit by digit (glyph 10 as a
+ * minus sign). On exit: fade, clear, promote a non-zero
+ * selItem[ITEM_MANEBUE] to 0xFF, mark items 0..8 whose stock hit zero
+ * as ITEM_LOCKED, and free the help archive and background.
+ *
  * MATCHED (905/905 instructions, byte-identical; four sessions:
  * 241 -> 94 -> 28 -> 0). The 28 residual register-tie diffs fell to six
  * levers, all in this file (permuter rounds 4-6 found 1/3/5, hand-derived

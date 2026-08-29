@@ -43,6 +43,32 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
+/*
+ * leLayoutEnemy (0x8003c614) — repopulates the stage from the enemy[]
+ * layout table, wiping whatever is currently alive first. mode 1
+ * builds fully working AI; any other mode leaves the spawns inert,
+ * which is the layout-editor preview. After reset_effects_ it clears
+ * the roster down to the player: while Humans is above 1 it takes
+ * HumanGroup[1], vfree's its TraceLine's point array and the line
+ * itself, and KillHumanoid's it. Under SYSFLAG_DEBUGMODE each removal
+ * is marked with a yellow SetBleeds burst at the victim's position,
+ * THROW_HEIGHT above its feet. It then walks all MAX_ENEMIES slots and
+ * spawns every one whose type is not -1: BreedLife at the recorded
+ * x/y/z, the recorded facing applied to the model, ATTR_SUSPEND raised
+ * so the AI stays parked until ActivateHumans wakes it, target pointed
+ * at the camera owner's model, and MODEL_ATTR_COLLIDE cleared from the
+ * root object (ActivateHumans raises it again on waking). Only mode 1
+ * installs behaviour: SetupThinkFunction with the slot's ThinkType,
+ * and, when nPath is non-zero, a valloc'd array of nPath + 1
+ * TracePoints copied from the layout's path[] with range 1500 each and
+ * a pad = -1 terminator, handed to SetupTraceLine; ATTR_TRACE is
+ * raised afterwards only if a trace line actually ended up attached.
+ * Debug mode marks each spawn with a white SetBleeds burst, again
+ * THROW_HEIGHT up. It finishes by zeroing EmergencyNotice and
+ * GameClock, so the alarm state and the mission timer restart with the
+ * new population.
+ */
+
 #include "item.h"
 
 extern void reset_effects_(void);
@@ -123,7 +149,7 @@ void leLayoutEnemy(int mode)
             owner_model = CamState.Owner->model;
             human->attribute |= ATTR_SUSPEND;
             human->target = (ModelType *)owner_model;
-            human->model->object[0]->attribute &= 0xBFFF;
+            human->model->object[0]->attribute &= ~MODEL_ATTR_COLLIDE;
             if (mode == 1)
             {
                 SetupThinkFunction(human, en->ThinkType);

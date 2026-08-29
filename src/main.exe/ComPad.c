@@ -34,10 +34,24 @@
  * END PSX.SYM */
 
 /*
- * Reads one controller report into PadPort. A multitap report recursively
- * supplies four eight-byte subreports; an error report clears the port; a
- * normal report derives digital x/y values, records analog mode, and advances
- * the actuator setup state machine.
+ * ComPad (0x8001abc4) — decodes one controller report into its
+ * PadPort[port >> 4][port & 3] slot. A report whose mode nibble
+ * (rxbuf[1] >> 4) is 8 is a multitap frame: it recurses four times on
+ * port + i over the eight-byte subreport at rxbuf + 2 + i * 8 and
+ * returns. A non-zero rxbuf[0] means no pad or a bad read — button, x,
+ * y and active are all cleared and it returns. A normal report stores
+ * the inverted button word (~(rxbuf[2] << 8 | rxbuf[3]), so pressed
+ * reads as 1) and synthesises a digital stick from it: x is +45 on
+ * PADLright and -45 on PADLleft, y is +45 on PADLdown and -45 on
+ * PADLup, both otherwise zero. fAnalog is set only when the mode
+ * nibble is 7. The rest is actuator setup. PadInfoMode(port, 2, 0)
+ * decides the two actuator bytes — the pad's own act1/act2 when it
+ * reports mode 2, otherwise the constant 0x40 followed by act1. active
+ * is set, and a PadGetState of 1 clears Send so the setup is retried.
+ * While Send is clear it issues PadSetAct(port, actbuf, 2); state 2
+ * finishes there, state 6 also calls PadSetActAlign(port, align), and
+ * any other state returns with Send still clear so the next frame
+ * tries again.
  *
  * Retail inserted `active` at offset 6 in the demo's 12-byte TPadPort, moving
  * the later byte fields by one and making this version 14 bytes. The repeated
