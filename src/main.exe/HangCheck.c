@@ -115,7 +115,7 @@
  *    join copy and tests `ry & 0x200` against the UNmodified ry. Masking
  *    `ry` in place compiles two insns shorter.
  *  - fold-const association dictates the commit/revert spellings:
- *    `dtL->vy - (0x69 - y)` hits split_tree's CON-VAR case (varsign=-1,
+ *    `dtL->vy - (105 - y)` hits split_tree's CON-VAR case (varsign=-1,
  *    MINUS flips to PLUS) building PLUS(PLUS(vy,-105), y) → the target's
  *    `addiu vy,-105; addu +y` with vy first; the plain `dtL->vy - 0x69 + y`
  *    is reassociated to vy + (y-105), computing `y-105` as an independent
@@ -124,7 +124,7 @@
  *    `addiu vy,+5; subu -oy`; both `+ 5 - oy` and `- oy + 5` get mangled to
  *    vy - (oy-5).
  *  - The success-path commit writes vx, vz, THEN vy (`dtL->vx += vect.vx;
- *    dtL->vz += vect.vz; dtL->vy = dtL->vy - (0x69 - y);`): `vect`'s stack
+ *    dtL->vz += vect.vz; dtL->vy = dtL->vy - (105 - y);`): `vect`'s stack
  *    slot is address-taken so its `lh` reads can NEVER be disambiguated
  *    from the `*dtL` stores (sched adds a true dependence on every earlier
  *    store) — with vy stored second, `lh vect.vz` is pinned below the vy
@@ -175,11 +175,11 @@ short HangCheck(void)
     }
     yy = dtL->vy - Me_MOTION_C->height;
     GetMoveSpeed(&vect, dtR->vy, Me_MOTION_C->width >> 1, 0);
-    y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, yy - 0x122, dtL->vz + vect.vz, 0);
+    y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, yy - 290, dtL->vz + vect.vz, 0);
     dy = yy - 300;
     if (y < dtL->vy)
     {
-        y = GetAreaMapLevel(GlobalAreaMap, dtL->vx - vect.vx, yy - 0x122, dtL->vz - vect.vz, 0);
+        y = GetAreaMapLevel(GlobalAreaMap, dtL->vx - vect.vx, yy - 290, dtL->vz - vect.vz, 0);
         if (y == (u32)LEVEL_NONE)
         {
             return 0;
@@ -202,7 +202,7 @@ short HangCheck(void)
     {
         return 0;
     }
-    dtL->vy = dtL->vy - (0x69 - y);
+    dtL->vy = dtL->vy - (105 - y);
     if (Me_MOTION_C->status == STAT_HANG)
     {
         return 1;
@@ -235,7 +235,7 @@ short HangCheck(void)
         GetMoveSpeed(&vect, dtR->vy, -200, 0);
         dtL->vx = dtL->vx + vect.vx;
         dtL->vz = dtL->vz + vect.vz;
-        dtL->vy = dtL->vy - (0x69 - y);
+        dtL->vy = dtL->vy - (105 - y);
     }
     motID = 0xA01;
     motMODE = 1;

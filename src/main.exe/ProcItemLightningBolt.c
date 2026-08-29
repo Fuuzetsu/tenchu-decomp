@@ -113,11 +113,11 @@ void ProcItemLightningBolt(TItem *item)
         ConflictObject[n].size.vz = 100;
         ConflictObject[n].size.vy = 100;
         ConflictObject[n].size.vx = 100;
-        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].common = CONFLICT_OWNER_ITEM;
         ConflictObject[n].size.pad = CONFLICT_HIT;
         item->collision.size = 100;
         item->collision.ofsY = 0;
-        item->collision.mode = 1;
+        item->collision.mode = CONFLICT_HIT;
         item->collision.pause = 0;
         item->mode++;
         break;

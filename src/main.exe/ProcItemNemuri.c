@@ -131,7 +131,7 @@ void ProcItemNemuri(TItem *item)
                 ConflictObject[n].size.vz = 1000;
                 ConflictObject[n].size.vy = 1000;
                 ConflictObject[n].size.vx = 1000;
-                ConflictObject[n].common = (void *)1;
+                ConflictObject[n].common = CONFLICT_OWNER_ITEM;
                 ConflictObject[n].size.pad = eight;
                 item->collision.size = 1000;
                 item->collision.ofsY = 0;

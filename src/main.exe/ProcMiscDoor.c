@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "misc.h"
+#include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -133,7 +134,7 @@ do_control:
     switch (m->mode)
     {
     case 0:
-        if ((param->locate->attribute & 0x8000 /* MODEL_ATTR_CONFLICT */) != 0)
+        if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
         {
             s32 cid;
 

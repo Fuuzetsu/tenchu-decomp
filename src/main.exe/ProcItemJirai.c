@@ -147,7 +147,7 @@ void ProcItemJirai(TItem *item)
         ConflictObject[n].size.vz = size;
         ConflictObject[n].size.vy = size;
         ConflictObject[n].size.vx = size;
-        ConflictObject[n].common = (void *)1;
+        ConflictObject[n].common = CONFLICT_OWNER_ITEM;
         ConflictObject[n].size.pad = collision_mode;
         item->collision.size = size;
         item->collision.ofsY = 0;

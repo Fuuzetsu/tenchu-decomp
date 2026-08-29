@@ -173,7 +173,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
         if (level2 == (u32)LEVEL_NONE ||
             ((level2 - y < -500) && !(mode2 & 4) &&
-             !(((u16)mvp->attrib | *(u16 *)&FieldAttrib) & 0xC000)))
+             !(((u16)mvp->attrib | *(u16 *)&FieldAttrib) & (MAP_SLOPE_X | MAP_SLOPE_Z))))
         {
             mvp->vector |= v;
         }

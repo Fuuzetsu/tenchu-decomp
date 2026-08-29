@@ -145,7 +145,7 @@ void ProcItemDrop(TItem *item)
             ConflictObject[n].size.vz = 180;
             ConflictObject[n].size.vy = 180;
             ConflictObject[n].size.vx = 180;
-            ConflictObject[n].common = (void *)0x1;
+            ConflictObject[n].common = CONFLICT_OWNER_ITEM;
             ConflictObject[n].size.pad = collision_mode;
             item->collision.size = 180;
             item->collision.ofsY = 0;

@@ -66,7 +66,7 @@ s16 GetDirection(s32 dx, s32 dz, s32 roty)
     {
         result = 0x1000 - diff;
     }
-    else if (sdiff < -0x7FF)
+    else if (sdiff <= -0x800)
     {
         result = diff + 0x1000;
     }

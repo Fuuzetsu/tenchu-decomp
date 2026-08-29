@@ -119,7 +119,7 @@ void ProcItemLaunch(TItem *item)
         ConflictObject[n].size.pad = CONFLICT_HIT;
         item->collision.size = 300;
         item->collision.ofsY = 0;
-        item->collision.mode = 1;
+        item->collision.mode = CONFLICT_HIT;
         item->collision.pause = 0;
     }
     item->locate->rotate.vx = 0;

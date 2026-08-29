@@ -107,7 +107,7 @@ void InitGraphicsSystem(void)
     GsSetRefView2(&ViewInfo);
     GsSetNearClip(0);
     AdtFntLoad(0x3c0, 0x100);
-    AdtFntOpen(-0xa0, -0x68, 0x140, 0xd0, 0, 0x400);
+    AdtFntOpen(-(SCREEN_W / 2), -0x68, SCREEN_W, 0xd0, 0, 0x400);
     OTable[1].length = 0xb;
     OTable[0].length = 0xb;
     OTable[0].org = ZSortTable[0];
