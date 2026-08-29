@@ -109,11 +109,11 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
         return 0;
 
     dy = y - view[1];
-    if (!(abs(dy) <= 30000))
+    if (30000 < abs(dy))
         return 0;
 
     dz = z - view[2];
-    if (!(abs(dz) <= 30000))
+    if (30000 < abs(dz))
         return 0;
 
     ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vx = (s16)dx;

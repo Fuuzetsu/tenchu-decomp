@@ -115,9 +115,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
 
     fwRot = trace_ground_(&vc, &vd, (VECTOR *)&target, 0);
 
-    d1 = -va.vx;
-    d1 += vb.vx;
-    d1 *= fwRot;
+    d1 = (-va.vx + vb.vx) * fwRot;
     if (d1 < 0)
         d1 += 0xFFF;
     d2 = (-va.vy + vb.vy) * fwRot;

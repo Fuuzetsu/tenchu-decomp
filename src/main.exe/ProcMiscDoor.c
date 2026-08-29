@@ -141,7 +141,6 @@ do_control:
             if (ConflictObject[cid].common != CONFLICT_OWNER_DOOR)
             {
                 s32 t;
-                s32 angle;
                 s32 wrap;
                 s32 dir;
 
@@ -153,10 +152,7 @@ do_control:
                         param->locate->rotate.vy;
                 } while (0);
                 wrap = t + 0x2000;
-                angle = wrap;
-                if (wrap < 0)
-                    angle = t + 0x2fff;
-                dir = wrap - ((angle >> 12) << 12) < 0x801;
+                dir = (wrap % 0x1000) <= 0x800;
                 if (dir != 0)
                     dir = 0x40;
                 else

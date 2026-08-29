@@ -415,6 +415,9 @@ short LoadConstruction(u_long *data)
                 long q;
 
                 msize =
+                    /* parent * -14 spelled as the compiler's own
+                     * strength-reduction chain: byte-required (the folded
+                     * multiply mismatches; measured). */
                     (parent - parent * 8) * 2;
                 if (a >= 0)
                     q = a / 16000;

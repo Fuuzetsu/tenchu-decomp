@@ -245,7 +245,7 @@ type_found:
 low_type:
     if (type >= HANBE)
         goto equip;
-    if (type >= 2)
+    if (type >= RIKIMARU_1)
         goto done;
     if (type < 0)
         goto done;
