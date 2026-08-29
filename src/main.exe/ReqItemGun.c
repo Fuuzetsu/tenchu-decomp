@@ -25,22 +25,7 @@ void ReqItemGun(PARAM_ITEM_LAUNCH *p)
     s32 atype;
     s32 i;
 
-    i = 0;
-    do
-    {
-        ic++;
-        if (ic >= MAX_ITEMS)
-            ic = 0;
-        item = items + ic;
-        if (item->proc == 0)
-            goto found;
-        i++;
-    } while (i < MAX_ITEMS - 1);
-
-    /* pool exhausted: force-dispose the slot the counter landed on */
-    DISPOSE_ITEM(item);
-
-found:
+    TAKE_ITEM_SLOT();
     if (item == 0)
         return;
     aowner = p->user;

@@ -77,22 +77,7 @@ int ReqItemJirai(PARAM_ITEM_DROP *p)
     s32 z;
     s32 i;
 
-    i = 0;
-    do
-    {
-        ic++;
-        if (ic >= MAX_ITEMS)
-            ic = 0;
-        item = items + ic;
-        if (item->proc == 0)
-            goto found;
-        i++;
-    } while (i < MAX_ITEMS - 1);
-
-    /* pool exhausted: force-dispose the slot the counter landed on */
-    DISPOSE_ITEM(item);
-
-found:
+    TAKE_ITEM_SLOT();
     param = &item->param.smoke;
     if (item == 0)
         return 0;

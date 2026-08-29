@@ -443,6 +443,27 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     item->proc = 0;
 
 #define MAX_ITEMS 30
+
+/* The launcher preamble every ReqItem* repeats: round-robin the pool
+ * cursor `ic` to the next free slot, force-disposing the slot it lands
+ * on when all 30 are live, leaving `item` set and `found:` planted.
+ * Macro is reconstruction shorthand (expands to the identical text). */
+#define TAKE_ITEM_SLOT()                                                      \
+    i = 0;                                                                    \
+    do                                                                        \
+    {                                                                         \
+        ic++;                                                                 \
+        if (ic >= MAX_ITEMS)                                                  \
+            ic = 0;                                                           \
+        item = items + ic;                                                    \
+        if (item->proc == 0)                                                  \
+            goto found;                                                       \
+        i++;                                                                  \
+    } while (i < MAX_ITEMS - 1);                                              \
+                                                                              \
+    DISPOSE_ITEM(item);                                                       \
+                                                                              \
+found:
 extern TItem items[MAX_ITEMS];
 /* ITEM.C's shared model and sprite resources. */
 extern ModelType *SyurikenModel;
