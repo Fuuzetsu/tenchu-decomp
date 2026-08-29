@@ -135,6 +135,8 @@ void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 t
     }
     fly->count = 1;
 skip_default:
+    /* Biased-shift /4096 pair: byte-required (the / fold mismatches;
+     * measured -- same class as trace_ground_/StageEndScreen). */
     x_product = len * (yw / 2);
     fly->count2 = fly->count;
     if (x_product < 0)

@@ -106,17 +106,11 @@ void SnapCameraTargetVector(void)
     VectorNormalSS(&sv, &sv2);
 
     t1 = sv2.vx;
-    if (t1 < 0)
-        t1 += (1 << VSHIFT) - 1;
-    sv2.vx = (s16)(t1 >> VSHIFT);
+    sv2.vx = (s16)(t1 / (1 << VSHIFT));
     t2 = sv2.vy;
-    if (t2 < 0)
-        t2 += (1 << VSHIFT) - 1;
-    sv2.vy = (s16)(t2 >> VSHIFT);
+    sv2.vy = (s16)(t2 / (1 << VSHIFT));
     t3 = sv2.vz;
-    if (t3 < 0)
-        t3 += (1 << VSHIFT) - 1;
-    sv2.vz = (s16)(t3 >> VSHIFT);
+    sv2.vz = (s16)(t3 / (1 << VSHIFT));
 
     target = GetAreaMapPassage(GlobalAreaMap, &v, &sv2, -1);
     if (target != 0)

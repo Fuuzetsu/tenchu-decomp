@@ -722,6 +722,16 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   sizeof(Elem)`) is usually just an indexed `base->slot[i].field` loop —
   cc1's own strength reduction produces the offset walk (LoadConstruction's
   model-slot dispose loop; hoisted mask/base constants folded too).
+- **Biased-shift divisions fold to `/` ONLY when self-contained**: the
+  decompiler's `if (x < 0) x += (1<<N)-1; y = x >> N;` respells as
+  `y = x / (1<<N)` byte-free when each occurrence is independent
+  (UpdateMotion %0x1000, cd_read /2048, SnapCameraTargetVector x3,
+  spread_blood_pool_ /1024, UpdateTexScroll /16). It FAILS when the bias
+  branch is interleaved with unrelated statements (trace_ground_'s three
+  axes, SetupFly's pair, StageEndScreen's pulse pair) — there the split
+  spelling is the scheduler's interleave and is byte-required. Test each;
+  adjudicate the failures in place.
+
 - **Off-by-one bounds are `<=`/`>` in disguise**: the decompiler renders
   `x <= N` as `x < N+1` and `x > N` as `x >= N+1` (slti encodings are
   identical), which hides round thresholds behind odd constants — 0x7531

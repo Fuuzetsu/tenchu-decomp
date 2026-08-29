@@ -88,6 +88,8 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     {
         if (t >= 0x1000)
             break;
+        /* The hand-biased >>12 spelling (vs plain /4096) is byte-required:
+         * the fold changes the scheduler's interleave (measured). */
         rawx = dx * t;
         if (rawx < 0)
             rawx += 0xFFF;

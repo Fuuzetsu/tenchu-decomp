@@ -473,6 +473,8 @@ void StageEndScreen(void)
                     rank.y = 78;
                     pulse = rsin((GameClock << 12) / 90) * 0x7f;
                 } while (0);
+                /* Biased-shift /4096: byte-required (plain division
+                 * mismatches; measured). */
                 if (pulse < 0)
                 {
                     pulse += 0xfff;

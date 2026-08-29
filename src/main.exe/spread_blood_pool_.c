@@ -64,13 +64,9 @@ void spread_blood_pool_(Humanoid *human)
     BLOOD_POOL_MODEL_->locate.coord.t[1] = position->vy;
     BLOOD_POOL_MODEL_->locate.coord.t[2] = position->vz;
 
-    scaled = human->chase[0] * -height;
-    if (scaled < 0)
-    {
-        scaled += 0x3ff;
-    }
+    scaled = human->chase[0] * -height / 1024;
     scale.vx = scale.vy = scale.vz =
-        (scaled >> 10) - (human->map.height >> 1);
+        scaled - (human->map.height >> 1);
 
     if (human->map.angleH != 0)
     {
