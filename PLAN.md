@@ -565,6 +565,16 @@ class is either fixed repo-wide or adjudicated in place with a
 measurement. Future passes should target NEW code as it gets matched,
 not re-sweep the existing corpus.
 
+GLOSS-COVERAGE PASS (parked): ~40 large files carry matching notes but
+no behavior gloss (what the function does) -- e.g. StageEndScreen,
+ControlHumanoid, SetBleeds/SetBleedsDir, ProcItemNingyo/Nemuri/Jirai,
+SetupTelop, briefing_screen_, mission_score_screen, ActJUMP,
+AttackShort, think_alarm_reaction_. DrawConstruction and
+DefaultActionHumanoid got theirs 2026-08-29. Write the rest via
+careful per-file reads (agent-assisted, then doc-accuracy-verify;
+wrong glosses are worse than none -- always cross-check addresses
+against config/symbols.main.exe.txt).
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
