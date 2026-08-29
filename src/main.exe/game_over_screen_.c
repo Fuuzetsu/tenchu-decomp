@@ -4,6 +4,39 @@
 #include <psxsdk/libgpu.h>
 #include "images.h"
 
+/* Fade one caption line in: from its start frame, ramp the sprite's
+ * flat colour up to 0x80 and sort it. Pasted per line in retail; macro
+ * is reconstruction shorthand (expands to the identical text). */
+#define FADE_IN_LINE(spr, at)                                                 \
+    if (GameClock >= at)                                                      \
+    {                                                                         \
+        increment = spr.b + 1;                                                \
+        color = -0x80;                                                        \
+        if (increment < 0x80)                                                 \
+        {                                                                     \
+            color = increment;                                                \
+        }                                                                     \
+        spr.r = spr.g = spr.b = color;                                        \
+        GsSortSprite(&spr, OTablePt, 0x50);                                   \
+    }
+
+/* Pull line N from the fade archive and centre it as an additive
+ * sprite at height y. Two of retail's three copies share this exact
+ * text (the first writes x before y and stays open-coded). */
+#define INIT_ARCHIVE_LINE(spr, idx, y0)                                       \
+    tim = get_tim_from_archive(fade_archive, idx);                            \
+    StartDemoInitSprite(tim, &image, &spr);                                   \
+    spr.y = y0;                                                               \
+    spr.x = 0;                                                                \
+    spr.r = 0;                                                                \
+    spr.g = 0;                                                                \
+    spr.b = 0;                                                                \
+    spr.attribute |= SPR_TRANS_ADD;                                           \
+    spr.mx = spr.w >> 1;                                                      \
+    spr.my = spr.h >> 1;                                                      \
+    LoadTIM(tim);
+
+
 /*
  * game_over_screen_ (0x80055d64) — the mission-failed screen (invented
  * name; a prior guess called it start_demo_): loads the localized gov_*
@@ -177,29 +210,9 @@ void game_over_screen_(void)
     archive_line_1.my = archive_line_1.h >> 1;
     LoadTIM(tim);
 
-    tim = get_tim_from_archive(fade_archive, 2);
-    StartDemoInitSprite(tim, &image, &archive_line_2);
-    archive_line_2.y = 20;
-    archive_line_2.x = 0;
-    archive_line_2.r = 0;
-    archive_line_2.g = 0;
-    archive_line_2.b = 0;
-    archive_line_2.attribute |= SPR_TRANS_ADD;
-    archive_line_2.mx = archive_line_2.w >> 1;
-    archive_line_2.my = archive_line_2.h >> 1;
-    LoadTIM(tim);
+    INIT_ARCHIVE_LINE(archive_line_2, 2, 20);
 
-    tim = get_tim_from_archive(fade_archive, 3);
-    StartDemoInitSprite(tim, &image, &archive_line_3);
-    archive_line_3.y = 40;
-    archive_line_3.x = 0;
-    archive_line_3.r = 0;
-    archive_line_3.g = 0;
-    archive_line_3.b = 0;
-    archive_line_3.attribute |= SPR_TRANS_ADD;
-    archive_line_3.mx = archive_line_3.w >> 1;
-    archive_line_3.my = archive_line_3.h >> 1;
-    LoadTIM(tim);
+    INIT_ARCHIVE_LINE(archive_line_3, 3, 40);
 
     DrawSync(0);
     VSync(0);
@@ -266,39 +279,9 @@ void game_over_screen_(void)
                 gov_title.r = gov_title.g = gov_title.b = title_brightness;
                 GsSortSprite(&gov_title, OTablePt, 0xa);
             }
-            if (GameClock >= 0x119)
-            {
-                increment = archive_line_1.b + 1;
-                color = -0x80;
-                if (increment < 0x80)
-                {
-                    color = increment;
-                }
-                archive_line_1.r = archive_line_1.g = archive_line_1.b = color;
-                GsSortSprite(&archive_line_1, OTablePt, 0x50);
-            }
-            if (GameClock >= 0x15f)
-            {
-                increment = archive_line_2.b + 1;
-                color = -0x80;
-                if (increment < 0x80)
-                {
-                    color = increment;
-                }
-                archive_line_2.r = archive_line_2.g = archive_line_2.b = color;
-                GsSortSprite(&archive_line_2, OTablePt, 0x50);
-            }
-            if (GameClock >= 0x1a5)
-            {
-                increment = archive_line_3.b + 1;
-                color = -0x80;
-                if (increment < 0x80)
-                {
-                    color = increment;
-                }
-                archive_line_3.r = archive_line_3.g = archive_line_3.b = color;
-                GsSortSprite(&archive_line_3, OTablePt, 0x50);
-            }
+            FADE_IN_LINE(archive_line_1, 0x119)
+            FADE_IN_LINE(archive_line_2, 0x15f)
+            FADE_IN_LINE(archive_line_3, 0x1a5)
             if (GameClock < 0x23b)
             {
                 break;
