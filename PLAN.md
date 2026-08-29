@@ -369,9 +369,11 @@ CdlMode/SS_SERIAL constants, SPR_TRANS_ADD/SUB blends, TMD_BANK_
 PLAIN/FOG renderer banks, pad.data holds, think mixes, CMODE_AIM.
 Measured-and-documented: Humanoid.attribute's s16-with-u16-views mix
 is retail's own per-site choice (the u16 flip changes plain lh sites).
-Deliberately left: motion ids as hex (original style), SE ids (no
-evidence), tuning numbers, per-proc mode counters, ACM base-material
-bits 1/2 and the reader-less 0x200/0x2000.
+Deliberately left: SE ids (no
+evidence), per-proc mode counters, ACM base-material
+bits 1/2 and the reader-less 0x200/0x2000. (Motion ids were later
+named on owner request — see MOTION-ID NAMING below; tuning numbers
+became tuning.h knobs in loop 10.)
 
 HUMANISING LOOP 4 (2026-08-28, self-directed): the CVA script grammar
 (CVA_CMD_SEQUENCE header rows carrying the CD track, CVA_CMD_WAIT
@@ -595,6 +597,21 @@ DefaultActionHumanoid got theirs 2026-08-29. Write the rest via
 careful per-file reads (agent-assisted, then doc-accuracy-verify;
 wrong glosses are worse than none -- always cross-check addresses
 against config/symbols.main.exe.txt).
+
+MOTION-ID NAMING (2026-08-29, owner request "sounds like we should
+have names for all these motiod IDs"): COMPLETE. Census found 119
+distinct ids; three evidence agents produced per-id naming tables
+(setter + handler arm for every entry); ~100 invented names landed in
+game_types.h's specific-motion enum (marked invented — none are in the
+demo symbols), and a context-filtered sweep converted every literal
+site across 56 files (assignments, comparisons, case labels,
+SetNowMotion/UpdateMotion args), all matchdiff-gated. Family-root
+dispatch labels use the existing MOT_* family names; DamageControl's
+one-past-end `< 0x71a` respelled as `<= MOT_ATTACK_STEALTH_SIDE_AYAME`
+(slti-identical); AttackControl's myid/emid stealth pairing named and
+its shared `+= 3` documented the Ayame dead variants 0x110C-0x110E.
+Unidentified ids stay hex on purpose: 0x103, 0x502, 0x802 (case labels
+whose arms gave no semantic evidence). Commits ab6da043 + 6fe505a0.
 
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
