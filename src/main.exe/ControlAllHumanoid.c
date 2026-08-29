@@ -25,7 +25,7 @@
  * whose attribute bit 0x80 is clear — bracketing the call with
  * swap_balma_area_map_() (the area-map cursor save/restore
  * helper, HUMAN.C's own name for FUN_8001aba0, called TWICE) when
- * human->type == BALMA (BALMA).
+ * human->type == BALMA (0x85).
  *
  * `*(u16 *)&human->attribute` forces the `lhu` this TU's access uses against
  * item.h's proven-signed `s16 attribute` (same per-TU load-width divergence

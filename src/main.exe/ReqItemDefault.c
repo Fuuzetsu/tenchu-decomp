@@ -34,7 +34,7 @@
 /*
  * ReqItemDefault (0x800475f4) — spawn an item thrown/placed in front of a
  * Humanoid (called from the ActXXX/DamageControl/ItemUse family). Builds a
- * PARAM_ITEM_LAUNCH: start = user's model position (y raised by 0x4B0), end =
+ * PARAM_ITEM_LAUNCH: start = user's model position (y raised by THROW_HEIGHT), end =
  * start + a rotated toss vector (the fixed vec_z_n100 vector rotated by
  * either the current view direction, when the camera is looking through
  * this user in CMODE_DIRECTION, or the user's own model rotation otherwise).
@@ -86,6 +86,8 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     pm = param.user->model;
     if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)
     {
+        /* GsRVIEW2 opens with the vp and vr triples laid out as two
+         * consecutive VECTOR-shaped blocks — the casts pick them out. */
         GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
         rz = 0;
     }

@@ -104,6 +104,10 @@
 #define WIRE_SEG_LEN 300 /* world units per drawn segment */
 #define WIRE_SAG_DIV 32  /* midpoint sags by length / this */
 
+/* Terrain: a forward drop steeper than this cancels crouch-walk /
+ * default action stepping. */
+#define STEP_DROP_LIMIT (-450)
+
 /* Loadout: how many item stacks fit in the mission inventory. */
 #define MAX_SELECTED_ITEMS 6
 

@@ -29,8 +29,7 @@
  * slot 0 and blocks on MemCardSync until it reports a result, returning that
  * result truncated to a short. `cmd` is MemCardSync's command out-param, which
  * this caller ignores; `result` is seeded with MemCardAccept's return and then
- * overwritten in place by MemCardSync, which is why both share one stack slot
- * in source. FormatCard.c is the same function over MemCardFormat.
+ * overwritten in place by MemCardSync, so the seed value is never read. FormatCard.c is the same function over MemCardFormat.
  */
 
 extern s32 MemCardAccept(s32 chan);

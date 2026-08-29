@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "padcmd.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -246,7 +247,7 @@ void ActSQUAT(void)
                             dtL->vx + dtV->vx * 4,
                             dtL->vy,
                             dtL->vz + dtV->vz * 4,
-                            3) < -450)
+                            3) < STEP_DROP_LIMIT)
         {
             dtL->vx -= dtV->vx;
             dtL->vz -= dtV->vz;
@@ -276,19 +277,19 @@ void ActSQUAT(void)
     {
         switch (dtCMD)
         {
-        case 0x11:
+        case CMD_ROLL_FORWARD:
             motID = MOT_SQUAT_ROLL_F;
             motMODE = 1;
             break;
-        case 0x12:
+        case CMD_ROLL_BACKWARD:
             motID = MOT_SQUAT_ROLL_B;
             motMODE = 1;
             break;
-        case 0x13:
+        case CMD_ROLL_LEFT:
             motID = MOT_SQUAT_ROLL_L;
             motMODE = 1;
             break;
-        case 0x14:
+        case CMD_ROLL_RIGHT:
             motID = MOT_SQUAT_ROLL_R;
             motMODE = 1;
             break;

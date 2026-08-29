@@ -16,15 +16,15 @@
 /*
  * vgetfreesize (0x80016ce8, 0x44 bytes) — same TU as vinit.c
  * (virtual_memory_pool/valloc/vfree/vgetmaxsize/vgetfreesize/vcalloc all
- * cluster together): sums the `size` (word count) of every FREE block (top
- * bit clear — the in-use flag from vinit.c) in the pool's singly-linked free
- * list, returning the total in BYTES (word count << 2).
+ * cluster together): sums the `size` (word count) of every block in the
+ * pool's singly-linked block list whose in-use bit (top bit, from
+ * vinit.c) is clear, returning the total in BYTES (word count << 2).
  */
 
 unsigned long vgetfreesize(void)
 {
     struct VMhead *p;
-    s32 sum;
+    u32 sum;
 
     sum = 0;
     for (p = (struct VMhead *)virtual_memory_pool; p != 0; p = p->next)

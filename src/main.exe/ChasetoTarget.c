@@ -37,32 +37,31 @@
 /*
  * Think helper: steer toward the target through a persistent random flank
  * offset (chase[0]/chase[1], re-rolled at `length` radius when cleared or
- * when the retreat bits are up), returning turn_towards_player_'s command,
+ * when the hit/push contact bits are up), returning turn_towards_player_'s command,
  * or 0 when there is no target, the offset point is nearly reached, the
- * hold bit is set, or the target is already close.
+ * wall-contact bit is set, or the target is already close.
  */
 extern int rand(void);
 
 short ChasetoTarget(long length)
 {
     Humanoid *me;
-    long target_x, target_z;
     long xx, zz;
     long *chase;
     long vx, vz;
     short deg;
 
     me = Me_THINK_C;
+    /* chase is formed before the target guard: byte-required (the addiu
+     * fills the branch's delay slot; measured). */
     chase = &me->chase[0];
     if (me->target == 0)
     {
         return 0;
     }
 
-    target_x = me->target->locate.coord.t[0];
-    xx = target_x + me->chase[0] - me->locate->vx;
-    target_z = me->target->locate.coord.t[2];
-    zz = target_z + chase[1] - me->locate->vz;
+    xx = me->target->locate.coord.t[0] + me->chase[0] - me->locate->vx;
+    zz = me->target->locate.coord.t[2] + chase[1] - me->locate->vz;
 
     if (((xx >= 0 ? xx : -xx) < 500 &&
          (zz >= 0 ? zz : -zz) < 500) ||

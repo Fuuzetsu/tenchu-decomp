@@ -20,7 +20,7 @@
  * each of the 30 slots with proc != 0, run its proc with mode set to
  * ITEM_MODE_DISPOSE, delete the conflict, complain if mode didn't clear,
  * then clear owner/proc — the
- * identical dispose sequence as ReqItemDrop/ProcItemManebue/GetFreeItemSlot.
+ * identical dispose sequence as ProcItemLaunch/ProcItemManebue/GetFreeItemSlot.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - A hand-rolled `label: ...; goto label;` loop, NOT a `for`/`while`: the
@@ -43,22 +43,12 @@ void ClearItemLayout(void)
     it = items;
 loop:
     if (i >= MAX_ITEMS)
-        goto end;
+        return;
     if (it->proc != 0)
     {
-        it->mode = ITEM_MODE_DISPOSE;
-        it->proc(it);
-        DeleteConflict(it->locate);
-        if (it->mode != 0)
-        {
-            AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
-        }
-        it->owner = 0;
-        it->proc = 0;
+        DISPOSE_ITEM(it);
     }
     it++;
     i++;
     goto loop;
-end:
-    return;
 }

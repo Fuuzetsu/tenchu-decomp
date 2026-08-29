@@ -61,7 +61,10 @@ void ActCHASE(void)
     {
     case MOT_CHASE:
     {
-        if (dtM->count == 0 || dtM->count == dtM->motion->time / 2)
+        if (dtM->count == 0 || dtM->count ==
+                dtM->motion->time / 2 /* /2 (not >>1): the signed-division
+                                         correction is in the bytes here,
+                                         unlike ActSQUAT's site; measured */)
         {
             short sound;
 
@@ -96,7 +99,7 @@ void ActCHASE(void)
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
                 motMODE = -1;
             motion_ready:
-                MoveHumanoid(Me_MOTION_C, 0x23, 0);
+                MoveHumanoid(Me_MOTION_C, 35, 0);
                 if (dtM->mode & 1)
                 {
                     dtM->mode &= 0xfffe;
@@ -133,6 +136,9 @@ void ActCHASE(void)
                 MotionDataType *motion;
                 SVECTOR *rotation;
 
+                /* Staged read-modify-write (rotation/current/result):
+                 * byte-required, same measured lever as ActSQUAT's
+                 * identical block. */
                 rotation = dtR;
                 current = rotation->vy;
                 if (dtPAD & PADLright)
@@ -278,15 +284,15 @@ void ActCHASE(void)
             motID = MOT_ITEM;
             break;
         case ITEM_SMOKE:
-            motID = MOT_ITEM + 2;
+            motID = MOT_ITEM_THROW;
             break;
         case ITEM_FIRE:
-            motID = MOT_ITEM + 2;
+            motID = MOT_ITEM_THROW;
             break;
         case ITEM_JIRAI:
-            motID = MOT_ITEM + 3;
+            motID = MOT_ITEM_PLANT;
             break;
-        case -1:
+        case ITEM_NONE:
         case ITEM_KAWARIMI:
             goto item_sound;
         default:

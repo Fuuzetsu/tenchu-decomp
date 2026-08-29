@@ -5,11 +5,11 @@
 /*
  * AfsFindFile (0x8005eb84, 0x230 bytes) normalizes an AFS path, resolves each
  * directory component to its numeric entry prefix, then returns the matching
- * file-table element.  The two 200-byte arrays account for the target's exact
- * 0x194-byte working stack window.
+ * file-table element.  The two 200-byte arrays account for the target's
+ * vars= 400 (0x190) local window.
  *
- * The demo body calls AfsFilenameFix and subAfsFindFile, while retail contains
- * their instruction bodies twice in-line.  Keeping local inline definitions
+ * The demo body calls AfsFilenameFix and subAfsFindFile, while retail inlines
+ * AfsFilenameFix once and subAfsFindFile twice.  Keeping local inline definitions
  * recovers those return islands and the byte-offset/index pair used by each
  * table scan.  The outer scan must remain a real while loop whose first body
  * statement derives cursorPath in two steps.  cc1 then duplicates the loop
@@ -49,7 +49,7 @@ static __inline__ u32 subAfsFindFileInline(TAFS *handle, char *name, u32 mask)
     {
         do
         {
-            if (strncmp(name, (char *)handle->pElement[i].name, 20) == 0 &&
+            if (strncmp(name, (char *)handle->pElement[i].name, 0x14) == 0 &&
                 (mask & handle->pElement[i].flag) != 0)
             {
                 return i;
@@ -82,6 +82,9 @@ TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
         {
             *cursorPath = 0;
             entryIndex = subAfsFindFileInline(handle, buffer, AfsFlag_Folder);
+            /* The loop's failure exit jumps into the tail test's return:
+             * byte-required (a local return 0 duplicates the island;
+             * measured). */
             if (entryIndex < 0)
             {
                 goto not_found;

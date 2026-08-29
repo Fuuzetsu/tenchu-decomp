@@ -133,9 +133,9 @@ typedef struct Humanoid
                                  point[1]=z via `sw s4,0x7C(s0)`; matches
                                  Ghidra's own independently-built Humanoid's
                                  `long point[2]` at this offset) */
-    s32 chase[2];             /* 0x80 (Ghidra's own independently-built
-                                 Humanoid; untouched by any matched
-                                 function yet) */
+    s32 chase[2];             /* 0x80: AI scratch — the chase/flank point
+                                 (ChasetoTarget, Think*chase), reused as
+                                 the blood-pool timer and death spot */
     u8 actmode;               /* 0x88 */
     u8 actflg;                /* 0x89 */
     u8 actcnt;                /* 0x8A */

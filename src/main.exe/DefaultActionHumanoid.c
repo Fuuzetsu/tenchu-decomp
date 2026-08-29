@@ -246,7 +246,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
         attribute = human->attribute;
         human->attribute = attribute | ATTR_WALLANGLE;
-        if (map->height < -450)
+        if (map->height < STEP_DROP_LIMIT)
         {
             human->attribute = attribute | ATTR_WALLANGLE | ATTR_LEDGE;
             locate->vy = map->level;
