@@ -280,7 +280,7 @@ void ProcItemJirai(TItem *item)
 
         count = param->count - 1;
         param->count = count;
-        if ((u8)count != ITEM_INFINITE)
+        if ((u8)count != 0xff)
         {
             return;
         }

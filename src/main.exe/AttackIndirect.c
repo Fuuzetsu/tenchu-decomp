@@ -143,7 +143,7 @@ short AttackIndirect(void)
             goto close_not_aimed;
         }
 
-        pad = turn_towards_player_(0, 0) & ~0x5fff;
+        pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
         if ((u32)(Distance - 1000) > 2000)
         {
             pad |= PADLdown;

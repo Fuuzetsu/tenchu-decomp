@@ -96,7 +96,7 @@ void InitMisc(void)
         s32 iDoor2;
         ModelType *data;
 
-        for (i = 0; i < 0xB; i++)
+        for (i = 0; i < 11; i++)
         {
             iDoor1 = (s32)DoorData[i].Model[0];
             iDoor2 = (s32)DoorData[i].Model[1];

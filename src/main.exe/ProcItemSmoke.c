@@ -40,7 +40,7 @@
  *    blocks local-alloc's optimize_reg_copy_1 from propagating the copy into
  *    the store (its scan stops at NOTE_INSN_LOOP_BEG); sched1 otherwise
  *    hoists the copy (REG_DEAD rank boost) and lreg rewrites the store.
- *  - `i = 0x10;` is pre-assigned BEFORE the ActionHalt guard (the cookbook
+ *  - `i = STAT_DAMAGE;` is pre-assigned BEFORE the ActionHalt guard (the cookbook
  *    pre-assign lever), reusing the dead loop counter: its li lands in the
  *    guard's delay slot and rides $s1 across the two calls to the sh.
  *  - `extern SVECTOR svec_y_n250[]` (unknown size!) + `svec_y_n250[0]`: an

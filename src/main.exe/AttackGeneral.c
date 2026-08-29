@@ -176,6 +176,8 @@ short AttackGeneral(void)
             goto return_pad;
         }
         raw_degree = Degree;
+        /* The lone ternary abs (vs this file's five if-negate abs) is
+         * measured byte-required. */
         motion_degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
         if (motion_degree < 1000)
         {
