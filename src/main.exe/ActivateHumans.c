@@ -91,7 +91,6 @@ void ActivateHumans(void)
     VECTOR work;
     s32 active;
     s32 final;
-    s32 initial_active;
     s32 computed_active;
     s32 distance;
     s32 activate_distance;
@@ -173,10 +172,9 @@ void ActivateHumans(void)
         {
             goto set_active;
         }
-        initial_active = 1;
         if (human->type == NINKEN || human->life < 0)
         {
-            active = initial_active;
+            active = 1;
             goto active_done;
         }
         if (GameClock == 30 || StageID == STAGE_CURE_PRINCESS)

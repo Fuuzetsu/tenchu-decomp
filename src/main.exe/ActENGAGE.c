@@ -47,7 +47,6 @@ extern void AttackControl(void);
 
 void ActENGAGE(void)
 {
-    short one;
     short motion_id;
     short mask;
     int random;
@@ -84,7 +83,7 @@ void ActENGAGE(void)
         if (dtM->count != 0)
             goto engage_case_post;
         random = rand();
-        if (random != (random / 20) * 20)
+        if (random % 20 != 0)
             goto engage_case_post;
         motID = 0x713;
         motMODE = 1;
@@ -108,25 +107,23 @@ void ActENGAGE(void)
 
     case 0x504:
         dtR->vy = dtR->vy + Me_MOTION_C->turn;
-        one = 1;
-        if (dtM->count == one)
+        if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
         if ((dtPAD & PADLright) == 0)
         {
             motID = 0x501;
-            motMODE = one;
+            motMODE = 1;
         }
         break;
 
     case 0x505:
         dtR->vy = dtR->vy - Me_MOTION_C->turn;
-        one = 1;
-        if (dtM->count == one)
+        if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
         if ((dtPAD & PADLleft) == 0)
         {
             motID = 0x501;
-            motMODE = one;
+            motMODE = 1;
         }
         break;
 

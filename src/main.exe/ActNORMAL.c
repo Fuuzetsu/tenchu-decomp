@@ -110,8 +110,7 @@ void ActNORMAL(void)
     case 2:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
-        rotation_value = dtPAD & PADLleft;
-        if (rotation_value == 0)
+        if ((dtPAD & PADLleft) == 0)
         {
             motID = 0;
             motMODE = 1;
@@ -157,7 +156,7 @@ void ActNORMAL(void)
 
     command_1:
         motID = 0x202;
-        motMODE = command;
+        motMODE = 1;
         return;
 
     command_2:

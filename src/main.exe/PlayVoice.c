@@ -316,7 +316,7 @@ found:
     }
 
     volume = gSELevel;
-    if (volume > 0x7e)
+    if (volume >= 0x7f)
         volume = 0x7f;
     SsSetMVol(0x7f, 0x7f);
     set_cda_volume_(volume, volume);

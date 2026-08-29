@@ -79,7 +79,7 @@ long GetTargetDistance(Humanoid *human, short *deg)
     angle = ratan2(-dx, -dz);
     diff = angle - vy;
     deg2 = (s16)diff;
-    if (deg2 >= 0x801)
+    if (deg2 > 0x800)
     {
         deg2 = 0x1000 - deg2;
     }

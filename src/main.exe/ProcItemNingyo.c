@@ -423,7 +423,7 @@ void ProcItemNingyo(TItem *item)
                 xbase = vx >> 3;
                 xrem = random_x % 20;
                 vy = 0;
-                if (ConflictDistance.vy > -501)
+                if (ConflictDistance.vy >= -500)
                 {
                     vy = -R;
                 }

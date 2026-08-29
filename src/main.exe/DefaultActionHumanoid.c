@@ -149,7 +149,7 @@ short DefaultActionHumanoid(Humanoid *human)
             {
                 abs_x = -abs_x;
             }
-            if (abs_x >= 0x51)
+            if (abs_x > 0x50)
             {
                 goto use_conflict_position;
             }
@@ -158,7 +158,7 @@ short DefaultActionHumanoid(Humanoid *human)
             {
                 abs_z = -abs_z;
             }
-            if (abs_z < 0x51)
+            if (abs_z <= 0x50)
             {
                 goto probe_map;
             }

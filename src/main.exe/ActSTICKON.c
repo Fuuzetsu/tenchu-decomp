@@ -293,6 +293,8 @@ void ActSTICKON(void)
             }
 
             selected_item = SelectedItem;
+            /* Second name for selected_item: byte-required (removal
+             * re-colors the pair; measured). */
             high_item = selected_item;
             StickonItem = selected_item;
             if (selected_item < 6)

@@ -121,7 +121,7 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
     }
     slab = lenA * lenB;
 
-    if (theta > 0x7FFFE)
+    if (theta >= 0x7FFFF)
     {
         t = theta;
         if (theta < 0)

@@ -62,7 +62,7 @@ s16 GetDirection(s32 dx, s32 dz, s32 roty)
     diff = ratan2(-dx, -dz) - roty;
     sdiff = diff;
     result = diff;
-    if (sdiff >= 0x801)
+    if (sdiff > 0x800)
     {
         result = 0x1000 - diff;
     }
