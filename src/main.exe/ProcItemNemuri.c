@@ -98,13 +98,13 @@ void ProcItemNemuri(TItem *item)
     switch (item->mode)
     {
     case 0:
-        SetNowMotion(item->owner, 0xf02, 1);
+        SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
         SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x26);
         item->mode++;
         return;
 
     case 1:
-        if (item->owner->motion->mid == 0xf02)
+        if (item->owner->motion->mid == MOT_ITEM_THROW)
         {
             if (item->owner->motion->count != 3)
             {
@@ -238,11 +238,11 @@ void ProcItemNemuri(TItem *item)
                     if ((human->type & PAGE_MASK) != PAGE_BOSS && life != dead)
                     {
                         EquipWeapon(human, 0);
-                        SetNowMotion(human, 0x80f, 1);
+                        SetNowMotion(human, MOT_STATE_SHEATHE, 1);
                         human->think[0] = Think1sleep;
                         human->attribute &= ~ATTR_PHASE;
                     }
-                    SetNowMotion(human, 0x100, 1);
+                    SetNowMotion(human, MOT_ACTION, 1);
                     Sound(human, 6);
                 }
 

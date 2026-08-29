@@ -263,8 +263,8 @@ void StateTransition(Humanoid *human)
                 Humanoid *me;
                 s32 life;
 
-                SetNowMotion(Me_THINK_C, 0x80e, 1);
-                if (SetNowMotion(Me_THINK_C, 0x106, 1) == 0)
+                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
+                if (SetNowMotion(Me_THINK_C, MOT_ACTION_NOTICE, 1) == 0)
                 {
                     Sound(Me_THINK_C, 0xd);
                 }
@@ -299,7 +299,7 @@ void StateTransition(Humanoid *human)
             {
                 if (EmergencyNotice != 0)
                 {
-                    SetNowMotion(Me_THINK_C, 0x80e, 1);
+                    SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
                     Me_THINK_C->chase[1] = 0;
                     Me_THINK_C->chase[0] = 0;
                 }
@@ -339,7 +339,7 @@ void StateTransition(Humanoid *human)
             Attrib = atr0 | PHASE_ALERT;
             if ((ATTRIB_BITS & ATTR_ALERT) == 0)
             {
-                SetNowMotion(Me_THINK_C, 0x80e, 1);
+                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
             }
             Me_THINK_C->chase[1] = 0;
             Me_THINK_C->chase[0] = 0;
@@ -364,7 +364,7 @@ void StateTransition(Humanoid *human)
         {
             if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS)
             {
-                SetNowMotion(Me_THINK_C, 0x80f, 1);
+                SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
             }
             Attrib = atr0;
         }
@@ -399,7 +399,7 @@ void StateTransition(Humanoid *human)
         {
             if ((ATTRIB_BITS & ATTR_ALERT) == 0)
             {
-                SetNowMotion(Me_THINK_C, 0x80e, 1);
+                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
             }
             pad = Think3firstattack();
         }
@@ -412,7 +412,7 @@ void StateTransition(Humanoid *human)
             s32 me_y;
             s32 target_y;
 
-            if (StagePlayer->motion->mid == 0x1009)
+            if (StagePlayer->motion->mid == MOT_DAMAGE_DOWNED)
             {
                 goto mask_attack;
             }
@@ -471,7 +471,7 @@ void StateTransition(Humanoid *human)
             {
                 pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
             }
-            if (StagePlayer->motion->mid == 0xe01 &&
+            if (StagePlayer->motion->mid == MOT_SYURI_RECOVER &&
                 (rand() % (EngageLevel + 1) == 0 ||
                  (Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS))
             {

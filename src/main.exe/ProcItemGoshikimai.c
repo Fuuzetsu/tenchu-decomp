@@ -93,7 +93,7 @@ void ProcItemGoshikimai(TItem *item)
         if (ActionHalt == 0 && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, 3);
-            UpdateMotion(human->motion, 0xf03);
+            UpdateMotion(human->motion, MOT_ITEM_PLANT);
             human->status = STAT_STATE;
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
@@ -103,7 +103,7 @@ void ProcItemGoshikimai(TItem *item)
 
     case 1:
         mot = item->owner->motion;
-        if (mot->mid != 0xf03)
+        if (mot->mid != MOT_ITEM_PLANT)
         {
             item->mode = 0;
             return;

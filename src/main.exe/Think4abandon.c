@@ -155,14 +155,14 @@ s16 Think4abandon(void)
             /* Target lost: stand down (0x80f sheathes and returns to
              * idle — ActSTATE) with the give-up voice line. */
             Attrib = cleared;
-            SetNowMotion(Me_THINK_C, 0x80F, 1);
+            SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
             Sound(Me_THINK_C, 0xE);
             return 0;
 
         sr_eq_2:
             /* Only a glimpse: drop to suspicious and stand down. */
             Attrib = cleared | PHASE_SUSPICIOUS;
-            SetNowMotion(Me_THINK_C, 0x80F, 1);
+            SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
             return 0;
 
         sr_eq_1:

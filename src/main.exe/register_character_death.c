@@ -73,7 +73,7 @@ void register_character_death(Humanoid *dead)
                 {
                     RESET_ALERT_DURATION(alert_time);
                     Sound(human, 0xc);
-                    SetNowMotion(human, 0x80e, 1);
+                    SetNowMotion(human, MOT_STATE_DRAW, 1);
                     dead->attribute |= ATTR_SEARCH;
                     human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
                     human->chase[0] = dead->locate->vx;

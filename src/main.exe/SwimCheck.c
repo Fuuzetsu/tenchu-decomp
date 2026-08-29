@@ -81,7 +81,7 @@ short SwimCheck(void)
         }
         if (status == STAT_DEAD)
         {
-            if (motID == 0x1108)
+            if (motID == MOT_DEAD_DROWN)
             {
                 goto return_one;
             }
@@ -128,7 +128,7 @@ short SwimCheck(void)
         motion = GetMotionID(dtM, MOT_SWIM);
         if ((s16)motion < 0 || Me_MOTION_C->life == 0)
         {
-            motID = 0x1108;
+            motID = MOT_DEAD_DROWN;
             motMODE = 1;
             Sound(Me_MOTION_C, 8);
             Me_MOTION_C->life = 0;

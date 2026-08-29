@@ -252,7 +252,7 @@ low_type:
 equip:
     human->attribute = human->attribute | PHASE_ALERT;
     EquipWeapon(human, 1);
-    SetNowMotion(human, 0x501, 1);
+    SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
     goto done;
 high_type:
     human->attribute = human->attribute | ATTR_FLOAT;

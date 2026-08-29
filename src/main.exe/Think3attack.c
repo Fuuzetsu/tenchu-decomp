@@ -197,7 +197,7 @@ action_ready:
         rand() % 30 == 0 &&
         Me_THINK_C->status == STAT_ENGAGE)
     {
-        SetNowMotion(Me_THINK_C, 0x713, 1); /* taunt */
+        SetNowMotion(Me_THINK_C, MOT_ATTACK_TAUNT, 1); /* taunt */
     }
 
     return pad;

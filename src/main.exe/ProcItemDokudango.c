@@ -295,7 +295,7 @@ void ProcItemDokudango(TItem *item)
                 MotionDataType *motion;
 
                 dispose_weapon_data_of_char_(human, 3);
-                UpdateMotion(human->motion, 0xf01);
+                UpdateMotion(human->motion, MOT_ITEM_DRINK);
                 human->status = STAT_ITEM;
                 motion = human->motion->motion;
                 MoveHumanoid(human, motion->orderspd, motion->sidespd);
@@ -331,7 +331,7 @@ void ProcItemDokudango(TItem *item)
             }
             eater = param->eater;
             motion = eater->motion;
-            if (motion->mid != 0xf01)
+            if (motion->mid != MOT_ITEM_DRINK)
             {
                 VECTOR *tv;
                 s32 x;
@@ -434,7 +434,7 @@ void ProcItemDokudango(TItem *item)
                     MotionDataType *motion;
 
                     dispose_weapon_data_of_char_(human, 3);
-                    UpdateMotion(human->motion, 0x1000);
+                    UpdateMotion(human->motion, MOT_DAMAGE);
                     human->status = STAT_ITEM;
                     motion = human->motion->motion;
                     MoveHumanoid(human, motion->orderspd, motion->sidespd);
@@ -445,7 +445,7 @@ void ProcItemDokudango(TItem *item)
                 MotionDataType *motion;
 
                 dispose_weapon_data_of_char_(human, 3);
-                UpdateMotion(human->motion, 0x100b);
+                UpdateMotion(human->motion, MOT_DAMAGE_CHOKE);
                 human->status = STAT_ITEM;
                 motion = human->motion->motion;
                 MoveHumanoid(human, motion->orderspd, motion->sidespd);

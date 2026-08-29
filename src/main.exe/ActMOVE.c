@@ -38,7 +38,7 @@ void ActMOVE(void)
     mid = dtM->mid;
     switch (mid)
     {
-    case 0x200:
+    case MOT_MOVE:
         if (dtM->count == 1 ||
             dtM->count == dtM->motion->time / 2)
         {
@@ -85,7 +85,7 @@ void ActMOVE(void)
         }
         break;
 
-    case 0x201:
+    case MOT_MOVE_BACK:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -113,10 +113,10 @@ void ActMOVE(void)
         }
         break;
 
-    case 0x202:
-    case 0x203:
-    case 0x204:
-    case 0x205:
+    case MOT_MOVE_DASH_FWD:
+    case MOT_MOVE_DASH_BACK:
+    case MOT_MOVE_DASH_RIGHT:
+    case MOT_MOVE_DASH_LEFT:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x13);
@@ -188,7 +188,7 @@ void ActMOVE(void)
     }
     if (trig & PADRleft)
     {
-        motID = 0x80e;
+        motID = MOT_STATE_DRAW;
         motMODE = 1;
     }
 }

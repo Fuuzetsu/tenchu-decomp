@@ -44,19 +44,19 @@ void ActNORMAL(void)
         {
             if (dtPAD & PADLdown)
             {
-                motID = 0x102;
+                motID = MOT_ACTION_GESTURE;
                 motMODE = 1;
                 return;
             }
             if (dtPAD & PADLright)
             {
-                motID = 0x101;
+                motID = MOT_ACTION_LOOP;
                 motMODE = 1;
                 return;
             }
             if (dtPAD & PADLleft)
             {
-                motID = 0x106;
+                motID = MOT_ACTION_NOTICE;
                 motMODE = 1;
                 return;
             }
@@ -126,7 +126,7 @@ void ActNORMAL(void)
     }
     if (Me_MOTION_C->attribute & ATTR_ALERT)
     {
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
         return;
     }
@@ -155,17 +155,17 @@ void ActNORMAL(void)
         return;
 
     command_1:
-        motID = 0x202;
+        motID = MOT_MOVE_DASH_FWD;
         motMODE = 1;
         return;
 
     command_2:
-        motID = 0x203;
+        motID = MOT_MOVE_DASH_BACK;
         motMODE = 1;
         return;
 
     command_3:
-        motID = 0x205;
+        motID = MOT_MOVE_DASH_LEFT;
         motMODE = 1;
         return;
 
@@ -233,20 +233,20 @@ void ActNORMAL(void)
         }
         if (dtPAD & PADLdown)
         {
-            motID = 0x201;
+            motID = MOT_MOVE_BACK;
             motMODE = 1;
             return;
         }
         if (trig & PADRleft)
         {
-            motID = 0x80e;
+            motID = MOT_STATE_DRAW;
             motMODE = 1;
         }
         return;
     }
 
     command_4:
-        motID = 0x204;
+        motID = MOT_MOVE_DASH_RIGHT;
         motMODE = 1;
         return;
     }

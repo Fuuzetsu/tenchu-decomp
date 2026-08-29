@@ -53,29 +53,29 @@ void ActENGAGE(void)
 
     switch (dtM->mid)
     {
-    case 0x501:
+    case MOT_ENGAGE_STANCE:
     {
         if (dtPAD & PADLright)
         {
-            motID = 0x504;
+            motID = MOT_ENGAGE_TURN_R;
             motMODE = 0;
             goto engage_case_post;
         }
         if (dtPAD & PADLleft)
         {
-            motID = 0x505;
+            motID = MOT_ENGAGE_TURN_L;
             motMODE = 0;
             goto engage_case_post;
         }
         if (dtCMD == CMD_LUNGE_BACK)
         {
-            motID = 0x712;
+            motID = MOT_ATTACK_LUNGE_BACK;
             motMODE = 1;
             goto engage_case_post;
         }
         if (dtCMD == CMD_FLIP)
         {
-            motID = 0x907;
+            motID = MOT_JUMP_FLIP;
             motMODE = 0;
             MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
             goto engage_case_post;
@@ -85,49 +85,49 @@ void ActENGAGE(void)
         random = rand();
         if (random % 20 != 0)
             goto engage_case_post;
-        motID = 0x713;
+        motID = MOT_ATTACK_TAUNT;
         motMODE = 1;
     engage_case_post:
         if (ActionHalt == -1 && dtM->count == 0)
         {
-            motion_id = GetMotionID(dtM, 0x503);
+            motion_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
             if (motion_id < 0)
             {
-                motID = 0x80f;
+                motID = MOT_STATE_SHEATHE;
                 motMODE = 1;
             }
             else
             {
-                motID = 0x503;
+                motID = MOT_ENGAGE_SHEATHE;
                 motMODE = 1;
             }
         }
         break;
     }
 
-    case 0x504:
+    case MOT_ENGAGE_TURN_R:
         dtR->vy = dtR->vy + Me_MOTION_C->turn;
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
         if ((dtPAD & PADLright) == 0)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
         }
         break;
 
-    case 0x505:
+    case MOT_ENGAGE_TURN_L:
         dtR->vy = dtR->vy - Me_MOTION_C->turn;
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
         if ((dtPAD & PADLleft) == 0)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
         }
         break;
 
-    case 0x500:
+    case MOT_ENGAGE:
     {
         SVECTOR *velocity;
         MotionManager *motion;
@@ -162,7 +162,7 @@ void ActENGAGE(void)
             switch (dtPAD & PADLdown)
             {
             default:
-                motID = 0x602;
+                motID = MOT_CHASE_BACK;
                 motMODE = 1;
                 break;
             case 0:
@@ -170,7 +170,7 @@ void ActENGAGE(void)
                     SetCameraMode(CMODE_NORMAL);
                 if (Me_MOTION_C->attribute & ATTR_ALERT)
                 {
-                    motID = 0x501;
+                    motID = MOT_ENGAGE_STANCE;
                     motMODE = 1;
                 }
                 else
@@ -187,12 +187,12 @@ void ActENGAGE(void)
         return;
     }
 
-    case 0x503:
+    case MOT_ENGAGE_SHEATHE:
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)
             return;
-        motID = 0x80f;
+        motID = MOT_STATE_SHEATHE;
         motMODE = 1;
         return;
 
@@ -201,7 +201,7 @@ void ActENGAGE(void)
             return;
         if (dtM->loop == 0)
             return;
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
         return;
     }
@@ -217,23 +217,23 @@ void ActENGAGE(void)
         switch (dtCMD)
         {
         case CMD_DASH_FORWARD:
-            motID = 0x607;
+            motID = MOT_CHASE_DASH_FWD;
             motMODE = 1;
             return;
         case CMD_LUNGE:
-            motID = 0x70d;
+            motID = MOT_ATTACK_LUNGE;
             motMODE = 1;
             return;
         case CMD_DASH_BACKWARD:
-            motID = 0x604;
+            motID = MOT_CHASE_DASH_BACK;
             motMODE = 1;
             return;
         case CMD_DASH_RIGHT:
-            motID = 0x605;
+            motID = MOT_CHASE_DASH_RIGHT;
             motMODE = 1;
             return;
         case CMD_DASH_LEFT:
-            motID = 0x606;
+            motID = MOT_CHASE_DASH_LEFT;
             motMODE = 1;
             return;
         default:
@@ -292,7 +292,7 @@ void ActENGAGE(void)
             {
                 if (mask & PADRleft)
                 {
-                    motID = 0x70c;
+                    motID = MOT_ATTACK_CROUCH;
                     motMODE = 1;
                     return;
                 }
@@ -315,7 +315,7 @@ void ActENGAGE(void)
                 }
                 if ((dtPAD & PADLdown) == 0)
                     return;
-                motID = 0x602;
+                motID = MOT_CHASE_BACK;
                 motMODE = 1;
             }
         }

@@ -103,7 +103,7 @@ void ActSTICKON(void)
     model = Me_MOTION_C->model;
     switch (dtM->mid)
     {
-    case 0xc00:
+    case MOT_STICKON:
         if (dtM->count < 0)
         {
             MotionElementType *rotation;
@@ -175,19 +175,19 @@ void ActSTICKON(void)
             switch (dtCMD)
             {
             case 0x11:
-                motID = 0xB05;
+                motID = MOT_SQUAT_ROLL_F;
                 motMODE = 1;
                 break;
             case 0x12:
-                motID = 0xB06;
+                motID = MOT_SQUAT_ROLL_B;
                 motMODE = 1;
                 break;
             case 0x13:
-                motID = 0xB08;
+                motID = MOT_SQUAT_ROLL_L;
                 motMODE = 1;
                 break;
             case 0x14:
-                motID = 0xB07;
+                motID = MOT_SQUAT_ROLL_R;
                 motMODE = 1;
                 break;
             }
@@ -324,8 +324,8 @@ void ActSTICKON(void)
         }
         break;
 
-    case 0xc01:
-    case 0xc02:
+    case MOT_STICKON_SLIDE_L:
+    case MOT_STICKON_SLIDE_R:
     {
         u32 pad_bits;
         s32 pad;
@@ -336,19 +336,19 @@ void ActSTICKON(void)
             switch (dtCMD)
             {
             case 0x11:
-                motID = 0xB05;
+                motID = MOT_SQUAT_ROLL_F;
                 motMODE = 1;
                 break;
             case 0x12:
-                motID = 0xB06;
+                motID = MOT_SQUAT_ROLL_B;
                 motMODE = 1;
                 break;
             case 0x13:
-                motID = 0xB08;
+                motID = MOT_SQUAT_ROLL_L;
                 motMODE = 1;
                 break;
             case 0x14:
-                motID = 0xB07;
+                motID = MOT_SQUAT_ROLL_R;
                 motMODE = 1;
                 break;
             }
@@ -466,8 +466,8 @@ void ActSTICKON(void)
         break;
     }
 
-    case 0xc03:
-    case 0xc04:
+    case MOT_STICKON_THROW_L:
+    case MOT_STICKON_THROW_R:
     {
         VECTOR *position;
         short base_angle;
@@ -480,7 +480,7 @@ void ActSTICKON(void)
             return;
         }
 
-        pd = motID != 0xC03;
+        pd = motID != MOT_STICKON_THROW_L;
         base_angle = model->object[0]->rotate.vy + dtR->vy;
         base_angle_value = base_angle;
         angle = (pd ? base_angle_value - 0x400
@@ -562,7 +562,7 @@ void ActSTICKON(void)
         }
         if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
         }
         else

@@ -54,10 +54,10 @@ void ActSWIM(void)
     mid = dtM->mid;
     switch (mid)
     {
-    case 0x300:
+    case MOT_SWIM:
         if (SwimCheck() == 0)
         {
-            motID = 0x301;
+            motID = MOT_SWIM_EXIT;
             motMODE = 1;
             break;
         }
@@ -82,7 +82,7 @@ void ActSWIM(void)
         }
         if ((MOTION_PAD_BITS & (PADLdown | PADLup)) == 0)
             break;
-        motID = 0x302;
+        motID = MOT_SWIM_STROKE;
         motMODE = 0;
         speed = SWIM_SPEED;
         if (MOTION_PAD_BITS & PADLup)
@@ -101,7 +101,7 @@ void ActSWIM(void)
             break;
         }
 
-    case 0x302:
+    case MOT_SWIM_STROKE:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x15);
         if (MOTION_PAD_BITS & PADLup)
@@ -110,7 +110,7 @@ void ActSWIM(void)
 
             if (SwimCheck() == 0)
             {
-                motID = 0x301;
+                motID = MOT_SWIM_EXIT;
                 motMODE = 1;
                 break;
             }
@@ -180,7 +180,7 @@ void ActSWIM(void)
         motMODE = 1;
         break;
 
-    case 0x301:
+    case MOT_SWIM_EXIT:
         if (dtM->count == 1)
         {
             ModelArchiveType *model;
@@ -213,7 +213,7 @@ void ActSWIM(void)
                 SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = 0x501;
+                motID = MOT_ENGAGE_STANCE;
                 motMODE = 1;
                 return;
             }

@@ -92,7 +92,7 @@ void ProcItemKaengeki(TItem *item)
     mode_index = item->mode;
     if (mode_index == ff)
     {
-        if (item->owner->motion->mid == 0xf04)
+        if (item->owner->motion->mid == MOT_ITEM_KAENGEKI)
         {
             NowReturnNormal(item->owner);
         }
@@ -113,7 +113,7 @@ void ProcItemKaengeki(TItem *item)
             MotionDataType *motion;
 
             dispose_weapon_data_of_char_(human, 3);
-            UpdateMotion(human->motion, 0xf04);
+            UpdateMotion(human->motion, MOT_ITEM_KAENGEKI);
             human->status = STAT_ITEM;
             motion = human->motion->motion;
             MoveHumanoid(human, motion->orderspd, motion->sidespd);
@@ -134,7 +134,7 @@ void ProcItemKaengeki(TItem *item)
             item->mode++;
             param->count = KAENGEKI_DELAY;
         }
-        if (item->owner->motion->mid == 0xf04)
+        if (item->owner->motion->mid == MOT_ITEM_KAENGEKI)
         {
             return;
         }
@@ -174,7 +174,7 @@ void ProcItemKaengeki(TItem *item)
         ModelArchiveType *model;
         s32 rz;
 
-        if (item->owner->motion->mid != 0xf04)
+        if (item->owner->motion->mid != MOT_ITEM_KAENGEKI)
         {
             goto dispose;
         }

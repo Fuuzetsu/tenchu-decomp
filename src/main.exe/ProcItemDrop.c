@@ -147,14 +147,14 @@ void ProcItemDrop(TItem *item)
         human = (Humanoid *)ConflictObject[i].common;
         if (is_humanoid_on_stage_(human) == 0)
             return;
-        if (human->motion->mid == 0x810)
+        if (human->motion->mid == MOT_STATE_PICKUP)
             return;
         if ((human->status != STAT_CHASE) && (human->status != STAT_MOVE))
             return;
         if (ActionHalt == 0 && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, 3);
-            UpdateMotion(human->motion, 0x810);
+            UpdateMotion(human->motion, MOT_STATE_PICKUP);
             human->status = STAT_STATE;
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
@@ -165,7 +165,7 @@ void ProcItemDrop(TItem *item)
         return;
 
     case 2:
-        if (item->owner->motion->mid != 0x810)
+        if (item->owner->motion->mid != MOT_STATE_PICKUP)
         {
             x = rand();
             x = x % 200;

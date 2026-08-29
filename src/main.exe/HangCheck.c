@@ -169,7 +169,7 @@ short HangCheck(void)
     {
         return 0;
     }
-    if (Me_MOTION_C->map.height <= 0 || motID == 0x901 || Me_MOTION_C->itmctl == ITEM_HENSHIN)
+    if (Me_MOTION_C->map.height <= 0 || motID == MOT_JUMP_WALLKICK || Me_MOTION_C->itmctl == ITEM_HENSHIN)
     {
         return 0;
     }
@@ -237,7 +237,7 @@ short HangCheck(void)
         dtL->vz = dtL->vz + vect.vz;
         dtL->vy = dtL->vy - (105 - y);
     }
-    motID = 0xA01;
+    motID = MOT_HANG_CATCH;
     motMODE = 1;
     SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:

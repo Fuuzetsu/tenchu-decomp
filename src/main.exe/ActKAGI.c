@@ -85,7 +85,7 @@ void ActKAGI(void)
 
     switch (dtM->mid)
     {
-    case 0x400:
+    case MOT_KAGI:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             dtM->loop = -1;
@@ -109,7 +109,7 @@ void ActKAGI(void)
             u32 dx;
             u32 dz;
 
-            motID = 0x401;
+            motID = MOT_KAGI_FLY;
             locate = dtL;
             target = &CamState.TargetVector;
             dx = target->vx - locate->vx;
@@ -125,7 +125,7 @@ void ActKAGI(void)
                 }
                 if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
                 {
-                    motID = 0x501;
+                    motID = MOT_ENGAGE_STANCE;
                     motMODE = 1;
                 }
                 else
@@ -150,7 +150,7 @@ void ActKAGI(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = 0x501;
+                motID = MOT_ENGAGE_STANCE;
                 motMODE = 1;
             }
             else
@@ -189,7 +189,7 @@ void ActKAGI(void)
         }
         break;
 
-    case 0x401:
+    case MOT_KAGI_FLY:
     {
         MotionManager *mmp;
         Humanoid *human;
@@ -216,7 +216,7 @@ void ActKAGI(void)
             return;
         }
         human = Me_MOTION_C;
-        motID = 0x402;
+        motID = MOT_KAGI_PULL;
         mmp->mask = -2;
         attrib = *(u16 *)&human->map.attrib;
         motMODE = 1;
@@ -228,7 +228,7 @@ void ActKAGI(void)
         break;
     }
 
-    case 0x402:
+    case MOT_KAGI_PULL:
         SetCameraMode(CMODE_AIM);
         v.vx = CamState.TargetVector.vx - dtL->vx;
         v.vy = CamState.TargetVector.vy - dtL->vy;
@@ -273,7 +273,7 @@ void ActKAGI(void)
             }
             rotation->vy = quantized;
             adjust_root = human->model->object[0];
-            motID = 0x803;
+            motID = MOT_STATE_FALL;
             adjust_root->rotate.vy += old_ry - quantized;
             motMODE = 0;
             dtM->mask = 0x7fff;

@@ -128,7 +128,7 @@ void ActDEAD(void)
             motion->loop = 0;
             PlayMotion(motion, 1);
             dtM->loop = -1;
-            if (motID != 0x1108)
+            if (motID != MOT_DEAD_DROWN)
             {
                 *(u16 *)&Me_MOTION_C->attribute &= ~ATTR_SEARCH;
             }
@@ -148,7 +148,7 @@ void ActDEAD(void)
                 if ((*(u16 *)&Me_MOTION_C->type & PAGE_MASK) != PAGE_BOSS)
                     TurnAroundAllItems(Me_MOTION_C);
             }
-            if (dtM->mid < 0x1109)
+            if (dtM->mid < MOT_DEAD_STEALTH_BACK)
                 return;
             ActionHalt = 0;
             CamState.snap_pending = 1;
@@ -156,7 +156,7 @@ void ActDEAD(void)
         }
     }
 
-    if (dtM->mid > 0x1108 && dtL->vy != StagePlayer->locate->vy)
+    if (dtM->mid > MOT_DEAD_DROWN && dtL->vy != StagePlayer->locate->vy)
     {
         dtL->vy--;
         motID = MOT_DEAD;
@@ -178,9 +178,9 @@ void ActDEAD(void)
      * added the DeadEvents 0x1109..0x110e range and extended the demo's
      * test into this ladder by hand. */
     mid = dtM->mid;
-    if (mid == 0x1108)
+    if (mid == MOT_DEAD_DROWN)
         goto splash_dead;
-    if (mid < 0x1108)
+    if (mid < MOT_DEAD_DROWN)
         goto ordinary_dead;
     if (mid > 0x110e)
         goto ordinary_dead;
@@ -220,7 +220,7 @@ event_dead:
     int stop;
 
     motion = dtM;
-    pp = DeadEvents[motion->mid - 0x1109];
+    pp = DeadEvents[motion->mid - MOT_DEAD_STEALTH_BACK];
     i = 0;
     if (pp[i].action == DEADEV_END)
         goto event_ready;

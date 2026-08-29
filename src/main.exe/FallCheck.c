@@ -60,11 +60,11 @@ short FallCheck(void)
     VECTOR *locate;
     short i;
 
-    if (motID == 0x803)
+    if (motID == MOT_STATE_FALL)
     {
         return 1;
     }
-    if (motID != 0x70f)
+    if (motID != MOT_ATTACK_DIVE)
     {
         if (Me_MOTION_C->status == STAT_JUMP && Me_MOTION_C->map.height > 0)
         {
@@ -103,7 +103,7 @@ fall:
     locate->vx += (human->width * RefrectMove[human->map.angleH][0]) >> 2;
     locate->vz += (human->width * RefrectMove[human->map.angleH][1]) >> 2;
     motMODE = 0;
-    motID = 0x803;
+    motID = MOT_STATE_FALL;
     SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:
     if (Me_MOTION_C->status == STAT_SQUAT)

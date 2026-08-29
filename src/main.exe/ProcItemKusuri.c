@@ -121,7 +121,7 @@ void ProcItemKusuri(TItem *item)
             MotionDataType *md;
 
             dispose_weapon_data_of_char_(human, 3);
-            UpdateMotion(human->motion, 0xf01);
+            UpdateMotion(human->motion, MOT_ITEM_DRINK);
             human->status = STAT_ITEM;
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
@@ -147,7 +147,7 @@ void ProcItemKusuri(TItem *item)
         MotionManager *mot;
 
         mot = item->owner->motion;
-        if (mot->mid != 0xf01)
+        if (mot->mid != MOT_ITEM_DRINK)
         {
             /* animation interrupted: toss the item back out */
             VECTOR *pos;

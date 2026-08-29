@@ -102,7 +102,7 @@ void ActivateHumans(void)
     target = CamState.Owner;
     vc = *target->locate;
     activate_distance = ACTIVATE_RADIUS_WIDE;
-    if (StagePlayer->motion->mid != 0xf05)
+    if (StagePlayer->motion->mid != MOT_ITEM_SHINSOKU)
     {
         do
         {

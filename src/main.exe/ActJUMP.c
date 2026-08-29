@@ -61,7 +61,7 @@ void ActJUMP(void)
     long scaled;
     SVECTOR *velocity;
 
-    if ((Me_MOTION_C->pad.trig & PADRdown) != 0 && motID != 0x901)
+    if ((Me_MOTION_C->pad.trig & PADRdown) != 0 && motID != MOT_JUMP_WALLKICK)
     {
         GetAreaMapVector(GlobalAreaMap, &map, dtL,
                          Me_MOTION_C->width + 300, 0);
@@ -69,7 +69,7 @@ void ActJUMP(void)
         {
             return;
         }
-        if (UpdateMotion(dtM, 0x901) == 0)
+        if (UpdateMotion(dtM, MOT_JUMP_WALLKICK) == 0)
         {
             return;
         }
@@ -94,7 +94,7 @@ void ActJUMP(void)
         level = GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy, dtL->vz, 0);
         if (dtL->vy < level)
         {
-            motID = 0x803;
+            motID = MOT_STATE_FALL;
             motMODE = 0;
             if (MotionUpdateMode != 0)
             {
@@ -119,18 +119,18 @@ void ActJUMP(void)
             }
             return;
         }
-        if (motID == 0x907)
+        if (motID == MOT_JUMP_FLIP)
         {
             ModelType *object;
 
             dtR->vy += (*Me_MOTION_C->model->object)->rotate.vy;
             object = *Me_MOTION_C->model->object;
-            motID = 0x806;
+            motID = MOT_STATE_LAND_FLIP;
             motMODE = 1;
             object->rotate.vy = 0;
             return;
         }
-        motID = 0x804;
+        motID = MOT_STATE_LAND;
         motMODE = 0;
         return;
     }
@@ -139,7 +139,7 @@ void ActJUMP(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             old_mid = (u16)motID;
-            motID = 0x803;
+            motID = MOT_STATE_FALL;
             motMODE = 0;
             if (MotionUpdateMode != 0)
             {
@@ -156,9 +156,9 @@ void ActJUMP(void)
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;
         fall_motion_done:
-            if (old_mid != 0x906)
+            if (old_mid != MOT_JUMP_RUN)
             {
-                if (old_mid != 0x907)
+                if (old_mid != MOT_JUMP_FLIP)
                 {
                     return;
                 }
@@ -171,7 +171,7 @@ void ActJUMP(void)
 
         velocity = dtV;
         vertical = dtM->count - (dtM->motion->time >> 1);
-        if (motID == 0x906)
+        if (motID == MOT_JUMP_RUN)
         {
             scaled = vertical * 10;
         }
@@ -181,7 +181,7 @@ void ActJUMP(void)
         }
         velocity->vy = scaled;
 
-        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0 && motID != 0x906)
+        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0 && motID != MOT_JUMP_RUN)
         {
             pad = (u16)dtPAD;
             if ((pad & PADLup) != 0)
@@ -216,7 +216,7 @@ void ActJUMP(void)
         {
             return;
         }
-        if (motID == 0x907)
+        if (motID == MOT_JUMP_FLIP)
         {
             return;
         }
@@ -228,7 +228,7 @@ void ActJUMP(void)
         {
             return;
         }
-        motID = 0x70f;
+        motID = MOT_ATTACK_DIVE;
         motMODE = 0;
     }
 }

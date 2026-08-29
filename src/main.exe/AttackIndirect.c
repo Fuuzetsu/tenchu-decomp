@@ -154,7 +154,7 @@ short AttackIndirect(void)
         {
             degree = -degree;
         }
-        if (degree < 200 && Me_THINK_C->motion->mid == 0x501)
+        if (degree < 200 && Me_THINK_C->motion->mid == MOT_ENGAGE_STANCE)
         {
             pad = PADRleft;
         }
@@ -173,7 +173,7 @@ short AttackIndirect(void)
             {
                 degree = -degree;
             }
-            if (degree < 200 && Me_THINK_C->motion->mid == 0x501)
+            if (degree < 200 && Me_THINK_C->motion->mid == MOT_ENGAGE_STANCE)
             {
                 pad = PADRleft;
             }

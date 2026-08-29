@@ -593,6 +593,116 @@ enum motion_family
     MOT_DEAD = 0x1100
 };
 
+/* Specific motion ids (family | index). Invented names — none appear in
+ * the demo symbols; each derived from the id's setter and handler arm
+ * (see the Act* files). Family roots (0x100, 0x200, ...) keep their
+ * MOT_* family names above. */
+enum
+{
+    MOT_ACTION_LOOP = 0x101,      /* AI scripted idle, loops until pad */
+    MOT_ACTION_GESTURE = 0x102,   /* AI scripted one-shot */
+    MOT_ACTION_FIDGET_A = 0x104,  /* random standing fidget (coin flip) */
+    MOT_ACTION_FIDGET_B = 0x105,
+    MOT_ACTION_NOTICE = 0x106,    /* guard spots the player */
+    MOT_MOVE_BACK = 0x201,
+    MOT_MOVE_DASH_FWD = 0x202,
+    MOT_MOVE_DASH_BACK = 0x203,
+    MOT_MOVE_DASH_RIGHT = 0x204,
+    MOT_MOVE_DASH_LEFT = 0x205,
+    MOT_SWIM_EXIT = 0x301,
+    MOT_SWIM_STROKE = 0x302,
+    MOT_KAGI_FLY = 0x401,         /* hook in flight */
+    MOT_KAGI_PULL = 0x402,        /* reel-in to the wall */
+    MOT_ENGAGE_STANCE = 0x501,    /* weapon-drawn alert idle */
+    MOT_ENGAGE_SHEATHE = 0x503,   /* stance exit into MOT_STATE_SHEATHE */
+    MOT_ENGAGE_TURN_R = 0x504,
+    MOT_ENGAGE_TURN_L = 0x505,
+    MOT_CHASE_BACK = 0x602,
+    MOT_CHASE_DASH_BACK = 0x604,
+    MOT_CHASE_DASH_RIGHT = 0x605,
+    MOT_CHASE_DASH_LEFT = 0x606,
+    MOT_CHASE_DASH_FWD = 0x607,   /* cancellable into lunge/roll */
+    MOT_ATTACK_SLASH2 = 0x701,
+    MOT_ATTACK_SLASH2_RIGHT = 0x702,
+    MOT_ATTACK_SLASH2_LEFT = 0x703,
+    MOT_ATTACK_SLASH3 = 0x704,
+    MOT_ATTACK_SLASH4 = 0x705,
+    MOT_ATTACK_RIGHT1 = 0x706,
+    MOT_ATTACK_RIGHT2 = 0x707,
+    MOT_ATTACK_RIGHT2_LEFT = 0x708,
+    MOT_ATTACK_LEFT1 = 0x709,
+    MOT_ATTACK_LEFT2 = 0x70a,
+    MOT_ATTACK_LEFT2_RIGHT = 0x70b,
+    MOT_ATTACK_CROUCH = 0x70c,
+    MOT_ATTACK_LUNGE = 0x70d,
+    MOT_ATTACK_DIVE = 0x70f,
+    MOT_ATTACK_DIVE_LAND = 0x710,
+    MOT_ATTACK_BACK = 0x711,
+    MOT_ATTACK_LUNGE_BACK = 0x712,
+    MOT_ATTACK_TAUNT = 0x713,
+    MOT_ATTACK_STEALTH_BACK = 0x714,  /* stealth kills; victim plays the */
+    MOT_ATTACK_STEALTH_FRONT = 0x715, /* paired MOT_DEAD_STEALTH_* id;   */
+    MOT_ATTACK_STEALTH_SIDE = 0x716,  /* Ayame's set is +3               */
+    MOT_ATTACK_STEALTH_BACK_AYAME = 0x717,
+    MOT_ATTACK_STEALTH_FRONT_AYAME = 0x718,
+    MOT_ATTACK_STEALTH_SIDE_AYAME = 0x719,
+    MOT_STATE_CLIMB = 0x801,
+    MOT_STATE_FALL = 0x803,
+    MOT_STATE_LAND = 0x804,
+    MOT_STATE_LAND_HEAVY = 0x805,
+    MOT_STATE_LAND_FLIP = 0x806,
+    MOT_STATE_DRAW = 0x80e,       /* draw weapon, into the stance */
+    MOT_STATE_SHEATHE = 0x80f,    /* stand down, into idle */
+    MOT_STATE_PICKUP = 0x810,     /* frozen while pocketing a dropped item */
+    MOT_JUMP_WALLKICK = 0x901,
+    MOT_JUMP_FORWARD = 0x902,
+    MOT_JUMP_BACK = 0x903,
+    MOT_JUMP_RIGHT = 0x904,
+    MOT_JUMP_LEFT = 0x905,
+    MOT_JUMP_RUN = 0x906,         /* running leap out of the dash */
+    MOT_JUMP_FLIP = 0x907,        /* half-turn flip, lands as LAND_FLIP */
+    MOT_HANG_CATCH = 0xA01,
+    MOT_HANG_SHIMMY_RIGHT = 0xA02,
+    MOT_HANG_SHIMMY_LEFT = 0xA03,
+    MOT_HANG_PULLUP = 0xA04,
+    MOT_SQUAT_WALK_F = 0xB01,
+    MOT_SQUAT_WALK_B = 0xB02,
+    MOT_SQUAT_WALK_R = 0xB03,
+    MOT_SQUAT_WALK_L = 0xB04,
+    MOT_SQUAT_ROLL_F = 0xB05,
+    MOT_SQUAT_ROLL_B = 0xB06,
+    MOT_SQUAT_ROLL_R = 0xB07,
+    MOT_SQUAT_ROLL_L = 0xB08,
+    MOT_SQUAT_BACKFLIP = 0xB09,   /* X from crouch: 180-degree escape flip */
+    MOT_STICKON_SLIDE_L = 0xC01,  /* wall sidles; L/R derived from the */
+    MOT_STICKON_SLIDE_R = 0xC02,  /* MoveHumanoid side-sign convention */
+    MOT_STICKON_THROW_L = 0xC03,  /* lean out past the corner and throw */
+    MOT_STICKON_THROW_R = 0xC04,
+    MOT_SYURI_RECOVER = 0xE01,
+    MOT_ITEM_DRINK = 0xF01,
+    MOT_ITEM_THROW = 0xF02,
+    MOT_ITEM_PLANT = 0xF03,
+    MOT_ITEM_KAENGEKI = 0xF04,    /* fire-breath loop */
+    MOT_ITEM_SHINSOKU = 0xF05,    /* far-sight cast (widens AI activation) */
+    MOT_DAMAGE_FRONT_MID = 0x1001,   /* damagemotion[]: front hits by     */
+    MOT_DAMAGE_FRONT_HEAVY = 0x1002, /* severity; +4 rows are from-behind */
+    MOT_DAMAGE_BACK_LIGHT = 0x1003,
+    MOT_DAMAGE_BACK_HEAVY = 0x1004,
+    MOT_DAMAGE_LAUNCH_BACK = 0x1005, /* knocked off the feet backward */
+    MOT_DAMAGE_LAUNCH_FORE = 0x1006, /* knocked forward (hit from behind) */
+    MOT_DAMAGE_SLAM_BACK = 0x1007,   /* ground impact ending the launch */
+    MOT_DAMAGE_SLAM_FORE = 0x1008,
+    MOT_DAMAGE_DOWNED = 0x1009,      /* lying downed until GETUP */
+    MOT_DAMAGE_MAKIBISHI = 0x100A,   /* caltrop hop */
+    MOT_DAMAGE_CHOKE = 0x100B,       /* smoke/poison cough, no damage */
+    MOT_DAMAGE_GETUP = 0x100C,
+    MOT_DEAD_ALT = 0x1101,           /* coin-flip second ordinary death */
+    MOT_DEAD_DROWN = 0x1108,
+    MOT_DEAD_STEALTH_BACK = 0x1109,  /* stealth-kill collapses, paired */
+    MOT_DEAD_STEALTH_FRONT = 0x110A, /* with the attacker's 0x714-0x719 */
+    MOT_DEAD_STEALTH_SIDE = 0x110B
+};
+
 /* Camera-mode names recovered from the demo's CAMERA.C. This list is not
  * exhaustive for retail: current code also supplies unnamed modes 15-17. */
 typedef enum TCameraMode TCameraMode;

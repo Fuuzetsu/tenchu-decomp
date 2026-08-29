@@ -59,7 +59,7 @@ void ActCHASE(void)
     turn = Me_MOTION_C->turn / 2;
     switch (dtM->mid)
     {
-    case 0x600:
+    case MOT_CHASE:
     {
         if (dtM->count == 0 || dtM->count == dtM->motion->time / 2)
         {
@@ -79,7 +79,7 @@ void ActCHASE(void)
             {
                 short i;
 
-                motID = 0x801;
+                motID = MOT_STATE_CLIMB;
                 motMODE = 0;
                 if (MotionUpdateMode != 0)
                 {
@@ -157,13 +157,13 @@ void ActCHASE(void)
         }
         else
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
         }
         motMODE = 1;
         break;
     }
 
-    case 0x602:
+    case MOT_CHASE_BACK:
     {
         if (dtM->count == 1)
         {
@@ -172,12 +172,12 @@ void ActCHASE(void)
 
         if ((dtPAD & PADLdown) == 0)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
         }
         else if (dtCMD == CMD_LUNGE_BACK)
         {
-            motID = 0x712;
+            motID = MOT_ATTACK_LUNGE_BACK;
             motMODE = 1;
         }
         else if (dtPAD & (PADLleft | PADLright))
@@ -208,7 +208,7 @@ void ActCHASE(void)
         }
         if (Me_MOTION_C->pad.trig & PADRleft)
         {
-            motID = 0x70c;
+            motID = MOT_ATTACK_CROUCH;
             motMODE = 1;
             return;
         }
@@ -217,7 +217,7 @@ void ActCHASE(void)
         break;
     }
 
-    case 0x607:
+    case MOT_CHASE_DASH_FWD:
         if (Me_MOTION_C->pad.trig & PADRleft)
         {
             AttackControl();
@@ -227,9 +227,9 @@ void ActCHASE(void)
             JumpControl();
         }
         /* fall through */
-    case 0x604:
-    case 0x605:
-    case 0x606:
+    case MOT_CHASE_DASH_BACK:
+    case MOT_CHASE_DASH_RIGHT:
+    case MOT_CHASE_DASH_LEFT:
     {
         if (dtM->count == 1)
         {
@@ -241,7 +241,7 @@ void ActCHASE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
         }
         return;
@@ -253,7 +253,7 @@ void ActCHASE(void)
 
     if (dtCMD == CMD_FLIP)
     {
-        motID = 0x907;
+        motID = MOT_JUMP_FLIP;
         motMODE = 0;
         MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
         return;

@@ -113,7 +113,7 @@ void ProcItemShinsoku(TItem *item)
     switch (item->mode)
     {
     case 0:
-        SetNowMotion(item->owner, 0xf05, 1);
+        SetNowMotion(item->owner, MOT_ITEM_SHINSOKU, 1);
         Sound(item->owner, 0x4c);
         item->mode++;
         return;
@@ -123,7 +123,7 @@ void ProcItemShinsoku(TItem *item)
         MotionManager *motion;
 
         motion = item->owner->motion;
-        if (motion->mid != 0xf05)
+        if (motion->mid != MOT_ITEM_SHINSOKU)
         {
             VECTOR *pos;
             Humanoid *human;
@@ -189,7 +189,7 @@ void ProcItemShinsoku(TItem *item)
         s32 rotate;
         VECTOR *apos;
 
-        if (item->owner->motion->mid != 0xf05)
+        if (item->owner->motion->mid != MOT_ITEM_SHINSOKU)
         {
             if (item->proc == 0)
             {

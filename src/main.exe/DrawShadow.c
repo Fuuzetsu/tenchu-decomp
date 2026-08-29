@@ -108,8 +108,8 @@ void DrawShadow(Humanoid *human)
         s32 vector_xy;
 
         vector_xy = *(s32 *)&human->vector;
-        if ((vector_xy != 0 || human->motion->mid == 0x804 ||
-             human->motion->mid == 0x710) &&
+        if ((vector_xy != 0 || human->motion->mid == MOT_STATE_LAND ||
+             human->motion->mid == MOT_ATTACK_DIVE_LAND) &&
             human->map.height == 0 && (GameClock & 1) != 0)
         {
             s32 idx;

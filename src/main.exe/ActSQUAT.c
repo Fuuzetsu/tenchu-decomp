@@ -74,44 +74,44 @@ void ActSQUAT(void)
     turn = Me_MOTION_C->turn / 2;
     switch (dtM->mid)
     {
-    case 0xb00:
+    case MOT_SQUAT:
         if (dtM->count == 0 && dtM->loop != 0)
         {
             dtM->loop = -1;
         }
         if (MOTION_PAD_BITS & PADLup)
         {
-            motID = 0xB01;
+            motID = MOT_SQUAT_WALK_F;
             motMODE = 1;
             break;
         }
         if (MOTION_PAD_BITS & PADLdown)
         {
-            motID = 0xB02;
+            motID = MOT_SQUAT_WALK_B;
             motMODE = 1;
             break;
         }
         if (MOTION_PAD_BITS & PADLright)
         {
-            motID = 0xB03;
+            motID = MOT_SQUAT_WALK_R;
             motMODE = 1;
             break;
         }
         if (MOTION_PAD_BITS & PADLleft)
         {
-            motID = 0xB04;
+            motID = MOT_SQUAT_WALK_L;
             motMODE = 1;
             break;
         }
         if (Me_MOTION_C->pad.trig & PADRdown)
         {
-            motID = 0xB09;
+            motID = MOT_SQUAT_BACKFLIP;
             motMODE = 1;
             dtR->vy += 0x800;
         }
         break;
 
-    case 0xb01:
+    case MOT_SQUAT_WALK_F:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -123,13 +123,13 @@ void ActSQUAT(void)
         }
         else if (Me_MOTION_C->pad.trig & PADRdown)
         {
-            motID = 0xB09;
+            motID = MOT_SQUAT_BACKFLIP;
             motMODE = 1;
             dtR->vy += 0x800;
         }
         break;
 
-    case 0xb02:
+    case MOT_SQUAT_WALK_B:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -166,7 +166,7 @@ void ActSQUAT(void)
         }
         goto move_if_stationary;
 
-    case 0xb03:
+    case MOT_SQUAT_WALK_R:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -186,7 +186,7 @@ void ActSQUAT(void)
         }
         goto move_if_stationary;
 
-    case 0xb04:
+    case MOT_SQUAT_WALK_L:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x11);
@@ -213,7 +213,7 @@ void ActSQUAT(void)
         }
         break;
 
-    case 0xb09:
+    case MOT_SQUAT_BACKFLIP:
         if (dtM->count == (dtM->motion->time >> 1))
         {
             Sound(Me_MOTION_C, 0x13);
@@ -255,7 +255,7 @@ void ActSQUAT(void)
         }
         return;
     }
-    if (motID == 0xB09)
+    if (motID == MOT_SQUAT_BACKFLIP)
     {
         return;
     }
@@ -277,19 +277,19 @@ void ActSQUAT(void)
         switch (dtCMD)
         {
         case 0x11:
-            motID = 0xB05;
+            motID = MOT_SQUAT_ROLL_F;
             motMODE = 1;
             break;
         case 0x12:
-            motID = 0xB06;
+            motID = MOT_SQUAT_ROLL_B;
             motMODE = 1;
             break;
         case 0x13:
-            motID = 0xB08;
+            motID = MOT_SQUAT_ROLL_L;
             motMODE = 1;
             break;
         case 0x14:
-            motID = 0xB07;
+            motID = MOT_SQUAT_ROLL_R;
             motMODE = 1;
             break;
         }
@@ -349,7 +349,7 @@ void ActSQUAT(void)
         }
         if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
             return;
         }

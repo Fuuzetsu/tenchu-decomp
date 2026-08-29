@@ -65,7 +65,7 @@ void ActDAMAGE(void)
     done = false;
     switch (dtM->mid)
     {
-    case 0x1005:
+    case MOT_DAMAGE_LAUNCH_BACK:
     {
         if (dtM->count == 1)
         {
@@ -102,7 +102,7 @@ void ActDAMAGE(void)
         if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
-            motID = 0x1007;
+            motID = MOT_DAMAGE_SLAM_BACK;
             motMODE = 0;
         }
         if (dtM->count & 4)
@@ -110,7 +110,7 @@ void ActDAMAGE(void)
         break;
     }
 
-    case 0x1006:
+    case MOT_DAMAGE_LAUNCH_FORE:
     {
         if (dtM->count == 1)
         {
@@ -147,7 +147,7 @@ void ActDAMAGE(void)
         if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
-            motID = 0x1008;
+            motID = MOT_DAMAGE_SLAM_FORE;
             motMODE = 0;
         }
         if (dtM->count & 4)
@@ -155,8 +155,8 @@ void ActDAMAGE(void)
         break;
     }
 
-    case 0x1007:
-    case 0x1008:
+    case MOT_DAMAGE_SLAM_BACK:
+    case MOT_DAMAGE_SLAM_FORE:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 0x1d);
@@ -166,7 +166,7 @@ void ActDAMAGE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0x1009;
+            motID = MOT_DAMAGE_DOWNED;
             motMODE = 1;
             break;
         }
@@ -174,7 +174,7 @@ void ActDAMAGE(void)
         dtV->vz = dtV->vz - (dtV->vz >> 2);
         break;
 
-    case 0x1009:
+    case MOT_DAMAGE_DOWNED:
         if (Me_MOTION_C->life == 0)
         {
             Humanoid *human;
@@ -202,14 +202,14 @@ void ActDAMAGE(void)
         dtM->loop--;
         if (Me_MOTION_C->life - Me_MOTION_C->lifemax >= dtM->loop)
         {
-            motID = 0x100c;
+            motID = MOT_DAMAGE_GETUP;
             motMODE = 1;
         }
         break;
 
-    case 0x100a:
-    case 0x100b:
-    case 0x100c:
+    case MOT_DAMAGE_MAKIBISHI:
+    case MOT_DAMAGE_CHOKE:
+    case MOT_DAMAGE_GETUP:
         if (dtM->count == 0 && dtM->loop != 0)
             done = true;
         break;
@@ -272,7 +272,7 @@ void ActDAMAGE(void)
         {
             u16 attribute;
 
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             attribute = *(u16 *)&human->attribute;
             motMODE = 1;
             attribute = (attribute & (u16)~ATTR_PHASE) | PHASE_ALERT;
@@ -280,7 +280,7 @@ void ActDAMAGE(void)
         }
         else
         {
-            motID = 0x80e;
+            motID = MOT_STATE_DRAW;
             motMODE = 1;
         }
     }

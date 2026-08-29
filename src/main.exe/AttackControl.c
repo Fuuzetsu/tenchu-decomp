@@ -180,21 +180,21 @@ void AttackControl(void)
 
     if (MOTION_PAD_BITS & PADLdown)
     {
-        if (GetMotionID(dtM, 0x711) < 0)
+        if (GetMotionID(dtM, MOT_ATTACK_BACK) < 0)
         {
             return;
         }
-        motID = 0x711;
+        motID = MOT_ATTACK_BACK;
     }
     else if (motID == MOT_SQUAT)
     {
-        if (GetMotionID(dtM, 0x70c) < 0)
+        if (GetMotionID(dtM, MOT_ATTACK_CROUCH) < 0)
         {
             return;
         }
-        motID = 0x70c;
+        motID = MOT_ATTACK_CROUCH;
     }
-    else if (motID == 0x607)
+    else if (motID == MOT_CHASE_DASH_FWD)
     {
         if (dtM->count > 10)
         {
@@ -202,9 +202,9 @@ void AttackControl(void)
         }
         motID = MOT_ATTACK;
         motMODE = 1;
-        if (GetMotionID(dtM, 0x70d) >= 0)
+        if (GetMotionID(dtM, MOT_ATTACK_LUNGE) >= 0)
         {
-            motID = 0x70d;
+            motID = MOT_ATTACK_LUNGE;
             motMODE = 1;
         }
         goto update_target;
@@ -215,11 +215,11 @@ void AttackControl(void)
     }
     else if (MOTION_PAD_BITS & PADLright)
     {
-        motID = 0x706;
+        motID = MOT_ATTACK_RIGHT1;
     }
     else if (MOTION_PAD_BITS & PADLleft)
     {
-        motID = 0x709;
+        motID = MOT_ATTACK_LEFT1;
     }
     else
     {

@@ -135,7 +135,7 @@ void ProcItemHenshin(TItem *item)
     switch (item->mode)
     {
     case 0:
-        SetNowMotion(human, 0xf04, 1);
+        SetNowMotion(human, MOT_ITEM_KAENGEKI, 1);
         Sound(item->owner, 0x4c);
         item->mode++;
         return;
@@ -145,7 +145,7 @@ void ProcItemHenshin(TItem *item)
         MotionManager *motion;
 
         motion = human->motion;
-        if (motion->mid != 0xf04)
+        if (motion->mid != MOT_ITEM_KAENGEKI)
         {
             VECTOR *pos;
             Humanoid *drop_owner;
@@ -264,7 +264,7 @@ void ProcItemHenshin(TItem *item)
                 return;
             }
             if (item->owner->motion->loop >= 0 &&
-                item->owner->motion->mid < 0x714)
+                item->owner->motion->mid < MOT_ATTACK_STEALTH_BACK)
             {
                 return;
             }

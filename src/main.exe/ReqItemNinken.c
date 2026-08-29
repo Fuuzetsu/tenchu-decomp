@@ -111,6 +111,6 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
     }
     param->slave = 0;
     param->count = 15;
-    SetNowMotion(item->owner, 0xf02, 1);
+    SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
     return 1;
 }

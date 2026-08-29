@@ -75,13 +75,13 @@ void JumpControl(void)
     if (GetMotionID(dtM, MOT_JUMP) < 0)
         return;
 
-    if (motID == 0x607)
+    if (motID == MOT_CHASE_DASH_FWD)
     {
         if (dtM->count < 11)
         {
-            if (GetMotionID(dtM, 0x906) >= 0)
+            if (GetMotionID(dtM, MOT_JUMP_RUN) >= 0)
             {
-                motID = 0x906;
+                motID = MOT_JUMP_RUN;
                 motMODE = 0;
                 MoveHumanoid(Me_MOTION_C, 0x7F, 0);
                 if (Me_MOTION_C == StagePlayer)
@@ -105,36 +105,36 @@ void JumpControl(void)
         dtV->vy = 0;
         if (MOTION_PAD_BITS & PADLup)
         {
-            if (GetMotionID(dtM, 0x902) >= 0)
+            if (GetMotionID(dtM, MOT_JUMP_FORWARD) >= 0)
             {
-                motID = 0x902;
+                motID = MOT_JUMP_FORWARD;
                 motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, 100, 0);
         }
         else if (MOTION_PAD_BITS & PADLdown)
         {
-            if (GetMotionID(dtM, 0x903) >= 0)
+            if (GetMotionID(dtM, MOT_JUMP_BACK) >= 0)
             {
-                motID = 0x903;
+                motID = MOT_JUMP_BACK;
                 motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
         else if (MOTION_PAD_BITS & PADLright)
         {
-            if (GetMotionID(dtM, 0x904) >= 0)
+            if (GetMotionID(dtM, MOT_JUMP_RIGHT) >= 0)
             {
-                motID = 0x904;
+                motID = MOT_JUMP_RIGHT;
                 motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, 0, -100);
         }
         else if (MOTION_PAD_BITS & PADLleft)
         {
-            if (GetMotionID(dtM, 0x905) >= 0)
+            if (GetMotionID(dtM, MOT_JUMP_LEFT) >= 0)
             {
-                motID = 0x905;
+                motID = MOT_JUMP_LEFT;
                 motMODE = 0;
             }
             MoveHumanoid(Me_MOTION_C, 0, 100);

@@ -161,7 +161,7 @@ short Think3callaid(void)
         (Me_THINK_C = (Humanoid *)human_00)->attribute |= 4;
         human_00->think[3] = func;
         EquipWeapon(human_00, 1);
-        SetNowMotion(Me_THINK_C, 0x501, 1);
+        SetNowMotion(Me_THINK_C, MOT_ENGAGE_STANCE, 1);
         Attrib = Me_THINK_C->attribute | PHASE_ALERT;
         ret = 0;
         if ((Me_THINK_C->type & PAGE_MASK) == PAGE_CIVILIAN)

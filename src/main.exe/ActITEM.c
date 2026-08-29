@@ -59,7 +59,7 @@ void ActITEM(void)
         item.type = ITEM_MAKIBISHI;
         break;
 
-    case 0xf02: /* throw (fire/smoke/nemuri) */
+    case MOT_ITEM_THROW: /* throw (fire/smoke/nemuri) */
         if (dtM->count != 5)
             break;
         mode = ITEM_FIRE;
@@ -77,15 +77,15 @@ void ActITEM(void)
         }
         break;
 
-    case 0xf03: /* plant (jirai/goshikimai) */
+    case MOT_ITEM_PLANT: /* plant (jirai/goshikimai) */
         if (dtM->count != 5)
             break;
         flag = 1;
         item.type = ITEM_JIRAI;
         break;
 
-    case 0xf04: /* kaengeki flame */
-    case 0xf05: /* shinsoku cast */
+    case MOT_ITEM_KAENGEKI: /* kaengeki flame */
+    case MOT_ITEM_SHINSOKU: /* shinsoku cast */
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)
@@ -111,7 +111,7 @@ void ActITEM(void)
             SetCameraMode(CMODE_NORMAL);
         if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
         }
         else

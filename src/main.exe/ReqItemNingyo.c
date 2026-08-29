@@ -140,6 +140,6 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
     item->locate->rotate.vy = rand() % 0x1000;
     item->locate->rotate.vz = rand() % 68;
     param->hp = NINGYO_HP;
-    SetNowMotion(item->owner, 0xf02, 1);
+    SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
     return 1;
 }

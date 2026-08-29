@@ -33,7 +33,7 @@ void ReturnNormal(void)
     }
     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
     }
     else

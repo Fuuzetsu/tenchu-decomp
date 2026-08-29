@@ -243,7 +243,7 @@ s16 think_alarm_reaction_(void)
             *(u16 *)&human->attribute |= 4;
             human->think[3] = think4;
             EquipWeapon(human, 1);
-            SetNowMotion(human, 0x501, 1);
+            SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
             human->actscnt = 0;
             human->actcnt = 1;
             *(u16 *)&human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;

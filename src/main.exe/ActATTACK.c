@@ -222,7 +222,7 @@ void ActATTACK(void)
             human = Me_MOTION_C;
             human->warid = attack_id;
             sound_id = 0xb;
-            if ((motID != 0x713) && (sound_id = 10, (motID & 1U) != 0))
+            if ((motID != MOT_ATTACK_TAUNT) && (sound_id = 10, (motID & 1U) != 0))
             {
                 sound_id = 9;
             }
@@ -261,7 +261,7 @@ void ActATTACK(void)
 dispatch:
     switch (dtM->mid)
     {
-    case 0x700:
+    case MOT_ATTACK:
         t = GetMotionID(dtM, MOT_ATTACK);
         switch (t)
         {
@@ -348,15 +348,15 @@ dispatch:
 
             if ((dtPAD & PADLright) != 0)
             {
-                motID = 0x702;
+                motID = MOT_ATTACK_SLASH2_RIGHT;
             }
             else if ((dtPAD & PADLleft) != 0)
             {
-                motID = 0x703;
+                motID = MOT_ATTACK_SLASH2_LEFT;
             }
             else
             {
-                motID = 0x701;
+                motID = MOT_ATTACK_SLASH2;
             }
             motMODE = 1;
             i = 0;
@@ -376,7 +376,7 @@ dispatch:
             goto set_motion;
         }
         break;
-    case 0x701:
+    case MOT_ATTACK_SLASH2:
     {
         OrnamentType **weapon;
 
@@ -399,7 +399,7 @@ dispatch:
         {
             short i;
 
-            motID = 0x704;
+            motID = MOT_ATTACK_SLASH3;
             motMODE = 1;
             if (MotionUpdateMode != 0)
             {
@@ -415,7 +415,7 @@ dispatch:
         }
         break;
     }
-    case 0x704:
+    case MOT_ATTACK_SLASH3:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
             launch_lightning_bolt_(0xd);
@@ -429,7 +429,7 @@ dispatch:
         {
             short i;
 
-            motID = 0x705;
+            motID = MOT_ATTACK_SLASH4;
             motMODE = 1;
             if (MotionUpdateMode != 0)
             {
@@ -444,13 +444,13 @@ dispatch:
             goto set_motion;
         }
         break;
-    case 0x705:
+    case MOT_ATTACK_SLASH4:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
             launch_lightning_bolt_(0xd);
         }
         break;
-    case 0x706:
+    case MOT_ATTACK_RIGHT1:
     {
         OrnamentType **weapon;
 
@@ -466,11 +466,11 @@ dispatch:
 
             if ((dtPAD & PADLleft) != 0)
             {
-                motID = 0x708;
+                motID = MOT_ATTACK_RIGHT2_LEFT;
             }
             else
             {
-                motID = 0x707;
+                motID = MOT_ATTACK_RIGHT2;
             }
             motMODE = 1;
             i = 0;
@@ -491,7 +491,7 @@ dispatch:
         }
         break;
     }
-    case 0x709:
+    case MOT_ATTACK_LEFT1:
     {
         OrnamentType **weapon;
 
@@ -509,13 +509,13 @@ dispatch:
             {
                 goto combo_alt;
             }
-            motID = 0x70b;
+            motID = MOT_ATTACK_LEFT2_RIGHT;
             goto set_combo;
         no_motion:
             t = 0;
             goto snap_origin;
         combo_alt:
-            motID = 0x70a;
+            motID = MOT_ATTACK_LEFT2;
         set_combo:
             motMODE = 1;
             i = 0;
@@ -551,7 +551,7 @@ dispatch:
         }
         break;
     }
-    case 0x70f:
+    case MOT_ATTACK_DIVE:
         if ((dtM->count == 1) && (3000 < (Me_MOTION_C->map).height))
         {
             SetCameraMode(CMODE_FALL);
@@ -586,7 +586,7 @@ dispatch:
         }
         if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0)
         {
-            motID = 0x710;
+            motID = MOT_ATTACK_DIVE_LAND;
             motMODE = 0;
             Sound(Me_MOTION_C, 0x1a);
             spawn_smoke_burst_(dtL, 300, 0xc, 10);
@@ -600,11 +600,11 @@ dispatch:
             dtM->loop--;
             if (dtM->loop < -30)
             {
-                motID = 0x803;
+                motID = MOT_STATE_FALL;
                 motMODE = 0;
             }
         }
-        if (motID != 0x70f)
+        if (motID != MOT_ATTACK_DIVE)
         {
             short cleanup_guard;
             short kind;
@@ -612,13 +612,13 @@ dispatch:
             DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             dtM->mask = 0x7fff;
             SetCameraMode(CMODE_NORMAL);
-            if (motID == 0x803)
+            if (motID == MOT_STATE_FALL)
             {
                 return;
             }
         }
         break;
-    case 0x710:
+    case MOT_ATTACK_DIVE_LAND:
     {
         short cleanup_guard;
         short kind;
@@ -631,7 +631,7 @@ dispatch:
         {
             DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             mmp = dtM;
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
             goto unmask;
         }
@@ -644,7 +644,7 @@ dispatch:
         v->vz = v->vz - (v->vz >> 2);
         return;
     }
-    case 0x713:
+    case MOT_ATTACK_TAUNT:
         if (dtM->count != 0)
         {
             return;
@@ -653,15 +653,15 @@ dispatch:
         {
             return;
         }
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
         return;
-    case 0x714:
-    case 0x715:
-    case 0x716:
-    case 0x717:
-    case 0x718:
-    case 0x719:
+    case MOT_ATTACK_STEALTH_BACK:
+    case MOT_ATTACK_STEALTH_FRONT:
+    case MOT_ATTACK_STEALTH_SIDE:
+    case MOT_ATTACK_STEALTH_BACK_AYAME:
+    case MOT_ATTACK_STEALTH_FRONT_AYAME:
+    case MOT_ATTACK_STEALTH_SIDE_AYAME:
     {
         int conflict_id;
         Humanoid *human;
@@ -735,7 +735,7 @@ dispatch:
 
         saved_mid = motID;
         DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
         dtM->mask = 0x7fff;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
@@ -746,7 +746,7 @@ dispatch:
         if (is_player)
         {
             SetCameraMode(CMODE_NORMAL);
-            if (saved_mid == 0x712)
+            if (saved_mid == MOT_ATTACK_LUNGE_BACK)
             {
                 CamState.snap_pending = 1;
             }

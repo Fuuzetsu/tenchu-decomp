@@ -204,7 +204,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         break;
     case STAT_STATE:
         cs = &CamState;
-        if (cs->Owner->motion->mid != 0x801)
+        if (cs->Owner->motion->mid != MOT_STATE_CLIMB)
             break;
         cs->Mode = CMODE_RUN;
         break;
@@ -214,12 +214,12 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
         cs = &CamState;
         mid = cs->Owner->motion->mid;
-        if ((u16)(mid - 0x1005) < 5)
+        if ((u16)(mid - MOT_DAMAGE_LAUNCH_BACK) < 5)
         {
             cs->Mode = CMODE_KNOCKBACK;
             break;
         }
-        if ((s16)mid != 0x100C)
+        if ((s16)mid != MOT_DAMAGE_GETUP)
             break;
         cs->Mode = CMODE_KNOCKBACK;
         break;

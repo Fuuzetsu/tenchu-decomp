@@ -191,7 +191,7 @@ void DamageControl(void)
     {
         return;
     }
-    if (motID == 0x301)
+    if (motID == MOT_SWIM_EXIT)
     {
         return;
     }
@@ -265,20 +265,20 @@ void DamageControl(void)
         AttackCancelControl(3);
         return;
     }
-    if (motID < 0x714)
+    if (motID < MOT_ATTACK_STEALTH_BACK)
     {
         goto resolve_hit;
     }
-    if (motID < 0x71a)
+    if (motID <= MOT_ATTACK_STEALTH_SIDE_AYAME)
     {
         goto attack_break;
     }
-    if (motID == 0x1009)
+    if (motID == MOT_DAMAGE_DOWNED)
     {
         return;
     }
     goto resolve_hit;
-/* motID 0x714..0x719 (ATTACK-family moves, per the Act table): the hit
+/* motID in the stealth-kill band (MOT_ATTACK_STEALTH_*): the hit
  * cancels the move — reset ActionHalt, pick recover/idle, nudge down */
 attack_break:
     ActionHalt = 0;
@@ -288,7 +288,7 @@ attack_break:
     }
     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
     }
     else
@@ -318,7 +318,7 @@ resolve_hit:
             {
             case ITEM_MAKIBISHI:
                 dmg = DMG_MAKIBISHI;
-                motID = 0x100a;
+                motID = MOT_DAMAGE_MAKIBISHI;
                 motMODE = 1;
                 break;
             case ITEM_SHURIKEN:
@@ -361,11 +361,11 @@ resolve_hit:
                 dmg = DMG_NAPALM;
                 if ((rand() & 1) == 0)
                 {
-                    motID = 0x1003;
+                    motID = MOT_DAMAGE_BACK_LIGHT;
                 }
                 else
                 {
-                    motID = 0x1001;
+                    motID = MOT_DAMAGE_FRONT_MID;
                 }
                 motMODE = 1;
                 break;
@@ -398,14 +398,14 @@ resolve_hit:
                 }
                 if (ad < 0x400)
                 {
-                    motID = 0x1005;
+                    motID = MOT_DAMAGE_LAUNCH_BACK;
                     motMODE = 0;
                     dtR->vy = dtR->vy + did;
                     MoveHumanoid(Me_MOTION_C, -0x46, 0);
                 }
                 else
                 {
-                    motID = 0x1006;
+                    motID = MOT_DAMAGE_LAUNCH_FORE;
                     motMODE = 0;
                     dtR->vy = (0x800 + did) + dtR->vy;
                     MoveHumanoid(Me_MOTION_C, 0x46, 0);
@@ -423,7 +423,7 @@ resolve_hit:
                 if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
-                    if ((u32)(u16)motID - 0x1005 > 1)
+                    if ((u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1)
                     {
                         motID = MOT_DEAD;
                         motMODE = 1;
@@ -523,13 +523,13 @@ resolve_hit:
                             {
                                 if ((rand() & 1) != 0)
                                 {
-                                    motID = 0x602;
+                                    motID = MOT_CHASE_BACK;
                                 }
                             }
                         }
                         else
                         {
-                            motID = 0x602;
+                            motID = MOT_CHASE_BACK;
                         }
                     }
                 }
@@ -540,7 +540,7 @@ resolve_hit:
                 }
                 if (ad < 700)
                 {
-                    if (motID == 0x602)
+                    if (motID == MOT_CHASE_BACK)
                     {
                         goto counter_attack;
                     }
@@ -549,7 +549,7 @@ resolve_hit:
                         return;
                     }
                 }
-                if (motID != 0x100c)
+                if (motID != MOT_DAMAGE_GETUP)
                 {
                     goto take_damage;
                 }
@@ -740,7 +740,7 @@ resolve_hit:
                 death_motion_set:
                     if ((rand() & 1) != 0)
                     {
-                        motID = 0x1101;
+                        motID = MOT_DEAD_ALT;
                         motMODE = 1;
                     }
                     goto score_kill;
@@ -860,14 +860,14 @@ resolve_hit:
     {
         ReqItemDefault(Me_MOTION_C, ITEM_KAWARIMI);
         Me_MOTION_C->life = Me_MOTION_C->lifemax;
-        if ((u32)(u16)motID - 0x1005 > 1)
+        if ((u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1)
         {
-            motID = 0x1002;
+            motID = MOT_DAMAGE_FRONT_HEAVY;
             motMODE = 1;
         }
     }
     (Me_MOTION_C->pad).time = 0;
-    if ((dtM->mid == MOT_SWIM) || (dtM->mid == 0x302))
+    if ((dtM->mid == MOT_SWIM) || (dtM->mid == MOT_SWIM_STROKE))
     {
         SVECTOR *v;
 
@@ -879,7 +879,7 @@ resolve_hit:
             motMODE = 0xffff;
             return;
         }
-        motID = 0x1108;
+        motID = MOT_DEAD_DROWN;
         motMODE = 1;
     }
     SET_NOW_MOTION_UNLESS_CVA(return);

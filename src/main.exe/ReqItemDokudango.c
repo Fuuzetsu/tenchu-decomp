@@ -113,6 +113,6 @@ int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
     }
     param->count = 10;
     param->eater = 0;
-    SetNowMotion(item->owner, 0xf02, 1);
+    SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
     return 1;
 }

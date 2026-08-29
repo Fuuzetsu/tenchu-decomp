@@ -92,7 +92,7 @@ void ProcItemGosin(TItem *item)
     switch (item->mode)
     {
     case 0:
-        SetNowMotion(item->owner, 0xf04, 1);
+        SetNowMotion(item->owner, MOT_ITEM_KAENGEKI, 1);
         Sound(item->owner, 0x4c);
         item->mode++;
         return;
@@ -102,7 +102,7 @@ void ProcItemGosin(TItem *item)
         MotionManager *mot;
 
         mot = item->owner->motion;
-        if (mot->mid != 0xf04)
+        if (mot->mid != MOT_ITEM_KAENGEKI)
         {
             VECTOR *pos;
             Humanoid *human;

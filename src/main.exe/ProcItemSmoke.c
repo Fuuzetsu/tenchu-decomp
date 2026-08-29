@@ -216,13 +216,13 @@ void ProcItemSmoke(TItem *item)
                 if (found == 0)
                     return;
                 human = scratch.find.find;
-                if (human != item->owner && human->life != -1 && human->motion->mid != 0x100b)
+                if (human != item->owner && human->life != -1 && human->motion->mid != MOT_DAMAGE_CHOKE)
                 {
                     i = 0x10;
                     if (ActionHalt == 0 && human->life > 0)
                     {
                         dispose_weapon_data_of_char_(human, 3);
-                        UpdateMotion(human->motion, 0x100b);
+                        UpdateMotion(human->motion, MOT_DAMAGE_CHOKE);
                         human->status = i;
                         md = human->motion->motion;
                         MoveHumanoid(human, md->orderspd, md->sidespd);

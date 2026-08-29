@@ -66,7 +66,7 @@ void ActSTATE(void)
 
     switch (dtM->mid)
     {
-    case 0x80e:
+    case MOT_STATE_DRAW:
         if (dtM->count == 1)
         {
             {
@@ -122,7 +122,7 @@ void ActSTATE(void)
 
                         if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                         {
-                            special_motion_id = 0x501;
+                            special_motion_id = MOT_ENGAGE_STANCE;
                         }
                         else
                         {
@@ -137,7 +137,7 @@ void ActSTATE(void)
             {
                 return;
             }
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             if (dtM->count != 0)
             {
                 motMODE = 1;
@@ -179,11 +179,11 @@ void ActSTATE(void)
                 human->chase[1] = chase_z;
             }
         }
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
         return;
 
-    case 0x80f: /* stand down: sheathe (hitboxes and afterimage off),
+    case MOT_STATE_SHEATHE: /* stand down: sheathe (hitboxes and afterimage off),
                  * then back to idle unless still combat-ready */
         if (dtM->count == 1)
         {
@@ -252,14 +252,14 @@ void ActSTATE(void)
         motMODE = 1;
         return;
 
-    case 0x803:
+    case MOT_STATE_FALL:
         if (dtM->count < -0x36 && dtV->vy > 200)
         {
             dtM->count = -30;
         }
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {
-            motID = 0x70f;
+            motID = MOT_ATTACK_DIVE;
             motMODE = 0;
         }
         {
@@ -278,7 +278,7 @@ void ActSTATE(void)
                 }
                 if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                 {
-                    motID = 0x501;
+                    motID = MOT_ENGAGE_STANCE;
                     motMODE = 1;
                 }
                 else
@@ -296,11 +296,11 @@ void ActSTATE(void)
                     {
                         goto random_fall;
                     }
-                    motID = 0x805;
+                    motID = MOT_STATE_LAND_HEAVY;
                 }
                 else
                 {
-                    motID = 0x804;
+                    motID = MOT_STATE_LAND;
                 }
                 motMODE = 0;
                 return;
@@ -310,7 +310,7 @@ void ActSTATE(void)
                 Humanoid *fall_human;
 
                 motMODE = 0;
-                motID = (rand() & 1) ? 0x1007 : 0x1008;
+                motID = (rand() & 1) ? MOT_DAMAGE_SLAM_BACK : MOT_DAMAGE_SLAM_FORE;
                 fall_human = Me_MOTION_C;
                 fall_human->life -= 10;
                 if (fall_human->life < 0)
@@ -333,8 +333,8 @@ void ActSTATE(void)
         dtV->vz >>= 1;
         return;
 
-    case 0x804:
-    case 0x805:
+    case MOT_STATE_LAND:
+    case MOT_STATE_LAND_HEAVY:
         if (dtM->count == 1 && Me_MOTION_C == StagePlayer)
         {
             PadShockAR(0, 0xff, 10, 0);
@@ -343,12 +343,12 @@ void ActSTATE(void)
         if (dtM->count < 5 && (dtPAD & PADRright) != 0 &&
             (Me_MOTION_C->pad.trig & PADRdown) != 0)
         {
-            motID = 0xb09;
+            motID = MOT_SQUAT_BACKFLIP;
             motMODE = 1;
             dtR->vy += 0x800;
         }
         /* fall through */
-    case 0x806:
+    case MOT_STATE_LAND_FLIP:
         if (dtM->count == 1)
         {
             Humanoid *human;
@@ -356,7 +356,7 @@ void ActSTATE(void)
 
             sound = 0x1a;
             human = Me_MOTION_C;
-            if (motID == 0x804)
+            if (motID == MOT_STATE_LAND)
             {
                 sound = 0x19;
             }
@@ -364,7 +364,7 @@ void ActSTATE(void)
             spawn_smoke_burst_(dtL, 300, 0xc, 10);
             if (StagePlayer == Me_MOTION_C)
             {
-                if (motID == 0x805)
+                if (motID == MOT_STATE_LAND_HEAVY)
                 {
                     PadShockAR(0, 0xff, 0, 30);
                 }
@@ -376,7 +376,7 @@ void ActSTATE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            if (motID == 0x806)
+            if (motID == MOT_STATE_LAND_FLIP)
             {
                 CamState.snap_pending = 1;
             }
@@ -396,7 +396,7 @@ void ActSTATE(void)
 
                 if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                 {
-                    positive_motion_id = 0x501;
+                    positive_motion_id = MOT_ENGAGE_STANCE;
                 }
                 else
                 {
@@ -410,7 +410,7 @@ void ActSTATE(void)
         dtV->vz -= dtV->vz >> 2;
         return;
 
-    case 0x801:
+    case MOT_STATE_CLIMB:
         if (dtM->count != dtM->motion->time / 2)
         {
             if (dtM->count != 0)
@@ -442,7 +442,7 @@ void ActSTATE(void)
         Sound(Me_MOTION_C, 0x13);
         return;
 
-    case 0x810:
+    case MOT_STATE_PICKUP:
         if (dtM->count != 0)
         {
             return;
@@ -457,7 +457,7 @@ void ActSTATE(void)
         }
         if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             break;
         }
     zero_motion:

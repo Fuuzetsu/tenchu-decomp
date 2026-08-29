@@ -138,7 +138,7 @@ s16 CVAupdate(void)
                     anim++;
                 }
                 if (i == 5)
-                    SetNowMotion(human, 0x501, 1);
+                    SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
 
                 human->vector = UnitVector;
                 human->model->object[0]->attribute |= MODEL_ATTR_COLLIDE;

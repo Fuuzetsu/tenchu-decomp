@@ -50,7 +50,7 @@ void ActACTION(void)
 
     switch (dtM->mid)
     {
-    case 0x101:
+    case MOT_ACTION_LOOP:
         if (dtM->loop == 0)
             return;
         if (dtPAD == 0)
@@ -59,14 +59,14 @@ void ActACTION(void)
             SetCameraMode(CMODE_NORMAL);
         if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = 0x501;
+            motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
             return;
         }
         goto set_normal_motion;
 
-    case 0x104:
-    case 0x105:
+    case MOT_ACTION_FIDGET_A:
+    case MOT_ACTION_FIDGET_B:
         if (Me_MOTION_C->life != Me_MOTION_C->lifemax ||
             (*(u16 *)&Me_MOTION_C->attribute & PHASE_SUSPICIOUS))
         {
@@ -74,7 +74,7 @@ void ActACTION(void)
                 SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = 0x501;
+                motID = MOT_ENGAGE_STANCE;
                 motMODE = 1;
             }
             else
@@ -93,7 +93,7 @@ void ActACTION(void)
                 SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = 0x501;
+                motID = MOT_ENGAGE_STANCE;
                 motMODE = 1;
             }
             else
@@ -104,7 +104,7 @@ void ActACTION(void)
         }
         break;
 
-    case 0x100:
+    case MOT_ACTION:
         if (dtM->count == 1)
         {
             s16 kind;
@@ -178,7 +178,7 @@ void ActACTION(void)
         }
         if (dtM->loop == -1 && dtPAD != 0)
         {
-            motID = 0x100c;
+            motID = MOT_DAMAGE_GETUP;
             motMODE = 1;
             if (MotionUpdateMode != 0)
             {
@@ -197,19 +197,19 @@ void ActACTION(void)
         }
         break;
 
-    case 0x106:
+    case MOT_ACTION_NOTICE:
         if (dtM->count == 1)
         {
             Sound(Me_MOTION_C, 6);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0x80e;
+            motID = MOT_STATE_DRAW;
             motMODE = 1;
         }
         break;
 
-    case 0x102:
+    case MOT_ACTION_GESTURE:
     case 0x103:
     default:
         if (dtM->count != 0)
@@ -220,7 +220,7 @@ void ActACTION(void)
             SetCameraMode(CMODE_NORMAL);
         if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT) == 0)
             goto set_normal_motion;
-        motID = 0x501;
+        motID = MOT_ENGAGE_STANCE;
         motMODE = 1;
         return;
     set_normal_motion:

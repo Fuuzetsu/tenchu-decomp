@@ -83,7 +83,7 @@ void ActSYURI(void)
                 return;
             if (dtM->loop == 0)
                 return;
-            motID = 0xE01;
+            motID = MOT_SYURI_RECOVER;
             motMODE = 1;
         }
         if (dtM->count == 0 && dtM->loop != 0)
@@ -104,7 +104,7 @@ void ActSYURI(void)
         }
         else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
-            motID = 0xE01;
+            motID = MOT_SYURI_RECOVER;
             motMODE = 1;
             Sound(Me_MOTION_C, 0x1F);
         }
@@ -117,7 +117,7 @@ void ActSYURI(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = 0x501;
+                motID = MOT_ENGAGE_STANCE;
                 motMODE = 1;
             }
             else
@@ -127,7 +127,7 @@ void ActSYURI(void)
             }
         }
         break;
-    case 0xE01:
+    case MOT_SYURI_RECOVER:
         if (dtM->count == 1 && Me_MOTION_C != StagePlayer)
         {
             ReqItemDefault(Me_MOTION_C, ITEM_SHURIKEN);
@@ -140,7 +140,7 @@ void ActSYURI(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = 0x501;
+                motID = MOT_ENGAGE_STANCE;
                 motMODE = 1;
             }
             else
