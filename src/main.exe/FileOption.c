@@ -208,6 +208,9 @@ void FileOption(void)
             targets[i].name = messages[i];
             targets[i].value = i;
         }
+        /* The byte-walk spelling of targets[i].name is the measured
+         * operand-order lever (plain indexing flips the addu; same class
+         * as PlayMusicFormID's probes). */
         ((TAdtSelect *)((u8 *)targets + (i << 3)))->name = 0;
         PlayMusicFormID(AdtSelect(
             str_select_music, (TAdtSelect *)Buf.bytes, 0));
