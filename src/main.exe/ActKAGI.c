@@ -239,38 +239,10 @@ void ActKAGI(void)
         Me_MOTION_C->model->object[0]->rotate.vx = ratan2(dist, -v.vy);
         UpdateCoordinate(Me_MOTION_C->model->object[0]);
 
+        if (__builtin_abs(v.vx) < 400 && __builtin_abs(v.vy) < 400 &&
+            __builtin_abs(v.vz) < 400)
         {
-            long abs_x;
-
-            abs_x = v.vx;
-            if (abs_x < 0)
-            {
-                abs_x = -abs_x;
-            }
-            if (abs_x < 400)
-            {
-                long abs_y;
-
-                abs_y = v.vy;
-                if (abs_y < 0)
-                {
-                    abs_y = -abs_y;
-                }
-                if (abs_y < 400)
-                {
-                    long abs_z;
-
-                    abs_z = v.vz;
-                    if (abs_z < 0)
-                    {
-                        abs_z = -abs_z;
-                    }
-                    if (abs_z < 400)
-                    {
-                        *(u16 *)&Me_MOTION_C->attribute |= ATTR_WALL;
-                    }
-                }
-            }
+            *(u16 *)&Me_MOTION_C->attribute |= ATTR_WALL;
         }
 
         {

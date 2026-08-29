@@ -81,8 +81,7 @@ void ActCHASE(void)
 
                 motID = 0x801;
                 motMODE = 0;
-                i = MotionUpdateMode;
-                if (i != 0)
+                if (MotionUpdateMode != 0)
                 {
                     i = 0;
                     do

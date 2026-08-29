@@ -180,8 +180,7 @@ void ActACTION(void)
         {
             motID = 0x100c;
             motMODE = 1;
-            i = MotionUpdateMode;
-            if (i != 0)
+            if (MotionUpdateMode != 0)
             {
                 i = 0;
                 do

@@ -424,8 +424,7 @@ void ActSTATE(void)
         }
         motID = MOT_CHASE;
         motMODE = 1;
-        i = MotionUpdateMode;
-        if (i != 0)
+        if (MotionUpdateMode != 0)
         {
             i = 0;
             do
