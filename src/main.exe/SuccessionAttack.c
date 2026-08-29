@@ -150,7 +150,7 @@ short SuccessionAttack(long dist, short deg)
         goto ret;
     }
 in_range:
-    if (Degree >= 301)
+    if (Degree > 300)
     {
         buttons = PADLright;
     }

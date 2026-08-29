@@ -310,7 +310,7 @@ draw_done:
         {
             if (direction >= -500)
             {
-                if (direction < 101)
+                if (direction <= 100)
                 {
                     head->rotate.vx = direction;
                 }

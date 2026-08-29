@@ -104,7 +104,7 @@ s16 Think1target(void)
         dy = StagePlayer->locate->vy - Me_THINK_C->locate->vy;
         distance = SquareRoot0(vx * xx + vz * zz);
         deg = GetDirection(xx, zz, Me_THINK_C->rotate->vy);
-        if (distance < 4001)
+        if (distance <= 4000)
         {
             /* This zero-code CFG fence gives distance the retail allocation priority. */
             if (distance != 0)
@@ -115,7 +115,7 @@ s16 Think1target(void)
             {
                 abs_dy = (dy >= 0) ? dy : -dy;
             }
-            if (abs_dy < 3001)
+            if (abs_dy <= 3000)
             {
                 direction = (deg >= 0) ? deg : -deg;
                 if (direction < 900 && StagePlayer->itmctl != ITEM_HENSHIN)
@@ -152,7 +152,7 @@ s16 Think1target(void)
 
         dy = __builtin_abs(Me_THINK_C->target->locate.coord.t[1] - Me_THINK_C->locate->vy);
 
-        if (dy < 2001)
+        if (dy <= 2000)
         {
             return turn_towards_player_(vx, vz);
         }

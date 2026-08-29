@@ -175,7 +175,7 @@ short AttackLong(void)
         goto return_pad;
     }
 
-    if (Distance >= 5001)
+    if (Distance > 5000)
     {
         Humanoid *me;
 
@@ -235,7 +235,7 @@ short AttackLong(void)
         goto return_pad;
     }
 
-    if (Distance < 4001)
+    if (Distance <= 4000)
     {
         goto return_pad;
     }

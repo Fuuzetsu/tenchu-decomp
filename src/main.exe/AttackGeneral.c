@@ -144,7 +144,7 @@ short AttackGeneral(void)
         {
             Me_THINK_C->actmode = 1;
         }
-        if (Distance < 5001)
+        if (Distance <= 5000)
         {
             goto return_pad;
         }
@@ -190,7 +190,7 @@ short AttackGeneral(void)
         goto return_pad;
     }
 
-    if (Distance >= 5001)
+    if (Distance > 5000)
     {
         Humanoid *me;
 
@@ -207,7 +207,7 @@ short AttackGeneral(void)
         Me_THINK_C->actmode = 0;
     }
 
-    if (Degree >= 501)
+    if (Degree > 500)
     {
         pad = PADLright;
     }
@@ -256,7 +256,7 @@ short AttackGeneral(void)
             degree = -degree;
         }
 
-        if (degree >= 1001 || Distance < 2000)
+        if (degree > 1000 || Distance < 2000)
         {
             if (Distance < 1000)
             {
@@ -282,10 +282,10 @@ short AttackGeneral(void)
             goto return_pad;
         }
 
-        if (Distance >= 3001)
+        if (Distance > 3000)
         {
             pad |= PADLup;
-            if (Distance < 4001)
+            if (Distance <= 4000)
             {
                 goto return_pad;
             }
@@ -313,7 +313,7 @@ short AttackGeneral(void)
         {
             goto return_pad;
         }
-        if (Degree >= 101)
+        if (Degree > 100)
         {
             pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
             goto return_pad;

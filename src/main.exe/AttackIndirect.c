@@ -98,7 +98,7 @@ short AttackIndirect(void)
         } while (0);
 
     choose_attack:
-        if (Degree >= 301)
+        if (Degree > 300)
         {
             pad = PADLright;
         }
@@ -187,7 +187,7 @@ short AttackIndirect(void)
         {
             pad = PADLright;
         }
-        else if (Degree >= 101)
+        else if (Degree > 100)
         {
             pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
         }

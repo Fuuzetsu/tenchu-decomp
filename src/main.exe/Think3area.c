@@ -112,7 +112,7 @@ s16 Think3area(void)
         {
             pad = Me_THINK_C->pad.data;
         }
-        else if (Degree >= 501)
+        else if (Degree > 500)
         {
             pad = PADLright;
         }

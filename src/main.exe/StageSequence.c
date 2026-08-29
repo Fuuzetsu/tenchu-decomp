@@ -250,15 +250,15 @@ s32 StageSequence(void)
 
             player_pos = StagePlayer->locate;
             target_pos = tgt->locate;
-            if (__builtin_abs(player_pos->vy - target_pos->vy) >= 2001)
+            if (__builtin_abs(player_pos->vy - target_pos->vy) > 2000)
             {
                 break;
             }
-            if (__builtin_abs(player_pos->vx - target_pos->vx) >= 2001)
+            if (__builtin_abs(player_pos->vx - target_pos->vx) > 2000)
             {
                 break;
             }
-            if (__builtin_abs(player_pos->vz - target_pos->vz) < 2001)
+            if (__builtin_abs(player_pos->vz - target_pos->vz) <= 2000)
             {
                 flag = 1;
             }

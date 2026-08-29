@@ -188,7 +188,7 @@ short AttackShort(void)
                 {
                     return 0;
                 }
-                if (raw_degree >= 501)
+                if (raw_degree > 500)
                 {
                     pad = PADLright;
                 }
@@ -206,7 +206,7 @@ short AttackShort(void)
         {
             Me_THINK_C->actmode = 1;
         }
-        if (Distance >= 4001)
+        if (Distance > 4000)
         {
             degree = Degree;
             if (degree < 0)
@@ -263,7 +263,7 @@ short AttackShort(void)
         goto return_pad;
     }
 
-    if (Distance >= 4001)
+    if (Distance > 4000)
     {
         Humanoid *me;
 
@@ -272,7 +272,7 @@ short AttackShort(void)
         Me_THINK_C->chase[1] = 0;
         me->chase[0] = 0;
         ItemUse();
-        if (Distance >= 5001)
+        if (Distance > 5000)
         {
             pad = PADLup | PADRdown;
         }
@@ -284,7 +284,7 @@ short AttackShort(void)
         Me_THINK_C->actmode = 0;
     }
 
-    if (Degree >= 501)
+    if (Degree > 500)
     {
         pad = PADLright;
     }
@@ -327,7 +327,7 @@ short AttackShort(void)
             goto return_pad;
         }
 
-        if (Distance >= 3001)
+        if (Distance > 3000)
         {
             if (degree >= 200 || Distance < 3501)
             {
@@ -353,7 +353,7 @@ short AttackShort(void)
 
         if (Distance < 1500)
         {
-            if (raw_degree >= 301)
+            if (raw_degree > 300)
             {
                 pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
                 goto return_pad;
@@ -380,7 +380,7 @@ short AttackShort(void)
         {
             goto return_pad;
         }
-        if (Degree >= 101)
+        if (Degree > 100)
         {
             pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
             goto return_pad;

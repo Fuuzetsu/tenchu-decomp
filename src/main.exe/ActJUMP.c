@@ -202,9 +202,9 @@ void ActJUMP(void)
             }
             spd.vx = spd.vx + dtV->vx;
             spd.vz = spd.vz + dtV->vz;
-            if (__builtin_abs(spd.vx) < 101)
+            if (__builtin_abs(spd.vx) <= 100)
             {
-                if (__builtin_abs(spd.vz) < 101)
+                if (__builtin_abs(spd.vz) <= 100)
                 {
                     dtV->vx = spd.vx;
                     dtV->vz = spd.vz;
