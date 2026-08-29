@@ -123,7 +123,7 @@ void PutItemList(void)
             s32 n;
 
             n = s;
-            if (s != 0xFF)
+            if (s != ITEM_INFINITE)
             {
                 PutNumberInline(x + 22, ItemY, n, 0);
             }

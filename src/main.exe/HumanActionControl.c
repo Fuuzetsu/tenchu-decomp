@@ -128,7 +128,7 @@ void HumanActionControl(Humanoid *human)
     dtR = rotate;
     dtM = motion;
     motID = mid;
-    if ((attr & 0x4000) != 0)
+    if ((attr & ATTR_HIT) != 0)
     {
         DamageControl();
     }

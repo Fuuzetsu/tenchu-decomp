@@ -157,7 +157,7 @@ void InitEffect(void)
         {
             if (i >= 2)
                 break;
-            smoke_id = 6;
+            smoke_id = IMG_SMOKE;
             do
             {
                 smoke_images[1] = (smoke_offset = i * 4, 0x3A);

@@ -76,7 +76,7 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
     for (;;)
     {
         y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz, 0);
-        if (y[0] == 0x80000000)
+        if (y[0] == (u32)LEVEL_NONE)
         {
             break;
         }

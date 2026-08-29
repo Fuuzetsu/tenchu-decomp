@@ -98,7 +98,7 @@ void ProcItemNingyo(TItem *item)
     ff = ITEM_MODE_DISPOSE;
     if (item->mode == ff)
     {
-        if (param->hp != 99)
+        if (param->hp != NINGYO_HP)
         {
             s32 i;
             s32 n;

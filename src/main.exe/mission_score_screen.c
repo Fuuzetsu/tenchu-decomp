@@ -965,12 +965,12 @@ void mission_score_screen(void)
 
         stageItem = StageItem[state->StageNo];
         brightness = stageItem;
-        if (state->gItem[brightness + (state->CharType << 5)] == 0xFE)
+        if (state->gItem[brightness + (state->CharType << 5)] == ITEM_LOCKED)
         {
             state->gItem[brightness + (state->CharType << 5)] += 3;
         }
         stageItem = StageItem[state->StageNo];
-        if (state->saveItem[stageItem] == 0xFE)
+        if (state->saveItem[stageItem] == ITEM_LOCKED)
         {
             state->saveItem[stageItem] += 3;
         }

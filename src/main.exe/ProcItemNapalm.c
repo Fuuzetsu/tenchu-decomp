@@ -195,7 +195,7 @@ void ProcItemNapalm(TItem *item)
                             item->locate->locate.coord.t[0],
                             item->locate->locate.coord.t[1],
                             item->locate->locate.coord.t[2], 0) ==
-            (long)0x80000000)
+            LEVEL_NONE)
         {
             proc = item->proc;
             if (proc == 0)

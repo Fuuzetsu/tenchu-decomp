@@ -370,7 +370,7 @@ void ProcItemNinken(TItem *item)
             }
             SetupThinkFunction(param->slave, THINK_MIX_NINKEN);
             param->slave->target = (ModelType *)target->model;
-            param->slave->attribute |= 2;
+            param->slave->attribute |= PHASE_ALERT;
             EquipWeapon(param->slave, 1);
             SetNowMotion(param->slave, 0x80e, 1);
             return;

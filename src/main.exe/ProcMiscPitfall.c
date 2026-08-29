@@ -109,8 +109,8 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         ConflictObject[r].offset.vx = 0;
         ConflictObject[r].offset.vy = 0;
         ConflictObject[r].offset.vz = 0;
-        ConflictObject[r].common = (void *)2;
-        ConflictObject[r].size.pad = 8;
+        ConflictObject[r].common = CONFLICT_OWNER_DOOR;
+        ConflictObject[r].size.pad = CONFLICT_SOFT;
         ConflictObject[r].size.vx = w;
         ConflictObject[r].size.vy = ConflictObject[r].size.vz = (w / 3) * 2;
     }
