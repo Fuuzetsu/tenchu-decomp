@@ -565,6 +565,24 @@ class is either fixed repo-wide or adjudicated in place with a
 measurement. Future passes should target NEW code as it gets matched,
 not re-sweep the existing corpus.
 
+READER-QUEUE (2026-08-29, in progress): codegen tests still pending
+from the whole-function reader sweep -- UpdateMotion %0x1000 respell,
+cd_read /2048 pair, SetLightningI+SetWire vz sign puns, SetFlyWire
+hand-divisions, SetupTelop line*16, SetWire one_value temp,
+UpdateTexScroll /16, draw_time quotient<<16 + digit-block macro,
+N_EFFECT_SLOTS pool-scan bound sweep (idx > 199 etc. family-wide),
+MotionUpdateMode staging x3 (ActSTATE/ActCHASE/ActACTION), ActKAGI
+abs cluster, ActSTICKON %30/drop_index/raw 6-4 bounds, ActATTACK
+first_frame staging + teardown macro x3 + WEP_NONE case 0s,
+AttackGeneral lone ternary-abs, AttackIndirect & ~0x5fff, BreedLife
+type bounds, InitMisc 0xB, GetNearestHumanoid > -1, ProcItemJirai
+(u8)count wrap spelling, ProcItemSmoke STAT_DAMAGE literal,
+AttackShort <<14 pad ternary, ActATTACK 0x65 abs bound, SORT_DEPTH
+macro (DrawBlood/DrawGore x3 each), ActSTATE hex frame counts to
+decimal, DrawBleed clamp reshape, MakeCameraPosition d1 staging,
+LoadConstruction *-14 fold, ProcMiscDoor dir expression, IsVisible
+Yoda-style unify. Each: matchdiff-gate, revert+adjudicate on break.
+
 GLOSS-COVERAGE PASS (STOPPED 2026-08-29 by owner: "I don't need you
 to add comments about what functions do, stop that"). Five batches had
 landed before the correction and were then removed on request
