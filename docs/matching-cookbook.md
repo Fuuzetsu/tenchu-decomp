@@ -964,6 +964,13 @@ judgment:
   `li`+`and` — read the raw immediate (Think2confirm vs Think1sleep).
 - **Countdown idioms are per-function**: `count - 1` vs `count + 0xff` — decode
   the immediate, Ghidra's `+0xff` is real (Happou vs LightningBolt).
+- **A negative enumerator signs the whole enum**: adding `X_NONE = -1` to an
+  otherwise non-negative enum flips every switch bounds check on a value of
+  that enum type from `sltiu` to `slti` (measured: ITEM_NONE broke the
+  DamageControl/ActSTICKON item-switch guards while every edited file's own
+  window still matched). Spell negative sentinels as a `#define` beside the
+  enum, and treat "window matches but the image does not" as this class of
+  header side effect: `cmp -l` the two images and map the offsets to symbols.
 
 ### 3.5 Calls, prototypes, inline helpers
 
