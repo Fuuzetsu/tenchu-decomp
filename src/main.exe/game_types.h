@@ -599,6 +599,8 @@ enum motion_family
  * MOT_* family names above. */
 enum
 {
+    MOT_NORMAL_TURN_R = 0x001,    /* idle pivot (ActNORMAL) */
+    MOT_NORMAL_TURN_L = 0x002,
     MOT_ACTION_LOOP = 0x101,      /* AI scripted idle, loops until pad */
     MOT_ACTION_GESTURE = 0x102,   /* AI scripted one-shot */
     MOT_ACTION_FIDGET_A = 0x104,  /* random standing fidget (coin flip) */

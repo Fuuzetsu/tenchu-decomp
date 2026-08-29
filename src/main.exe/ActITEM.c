@@ -52,7 +52,7 @@ void ActITEM(void)
     flag = 0;
     switch (dtM->mid)
     {
-    case 0xf00: /* scatter makibishi */
+    case MOT_ITEM: /* scatter makibishi */
         if (dtM->count != 10)
             break;
         flag = 1;

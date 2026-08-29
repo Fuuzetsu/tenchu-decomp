@@ -90,7 +90,7 @@ static s16 ItemUse(void)
         {
             d = -d;
         }
-        id = 0xE00;
+        id = MOT_SYURI;
         if (d < 100)
         {
             goto do_motion;
@@ -107,7 +107,7 @@ static s16 ItemUse(void)
     {
         d = -d;
     }
-    id = 0xF02;
+    id = MOT_ITEM_THROW;
     if (d < 300)
     {
         goto do_motion;

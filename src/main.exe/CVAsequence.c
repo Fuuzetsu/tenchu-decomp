@@ -170,10 +170,10 @@ run_sequence:
         human = anim_base[i].human;
         if (human != 0 && human->status != STAT_DEAD)
         {
-            motion = 0x501;
+            motion = MOT_ENGAGE_STANCE;
             if ((human->attribute & ATTR_ALERT) == 0 &&
                 (motion = 0, (human->type & PAGE_MASK) == type_class))
-                motion = 0x80e;
+                motion = MOT_STATE_DRAW;
             SetNowMotion(human, motion, 1);
         }
     }

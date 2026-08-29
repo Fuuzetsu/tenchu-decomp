@@ -44,7 +44,7 @@
  *
  * Byte-matching. Jump-table function (switch on the event kind).
  *
- * Four register-allocation ties were closed by removing draft-only locals; each
+ * Four register-allocation ties were closed; each
  * one is a cc1-2.8.1 mechanism worth knowing (see the commits for the RTL/pinned
  * -source evidence):
  *   - `y = CVAnow->y * 1000`: a dedicated `y` local made the last shift write a
@@ -64,8 +64,9 @@
  *     $v1 and so must take $a0, and that choice was being carried into case 3,
  *     where the target uses $v1. Case 3 needs its OWN cursor (`slot`).
  *
- * PSX.SYM's three-locals record (vect, human, i) was the through-line: every one
- * of these was a draft-invented local that the original did not have.
+ * PSX.SYM's three-locals record (vect, human, i) was the through-line: `y` and
+ * `active_status` were draft-invented locals the original did not have, while
+ * `delta` and `anim` needed respelling (abs; a split cursor), not removal.
  */
 
 extern s16 CVAflag; /* set by CVA camera/telop commands */
@@ -87,8 +88,8 @@ s16 CVAupdate(void)
 {
     Humanoid *human;
     HumanAnimType *anim;
-    HumanAnimType *slot;
     HumanAnimType *anim_base;
+    HumanAnimType *slot;
     ModelArchiveType *model;
     CVAType *event;
     CVAType *cursor;
@@ -106,7 +107,11 @@ s16 CVAupdate(void)
     cursor = CVAnow;
     if (cursor->mode != CVA_CMD_WAIT)
     {
+        /* Register-held -1 (SetWire's one_value class): byte-required
+         * (inlining the literal reorders the entry constants; measured). */
         invalid = -1;
+        /* The array-base alias is byte-required (indexing CVAhuman directly
+         * recolors the base register; measured). */
         anim_base = CVAhuman;
         do
         {
@@ -148,7 +153,7 @@ s16 CVAupdate(void)
                 {
                     do
                     {
-                        model->object[i]->attribute &= 0xFFFE;
+                        model->object[i]->attribute &= ~MODEL_ATTR_HIDDEN;
                         i++;
                     } while (i < model->n);
                 }
@@ -212,12 +217,8 @@ s16 CVAupdate(void)
                             human->life = 0;
                             ReqLifeBar(human);
                         }
-                        i = 0;
                     }
-                    else
-                    {
-                        i = 0;
-                    }
+                    i = 0;
 
                     slot = anim_base;
                     while (1)
@@ -253,12 +254,12 @@ s16 CVAupdate(void)
                     anim_base[i].human = human;
 
                     value = CVAnow->y;
-                    if (CVAnow->y < 1)
+                    if (value < 1)
                         value = 0x7FFF;
                     anim_base[i].loop = value;
                     value = CVAnow->z;
-                    if (CVAnow->z == 0)
-                        value = 0x501;
+                    if (value == 0)
+                        value = MOT_ENGAGE_STANCE;
                     anim_base[i].motid = value;
 
                     if (human->type == S2 && CVAnow->x == MOT_DEAD)
@@ -292,7 +293,7 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_CAMERA_PAN:
-                CameraPanMode = (u16)CVAnow->id;
+                CameraPanMode = CVAnow->id;
                 pan_value = 20;
                 if (CVAnow->p != 0)
                     pan_value = CVAnow->p;
@@ -309,7 +310,7 @@ s16 CVAupdate(void)
                 case 1:
                     SetBlood(&vect, event->p, 30);
                     break;
-                case CVA_CMD_ACTOR:
+                case 3:
                     set_fade_((u8)event->x, (u8)event->y,
                               (u8)event->z, event->p);
                     break;
@@ -335,13 +336,13 @@ s16 CVAupdate(void)
                     {
                         do
                         {
-                            *(u16 *)&TANKA_SPRITES_[i]->attribute |= 1;
+                            *(u16 *)&TANKA_SPRITES_[i]->attribute |= MODEL_ATTR_HIDDEN;
                             i++;
                         } while (i < 6);
                     }
                     else
                     {
-                        *(u16 *)&TANKA_SPRITES_[ch - '1']->attribute &= 0xFFFE;
+                        *(u16 *)&TANKA_SPRITES_[i - 1]->attribute &= ~MODEL_ATTR_HIDDEN;
                     }
                 }
                 TelopText[0] = 0;

@@ -33,7 +33,6 @@ extern void JumpControl(void);
 
 void ActNORMAL(void)
 {
-    int rotation_value;
     short mid;
 
     mid = dtM->mid;
@@ -69,13 +68,13 @@ void ActNORMAL(void)
         }
         if (dtPAD & PADLright)
         {
-            motID = 1;
+            motID = MOT_NORMAL_TURN_R;
             motMODE = 0;
             break;
         }
         if (dtPAD & PADLleft)
         {
-            motID = 2;
+            motID = MOT_NORMAL_TURN_L;
             motMODE = 0;
             break;
         }
@@ -86,19 +85,19 @@ void ActNORMAL(void)
 
             motMODE = 1;
             random = rand();
-            random_motion = 0x105;
+            random_motion = MOT_ACTION_FIDGET_B;
             if (random & 1)
-                random_motion = 0x104;
+                random_motion = MOT_ACTION_FIDGET_A;
             motID = random_motion;
         }
         break;
 
-    case 1:
+    case MOT_NORMAL_TURN_R:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
         if (dtPAD & PADLright)
         {
-            dtR->vy += (u16)Me_MOTION_C->turn;
+            dtR->vy += Me_MOTION_C->turn;
         }
         else
         {
@@ -107,7 +106,7 @@ void ActNORMAL(void)
         }
         break;
 
-    case 2:
+    case MOT_NORMAL_TURN_L:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, 0x10);
         if ((dtPAD & PADLleft) == 0)
@@ -117,7 +116,7 @@ void ActNORMAL(void)
         }
         else
         {
-            dtR->vy -= (u16)Me_MOTION_C->turn;
+            dtR->vy -= Me_MOTION_C->turn;
         }
         break;
 
@@ -192,6 +191,8 @@ void ActNORMAL(void)
             case ITEM_MAKIBISHI:
                 motID = MOT_ITEM;
                 break;
+            /* Written out twice: byte-required (stacking the labels merges
+             * the twin jump-table bodies; measured). */
             case ITEM_SMOKE:
                 motID = MOT_ITEM_THROW;
                 break;

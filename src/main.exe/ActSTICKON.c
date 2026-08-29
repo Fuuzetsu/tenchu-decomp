@@ -98,7 +98,7 @@ void ActSTICKON(void)
     SVECTOR vect;
     PARAM_ITEM_LAUNCH item;
     short i;
-    short drop_index;
+    short t;
 
     model = Me_MOTION_C->model;
     switch (dtM->mid)
@@ -128,9 +128,9 @@ void ActSTICKON(void)
                 wall_y += 0x400;
             }
             reflected_raw = (u16)RefrectVector[map->vector] - wall_y;
-            /* drop_index re-registers wall_y for the divide below:
+            /* t re-registers wall_y for the divide below:
              * byte-required (direct wall_y use mismatches; measured). */
-            drop_index = wall_y;
+            t = wall_y;
             rv = reflected_raw;
             reflected = (s16)reflected_raw;
             if (reflected == 0)
@@ -150,7 +150,7 @@ void ActSTICKON(void)
                 rv = reflected_raw;
             }
 
-            dtR->vy += (drop_index - dtR->vy) / -dtM->count;
+            dtR->vy += (t - dtR->vy) / -dtM->count;
             dtM->motion->rotate[0]->y = rv;
             rotation = dtM->motion->rotate[2];
             if (rv & 0x400)
@@ -201,13 +201,13 @@ void ActSTICKON(void)
                     {
                         if (CVAhuman[i].human == Me_MOTION_C)
                         {
-                            goto case0_motion_done;
+                            goto stickon_motion_done;
                         }
                     }
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
                 motMODE = -1;
-            case0_motion_done:
+            stickon_motion_done:
                 dtM->count = -5;
                 break;
             }
@@ -231,20 +231,23 @@ void ActSTICKON(void)
                 rv = (u16)model->object[0]->rotate.vy >> 10 & 3;
                 if (((pad >> 12) & 1) == 0)
                 {
+                    /* loop_pad re-registers pad for the scan:
+                     * byte-required (direct pad use mismatches; measured). */
                     loop_pad = pad;
                     do
                     {
                         pd++;
                     } while (((loop_pad >> (pd + 12)) & 1) == 0);
                 }
-                pad_rv = rv;
-                if (pad_rv != ((pd + 2) & 3))
+                if (rv != ((pd + 2) & 3))
                 {
+                    /* Staged dtM load: byte-required (calling with dtM
+                     * directly reorders the li/lw pair; measured). */
                     update_motion = dtM;
-                    y = 0xC02;
-                    if (pad_rv == ((pd + 1) & 3))
+                    y = MOT_STICKON_SLIDE_R;
+                    if (rv == ((pd + 1) & 3))
                     {
-                        y = 0xC01;
+                        y = MOT_STICKON_SLIDE_L;
                     }
                     UpdateMotion(update_motion, y);
                     Me_MOTION_C->status = STAT_STICKON;
@@ -271,25 +274,25 @@ void ActSTICKON(void)
             case CMODE_STICK_L:
                 if (camera_rv == 2)
                 {
-                    pd = 0xC03;
+                    pd = MOT_STICKON_THROW_L;
                 }
                 break;
             case CMODE_PEEP_L:
                 if (camera_rv == 3)
                 {
-                    pd = 0xC03;
+                    pd = MOT_STICKON_THROW_L;
                 }
                 break;
             case CMODE_STICK_R:
                 if (camera_rv == 2)
                 {
-                    pd = 0xC04;
+                    pd = MOT_STICKON_THROW_R;
                 }
                 break;
             case CMODE_PEEP_R:
                 if (camera_rv == 1)
                 {
-                    pd = 0xC04;
+                    pd = MOT_STICKON_THROW_R;
                 }
                 break;
             }
@@ -362,13 +365,13 @@ void ActSTICKON(void)
                     {
                         if (CVAhuman[i].human == Me_MOTION_C)
                         {
-                            goto case12_motion_done;
+                            goto slide_motion_done;
                         }
                     }
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
                 motMODE = -1;
-            case12_motion_done:
+            slide_motion_done:
                 dtM->count = -5;
                 break;
             }
@@ -387,13 +390,14 @@ void ActSTICKON(void)
         pad = (s32)pad_bits >> 16;
         if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) == 0)
         {
-            goto case12_no_pad;
+            goto slide_no_pad;
         }
 
         rv = (u16)model->object[0]->rotate.vy >> 10 & 3;
         pd = 0;
         if ((((s32)pad_bits >> 28) & 1) == 0)
         {
+            /* A separate dtPAD reload — the extra lhu is in the bytes. */
             loop_pad = (s16)(u16)dtPAD;
             do
             {
@@ -404,31 +408,31 @@ void ActSTICKON(void)
         {
             break;
         }
-        drop_index = 0xC02;
+        t = MOT_STICKON_SLIDE_R;
         if (rv == ((pd + 1) & 3))
         {
-            drop_index = 0xC01;
+            t = MOT_STICKON_SLIDE_L;
         }
-        if (motID != drop_index)
+        if (motID != t)
         {
-            UpdateMotion(dtM, drop_index);
+            UpdateMotion(dtM, t);
         }
 
         if (dtPAD & PADLup)
         {
-            MoveHumanoid(Me_MOTION_C, 0x1E, 0);
+            MoveHumanoid(Me_MOTION_C, 30, 0);
         }
         else if (dtPAD & PADLdown)
         {
-            MoveHumanoid(Me_MOTION_C, -0x1E, 0);
+            MoveHumanoid(Me_MOTION_C, -30, 0);
         }
         else if (dtPAD & PADLleft)
         {
-            MoveHumanoid(Me_MOTION_C, 0, 0x1E);
+            MoveHumanoid(Me_MOTION_C, 0, 30);
         }
         else if (dtPAD & PADLright)
         {
-            MoveHumanoid(Me_MOTION_C, 0, -0x1E);
+            MoveHumanoid(Me_MOTION_C, 0, -30);
         }
 
         y = model->object[0]->rotate.vy + dtR->vy;
@@ -459,7 +463,7 @@ void ActSTICKON(void)
         }
         break;
 
-    case12_no_pad:
+    slide_no_pad:
         motID = MOT_STICKON;
         motMODE = 1;
         dtM->mask = 0x7FFF;
@@ -489,7 +493,7 @@ void ActSTICKON(void)
         item.user = Me_MOTION_C;
         item.type = StickonItem;
         Me_MOTION_C->item[StickonItem]--;
-        position = GetAbsolutePosition(Me_MOTION_C->model->object[pd + 0xD],
+        position = GetAbsolutePosition(Me_MOTION_C->model->object[pd + 0xD] /* 13/14: L/R hand */,
                                        0, 0, 0);
         angle = (s16)angle;
         position->vx -= (rsin(angle) * 500) >> 12;
@@ -509,7 +513,7 @@ void ActSTICKON(void)
 
         if (item.type == ITEM_MAKIBISHI)
         {
-            for (drop_index = 0; drop_index < 5; drop_index++)
+            for (t = 0; t < 5; t++)
             {
                 next_angle = angle - 10;
                 do
