@@ -241,9 +241,12 @@ void BriefingAndInventorySelectionScreen(void)
         np = pad.u & (pad.u ^ np);
         id = check_cheat_command_(pad.s, np);
         /* The subtract-then-narrow is retail's own: addiu -1 then an
-         * sll/sra s16 truncation before the bound check, i.e. the
-         * original biased through a short temp exactly like EquipWeapon's
-         * proven `idx = wpatk - 4`. Cases are combo ids minus one. */
+         * sll/sra s16 truncation before the bound check. The s16 `cheat`
+         * temp is byte-required HERE because `id` is an int (the direct
+         * switch(id) with unbiased cases was measured off); contrast
+         * EquipWeapon, whose source field is already short and whose
+         * biased local proved to be an artifact. Cases are combo ids
+         * minus one. */
         cheat = id - 1;
         switch (cheat)
         {
