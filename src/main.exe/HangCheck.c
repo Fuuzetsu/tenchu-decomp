@@ -239,18 +239,7 @@ short HangCheck(void)
     }
     motID = 0xA01;
     motMODE = 1;
-    if (MotionUpdateMode != 0)
-    {
-        for (i = 0; i < 5; i++)
-        {
-            if (CVAhuman[i].human == Me_MOTION_C)
-            {
-                goto found;
-            }
-        }
-    }
-    SetNowMotion(Me_MOTION_C, motID, motMODE);
-    motMODE = -1;
+    SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:
     Sound(Me_MOTION_C, 0x1B);
     if (StagePlayer != Me_MOTION_C)

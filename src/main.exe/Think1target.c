@@ -128,12 +128,7 @@ s16 Think1target(void)
                     Me_THINK_C->chase[1] = 0;
                     Me_THINK_C->chase[0] = 0;
                     Sound(Me_THINK_C, 13);
-                    alert_time = ALERT_DURATION;
-                    if (gNannido == DIFFICULTY_HARD)
-                    {
-                        alert_time = ALERT_DURATION_HARD;
-                    }
-                    EmergencyNotice = alert_time;
+                    RESET_ALERT_DURATION(alert_time);
                 }
             }
         }

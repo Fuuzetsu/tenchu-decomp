@@ -795,18 +795,7 @@ dispatch:
         motID = 0x501;
         motMODE = 1;
         dtM->mask = 0x7fff;
-        if (MotionUpdateMode != 0)
-        {
-            for (i = 0; i < 5; i++)
-            {
-                if (CVAhuman[i].human == Me_MOTION_C)
-                {
-                    goto align_rotation;
-                }
-            }
-        }
-        SetNowMotion(Me_MOTION_C, motID, motMODE);
-        motMODE = -1;
+        SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:
         dtR->vy = dtR->vy + (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
         is_player = Me_MOTION_C == StagePlayer;

@@ -71,6 +71,17 @@
 #define ATTACK_COOLDOWN_PER_LEVEL 10 /* frames per EngageLevel between AI attacks */
 #define SR_CLEAR_RANGE 10000         /* beyond this, the search-result state clears */
 
+/* The alert-refresh block the think TUs paste inline (the same body as
+ * reset_alert_duration(); `tmp` names each site's local). Macro is
+ * reconstruction shorthand, expands to the identical text. */
+#define RESET_ALERT_DURATION(tmp)                                             \
+    tmp = ALERT_DURATION;                                                     \
+    if (gNannido == DIFFICULTY_HARD)                                          \
+    {                                                                         \
+        tmp = ALERT_DURATION_HARD;                                            \
+    }                                                                         \
+    EmergencyNotice = tmp;
+
 /* Memory-card retry cap (both card state machines). */
 #define CARD_RETRY_LIMIT 3
 

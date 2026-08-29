@@ -104,20 +104,7 @@ fall:
     locate->vz += (human->width * RefrectMove[human->map.angleH][1]) >> 2;
     motMODE = 0;
     motID = 0x803;
-    if (MotionUpdateMode != 0)
-    {
-        i = 0;
-        do
-        {
-            if (CVAhuman[i].human == Me_MOTION_C)
-            {
-                goto found;
-            }
-            i++;
-        } while (i < 5);
-    }
-    SetNowMotion(Me_MOTION_C, motID, motMODE);
-    motMODE = -1;
+    SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:
     if (Me_MOTION_C->status == STAT_SQUAT)
     {

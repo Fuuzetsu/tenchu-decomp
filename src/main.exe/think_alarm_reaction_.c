@@ -54,12 +54,7 @@ s16 think_alarm_reaction_(void)
             s32 alertTime;
             s32 nextState;
 
-            alertTime = ALERT_DURATION;
-            if (gNannido == DIFFICULTY_HARD)
-            {
-                alertTime = ALERT_DURATION_HARD;
-            }
-            EmergencyNotice = alertTime;
+            RESET_ALERT_DURATION(alertTime);
             Sound(Me_THINK_C, 0xE);
 
             switch (gNannido)
@@ -219,12 +214,7 @@ s16 think_alarm_reaction_(void)
             Humanoid *human;
             ThinkFunc think4;
 
-            alertTime = ALERT_DURATION;
-            if (gNannido == DIFFICULTY_HARD)
-            {
-                alertTime = ALERT_DURATION_HARD;
-            }
-            EmergencyNotice = alertTime;
+            RESET_ALERT_DURATION(alertTime);
             Me_THINK_C->actscnt = 0;
             Me_THINK_C->actcnt = 1;
 

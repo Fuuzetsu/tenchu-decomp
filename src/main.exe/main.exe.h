@@ -4,6 +4,30 @@
 #include "humanoid.h"
 #include "game_globals.h"
 
+/* Commit motID/motMODE to the humanoid -- unless a cutscene (CVA) is
+ * currently driving them, in which case the script owns the motion and
+ * the caller bails out via `escape` instead. Retail copy-pastes this
+ * guard at every damage/death motion commit; the macro is
+ * reconstruction shorthand for that copy-paste (expands to the
+ * identical text). */
+#define SET_NOW_MOTION_UNLESS_CVA(escape)                                     \
+    {                                                                         \
+        short i;                                                              \
+                                                                              \
+        if (MotionUpdateMode != 0)                                            \
+        {                                                                     \
+            for (i = 0; i < 5; i++)                                           \
+            {                                                                 \
+                if (CVAhuman[i].human == Me_MOTION_C)                         \
+                {                                                             \
+                    escape;                                                   \
+                }                                                             \
+            }                                                                 \
+        }                                                                     \
+        SetNowMotion(Me_MOTION_C, motID, motMODE);                            \
+        motMODE = -1;                                                         \
+    }
+
 /* Clamp a >>2 screen depth into [0, DEPTH_LIMIT - 1] for the OT sort;
  * the copy-paste block every sprite-effect renderer carries (macro is
  * reconstruction shorthand, expands to the identical text). */

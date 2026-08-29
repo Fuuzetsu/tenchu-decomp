@@ -71,12 +71,7 @@ void register_character_death(Humanoid *dead)
                 if (GetAreaMapPassage(GlobalAreaMap, human->locate,
                                       &passage, scale) == 0)
                 {
-                    alert_time = ALERT_DURATION;
-                    if (gNannido == DIFFICULTY_HARD)
-                    {
-                        alert_time = ALERT_DURATION_HARD;
-                    }
-                    EmergencyNotice = alert_time;
+                    RESET_ALERT_DURATION(alert_time);
                     Sound(human, 0xc);
                     SetNowMotion(human, 0x80e, 1);
                     dead->attribute |= ATTR_SEARCH;
