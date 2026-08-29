@@ -85,18 +85,7 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
         sp->x = scr.vx;
         sp->y = scr.vy;
         t = (scr.vz + (s32)d) >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(sp, OTablePt, (u16)pri);
     }
 }

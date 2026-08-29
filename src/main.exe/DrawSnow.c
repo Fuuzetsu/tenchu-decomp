@@ -113,18 +113,7 @@ void DrawSnow(TEffectSlot *ef)
         sprite->x = screen.vx;
         sprite->y = screen.vy;
         otz = (s16)(u16)screen.vz >> 2;
-        if (otz >= 0)
-        {
-            priority = DEPTH_LIMIT - 1;
-            if (otz < DEPTH_LIMIT)
-            {
-                priority = otz;
-            }
-        }
-        else
-        {
-            priority = 0;
-        }
+        CLAMP_SORT_DEPTH(priority, otz);
         GsSortSprite(sprite, OTablePt, (u16)priority);
     }
 }

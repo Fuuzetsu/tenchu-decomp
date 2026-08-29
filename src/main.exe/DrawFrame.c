@@ -198,18 +198,7 @@ draw:
         spr->y = scr.vy;
         t = scr.vz - 0x32;
         t = t >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(spr, OTablePt, (u16)pri);
     }
 }

@@ -322,18 +322,7 @@ void DrawImpact(TEffectSlot *ef)
         spr->y = scr.vy;
 
         start2 = (s16)(u16)scr.vz >> 2;
-        if (start2 >= 0)
-        {
-            priority = DEPTH_LIMIT - 1;
-            if (start2 < DEPTH_LIMIT)
-            {
-                priority = start2;
-            }
-        }
-        else
-        {
-            priority = 0;
-        }
+        CLAMP_SORT_DEPTH(priority, start2);
         GsSortSprite(spr, OTablePt, (u16)priority);
     }
 

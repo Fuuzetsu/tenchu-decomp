@@ -88,18 +88,7 @@ void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
         sprt->x = scr.vx;
         sprt->y = scr.vy;
         t = (s16)(u16)scr.vz >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(sprt, OTablePt, (u16)pri);
     }
 }

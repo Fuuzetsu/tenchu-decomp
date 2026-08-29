@@ -193,18 +193,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
 
         otz = afi->sz;
         otz = otz >> 2;
-        if (otz >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (otz < DEPTH_LIMIT)
-            {
-                pri = otz;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, otz);
         GsSortPoly(poly, OTablePt, (u16)pri);
         i++;
     }

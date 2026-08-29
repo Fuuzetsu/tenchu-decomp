@@ -3,6 +3,24 @@
 #include "conflict.h"
 #include "humanoid.h"
 #include "game_globals.h"
+
+/* Clamp a >>2 screen depth into [0, DEPTH_LIMIT - 1] for the OT sort;
+ * the copy-paste block every sprite-effect renderer carries (macro is
+ * reconstruction shorthand, expands to the identical text). */
+#define CLAMP_SORT_DEPTH(pri, z)                                              \
+    if ((z) >= 0)                                                             \
+    {                                                                         \
+        (pri) = DEPTH_LIMIT - 1;                                              \
+        if ((z) < DEPTH_LIMIT)                                                \
+        {                                                                     \
+            (pri) = (z);                                                      \
+        }                                                                     \
+    }                                                                         \
+    else                                                                      \
+    {                                                                         \
+        (pri) = 0;                                                            \
+    }
+
 #include "ram_layout.h"
 
 extern void PadProc(void);

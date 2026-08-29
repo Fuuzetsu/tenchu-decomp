@@ -152,33 +152,11 @@ void DrawGore(TEffectSlot *ef)
         spr2->b = (u8)half_brightness;
 
         value = (s16)(u16)scratch.screen.vz >> 2;
-        if (value >= 0)
-        {
-            priority = DEPTH_LIMIT - 1;
-            if (value < DEPTH_LIMIT)
-            {
-                priority = value;
-            }
-        }
-        else
-        {
-            priority = 0;
-        }
+        CLAMP_SORT_DEPTH(priority, value);
         GsSortSprite(spr, OTablePt, (u16)priority);
 
         value = (s16)(u16)scratch.screen.vz >> 2;
-        if (value >= 0)
-        {
-            priority = DEPTH_LIMIT - 1;
-            if (value < DEPTH_LIMIT)
-            {
-                priority = value;
-            }
-        }
-        else
-        {
-            priority = 0;
-        }
+        CLAMP_SORT_DEPTH(priority, value);
         GsSortSprite(spr2, OTablePt, (u16)priority);
         return;
     }
@@ -394,18 +372,7 @@ void DrawGore(TEffectSlot *ef)
         spr->x = scratch.screen.vx;
         spr->y = scratch.screen.vy;
         value = (s16)(u16)scratch.screen.vz >> 2;
-        if (value >= 0)
-        {
-            priority = DEPTH_LIMIT - 1;
-            if (value < DEPTH_LIMIT)
-            {
-                priority = value;
-            }
-        }
-        else
-        {
-            priority = 0;
-        }
+        CLAMP_SORT_DEPTH(priority, value);
         GsSortSprite(spr, OTablePt, (u16)priority);
     }
 }

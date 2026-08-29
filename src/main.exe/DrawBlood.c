@@ -174,33 +174,11 @@ void DrawBlood(TEffectSlot *ef)
         sprt->b = (u8)half;
 
         t = (s16)(u16)scratch.scr.vz >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(spr, OTablePt, (u16)pri);
 
         t = (s16)(u16)scratch.scr.vz >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(sprt, OTablePt, (u16)pri);
         return;
     }
@@ -376,18 +354,7 @@ void DrawBlood(TEffectSlot *ef)
     spr->x = scratch.scr.vx;
     spr->y = scratch.scr.vy;
     t = (s16)(u16)scratch.scr.vz >> 2;
-    if (t >= 0)
-    {
-        pri = DEPTH_LIMIT - 1;
-        if (t < DEPTH_LIMIT)
-        {
-            pri = t;
-        }
-    }
-    else
-    {
-        pri = 0;
-    }
+    CLAMP_SORT_DEPTH(pri, t);
     GsSortSprite(spr, OTablePt, (u16)pri);
 }
 }

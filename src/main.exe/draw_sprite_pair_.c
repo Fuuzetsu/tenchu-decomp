@@ -86,33 +86,11 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
         sp1->b = (u8)(color / 2);
 
         t = (s16)(u16)out.vz >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(sp2, OTablePt, (u16)pri);
 
         t = (s16)(u16)out.vz >> 2;
-        if (t >= 0)
-        {
-            pri = DEPTH_LIMIT - 1;
-            if (t < DEPTH_LIMIT)
-            {
-                pri = t;
-            }
-        }
-        else
-        {
-            pri = 0;
-        }
+        CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(sp1, OTablePt, (u16)pri);
     }
 }
