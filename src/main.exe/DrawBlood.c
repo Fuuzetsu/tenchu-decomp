@@ -176,7 +176,7 @@ void DrawBlood(TEffectSlot *ef)
         t = (s16)(u16)scratch.scr.vz >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;
@@ -191,7 +191,7 @@ void DrawBlood(TEffectSlot *ef)
         t = (s16)(u16)scratch.scr.vz >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;
@@ -378,7 +378,7 @@ void DrawBlood(TEffectSlot *ef)
     t = (s16)(u16)scratch.scr.vz >> 2;
     if (t >= 0)
     {
-        pri = 0x4e1;
+        pri = DEPTH_LIMIT - 1;
         if (t < DEPTH_LIMIT)
         {
             pri = t;

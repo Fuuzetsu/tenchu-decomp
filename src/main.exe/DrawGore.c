@@ -154,7 +154,7 @@ void DrawGore(TEffectSlot *ef)
         value = (s16)(u16)scratch.screen.vz >> 2;
         if (value >= 0)
         {
-            priority = 0x4e1;
+            priority = DEPTH_LIMIT - 1;
             if (value < DEPTH_LIMIT)
             {
                 priority = value;
@@ -169,7 +169,7 @@ void DrawGore(TEffectSlot *ef)
         value = (s16)(u16)scratch.screen.vz >> 2;
         if (value >= 0)
         {
-            priority = 0x4e1;
+            priority = DEPTH_LIMIT - 1;
             if (value < DEPTH_LIMIT)
             {
                 priority = value;
@@ -396,7 +396,7 @@ void DrawGore(TEffectSlot *ef)
         value = (s16)(u16)scratch.screen.vz >> 2;
         if (value >= 0)
         {
-            priority = 0x4e1;
+            priority = DEPTH_LIMIT - 1;
             if (value < DEPTH_LIMIT)
             {
                 priority = value;

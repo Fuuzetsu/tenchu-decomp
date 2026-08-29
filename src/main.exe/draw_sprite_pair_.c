@@ -88,7 +88,7 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
         t = (s16)(u16)out.vz >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;
@@ -103,7 +103,7 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
         t = (s16)(u16)out.vz >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;

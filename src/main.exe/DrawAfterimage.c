@@ -195,7 +195,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         otz = otz >> 2;
         if (otz >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (otz < DEPTH_LIMIT)
             {
                 pri = otz;

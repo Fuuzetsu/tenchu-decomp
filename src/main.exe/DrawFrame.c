@@ -200,7 +200,7 @@ draw:
         t = t >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;

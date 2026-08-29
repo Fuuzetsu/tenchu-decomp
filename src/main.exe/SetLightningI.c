@@ -211,7 +211,7 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
                         if (z < DEPTH_LIMIT)
                             p = z;
                         else
-                            p = 0x4e1;
+                            p = DEPTH_LIMIT - 1;
                     }
                     else
                     {

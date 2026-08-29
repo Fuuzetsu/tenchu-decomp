@@ -192,7 +192,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
                 if (z < DEPTH_LIMIT)
                     p = z;
                 else
-                    p = 0x4e1;
+                    p = DEPTH_LIMIT - 1;
             }
             else
             {

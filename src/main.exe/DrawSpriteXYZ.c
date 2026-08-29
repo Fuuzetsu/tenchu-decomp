@@ -90,7 +90,7 @@ void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
         t = (s16)(u16)scr.vz >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;

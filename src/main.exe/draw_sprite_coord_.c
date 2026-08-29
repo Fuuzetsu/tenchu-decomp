@@ -14,7 +14,7 @@
  * MATCH.
  *
  * draw_sprite_coord_ (0x8003a148, 0x160 bytes) — same "project a 3D point and
- * sort-draw a sprite there" tail as DrawSpriteXYZ (the [0, 0x4e1] clamp +
+ * sort-draw a sprite there" tail as DrawSpriteXYZ (the [0, DEPTH_LIMIT - 1] clamp +
  * GsSortSprite), but with a CHOICE of projection: when `coord` (param_6) is
  * non-NULL it goes through the GsGetLs/SetLsMatrix/RotTransPers path (same
  * scratchpad idiom as DrawOrnament/DrawModel — install `coord`'s local
@@ -41,7 +41,7 @@
  *    the GsGetLs block as the FALL-THROUGH, so the C needs the condition
  *    that puts GsGetLs first (the `if (cond) A; else B;`-makes-A-the-
  *    fallthrough rule).
- *  - The [0, 0x4e1] clamp reuses DrawSpriteXYZ's exact `goto zero;` shape,
+ *  - The [0, DEPTH_LIMIT - 1] clamp reuses DrawSpriteXYZ's exact `goto zero;` shape,
  *    comparing `(scr.vz + d) >> 2` instead of the twin's `(u16)otz << 16 >>
  *    0x12`. The RHS must re-read the struct field `scr.vz`, not the
  *    already-live `otz` local: the target's asm re-loads it fresh (`lh`)
@@ -87,7 +87,7 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
         t = (scr.vz + (s32)d) >> 2;
         if (t >= 0)
         {
-            pri = 0x4e1;
+            pri = DEPTH_LIMIT - 1;
             if (t < DEPTH_LIMIT)
             {
                 pri = t;

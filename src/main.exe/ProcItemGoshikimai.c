@@ -108,14 +108,14 @@ void ProcItemGoshikimai(TItem *item)
             item->mode = 0;
             return;
         }
-        if (mot->count != 0xf)
+        if (mot->count != 15)
             return;
         p.type = ITEM_GOSHIKIMAI;
         p.user = item->owner;
         p.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
         p.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;
         p.start.vz = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vz;
-        p.end.vx = item->param.goshikimai.vec.vx;
+        p.end.vx = param->vec.vx;
         p.end.vy = param->vec.vy;
         p.end.vz = param->vec.vz;
         NowReturnNormal(item->owner);
