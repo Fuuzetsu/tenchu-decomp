@@ -54,7 +54,7 @@
 
 extern Humanoid *Me_THINK_C;
 
-extern s16 SuccessionAttack(s32 distance, s16 degree);
+extern s16 SuccessionAttack(s32 dist, s16 deg);
 extern s16 Think3attack(void);
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 
@@ -71,7 +71,7 @@ s16 Think3area(void)
         return SuccessionAttack(4000, 500);
     }
 
-    if (Distance < 10000 && SR != SR_GONE)
+    if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
     }

@@ -81,7 +81,7 @@
  *
  * 1. The tail's `if/else` at in_range has its arms SWAPPED relative to
  *    Ghidra's rendering: the target's `bnez`/fallthrough shape decodes as
- *    `if (Degree >= 0x12d) { buttons = 0x2000; } else { buttons |= 0x80; if
+ *    `if (Degree >= 301) { buttons = 0x2000; } else { buttons |= 0x80; if
  *    (Degree < -300) { buttons = -0x8000; } else { goto ret; } } buttons |= 0x80;
  *    ret: return buttons;` — i.e. Ghidra's literal `if (Degree<0x12d){ if
  *    (-0x12d<Degree) return 0x80; ... }` is the INVERSE condition with the
@@ -150,7 +150,7 @@ short SuccessionAttack(long dist, short deg)
         goto ret;
     }
 in_range:
-    if (Degree >= 0x12d)
+    if (Degree >= 301)
     {
         buttons = PADLright;
     }

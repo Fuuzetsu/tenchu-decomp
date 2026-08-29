@@ -43,7 +43,7 @@ s16 Think3chase(void)
     s32 degree;
     u16 result;
 
-    if (Distance < 10000 && SR != SR_GONE)
+    if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
     }
@@ -72,7 +72,7 @@ s16 Think3chase(void)
                     result = PADRleft | PADRright;
                 }
             }
-            AttackActionCount = GameClock + EngageLevel * 10;
+            AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
             goto return_result;
         }
     }

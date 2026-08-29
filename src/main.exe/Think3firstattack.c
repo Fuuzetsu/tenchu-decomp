@@ -1,6 +1,7 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
 
@@ -45,6 +46,8 @@
  * defers the function's s16 conversion to the shared return tail.
  */
 extern Humanoid *Me_THINK_C;
+/* Per-range-class first-attack distances, indexed by wpatk >> 4
+ * (same shape as Think3attack.c's atkd table). */
 extern s16 atkd2[4];
 /* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
 extern int turn_towards_player_(int x_diff, int z_diff);
@@ -52,20 +55,20 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 s16 Think3firstattack(void)
 {
     s32 result;
-    s16 wclass;
+    s16 idx;
     s32 degree;
 
     result = turn_towards_player_(0, 0);
-    if (Distance < 10000 && SR != SR_GONE)
+    if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
     }
-    if ((Me_THINK_C->type & 0xF0) == 0x90)
+    if ((Me_THINK_C->type & 0xf0) == PAGE_CIVILIAN)
     {
-        ATTRIB_BITS |= 0x10;
+        ATTRIB_BITS |= ATTR_SEARCH;
     }
-    wclass = Me_THINK_C->wpatk >> 4;
-    if (wclass == 3)
+    idx = Me_THINK_C->wpatk >> 4;
+    if (idx == 3)
     {
         s32 masked;
 
@@ -88,10 +91,10 @@ s16 Think3firstattack(void)
         }
         result = masked;
     }
-    if (Distance < atkd2[wclass])
+    if (Distance < atkd2[idx])
     {
-        result |= 0x80;
-        ATTRIB_BITS |= 0x10;
+        result |= PADRleft;
+        ATTRIB_BITS |= ATTR_SEARCH;
     }
     return result;
 }

@@ -58,7 +58,7 @@
 
 extern Humanoid *Me_THINK_C;
 
-extern s16 turn_towards_player_(s32 x, s32 z);
+extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern s16 ItemUse(void);
 
 short AttackIndirect(void)
@@ -166,7 +166,7 @@ short AttackIndirect(void)
     }
 
     {
-        if (rand() % (EngageLevel << 2) == 0)
+        if (rand() % (EngageLevel * 4) == 0)
         {
             degree = Degree;
             if (degree < 0)
@@ -206,7 +206,7 @@ short AttackIndirect(void)
     }
 
 action_ready:
-    if (pad == 0x80)
+    if (pad == PADRleft)
     {
         Me_THINK_C->rotate->vy += Degree;
     }

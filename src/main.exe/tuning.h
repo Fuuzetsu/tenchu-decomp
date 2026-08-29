@@ -58,6 +58,10 @@
 #define ALERT_DURATION 300
 #define ALERT_DURATION_HARD 600
 
+/* Combat pacing. */
+#define ATTACK_COOLDOWN_PER_LEVEL 10 /* frames per EngageLevel between AI attacks */
+#define SR_CLEAR_RANGE 10000         /* beyond this, the search-result state clears */
+
 /* Memory-card retry cap (both card state machines). */
 #define CARD_RETRY_LIMIT 3
 

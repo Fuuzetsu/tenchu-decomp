@@ -39,6 +39,13 @@
  * END PSX.SYM */
 
 /*
+ * AttackLong (0x8002e940) — attack chooser for long-reach weapons (spears
+ * and staves, wpatk class 1): keeps the enemy at pole range, turning to
+ * face (|Degree| > 300 turns), lunging inside 4000, dashing sideways or
+ * forward to reposition between 3000 and 5000, and falling back to
+ * ItemUse as the cold final choice; on commit it arms the shared
+ * AttackActionCount cooldown (GameClock + EngageLevel * 10).
+ *
  * STATUS: MATCHING
  *
  * Three source-shape facts close the function:
@@ -206,7 +213,7 @@ short AttackLong(void)
         if (rand() % (EngageLevel + 1) == 0)
         {
             AttackActionCount = GameClock;
-            AttackActionCount += EngageLevel * 10;
+            AttackActionCount += EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
             return pad | PADRleft;
         }
     }

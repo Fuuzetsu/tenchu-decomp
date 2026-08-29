@@ -77,7 +77,7 @@ s16 Think3attack(void)
     }
 
     if (SR != SR_GONE &&
-        ((idx == 3 && Distance < 14000) || Distance < 10000))
+        ((idx == 3 && Distance < 14000) || Distance < SR_CLEAR_RANGE))
     {
         SR = SR_NONE;
     }

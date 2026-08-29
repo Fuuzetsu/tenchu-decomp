@@ -36,8 +36,8 @@
 extern Humanoid *Me_THINK_C;
 
 extern s32 rand(void);
-extern short ChasetoTarget(long length);
-extern short SuccessionAttack(long dist, short deg);
+extern s16 ChasetoTarget(s32 length);
+extern s16 SuccessionAttack(s32 dist, s16 deg);
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 
 /*
@@ -81,7 +81,7 @@ s16 Think3hitaway(void)
     u16 result;
     s32 degree;
 
-    if (Distance < 10000 && SR != SR_GONE)
+    if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
     }
@@ -114,12 +114,9 @@ s16 Think3hitaway(void)
         }
         if (Distance < 2000)
         {
-            s32 r;
-
-            r = rand();
-            if (r == (r / 30) * 30)
+            if (rand() % 30 == 0)
             {
-                result |= 0x40;
+                result |= PADRdown;
             }
         }
         if (Distance > 4000 || (ATTRIB_BITS & ATTR_WALL))

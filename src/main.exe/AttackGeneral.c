@@ -237,7 +237,7 @@ short AttackGeneral(void)
             }
             if (GameClock > AttackActionCount)
             {
-                AttackActionCount = GameClock + EngageLevel * 10;
+                AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
                 if (rand() % 3 == 0)
                 {
                     pad = PADLdown;
