@@ -37,27 +37,6 @@
  * END PSX.SYM */
 
 /*
- * SetBlood (0x800331c0) — spawns a burst of n blood particles in the
- * shared 200-slot EffectSlot pool, each rendered by DrawBlood. Calls
- * GetAreaMapLevel once up front purely for its side effect of
- * refreshing FieldArea, and caches that node as the AreaNodeType hint
- * every particle carries. Each particle then claims a slot with the
- * pool's usual round-robin scan: EFFECT_CURSOR_ advances from where it
- * last stopped, wrapping past 199, and takes the first slot with a
- * null proc; after 200 tries without a free slot the fill goes to the
- * throwaway `dmy` slot and is discarded. Every field is randomized
- * fresh: sprite picks one of the two blood textures, scale is 0x2000 +
- * rand() % 4096, rotate is a whole degree (rand() % 360, degrees<<12),
- * position is copied straight from *pos, and velocity jitters
- * rand() % 120 - 60 on x and z but rand() % 60 - 120 on y — always
- * negative, so the spray starts upward before DrawBlood's per-frame
- * +10 gravity pulls it down. Lifetime is time/2 plus a random share of
- * the remainder, or just the half when the remainder is not positive.
- * brightness starts at 0x80, mode at 0, and proc is assigned last. A
- * non-positive n spawns nothing and leaves the pool untouched.
- */
-
-/*
  * MATCHED. The pool-scan cursor's initial address computation `slot = base +
  * idx;` needed the INTEGER-SUM spelling, not pointer arithmetic:
  *     slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);

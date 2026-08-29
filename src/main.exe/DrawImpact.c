@@ -26,29 +26,6 @@
  * END PSX.SYM */
 
 /*
- * DrawImpact (0x80033f10) — the per-frame effect callback for an
- * impact flash: one sprImpact sprite that interpolates from its start
- * size and colour to its end size and colour across the effect's
- * lifetime. ratio is (count << 12) / time, the 4.12 fraction of the
- * life elapsed, and inverse is its complement to 0x1000. size and each
- * of the r/g/b channels are blended between start_ and end_ by that
- * pair, with a +0xfff bias applied to negative products before the
- * >>12 so the divide truncates toward zero. rotate is written to the
- * sprite shifted left 12 and then advanced by rotate_speed, so the
- * sprite shows the pre-update angle. Position has two paths: when
- * param->super names a GsCOORDINATE2 the px/py/pz are model-local, so
- * it stages them as three shorts in the scratchpad, loads that
- * coordinate's local matrix with GsGetLs / GsSetLsMatrix and projects
- * with RotTransPers; otherwise it is a world point and
- * GetScreenPosition does it. It draws only when the projected z is
- * greater than NEAR_DEPTH: uniform scale (size * 300) / z + 1, the
- * sprite placed at the projected x/y, and a GsSortSprite into OTablePt
- * at z >> 2 clamped to DEPTH_LIMIT - 1 (0 if negative). Finally,
- * ef->proc is cleared once count has reached time — after the draw, so
- * the final frame is still shown — and count is incremented.
- */
-
-/*
  * MATCH.
  *
  * The final 4-byte residual was not a conflict-free local-alloc floor.  The

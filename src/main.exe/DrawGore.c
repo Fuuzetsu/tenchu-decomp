@@ -33,41 +33,6 @@
  *     reg   $a2       int i
  * END PSX.SYM */
 
-/*
- * DrawGore (0x8003562c) — the per-frame effect callback SetGore
- * installs for a flung gore chunk; a four-phase state machine on
- * param->mode over the retail BloodType view. The default phase is the
- * flight: vy gains 10 per frame, and the floor height comes either
- * from the cached AreaNodeType hint (its y band and x1/z1/x2/z2 box
- * tested at 1/10 scale, ComputeAreaLevel when the node slopes) or,
- * when the hint no longer contains the chunk, from a fresh
- * GetAreaMapLevel probe at y - 300 that re-caches FieldArea. On
- * landing (py past the level) the velocity is zeroed and py pinned to
- * the floor; if the probe returned LEVEL_NONE instead it kicks back up
- * with vy = rand() % 8 + 8, resets rotate, advances `sprite` by 2 to
- * the splat pair and picks a scale of rand() % 683 + 1365 — a third to
- * a half of the 4.12 unit. Either way it enters mode 1 with
- * time = rand() % 10 and plays sound 0x37 at its own position. Not
- * landing just runs the countdown down and clears ef->proc at zero.
- * Every default-phase frame also drops one DrawBleed droplet: position
- * jittered by the R-unit per axis, velocity halved, colour 0x7f1017
- * and time 7, taken from the shared 200-slot EffectSlot pool by the
- * usual EFFECT_CURSOR_ round-robin scan, falling into the throwaway
- * `dmy` slot after 200 misses. Mode 1 swells the chunk by rand() %
- * 4096 each frame until its countdown expires, then hands to mode 2
- * with time = rand() % 90. Mode 2 only counts down, then sets
- * time = 0x80 and enters mode 3. Mode 3 is the settled pool:
- * brightness fades by 5 a frame and clears ef->proc at zero, and it
- * draws BOTH banks at one position — sprBlood[sprite] additively
- * (SPR_TRANS_ADD) at full brightness and sprBloodStay[sprite] at half
- * — sharing scale, rotation and screen position. Modes 0-2 fall
- * through to the shared tail, which integrates position by velocity
- * and sorts the single sprBlood sprite. Both draw paths project with
- * GetScreenPosition, return without drawing when the screen z is at or
- * under NEAR_DEPTH, scale by (size * 300) / z + 1, and sort into
- * OTablePt at z >> 2 clamped to DEPTH_LIMIT - 1 (negatives to 0).
- */
-
 typedef union DrawGoreScratch
 {
     SVECTOR screen;

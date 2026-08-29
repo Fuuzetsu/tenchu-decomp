@@ -57,29 +57,6 @@
  * END PSX.SYM */
 
 /*
- * SetLightningI (0x800378a4) — draws one additive lightning bolt as a
- * jagged GsLINE polyline between two world points, recursing on itself
- * for forks. gen is the recursion budget and the whole body is skipped
- * when it is 0; SetLightning enters with gen 1, so the forks it spawns
- * are gen 0 and return without drawing. It prepares the world-space
- * projection once (zero translation in the scratchpad, GsWSMATRIX
- * rotation), projects start into oldscr, and sets up the line with
- * SPR_TRANS_ADD and the caller's r/g/b. The span length is SquareRoot0
- * of the start-end delta, computed on /256 components and rescaled
- * << 8 whenever any component exceeds 4096, and lcount =
- * distance / 200 (SplitLen) gives the segment count; lcount <= 0 draws
- * nothing. For each interior i in 1..lcount-1 it interpolates the
- * point along the span and jitters every axis by rand() % 160 - 80
- * (Range 80), so the chain stops one step short of end. Half the time
- * — (rand() & 2) == 0 — it memsets a VECTOR to the jittered point and
- * recurses from there to end at gen - 1 with the same colour. Each
- * segment is drawn only when both this and the previous projected z
- * are positive, sorted into OTablePt at scr.vz >> 2 clamped to
- * DEPTH_LIMIT - 1, negatives to 0, and oldscr = scr chains the next
- * one.
- */
-
-/*
  * MATCHED: the source-level structure is the pair of small projection helpers
  * independently named by PSX.SYM in the same EFFECT.C translation unit:
  * PrepareGetScreenPositionS followed by GetScreenPositionS.  Keeping those

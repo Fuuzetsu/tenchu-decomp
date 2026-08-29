@@ -43,28 +43,6 @@
  *     extern short dtPAD;
  * END PSX.SYM */
 
-/*
- * ActJUMP (0x800241d4) — the airborne motion handler for the MOT_JUMP
- * family. A fresh PADRdown outside motion 0x901 wall-kicks:
- * GetAreaMapVector probes at the character's width + 300 and, if
- * UpdateMotion can start 0x901, dtL->vy rises 500 and the character
- * either mirrors dtV's x/z (a RefrectVector entry of -1) or turns away
- * from the wall (that entry + 0x800) and is shoved back by
- * MoveHumanoid(-100), with sound 0x48. With ATTR_NOFLOOR|0x200 up and
- * the motion at least two frames in, dtL->vy is compared against
- * GetAreaMapLevel: still above it starts 0x803 (sound 6, count halved
- * twice, PadShockAR for the player), otherwise 0x907 folds the root
- * object's yaw into dtR->vy and lands as 0x806 while anything else
- * lands as 0x804. A motion that has run out (count 0 with loop set)
- * also drops to 0x803, first folding a 0x906/0x907 spin back into the
- * facing. The ordinary in-air frame sets dtV->vy from count minus half
- * the motion's time (times 10 in 0x906, else times 20), steers on the
- * d-pad through GetMoveSpeed(+/-10) while each summed horizontal axis
- * stays under 101, and turns a held PADRleft into the 0x70f dive while
- * descending with ATTR_ALERT. Motion installs go through SetNowMotion
- * unless the character is one of the five CVAhuman[] cutscene actors.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern short UpdateMotion(MotionManager *mmp, short mid);

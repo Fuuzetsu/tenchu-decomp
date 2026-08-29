@@ -37,26 +37,6 @@
  * END PSX.SYM */
 
 /*
- * DrawSplash (0x800349e4) — the per-frame effect callback for a water
- * splash, drawn through the single shared sprSplash GsSPRITE rather
- * than a per-slot one. It projects its own world point: zeroes the
- * translation staged in the scratchpad, SetTransMatrix /
- * SetRotMatrix(&GsWSMATRIX), subtracts ViewInfo.vpx/vpy/vpz from
- * param->px/py/pz and RotTransPers into scr. Everything else — the
- * mode machine included — is gated on scr.vz > NEAR_DEPTH, so an
- * off-screen splash neither draws nor ages. scalex/scaley are
- * (param->sx * 300) / z + 1 and (param->sy * 300) / z + 1. Mode 0 is
- * the one-shot setup: count = 0, mode++, and a SetBleedsDir spray from
- * the same point along svec_y_n20_2[0] with grange 100, n 6, time 30
- * and colour 0x9098A0; it falls through into mode 1. Mode 1 is the
- * rise — scaley scaled by count/speed — and mode 2 the collapse —
- * scaley scaled by (speed - count)/speed with scalex halved; both
- * count up to speed, mode 1 then resetting count and advancing, mode 2
- * clearing ef->proc. GsSortSprite puts it in OTablePt at scr.vz >> 2,
- * clamped to DEPTH_LIMIT - 1, negatives to 0.
- */
-
-/*
  * MATCH notes:
  * - The scalar aliases on py/pz are intentional.  Plain structure-member
  *   reads carry cc1's in-structure memory marker, so CSE sinks both loads

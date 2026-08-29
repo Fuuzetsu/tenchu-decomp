@@ -41,25 +41,6 @@
  * END PSX.SYM */
 
 /*
- * PutItemList (0x8004ade4) — draws the HUD item strip for the camera's
- * owner. SelectedItem is reset to -1 up front, x starts at ItemX 140,
- * and all 25 CamState.Owner->item[] slots are scanned; empty counts
- * are skipped entirely and only occupied slots step x left by ItemGap
- * 20. A count other than the 0xFF unlimited sentinel is drawn at
- * x + 22, ItemY 100 by the inline PutNumber, which walks the digits
- * low to high through NumberImage (w 4, source u offset by digit * 4),
- * steps the sprite 6 pixels left per digit and restores NumberImage.u
- * afterwards. The slot ItemCursor points at also gets the CursorImage
- * ring at (x, ItemY - 8), scale 0x1000, its rotate advanced by
- * -6 * 4096 — 6 degrees a frame — and records SelectedItem = i, so
- * nothing is selected when the cursor rests on an empty slot. The
- * item's own Sprite3D from ItemImage[i] is placed at the same spot in
- * both arms: full 0x1000 scale when selected, two-thirds size (0xAAA)
- * otherwise. The cursor sorts into OTablePt at priority 1, the numbers
- * and icons at 0.
- */
-
-/*
  * STATUS: MATCHING — all 504 bytes / 126 instructions exact.
  *
  * Draws each carried item count (except the 0xFF unlimited sentinel), the

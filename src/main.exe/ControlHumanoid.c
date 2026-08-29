@@ -36,28 +36,6 @@
  * END PSX.SYM */
 
 /*
- * ControlHumanoid (0x80027ae0) — the per-character frame tick. While the
- * model's root object id is non-negative it runs DefaultActionHumanoid,
- * StateTransition and DrawShadow; once negative, only a STAT_DEAD body
- * still gets register_character_death and spread_blood_pool_.
- * HumanActionControl always follows, and under SYSFLAG_DEBUGMODE it
- * FntPrints the player's position, attribute/status, motion and yaw. The
- * player always counts as drawn, other characters are clip-tested
- * through GsGetLs/GsSetLsMatrix/DrawClip, and a nonzero SkipFrame
- * suppresses both; PlayMotion then advances the motion (forced to -1 in
- * STAT_ATTACK), slocate is saved, vector folds into locate,
- * UpdateCoordinate reposts the model, and anything drawn is appended to
- * VISIBLE_CHARACTERS_ON_STAGE_ and DrawModeSave at VISIBLE_ENEMIES_. The
- * tail aims the head object[2] and is skipped on ActionHalt, zero life
- * or STAT_STICKON: the player follows CamState.DirectionRY/RX under
- * CMODE_DIRECTION or CMODE_SIGHT and otherwise just copies the motion's
- * own rotate[2] element while motion->loop is -1; everyone else aims at
- * human->target via GetDirection and gives up past 1800. Yaw clamps to
- * 900 beyond 901; pitch clamps to [-500, 100] for enemies and to +/-500
- * for the player.
- */
-
-/*
  * MATCHED.  394 instructions / 1576 bytes, 0 differing bytes.
  *
  * Three source facts are load-bearing here; all three were verified against the

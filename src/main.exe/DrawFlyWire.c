@@ -29,15 +29,6 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-/*
- * DrawFlyWire (0x80036cb8) — the grappling-hook rope in flight. mode 0:
- * sweep the wire's bow angle from 0 to a full period over `time` frames
- * (SetWire redraws the sagging curve each frame), finishing with a puff
- * of yellow bleed sparks at the hook end; mode 1: relax the curve's
- * control point from the flight arc (`center`) to the hanging arc
- * (`NCenter`) by linear interpolation over 8 frames, then park.
- */
-
 extern void *memset(void *s, int c, u32 n);
 
 void DrawFlyWire(TEffectSlot *ef)

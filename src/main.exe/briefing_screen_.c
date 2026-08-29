@@ -15,34 +15,6 @@
  *     extern short SkipFrame;
  * END PSX.SYM */
 
-/*
- * briefing_screen_ (0x800519bc) — the pre-mission briefing screen, run
- * by BriefingAndInventorySelectionScreen before item selection
- * (skipped on a retry). It loads the stage's background and foreground
- * TIMs from BriefingAssets[language][StageNo] under path_demo, builds
- * a 16-pixel-wide additive sprite from the foreground strip, and loops
- * on GetRealPad: a new press of Start or Circle flips the fade step
- * positive to leave, while Start+Select together restores the 20 saved
- * items into gItem for CHOSEN_CHARACTER, fades out, sets
- * STAGE_LAYOUT_NUMBER to 0xff, clears the GameRetry bit and
- * exec_process_es to PROCESS_MENU. The screen advances through four
- * sequence states: 0 starts the row's CD track once at full fade-in
- * (one track higher for Ayame in Japanese on stages 6-7), 1 waits for
- * CdaGetCurrentLength to go positive, 2 counts frames up to
- * BriefingLimit[language][StageNo], and 3 draws the scrolling caption.
- * That renderer walks the strip four texels at a time from its right
- * edge, setting u, a GetTPage page and an x of xbase - (width -
- * column) * 8, and ramping brightness — 0 outside +/-160, (x + 160) *
- * 3 from -160 to -120, 128 through 120, and (160 - x) * 3 up to 160 —
- * before sorting each column eight pixels left. State 3 also starts
- * the fade-out once the CD is neither seeking nor reading, and
- * advances the scroll by StageScrollAdj[language][StageNo],
- * republishing xbase as scroll / 256. Every frame draws the
- * background, steps the fade clamped to 0..255, shades the OT with
- * draw_shade_quad_ while it is nonzero, and ends with SkipFrame 2; the
- * loop exits at 255 and disposes the background.
- */
-
 /* STATUS: MATCHED — exact 1448-byte / 362-instruction pure C.
  * There are no allocator-only no-op loop fences: the
  * normal fade update and guarded strip loop recover the target frame naturally.

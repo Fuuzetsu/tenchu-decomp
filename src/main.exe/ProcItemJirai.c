@@ -66,22 +66,6 @@ extern void reset_alert_duration(void);
  * END PSX.SYM */
 
 /*
- * ProcItemJirai (0x800482ac) — the placed landmine. mode 0 snaps the
- * mine down to the floor with GetAreaMapLevel; a LEVEL_NONE probe or a
- * MAP_WATER FieldArea refunds one charge to the owner (unless the stock
- * is ITEM_INFINITE) and disposes, otherwise it installs a 500-unit
- * CONFLICT_SOFT trigger box. mode 1 sits armed until GetConflictResult
- * reports an on-stage humanoid in that box, then swaps in a 1500-unit
- * CONFLICT_HIT blast box. mode 2 detonates once — SetExplosion, ten
- * SetHinoko sparks, a 20-particle smoke puff, sound 0x25 — loads the
- * countdown with 3 and calls reset_alert_duration(). mode 3 burns off:
- * for as long as anyone stays inside the blast box it pins ten SetFrame
- * flashes to randomly chosen objects of that humanoid's model at random
- * +/-100 offsets, and disposes once the countdown underflows past zero.
- * modes 0-2 fall through to UpdateCoordinate and DrawSprite.
- */
-
-/*
  * Advances the placed landmine through floor placement, collision arming,
  * detonation, and its ten-frame-effect burst before disposal.
  *

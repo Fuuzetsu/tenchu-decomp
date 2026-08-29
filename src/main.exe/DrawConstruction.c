@@ -66,18 +66,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * DrawConstruction (0x8003be54) — the world renderer: walks the 8x8x8
- * WorldMap cell grid (16000 units per cell) with hand-goto scan loops,
- * frustum-tests each cell and each ornament (IsVisible), and files the
- * visible object slots into DrawList — near set first, far set after —
- * before emitting their TMDs through the fog bank at staggered OT
- * depths. Overflowing the 100-slot pool or the packet budget prints the
- * debug overflow/overload messages. The goto scan web is the cookbook's
- * hand-`label:`/`goto` loop shape (no combined address bases, no rotated
- * tests), kept as matched.
- */
-
 extern MATRIX GsWSMATRIX;
 extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
 extern char msg_overload[];

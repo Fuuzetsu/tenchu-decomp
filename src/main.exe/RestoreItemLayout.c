@@ -33,27 +33,6 @@
  * END PSX.SYM */
 
 /*
- * RestoreItemLayout (0x8003d174) — PackItemLayout's consumer: wipes
- * the live item pool and respawns everything recorded in a saved
- * layout buffer, re-grounding each item against the current area map.
- * The first loop tears down all MAX_ITEMS (30) slots that still hold a
- * proc: mode is set to ITEM_MODE_DISPOSE, the item's own proc is
- * called once to let it clean up, DeleteConflict removes its collision
- * entry, and a handler that failed to clear mode is reported through
- * AdtMessageBox(msg_item_dispose_fail, type, mode). owner and proc are
- * then zeroed. The second loop walks the same 30 TItemLayout records
- * in buf, skipping any whose type is the -1 empty-slot sentinel. A
- * live record is copied into a zeroed PARAM_ITEM_STAY and probed with
- * GetAreaMapLevel against GlobalAreaMap. If that probe returns
- * LEVEL_NONE or lands 1000 or more away from the saved Y, it retries
- * at up to four DropOffsets probe pairs (each dx/dz scaled by 1000)
- * and the first one that lands adopts its x/z. An item whose four
- * retries all fail is dropped from the restore entirely; otherwise the
- * probed ground level replaces the Y and ReqItemStay respawns the item
- * there.
- */
-
-/*
  * The decisive reconstruction was aggregate syntax: assigning the 16-byte
  * VECTOR into `tmp.locate` makes cc1 emit the target's batched t1-t4 load/store
  * copy, while the following whole PARAM_ITEM_STAY assignment emits its second

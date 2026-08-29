@@ -38,14 +38,6 @@
 extern long abs(long value);
 extern void DrawFlyWire(TEffectSlot *ef);
 
-/*
- * SetFlyWire (0x80036efc) — claim an effect slot for the grappling-hook
- * rope from `start` to `end`: snapshot both ends, derive the sagging
- * curve's control points (mid-flight `center` and at-rest `NCenter`),
- * scale the sweep time to the rope length, and hand the slot to
- * DrawFlyWire.
- */
-
 int SetFlyWire(VECTOR *start, VECTOR *end)
 {
     TEffectSlot *base;

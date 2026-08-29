@@ -38,31 +38,6 @@
  * END PSX.SYM */
 
 /*
- * AttackShort (0x8002dd18) — the close-quarters AI attack chooser;
- * returns a virtual pad word for the motion layer. PAGE_BEAST
- * characters hand off to AttackAnimal and STAT_JUMP returns nothing.
- * In STAT_ATTACK it only acts on the combo window (motion count ==
- * BattleDB[warid].contfrm): inside 2000 units and within 1000 of
- * facing, or on a 1-in-(EngageLevel+1) roll, it turns (PADLright past
- * 300, PADLleft below -300) and adds the PADRleft slash. During
- * MOT_ENGAGE it presses PADLdown unless that same roll comes up zero.
- * With actmode 0 it slashes when inside 2500 and within 1500 (only on
- * frames whose count's low nibble is zero), otherwise takes
- * ChasetoTarget(2000) — a zero result arms actmode — plus a 1-in-5
- * PADLup|PADRdown hop past 4000; ATTR_HIT also arms actmode. Once
- * engaged, off-nibble frames repeat the stored pad, or crouch
- * (PADLdown) inside 1500 when roughly facing, close with PADLup or
- * CMD_DASH_FORWARD when badly off-angle, and 1-in-30 fire CMD_LUNGE.
- * On-nibble frames disengage past 4000 (actmode and chase[] cleared,
- * ItemUse, PADLup|PADRdown past 5000), clear actmode on ATTR_WALL, and
- * otherwise add the turn bits and roll for a slash between 1500 and
- * 4000 — gated by GameClock against AttackActionCount, which is pushed
- * out by EngageLevel * ATTACK_COOLDOWN_PER_LEVEL — then fall back to
- * approach dashes, the sidestep dashes inside 1500, and the
- * PADRleft|PADRright or PADLdown|PADRdown melee mix inside 1000.
- */
-
-/*
  * Chooses a short-range humanoid attack.  Status 7 waits for the current
  * BattleDB continuation frame; the ordinary path handles chase, turn, item,
  * and SetCommand choices from distance, facing, and EngageLevel rolls.

@@ -44,29 +44,6 @@
  * END PSX.SYM */
 
 /*
- * AddEnemy (0x8005b588) — the debug enemy-placement command: two modal
- * AdtSelect menus that pick a character type and a think program, then
- * a spawn at the debug camera's position. The type menu is built from
- * HumanData, keeping only rows whose type also appears in this stage's
- * StageAppearance[StageID + 1] list (both walked as -1-terminated
- * tables), capped at 70 entries. Each label is sprintf'd as the
- * character name and the WeaponModel name matching that row's wepid,
- * and the entry's value is the type. A "cancel" row with value -1 and
- * a null terminator close the list; choosing it returns without
- * spawning anything. The think menu runs up to four passes, r = 0..3.
- * Pass r lists the ThinkDB rows whose label starts with the digit
- * '1' + r — i.e. the Think1..Think4 groups — and ORs the chosen nibble
- * into `think`. It stops early once `think` reaches THINK_MIX_PLAYER
- * or THINK_MIX_PAD2, which are whole mixes rather than per-layer
- * picks. The spawn takes x/y/z and the facing from CamState.Owner's
- * model. leSetEnemy writes the placement into the persistent enemy[]
- * layout table and its returned slot is kept in CurrentEnemyID;
- * BreedLife creates the live Humanoid, which is given the same facing
- * and made to target the camera owner's model. A white 50-particle
- * SetBleeds burst 1200 units above the new enemy marks the spot.
- */
-
-/*
  * The demo executable contains the 1148-byte earlier-build AddEnemy at
  * 0x80043390. Its control flow and PSX.SYM line records expose the ordinary
  * source behind retail's four extra bytes: sentinel scans for the stage and

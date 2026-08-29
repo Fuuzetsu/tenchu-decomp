@@ -37,34 +37,6 @@
  * END PSX.SYM */
 
 /*
- * Think3attack (0x8002d0b0) — the attack half of the type-3 (armed
- * enemy) AI: returns the pad word Me_THINK_C should "press" this
- * frame. The weapon's range class, idx = wpatk >> 4, picks every
- * threshold; class 3 is the ranged weapon, 0-2 are melee. While
- * already in STAT_ATTACK it only asks SuccessionAttack whether the
- * swing may chain — (3000, 1500) for melee, (20000, 500) for ranged —
- * and returns that verdict directly. Otherwise it first clears SR to
- * SR_NONE once the target is close (14000 for ranged, SR_CLEAR_RANGE
- * otherwise) unless SR is already SR_GONE, then turns: PADLright or
- * PADLleft whenever Degree exceeds +/-(4 - idx) * the character's turn
- * rate, so shorter-range classes demand tighter aim. Inside rng
- * (atkd[idx]/2, or a flat 4000 for ranged) it attacks with PADRleft
- * when |Degree| < 1000 and the motion is between animations, upgrading
- * to PADRleft|PADRright inside 2000 on a 1-in-(EngageLevel+1) roll;
- * failing the aim or timing test it presses PADLdown instead. Between
- * rng and atkd[idx] the ranged class fires on a 1-in-(EngageLevel*4)
- * roll if nothing else was pressed, while melee runs CMD_LUNGE through
- * SetCommand when |Degree| < 100 and it is within the last 1000 units,
- * attacks with PADRleft while |Degree| < 1200, and otherwise closes
- * with PADLup past rng+500. Beyond atkd[idx] it acts only in
- * STAT_ENGAGE: against a player aiming a shuriken (STAT_SYURI) it
- * coin-flips CMD_DASH_LEFT/CMD_DASH_RIGHT to sidestep; otherwise a
- * 1-in-3 roll picks CMD_DASH_FORWARD and the rest fall through to
- * ItemUse. Every path converges on a 1-in-30 taunt: motion 0x713 while
- * idle and still STAT_ENGAGE.
- */
-
-/*
  * Select the attack controls for an alerted humanoid.  The weapon class
  * determines the turn and distance thresholds; close targets are attacked,
  * distant targets are approached, and item use is considered while idle.

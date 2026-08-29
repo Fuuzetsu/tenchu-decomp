@@ -64,30 +64,6 @@
  * END PSX.SYM */
 
 /*
- * SetWire (0x800372d4) — draws the grappling rope as a quadratic
- * Bezier polyline from start to end through center, then plants the
- * hook model at its tip. It projects start once through the world
- * matrix (zero translation staged in the scratchpad, GsWSMATRIX
- * rotation) into oldscr and sets up an opaque GsLINE in the rope's
- * brown (0x50, 0x48, 0x38). Rope length is SquareRoot0 of the
- * start-end delta, computed on /256 components and rescaled << 8
- * whenever any component exceeds 4096 (one), and lcount =
- * distance / 300 is the full segment count. A null center is
- * synthesized as the start/end midpoint raised by distance / 32, so an
- * unanchored rope sags. Only ecount = lcount * len / 4096 segments are
- * drawn — len is the 4.12 fraction of the rope currently paid out. Per
- * step t = 4096 - i * 4096 / lcount and the weights A = one - Q + R,
- * B = Q - 2R, R = t * t / one over end, center and start give the
- * point, divided back by 4096. A segment is drawn only when this and
- * the previous projected z are both positive, sorted into OTablePt at
- * scr.vz >> 2 clamped to DEPTH_LIMIT - 1, negatives to 0. Afterwards
- * ModelHook is placed at the loop's last point and aimed along
- * start->end — rotate.vy = ratan2(-dx, -dz), rotate.vx = ratan2(dy,
- * SquareRoot0(dx*dx + dz*dz)), vz 0 — then UpdateCoordinate and
- * DrawModel.
- */
-
-/*
  * MATCHED: both projection sites use the inline GetScreenPosition structure
  * independently named by PSX.SYM earlier in EFFECT.C.  Keeping the scalar
  * x/y/z parameters and the debug-proven SVECTOR * output together in that

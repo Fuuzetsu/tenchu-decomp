@@ -7,33 +7,6 @@
 #include "item.h"
 
 /*
- * think_alarm_reaction_ (0x8002c86c) — the alarmed-guard
- * converge/reinforce think handler, driven by actscnt over three
- * stages. State 0 walks to the remembered chase[] spot via
- * turn_towards_player_; arriving (SquareRoot0 distance under 2000, or
- * ATTR_WALL) refreshes EmergencyNotice to ALERT_DURATION, plays sound
- * 0xE, seeds actcnt by difficulty (easy 1, normal a coin flip, hard 0)
- * and picks the next state: nonzero actcnt goes to 1, otherwise 1 when
- * Humans has reached 30 or the stage is STAGE_CURE_PRINCESS, else 2.
- * State 1 cycles actcnt through 0..31 and only acts while bit 3 is
- * set: at exactly 8 it picks a fresh command — turn toward the target
- * when |Degree| is 701 or more, else 4-in-5 a random PADLright/
- * PADLleft and 1-in-5 PADLup — and repeats the humanoid's stored pad
- * for the rest of that window, returning 0 the rest of the cycle.
- * State 2 steers at the chase point with GetDirection, pairing the
- * turn bit (PADLleft when the error is positive, else PADLright) with
- * PADLup past 1000 of error and PADLdown below it, and on ATTR_WALL
- * with |Degree| over 1000 latches pad_hold with a 1000/turn-frame
- * sidestep. Past 16501 units it calls for help: EmergencyNotice
- * refreshed, actscnt 0 / actcnt 1, a bark (sound 9 or 10), then
- * BreedLife spawns AIDHumanType[StageID][coin flip] at its own spot
- * turned by that direction, wires think[0..3] from Think*Func[4],
- * raises attribute bits 4 then 0x11, equips a weapon, starts motion
- * 0x501, copies chase[] with a +/-1000 jitter in 500-unit steps, barks
- * again and bumps StageEnemies.
- */
-
-/*
  * Multi-stage AI handler used while an alerted character circles in small
  * steps.  It either chooses a turn command, advances the circling timer, or
  * spawns a second humanoid when the target remains far away.

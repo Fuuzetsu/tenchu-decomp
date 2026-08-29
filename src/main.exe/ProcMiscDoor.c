@@ -37,30 +37,6 @@
  * END PSX.SYM */
 
 /*
- * ProcMiscDoor (0x8004c738) — the misc-object handler for a two-leaf
- * door, dispatched on TMiscMessage. MM_CREATE takes the door type from
- * the init parameters (types above 10 print the unknown-door box and
- * fall back to 0), zeroes the swing angle, and hangs a bare
- * LoadModel(0) locate at the object's x/y/z with the requested yaw.
- * MM_DESTROY deletes the conflict box and disposes that model,
- * MM_PAUSE only deletes the box, and MM_RESUME reinserts it: a
- * CONFLICT_SOFT slot owned by CONFLICT_OWNER_DOOR, as tall as the
- * type's HitSize, offset down by half of it, two thirds as wide and
- * deep, with the angle reset. Every other message runs the control
- * path. Mode 0 waits for a conflict result whose owner is not another
- * door, then uses ratan2 from the door to the pusher plus the door's
- * own yaw, wrapped into one turn, to pick a swing direction of +64 or
- * -64 per frame, steps to mode 1 and plays sound 0x40 if the door was
- * still closed. Mode 1 adds that step until the angle's magnitude
- * reaches 960, then returns to mode 0. Both modes fall into the draw
- * tail, where each leaf's inward offset shrinks from HitSize in
- * proportion to the angle over 10240; leaf 0 is parented to the locate
- * at -offset with +angle and leaf 1 at +offset with -angle, each
- * updated and drawn, and a leaf whose DoorData model pointer is -1 is
- * skipped.
- */
-
-/*
  * Matching notes:
  *  - The message tests follow their physical target order; the labels keep the
  *    create/destroy/pause/resume bodies readable without changing that CFG.

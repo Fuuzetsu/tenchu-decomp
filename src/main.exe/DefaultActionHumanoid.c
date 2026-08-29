@@ -47,16 +47,6 @@
  * END PSX.SYM */
 
 /*
- * DefaultActionHumanoid (0x80028108) — the shared per-frame physics and
- * collision resolver every humanoid runs after its action handler: wall
- * reflection (bounce the velocity off RefrectVector/RefrectMove when the
- * map probe reports a wall), gravity and landing against map->level,
- * push-out from solid conflict objects (with the stand-on-top case and
- * the vault turn — SetNowMotion 0x1000/0x1003 by approach angle), a
- * rotation nudge while pinned, and the final MoveHumanoid step. Returns
- * the updated attribute word.
- *
- * Matching notes:
  * The nested one-shot loops around the conflict pointer and object id place
  * sched1 loop-note fences between the target's pointer, id, and size loads.
  * The identical yy arms add a zero-code CFG fence without loop-weighting the

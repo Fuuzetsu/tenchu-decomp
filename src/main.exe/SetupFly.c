@@ -33,27 +33,6 @@
  * END PSX.SYM */
 
 /*
- * SetupFly (0x8003e1bc) — lays out the quadratic Bezier arc a thrown or
- * launched item will follow, filling the tag_fly record MoveFly then
- * steps through one frame at a time. Clears pfly->mode to 0 (MoveFly's
- * "still flying" arm) as the very first store, copies *start into
- * fly->s* and *end into fly->v*, and takes the straight-line
- * GetVectorDistance between them. The step counter is that distance
- * divided by `time`, clamped up to 1 when the byte truncates to zero;
- * count2 keeps the same total (MoveFly divides by it to get the curve
- * parameter) while count is pre-decremented once before return. The
- * control point fly->r* is the midpoint of start and end, jittered.
- * Both jitter magnitudes are derived the same way — the caller's yw and
- * yh are halved, multiplied by the distance and shifted down 12 — so
- * the arc's spread scales with throw length. X and Z share the
- * yw-derived magnitude and ADD rand() % (2*hx) - hx; Y instead splits
- * its own magnitude into hy/2 and the remainder and SUBTRACTS
- * rand() % rem + hy/2, which (since +Y is down) bows the arc upward. A
- * non-positive range on any axis falls back to the plain midpoint
- * offset with no random term.
- */
-
-/*
  * STATUS: MATCHING — pure C, all 664 bytes / 166 instructions exact.  The
  * 0x30 frame and s0-s5+ra save set are exact as well.
  *

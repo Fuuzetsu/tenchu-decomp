@@ -35,27 +35,6 @@
  * END PSX.SYM */
 
 /*
- * LoadOrnamentArchive (0x8003a784) — WORLD.C's scenery counterpart to
- * LoadModelArchive: builds an OrnamentArchiveType from a packed
- * ornament archive and returns it. SystemOut(msg_no_model_archive_data_2)
- * reports a NULL address without stopping. vallocs the header, keeps
- * the raw archive address in mad->data, reads the part count from the
- * second word, vallocs the OrnamentType* table, and reads the
- * ParentingType array that follows. The first loop passes each entry's
- * TMD (tmdp + index) to LoadOrnament and stores the returned pointer
- * OR'd with 0xA0000000 — the uncached KSEG1 alias of the same object.
- * The archive node is then parented to prnt (World when NULL), its
- * translation and rotate zeroed, UpdateCoordinate reposts it, id -1
- * and attribute 0. The second loop resolves parenting exactly as
- * LoadModelArchive does: prntp[i].np is matched against each
- * prntp[j].nc, the found object (or the archive node when there is no
- * match) becomes the coordinate parent, dx/dy/dz become the local
- * translation, UpdateOrnament rebuilds the matrix, and GsDOBJ2
- * attribute bit 0x400 is set on every loaded object. object[0]'s Y
- * translation is stashed in mad->rotate.pad last.
- */
-
-/*
  * STATUS: MATCHING — pure C, all 568 bytes / 142 instructions exact.
  * Reusing the PSX.SYM `i` for both archive loops and `j` for the nested
  * parent search produces the target loop and found-path layout. The nested

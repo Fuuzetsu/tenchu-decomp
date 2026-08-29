@@ -59,28 +59,6 @@
  * END PSX.SYM */
 
 /*
- * MakeCameraPosition (0x800309e0) — computes one frame's camera
- * viewpoint and look-at point, then writes the step ViewInfo should
- * take toward them into *vDif. Returns trace_ground_'s reach. Builds
- * the owner's view matrix in the scratchpad: orgrot goes to 0x1f800040
- * with its pitch biased by camera_terrain_pitch_(CamState.Owner) so
- * the camera follows the ground slope, RotMatrixYXZ writes the matrix
- * at 0x1f800080, orgpos becomes its translation, and it is installed
- * as both the rotation and translation matrix. Four SVECTORs from
- * campos are then RotTrans'd through it: [0] and [1] bracket the
- * look-at point, [2] and [3] are the endpoints of the eye ray.
- * trace_ground_ walks that ray, writes the eye position into the local
- * GsRVIEW2 target, and returns how far it got; that reach doubles as a
- * 12-bit fraction interpolating the look-at point from va toward vb,
- * so a blocked trace pulls the reference point in along with the eye.
- * AntiWall then nudges the whole view away from walls. Delivery
- * depends on CamState.snap_pending: when 1 all six components of vDif
- * get the raw target-minus-ViewInfo difference and the flag is cleared
- * (a hard cut); otherwise MakeDifSub eases the reference point and the
- * viewpoint separately through the `ref` and `pnt` scratch blocks.
- */
-
-/*
  * STATUS: MATCHING — pure C, all 660 bytes / 165 instructions exact.
  *
  * TransformCameraPoint's pointer formal keeps the two expanded output
