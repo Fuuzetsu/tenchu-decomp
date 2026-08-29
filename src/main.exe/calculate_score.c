@@ -10,8 +10,11 @@
  *  - Friendly-fire, spotted, and total scores are signed values. The
  *    explicit unsigned view of the spotted component in the sum preserves
  *    the retail halfword load and its modulo-16-bit accumulation.
- *  - `penalty` is distinct from that default score, giving the joined
- *    subtraction the target's $v0 destination.
+ *  - `penalty` is distinct from the default stealth score, giving the
+ *    joined subtraction the target's $v0 destination.
+ *  - The result pointer is materialized twice (`early`, then `result`
+ *    after the fence): byte-required (one pointer recolors the stores;
+ *    measured).
  *  - Duplicating the spotted-score store into identical arms is a zero-code
  *    CFG fence after jump2.  It makes the following signed check reload the
  *    halfword, while the direct first-component read preserves the original
@@ -23,16 +26,16 @@ extern void *memset(void *s, s32 c, u32 n);
 ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
 {
     ScoreResult *result;
-    ScoreResult *store_result;
+    ScoreResult *early;
     s32 penalty;
     s32 score;
     s32 stealth_base;
     u8 spots;
 
-    store_result = &STAGE_SCORE_COMPONENTS;
-    store_result->criticalScore = stats->criticals * SCORE_PER_CRITICAL;
-    store_result->murderScore = stats->murders * SCORE_PER_MURDER;
-    store_result->friendPenalty = stats->friendHits * SCORE_PER_FRIEND_HIT;
+    early = &STAGE_SCORE_COMPONENTS;
+    early->criticalScore = stats->criticals * SCORE_PER_CRITICAL;
+    early->murderScore = stats->murders * SCORE_PER_MURDER;
+    early->friendPenalty = stats->friendHits * SCORE_PER_FRIEND_HIT;
 
     spots = stats->findEnemies;
     stealth_base = STEALTH_BASE;
@@ -55,11 +58,11 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
      * byte-required (collapsing mismatches; measured). */
     if (stealth_base != 0)
     {
-        store_result->spottedScore = penalty;
+        early->spottedScore = penalty;
     }
     else
     {
-        store_result->spottedScore = penalty;
+        early->spottedScore = penalty;
     }
     result = &STAGE_SCORE_COMPONENTS;
     if (result->spottedScore < 0)

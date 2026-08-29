@@ -59,7 +59,7 @@ int AfsGetEntry(TAFS *handle)
     if (elements == 0)
     {
         AdtMessageBox(msg_afsgetenty_no_memory);
-        vfree(0);
+        vfree(elements);
         return 1;
     }
 

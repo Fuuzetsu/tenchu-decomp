@@ -86,9 +86,9 @@ static inline void GetWireScreenPosition(long x, long y, long z,
     matrix->t[0] = 0;
     matrix->t[1] = 0;
     matrix->t[2] = 0;
-    vector->vx = x - (short)ViewInfo.vpx;
-    vector->vy = y - (short)ViewInfo.vpy;
-    vector->vz = z - (short)ViewInfo.vpz;
+    vector->vx = x - ViewInfo.vpx;
+    vector->vy = y - ViewInfo.vpy;
+    vector->vz = z - ViewInfo.vpz;
     SetTransMatrix(matrix);
     SetRotMatrix(&GsWSMATRIX);
     screen->vz = (s16)RotTransPers(
@@ -96,11 +96,23 @@ static inline void GetWireScreenPosition(long x, long y, long z,
         (s32 *)TENCHU_SCRATCHPAD(0x2c));
 }
 
+static inline void GetWireRotation(VECTOR *start, VECTOR *end, int *rx,
+                                   int *ry)
+{
+    int dx, dy, dz;
+
+    dx = end->vx - start->vx;
+    dz = end->vz - start->vz;
+    dy = end->vy - start->vy;
+    *ry = ratan2(-dx, -dz);
+    *rx = ratan2(dy, SquareRoot0(dx * dx + dz * dz));
+}
+
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 {
     enum
     {
-        one = 4096
+        ONE = 4096
     };
     VECTOR StockCenter;
     long lcount;
@@ -127,10 +139,12 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         dy = start->vy - end->vy;
         dz = start->vz - end->vz;
         big = 0;
-        if (abs(dx) > one || abs(dy) > one || abs(dz) > one)
+        if (abs(dx) > ONE || abs(dy) > ONE || abs(dz) > ONE)
         {
             big = 1;
         }
+        /* The staged flag is byte-required (testing the || directly
+         * recolors the delta registers; measured). */
         if (big)
         {
             dx /= 0x100;
@@ -147,13 +161,15 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     lcount = distance / WIRE_SEG_LEN;
     if (center == 0)
     {
+        /* vy/vz go through the freshly assigned alias: byte-required
+         * (filling StockCenter first recolors the pointer; measured). */
         StockCenter.vx = (end->vx + start->vx) / 2;
         center = &StockCenter;
         center->vy = (end->vy + start->vy) / 2 + distance / WIRE_SAG_DIV;
         center->vz = (end->vz + start->vz) / 2;
     }
 
-    ecount = lcount * len / one;
+    ecount = lcount * len / ONE;
     i = 0;
     while (1)
     {
@@ -165,17 +181,17 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             break;
         }
 
-        /* one_value re-registers the enum for this block: byte-required
-         * (using `one` directly recolors the sum/negate pair; measured). */
-        one_value = one;
-        t = one_value - i * one / lcount;
+        /* one_value re-registers ONE for this block: byte-required
+         * (using `ONE` directly recolors the sum/negate pair; measured). */
+        one_value = ONE;
+        t = one_value - i * ONE / lcount;
         Q = t * 2;
-        R = t * t / one;
+        R = t * t / ONE;
         A = one_value - Q + R;
         B = Q - R * 2;
-        x = (A * end->vx + B * center->vx + R * start->vx) / one;
-        y = (A * end->vy + B * center->vy + R * start->vy) / one;
-        z = (A * end->vz + B * center->vz + R * start->vz) / one;
+        x = (A * end->vx + B * center->vx + R * start->vx) / ONE;
+        y = (A * end->vy + B * center->vy + R * start->vy) / ONE;
+        z = (A * end->vz + B * center->vz + R * start->vz) / ONE;
 
         GetWireScreenPosition(x, y, z, &scr);
 
@@ -186,20 +202,10 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 
             line.x0 = oldscr.vx;
             line.y0 = oldscr.vy;
-            z = (s16)scr.vz >> 2;
+            z = scr.vz >> 2;
             line.x1 = scr.vx;
             line.y1 = scr.vy;
-            if (z >= 0)
-            {
-                if (z < DEPTH_LIMIT)
-                    p = z;
-                else
-                    p = DEPTH_LIMIT - 1;
-            }
-            else
-            {
-                p = 0;
-            }
+            CLAMP_SORT_DEPTH(p, z);
             GsSortLine(&line, OTablePt, (u16)p);
         }
         oldscr = scr;
@@ -209,18 +215,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     {
         int rx, ry;
 
-        {
-            int *rxp, *ryp;
-            int dx, dy, dz;
-
-            dx = end->vx - start->vx;
-            dz = end->vz - start->vz;
-            dy = end->vy - start->vy;
-            rxp = &rx;
-            ryp = &ry;
-            *ryp = ratan2(-dx, -dz);
-            *rxp = ratan2(dy, SquareRoot0(dx * dx + dz * dz));
-        }
+        GetWireRotation(start, end, &rx, &ry);
         ModelHook->locate.coord.t[0] = x;
         ModelHook->locate.coord.t[1] = y;
         ModelHook->locate.coord.t[2] = z;
