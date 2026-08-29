@@ -571,6 +571,17 @@ CLAMP_SORT_DEPTH macro (main.exe.h) folds the OT-clamp copy-paste
 across ten renderers, and every effect-pool bound reads
 N_EFFECT_SLOTS.
 
+ROUND-2 READERS (2026-08-29): COMPLETE. All three partitions re-read
+whole-function; ~60 tail findings landed across five textual waves
+plus the macro program: DISPOSE_ITEM (35 sites), TAKE_ITEM_SLOT (17),
+SET_ITEM_COLLISION (12), RESET_ALERT_DURATION (4),
+SET_NOW_MOTION_UNLESS_CVA hoisted (+3 new sites), WORLD_CELL (5),
+DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES (3), CLAMP_SORT_DEPTH (13).
+Parked with reasons: mission_score_screen's ten digit blocks (internal
+variance needs per-block normalization first), game_over init trio
+(statement-order variance is a measured-risk class). The corpus has
+now been read whole twice with every flag landed or adjudicated.
+
 GLOSS-COVERAGE PASS (STOPPED 2026-08-29 by owner: "I don't need you
 to add comments about what functions do, stop that"). Five batches had
 landed before the correction and were then removed on request
