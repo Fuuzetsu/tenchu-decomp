@@ -31,7 +31,7 @@
 /*
  * Matching notes (all verified against the original bytes):
  *  - Unlike SetFrame/SetSplash/SetBleed's hand-rolled `goto loop;`, this
- *    EffectSlot[200] search is a REAL `do { ... } while (count < 200);`
+ *    EffectSlot[200] search is a REAL `do { ... } while (count < N_EFFECT_SLOTS);`
  *    with `ef = &dmy;` placed AFTER the loop (fallthrough on exhaustion),
  *    not a while(1)+break with `ef = &dmy;` inside the loop body. The
  *    target's give-up path has a tell-tale `addiu idx,idx,1` / `addiu
@@ -89,7 +89,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     {
         idx++;
         slot++;
-        if (idx > 199)
+        if (idx > N_EFFECT_SLOTS - 1)
         {
             slot = base;
             idx = 0;
@@ -97,7 +97,7 @@ void SetImpact(VECTOR *pos, short size, short type)
         if (slot->proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (199 < idx + 1)
+            if (N_EFFECT_SLOTS - 1 < idx + 1)
             {
                 EFFECT_CURSOR_ = 0;
             }
@@ -105,7 +105,7 @@ void SetImpact(VECTOR *pos, short size, short type)
             goto found;
         }
         count++;
-    } while (count < 200);
+    } while (count < N_EFFECT_SLOTS);
     ef = &dmy;
 found:
     ef->proc = (void (*)())DrawImpact;

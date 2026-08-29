@@ -108,7 +108,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         {
             idx++;
             slot++;
-            if (idx > 199)
+            if (idx > N_EFFECT_SLOTS - 1)
             {
                 slot = base;
                 idx = 0;
@@ -117,14 +117,14 @@ void spawn_damage_effect_(Humanoid *human, int mode)
             if (slot->proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-                if (199 < idx + 1)
+                if (N_EFFECT_SLOTS - 1 < idx + 1)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
                 found_slot = slot;
                 goto found;
             }
-        } while (count < 200);
+        } while (count < N_EFFECT_SLOTS);
         found_slot = &dmy;
     found:
         idx = 0;

@@ -48,7 +48,7 @@ void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
 loop:
     idx++;
     slot++;
-    if (idx > 199)
+    if (idx > N_EFFECT_SLOTS - 1)
     {
         slot = base;
         idx = 0;
@@ -56,7 +56,7 @@ loop:
     if (slot->proc == 0)
     {
         EFFECT_CURSOR_ = idx + 1;
-        if (199 < idx + 1)
+        if (N_EFFECT_SLOTS - 1 < idx + 1)
         {
             EFFECT_CURSOR_ = 0;
         }
@@ -64,7 +64,7 @@ loop:
         goto found;
     }
     count++;
-    if (count > 199)
+    if (count > N_EFFECT_SLOTS - 1)
     {
         ef = &dmy;
         goto found;

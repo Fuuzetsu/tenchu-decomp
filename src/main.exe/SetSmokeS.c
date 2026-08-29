@@ -61,7 +61,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     {
         idx++;
         slot++;
-        if (idx > 199)
+        if (idx > N_EFFECT_SLOTS - 1)
         {
             slot = base;
             idx = 0;
@@ -69,7 +69,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
         if (slot->proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (199 < idx + 1)
+            if (N_EFFECT_SLOTS - 1 < idx + 1)
             {
                 EFFECT_CURSOR_ = 0;
             }
@@ -77,7 +77,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
             goto found;
         }
         count++;
-    } while (count < 200);
+    } while (count < N_EFFECT_SLOTS);
     ef = &dmy;
 found:
     smoke = &ef->param.smoke;

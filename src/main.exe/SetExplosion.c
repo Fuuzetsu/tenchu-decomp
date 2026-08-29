@@ -33,7 +33,7 @@
 /*
  * Matching notes (all verified against the original bytes):
  *  - Same EffectSlot[200] pool search as SetImpact (see its header): a
- *    real `do { ... } while (count < 200);`, not a hand-rolled goto — the
+ *    real `do { ... } while (count < N_EFFECT_SLOTS);`, not a hand-rolled goto — the
  *    give-up path's `ef = &dmy;` sits AFTER the loop, not inside it, so
  *    loop.c doesn't get a chance to hoist that address.
  *  - UNLIKE SetImpact, `count = count + 1;` here comes BEFORE the
@@ -85,7 +85,7 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
     {
         idx++;
         slot++;
-        if (idx > 199)
+        if (idx > N_EFFECT_SLOTS - 1)
         {
             slot = base;
             idx = 0;
@@ -94,14 +94,14 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
         if (slot->proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (199 < idx + 1)
+            if (N_EFFECT_SLOTS - 1 < idx + 1)
             {
                 EFFECT_CURSOR_ = 0;
             }
             ef = slot;
             goto found;
         }
-    } while (count < 200);
+    } while (count < N_EFFECT_SLOTS);
     ef = &dmy;
 found:
     param = &ef->param.explosion;
