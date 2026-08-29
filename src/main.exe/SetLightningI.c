@@ -196,14 +196,14 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
 
                 GetLightningScreenPosition(x, y, z, &scr);
 
-                if (((s32)(u16)scr.vz << 16) > 0 && oldscr.vz > 0)
+                if (scr.vz > 0 && oldscr.vz > 0)
                 {
                     int z;
                     int p;
 
                     line.x0 = oldscr.vx;
                     line.y0 = oldscr.vy;
-                    z = (s16)(u16)scr.vz >> 2;
+                    z = scr.vz >> 2;
                     line.x1 = scr.vx;
                     line.y1 = scr.vy;
                     if (z >= 0)

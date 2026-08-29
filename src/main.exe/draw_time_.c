@@ -47,7 +47,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
         value = quotient;
         sprite->u = baseU;
         sprite->x -= 12;
-    } while ((quotient << 16) != 0);
+    } while (quotient != 0);
 
     if (negative != 0)
     {
@@ -79,7 +79,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
         value = quotient;
         sprite->u = baseU;
         sprite->x -= 12;
-    } while ((quotient << 16) != 0);
+    } while (quotient != 0);
 
     if (negative != 0)
     {
@@ -113,7 +113,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
         value = quotient;
         sprite->u = baseU;
         sprite->x -= 12;
-    } while ((quotient << 16) != 0);
+    } while (quotient != 0);
 
     if (lastNegative != 0)
     {

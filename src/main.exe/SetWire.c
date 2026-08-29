@@ -165,6 +165,8 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             break;
         }
 
+        /* one_value re-registers the enum for this block: byte-required
+         * (using `one` directly recolors the sum/negate pair; measured). */
         one_value = one;
         t = one_value - i * one / lcount;
         Q = t * 2;
@@ -177,7 +179,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 
         GetWireScreenPosition(x, y, z, &scr);
 
-        if (((s32)scr.vz << 16) > 0 && oldscr.vz > 0)
+        if (scr.vz > 0 && oldscr.vz > 0)
         {
             int z;
             int p;

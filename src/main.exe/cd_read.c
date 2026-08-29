@@ -28,7 +28,6 @@ int cd_read(FILE *f, void *buffer, int length)
 {
     s32 pos;
     s32 sector;
-    s32 adj;
 
     if (f == 0)
     {
@@ -43,12 +42,7 @@ int cd_read(FILE *f, void *buffer, int length)
     if (length > 0)
     {
         sector = CdPosToInt(&f->finfo.pos);
-        adj = pos;
-        if (pos < 0)
-        {
-            adj = pos + 0x7FF;
-        }
-        cd_read_sectors_(buffer, sector + (adj >> 11), pos - ((adj >> 11) << 11), length);
+        cd_read_sectors_(buffer, sector + pos / 2048, pos % 2048, length);
         return length;
     }
     return 0;

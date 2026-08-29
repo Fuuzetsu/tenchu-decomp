@@ -122,7 +122,6 @@ s16 UpdateMotion(MotionManager *mmp, s16 mid)
     s16 *xyz;
     s32 t;
     s16 sweep;
-    s32 at;
 
     if (mid == mmp->mid)
         return -1;
@@ -169,11 +168,7 @@ s16 UpdateMotion(MotionManager *mmp, s16 mid)
             t = xyz[j];
             if (((t < 0) ? -t : t) > 0x800)
                 xyz[j] = (xyz[j] < 0) ? (t += 0x1000) : (t -= 0x1000);
-            t = xyz[j];
-            at = t;
-            if (t < 0)
-                at = t + 0xFFF;
-            xyz[j] = t - ((at >> 12) << 12);
+            xyz[j] = xyz[j] % 0x1000;
         }
     }
     return 1;

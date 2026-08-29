@@ -115,6 +115,9 @@ found:
         }
         if (big)
         {
+            /* The whole hand-spelled /0x100 cluster through `v` is
+             * byte-required (plain dx /= 0x100 recolors the mult pair;
+             * measured -- unlike the SetWire/SetLightningI twins). */
             v = dx;
             if (dx < 0)
             {

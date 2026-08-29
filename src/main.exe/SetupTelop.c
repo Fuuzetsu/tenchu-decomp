@@ -383,7 +383,7 @@ void SetupTelop(u8 *telop, short line)
     TelopP.u0 = 0;
     if ((*telop & 0x80) != 0 && (telop[2] & 0x80) != 0)
     {
-        scaled_y = ((s32)line << 0x10) >> 0xc;
+        scaled_y = line * 16;
         rect.x = 0x300;
         rect.y = 0x1f0 - scaled_y;
         rect.w = 0x100;
