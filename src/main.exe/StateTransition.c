@@ -426,7 +426,7 @@ void StateTransition(Humanoid *human)
             {
                 goto random_attack;
             }
-            if ((me->wpatk >> 4) == 3)
+            if (WPATK_CLASS(me->wpatk) == WPATK_CLASS_RANGED)
             {
                 goto random_attack;
             }

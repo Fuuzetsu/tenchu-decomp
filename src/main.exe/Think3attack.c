@@ -61,7 +61,7 @@ s16 Think3attack(void)
     s16 idx;
 
     pad = 0;
-    idx = Me_THINK_C->wpatk >> 4;
+    idx = WPATK_CLASS(Me_THINK_C->wpatk);
 
     if (Me_THINK_C->status == STAT_ATTACK)
     {

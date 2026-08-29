@@ -94,7 +94,7 @@ s16 Think3hitaway(void)
     }
     else if (Me_THINK_C->actflg != 0)
     {
-        result = AttackFunc[Me_THINK_C->wpatk >> 4]();
+        result = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
     }
     else
     {

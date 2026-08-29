@@ -76,7 +76,7 @@ s16 Think3chase(void)
             goto return_result;
         }
     }
-    result = AttackFunc[Me_THINK_C->wpatk >> 4]();
+    result = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
 return_result:
     return result;
 }

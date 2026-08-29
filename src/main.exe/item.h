@@ -6,6 +6,12 @@
  * caller tests it before reading the result table. */
 /* ModelType.attribute draw/cull configuration (the Draw* family's atr
  * tests, in test order) and the collision pair: */
+/* Humanoid.wpatk packs the weapon's range class in the high nibble
+ * (0-2 melee reach tiers, WPATK_CLASS_RANGED for bows/guns) and the
+ * attack-pattern index in the low nibble. */
+#define WPATK_CLASS(w) ((w) >> 4)
+#define WPATK_CLASS_RANGED 3
+
 /* Humanoid.pad_hold packs a virtual-pad latch: hold `button` for
  * `frames` frames (StateTransition's update_hint unpacks it as
  * pad_hold >> 16 and (u8)pad_hold). */
