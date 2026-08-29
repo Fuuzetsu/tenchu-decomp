@@ -162,7 +162,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
     {
     unit_vector:
         sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
-        if (sz >= 0x4e3)
+        if (sz > DEPTH_LIMIT)
         {
         reject:
             result = -1;

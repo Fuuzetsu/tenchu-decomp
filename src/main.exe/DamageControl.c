@@ -490,7 +490,7 @@ resolve_hit:
             }
             if (StagePlayer == Me_MOTION_C)
             {
-                PadShockAR(0, 0xff, 10, 0x14);
+                PadShockAR(0, 0xff, 10, 20);
             }
             else
             {
@@ -624,7 +624,7 @@ resolve_hit:
                             pv.vx = rand() % 100 - 50;
                             pv.vy = rand() % 100 - 50;
                             pv.vz = rand() % 100 - 50;
-                            SetBleed(blood_pos, &pv, rand() % 0x14 + 0x14, 0xffff00);
+                            SetBleed(blood_pos, &pv, rand() % 20 + 20, 0xffff00);
                             t++;
                         } while (t < 10);
                     }

@@ -113,7 +113,7 @@
  *    which is length-correct but shifts branch targets throughout the
  *    tail. The fix: give the merge point its own real label (`reject:`)
  *    placed exactly where the target's copy physically lives — inside
- *    unit_vector's own `if (sz >= 0x4e3)` guard — and have every OTHER
+ *    unit_vector's own `if (sz > DEPTH_LIMIT)` guard — and have every OTHER
  *    "unconditional sz=-1" site (attribute&4 reject, both box-check
  *    failures) `goto reject;` into it instead of duplicating `sz = -1;
  *    goto ret;` at each site. A named goto TARGET pins cross-jump's

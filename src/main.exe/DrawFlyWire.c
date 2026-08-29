@@ -51,7 +51,7 @@ void DrawFlyWire(TEffectSlot *ef)
         time = param->time;
         sum = (u16)param->count + 0x1000 / time;
         param->count = sum;
-        if ((s16)sum >= 0x1001)
+        if ((s16)sum > 0x1000)
         {
             param->count = 0;
             param->mode++;

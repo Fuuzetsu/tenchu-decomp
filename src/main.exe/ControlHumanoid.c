@@ -241,7 +241,7 @@ draw_done:
 
                 direction = CamState.DirectionRY - rotation_pair;
                 magnitude = direction >= 0 ? direction : -direction;
-                if (magnitude >= 0x385)
+                if (magnitude > 900)
                 {
                     head->rotate.vy = magnitude * 900 / direction;
                 }
@@ -296,7 +296,7 @@ draw_done:
         }
 
         head = human->model->object[2];
-        if (magnitude >= 0x385)
+        if (magnitude > 900)
         {
             head->rotate.vy = magnitude * 900 / direction;
         }

@@ -310,7 +310,7 @@ void DrawGore(TEffectSlot *ef)
         {
             cursor++;
             slot++;
-            if (cursor > 199)
+            if (cursor > N_EFFECT_SLOTS - 1)
             {
                 slot = base;
                 cursor = 0;
@@ -320,14 +320,14 @@ void DrawGore(TEffectSlot *ef)
             {
                 EFFECT_CURSOR_ = cursor + 1;
                 bleed = &slot->param.bleed;
-                if (EFFECT_CURSOR_ > 199)
+                if (EFFECT_CURSOR_ > N_EFFECT_SLOTS - 1)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
                 found = slot;
                 goto bleed_found;
             }
-        } while (searched < 200);
+        } while (searched < N_EFFECT_SLOTS);
         found = &dmy;
         bleed = &dmy.param.bleed;
     bleed_found:

@@ -277,7 +277,7 @@ void ActENGAGE(void)
                 motMODE = 1;
                 return;
             case -1:
-            case 0xa:
+            case ITEM_KAWARIMI:
                 SoundEx(Me_MOTION_C->locate, 0xc);
                 return;
             default:

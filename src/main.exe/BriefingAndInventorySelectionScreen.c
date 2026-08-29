@@ -442,7 +442,7 @@ void BriefingAndInventorySelectionScreen(void)
                                 }
                                 if ((s16)nsel < 6)
                                 {
-                                    if (idx != 0x13 || ARMOUR_USED == 0)
+                                    if (idx != ITEM_ARMOUR || ARMOUR_USED == 0)
                                     {
                                         (&ps->selItem[0])[idx] = cnt + 1;
                                         taken++;
@@ -631,9 +631,9 @@ void BriefingAndInventorySelectionScreen(void)
 quit:
     FadeOutDirect(0x20, 2, 8, 8, 8);
     clear_screen_();
-    if (PSTATE->selItem[0x12] != 0)
+    if (PSTATE->selItem[ITEM_MANEBUE] != 0)
     {
-        PSTATE->selItem[0x12] = 0xFF;
+        PSTATE->selItem[ITEM_MANEBUE] = 0xFF;
     }
     for (j = 0; j < 9; j++)
     {

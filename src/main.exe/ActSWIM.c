@@ -188,8 +188,8 @@ void ActSWIM(void)
             s16 i;
 
             model = Me_MOTION_C->model;
-            if (model->n > 0xc)
-                last = 0xc;
+            if (model->n > 12)
+                last = 12;
             else
                 last = model->n - 1;
             i = 7;
@@ -221,7 +221,7 @@ void ActSWIM(void)
             motMODE = 1;
             return;
         }
-        if (dtM->count < 41)
+        if (dtM->count <= 40)
             return;
         MoveHumanoid(Me_MOTION_C, 100, 0);
         return;
@@ -246,8 +246,8 @@ void ActSWIM(void)
         s16 i;
 
         model = human->model;
-        if (model->n > 0xc)
-            last = 0xc;
+        if (model->n > 12)
+            last = 12;
         else
             last = model->n - 1;
         i = 7;

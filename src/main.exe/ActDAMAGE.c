@@ -74,8 +74,8 @@ void ActDAMAGE(void)
             s16 i;
 
             model = Me_MOTION_C->model;
-            if (model->n > 0xc)
-                last = 0xc;
+            if (model->n > 12)
+                last = 12;
             else
                 last = model->n - 1;
             i = 7;
@@ -119,8 +119,8 @@ void ActDAMAGE(void)
             s16 i;
 
             model = Me_MOTION_C->model;
-            if (model->n > 0xc)
-                last = 0xc;
+            if (model->n > 12)
+                last = 12;
             else
                 last = model->n - 1;
             i = 7;

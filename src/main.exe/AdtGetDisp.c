@@ -36,8 +36,8 @@ void AdtGetDisp(TAdtDisp *disp)
     DrawSync(0);
     GetDrawEnv(&disp->draw);
     GetDispEnv(&disp->disp);
-    SetDefDrawEnv(&de, 0, 0, 0x140, 0xf0);
-    SetDefDispEnv(&di, 0, 0, 0x140, 0xf0);
+    SetDefDrawEnv(&de, 0, 0, SCREEN_W, SCREEN_H);
+    SetDefDispEnv(&di, 0, 0, SCREEN_W, SCREEN_H);
     PutDrawEnv(&de);
     PutDispEnv(&di);
     FntLoad(AdtFnt.tx, AdtFnt.ty);

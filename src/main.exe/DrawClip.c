@@ -64,7 +64,7 @@
  *        inline the `li` and must route through the shared block.
  *  - `reject:`'s PHYSICAL POSITION is load-bearing, and it is what the
  *    earlier 62-byte park missed: the label must sit INSIDE the
- *    `if (sz >= 0x4e3)` guard in the unit_vector block, making the shared
+ *    `if (sz > DEPTH_LIMIT)` guard in the unit_vector block, making the shared
  *    block that guard's body (target 0x800183fc `j 0x80018434; li v0,-1`,
  *    reached by jumps from both full-delay-slot sites). The park had tried
  *    "literal `return -1` vs a goto to a shared label" and found them

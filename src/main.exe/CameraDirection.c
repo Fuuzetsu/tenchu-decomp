@@ -74,7 +74,7 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
 
     CamState.DirectionRX = CamState.DirectionRX - y;
     CamState.DirectionRY = CamState.DirectionRY + x;
-    if (CamState.DirectionRX >= 0x38F)
+    if (CamState.DirectionRX > 0x38E)
     {
         CamState.DirectionRX = 0x38E;
     }
@@ -82,7 +82,7 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     {
         CamState.DirectionRX = -0x38E;
     }
-    if (CamState.DirectionRY >= 0x401)
+    if (CamState.DirectionRY > 0x400)
     {
         CamState.DirectionRY = 0x400;
     }
