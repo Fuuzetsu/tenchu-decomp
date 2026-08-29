@@ -565,19 +565,11 @@ class is either fixed repo-wide or adjudicated in place with a
 measurement. Future passes should target NEW code as it gets matched,
 not re-sweep the existing corpus.
 
-READER-QUEUE (2026-08-29): mostly done -- landed: UpdateMotion %,
-cd_read /2048, lightning/wire puns, SetupTelop *16, UpdateTexScroll
-/16, draw_time quotient, MotionUpdateMode staging x3, ActKAGI abs
-chain, Smoke/Jirai/NearestHumanoid/InitMisc/AttackIndirect spellings.
-Adjudicated required: SetWire one_value, SetFlyWire /0x100 cluster,
-AttackGeneral lone ternary abs, ActSTICKON high_item. STILL PENDING:
-ActSTICKON %30 + drop_index + raw 6/4 bounds, ActATTACK first_frame
-staging + teardown macro x3 + WEP_NONE case 0s + 0x65 bound,
-AttackShort <<14 pad shape, BreedLife type bounds, SORT_DEPTH macro
-(DrawBlood/DrawGore), ActSTATE hex frame counts, DrawBleed clamp
-reshape, MakeCameraPosition d1 staging, LoadConstruction *-14,
-ProcMiscDoor dir expression, IsVisible Yoda unify, N_EFFECT_SLOTS
-pool-scan bound sweep.
+READER-QUEUE (2026-08-29): COMPLETE. All flags from the three
+whole-function readers are landed or adjudicated in place; the
+CLAMP_SORT_DEPTH macro (main.exe.h) folds the OT-clamp copy-paste
+across ten renderers, and every effect-pool bound reads
+N_EFFECT_SLOTS.
 
 GLOSS-COVERAGE PASS (STOPPED 2026-08-29 by owner: "I don't need you
 to add comments about what functions do, stop that"). Five batches had
