@@ -538,6 +538,21 @@ preserved retail prototype drifts (update_card_message_ /
 update_card_screen_ externs) show this family shipped without shared
 headers, so per-TU views may deliberately disagree.
 
+HUMANISING LOOP 10 (2026-08-29, tuning knobs + drift audit): owner
+directive implemented -- src/main.exe/tuning.h (via game_globals.h)
+holds named handles for recurring/tunable quantities: screen size, OT
+depth limit, eye/throw/camera heights, effect-pool size, walk/swim
+speeds, game-over timeout, per-item weapon damage, item effect
+durations, bait radius, alert durations, card retry cap. Family
+lenses: effect family (DrawSnow renames + otz split, DrawGore enum R,
+FlyWire glosses, include placement) and card family (decimal
+stragglers, pad names, DeleteCard types, prefix drift renamed via full
+protocol) fully triaged. The scripted extern-vs-definition audit
+measured ~20 drifts: 8 free artifacts unified, 11 RETAIL prototype
+bugs preserved+annotated (return narrowings, param views, cd_open's
+dead extra argument) -- cookbook 3.17b records the rule. Combat-family
+lens pending.
+
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
 humanscan's in_/unaff_ pattern over-matching semantic labels, ActSTATE's
