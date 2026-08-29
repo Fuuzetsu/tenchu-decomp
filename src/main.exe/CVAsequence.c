@@ -172,7 +172,7 @@ run_sequence:
         {
             motion = 0x501;
             if ((human->attribute & ATTR_ALERT) == 0 &&
-                (motion = 0, (human->type & 0xf0) == type_class))
+                (motion = 0, (human->type & PAGE_MASK) == type_class))
                 motion = 0x80e;
             SetNowMotion(human, motion, 1);
         }

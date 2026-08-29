@@ -199,7 +199,7 @@ void DamageControl(void)
     {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->type & 0xf0U) == PAGE_BEAST)
+    if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_BEAST)
     {
         enemy = (Humanoid *)ConflictObject[(short)id].common;
         if (enemy != (Humanoid *)CONFLICT_OWNER_ITEM)
@@ -436,7 +436,7 @@ resolve_hit:
                         if ((item_type < ITEM_GUN) ||
                             ((ITEM_ARROW < item_type && (item_type != ITEM_LIGHTNINGBOLT))))
                         {
-                            if ((Me_MOTION_C->type & 0xf0U) == PAGE_CIVILIAN)
+                            if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)
                             {
                                 FriendHits++;
                             }
@@ -478,7 +478,7 @@ resolve_hit:
         else
         {
             enemy = conflict;
-            if (((Me_MOTION_C->type & 0xf0U) == PAGE_BOSS) && (enemy != StagePlayer))
+            if (((Me_MOTION_C->type & PAGE_MASK) == PAGE_BOSS) && (enemy != StagePlayer))
             {
                 return;
             }
@@ -629,7 +629,7 @@ resolve_hit:
                     {
                         Sound(Me_MOTION_C, 10);
                     }
-                    if ((enemy->type & 0xf0U) != PAGE_BEAST)
+                    if ((enemy->type & PAGE_MASK) != PAGE_BEAST)
                     {
                         Sound(Me_MOTION_C, 3);
                     }
@@ -763,7 +763,7 @@ resolve_hit:
                 score_kill:
                     if (enemy == StagePlayer)
                     {
-                        if ((Me_MOTION_C->type & 0xf0U) == PAGE_CIVILIAN)
+                        if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)
                         {
                             FriendHits++;
                         }

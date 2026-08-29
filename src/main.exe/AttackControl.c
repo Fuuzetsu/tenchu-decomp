@@ -85,7 +85,7 @@ void AttackControl(void)
                  * (branch polarity flips) and the structured chain
                  * (length change) were measured off. */
                 type = enemy->type;
-                group = type & 0xf0;
+                group = type & PAGE_MASK;
                 if (group == PAGE_BOSS)
                     goto reject_enemy;
                 if (group > PAGE_BOSS)

@@ -1099,6 +1099,11 @@ enum character_kind
  * bosses 0x80, civilians 0x90 (killing these counts FriendHits), beasts and
  * summons 0xa0. */
 typedef enum character_page character_page;
+/* Humanoid.type packs the character family ("page") in the high nibble
+ * and the roster index within it in the low nibble; PAGE_MASK extracts
+ * the family. */
+#define PAGE_MASK 0xf0
+
 enum character_page
 {
     PAGE_PALACE = 0x00,

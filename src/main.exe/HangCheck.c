@@ -165,7 +165,7 @@ short HangCheck(void)
     short rys;
     short i;
 
-    if ((Me_MOTION_C->type & 0xf0) == PAGE_BEAST)
+    if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_BEAST)
     {
         return 0;
     }

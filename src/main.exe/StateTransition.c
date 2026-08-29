@@ -202,7 +202,7 @@ void StateTransition(Humanoid *human)
         {
             u16 kind;
 
-            kind = Me_THINK_C->type & 0xf0;
+            kind = Me_THINK_C->type & PAGE_MASK;
             if (kind != PAGE_BOSS && kind != PAGE_BEAST &&
                 (active_item != ITEM_MANEBUE || (ATTRIB_BITS & 3) != PHASE_ALERT))
             {
@@ -362,7 +362,7 @@ void StateTransition(Humanoid *human)
         else if (EmergencyNotice < 2 &&
                  (u16)(SR + 2) < 2)
         {
-            if ((Me_THINK_C->type & 0xf0) != PAGE_BOSS)
+            if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS)
             {
                 SetNowMotion(Me_THINK_C, 0x80f, 1);
             }
@@ -464,7 +464,7 @@ void StateTransition(Humanoid *human)
             if ((pad & PADLdown) &&
                 ((ProbeAttrib[1] & (MAP_DEATH | MAP_WATER)) || ProbeLevelHigh > 5000))
             {
-                Me_THINK_C->pad_hold = (PADLup << 16) | 30;
+                Me_THINK_C->pad_hold = PAD_HOLD(PADLup, 30);
             }
             if ((pad & PADLup) &&
                 ((ProbeAttrib[0] & (MAP_DEATH | MAP_WATER)) || ProbeLevelLow > 5000))
@@ -473,7 +473,7 @@ void StateTransition(Humanoid *human)
             }
             if (StagePlayer->motion->mid == 0xe01 &&
                 (rand() % (EngageLevel + 1) == 0 ||
-                 (Me_THINK_C->type & 0xf0) == PAGE_BOSS))
+                 (Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS))
             {
                 motid = (rand() & 1) ? CMD_DASH_LEFT : CMD_DASH_RIGHT;
                 pad = SetCommand(&Me_THINK_C->pad, motid);
@@ -491,8 +491,8 @@ void StateTransition(Humanoid *human)
         pad = Me_THINK_C->think[3]();
         if ((ATTRIB_BITS & ATTR_WALL) && Me_THINK_C->pad_hold == 0)
         {
-            Me_THINK_C->pad_hold = Degree > 0 ? (PADLright << 16) | 8
-                                               : (PADLleft << 16) | 8;
+            Me_THINK_C->pad_hold = Degree > 0 ? PAD_HOLD(PADLright, 8)
+                                               : PAD_HOLD(PADLleft, 8);
         }
         if ((ATTRIB_BITS & 3) == PHASE_ALERT)
         {
@@ -521,12 +521,12 @@ void StateTransition(Humanoid *human)
             count = (u8)Me_THINK_C->pad_hold - 1;
             if (count != 0)
             {
-                Me_THINK_C->pad_hold = (pad << 16) | count;
+                Me_THINK_C->pad_hold = PAD_HOLD(pad, count);
             }
             else if (pad & (PADLleft | PADLright))
             {
                 Me_THINK_C->pad_hold =
-                    (PADLup << 16) | ((rand() % 3 + 1) * 30);
+                    PAD_HOLD(PADLup, (rand() % 3 + 1) * 30);
             }
             else
             {
@@ -559,10 +559,10 @@ void StateTransition(Humanoid *human)
                 {
                     s32 hint;
 
-                    hint = (PADLleft << 16) | 15;
+                    hint = PAD_HOLD(PADLleft, 15);
                     if (degree > 0)
                     {
-                        hint = (PADLright << 16) | 15;
+                        hint = PAD_HOLD(PADLright, 15);
                     }
                     me->pad_hold = hint;
                 }
@@ -587,7 +587,7 @@ void StateTransition(Humanoid *human)
             }
             if (abs_degree < 500 &&
                 (Me_THINK_C->think[0] == Think1ninja ||
-                 ((Me_THINK_C->type & 0xf0) == PAGE_NINJA && gNannido != DIFFICULTY_EASY)))
+                 ((Me_THINK_C->type & PAGE_MASK) == PAGE_NINJA && gNannido != DIFFICULTY_EASY)))
             {
                 s32 level;
                 s32 next_level;

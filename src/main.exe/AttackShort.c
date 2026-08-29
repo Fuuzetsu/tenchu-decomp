@@ -73,7 +73,7 @@ short AttackShort(void)
     s32 status7_result;
 
     pad = 0;
-    if ((Me_THINK_C->type & 0xf0) == PAGE_BEAST)
+    if ((Me_THINK_C->type & PAGE_MASK) == PAGE_BEAST)
     {
         return AttackAnimal();
     }

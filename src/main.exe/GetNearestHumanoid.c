@@ -83,7 +83,7 @@ Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
             (cur->attribute & ATTR_SUSPEND) == 0)
         {
             dx = PAGE_CIVILIAN; /* parked in dx before its delta-x role */
-            if ((cur->type & 0xf0) != dx && cur->life >= 0)
+            if ((cur->type & PAGE_MASK) != dx && cur->life >= 0)
             {
                 dx = __builtin_abs(cur->locate->vx - human->locate->vx);
                 dz = __builtin_abs(cur->locate->vz - human->locate->vz);

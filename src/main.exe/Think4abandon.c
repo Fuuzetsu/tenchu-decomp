@@ -91,7 +91,7 @@ s16 Think4abandon(void)
     cleared = ATTRIB_BITS & ~(ATTR_SEARCH | ATTR_PHASE);
     Me_THINK_C->chase[1] = 0;
     Me_THINK_C->chase[0] = 0;
-    if ((Me_THINK_C->type & 0xf0) == PAGE_BOSS)
+    if ((Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS)
     {
         if ((u16)(SR - 1) < 2)
         {

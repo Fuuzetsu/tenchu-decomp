@@ -164,7 +164,7 @@ short Think3callaid(void)
         SetNowMotion(Me_THINK_C, 0x501, 1);
         Attrib = Me_THINK_C->attribute | PHASE_ALERT;
         ret = 0;
-        if ((Me_THINK_C->type & 0xF0) == PAGE_CIVILIAN)
+        if ((Me_THINK_C->type & PAGE_MASK) == PAGE_CIVILIAN)
         {
             StageEnemies++;
             StageCitizens--;

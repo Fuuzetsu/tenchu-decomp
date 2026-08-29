@@ -6,6 +6,11 @@
  * caller tests it before reading the result table. */
 /* ModelType.attribute draw/cull configuration (the Draw* family's atr
  * tests, in test order) and the collision pair: */
+/* Humanoid.pad_hold packs a virtual-pad latch: hold `button` for
+ * `frames` frames (StateTransition's update_hint unpacks it as
+ * pad_hold >> 16 and (u8)pad_hold). */
+#define PAD_HOLD(button, frames) (((button) << 16) | (frames))
+
 #define MODEL_ATTR_HIDDEN 0x0001      /* never draw (ActDEAD sinks drowned
                                          corpses with it) */
 #define MODEL_ATTR_NOCULL 0x0002      /* skip the whole clip-point test */

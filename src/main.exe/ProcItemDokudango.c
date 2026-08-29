@@ -197,7 +197,7 @@ void ProcItemDokudango(TItem *item)
                 {
                     break;
                 }
-                if ((find.find->type & 0xf0) != PAGE_BOSS &&
+                if ((find.find->type & PAGE_MASK) != PAGE_BOSS &&
                     find.find->life != -1 && find.dist < targetlen)
                 {
                     if (find.find != item->owner)
@@ -379,7 +379,7 @@ void ProcItemDokudango(TItem *item)
                 return;
             }
             if ((eater->attribute & ATTR_ALERT) != 0 &&
-                (eater->type & 0xf0) != PAGE_BEAST)
+                (eater->type & PAGE_MASK) != PAGE_BEAST)
             {
                 NowReturnNormal(eater);
             }
@@ -427,7 +427,7 @@ void ProcItemDokudango(TItem *item)
                 return;
             }
             human = param->eater;
-            if ((human->type & 0xf0) == PAGE_BEAST)
+            if ((human->type & PAGE_MASK) == PAGE_BEAST)
             {
                 if (ActionHalt == 0 && human->life > 0)
                 {

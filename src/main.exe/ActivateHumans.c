@@ -168,7 +168,7 @@ void ActivateHumans(void)
         {
             goto set_inactive;
         }
-        if (((u16)human->type & 0xf0) == PAGE_BOSS)
+        if (((u16)human->type & PAGE_MASK) == PAGE_BOSS)
         {
             goto set_active;
         }

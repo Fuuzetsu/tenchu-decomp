@@ -34,10 +34,10 @@ s16 Think2contact(void)
     {
         s32 hint;
 
-        hint = ((u32)PADLleft << 16) | 8;
+        hint = PAD_HOLD((u32)PADLleft, 8);
         if (Degree > 0)
         {
-            hint = (PADLright << 16) | 8;
+            hint = PAD_HOLD(PADLright, 8);
         }
         Me_THINK_C->pad_hold = hint;
     }

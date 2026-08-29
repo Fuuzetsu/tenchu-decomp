@@ -194,7 +194,7 @@ s16 think_alarm_reaction_(void)
                 self = Me_THINK_C;
                 quotient = 1000 / self->turn;
                 self->pad_hold =
-                    quotient | ((degree > 0 ? PADLleft : PADLright) << 16);
+                    PAD_HOLD(degree > 0 ? PADLleft : PADLright, quotient);
             }
         }
 

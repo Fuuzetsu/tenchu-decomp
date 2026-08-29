@@ -191,7 +191,7 @@ void StartStageSequence(void)
     while (i < Humans)
     {
         entry = HumanGroup[i];
-        if (entry != 0 && (((u16)entry->type & 0xf0) == PAGE_PALACE))
+        if (entry != 0 && (((u16)entry->type & PAGE_MASK) == PAGE_PALACE))
         {
             order[tp++] = entry;
             HumanGroup[i] = 0;
@@ -203,7 +203,7 @@ void StartStageSequence(void)
     while (i < Humans)
     {
         entry = HumanGroup[i];
-        if (entry != 0 && (((u16)entry->type & 0xf0) == PAGE_BOSS))
+        if (entry != 0 && (((u16)entry->type & PAGE_MASK) == PAGE_BOSS))
         {
             order[tp++] = entry;
             HumanGroup[i] = 0;
@@ -247,7 +247,7 @@ void StartStageSequence(void)
         {
             goto next_human;
         }
-        kind = (u16)human->type & 0xf0;
+        kind = (u16)human->type & PAGE_MASK;
         if (kind == PAGE_BOSS)
         {
             StageBosses++;

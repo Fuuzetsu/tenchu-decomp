@@ -292,7 +292,7 @@ void ActSTATE(void)
             {
                 if (dtM->count > -0x15)
                 {
-                    if ((human->type & 0xf0) == PAGE_GUARD)
+                    if ((human->type & PAGE_MASK) == PAGE_GUARD)
                     {
                         goto random_fall;
                     }

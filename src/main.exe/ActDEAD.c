@@ -145,7 +145,7 @@ void ActDEAD(void)
             if (human != StagePlayer)
             {
                 DeleteConflict(*model->object);
-                if ((*(u16 *)&Me_MOTION_C->type & 0xf0) != PAGE_BOSS)
+                if ((*(u16 *)&Me_MOTION_C->type & PAGE_MASK) != PAGE_BOSS)
                     TurnAroundAllItems(Me_MOTION_C);
             }
             if (dtM->mid < 0x1109)
@@ -264,7 +264,7 @@ event_ready:
 }
 
 ordinary_dead:
-    if ((*(u16 *)&Me_MOTION_C->type & 0xf0) != PAGE_BEAST)
+    if ((*(u16 *)&Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST)
     {
         if (dtM->count == 5 && DeadHumanoid == Me_MOTION_C)
         {

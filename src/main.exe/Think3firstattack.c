@@ -63,7 +63,7 @@ s16 Think3firstattack(void)
     {
         SR = SR_NONE;
     }
-    if ((Me_THINK_C->type & 0xf0) == PAGE_CIVILIAN)
+    if ((Me_THINK_C->type & PAGE_MASK) == PAGE_CIVILIAN)
     {
         ATTRIB_BITS |= ATTR_SEARCH;
     }
