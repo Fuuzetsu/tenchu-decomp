@@ -245,7 +245,7 @@ short AttackShort(void)
             pad = PADLdown;
             goto return_pad;
         }
-        if (degree >= 1501)
+        if (degree > 1500)
         {
             if (Distance < 1000)
             {
@@ -321,7 +321,7 @@ short AttackShort(void)
 
         raw_degree = Degree;
         degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-        if (degree >= 1501)
+        if (degree > 1500)
         {
             pad |= PADLdown;
             goto return_pad;
@@ -329,7 +329,7 @@ short AttackShort(void)
 
         if (Distance > 3000)
         {
-            if (degree >= 200 || Distance < 3501)
+            if (degree >= 200 || Distance <= 3500)
             {
                 goto return_with_1000;
             }

@@ -62,6 +62,11 @@
 #define ALERT_DURATION 300
 #define ALERT_DURATION_HARD 600
 
+/* AI activation radii (ActivateHumans' once-a-second sweep). */
+#define ACTIVATE_RADIUS 13000      /* enemies inside this stay awake */
+#define ACTIVATE_RADIUS_WIDE 26000 /* while the player casts the far-sight item */
+#define DEACTIVATE_RADIUS 17000    /* beyond this an enemy is parked/teleported */
+
 /* Combat pacing. */
 #define ATTACK_COOLDOWN_PER_LEVEL 10 /* frames per EngageLevel between AI attacks */
 #define SR_CLEAR_RANGE 10000         /* beyond this, the search-result state clears */

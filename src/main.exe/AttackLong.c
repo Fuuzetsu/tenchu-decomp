@@ -167,7 +167,7 @@ short AttackLong(void)
             pad = PADLdown;
             goto return_pad;
         }
-        if (motion_degree < 1501)
+        if (motion_degree <= 1500)
         {
             goto return_pad;
         }

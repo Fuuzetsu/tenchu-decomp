@@ -102,7 +102,7 @@ void ActivateHumans(void)
 
     target = CamState.Owner;
     vc = *target->locate;
-    activate_distance = 26000;
+    activate_distance = ACTIVATE_RADIUS_WIDE;
     if (StagePlayer->motion->mid != 0xf05)
     {
         do
@@ -111,7 +111,7 @@ void ActivateHumans(void)
             {
                 do
                 {
-                    activate_distance = 13000;
+                    activate_distance = ACTIVATE_RADIUS;
                 } while (0);
             } while (0);
         } while (0);
@@ -165,7 +165,7 @@ void ActivateHumans(void)
         } while (0);
 
         distance = GetVectorDistance(human->locate, &vc);
-        if (distance >= 17001)
+        if (distance > DEACTIVATE_RADIUS)
         {
             goto set_inactive;
         }
@@ -246,7 +246,7 @@ void ActivateHumans(void)
                 goto next_human;
             }
             if (StageID != STAGE_CURE_PRINCESS && human->life >= 0 && GameClock != 30 &&
-                (ThinkCount >= ThinkBudget || distance <= 13000))
+                (ThinkCount >= ThinkBudget || distance <= ACTIVATE_RADIUS))
             {
                 goto next_human;
             }
@@ -291,7 +291,7 @@ void ActivateHumans(void)
             work.vy = human->locate->vy - 1500;
             work.vz = human->point[1];
             query = work;
-            if (GetVectorDistance(&query, &vc) > 17000)
+            if (GetVectorDistance(&query, &vc) > DEACTIVATE_RADIUS)
             {
                 level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
                                         query.vz, 1);

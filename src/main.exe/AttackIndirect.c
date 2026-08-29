@@ -179,11 +179,11 @@ short AttackIndirect(void)
             }
         }
 
-        if (Distance >= 15001)
+        if (Distance > 15000)
         {
             pad = turn_towards_player_(0, 0);
         }
-        else if (Degree >= 201)
+        else if (Degree > 200)
         {
             pad = PADLright;
         }
