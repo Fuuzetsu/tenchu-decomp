@@ -54,8 +54,6 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
         penalty = spots * SPOT_PENALTY;
     }
     penalty = stealth_base - penalty;
-    /* Identical arms on a never-zero test: retail's own dead branch,
-     * byte-required (collapsing mismatches; measured). */
     early->spottedScore = penalty;
     /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
