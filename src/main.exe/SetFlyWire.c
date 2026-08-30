@@ -158,9 +158,11 @@ found:
         {
             scaled = dist + 0xf;
         }
+        dist = scaled >> 4;
+        /* empty one-shot: a sched1 region fence (an emptied debug print
+         * reads the same way -- see DefaultActionHumanoid's header). */
         do
         {
-            dist = scaled >> 4;
         } while (0);
 
         base_x = param->NCenter.vx;

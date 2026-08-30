@@ -261,10 +261,12 @@ void ProcItemNingyo(TItem *item)
         } while (0);
         conflicts = ConflictObject;
         conflict = conflicts + n;
+        offset_y = -250;
+        size = 500;
+        /* empty one-shot: a sched1 region fence (an emptied debug print
+         * reads the same way -- see DefaultActionHumanoid's header). */
         do
         {
-            offset_y = -250;
-            size = 500;
         } while (0);
         conflict->common = CONFLICT_OWNER_ITEM;
         collision_mode = 12;
