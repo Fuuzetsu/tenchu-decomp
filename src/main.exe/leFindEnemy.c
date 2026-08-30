@@ -41,7 +41,8 @@
  * table for the live (`type != -1`) entry nearest CamState.Owner's model
  * position, returning its index (or -1 if none is closer than the initial
  * 2000-unit cutoff). On a hit, spawns the same marker explosion effect as
- * leAddPath (SetExplosion with a zeroed rotation and the found enemy's own
+ * leAddPath (SetExplosion with the pooled {0,-100,0} direction vector
+ * and the found enemy's own
  * x/y/z) at the found enemy's position.
  *
  * Matching notes:

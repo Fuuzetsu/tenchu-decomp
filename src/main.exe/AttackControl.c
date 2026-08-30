@@ -52,7 +52,7 @@
  *  - The target-ordered labels in the enemy-kind filter preserve three
  *    physical branch islands that jump2 otherwise collapses.
  *  - The two `enemy` declarations deliberately have disjoint block scopes.
- *    PSX.SYM records the first in $s1 and the final retargeting value in $v0;
+ *    PSX.SYM records the first in $s0 and the final retargeting value in $v0;
  *    one function-wide local instead survives into the tail and adds reloads.
  *  - The final `human` copy gives both target stores one shared base pseudo,
  *    while keeping the GetNearestHumanoid result directly in $v0.
