@@ -19,9 +19,10 @@
  * prefix TENCHU_ID and the caller's `name`), opens it via MemCardOpen in
  * mode 1, blocks on MemCardSync again, and — unlike DeleteCard/LoadCard,
  * which go on to read/delete the file — immediately closes it again with
- * no read/write in between if the open failed (`result == 0`). That shape
- * (open, sync, close-on-failure, return the raw open result truncated to a
- * short, no data transfer at all) reads as a plain "does this save file
+ * no read/write in between if the open failed (`acceptResult == 0`). That shape
+ * (open, sync, close-on-failure, return the sync's out-value truncated
+ * to a short — the open's return is only a seed MemCardSync overwrites —
+ * no data transfer at all) reads as a plain "does this save file
  * exist on the card" probe. Called only by update_card_screen_.
  *
  * The Ghidra `__override__prt_80056e6c_aee7b64a` split (cookbook's
@@ -36,7 +37,7 @@
  *
  * TENCHU_ID/CardPathFormat (0x80097D04/0x80097D08) are bound under
  * fresh names in config/symbols.main.exe.txt, not the splat-auto
- * TENCHU_ID/CardPathFormat: converting this function away from raw asm
+ * D_80097D04/D_80097D08: converting this function away from raw asm
  * removed the last raw-bytes anchor for those two addresses, so splat's
  * auto-symbol table started deriving them from a drifted accumulation
  * elsewhere (+4 bytes each) — see DeleteCard.c, the other consumer, fixed
@@ -59,17 +60,17 @@ s16 check_card_file_(char *name)
     /* A second sync pair, unlike every sibling's single reused cmd/result:
      * collapsing them onto one pair mismatches (separate stack slots are
      * retail's own). */
-    s32 cmd2;
-    s32 result2;
+    s32 acceptCmd;
+    s32 acceptResult;
 
     result = MemCardAccept(0);
     MemCardSync(0, &cmd, &result);
     sprintf(path, CardPathFormat, TENCHU_ID, name);
-    result2 = MemCardOpen(0, path, 1);
-    MemCardSync(0, &cmd2, &result2);
-    if (result2 == 0)
+    acceptResult = MemCardOpen(0, path, 1);
+    MemCardSync(0, &acceptCmd, &acceptResult);
+    if (acceptResult == 0)
     {
         MemCardClose();
     }
-    return result2;
+    return acceptResult;
 }

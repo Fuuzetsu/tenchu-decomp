@@ -36,16 +36,16 @@
  * motion's `time` limit.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `v` is a genuinely SEPARATE variable from `count`, not a renaming: `v =
+ *  - `frame` is a genuinely SEPARATE variable from `count`, not a renaming: `frame =
  *    mmp->count;` computes the raw pre-increment value once (feeds both the
- *    `mmp->count = v + 1;` store and, later, `count = v;`), while `count`
+ *    `mmp->count = frame + 1;` store and, later, `count = frame;`), while `count`
  *    itself only needs a callee-saved home from the point it's actually
  *    read again. Funnelling both through ONE variable (`count = mmp->count;
  *    mmp->count = count + 1;`) makes cc1 compute the increment directly in
  *    count's own callee-saved register (no separate temp) — one instruction
  *    short of the target, which keeps the raw read in a caller-saved reg and
  *    copies it to $s3 only later. `i` is a THIRD, genuinely reused variable
- *    (cookbook Register allocation steering) — `i = v;` gives it the same
+ *    (cookbook Register allocation steering) — `i = frame;` gives it the same
  *    value for the two bone-0 GetSpline calls, then it's clobbered as the
  *    `for (i = 1; ...)` loop counter; the loop's own GetSpline calls pass
  *    `count` directly, never `i`.
@@ -72,7 +72,7 @@ short ActiveMotion(MotionManager *mmp)
 {
     short i;
     short count;
-    short v;
+    short frame;
     ModelType *object;
     SVECTOR vect;
 
@@ -81,13 +81,13 @@ short ActiveMotion(MotionManager *mmp)
         count = HoldMotion(mmp);
         return count;
     }
-    v = mmp->count;
-    mmp->count = v + 1;
-    count = v;
+    frame = mmp->count;
+    mmp->count = frame + 1;
+    count = frame;
     if (mmp->mask & 1)
     {
         object = *mmp->model->object;
-        i = v;
+        i = frame;
         GetSpline(&vect, mmp->control, i);
         object->locate.coord.t[0] = (s32)vect.vx;
         object->locate.coord.t[2] = (s32)vect.vz;

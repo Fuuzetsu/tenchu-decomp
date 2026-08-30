@@ -41,10 +41,10 @@
  * the local screen matrix, then runs the IDENTICAL attribute&1/2/4/8/0x10
  * clip test against `objp->clip`, then a UnitVector RotTransPers against
  * `xy = &sprt->sprite.x`), but instead of calling DrawTMD on success it
- * computes a distance-scaled sprite size (`(sprt->scale>>2)*300 / sz`) and
+ * computes a distance-scaled sprite size (`(sprt->scale>>2)*300 / pri (= sz - 5)`) and
  * calls GsSortSprite. `xy` is always the fixed non-null address
  * `&sprt->sprite.x` (never a caller-supplied nullable pointer like
- * DrawClip/DrawModel's `xy` parameter) — the `if (xy != 0) goto ret;` guard
+ * DrawClip's `xy` parameter) — the `if (xy != 0) goto ret;` guard
  * this TU's shared template carries over is therefore dead at runtime
  * (DrawTMDmode is never actually assigned here), reproduced literally
  * because it's the same source template as DrawModel/DrawClip.
@@ -99,7 +99,7 @@
  *    maspsxGpExterns + permute.py GP_EXTERNS both list DrawSprite now) —
  *    unlike DrawModel/DrawClip in the SAME TU, where it's absolute; per-file
  *    gp eligibility, not per-TU.
- *  - The tail's `iv / sz` is a true divide-by-VARIABLE (ASPSX's guarded
+ *  - The tail's `iv / pri` (pri = sz - 5) is a true divide-by-VARIABLE (ASPSX's guarded
  *    div, break 7/break 6) — needs maspsx `--expand-div` for this file
  *    (Build.hs `extra`/permute.py `MASPSX_EXTRA`), same as GetAreaMapLevel/
  *    UpdateTexScroll/GetSpline in other TUs.
@@ -109,7 +109,7 @@
  *    literal early returns" lever, even though Ghidra renders it with one
  *    reused `scale`.
  *  - The two-arm `if (sz < 300) DrawTMDmode = TMD_BANK_PLAIN; else = 0x20;` inside
- *    unit_vector is spelled NEGATED (`if (sz >= 300) = 0x20; else = 0;`) so
+ *    unit_vector is spelled NEGATED (`if (sz >= FOG_DEPTH) = 0x20; else = 0;`) so
  *    the 0x20 arm sits adjacent to the shared tail, same swap-non-invariance
  *    DrawModel needed.
  */
@@ -188,7 +188,7 @@ short DrawSprite(Sprite3D *sprt)
             result = sz;
             goto ret;
         }
-        if (sz >= 300)
+        if (sz >= FOG_DEPTH)
             DrawTMDmode = TMD_BANK_FOG;
         else
             DrawTMDmode = TMD_BANK_PLAIN;

@@ -14,6 +14,8 @@ void GsMapModelingData(unsigned long *model)
 
     *model |= 1;
     ++model;
+    /* The rotated guard + i-hoist and the per-iteration base+i*7 walk are
+     * byte-required (a plain for with object++ mismatches; measured). */
     i = 0;
     count = *model++;
     if (count > 0)
