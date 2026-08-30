@@ -722,8 +722,17 @@ StageEndScreen's +1/+2 pair, mission_score's row-sort empty), four
 taste-rejects where the fence beats any known cure (subdivide_quad_,
 AddMisc bottom, SetCameraMode first, StateTransition), honest empty
 barriers with the DBG reading, and seven multi-role identical-arms.
-Next humanising dimension: TBD reconnaissance (goto structure, mega
-empties' stories, naming).
+Next humanising dimension queue (recon 2026-08-31): goto-density
+leaders for structured-control-flow attempts (measure per DAH's probe
+lesson - many gotos will be byte-forced or authentic; only land
+reading improvements): AttackShort(31), AttackGeneral(27),
+AttackLong(20), DrawConstruction(18), DrawModelArchive(16),
+ActivateHumans(16), GetAreaMapLevel(15, the labyrinth search),
+DrawSprite(15), DamageControl(15), ActATTACK(15); label-heavy Act*
+family (5-10 labels each - possibly authentic dispatch style, check
+the demo's Act* shapes first). All load-bearing empty barriers now
+carry the standard comment. The Codex session remains resumable for
+the next campaign brief.
 
 DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
 supersedes the no-macro ruling above for RECOVERED content only):
