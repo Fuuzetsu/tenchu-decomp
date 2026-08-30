@@ -104,11 +104,10 @@ void ActivateHumans(void)
     activate_distance = ACTIVATE_RADIUS_WIDE;
     if (StagePlayer->motion->mid != MOT_ITEM_SHINSOKU)
     {
-        /* Every do/while (0) in this function is a byte-required
-         * loop-depth weight (removing any of them shifts the s-register
-         * assignment; measured).  activate_distance needs +3 weighted refs;
-         * weight fence — split per the DefaultActionHumanoid method: 2 here
-         * + 1 at the near_human compare below. */
+        /* Weight fence: activate_distance needs +2 weighted refs to keep
+         * $s2 from the StageChar-base temp (the race measures 471 vs 481
+         * flat — see regalloc.py --order). The two other fences this file
+         * once carried re-measured stale (2026-08-31) and are gone. */
         do
         {
             do
@@ -154,19 +153,10 @@ void ActivateHumans(void)
             return;
         }
         human = HumanGroup[(s16)i];
-        /* human/target each need +2 weighted refs here; a depth-1 split is
-         * refuted — target's only other refs (the CamState.Owner load and
-         * the vc copy) are fence-toxic, each shifting prologue scheduling. */
-        do
+        if (human == target)
         {
-            do
-            {
-                if (human == target)
-                {
-                    goto next_human;
-                }
-            } while (0);
-        } while (0);
+            goto next_human;
+        }
 
         distance = GetVectorDistance(human->locate, &vc);
         if (distance > DEACTIVATE_RADIUS)
@@ -196,13 +186,10 @@ void ActivateHumans(void)
             visible = distance < activate_distance;
             goto visible_done;
         }
-        do
+        if (distance < activate_distance)
         {
-            if (distance < activate_distance)
-            {
-                goto near_human;
-            }
-        } while (0);
+            goto near_human;
+        }
 
     set_inactive:
         active = 0;
