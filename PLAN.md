@@ -707,6 +707,24 @@ update_card retry wrapper (block boundary). Round 6 in flight:
 ProcItemNingyo's two 174s, mission_score remnants, Briefing l320,
 LoadOrnamentArchive, DrawConstruction corridors, AttackIndirect.
 
+FENCE CAMPAIGN CONVERGED (2026-08-31, round 6): every do{}while(0)
+in the tree is now processed. Round 6 landed nine more layers
+(ProcItemNingyo all three via two item carriers - the two big races
+were ONE item/param race; mission_score rank-base + persistent-state
+pointer; Briefing's armour pair cancels CARRIER-FREE - either alone
+is 12 off, both gone is exact; LoadOrnamentArchive both via one
+three-read consumer). The remaining population is all principled,
+documented keeps: region/boundary fences with probe matrices
+(GetAreaMapLevel, AttackLong, SetBlood, vmemoryGC, SetCameraMode's
+scheduler region, AddMisc body, DrawConstruction's two corridors,
+AttackIndirect's inheritance boundary, update_card's retry wrapper,
+StageEndScreen's +1/+2 pair, mission_score's row-sort empty), four
+taste-rejects where the fence beats any known cure (subdivide_quad_,
+AddMisc bottom, SetCameraMode first, StateTransition), honest empty
+barriers with the DBG reading, and seven multi-role identical-arms.
+Next humanising dimension: TBD reconnaissance (goto structure, mega
+empties' stories, naming).
+
 DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
 supersedes the no-macro ruling above for RECOVERED content only):
 the file now carries a release-emptied DBG(x) macro (#ifdef DEBUG:
