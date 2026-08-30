@@ -62,26 +62,36 @@
  * Register-allocation notes, verified against cc1 2.8.1's own -dl/-dg/-dS
  * dumps and its source (flow.c, global.c, sched.c) this session.
  *
- * THE TOWER (seven nested do{}while(0) around `zz >>= 1`): cc1 counts a
- * variable's RTL mentions weighted linearly by syntactic loop depth
- * (flow.c: REG_N_REFS += loop_depth), and global-alloc assigns registers
- * in order of priority = floor_log2(refs)*refs/live_length, each allocno
- * taking the lowest free register. Written flat, zz counts 18 weighted
- * refs and i counts 39: i is then the highest-priority call-crossing
- * value, find_reg hands it $s0, and every callee-saved assignment shifts
- * off the retail bytes (~118 differing bytes). zz overtakes i only at 32
- * refs, where floor_log2 steps from 4 to 5 (here 5*32/160 = 10000 vs i's
- * 5*39/196 = 9948). The tower adds 7 levels x 2 refs = +14: exactly
- * 18 -> 32. Any spread of +14 across the four zz-only statements gives
- * identical bytes (measured); one site keeps the construct in one place.
- * The other statements are toxic carriers: anything mentioning i feeds
- * the rival one-for-one, one extra xx ref trips xx's own floor_log2 step
- * at 16 refs and reshuffles $s2-$s4, and one extra object ref trips
- * object's step at 8. This is not a compiler quirk of ours: GCC
- * 2.8.0-psx, 2.8.1-psx and the gs107 build emit byte-identical code for
- * this function (flat and fenced), 2.7.2-class codegen cannot reproduce
- * even its instruction count, and every era-plausible flag measures
- * inert on this allocation.
+ * WHY ry CARRIES THE APPLIED Z-STEP (the `ry = zz` on all three reflect
+ * paths, plus `ry &= ~1` before `ry >>= 1`): $s0 must go to a value that
+ * beats `i` in global-alloc priority (floor_log2(refs)*refs/live_length,
+ * refs weighted by loop depth at flow time) AND that conflicts with i's
+ * live ranges, or find_reg simply gives $s0 to both. Written with zz
+ * doing everything (halved in place, subtracted at the tail), zz counts
+ * 18 weighted refs over 160 live insns (4500) against i's ~9100-9950: i
+ * takes $s0 and every callee-saved assignment shifts off the retail
+ * bytes. Re-using the dead ry as the applied displacement builds a
+ * short, hot, call-crossing carrier instead: three path copies + the
+ * mask + the shift + the tail use = 8-13 refs over ~24-40 insns, with
+ * the turn-block copy sitting above the `if (i > 0)` test so ry
+ * overlaps (and thus conflicts with) i, and before MoveHumanoid so ry
+ * crosses a call. ry then takes $s0 first, i lands on $s1, and zz -
+ * dying at each `ry = zz` - shares $s0 afterward, so all three copies
+ * coalesce to nothing. Three details are load-bearing, all measured:
+ * the copies must sit in three separate blocks (a same-block copy is
+ * combined into the `&=` and stops crossing the call); the turn-block
+ * copy must precede the `if (i > 0)` (below it, ry no longer overlaps
+ * i and i shares $s0); and `ry &= ~1; ry >>= 1;` must be two
+ * statements (the fused `(ry & ~1) >> 1` loses a counted ref and the
+ * race). The mask is value-free next to the arithmetic shift and
+ * combine folds it away after flow has counted it: no instruction is
+ * generated for it. This is not a compiler quirk of ours: GCC
+ * 2.8.0-psx, 2.8.1-psx and the gs107 build emit byte-identical code
+ * for this function, 2.7.2-class codegen cannot reproduce even its
+ * instruction count, and every era-plausible flag measures inert on
+ * this allocation. (Historical note: before the fission this file
+ * carried a seven-level do{}while(0) nest that boosted zz itself to 32
+ * weighted refs - see git history for that mechanism's full story.)
  *
  * WHY RETAIL NEEDS IT AT ALL: the JP demo's DefaultActionHumanoid
  * (0x80024de0; Oct 1997, so necessarily a pre-2.8.0-era compiler) has no
@@ -89,10 +99,9 @@
  * colors caller-saved $a2, and its zz takes $s0 uncontested. Retail's
  * added damage arm (GetDirection/SetNowMotion/Sound) makes i live across
  * calls, promoting it into the callee-saved file — that promotion
- * creates the i-vs-zz contest the tower settles. The demo's debug idiom
+ * creates the i-vs-zz contest the ry fission settles. The demo's debug idiom
  * was bare FntPrint dumps (still compiled into the demo binary), deleted
- * in retail without residue; two of the zz statements postdate the demo,
- * so the tower is no debug-macro fossil.
+ * in retail without residue.
  *
  * THE THREE DBG SITES IN THE CONFLICT ARM (empty do{}while(0) once
  * expanded for release): pure scheduling, no
@@ -133,9 +142,7 @@
  * per-frame dumps compiled out while diagnostics stayed. The three
  * load-bearing empty sites sit exactly where a dev debugging the new
  * damage arm would dump the collision record. Three deleted debug prints explain the barriers
- * without anyone typing a bare one-shot loop. (The weight tower above
- * is NOT explainable that way: it nests seven deep around a live
- * statement, which no emptied macro produces.)
+ * without anyone typing a bare one-shot loop.
  *
  * Retail narrows the recovered `long i` at both map-query calls; the
  * explicit casts keep the shared API's promoted `int mode` visible.
@@ -368,6 +375,7 @@ short DefaultActionHumanoid(Humanoid *human)
                         SVECTOR *rotate;
                         s32 rotate_y;
 
+                        ry = zz;
                         rotate = human->rotate;
                         rotate_y = rotate->vy;
                         if (i > 0)
@@ -382,33 +390,20 @@ short DefaultActionHumanoid(Humanoid *human)
                         MoveHumanoid(human, human->motion->motion->orderspd,
                                      human->motion->motion->sidespd);
                     }
-                    xx >>= 1;
-                    /* the zz weight tower -- see the header */
-                    do
+                    else
                     {
-                        do
-                        {
-                            do
-                            {
-                                do
-                                {
-                                    do
-                                    {
-                                        do
-                                        {
-                                            do
-                                            {
-                                                zz >>= 1;
-                                            } while (0);
-                                        } while (0);
-                                    } while (0);
-                                } while (0);
-                            } while (0);
-                        } while (0);
-                    } while (0);
+                        ry = zz;
+                    }
+                    xx >>= 1;
+                    ry &= ~1;
+                    ry >>= 1;
+                }
+                else
+                {
+                    ry = zz;
                 }
                 locate->vx -= xx;
-                locate->vz -= zz;
+                locate->vz -= ry;
             }
         }
     }
