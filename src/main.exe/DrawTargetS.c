@@ -50,12 +50,15 @@
  *    both color arms while leaving the four line-coordinate stores and first
  *    jal shared after the join. Long nearx/neary locals avoid the short
  *    addiu-then-move hops; x/y still update in place as PSX.SYM suggests.
- *  - The one-shot loops in both arms emit no runtime branches. Their loop
- *    notes give old cc1 the exact global-allocation priority window:
- *    x=14222, y=14166, neary=10909, otz=7317, nearx=4000, producing target
- *    homes s0/s1/s2/s3/s4 respectively (x +7, y +8, nearx +1, neary +4
- *    weighted refs, split at depth <= 2 per the DefaultActionHumanoid
- *    method).
+ *  - The sign-staged edge forms in both arms (`x = -x; x -= r; x = -x;`
+ *    and `neary = r - y; neary = -neary;`) are allocation staging, not
+ *    recovered arithmetic: flow counts their mentions, combine folds each
+ *    chain back to the single addiu, and the counted refs give old cc1 the
+ *    exact global-allocation priority order (x 17/45=15111, y 17/48=14166,
+ *    neary 8/22=10909, otz 10/41=7317, nearx 4/25=3200 -> s0/s1/s2/s3/s4).
+ *    They replaced an equivalent set of do{}while(0) weight cages
+ *    (2026-08-31, joint with Codex); value-identical for the on-screen
+ *    coordinate domain.
  *  - The call-site declaration takes a full-width priority because both arms
  *    already narrow otz in place. This preserves the target's plain `move
  *    a2,s3` at the second call instead of inserting a redundant mask.
@@ -78,61 +81,39 @@ void DrawTargetS(long x, long y, long z, long color)
     line.attribute = 0;
     line.g = (u8)(color >> 8);
     line.b = (u8)color;
+    /* Sign-staged edges: allocation staging that combine folds back to
+     * plain adds -- see the header. */
     if (color < 0)
     {
         p = &line;
         otz = (u16)otz;
         callpri = otz;
         nearx = x - 20;
-        /* weight fences — split per the DefaultActionHumanoid method: the
-         * old else-arm cage (x +7, y +8, nearx +1, neary +4 weighted refs)
-         * redistributed at depth <= 2; neary's 1 else-arm occurrence caps
-         * at +2 there, so +2 rides this arm's statements. */
-        do
-        {
-            do
-            {
-                neary = y - 20;
-            } while (0);
-        } while (0);
-        do
-        {
-            x = x + 20;
-        } while (0);
+        neary = 20 - y;
+        neary = -neary;
+        x = -x;
+        x -= 20;
+        x = -x;
         ot = OTablePt;
-        y = y + 20;
+        y = -y;
+        y -= 20;
+        y = -y;
     }
     else
     {
         p = &line;
         otz = (u16)otz;
         callpri = otz;
-        do
-        {
-            nearx = x - 2;
-        } while (0);
-        do
-        {
-            do
-            {
-                neary = y - 2;
-            } while (0);
-        } while (0);
-        do
-        {
-            do
-            {
-                x = x + 2;
-            } while (0);
-        } while (0);
+        nearx = x - 2;
+        neary = 2 - y;
+        neary = -neary;
+        x = -x;
+        x -= 2;
+        x = -x;
         ot = OTablePt;
-        do
-        {
-            do
-            {
-                y = y + 2;
-            } while (0);
-        } while (0);
+        y = -y;
+        y -= 2;
+        y = -y;
     }
     line.x0 = nearx;
     line.y0 = neary;
