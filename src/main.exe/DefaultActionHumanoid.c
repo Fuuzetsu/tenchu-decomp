@@ -71,22 +71,40 @@
  * refuted: retargeting the reflection region's `direction` onto zz
  * (liveness-legal, +4 natural refs) perturbs two allocnos at once --
  * no tower depth 9-14 rebalances it (13 under by the s0/s1 class,
- * 14 over by a different pair).
- * ENDGAME CLOSED (2026-08-29): the cliff arithmetic caps every natural
- * refactor -- zz needs floor_log2(r)*r/live > 0.9701 (34 refs at <=167
- * live) and in-place reuse tops out around 28/169; the permuter's best
- * flat candidate repaired the allocation with a DEAD compute on the
- * starved pseudo, which fixes the registers but emits its own
- * instructions (score stalls at the dead code's size). A zero-code ref
- * amplifier is required, and in cc1 2.8.1 only note-based loop
- * weighting -- the do-while(0) family -- adds refs without emitting a
- * single byte. Whatever the 1998 source spelled (statement macros
- * expanding to one-shot wrappers being the period idiom), it reduced to
- * exactly this construct.
+ * 14 over by a different pair); the `register` keyword (no effect at
+ * -O2, flat form still cascades to ~114).
+ * ENDGAME CLOSED (2026-08-29, re-verified 2026-08-30): the cliff
+ * arithmetic caps every natural refactor -- zz needs
+ * floor_log2(r)*r/live > 0.9701 (34 refs at its live length), and the
+ * only reuse donor whose original bytes also sit in $s0 is `ry`
+ * (rotate_y and the in-place abs live in caller-saved registers in the
+ * target, so those merges can never byte-match). Merging ry into zz
+ * reaches 23 natural refs / 174 live -- 4*23/174 is nowhere near the
+ * 9701 bar, and the measured whole-family minimum is merge + an
+ * 11-level tower, which would also delete a local PSX.SYM attests as
+ * real. The permuter's best flat candidate repaired the allocation
+ * only via a DEAD compute (fixes registers, emits its own bytes). A
+ * zero-code ref amplifier is required, and in cc1 2.8.1 only
+ * note-based loop weighting -- the do-while(0) family -- adds refs
+ * without emitting a single byte. Whatever the 1998 source spelled, it
+ * reduced to exactly this construct; the ONCE() statement-macro family
+ * below is the period idiom for it, and expands to the identical
+ * one-shot nest.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
  */
+
+/* One-shot statement wrappers (each level is one do/while (0)): the
+ * register-pressure dial the header note measures. */
+#define ONCE(stmt)                                                            \
+    do                                                                        \
+    {                                                                         \
+        stmt;                                                                 \
+    } while (0)
+#define ONCE2(stmt) ONCE(ONCE(stmt))
+#define ONCE4(stmt) ONCE2(ONCE2(stmt))
+#define ONCE8(stmt) ONCE4(ONCE4(stmt))
 
 short DefaultActionHumanoid(Humanoid *human)
 {
@@ -416,14 +434,10 @@ short DefaultActionHumanoid(Humanoid *human)
                                    : -human->width) /
                               8;
 
-                do
-                {
-                    do
-                    {
-                        conflict = &ConflictObject[i];
-                    } while (0);
-                    object_id = object->id;
-                } while (0);
+                /* Sched fences between the pointer, id, and size loads —
+                 * see the header note. */
+                ONCE(ONCE(conflict = &ConflictObject[i]);
+                     object_id = object->id);
                 size_y = conflict->size.vy;
                 if (object_id != 0)
                 {
@@ -467,56 +481,18 @@ short DefaultActionHumanoid(Humanoid *human)
                                        * rotation: retail's own bug (every
                                        * other caller passes rotate->vy). */
                                       (s16)human->locate->vy);
-                    do
-                    {
-                        do
-                        {
-                            do
-                            {
-                                do
-                                {
-                                    do
-                                    {
-                                        do
-                                        {
-                                            do
-                                            {
-                                                do
-                                                {
-                                                    do
-                                                    {
-                                                        do
-                                                        {
-                                                            do
-                                                            {
-                                                                do
-                                                                {
-                                                                    do
-                                                                    {
-                                                                        do
-                                                                        {
-                                                                            direction_abs = zz >= 0 ? zz : -zz;
-                                                                        } while (0);
-                                                                    } while (0);
-                                                                } while (0);
-                                                            } while (0);
-                                                        } while (0);
-                                                    } while (0);
-                                                } while (0);
-                                            } while (0);
-                                        } while (0);
-                                    } while (0);
-                                    direction = MOT_DAMAGE_BACK_LIGHT;
-                                } while (0);
-                                if (direction_abs < 1100)
-                                {
-                                    direction = MOT_DAMAGE;
-                                }
-                            } while (0);
-                            SetNowMotion(human, direction, 1);
-                        } while (0);
-                        Sound(human, 6);
-                    } while (0);
+                    /* 14 one-shot levels around the abs (4 + 8 + 2): the
+                     * measured minimum weight — see the header note. */
+                    ONCE(ONCE(ONCE(ONCE(ONCE8(ONCE2(
+                                          direction_abs =
+                                              zz >= 0 ? zz : -zz));
+                                        direction = MOT_DAMAGE_BACK_LIGHT);
+                                   if (direction_abs < 1100)
+                                   {
+                                       direction = MOT_DAMAGE;
+                                   });
+                              SetNowMotion(human, direction, 1));
+                         Sound(human, 6));
                 }
 
                 {
