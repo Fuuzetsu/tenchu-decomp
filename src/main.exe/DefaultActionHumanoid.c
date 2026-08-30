@@ -83,6 +83,23 @@
  * and an input dying at the same insn never conflict), so it takes $s0
  * before zz allocates. Every partition measured 114-124 diffs or a
  * length mismatch. The four fences are irreplaceable.
+ * PROVENANCE (2026-08-30, demo-binary witness + 83-config sweep): the
+ * JP demo's DAH (0x80024de0, HUMAN.C:155) is instruction-identical to
+ * retail in every shared region and compiles the surviving fenced
+ * statements fence-free with zz already in $s0 — because the demo's
+ * `i` never crosses a call and colors caller-saved $a2. Retail's added
+ * damage arm makes i live across GetDirection/SetNowMotion/Sound,
+ * promoting it into the callee-saved file ($s1; the whole map shifts
+ * down one, giving retail its ninth save, $s8) — that promotion CREATES
+ * the i-vs-zz rivalry these fences resolve. Two of the four fenced
+ * statements do not even exist in demo-era source, so the fences are
+ * not release-emptied debug-macro fossils (the demo's real debug idiom
+ * was bare FntPrint dumps, one block of which sat after the map probe
+ * — deleted in retail with no residue). Wrong-flags and wrong-compiler
+ * are excluded by measurement: 83 configurations across cc1 2.6/2.7.2/
+ * 2.8.0/2.8.1/gs107 never bring flat DAH under 118 differing bytes,
+ * every length-preserving flag is provably inert here, and 2.7.2-class
+ * compilers cannot reproduce even the fenced bytes at any setting.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
