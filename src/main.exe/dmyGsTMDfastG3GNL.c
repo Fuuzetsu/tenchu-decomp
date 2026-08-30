@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * dmyGsTMDfastG3GNL (0x8006876c) — LIBGS "dummy" primitive-sort placeholder; warn-once
+ * dmyGsTMDfastG3GNL (0x8006876c) — LIBGS "dummy" TMD-fast-draw placeholder; warn-once
  * clone of dmyGsPrstF3NL (see that file for the family's shape).
  */
 extern int printf(const char *fmt, ...);

@@ -14,7 +14,7 @@
  * telop_text_width_ (0x800576e8, 0xa4 bytes) — computes the on-screen pixel
  * width of a SJIS string for the telop (on-screen caption/subtitle, per
  * DrawTelop/SetupTelop in this same TU) renderer: walks `str`, remapping the
- * single stray lead byte 0x92 to 0x27, folding the code into a 0-0x5F glyph
+ * single stray lead byte 0x92 to 0x27, folding the code into a glyph
  * index (subtract 0x20, and an additional 0x40 for the upper half-width-kana
  * block >= 0xC0), and summing each character's width out of the per-glyph
  * table `FontWidth[]`. Short-circuits to a precomputed width
@@ -56,7 +56,6 @@ s32 telop_text_width_(u8 *str)
     s32 width;
     s32 code;
     s32 idx;
-    u8 *entry;
 
     width = 0;
     if (TelopP.u0 != 0 || TelopP.u1 != 0)
@@ -82,8 +81,7 @@ s32 telop_text_width_(u8 *str)
             {
                 idx -= 0x40;
             }
-            entry = idx + FontWidth;
-            width += *entry;
+            width += FontWidth[idx];
         } while (*str != 0);
     }
     return width;

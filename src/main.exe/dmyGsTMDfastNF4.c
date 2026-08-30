@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * dmyGsTMDfastNF4 (0x8006825c) — LIBGS "dummy" primitive-sort placeholder; warn-once
+ * dmyGsTMDfastNF4 (0x8006825c) — LIBGS "dummy" TMD-fast-draw placeholder; warn-once
  * clone of dmyGsPrstF3NL (see that file for the family's shape), except
  * this "N" (no-light) variant takes only 3 register arguments: the asm
  * saves/returns $a2, not $a3 (verified: word 4 is `move s0,a2`, matching

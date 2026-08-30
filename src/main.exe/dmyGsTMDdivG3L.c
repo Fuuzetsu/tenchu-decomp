@@ -2,7 +2,7 @@
 #include "main.exe.h"
 
 /*
- * dmyGsTMDdivG3L (0x80066ef4) — LIBGS "dummy" primitive-sort placeholder; warn-once
+ * dmyGsTMDdivG3L (0x80066ef4) — LIBGS "dummy" TMD-subdivision placeholder; warn-once
  * clone of dmyGsPrstF3NL (see that file for the family's shape).
  */
 extern int printf(const char *fmt, ...);

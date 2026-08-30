@@ -170,7 +170,6 @@ void DamageControl(void)
     MotionManager *mmp;
     short did;
     short deg;
-    short ret;
     short t;
     short newvy;
     int ad;
@@ -181,7 +180,7 @@ void DamageControl(void)
     VECTOR p;
     SVECTOR pv;
 
-    id = (u16)(Me_MOTION_C->vector).pad;
+    id = (u16)Me_MOTION_C->vector.pad;
     dmg = 0;
     if (Me_MOTION_C->life < 1)
     {
@@ -313,7 +312,7 @@ resolve_hit:
                 return;
             }
             GetConflictResult((ModelType *)Me_MOTION_C->model, t);
-            t = GetItemType((int)t);
+            t = GetItemType(t);
             switch (t)
             {
             case ITEM_MAKIBISHI:
@@ -330,7 +329,7 @@ resolve_hit:
                 {
                     Me_MOTION_C->item[ITEM_SHURIKEN]++;
                 }
-                /* fall through: the shared zero-damage test preserves an existing 20 */
+                /* fall through: the shared zero-damage test preserves the shuriken's DMG_SHURIKEN */
             case ITEM_HAPPOU:
                 if (dmg == 0)
                 {
@@ -348,12 +347,10 @@ resolve_hit:
                 {
                     dmg = DMG_ARROW;
                 }
-                {
-                    p.vx = dtL->vx;
-                    motID = MOT_DAMAGE;
-                    p.vy = dtL->vy - Me_MOTION_C->height / 2;
-                    p.vz = dtL->vz;
-                }
+                p.vx = dtL->vx;
+                motID = MOT_DAMAGE;
+                p.vy = dtL->vy - Me_MOTION_C->height / 2;
+                p.vz = dtL->vz;
                 motMODE = 1;
                 SetBlood(&p, 5, 90);
                 break;
@@ -379,19 +376,19 @@ resolve_hit:
                 }
                 if ((Me_MOTION_C->map.attrib & MAP_WATER) == 0)
                 {
-                    (Me_MOTION_C->map).height = 1;
+                    Me_MOTION_C->map.height = 1;
                 }
                 break;
             default:
                 dmg = 0;
                 break;
             }
-            if (0 < (Me_MOTION_C->map).height)
+            if (Me_MOTION_C->map.height > 0)
             {
                 int ad;
 
-                did = GetDirection((int)ConflictDistance.vx, (int)ConflictDistance.vz, dtR->vy);
-                ad = (int)did;
+                did = GetDirection(ConflictDistance.vx, ConflictDistance.vz, dtR->vy);
+                ad = did;
                 if (ad < 0)
                 {
                     ad = -ad;
@@ -434,7 +431,7 @@ resolve_hit:
 
                         item_type = GetItemType((s16)id);
                         if ((item_type < ITEM_GUN) ||
-                            ((ITEM_ARROW < item_type && (item_type != ITEM_LIGHTNINGBOLT))))
+                            (item_type > ITEM_ARROW && item_type != ITEM_LIGHTNINGBOLT))
                         {
                             if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)
                             {
@@ -482,27 +479,23 @@ resolve_hit:
             {
                 return;
             }
+            t = 1;
+            dir.vx = enemy->locate->vx - dtL->vx;
+            dir.vy = enemy->locate->vy - dtL->vy;
+            dir.vz = enemy->locate->vz - dtL->vz;
+            while (__builtin_abs(dir.vx) > 100 || __builtin_abs(dir.vy) > 100 ||
+                   __builtin_abs(dir.vz) > 100)
             {
-                t = 1;
-                dir.vx = enemy->locate->vx - dtL->vx;
-                dir.vy = enemy->locate->vy - dtL->vy;
-                dir.vz = enemy->locate->vz - dtL->vz;
-                while ((100 < __builtin_abs((int)dir.vx)) ||
-                       (100 < __builtin_abs((int)dir.vy)) ||
-                       (100 < __builtin_abs((int)dir.vz)))
-                {
-                    t = t << 1;
-                    /* Retail uses direct arithmetic halves for all three components. */
-                    dir.vx >>= 1;
-                    dir.vy >>= 1;
-                    dir.vz >>= 1;
-                }
-                p = *dtL;
-                p.vy = p.vy - 1000;
-                if (GetAreaMapPassage(GlobalAreaMap, &p, &dir, t) != 0)
-                {
-                    return;
-                }
+                t = t << 1;
+                dir.vx >>= 1;
+                dir.vy >>= 1;
+                dir.vz >>= 1;
+            }
+            p = *dtL;
+            p.vy = p.vy - 1000;
+            if (GetAreaMapPassage(GlobalAreaMap, &p, &dir, t) != 0)
+            {
+                return;
             }
             {
                 int ad;
@@ -514,7 +507,7 @@ resolve_hit:
                 {
                     if ((((Me_MOTION_C->status != STAT_ATTACK) &&
                           ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)) &&
-                         ((Me_MOTION_C->map).height == 0)) &&
+                         (Me_MOTION_C->map.height == 0)) &&
                         (gNannido != DIFFICULTY_EASY))
                     {
                         if (rand() % (EngageLevel + 1) == 0)
@@ -555,20 +548,19 @@ resolve_hit:
                 }
             counter_attack:
                 /* Retail's own redundancy: unreachable here with
-                 * MOT_ENGAGE (both entries guard on 0x602/0x100c), yet
+                 * MOT_ENGAGE (both entries guard on MOT_CHASE_BACK/MOT_DAMAGE_GETUP), yet
                  * the binary carries the duplicate test — reproduced
                  * faithfully. */
                 if (motID == MOT_ENGAGE)
                 {
                     return;
                 }
-                ret = UpdateMotion(dtM, MOT_ENGAGE);
-                if (ret != 0)
+                if (UpdateMotion(dtM, MOT_ENGAGE) != 0)
                 {
                     int conflict_id;
                     VECTOR *blood_pos;
 
-                    conflict_id = (int)(*Me_MOTION_C->model->object)->id;
+                    conflict_id = Me_MOTION_C->model->object[0]->id;
                     if (conflict_id >= 0)
                     {
                         dtL->vx = ConflictObject[conflict_id].position.vx;
@@ -585,8 +577,8 @@ resolve_hit:
                     if (enemy->status == STAT_ATTACK)
                     {
                         enemy->motion->loop = dmg / -3 - 1;
-                        (enemy->vector).vz = 0;
-                        (enemy->vector).vx = 0;
+                        enemy->vector.vz = 0;
+                        enemy->vector.vx = 0;
                         if (StagePlayer == enemy)
                         {
                             PadShockAR(0, 0x7f, 10, 0);
@@ -594,17 +586,15 @@ resolve_hit:
                     }
                     DeleteConflict(ConflictObject[(short)id].model);
                     blood_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, (short)(dmg * 10 + 100), 0);
+                    t = 0;
+                    do
                     {
-                        t = 0;
-                        do
-                        {
-                            pv.vx = rand() % 100 - 50;
-                            pv.vy = rand() % 100 - 50;
-                            pv.vz = rand() % 100 - 50;
-                            SetBleed(blood_pos, &pv, rand() % 20 + 20, 0xffff00);
-                            t++;
-                        } while (t < 10);
-                    }
+                        pv.vx = rand() % 100 - 50;
+                        pv.vy = rand() % 100 - 50;
+                        pv.vz = rand() % 100 - 50;
+                        SetBleed(blood_pos, &pv, rand() % 20 + 20, 0xffff00);
+                        t++;
+                    } while (t < 10);
                     {
                         Humanoid *who;
 
@@ -637,16 +627,16 @@ resolve_hit:
                 }
             }
         take_damage:
-        {
-            int conflict_id;
-
-            conflict_id = (int)(*Me_MOTION_C->model->object)->id;
-            if (conflict_id >= 0)
             {
-                dtL->vx = ConflictObject[conflict_id].position.vx;
-                dtL->vz = ConflictObject[conflict_id].position.vz;
+                int conflict_id;
+
+                conflict_id = Me_MOTION_C->model->object[0]->id;
+                if (conflict_id >= 0)
+                {
+                    dtL->vx = ConflictObject[conflict_id].position.vx;
+                    dtL->vz = ConflictObject[conflict_id].position.vz;
+                }
             }
-        }
             dmg = (u16)BattleDB[deg].power;
             if (enemy != StagePlayer)
             {
@@ -669,7 +659,7 @@ resolve_hit:
                 goto apply_multipliers;
             }
         difficulty_bonus:
-            dmg = dmg - ((u8)gNannido - 2);
+            dmg = dmg - ((u8)gNannido - DIFFICULTY_HARD);
         apply_multipliers:
             if (enemy->type == NINKEN)
             {
@@ -693,28 +683,26 @@ resolve_hit:
                 {
                     deg = 3;
                 }
-                if (0 < (Me_MOTION_C->map).height)
+                if (Me_MOTION_C->map.height > 0)
                 {
                     deg = 3;
                 }
                 t = dmg * 5 / 2 + 0x50;
+                newvy = dtR->vy + did;
+                ad = __builtin_abs(did);
+                dtR->vy = newvy;
+                if (ad < 0x400)
                 {
-                    newvy = dtR->vy + did;
-                    ad = __builtin_abs(did);
-                    dtR->vy = newvy;
-                    if (ad < 0x400)
-                    {
-                        t = -t;
-                    }
-                    else
-                    {
-                        dtR->vy = newvy - 0x800;
-                    }
+                    t = -t;
+                }
+                else
+                {
+                    dtR->vy = newvy - 0x800;
                 }
                 if (deg == 3)
                 {
                     MoveHumanoid(Me_MOTION_C,
-                                 (0x400 < __builtin_abs(did)) ? 0x46 : -0x46, 0);
+                                 (__builtin_abs(did) > 0x400) ? 0x46 : -0x46, 0);
                 }
                 else
                 {
@@ -805,8 +793,8 @@ resolve_hit:
             if (enemy->status == STAT_ATTACK)
             {
                 enemy->motion->loop = dmg / -3 - 1;
-                (enemy->vector).vz = 0;
-                (enemy->vector).vx = 0;
+                enemy->vector.vz = 0;
+                enemy->vector.vx = 0;
                 if (StagePlayer == enemy)
                 {
                     PadShockAR(0, 0xff, 10, 10);
@@ -866,7 +854,7 @@ resolve_hit:
             motMODE = 1;
         }
     }
-    (Me_MOTION_C->pad).time = 0;
+    Me_MOTION_C->pad.time = 0;
     if ((dtM->mid == MOT_SWIM) || (dtM->mid == MOT_SWIM_STROKE))
     {
         SVECTOR *v;
@@ -876,7 +864,7 @@ resolve_hit:
         v->vx = 0;
         if (Me_MOTION_C->life != 0)
         {
-            motMODE = 0xffff;
+            motMODE = -1;
             return;
         }
         motID = MOT_DEAD_DROWN;

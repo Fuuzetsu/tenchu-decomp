@@ -74,7 +74,7 @@
  *    spelling with `mask` a NAMED VARIABLE, not the inline literal
  *    0x80000000 — an inline literal constant-folds the whole test back
  *    into a signed branch, losing the real `nor+and` instructions.
- *  - `mask`'s SECOND use (the double-release guard `(header->size & mask)
+ *  - `mask`'s use in the double-release guard (`(header->size & mask)
  *    == 0`, which combine still folds to `bltz`) is what tips cc1 into
  *    allocating the call-crossing constant a real callee-saved register
  *    ($s2) instead of rematerializing it at its single use.
@@ -85,7 +85,7 @@
  *    under-record; treat a zero-locals record as unverified.
  */
 
-extern char msg_double_memory_release[]; /* DOUBLE MEMORY RELEASE */ /* "DOUBLE MEMORY RELEASE" — still referenced by
+extern char msg_double_memory_release[]; /* "DOUBLE MEMORY RELEASE" — still referenced by
                               the unmatched vmemoryGC asm; reuse it rather
                               than opening a fresh .rodata (see LoadAreaMap.c) */
 
@@ -94,7 +94,7 @@ void vfree(void *pt)
     struct VMhead *header;
     struct VMhead *next;
     struct VMhead *prev;
-    struct VMhead *n2;
+    struct VMhead *pnext;
     u32 mask;
     u32 sz;
     s32 s;
@@ -125,10 +125,10 @@ void vfree(void *pt)
     if (prev != 0)
     {
     search:
-        n2 = prev->next;
-        if (n2 == header)
+        pnext = prev->next;
+        if (pnext == header)
             goto found;
-        prev = n2;
+        prev = pnext;
         if (prev != 0)
             goto search;
 
