@@ -82,16 +82,17 @@
  * in retail without residue; two of the zz statements postdate the demo,
  * so the tower is no debug-macro fossil.
  *
- * THE CONFLICT-ARM FENCES (the small do{}while(0) pair around the
- * conflict pointer and the identical-arms `if (object_id != 0)`): pure
- * scheduling, no weight. Loop notes bound sched1 regions, and the dead
- * branch (its arms are identical, so jump2 cross-jumps them and deletes
- * the test after reload, at zero bytes) keeps the position load in its
- * own block. Flat, sched's backward pass places one of the two
- * conflict-record loads next to ConflictObject[object_id]'s load
- * (sched.c's potential_hazard prefers a memory op after a memory op) and
- * no statement order reaches the retail sequence lh size / lw position /
- * index chain / lw position — visible directly in the -dS trace.
+ * THE THREE EMPTY do{}while(0) IN THE CONFLICT ARM: pure scheduling, no
+ * weight (nothing inside them, so nothing is ref-boosted). A loop-note
+ * pair bounds a sched1 region even when empty, and these keep the four
+ * conflict-record loads in retail's order: written flat, sched's
+ * backward pass places one of the record loads next to
+ * ConflictObject[object_id]'s load (sched.c's potential_hazard prefers a
+ * memory op right after a memory op) and no plain statement order
+ * reaches the retail sequence address / lh id / lh size / lw position /
+ * index chain / lw position — measured, and visible in the -dS trace.
+ * Each of the three is individually load-bearing, and the size-then-
+ * position load order inside the third region is too (all measured).
  *
  * Retail narrows the recovered `long i` at both map-query calls; the
  * explicit casts keep the shared API's promoted `int mode` visible.
@@ -401,26 +402,21 @@ short DefaultActionHumanoid(Humanoid *human)
                                    : -human->width) /
                               8;
 
-                /* scheduling fence, not weight -- see the header */
+                /* The empty one-shot loops are sched1 region fences
+                 * (no weight; nothing inside) -- see the header. */
+                conflict = &ConflictObject[i];
                 do
                 {
-                    do
-                    {
-                        conflict = &ConflictObject[i];
-                    } while (0);
-                    object_id = object->id;
+                } while (0);
+                object_id = object->id;
+                do
+                {
                 } while (0);
                 size_y = conflict->size.vy;
-                /* identical arms: the test cross-jumps away after reload
-                 * (zero bytes); it exists to schedule this load -- header */
-                if (object_id != 0)
+                yy = conflict->position.vy;
+                do
                 {
-                    yy = conflict->position.vy;
-                }
-                else
-                {
-                    yy = conflict->position.vy;
-                }
+                } while (0);
                 object_y = ConflictObject[object_id].position.vy;
                 top = yy - size_y;
                 if (object_y < top)
