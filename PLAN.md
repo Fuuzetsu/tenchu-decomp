@@ -668,6 +668,27 @@ SetFlyWire(1 left), mission_score(rest). Load-bearing EMPTY barriers
 SetupImageToPolyGT4/FT4, SearchTarget(85!), PlayVoice, ComPad,
 AttackShort(262!).
 
+CODEX ROUNDS 3-4 LANDED (2026-08-31): DrawTargetS zero-fence (sign-
+staged edges; ten cages gone; corner-locals structure proven
+impossible - Y 10/26 strictly outranks X 10/27, no tie). game_over_
+zero-cage (one calibrated pre-loop identity `state = ((state+state)-
+state) & state` supplies exactly +4; the natural `state++` spelling
+fixes the whole permutation but bytes demand literal li loads -
+recorded as the model's cleanest oracle). update_card_: weight fence
+-> one u16-exact consumer identity; its retry wrapper proven a
+BLOCK-BOUNDARY class (labels/blocks all fail) and stays documented.
+DrawConstruction: three of seven layers gone via one plimit consumer
+identity ((plimit+plimit)-plimit ranks it 3333, between slot 3255
+and model); residual partitioned into the cell/j visibility corridor
+(j needs $s6 reuse across three disjoint roles; fission cannot
+co-color) and the slot store corridor. Identical-arms tree scan:
+9 sites, 2 dissolved (Think3firstattack, calculate_score), 7 are
+genuine multi-role levers. StageEndScreen: layer halved + a false
+comment caught by the apply-guard and corrected same hour. The
+mutual-race permutation playbook (7 levers) is cookbook doctrine.
+Round 5 in flight: subdivide_quad_ mega-pair, GetAreaMapLevel region
+fence, and a 15-file mid pack.
+
 DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
 supersedes the no-macro ruling above for RECOVERED content only):
 the file now carries a release-emptied DBG(x) macro (#ifdef DEBUG:

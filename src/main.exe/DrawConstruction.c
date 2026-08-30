@@ -195,9 +195,14 @@ scan_z:
             int bucket;
             int signed_size;
 
-            /* Every do/while (0) in this function (including the IsVisible pair
-             * above) retains the original cc1 allocation priorities; the
-             * nesting depth is the weight. */
+            /* The remaining do/while (0) layers are allocation weight for
+             * three DISTINCT races (measured 2026-08-31): the IsVisible pair
+             * feeds cell_x/cell_y against j (the visibility intruder, which
+             * also demands $s6 reuse across three disjoint roles - fission
+             * cannot co-color it); this outer wrapper and the model/next
+             * store wrapper feed the slot corridor. The two former inner
+             * layers and the ModelSize store wrapper fell to the plimit
+             * consumer identity below. */
             do
             {
                 signed_size = cur->ModelSize;
