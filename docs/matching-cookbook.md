@@ -1494,6 +1494,16 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   variable carrying a load here and an unrelated value later, both byte-
   forced into the same register — because a multi-set dest never gets the
   birthing bump, and only a region edge holds the backward pass off it.
+- **Naming a shared subexpression is a quantity-order lever that IMPROVES
+  the source** (decode_tmd_adiv_, 2026-08-31): `n -= *prim; step = *prim
+  * 7;` under a weight fence became `count = *prim; n -= count; step =
+  count * 7;` with the fence gone — the named local re-orders the block's
+  v0/v1 temp births that the fence's notes had been pinning, and the
+  spelling is better C than the double deref. Check sibling sites before
+  generalizing: the same file's other arms REQUIRE the plain `*prim`
+  double-deref (naming them measures 6 diff lines). When a fence guards a
+  caller-saved local-alloc tie, try giving the contested value a name
+  before reaching for staging arithmetic.
 - **Mutual multi-variable races: treat the required order as a PERMUTATION
   and use the cheapest lever that produces it** (Codex round-3 playbook,
   verified on DrawTargetS where ten weight cages fell at once): (1) move
