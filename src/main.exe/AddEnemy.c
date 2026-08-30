@@ -91,6 +91,8 @@ void AddEnemy(void)
 
     x = 0;
     i = 0;
+    /* The entry guards before both scans are in the bytes (cc1 does not
+     * fold them into the while's own top test; measured). */
     if (HumanData[0].type != -1)
     {
         while (HumanData[i].type != -1)
@@ -123,9 +125,13 @@ void AddEnemy(void)
         }
     }
 
+    /* When the scan fills all 70 rows these two writes land at [70]/[71],
+     * past the array: retail's own latent overflow. */
     ItemName[x].name = str_cancel_2;
     ItemName[x++].value = -1;
     ItemName[x].name = 0;
+    /* (s16) re-narrows the s32 return: byte-required (writer-width rule;
+     * measured). */
     type = (s16)AdtSelect(str_select_type, ItemName, 0);
     if (type == -1)
         return;
@@ -157,7 +163,7 @@ void AddEnemy(void)
 
     {
         VECTOR pos;
-        VECTOR blood;
+        VECTOR spot;
 
         x = CamState.Owner->model->locate.coord.t[0];
         y = CamState.Owner->model->locate.coord.t[1];
@@ -168,11 +174,11 @@ void AddEnemy(void)
         human->model->rotate.vy = r;
         human->target = (ModelType *)CamState.Owner->model;
 
-        memset(&blood, 0, sizeof(VECTOR));
-        blood.vx = human->model->locate.coord.t[0];
-        blood.vy = human->model->locate.coord.t[1] - 1200;
-        blood.vz = human->model->locate.coord.t[2];
-        pos = blood;
+        memset(&spot, 0, sizeof(VECTOR));
+        spot.vx = human->model->locate.coord.t[0];
+        spot.vy = human->model->locate.coord.t[1] - 1200;
+        spot.vz = human->model->locate.coord.t[2];
+        pos = spot;
         SetBleeds(&pos, 400, 0, 50, 30, 0xffffff);
     }
 }

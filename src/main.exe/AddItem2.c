@@ -68,7 +68,7 @@
  *    bytes of register drift through the whole tail (permuter find).
  *  - pm (`ModelArchiveType *pm = CamState.Owner->model;`) is re-read after
  *    each trig call, positioned BETWEEN the *1000 statement and the `if
- *    (x < 0)` fixup so the two loads interleave into the branch shadow the
+ *    (sx < 0)` / `if (cx < 0)` fixup so the two loads interleave into the branch shadow the
  *    way the original schedules them.
  *  - rsin/rcos results need DISTINCT locals (sx, cx), not one reused temp
  *    like Ghidra's iVar7: the target has the sin-phase value in $a1 and the
@@ -114,12 +114,12 @@ void AddItem2(void)
         sx += 0xfff;
     h = pm->locate.coord.t[1];
     y = h;
-    x = pm->locate.coord.t[0] - (sx >> 0xc);
+    x = pm->locate.coord.t[0] - (sx >> 12);
     cx = rcos(pm->rotate.vy) * 1000;
     pm = CamState.Owner->model;
     if (cx < 0)
         cx += 0xfff;
-    z = pm->locate.coord.t[2] - (cx >> 0xc);
+    z = pm->locate.coord.t[2] - (cx >> 12);
     h = GetAreaMapLevel(GlobalAreaMap, x, y, z, 1);
     if (h != LEVEL_NONE)
     {

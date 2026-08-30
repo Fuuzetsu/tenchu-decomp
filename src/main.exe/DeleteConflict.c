@@ -36,7 +36,7 @@
  * with the last live element, shrink the count, and rewrite the moved
  * element's `.model->id` to its new slot. The matched slot is re-examined
  * (i is NOT advanced on a hit) so duplicates are all removed. Finally the
- * model is marked free (id = -1) and its top two attribute bits are cleared.
+ * model is marked free (id = -1) and its CONFLICT/COLLIDE attribute bits are cleared.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `ConflictObject[i] = ConflictObject[count];` is a 0x78-byte, word-aligned STRUCT
@@ -46,7 +46,7 @@
  *    16-bytes-per-iteration copy loop"). Ghidra renders it as a hand do-while
  *    over invented `position`/`offset` fields and shows the tail as `sh`s —
  *    both wrong; access.py --order proves every copy insn is a full word.
- *  - `short count = ConflictObjects - 1;` at the loop TOP: the narrowing
+ *  - `count = ConflictObjects - 1;` at the loop TOP: the narrowing
  *    subtraction reads ConflictObjects with `lhu` (only the low 16 bits reach
  *    the s16 result), distinct from the signed `lh` the `i < ConflictObjects`
  *    comparison needs — two un-CSE'd loads of the same gp global, the lhu one
@@ -80,6 +80,6 @@ void DeleteConflict(ModelType *model)
             }
         }
         model->id = -1;
-        model->attribute = model->attribute & 0x3fff;
+        model->attribute = model->attribute & ~(MODEL_ATTR_CONFLICT | MODEL_ATTR_COLLIDE);
     }
 }
