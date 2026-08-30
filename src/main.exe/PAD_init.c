@@ -62,14 +62,15 @@ void PAD_init(u_long a, u_long b, u_long c, u_long d)
 
     _remove_ChgclrPAD();
     EnterCriticalSection();
+    _patch_pad();
+    ExitCriticalSection();
+    ChangeClearPAD(0);
+    kernel_start_pad_();
+    PAD_init2(a, b, c, d);
+    new_var = 1;
+    PadInitFlag = new_var;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
-        _patch_pad();
-        ExitCriticalSection();
-        ChangeClearPAD(0);
-        kernel_start_pad_();
-        PAD_init2(a, b, c, d);
-        new_var = 1;
-        PadInitFlag = new_var;
     } while (0);
 }

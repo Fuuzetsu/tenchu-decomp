@@ -72,10 +72,11 @@ void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
     } while ((quotient << 16) != 0);
     if (neg)
     {
+        sign_base = u & 0xff;
+        width = sp->w;
+        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
-            sign_base = u & 0xff;
-            width = sp->w;
         } while (0);
         multiplier = 10;
         sp->u = sign_base + multiplier * width;

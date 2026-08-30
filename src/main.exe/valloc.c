@@ -152,11 +152,12 @@ void *valloc(u32 size)
                      * — that is what keeps the split arm's vhp-> reads as
                      * FRESH loads (lw/subu/addiu) like the target instead
                      * of CSE reusing the test's loaded value/slack. */
+                    vmpt[0] = vmpt[0] | mask;
+                    vmpt = vmpt + 2;
+                    goto search_done;
+                    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                     do
                     {
-                        vmpt[0] = vmpt[0] | mask;
-                        vmpt = vmpt + 2;
-                        goto search_done;
                     } while (0);
                 }
                 else

@@ -103,9 +103,10 @@ void *LoadSI(int target, u8 *name)
         ret = FileRead(fn);
         goto return_result;
     }
+    msg = 0;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
-        msg = 0;
     } while (0);
     ret = valloc(BLOCKSIZE);
     MemCardAccept((s32)msg);

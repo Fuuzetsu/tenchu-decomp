@@ -148,11 +148,12 @@ void ActACTION(void)
                     Me_MOTION_C->illusion[1] = 0;
                 }
             }
+            motion = dtM;
+            human = Me_MOTION_C;
+            motion->mask = 0x7fff;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                motion = dtM;
-                human = Me_MOTION_C;
-                motion->mask = 0x7fff;
             } while (0);
             weapon = human->weapon;
             if (human->wpatk == WEP_TWIN_KATANA && weapon[3] != 0)

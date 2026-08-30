@@ -219,10 +219,11 @@ void ProcItemJirai(TItem *item)
 
             human = (Humanoid *)ConflictObject[cid].common;
             present = is_humanoid_on_stage_(human);
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                i = 0;
             } while (0);
+            i = 0;
             if (present != 0)
             {
                 while (1)

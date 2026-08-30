@@ -116,10 +116,7 @@ void leLayoutEnemy(int mode)
             ModelArchiveType *owner_model;
 
             human = BreedLife(en->type, en->x, en->y, en->z, 0);
-            do
-            {
-                human->model->rotate.vy = en->r;
-            } while (0);
+            human->model->rotate.vy = en->r;
             /* Staged owner_model straddling the |= is byte-required
              * (inlining the read reorders the pair; measured). */
             owner_model = CamState.Owner->model;

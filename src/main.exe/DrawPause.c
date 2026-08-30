@@ -105,9 +105,10 @@ void DrawPause(int frame)
         PutDrawEnv(&n_draw);
         image = GetImage(IMG_TENCHU);
         SetupImageToPolyGT4(image, &ply, (s16)(0xA0 - image->pw * 2), (s16)(0x78 - (image->ph >> 1)));
+        t = (s16)frame * 0x44;
+        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
-            t = (s16)frame * 0x44;
         } while (0);
         bias = 0x80;
         far_col = rsin(t) * 125 / 4096 + bias;

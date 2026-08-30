@@ -290,9 +290,10 @@ void DrawImpact(TEffectSlot *ef)
     start2 = start2 >> 12;
     spr->b = start2 + (end_raw * ratio) / 0x1000;
 
+    end = param->px;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
-        end = param->px;
     } while (0);
     start2 = param->py;
     work = (s32)param->super;

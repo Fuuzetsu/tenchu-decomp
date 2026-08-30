@@ -232,12 +232,13 @@ void ProcItemSmoke(TItem *item)
                 continue;
             hit:
                 found = target;
+                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
-                    find->find = target;
-                    find->dist = dist;
-                    find->i = i + 1;
                 } while (0);
+                find->find = target;
+                find->dist = dist;
+                find->i = i + 1;
                 goto check;
             }
         }

@@ -516,10 +516,11 @@ void ActSTICKON(void)
             for (t = 0; t < 5; t++)
             {
                 next_angle = angle - 10;
+                next_angle += rand() % 20;
+                angle ^= angle ^ next_angle;
+                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
-                    next_angle += rand() % 20;
-                    angle ^= angle ^ next_angle;
                 } while (0);
                 y = next_angle;
                 item.end.vx = (rsin(y) * (-30 - rand() % 200)) >> 12;

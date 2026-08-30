@@ -86,11 +86,12 @@ void PutNumber(int x, int y, int cols, int n)
     base = NumberImage.u;
     img = &NumberImage;
     img->w = NW;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
-        img->x = (s16)x;
-        img->y = (s16)y;
     } while (0);
+    img->x = (s16)x;
+    img->y = (s16)y;
 loop:
     q = cols / 10;
     img->u = base + (cols % 10) * NW;
