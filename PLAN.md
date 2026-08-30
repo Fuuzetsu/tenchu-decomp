@@ -518,6 +518,23 @@ statement-macro family (token-identical expansion, depth arithmetic
 visible: 4 + 8 + 2 = 14); cookbook §3.10 records the presentation
 rule.
 
+DAH TOWER RETIRED (2026-08-30, macros banned by owner): the macro
+respelling was reverted and the 14-level single-site tower replaced by
+the same +14 dial DISTRIBUTED over four fence-safe zz statements at
+depth <= 3 (zz = map->level @2, zz >>= 1 @3 [encloses 2 refs/level],
+the conflict locate->vz store @3, the abs @3; 2+6+3+3 = +14, zz 18 ->
+32/159 -> 10062, byte-identical, ./Build check green). New measured
+weighting laws while calibrating (now in cookbook §3.10): defs count
++1/level exactly like uses; scaling is linear in depth; rival-mention
+regions are self-defeating (GetDirection's args feed i +2/level);
+xx-mention sites are banned by xx's own floor_log2 cliff at 16 refs
+(one ref reorders s2-s4); `zz = locate->vz` is fence-toxic in the
+SCHED dimension (the target hides that load in ConflictDistance.vx's
+load-delay shadow; a barrier there costs a +4-byte nop). Also
+re-refuted with measurements: `zz = zz;` and dead-boundary `ry = zz;`
+add 0 refs (deleted before .lreg counts). The DAH endgame stays
+closed; only the spelling changed.
+
 HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
 adversarial rounds continued -- the Act*/think header re-audit fixed
 five wrong glosses (and caught commit 1b20da30 claiming fixes its

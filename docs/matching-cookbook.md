@@ -546,14 +546,24 @@ negated. Everything else here is corollaries:
   cross-jump re-merge came out 12 bytes short with ~29 scattered
   scheduling diffs (AttackShort). (2) one-shot fence TOWERS are
   register-pressure DIALS, measured to the unit with regalloc.py --order:
-  each level adds +1 weighted ref to the enclosed variable's pseudo, and
-  DefaultActionHumanoid's 14 levels are exactly what lifts zz from 18 to
-  32 refs — over global-alloc's floor_log2 priority cliff (allocno_compare:
-  floor_log2(refs)*refs/live_length) — so it outranks the STAT_DEAD
-  constant's pseudo and wins $s0. Use regalloc.py --order/--compare to
-  read the needed delta instead of guessing depths; extra source reads
-  cannot substitute (cse folds them), and non-call-crossing block locals
-  cannot take a callee-saved at all. A ref-starved pseudo needing a big
+  each level adds +1 weighted ref per enclosed ref to a pseudo (defs and
+  uses alike, linear in depth — `zz >>= 1` encloses 2), and the dial can be
+  SPLIT ACROSS SITES: DefaultActionHumanoid's +14 for zz (18 → 32 refs —
+  over global-alloc's floor_log2 priority cliff, allocno_compare:
+  floor_log2(refs)*refs/live_length — so it outranks i's pseudo and wins
+  $s0) is four small fences at depths 2/3/3/3 on four different zz
+  statements, replacing the original one-site 14-level tower. Distribute to
+  dodge the three collateral hazards, each measured there: a region
+  mentioning the RIVAL feeds it as fast as the subject (GetDirection's
+  ConflictObject[i] args are +2 i per level); one boosted ref can trip a
+  BYSTANDER's own floor_log2 step and reshuffle the callee-saved cascade
+  (xx's cliff at 16 refs reordered s2–s4); and the fence is also a sched
+  barrier — fencing a load the target schedules into another load's delay
+  shadow pins it and buys a +4-byte nop. Use regalloc.py --order/--compare
+  to read the needed delta instead of guessing depths; extra source reads
+  cannot substitute (cse folds them; `x = x;` and dead-boundary copies like
+  `ry = zz;` are deleted before .lreg even counts refs), and
+  non-call-crossing block locals cannot take a callee-saved at all. A ref-starved pseudo needing a big
   dial is also a HINT the surrounding reconstruction under-uses that
   variable vs the original (check the PSX.SYM locals inventory). (3) `while (1) { if (i >= N) break; }`
   loops: the natural `for` spelling changes the emitted length

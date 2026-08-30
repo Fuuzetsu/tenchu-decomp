@@ -51,43 +51,29 @@
  * sched1 loop-note fences between the target's pointer, id, and size loads.
  * The identical yy arms add a zero-code CFG fence without loop-weighting the
  * collision pointer and rotating its a1/a2 allocation.
- * The 14-deep one-shot tower around the object-vault turn is now
- * EXACTLY understood (regalloc.py --order on both shapes): each level
- * adds +1 weighted ref to the function-probe zz (18 -> 32), pushing its
- * global-alloc priority (floor_log2(refs)*refs/live_length) over the
- * floor_log2 cliff at 32 refs -- 10062 vs 9701 for the STAT_DEAD
- * constant's pseudo -- so zz wins $s0 and the whole callee-saved
- * assignment matches. 14 levels is the measured minimum for the +14;
- * 5/6-level abs-only towers stall at 43 differing instructions (the
- * s0/s1 pair swap) and the flat form cascades to ~114. Extra
- * source-level zz reads cannot substitute (cse folds them) and a
- * block-scoped local cannot take $s0 (it crosses no call). The
- * scaffold is a measured register-pressure dial, not a guess. Selector
- * rewrites also fail: zz-as-selector reaches the same 43-diff state but
- * adds a sll/sra narrowing pair before the call (multi-source defs stop
- * the constant folding that direction's enjoy), and ry-as-selector is
- * worse still (+20 bytes). The +14 must come from other regions'
- * factoring if it comes at all -- see PLAN's DAH endgame lead. Also
- * refuted: retargeting the reflection region's `direction` onto zz
- * (liveness-legal, +4 natural refs) perturbs two allocnos at once --
- * no tower depth 9-14 rebalances it (13 under by the s0/s1 class,
- * 14 over by a different pair); the `register` keyword (no effect at
- * -O2, flat form still cascades to ~114).
- * ENDGAME CLOSED (2026-08-29, re-verified 2026-08-30): the cliff
- * arithmetic caps every natural refactor -- zz needs
- * floor_log2(r)*r/live > 0.9701 (34 refs at its live length), and the
- * only reuse donor whose original bytes also sit in $s0 is `ry`
- * (rotate_y and the in-place abs live in caller-saved registers in the
- * target, so those merges can never byte-match). Merging ry into zz
- * reaches 23 natural refs / 174 live -- 4*23/174 is nowhere near the
- * 9701 bar, and the measured whole-family minimum is merge + an
- * 11-level tower, which would also delete a local PSX.SYM attests as
- * real. The permuter's best flat candidate repaired the allocation
- * only via a DEAD compute (fixes registers, emits its own bytes). A
- * zero-code ref amplifier is required, and in cc1 2.8.1 only
- * note-based loop weighting -- the do-while(0) family -- adds refs
- * without emitting a single byte. Whatever the 1998 source spelled, it
- * reduced to exactly this construct.
+ * The four small do{}while(0) fences on zz statements are ONE register-
+ * pressure dial split across sites (regalloc.py --order on every shape):
+ * cc1 weights a pseudo's refs by loop depth, +1 per enclosed ref per level,
+ * linearly in depth, defs and uses alike (`zz >>= 1` encloses 2). zz needs
+ * +14 weighted refs (18 -> 32) so its global-alloc priority
+ * (floor_log2(refs)*refs/live_length) crosses the floor_log2 cliff at 32
+ * refs -- 10062 vs 9701 -- and beats i's pseudo to $s0, which the whole
+ * callee-saved assignment hangs on. The depths here (map->level @2, >>=1
+ * @3, the conflict locate->vz store @3, the abs @3) sum to exactly +14 =
+ * 2+6+3+3. Site choice is forced, all measured: fencing any statement
+ * mentioning i raises the rival as fast as zz (GetDirection's args are +2 i
+ * per level); any mentioning xx trips xx's floor_log2 cliff at 16 refs (one
+ * boosted ref lifts it over locate/human and reshuffles s2-s4); and
+ * `zz = locate->vz` (the conflict read-back) is fence-toxic for a third
+ * reason -- the target schedules that load into the ConflictDistance.vx
+ * load-delay shadow, and a fence barrier there pins it early and buys a
+ * +4-byte nop. Refuted substitutes: the flat form cascades to ~114 diffs; a
+ * single-site tower on the abs needs 14 levels (1 enclosed ref; 5/6 levels
+ * stall at 43); extra source-level zz reads, `zz = zz;`, and a
+ * dead-boundary copy (`ry = zz;`) all add 0 refs (deleted before .lreg
+ * counts); a block-scoped local cannot take $s0 (crosses no call);
+ * `register` is a no-op at -O2; zz-as-selector and the ry-merge land
+ * 43-diffs-or-worse and the merge deletes a PSX.SYM-attested local.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
@@ -267,7 +253,14 @@ short DefaultActionHumanoid(Humanoid *human)
     if (map->vector != 0)
     {
         human->attribute |= ATTR_WALL;
-        zz = map->level;
+        /* zz weight fence -- see header */
+        do
+        {
+            do
+            {
+                zz = map->level;
+            } while (0);
+        } while (0);
         if (zz == LEVEL_NONE)
         {
             {
@@ -365,7 +358,17 @@ short DefaultActionHumanoid(Humanoid *human)
                                      human->motion->motion->sidespd);
                     }
                     xx >>= 1;
-                    zz >>= 1;
+                    /* zz weight fence -- see header */
+                    do
+                    {
+                        do
+                        {
+                            do
+                            {
+                                zz >>= 1;
+                            } while (0);
+                        } while (0);
+                    } while (0);
                 }
                 locate->vx -= xx;
                 locate->vz -= zz;
@@ -443,7 +446,17 @@ short DefaultActionHumanoid(Humanoid *human)
                 if (object_y < top)
                 {
                     locate->vx = xx;
-                    locate->vz = zz;
+                    /* zz weight fence -- see header */
+                    do
+                    {
+                        do
+                        {
+                            do
+                            {
+                                locate->vz = zz;
+                            } while (0);
+                        } while (0);
+                    } while (0);
                     if (conflict->size.pad & CONFLICT_STAND)
                     {
                         vector->vy = 0;
@@ -472,56 +485,24 @@ short DefaultActionHumanoid(Humanoid *human)
                                        * rotation: retail's own bug (every
                                        * other caller passes rotate->vy). */
                                       (s16)human->locate->vy);
+                    /* zz weight fence -- see header */
                     do
                     {
                         do
                         {
                             do
                             {
-                                do
-                                {
-                                    do
-                                    {
-                                        do
-                                        {
-                                            do
-                                            {
-                                                do
-                                                {
-                                                    do
-                                                    {
-                                                        do
-                                                        {
-                                                            do
-                                                            {
-                                                                do
-                                                                {
-                                                                    do
-                                                                    {
-                                                                        do
-                                                                        {
-                                                                            direction_abs = zz >= 0 ? zz : -zz;
-                                                                        } while (0);
-                                                                    } while (0);
-                                                                } while (0);
-                                                            } while (0);
-                                                        } while (0);
-                                                    } while (0);
-                                                } while (0);
-                                            } while (0);
-                                        } while (0);
-                                    } while (0);
-                                    direction = MOT_DAMAGE_BACK_LIGHT;
-                                } while (0);
-                                if (direction_abs < 1100)
-                                {
-                                    direction = MOT_DAMAGE;
-                                }
+                                direction_abs = zz >= 0 ? zz : -zz;
                             } while (0);
-                            SetNowMotion(human, direction, 1);
                         } while (0);
-                        Sound(human, 6);
                     } while (0);
+                    direction = MOT_DAMAGE_BACK_LIGHT;
+                    if (direction_abs < 1100)
+                    {
+                        direction = MOT_DAMAGE;
+                    }
+                    SetNowMotion(human, direction, 1);
+                    Sound(human, 6);
                 }
 
                 {
