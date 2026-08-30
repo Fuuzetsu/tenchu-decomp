@@ -1453,6 +1453,24 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   Try the empty-fence substitution on every sched-role fence you meet before
   accepting an arms construct or a statement wrap; only weight roles need
   refs inside.
+- **An empty fence is plausibly an emptied debug macro, and keywords are
+  NOT a substitute** (DefaultActionHumanoid conflict arm, 2026-08-30, all
+  measured): `#define DBG(x) do { } while (0)` is the period-standard
+  release no-op, its debug-side `do { FntPrint x; } while (0)` wrapper is
+  byte-invisible around a live call, and the JP demo carries bare FntPrint
+  dumps in the same TU — so an empty barrier can be READ as a deleted
+  debug print rather than hand-written scaffolding. The keyword sweep
+  came up empty: `volatile` on a short field is BYTE-VISIBLE — it blocks
+  the load/sign-extend fusion and turns `lh` into `lhu + sll + sra`, so
+  any matched function whose bytes fuse `lh` on a field thereby PROVES
+  that field was not volatile; a volatile s32 read orders only against
+  other MEMORY ops (sched_analyze), never against the ALU address chain
+  you usually need fenced; `const` (RTX_UNCHANGING_P) and `register`
+  measure inert. A sched-region edge is UNAVOIDABLE (no spelling escape)
+  when the pinned load's dest pseudo has REG_N_SETS >= 2 — e.g. one
+  variable carrying a load here and an unrelated value later, both byte-
+  forced into the same register — because a multi-set dest never gets the
+  birthing bump, and only a region edge holds the backward pass off it.
 - **Weighted-ref boosts are additive and site-agnostic** (measured on
   DefaultActionHumanoid's four zz-only statements): any distribution of the
   needed +N weighted refs across fence sites — four shallow nests, two, or

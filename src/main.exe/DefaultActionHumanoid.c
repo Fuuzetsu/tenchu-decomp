@@ -93,6 +93,25 @@
  * index chain / lw position — measured, and visible in the -dS trace.
  * Each of the three is individually load-bearing, and the size-then-
  * position load order inside the third region is too (all measured).
+ * Some region edge is unavoidable in flat C: yy carries both the
+ * position load and the later turn-arm value (both $a0 in the bytes;
+ * one PSX.SYM local), so it has two assignments, REG_N_SETS != 1
+ * denies its load sched1's birthing bump, and nothing else holds the
+ * backward pass off it. Keywords cannot substitute (all measured):
+ * volatile on the short field is byte-visible — it de-fuses lh into
+ * lhu + sll/sra, so the retail bytes rule volatile out on their own;
+ * a volatile s32 read orders only memory ops, not the address ALU
+ * chain that must stay below the record loads; const and register are
+ * inert. The likely original spelling is no spelling at all: an empty
+ * do{}while(0) is exactly what the period's standard debug-print
+ * macro (#define DBG(x) do { } while (0)) leaves in a release build,
+ * the debug-side wrapper do { FntPrint x; } while (0) is measured
+ * byte-invisible around a live call, the demo binary carries bare
+ * FntPrint dumps in this very TU, and the three sites are the natural
+ * places to dump a collision record. Three deleted debug prints
+ * explain the barriers without anyone typing a bare one-shot loop.
+ * (The weight tower above is NOT explainable that way: it nests seven
+ * deep around a live statement, which no emptied macro produces.)
  *
  * Retail narrows the recovered `long i` at both map-query calls; the
  * explicit casts keep the shared API's promoted `int mode` visible.
