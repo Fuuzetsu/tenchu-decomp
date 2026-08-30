@@ -1484,6 +1484,17 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   variable carrying a load here and an unrelated value later, both byte-
   forced into the same register — because a multi-set dest never gets the
   birthing bump, and only a region edge holds the backward pass off it.
+- **Post-flow-folded identities are a measured weight source, calibrated**:
+  `zz = zz + zz - zz;` survives parse-fold and cse, is erased by combine,
+  and contributes exactly +3 loop-depth-weighted refs at depth 1 (bounds
+  pinned by a pass/fail pair of tower-substitution tests), multiplying
+  normally inside fences. Mechanically a full tower replacement (five such
+  statements = +15), humanly worse — recorded as mechanism, not
+  recommendation. The identical-arms variant on an always-live condition
+  (`if (human) zz >>= 1; else zz >>= 1;`) is NOT byte-free: the condition
+  is a ref of that variable and the extra blocks perturb live lengths —
+  measured cascading from the prologue (human jumped to $s1). An arms
+  condition must be a fresh local with slack, like the original object_id.
 - **Weighted-ref boosts are additive and site-agnostic** (measured on
   DefaultActionHumanoid's four zz-only statements): any distribution of the
   needed +N weighted refs across fence sites — four shallow nests, two, or
