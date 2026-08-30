@@ -43,10 +43,10 @@
  *    registers across repeated GetAreaMapLevel calls. The inner back-edge is
  *    hand-written: only x[0], x[1], and y[0] are cached in registers; y[1],
  *    z[0], and z[1] remain lazy stack reloads in the six-way bounds test.
- *  - `initial` separates the conditional default from the live counter. The
- *    empty one-shot loop after their copy is a weight-free allocation boundary:
- *    it preserves the target's `v0 -> s3` copy without giving `count` enough
- *    loop weight to exchange registers with the cached `%hi(cv)` value.
+ *  - `initial` separates the conditional default from the live counter:
+ *    the plain `count = initial;` copy preserves the target's `v0 -> s3`
+ *    move without giving `count` enough loop weight to exchange registers
+ *    with the cached `%hi(cv)` value.
  *  - `ymax` delays the y[1] stack store until after the three cached-bound
  *    loads, matching the join schedule. The final x/y/z subtraction order
  *    makes the return-path `&cv` materialization match independently.
@@ -76,7 +76,7 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
     for (;;)
     {
         y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz, 0);
-        if (y[0] == (u32)LEVEL_NONE)
+        if (y[0] == LEVEL_NONE)
         {
             break;
         }
@@ -98,10 +98,10 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
         ymin = y[0];
         y[1] = ymax;
     inner:
-        cv.vx = cv.vx + vect->vx;
-        cv.vy = cv.vy + vect->vy;
+        cv.vx += vect->vx;
+        cv.vy += vect->vy;
+        cv.vz += vect->vz;
         count--;
-        cv.vz = cv.vz + vect->vz;
         if (count == 0)
         {
             return 0;
@@ -111,8 +111,8 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
             goto inner;
         }
     }
-    cv.vx = cv.vx - vect->vx;
-    cv.vy = cv.vy - vect->vy;
-    cv.vz = cv.vz - vect->vz;
+    cv.vx -= vect->vx;
+    cv.vy -= vect->vy;
+    cv.vz -= vect->vz;
     return &cv;
 }

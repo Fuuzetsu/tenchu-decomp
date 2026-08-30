@@ -132,7 +132,7 @@ long DrawClip(ModelType *objp, long *xy)
     {
     unit_vector:
         sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
-        if (sz >= 0x4e3)
+        if (sz > DEPTH_LIMIT)
         {
         reject:
             result = -1;

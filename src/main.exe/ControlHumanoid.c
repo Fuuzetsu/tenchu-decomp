@@ -198,6 +198,8 @@ draw_done:
         return;
     }
 
+    /* The u16 view makes this an lhu (a plain read is lw): byte-required
+     * (verified against the .s). */
     DrawModeSave[VISIBLE_ENEMIES_] = *(u16 *)&DrawTMDmode;
     VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
     VISIBLE_ENEMIES_++;
@@ -228,6 +230,8 @@ draw_done:
                 return;
             }
             head->rotate.vx = rotation->x;
+            /* The re-walked chain (not rotation->y) is byte-required (the
+             * fresh loads are in the bytes; measured). */
             head->rotate.vy = human->motion->motion->rotate[2]->y;
             UpdateCoordinate(head);
             return;
@@ -270,7 +274,7 @@ draw_done:
     }
     else
     {
-        if ((human->attribute & 3) != 2)
+        if ((human->attribute & ATTR_PHASE) != PHASE_ALERT)
         {
             if (human->target == StagePlayer->model)
             {

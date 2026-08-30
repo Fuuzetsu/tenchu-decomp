@@ -67,7 +67,9 @@ loop:
         return;
     }
     idx = EFFECT_CURSOR_;
-    slot = (TEffectSlot *)((idx * sizeof(TEffectSlot)) + (int)base);
+    /* Offset spelling: byte-required (base + idx flips the addu operand
+         * order; measured — same class as UpdateEvent's walk). */
+        slot = (TEffectSlot *)((idx * sizeof(TEffectSlot)) + (s32)base);
     do
     {
         idx++;
@@ -88,27 +90,27 @@ loop:
             goto found;
         }
         searched++;
-    } while (searched < 200);
+    } while (searched < N_EFFECT_SLOTS);
     ef = &dmy;
 found:
-{
-    int width;
+    {
+        int width;
 
-    width = (s16)spread * 2;
-    smoke = &ef->param.smoke;
-    if (width > 0)
-    {
-        smoke->vec.vx = rand() % width - spread;
+        width = (s16)spread * 2;
+        smoke = &ef->param.smoke;
+        if (width > 0)
+        {
+            smoke->vec.vx = rand() % width - spread;
+        }
+        else if (pos)
+        {
+            smoke->vec.vx = -spread;
+        }
+        else
+        {
+            smoke->vec.vx = -spread;
+        }
     }
-    else if (pos)
-    {
-        smoke->vec.vx = -spread;
-    }
-    else
-    {
-        smoke->vec.vx = -spread;
-    }
-}
     smoke->vec.vy = -5;
     {
         int width;
@@ -142,7 +144,7 @@ found:
     smoke->vec.vy = vy;
     smoke->vec.vz = vz;
 
-    smoke->scale = rand() % 0x2000 + 0x1000;
+    smoke->scale = rand() % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;
     smoke->rotate = 0;
     smoke->time = 15;
     r = rand();

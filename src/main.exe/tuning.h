@@ -110,6 +110,11 @@
  * HangCheck looks for a grabbable edge. */
 #define LEDGE_PROBE_RISE 400
 
+/* Smoke puffs (SetSmoke/SetSmokeS/spawn_smoke_burst_): random spawn
+ * scale in [SMOKE_SCALE_MIN, SMOKE_SCALE_MIN + SMOKE_SCALE_SPREAD). */
+#define SMOKE_SCALE_MIN 0x1000
+#define SMOKE_SCALE_SPREAD 0x2000
+
 /* Snowfall (SetSnow/DrawSnow/ProcMiscSnowfall): flakes wrap in a
  * SNOW_SPAN-wide box around the viewpoint. */
 #define SNOW_RANGE 3000

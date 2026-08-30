@@ -5,7 +5,8 @@
 /*
  * debug_output_edit_camera_settings (0x8003076c, 0x274 bytes) edits one of
  * four camera SVECTORs with the held pad directions, restores all four
- * vectors when L1+R1 are held, and prints the current values.
+ * vectors when L2+R2 are held (a new L1 press cycles the edited
+ * slot), and prints the current values.
  *
  * Splat divides the original assembly at the interior
  * `__override__prt_800309b0...` call-site marker.  The first piece falls
@@ -27,7 +28,7 @@
 extern u16 DEBUG_PAD_HELD_;
 extern u16 DEBUG_PAD_PRESS_;
 extern s16 DEBUG_CAMERA_INDEX_;
-extern u8 *DEBUG_CAMERA_BASE_;
+extern TCameraPos *DEBUG_CAMERA_BASE_;
 extern SVECTOR *DEBUG_CAMERA_SLOTS_[4];
 extern char *DEBUG_CAMERA_LABELS_[4];
 extern char fmt_camera_edit[];
@@ -39,13 +40,9 @@ void debug_output_edit_camera_settings(s16 pad)
     s32 marker;
     s32 i;
 
-    DEBUG_PAD_PRESS_ =
-        DEBUG_PAD_HELD_;
+    DEBUG_PAD_PRESS_ = DEBUG_PAD_HELD_;
     DEBUG_PAD_HELD_ = pad;
-    DEBUG_PAD_PRESS_ =
-        DEBUG_PAD_HELD_ &
-        (DEBUG_PAD_HELD_ ^
-         DEBUG_PAD_PRESS_);
+    DEBUG_PAD_PRESS_ = DEBUG_PAD_HELD_ & (DEBUG_PAD_HELD_ ^ DEBUG_PAD_PRESS_);
 
     if (DEBUG_PAD_PRESS_ & PADL1)
     {
@@ -85,7 +82,7 @@ void debug_output_edit_camera_settings(s16 pad)
 
     if ((DEBUG_PAD_HELD_ & (PADL2 | PADR2)) == (PADL2 | PADR2))
     {
-        *(TCameraPos *)DEBUG_CAMERA_BASE_ = CamPosDefault;
+        *DEBUG_CAMERA_BASE_ = CamPosDefault;
     }
 
     i = 0;

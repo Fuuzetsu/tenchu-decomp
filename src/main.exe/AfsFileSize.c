@@ -13,7 +13,7 @@
  * (`*(undefined4 *)(element->size + 8)`); m2c's raw `arg1->unk8->unk8`
  * disambiguates it as two pointer hops, matching TAFSFileHandle.info (0x8)
  * then TAFSElement.size (0x8) — same struct-name-distrust rule as AfsClose.
- * A NULL handle reports via AdtMessageBox() and returns 0 (not -1, unlike
+ * A NULL `fh` reports via AdtMessageBox() and returns 0 (not -1, unlike
  * the other four CD/AFS wrappers in this batch).
  *
  * Guard-clause polarity: written first in source per the cd_close/AfsClose
@@ -22,7 +22,7 @@
  */
 
 extern void AdtMessageBox(char *fmt, ...);
-extern char msg_afsfilesize_invalid_handle[]; /* AfsFileSize: invalid handle */ /* "AfsFileSize: invalid handle" — lives in this
+extern char msg_afsfilesize_invalid_handle[]; /* "AfsFileSize: invalid handle" — lives in this
                                                                                  * TU's unsplit data blob (splat auto-symbol),
                                                                                  * same pattern as AfsInit's msg_afsinit_not_enough_memory. */
 

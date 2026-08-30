@@ -28,9 +28,9 @@
  * GetTargetDistance (0x80029794, 0xd0 bytes) — same "Humanoid control" TU as
  * GetMoveSpeed.c/MoveHumanoid.c/GetHumanoid.c (HUMAN.C). Computes the planar
  * (x,z) distance from `human` to `human->target`, and *deg the signed turn
- * needed to face it (in the same 0x8000-scaled unit Degree/GetMoveSpeed's ry
- * use), biased +-0x1000 depending on whether the raw angle difference falls
- * in the "closest to zero" wedge.
+ * needed to face it (0x1000-per-turn ratan2 units: the > 0x800 arm
+ * reflects via `0x1000 - deg2`, the <= -0x800 arm wraps by adding
+ * 0x1000).
  *
  * `human->target->locate.coord.t[0]/[2]` reach a GsCOORDINATE2's embedded
  * MATRIX.t[] world-position (ModelType.locate @0x00, MATRIX.t[] @0x14 within
@@ -47,22 +47,12 @@
  * the "int t1 = cap;" idiom from the cookbook's spilled-u16-locals rule, not
  * a narrow-typed temp).
  *
- * The tail bias block (`if (deg2 < 0x801) { if (-0x800 < deg2) goto skip; }
- * else { deg2 = -deg2; } deg2 = deg2 + 0x1000;`) needed TWO changes to
- * match: (1) the shared trailing `deg2 = deg2 + 0x1000;` must be split into
- * a per-arm computation — the THEN arm keeps its own `deg2 = deg2 + 0x1000;`
- * and the ELSE arm becomes a single combined `deg2 = 0x1000 - deg2;`
- * (spelled as a subtraction from the materialized constant, not
- * `deg2 = -deg2;` followed by the old shared add — that emits a separate
- * `negu`+`addiu` where the target has one `li`+`subu`); and (2) the outer
- * if's THEN arm (the nested if+goto) is reached by a TAKEN branch and the
- * ELSE arm (single assignment) is the fallthrough — the opposite of ordinary
- * `if (cond) {A} else {B}` codegen (which negates `cond` and branches to B).
- * Per the cookbook's "if (cond) A; else B; makes A the fall-through and
- * negates cond" rule, forcing a DIRECT (non-negated) test that branches to
- * the THEN arm needs explicit gotos instead of if/else:
- * `if (cond) goto nested; <else-body>; goto skip; nested: <then-body>`.
- * Both changes together match; each alone left a residual.
+ * The tail bias block is the plain
+ * `if (deg2 > 0x800) deg2 = 0x1000 - deg2; else if (deg2 <= -0x800)
+ * deg2 += 0x1000;` — the load-bearing spelling is the combined
+ * `0x1000 - deg2` subtraction in the first arm (a `deg2 = -deg2;` plus a
+ * shared add emits negu+addiu where the target has one li+subu at
+ * 0x80029808-0x80029810).
  */
 
 long GetTargetDistance(Humanoid *human, short *deg)

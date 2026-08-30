@@ -71,7 +71,7 @@
  *    HImode compare idiom.
  *  - SmokeType reuses ExplosionType's vec@0x0/pos@0x8/rotate@0x18/scale@0x1c
  *    PSX.SYM layout plus retail's sprite selector at +0x22.
- *  - `scale = rand() % 0x2000 + 0x1000;` stored FIRST, before `rotate`.
+ *  - `scale = rand() % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;` stored FIRST, before `rotate`.
  *  - Each `vec.v{x,y,z}` jitter is `vect->v{x,y,z} + (rand() % 100 - 50)`
  *    (fold-reassociation rule: `A + (B - C)` reassociates into the compiled
  *    `(A - C) + B` order).

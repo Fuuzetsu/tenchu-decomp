@@ -144,6 +144,8 @@ short GetConflictResult(ModelType *model, short index)
                 }
             }
         }
+        /* k re-registers index as an int for this arm: byte-required
+         * (indexing with the s16 param recolors the subu; measured). */
         k = index;
         if (k < ConflictObjects)
         {

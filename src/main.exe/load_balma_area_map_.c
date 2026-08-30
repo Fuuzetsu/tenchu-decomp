@@ -11,7 +11,8 @@
  * the counterpart that later swaps BalmaAreaMap back into the live slot.
  * `adr` is never reassigned, so it's simply left in $a0 across the call (no
  * explicit move) — LoadAreaMap(adr)'s result is kept live in $v0 until the
- * LAST store (BalmaAreaMap), after GlobalAreaMap/FieldIndex, matching the
+ * third store (BalmaAreaMap), after GlobalAreaMap/FieldIndex and before
+ * FieldArea's pre-loaded cur->index, matching the
  * actual store order; only FieldArea's read of `cur->index` schedules early
  * (independent load hoisting past the intervening stores, same as
  * ReqItemKusuri's it->locate cookbook rule).

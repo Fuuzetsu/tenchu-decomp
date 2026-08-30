@@ -82,6 +82,8 @@ static void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size)
     short dz;
     short dm;
 
+    /* Chained copies off minx (not one multi-assign): byte-required
+     * (the multi-assign flips a subu's operands; measured). */
     minx = 0;
     miny = minx;
     minz = minx;

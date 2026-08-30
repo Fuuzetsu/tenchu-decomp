@@ -85,7 +85,9 @@ short GetCommand(PADtype *pad)
             j--;
         } while (j > 0);
         pad->stream[0] = 0;
-        return *(short *)Command[i];
+        /* (short *): the return is an lh where every table read above is
+     * lhu — byte-required (verified against the .s). */
+    return *(short *)Command[i];
     }
     return 0;
 }
