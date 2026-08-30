@@ -1494,6 +1494,27 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   variable carrying a load here and an unrelated value later, both byte-
   forced into the same register — because a multi-set dest never gets the
   birthing bump, and only a region edge holds the backward pass off it.
+- **Mutual multi-variable races: treat the required order as a PERMUTATION
+  and use the cheapest lever that produces it** (Codex round-3 playbook,
+  verified on DrawTargetS where ten weight cages fell at once): (1) move
+  ONE over-prioritized intruder through the permutation instead of
+  boosting every displaced value (a role split on the intruder re-ranked
+  DrawTargetS's whole five-way clique); (2) fission at real role
+  boundaries (producer/consumer, full/narrowed, center/edge, pre/post
+  call) — checking call-crossing, conflict, and hard-reg co-coloring
+  every time; (3) tune live length by moving an INDEPENDENT definition a
+  slot earlier/later in source (one RTL slot flips adjacent priorities
+  even when the scheduler restores instruction order); (4) declaration
+  order only for exact integer-priority ties — it cannot fix 10/27 vs
+  10/26 and cannot change register class; (5) parameter-vs-local role
+  swaps are risky: a parameter that stops crossing calls goes
+  caller-saved and 2.8.1 will not reliably coalesce it back; (6) prefer
+  reordering independent statements inside arms over swapping arms
+  (polarity/layout changes); (7) check floor_log2 cliffs before adding
+  refs — lowering a rival is often safer. Staged sign/mask/negate
+  identities that combine folds after flow remain the ref source of last
+  resort; when used, the comment must say they are allocation staging,
+  not recovered arithmetic (DrawTargetS's sign-staged edges).
 - **Live-range fission beats ref-weight towers — but the winner must
   CONFLICT with the rival** (DefaultActionHumanoid, 2026-08-31, joint with
   a Codex collaboration): when a variable needs a callee-saved register
