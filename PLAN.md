@@ -506,6 +506,16 @@ note-based loop ref-weighting, i.e. the do-while(0) tower family. The
 original source necessarily contained a construct that reduces to it
 (nested statement macros were the period idiom). The tower stays, fully
 documented in the file; no further endgame experiments planned.
+DAH PROVENANCE CLOSED (2026-08-30, owner-directed max-effort): the
+83-config flag/compiler sweep and the demo-binary witness ended the
+question — no flag set or cc1 version (2.6/2.7.2/2.8.0/2.8.1/gs107)
+brings flat DAH under 118 differing bytes; the demo compiles the same
+statements fence-free because ITS i never crosses a call ($a2), and
+retail's added damage arm is what promoted i into the callee-saved
+file, creating the i-vs-zz rivalry the four small fences (2/3/3/3)
+resolve. Debug-macro fossils refuted at all four sites (two fenced
+statements postdate the demo). Full story in the file header.
+
 SPLIT-FENCE GENERALIZATION (2026-08-30): the per-occurrence weighting
 law dissolved the other deep towers too — ActivateHumans 3->2,
 StageEndScreen 4->2, mission_score 4->2, DrawTargetS cages all <=2,
