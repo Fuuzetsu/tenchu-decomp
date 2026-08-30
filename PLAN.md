@@ -638,6 +638,36 @@ reusable pattern in cookbook 3.10. The function now contains no
 multi-level fence nests at all: five DBG sites (two recovered demo
 prints, three lost-text placeholders) and plain C.
 
+FENCE SWEEP CAMPAIGN (2026-08-31, Claude+Codex, owner-directed): the
+DAH lessons applied tree-wide with two instruments (label-canonical
+per-layer removal audit + the barrier probe: statements out, bare
+empty one-shot in each position) iterated to fixpoint, because
+REMOVALS CASCADE - each landed fence change shifts the races other
+fences were balancing, unlocking further removals (ActivateHumans'
+razor 471-vs-481 race closed itself two rounds after its sibling
+fences fell). Landed so far: ActivateHumans FENCE-FREE (all 4);
+PlayMusicFormID down to one honest barrier; leLayoutEnemy fence
+removed; statement fences converted to bare empty barriers in
+ProcItemNingyo, SetFlyWire, ActATTACK(x3), Briefing(x4 incl. its
+182-diff region fence), mission_score(x2 + 3 stale layers),
+StageEndScreen(x2 + a halved nest), ProcItemJirai, PAD_init, InitPAD,
+valloc, draw_time_, draw_digits_, PutNumber, ProcItemSmoke, LoadSI,
+InitEffect, DrawPause, DrawImpact, ActSTICKON, ActACTION. All gates
+green including shiftability. REMAINING true weight fences (barrier
+probe fails both ways), queued for DAH-style race analysis with
+Codex: DrawTargetS (round 3 in flight), DrawConstruction,
+ProcItemNingyo(2 big), game_over_screen_ (state +4), StageEndScreen
+best_x pair, subdivide_quad_ (mega pointer pair s0/s1),
+SetCameraMode, ProcItemDokudango, LoadOrnamentArchive, CreateStage,
+AttackGeneral(197), StateTransition, SetupSpline, SetBlood,
+PutStrain, ProcMiscDoor, GetAreaMapLevel(108, region), AttackLong
+(155), AttackIndirect(2, cse constant-carrier), update_card(2+12),
+vmemoryGC, AfsGetEntry, AddMisc, RestoreItemLayout, decode_tmd_adiv_,
+SetFlyWire(1 left), mission_score(rest). Load-bearing EMPTY barriers
+(honest, DBG-readable) stay: LoadTIMpack, set_boot_exec_,
+SetupImageToPolyGT4/FT4, SearchTarget(85!), PlayVoice, ComPad,
+AttackShort(262!).
+
 DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
 supersedes the no-macro ruling above for RECOVERED content only):
 the file now carries a release-emptied DBG(x) macro (#ifdef DEBUG:

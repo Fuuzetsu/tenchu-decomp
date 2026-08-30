@@ -1444,6 +1444,16 @@ NON-LOCAL). A
 fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
 `weapon++`). The mechanisms:
 
+- **Fence removals CASCADE — iterate the audit to fixpoint**: every landed
+  fence change shifts the priority races its neighbors were balancing, so
+  a fence that measured load-bearing can measure stale one commit later
+  (ActivateHumans' last fence guarded a 471-vs-481 race that closed
+  itself after its sibling fences fell; a 26-diff PlayMusicFormID nest
+  became removable the same way). Sweep with BOTH instruments per site —
+  plain removal AND the barrier probe (statements out, bare empty
+  one-shot before/after) — under label-canonical scoring, re-running
+  after every landed batch until quiet (2026-08-31 campaign:
+  20+ files cleaned).
 - **When the need is boundary-only, an EMPTY `do{}while(0)` is a full
   replacement for heavier fences** (DefaultActionHumanoid, 2026-08-30): its
   loop-note pair bounds a sched1 region with ZERO reweighting, and three bare
