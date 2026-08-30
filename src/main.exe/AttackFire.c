@@ -49,9 +49,9 @@
  * SVECTOR *dtR.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - Unlike the SEVEN twin (which re-reads `start_pos->vx`/`->vz` through
- *    the original pointer for `p.end.*`), THIS function's `p.end.*` must
- *    read back the already-stored `p.start.vx`/`.vy`/`.vz` (a stack reload,
+ *  - Unlike the launch_lightning_bolt_ twin (which re-reads `start_pos->vx`/`->vz` through
+ *    the original pointer for `item.end.*`), THIS function's `item.end.*` must
+ *    read back the already-stored `item.start.vx`/`.vy`/`.vz` (a stack reload,
  *    not the pointer) — confirmed by the raw asm, which reloads from the
  *    `sp+0x18/0x1c/0x20` slots, not through `$v0`. Re-deriving from
  *    `start_pos->` instead extends that pointer's live range across the

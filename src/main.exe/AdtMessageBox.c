@@ -7,7 +7,6 @@
  * message box: printf-style formats `fmt`+varargs into a stack buffer via
  * AdtVsprintf, then draws it full-screen with FntPrint and (unless the
  * global quiet flag is set) blocks on a pad button before restoring the
- * display state. Highest in-degree unmatched function in the game (87
  * call sites); every already-matched caller declares it
  * `extern void AdtMessageBox(char *fmt, ...);` and passes a POOLED STRING
  * SYMBOL (`extern char D_XXXXXXXX[];`) as fmt, never a literal.
@@ -26,7 +25,7 @@
  *    second name here would just get its own register/copy instead): a
  *    leading "%#"/"%$" prefix is stripped (advancing the pointer by 2) and
  *    drives a 0/1/2 `mode` selecting how modal the box is (2 = "%#": no
- *    counter line, no wait; 1 = "%$": show once, no wait; 0 = default:
+ *    counter line, no wait; 1 = "%$": counter line, no wait; 0 = default:
  *    full modal "press start" wait). Two shape levers here, both needed
  *    together: (1) Ghidra's own `goto` for the "neither # nor $" case
  *    (must skip the '#'/'$' handling entirely, unreachable via a plain
@@ -83,7 +82,7 @@ void AdtMessageBox(char *fmt, ...)
 {
     s32 mode;
     s32 count;
-    char buf[504];
+    char buf[504]; /* print limit is 500; 504 is the frame-layout size */
     TAdtDisp ad;
 
     mode = 0;

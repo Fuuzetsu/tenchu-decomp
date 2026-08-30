@@ -47,7 +47,7 @@
  *  - The two terminal motion-selection paths use signed, full-width motion-id
  *    temporaries.  Their SImode producers keep the source-level tails distinct
  *    until jump2 folds only the duplicated final motMODE store.
- *  - The redundant count test after the non-special 0x501 selection preserves
+ *  - The redundant count test after the non-special MOT_ENGAGE_STANCE selection preserves
  *    the original block notes.  Both arms intentionally perform the same
  *    store; the late jump passes eliminate the test while its earlier RTL
  *    lifetime gives the target's register allocation.
@@ -109,26 +109,26 @@ void ActSTATE(void)
                 }
             }
             dtM->mask = 0x7fff;
-            if (Me_MOTION_C->type < 7)
+            if (Me_MOTION_C->type < KERAI_KATANA)
             {
-                if (Me_MOTION_C->type > 3)
+                if (Me_MOTION_C->type > AYAME_1)
                 {
                     if (Me_MOTION_C == StagePlayer)
                     {
                         SetCameraMode(CMODE_NORMAL);
                     }
                     {
-                        s32 special_motion_id;
+                        s32 stance_id;
 
                         if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                         {
-                            special_motion_id = MOT_ENGAGE_STANCE;
+                            stance_id = MOT_ENGAGE_STANCE;
                         }
                         else
                         {
                             goto zero_motion;
                         }
-                        motID = special_motion_id;
+                        motID = stance_id;
                     }
                     break;
                 }
@@ -255,7 +255,7 @@ void ActSTATE(void)
     case MOT_STATE_FALL:
         if (dtM->count < -0x36 && dtV->vy > 200)
         {
-            dtM->count = -30;
+            dtM->count = -0x1e;
         }
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {
@@ -289,23 +289,22 @@ void ActSTATE(void)
                 Sound(Me_MOTION_C, 0x19);
                 return;
             }
+            if (dtM->count > -0x15)
             {
-                if (dtM->count > -0x15)
+                if ((human->type & PAGE_MASK) == PAGE_GUARD)
                 {
-                    if ((human->type & PAGE_MASK) == PAGE_GUARD)
-                    {
-                        goto random_fall;
-                    }
-                    motID = MOT_STATE_LAND_HEAVY;
+                    goto random_fall;
                 }
-                else
-                {
-                    motID = MOT_STATE_LAND;
-                }
-                motMODE = 0;
-                return;
+                motID = MOT_STATE_LAND_HEAVY;
+            }
+            else
+            {
+                motID = MOT_STATE_LAND;
+            }
+            motMODE = 0;
+            return;
 
-            random_fall:
+        random_fall:
             {
                 Humanoid *fall_human;
 
@@ -320,8 +319,7 @@ void ActSTATE(void)
                 Sound(Me_MOTION_C, 8);
                 ReqLifeBar(Me_MOTION_C);
             }
-                return;
-            }
+            return;
         }
 
     grounded_fall:
@@ -392,17 +390,17 @@ void ActSTATE(void)
                 ((s16 (*)(s32))SetCameraMode)(CMODE_NORMAL);
             }
             {
-                s32 positive_motion_id;
+                s32 stance_id;
 
                 if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                 {
-                    positive_motion_id = MOT_ENGAGE_STANCE;
+                    stance_id = MOT_ENGAGE_STANCE;
                 }
                 else
                 {
                     goto zero_motion;
                 }
-                motID = positive_motion_id;
+                motID = stance_id;
             }
             goto positive_motion;
         }

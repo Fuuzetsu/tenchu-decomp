@@ -31,13 +31,13 @@
  * AttackCancelControl (0x8002736c, 0x17c bytes) — on cancelling an attack
  * (mode bit 0), delete the conflict volume(s) of whichever weapon
  * ornament(s) the current `wpatk` implies are active, then (mode bit
- * 1) drop any live afterimages; always clamps `dtM->mask` to 0x7fff.
+ * 1) drop any live afterimages; always stores 0x7fff into `dtM->mask`.
  *
  * `wpatk` (item.h: s16 @0x8E) is read with the expected signed `lh`.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - **This IS a genuine `switch (wk) { case 2: ...; case 3: ...; case 0:
- *    goto skip_mode2; default: ...; }`, not an if/goto ladder** — despite
+ *    goto no_conflict; default: ...; }`, not an if/goto ladder** — despite
  *    Ghidra rendering it as literal nested if/else-if/goto (which LOOKS
  *    identical in body order) and despite the test sequence NOT resembling
  *    a balanced compare tree at first glance (2, then <3, then ==3). Ghidra's
@@ -49,7 +49,7 @@
  *    plus `default` (covering 1 and anything else) is the tell; case 0's
  *    body is a bare `goto` OUT of the switch (skipping the shared tail
  *    entirely), not a `break`.
- *  - Two DIFFERENT paths reach the SAME `skip_mode2` label — case 0's early
+ *  - Two DIFFERENT paths reach the SAME `no_conflict` label — case 0's early
  *    `goto` and the outer `mode&1==0` skip — one C label serves both; the
  *    asm's apparent "two entry points" (one recomputing `mode&2` fresh, one
  *    reusing a copy precomputed in the other path's delay slot) falls out
@@ -76,7 +76,7 @@ void AttackCancelControl(s16 mode)
             model = Me_MOTION_C->model->object[2];
             break;
         case WEP_NONE:
-            goto skip_mode2;
+            goto no_conflict;
         default:
             DeleteConflict(Me_MOTION_C->model->object[0xD]);
             model = Me_MOTION_C->model->object[0xE];
@@ -84,7 +84,7 @@ void AttackCancelControl(s16 mode)
         }
         DeleteConflict(model);
     }
-skip_mode2:
+no_conflict:
     if ((mode & 2) != 0)
     {
         if (Me_MOTION_C->illusion[0] != 0)

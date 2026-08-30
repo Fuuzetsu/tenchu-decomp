@@ -71,7 +71,7 @@ short AttackGeneral(void)
     pad = 0;
     if (Me_THINK_C->status == STAT_ATTACK)
     {
-        s32 status_degree;
+        s32 deg;
 
         do
         {
@@ -83,12 +83,12 @@ short AttackGeneral(void)
             }
             if (Distance < 2000)
             {
-                status_degree = Degree;
-                if (status_degree < 0)
+                deg = Degree;
+                if (deg < 0)
                 {
-                    status_degree = -status_degree;
+                    deg = -deg;
                 }
-                if (status_degree < 500)
+                if (deg < 500)
                 {
                     goto choose_attack;
                 }
@@ -101,6 +101,9 @@ short AttackGeneral(void)
         } while (0);
 
     choose_attack:
+        /* The doubled |= PADRleft around the goto is byte-required (the
+         * flat else-if respell mismatches; measured in AttackLong's
+         * identical block). */
         if (Degree > 300)
         {
             pad = PADLright;
@@ -137,7 +140,7 @@ short AttackGeneral(void)
 
     if (Me_THINK_C->actmode == 0)
     {
-        s32 chase_degree;
+        s32 deg;
 
         pad = ChasetoTarget(3000);
         if (pad == 0 || (ATTRIB_BITS & ATTR_HIT) != 0)
@@ -148,12 +151,12 @@ short AttackGeneral(void)
         {
             goto return_pad;
         }
-        chase_degree = Degree;
-        if (chase_degree < 0)
+        deg = Degree;
+        if (deg < 0)
         {
-            chase_degree = -chase_degree;
+            deg = -deg;
         }
-        if (chase_degree >= 100)
+        if (deg >= 100)
         {
             goto return_pad;
         }
@@ -167,24 +170,24 @@ short AttackGeneral(void)
 
     if ((Me_THINK_C->motion->count & 0xf) != 0)
     {
-        s32 raw_degree;
-        s32 motion_degree;
+        s32 d;
+        s32 deg;
 
         pad = Me_THINK_C->pad.data;
         if (Distance >= 2000)
         {
             goto return_pad;
         }
-        raw_degree = Degree;
+        d = Degree;
         /* The lone ternary abs (vs this file's five if-negate abs) is
          * measured byte-required. */
-        motion_degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-        if (motion_degree < 1000)
+        deg = (d >= 0) ? d : -d;
+        if (deg < 1000)
         {
             pad = PADLdown;
             goto return_pad;
         }
-        if (motion_degree <= 1500)
+        if (deg <= 1500)
         {
             goto return_pad;
         }
@@ -196,6 +199,8 @@ short AttackGeneral(void)
     {
         Humanoid *me;
 
+        /* Mid-sequence alias + mixed spellings: byte-required (measured in
+         * AttackLong's identical block). */
         Me_THINK_C->actmode = 0;
         me = Me_THINK_C;
         Me_THINK_C->chase[1] = 0;
@@ -220,16 +225,16 @@ short AttackGeneral(void)
 
     if (Distance > 1000 && Distance < 3000)
     {
-        s32 attack_degree;
+        s32 deg;
 
         do
         {
-            attack_degree = Degree;
-            if (attack_degree < 0)
+            deg = Degree;
+            if (deg < 0)
             {
-                attack_degree = -attack_degree;
+                deg = -deg;
             }
-            if (attack_degree >= 1200)
+            if (deg >= 1200)
             {
                 break;
             }

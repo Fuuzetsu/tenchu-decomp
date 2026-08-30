@@ -75,7 +75,7 @@ s32 update_card_screen_(s32 pad)
     s16 value;
     s32 cond;
     u16 next_state;
-    u16 assigned;
+    u16 newstate;
     u16 incremented;
 
     setup_card_screen_(0);
@@ -120,24 +120,24 @@ s32 update_card_screen_(s32 pad)
         switch (value)
         {
         default:
-            assigned = 56;
+            newstate = 56;
             break;
         case 0:
-            assigned = 54;
+            newstate = 54;
             break;
         case 1:
-            assigned = 10;
+            newstate = 10;
             break;
         case 7:
-            assigned = 70;
+            newstate = 70;
             break;
         case 4:
             McardState = 30;
             McardStateFlag = 0;
-            goto save_2b_after_assign;
+            goto retry_53;
         }
-        McardState = assigned;
-    save_2b_after_assign:
+        McardState = newstate;
+    retry_53:
         if (McardState == 54)
             break;
         next_state = 53;
@@ -188,24 +188,24 @@ s32 update_card_screen_(s32 pad)
         switch (value)
         {
         default:
-            assigned = 56;
+            newstate = 56;
             break;
         case 0:
-            assigned = 54;
+            newstate = 54;
             break;
         case 1:
-            assigned = 10;
+            newstate = 10;
             break;
         case 7:
-            assigned = 70;
+            newstate = 70;
             break;
         case 4:
             McardState = 30;
             McardStateFlag = 0;
-            goto save_37_after_assign;
+            goto retry_65;
         }
-        McardState = assigned;
-    save_37_after_assign:
+        McardState = newstate;
+    retry_65:
         if (McardState == 54)
             break;
         next_state = 65;

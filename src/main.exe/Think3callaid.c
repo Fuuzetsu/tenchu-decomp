@@ -58,7 +58,7 @@
  * bumping StageEnemies/StageCitizens by +1/-1 when the new character is a
  * civilian-turned-enemy (character_kind & 0xF0 == PAGE_CIVILIAN).
  *
- * `human_00->think[0..3] = Think1Func[4]/Think2Func[4]/Think3Func[4]/
+ * `newhuman->think[0..3] = Think1Func[4]/Think2Func[4]/Think3Func[4]/
  * Think4Func[4]` — PSX.SYM's original `short (*think[4])()` field, shifted
  * from demo +0x58 to retail +0x60 by the expanded MapVector.
  *
@@ -71,7 +71,7 @@
  * `short type` parameter directly, no narrowing cast needed since the array
  * element is already the right width.
  *
- * The `rand() % 2` "coin flip" is a two-instruction srl+addu+sra+sll signed
+ * The `rand() % 2` "coin flip" is a four-instruction srl+addu+sra+sll signed
  * remainder-by-2 idiom (rounding toward zero) — automatic codegen for a
  * plain `%` by a compile-time constant power of two, not hand-written.
  *
@@ -98,11 +98,11 @@
  *    the address and value; the explicit pointer restores retail's address in
  *    $v0, `type` in $a0, StageID offset in $v1, and Me_THINK_C base in $a2.
  *  - Keep possession and the attribute flag as one assignment-expression
- *    lvalue: `(Me_THINK_C = (Humanoid *)human_00)->... |= 4`. Splitting
+ *    lvalue: `(Me_THINK_C = newhuman)->... |= ATTR_CUSTOMAI`. Splitting
  *    this through Ghidra's `uVar1` or into an independent global assignment
  *    loses the dependency that places retail's Me_THINK_C store between the
  *    halfword load and update, and exchanges the Think3/Think4 callback and
- *    attribute registers. The field is the Humanoid twin of Humanoid's
+ *    attribute registers. The store is the u16 view of Humanoid's
  *    signed attribute, so the explicit `u16` temporary is unnecessary.
  *  - An empty one-shot loop between the Think1Func and Think2Func stores was a
  *    useful intermediate diagnostic: it restored the missing load-delay slot
@@ -122,7 +122,7 @@ extern s16 Think3escape(void);
 short Think3callaid(void)
 {
     Humanoid *human;
-    Humanoid *human_00;
+    Humanoid *newhuman;
     s32 r;
 
     if (Distance < 16500)
@@ -141,26 +141,28 @@ short Think3callaid(void)
         s16 type;
         ThinkFunc func;
 
-        SR = -1;
+        SR = SR_UNSEEN;
         r = rand();
+        /* Byte-offset spelling: byte-required (plain indexing recolors the
+         * base register; measured). */
         type_ptr = (s16 *)((u8 *)aid + ((r % 2) * 2 + StageID * 4));
         type = *type_ptr;
-        human_00 = BreedLife(type,
+        newhuman = BreedLife(type,
                              Me_THINK_C->locate->vx,
                              Me_THINK_C->locate->vy,
                              Me_THINK_C->locate->vz,
                              (s32)Me_THINK_C->rotate->vy + (s32)Degree);
         human = Me_THINK_C;
-        human_00->target = human->target;
+        newhuman->target = human->target;
         KillHumanoid(human);
-        human_00->think[0] = Think1Func[4];
-        human_00->think[1] = Think2Func[4];
-        human_00->think[2] = Think3Func[4];
-        Pad = &human_00->pad;
+        newhuman->think[0] = Think1Func[4];
+        newhuman->think[1] = Think2Func[4];
+        newhuman->think[2] = Think3Func[4];
+        Pad = &newhuman->pad;
         func = Think4Func[4];
-        (Me_THINK_C = (Humanoid *)human_00)->attribute |= 4;
-        human_00->think[3] = func;
-        EquipWeapon(human_00, 1);
+        (Me_THINK_C = newhuman)->attribute |= ATTR_CUSTOMAI;
+        newhuman->think[3] = func;
+        EquipWeapon(newhuman, 1);
         SetNowMotion(Me_THINK_C, MOT_ENGAGE_STANCE, 1);
         Attrib = Me_THINK_C->attribute | PHASE_ALERT;
         ret = 0;

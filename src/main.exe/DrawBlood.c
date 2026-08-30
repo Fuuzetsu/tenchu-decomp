@@ -105,7 +105,6 @@ void DrawBlood(TEffectSlot *ef)
     GsSPRITE *sprt;
     DrawBloodScratch scratch;
     u8 index;
-    u8 state;
     s32 color_signed;
 
     blood = &ef->param.blood;
@@ -113,8 +112,7 @@ void DrawBlood(TEffectSlot *ef)
     spr = &sprBlood[index];
     sprt = &sprBloodStay[index];
 
-    state = blood->mode;
-    switch (state)
+    switch (blood->mode)
     {
     case 3:
     {
@@ -242,7 +240,7 @@ void DrawBlood(TEffectSlot *ef)
         y = blood->py;
         sx = x / 10;
         blood->vy = blood->vy + 10;
-        area = (AreaNodeType *)blood->hint;
+        area = blood->hint;
         sy = y / 10;
         z = blood->pz;
         sz = z / 10;

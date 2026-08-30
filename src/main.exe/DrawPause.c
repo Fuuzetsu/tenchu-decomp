@@ -34,7 +34,7 @@
  * DrawPause (0x8004b18c, 0x1C8 bytes) — draws the pause-screen "wobbling
  * brightness ring" overlay: swaps in a screen-sized clip/offset draw
  * environment (from the current display env), draws a pulsing quad using
- * the current stage's title image, then restores the original draw env.
+ * the Tenchu logo image, then restores the original draw env.
  * Called by PauseProc (already matched) with the pause frame counter.
  *
  * MATCH. Matching notes (all verified against the original bytes):
@@ -61,7 +61,7 @@
  *    (ofs is a separate 2-`s16` array, not part of the RECT copy).
  *  - The frame-based wobble angle `(s16)frame * 0x44` is computed ONCE into
  *    a named temp and reused for both `rsin` calls (`t` and `t + 0x200`,
- *    a quarter-turn apart) — m2c's own `temp_s0` shows this shared value.
+ *    an eighth-turn (45 degrees) apart) — m2c's own `temp_s0` shows this shared value.
  *  - RECT/DRAWENV/DISPENV and POLY_GT4 use their canonical PsyQ layouts,
  *    independently confirmed by reference/psxsym-types.h.
  *  - `t = (s16)frame * 0x44;` needed a `do{}while(0)` wrapper (byte-neutral
@@ -91,7 +91,6 @@ void DrawPause(int frame)
     POLY_GT4 ply;
     GsIMAGE *image;
     s32 t;
-    s32 v;
     s32 bias;
     u8 far_col;
 
@@ -111,18 +110,8 @@ void DrawPause(int frame)
             t = (s16)frame * 0x44;
         } while (0);
         bias = 0x80;
-        v = rsin(t) * 125;
-        if (v < 0)
-        {
-            v = v + 0xFFF;
-        }
-        far_col = (v >> 0xC) + bias;
-        v = rsin(t + 0x200) * 125;
-        if (v < 0)
-        {
-            v = v + 0xFFF;
-        }
-        ply.r0 = (v >> 0xC) + bias;
+        far_col = rsin(t) * 125 / 4096 + bias;
+        ply.r0 = rsin(t + 0x200) * 125 / 4096 + bias;
         ply.g0 = ply.r0;
         ply.b0 = ply.r0;
         ply.r1 = ply.r0;

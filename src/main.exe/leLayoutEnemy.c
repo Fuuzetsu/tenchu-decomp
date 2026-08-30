@@ -120,6 +120,8 @@ void leLayoutEnemy(int mode)
             {
                 human->model->rotate.vy = en->r;
             } while (0);
+            /* Staged owner_model straddling the |= is byte-required
+             * (inlining the read reorders the pair; measured). */
             owner_model = CamState.Owner->model;
             human->attribute |= ATTR_SUSPEND;
             human->target = (ModelType *)owner_model;
