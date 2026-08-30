@@ -53,7 +53,7 @@
  * collision pointer and rotating its a1/a2 allocation.
  * The 14-deep one-shot tower around the object-vault turn is now
  * EXACTLY understood (regalloc.py --order on both shapes): each level
- * adds +1 weighted ref to the function-wide zz (18 -> 32), pushing its
+ * adds +1 weighted ref to the function-probe zz (18 -> 32), pushing its
  * global-alloc priority (floor_log2(refs)*refs/live_length) over the
  * floor_log2 cliff at 32 refs -- 10062 vs 9701 for the STAT_DEAD
  * constant's pseudo -- so zz wins $s0 and the whole callee-saved
@@ -108,6 +108,8 @@ short DefaultActionHumanoid(Humanoid *human)
     vector = &human->vector;
     object = *human->model->object;
     human->rotate->vy &= 0xfff;
+    /* The cast (not &= 0xff) makes the reload an lbu: byte-required
+     * (verified against the .s). */
     human->attribute = (u8)human->attribute;
     slocate = &human->slocate;
 
@@ -123,7 +125,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
     {
         VECTOR position;
-        VECTOR *wide;
+        VECTOR *probe;
         MapVector *call_map;
 
         if (human->status == STAT_ATTACK)
@@ -135,7 +137,7 @@ short DefaultActionHumanoid(Humanoid *human)
         {
             goto use_locate_position;
         }
-        wide = locate;
+        probe = locate;
         if (map->height != 0)
         {
             goto probe_map;
@@ -171,9 +173,9 @@ short DefaultActionHumanoid(Humanoid *human)
                          (short)i);
         goto map_probe_done;
     use_locate_position:
-        wide = locate;
+        probe = locate; /* duplicated on both paths: the $L7 block is in the bytes */
     probe_map:
-        GetAreaMapVector(GlobalAreaMap, call_map, wide, human->width,
+        GetAreaMapVector(GlobalAreaMap, call_map, probe, human->width,
                          (short)i);
     map_probe_done:;
     }
@@ -191,13 +193,13 @@ short DefaultActionHumanoid(Humanoid *human)
     if (map->height > 0 && (human->attribute & ATTR_FLOAT) == 0)
     {
         human->attribute |= ATTR_FALL;
-        if (vector->vy < 400)
+        if (vector->vy < FALL_SPEED_MAX)
         {
-            vector->vy += 20;
+            vector->vy += GRAVITY_ACCEL;
         }
         if (map->attrib & MAP_DEATH)
         {
-            if (map->height < 25000 && human->life != 0)
+            if (map->height < DEATH_FALL_HEIGHT && human->life != 0)
             {
                 if (human == StagePlayer)
                 {
@@ -286,7 +288,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 dz = position.vz - locate->vz;
                 locate->vz += coefficient_z * ((dz >= 0) ? dz : -dz);
 
-                if (mv.level != zz && locate->vy < mv.level)
+                if (mv.level != LEVEL_NONE && locate->vy < mv.level)
                 {
                     locate->vy = (vector->vy > 0)
                                      ? locate->vy + vector->vy
@@ -314,7 +316,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 }
                 else
                 {
-                    i = ((u16)human->width << 16) >> 18; /* width / 4; the u16 view is the retail lhu access width */
+                    i = ((u16)human->width << 16) >> 18; /* width / 4; the u16 view is the retail lhu access width, and the sll16/sra18 pair (not >> 2) is in the bytes */
                     xx = RefrectMove[direction][0] * i;
                     zz = RefrectMove[direction][1] * i;
                 }
@@ -404,10 +406,10 @@ short DefaultActionHumanoid(Humanoid *human)
                 xx = locate->vx;
                 zz = locate->vz;
 
-                locate->vx = xx - ((ConflictDistance.vx >= 0)
-                                       ? human->width
-                                       : -human->width) /
-                                      8;
+                locate->vx -= ((ConflictDistance.vx >= 0)
+                                   ? human->width
+                                   : -human->width) /
+                              8;
 
                 locate->vz -= ((ConflictDistance.vz >= 0)
                                    ? human->width
@@ -461,6 +463,9 @@ short DefaultActionHumanoid(Humanoid *human)
 
                     zz = GetDirection(ConflictObject[i].position.vx - locate->vx,
                                       ConflictObject[i].position.vz - locate->vz,
+                                      /* locate->vy — the world Y, not a
+                                       * rotation: retail's own bug (every
+                                       * other caller passes rotate->vy). */
                                       (s16)human->locate->vy);
                     do
                     {
@@ -501,11 +506,11 @@ short DefaultActionHumanoid(Humanoid *human)
                                             } while (0);
                                         } while (0);
                                     } while (0);
-                                    direction = 0x1003;
+                                    direction = MOT_DAMAGE_BACK_LIGHT;
                                 } while (0);
                                 if (direction_abs < 1100)
                                 {
-                                    direction = 0x1000;
+                                    direction = MOT_DAMAGE;
                                 }
                             } while (0);
                             SetNowMotion(human, direction, 1);

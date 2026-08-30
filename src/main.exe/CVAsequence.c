@@ -85,7 +85,7 @@ s16 CVAsequence(s16 sid)
     if (CVAdata->mode == -1)
         goto return_zero;
 
-    wanted = (s16)sid;
+    wanted = sid;
     end_mode = -1;
 scan_event:
     event = CVAnow;
@@ -164,7 +164,7 @@ run_sequence:
 
     i = 0;
     anim_base = CVAhuman;
-    type_class = 0x80;
+    type_class = PAGE_BOSS;
     for (; i < 5; i++)
     {
         human = anim_base[i].human;

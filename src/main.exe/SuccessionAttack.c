@@ -63,7 +63,7 @@
  * a ~150-byte-diff red herring that looks like a missing C construct.
  *
  * `buttons` must stay 16-bit (NOT the `u8` autorules suggests, which "wins" by
- * 2 bytes but is a FALSE WIN: `buttons = 0x8000;`/`= 0x2000;` truncate to 0 in
+ * 2 bytes but is a FALSE WIN: `buttons = -0x8000;`/`= 0x2000;` truncate to 0 in
  * a u8, an outright wrong value — reject per the cookbook's "never accept
  * an autorules win that changes what a value actually holds" caveat, this
  * time for a plain local rather than a struct field).

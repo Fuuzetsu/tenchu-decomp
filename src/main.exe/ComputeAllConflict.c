@@ -32,7 +32,6 @@
  *     extern struct ModelType World;
  * END PSX.SYM */
 
-/* The conflict pool + live count (Ghidra: ConflictObject / ConflictObjects). */
 
 extern void *memset(void *s, int c, u32 n);
 
@@ -42,11 +41,11 @@ extern void *memset(void *s, int c, u32 n);
  * flagged "active" (attribute bit 0x4000). Pass 1 refreshes each active slot's
  * world-space `position` from its model (either directly, when the model's
  * coordinate hierarchy root IS World, or via GsGetLw/GsSetLsMatrix/RotTrans
- * otherwise) and clears its `result[]` row and `offset.pad` hit counter. Pass 2
+ * otherwise) and clears its `result[]` row, `offset.pad` hit counter, and MODEL_ATTR_CONFLICT bit. Pass 2
  * is the O(n^2) AABB overlap test (y, then z, then x — that axis order matches
  * the target) between every distinct pair of active slots; a hit stamps both
  * slots' `result[]` (the OTHER slot's `size.pad` byte, tagged with 0x80),
- * flags both models' attribute bit 0x8000, and bumps both `offset.pad` counters.
+ * flags both models' attribute bit MODEL_ATTR_CONFLICT, and bumps both `offset.pad` counters.
  *
  * Matching notes:
  *  - `confop` and `model` (real PSX.SYM locals) belong to pass 1. Pass 2
@@ -94,7 +93,7 @@ void ComputeAllConflict(void)
         {
             memset(confop->result, 0, sizeof(confop->result));
             confop->offset.pad = 0;
-            model->attribute = model->attribute & 0x7fff;
+            model->attribute &= ~MODEL_ATTR_CONFLICT;
             if (model->locate.super == &World.locate)
             {
                 confop->position.vx = model->locate.coord.t[0] + confop->offset.vx;

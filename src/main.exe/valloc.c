@@ -111,6 +111,9 @@ void *valloc(u32 size)
     struct VMhead vh;   /* split tmp, sp+0x18 */
     struct VMhead *vhp; /* search-loop copy of the cursor */
     u32 *vmpt;          /* cursor AND result — returned after SystemOut, hence $s1 */
+    /* off/mask/tag are pre-hoisted loop invariants: byte-required (the
+     * target computes the sll/addu/li/or before the search loop; verified
+     * against the .s). */
     u32 off;
     u32 mask;
     u32 tag;
@@ -140,7 +143,7 @@ void *valloc(u32 size)
             vhp = (struct VMhead *)vmpt;
             if (!(vmpt[0] & mask) && size <= vmpt[0])
             {
-                if (vmpt[0] - size < 0x13)
+                if (vmpt[0] - size < VMEM_MIN_SPLIT_SLACK)
                 {
                     /* The do{}while(0) is LOAD-BEARING: its LOOP_END note
                      * lands between this arm's `goto` and the split arm's
@@ -153,7 +156,7 @@ void *valloc(u32 size)
                     {
                         vmpt[0] = vmpt[0] | mask;
                         vmpt = vmpt + 2;
-                        goto found;
+                        goto search_done;
                     } while (0);
                 }
                 else
@@ -170,7 +173,7 @@ void *valloc(u32 size)
             }
             vmpt = (u32 *)vhp->next;
         } while (vmpt != 0);
-    found:
+    search_done:
         if (vmpt != 0)
             goto done; /* bnez straight to the shared epilogue-return */
     }
@@ -179,22 +182,29 @@ void *valloc(u32 size)
         u8 str[1024]; /* sp+0x28 */
         u32 maxsize;
         u32 freesize;
-        struct VMhead *p;
-        struct VMhead *q;
-
         maxsize = 0;
-        for (p = (struct VMhead *)virtual_memory_pool; p != 0; p = p->next)
         {
-            if (!(p->size & 0x80000000) && maxsize < (u32)p->size)
-                maxsize = p->size;
+            struct VMhead *vhp;
+
+            for (vhp = (struct VMhead *)virtual_memory_pool; vhp != 0;
+                 vhp = vhp->next)
+            {
+                if (!(vhp->size & 0x80000000) && maxsize < (u32)vhp->size)
+                    maxsize = vhp->size;
+            }
         }
 
         freesize = 0;
         maxsize <<= 2;
-        for (q = (struct VMhead *)virtual_memory_pool; q != 0; q = q->next)
         {
-            if (!(q->size & 0x80000000))
-                freesize += q->size;
+            struct VMhead *vhp;
+
+            for (vhp = (struct VMhead *)virtual_memory_pool; vhp != 0;
+                 vhp = vhp->next)
+            {
+                if (!(vhp->size & 0x80000000))
+                    freesize += vhp->size;
+            }
         }
 
         sprintf((char *)str, msg_out_of_memory, size << 2, maxsize, freesize << 2);

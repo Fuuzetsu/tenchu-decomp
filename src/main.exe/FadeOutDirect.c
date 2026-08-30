@@ -118,10 +118,10 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     n_draw.ofs[1] = o_disp.disp.y;
     PutDrawEnv(&n_draw);
     pp = &ply;
-    *((u_char *)&pp->ply.tag + 3) = 5;
+    setlen(&pp->ply, 5);
     pp->ply.code = 0x28;
-    ply.ply.code = ply.ply.code | 2;
-    *((u_char *)&pp->tpage.tag + 3) = 1;
+    ply.ply.code |= 2;
+    setlen(&pp->tpage, 1);
     ply.tpage.code[0] = ((attrib & 3) << 5) | 0xE1000200;
     ply.ply.x0 = 0;
     ply.ply.y0 = 0;

@@ -123,6 +123,11 @@
  * default action stepping. */
 #define STEP_DROP_LIMIT (-450)
 
+/* Falling (DefaultActionHumanoid). */
+#define GRAVITY_ACCEL 20      /* vy gain per frame while airborne */
+#define FALL_SPEED_MAX 400    /* terminal fall speed */
+#define DEATH_FALL_HEIGHT 25000 /* a MAP_DEATH floor farther than this kills */
+
 /* Loadout: how many item stacks fit in the mission inventory. */
 #define MAX_SELECTED_ITEMS 6
 

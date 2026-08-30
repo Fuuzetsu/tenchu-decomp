@@ -67,7 +67,6 @@
  *    per-occurrence. Pick which name to reuse across cases by matching
  *    ROLE (both are "the wp[0] value"), not just by availability.
  */
-extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 
 /* mode 1 draws the weapon (raising ATTR_ALERT), 0 sheathes it. */
 void EquipWeapon(Humanoid *human, short mode)
@@ -96,10 +95,10 @@ void EquipWeapon(Humanoid *human, short mode)
     }
     switch (human->wpatk)
     {
-    case 4:
-    case 5:
-    case 7:
-    case 0x1f:
+    case KODATI:
+    case JYUTE:
+    case EN:
+    case KATANA_2:
         a = wp[0];
         b = wp[2];
         c = wp[3];
@@ -109,12 +108,12 @@ void EquipWeapon(Humanoid *human, short mode)
         wp[1] = c;
         wp[3] = a;
         break;
-    case 0xc:
-    case 0x13:
-    case 0x14:
-    case 0x16:
-    case 0x19:
-    case 0x1c:
+    case KOZUKA:
+    case NINJA:
+    case KEITOU:
+    case KATANA_0:
+    case HOUTOU:
+    case KATANA_1:
         d = wp[2];
         a = wp[0];
         wp[0] = d;

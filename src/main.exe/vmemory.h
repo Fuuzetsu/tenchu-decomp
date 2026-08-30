@@ -25,4 +25,8 @@ extern unsigned long vsize(void *pt);
 #define VMEM_DEFAULT_POOL ((u_long *)TENCHU_MEMORY_POOL_FLOOR)
 #define VMEM_DEFAULT_CAPACITY TENCHU_RETAIL_MEMORY_POOL_CAPACITY
 
+/* valloc: leftover slack smaller than this many words is not worth
+ * splitting off as a free block. */
+#define VMEM_MIN_SPLIT_SLACK 0x13
+
 #endif /* TENCHU_VMEMORY_H */

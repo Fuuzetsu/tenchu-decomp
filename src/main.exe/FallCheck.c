@@ -35,17 +35,18 @@
 
 /*
  * FallCheck (0x8001cc90, 0x220 bytes) — transition a sufficiently high
- * falling humanoid into motion 0x803, apply the facing-dependent landing
- * displacement, and cancel the current attack.
+ * falling humanoid into MOT_STATE_FALL, push it off the coded map edge
+ * by width/4 as the fall begins, and cancel the current attack.
  *
  * Matching notes:
  *  - The zero-attribute path is the positive wrapper around the height and
  *    status switch. This keeps the attribute guard as a direct branch to the
  *    epilogue and leaves the jump table's shared return-zero island between
- *    case 7 and the default body.
- *  - The default and looping case 7 jump to `fall`, after the common
+ *    the STAT_SQUAT arm (jump-table index 7, biased by -4) and the
+ *    default body.
+ *  - The default and the looping STAT_SQUAT arm jump to `fall`, after the common
  *    return-zero statement. That source layout emits the target's physical
- *    case order: case 7, return-zero, default.
+ *    case order: STAT_SQUAT, return-zero, default.
  *  - Comparing CVAhuman[] against the global Me_MOTION_C (rather than the
  *    cached `human`) preserves the target's CSE copy in the scan prologue.
  */
@@ -58,7 +59,6 @@ short FallCheck(void)
 {
     Humanoid *human;
     VECTOR *locate;
-    short i;
 
     if (motID == MOT_STATE_FALL)
     {

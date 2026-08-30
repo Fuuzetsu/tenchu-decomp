@@ -55,5 +55,5 @@ u32 subAfsFindFile(TAFS *handle, char *name, u32 mask)
             i++;
         } while (i < handle->maxElements);
     }
-    return 0xffffffff;
+    return -1;
 }
