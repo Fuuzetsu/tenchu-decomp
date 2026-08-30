@@ -268,17 +268,13 @@ void StageEndScreen(void)
     }
 
     {
-        /* Preserve the target allocator weight for this reused identity:
-         * best_x needs +4 weighted refs; weight fence — split per the
-         * DefaultActionHumanoid method as 2 here + 2 on the language test
-         * below (two best_x occurrences at one level).  Depth 1 is refuted:
-         * the 0x7f reload is fence-toxic (scheduling). */
+        /* Weight fence: best_x needs +3 weighted refs in total — 1 here
+         * plus 2 on the language test below. The old depth-2 nest here
+         * re-measured as an overshoot (either single layer suffices,
+         * removing both breaks; 2026-08-31). */
         do
         {
-            do
-            {
-                best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
-            } while (0);
+            best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
         } while (0);
         if (((TLinkInfo *)best_x)->StageNo == 7)
         {

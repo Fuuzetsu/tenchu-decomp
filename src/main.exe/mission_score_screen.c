@@ -444,55 +444,52 @@ void mission_score_screen(void)
                 }
             } while (0);
         }
-        do
+        sprite = &number;
         {
-            sprite = &number;
+            s32 dividend;
+            s32 remainder;
+            s32 quotient;
+            u32 value;
+            s32 drawY;
+
+            value = result.criticalScore;
+            drawY = -0x47;
+            sprite->x = resultX;
+            sprite->y = drawY;
+            if ((s16)value < 0)
             {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s32 drawY;
-
-                value = result.criticalScore;
-                drawY = -0x47;
-                sprite->x = resultX;
-                sprite->y = drawY;
-                if ((s16)value < 0)
-                {
-                    value = -(s16)value;
-                    negative = 1;
-                }
-                else
-                {
-                    negative = 0;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = sprite->u;
-                    sprite->u = baseU + (s16)remainder * sprite->w;
-                    GsSortSprite(sprite, OTablePt, 0);
-                    sprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    sprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = sprite->u;
-                    sprite->u = signBaseU + sprite->w * minusGlyph;
-                    GsSortSprite(sprite, OTablePt, 0);
-                    sprite->u = signBaseU;
-                }
+                value = -(s16)value;
+                negative = 1;
             }
-        } while (0);
+            else
+            {
+                negative = 0;
+            }
+            do
+            {
+                dividend = (s16)value;
+                quotient = dividend / 10;
+                remainder = dividend % 10;
+                baseU = sprite->u;
+                sprite->u = baseU + (s16)remainder * sprite->w;
+                GsSortSprite(sprite, OTablePt, 0);
+                sprite->x -= 12;
+                value = quotient;
+                quotient <<= 16;
+                sprite->u = baseU;
+            } while (quotient != 0);
+            if (negative != 0)
+            {
+                u32 signBaseU;
+                s32 minusGlyph;
+
+                minusGlyph = 10;
+                signBaseU = sprite->u;
+                sprite->u = signBaseU + sprite->w * minusGlyph;
+                GsSortSprite(sprite, OTablePt, 0);
+                sprite->u = signBaseU;
+            }
+        }
 
         do
         {
@@ -855,57 +852,54 @@ void mission_score_screen(void)
             } while (0);
         do
         {
+            s32 dividend;
+            s32 remainder;
+            s32 quotient;
+            u16 value;
+            s16 signedValue;
+            s32 widenedValue;
+            s32 drawY;
+            register s32 rowNegative;
+
+            signedValue = i + 1;
+            value = signedValue;
+            drawY = (i * 0x16 + 0x18);
+            rowSprite->x = -0x8F;
+            rowSprite->y = drawY;
+            widenedValue = signedValue;
+            if (widenedValue < 0)
+            {
+                value = -widenedValue;
+                rowNegative = 1;
+            }
+            else
+            {
+                rowNegative = 0;
+            }
             do
             {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u16 value;
-                s16 signedValue;
-                s32 widenedValue;
-                s32 drawY;
-                register s32 rowNegative;
+                dividend = (s16)value;
+                quotient = dividend / 10;
+                remainder = dividend % 10;
+                baseU = rowSprite->u;
+                rowSprite->u = baseU + (s16)remainder * rowSprite->w;
+                GsSortSprite(rowSprite, OTablePt, 0);
+                rowSprite->x -= 12;
+                value = quotient;
+                quotient <<= 16;
+                rowSprite->u = baseU;
+            } while (quotient != 0);
+            if (rowNegative != 0)
+            {
+                u32 signBaseU;
+                s32 minusGlyph;
 
-                signedValue = i + 1;
-                value = signedValue;
-                drawY = (i * 0x16 + 0x18);
-                rowSprite->x = -0x8F;
-                rowSprite->y = drawY;
-                widenedValue = signedValue;
-                if (widenedValue < 0)
-                {
-                    value = -widenedValue;
-                    rowNegative = 1;
-                }
-                else
-                {
-                    rowNegative = 0;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = rowSprite->u;
-                    rowSprite->u = baseU + (s16)remainder * rowSprite->w;
-                    GsSortSprite(rowSprite, OTablePt, 0);
-                    rowSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    rowSprite->u = baseU;
-                } while (quotient != 0);
-                if (rowNegative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = rowSprite->u;
-                    rowSprite->u = signBaseU + rowSprite->w * minusGlyph;
-                    GsSortSprite(rowSprite, OTablePt, 0);
-                    rowSprite->u = signBaseU;
-                }
-            } while (0);
+                minusGlyph = 10;
+                signBaseU = rowSprite->u;
+                rowSprite->u = signBaseU + rowSprite->w * minusGlyph;
+                GsSortSprite(rowSprite, OTablePt, 0);
+                rowSprite->u = signBaseU;
+            }
             draw_time_(&number, SCORE_STATE->t_time[i],
                        0x79, i * 0x16 + 0x18, 1);
             {
