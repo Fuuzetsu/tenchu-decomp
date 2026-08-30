@@ -22,7 +22,7 @@
  * 16-entry `[xAdjust, zAdjust]` sign table: each component's sign (not
  * magnitude — only compared `<1`/`>-1`) decides whether to nudge that axis
  * by `+amount`, `-amount`, or leave it alone. Called once from the
- * still-unmatched CameraDirection.c (`push_from_walls_(&CamLoc, 1000);`) to push
+ * sibling CameraDirection.c (`push_from_walls_(&CamLoc, 1000);`) to push
  * a candidate camera position off a wall it's testing against — a camera
  * wall-avoidance helper, not player collision. No candidate name in
  * reference/psxsym-candidates.tsv; not in the demo's PSX.SYM (CameraDirection

@@ -42,8 +42,8 @@
  * modes selected by actcnt: while actcnt == 0, count frames in actscnt and
  * (for the first 0x3C frames) steer towards the player by comparing the
  * character's turn rate against Degree; once actscnt reaches 0x3C, flip into
- * actcnt == 1 tracking mode, whose branch here just clears actscnt each call
- * and (when Attrib bit 3 is set) forwards to ControlTraceLine.
+ * actcnt >= 1 tracking mode, whose branch here increments actcnt each call
+ * and (when ATTR_TRACE is set) forwards to ControlTraceLine.
  *
  * Like Think2contact.c, this retail site reads the recovered signed `Attrib`
  * object's raw flag bits with `lhu`, represented by the shared
@@ -52,7 +52,7 @@
  * `old_actscnt` must be a real local: the asm stores actscnt+1 back
  * UNCONDITIONALLY (in the branch's delay slot) before testing whether the
  * OLD value was below 0x3C, so the store and the compare read different
- * values. The later `Me_THINK_C->actscnt < 0x1E` check is a fresh reload of
+ * values. The later `self->actscnt < 30` check is a fresh reload of
  * the (already-incremented) field, not old_actscnt again.
  *
  * `result` carries the handler's signed-short pad command on every path; the
@@ -116,7 +116,7 @@ s16 Think1trace(void)
             {
                 if (self->actscnt < 30)
                 {
-                    result = -0x8000;
+                    result = -PADLleft;
                     if (turn < degree)
                     {
                         result = PADLright;

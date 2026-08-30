@@ -72,7 +72,7 @@
  *    label lives. A trailing `reject:` next to `ret:` takes a free
  *    fallthrough and cross-jump swaps it with the arm that should have
  *    owned it; that swap was the whole 62-byte residual.
- *  - The `if (sz >= 300) DrawTMDmode = TMD_BANK_FOG; else = 0;` two-armer is
+ *  - The `if (sz >= FOG_DEPTH) DrawTMDmode = TMD_BANK_FOG; else = 0;` two-armer is
  *    spelled NEGATED so the `= 0` arm sits adjacent to the tail and takes
  *    the fallthrough (target 0x8001842c) — same swap-non-invariance
  *    DrawModel and DrawSprite needed.
@@ -143,7 +143,7 @@ long DrawClip(ModelType *objp, long *xy)
             result = sz;
             goto ret;
         }
-        if (sz >= 300)
+        if (sz >= FOG_DEPTH)
             DrawTMDmode = TMD_BANK_FOG;
         else
             DrawTMDmode = TMD_BANK_PLAIN;

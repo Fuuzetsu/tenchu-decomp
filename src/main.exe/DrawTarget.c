@@ -36,7 +36,7 @@
  * (DrawTargetS's only other caller, draw_map_items_, is also unmatched).
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - `x - (short)ViewInfo.vpx` etc. — same NARROWING lhu-of-a-s32-global
+ *  - `x - (s16)ViewInfo.vpx` etc. — same NARROWING lhu-of-a-s32-global
  *    rule as the twin.
  *  - RotTransPers's `sxy` out-param is the packed `vx/vy` prefix of one
  *    address-taken `SVECTOR scr`; its return value is stored into `scr.vz`.
@@ -72,9 +72,9 @@ void DrawTarget(s32 x, s32 y, s32 z, s32 color)
     *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
     *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
     *(s32 *)TENCHU_SCRATCHPAD(0x1c) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (short)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (short)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (short)ViewInfo.vpz;
+    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (s16)ViewInfo.vpx;
+    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (s16)ViewInfo.vpy;
+    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (s16)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
     p = &scr;

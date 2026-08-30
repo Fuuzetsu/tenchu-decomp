@@ -20,14 +20,11 @@ void swap_balma_area_map_(void)
 {
     NodeIndexType *saved;
     AreaMapType *cur;
-    AreaNodeType *area;
 
     saved = (NodeIndexType *)BalmaAreaMap;
     cur = GlobalAreaMap;
-    area = (AreaNodeType *)saved->index;
-
     GlobalAreaMap = (AreaMapType *)saved;
     BalmaAreaMap = cur;
     FieldIndex = saved;
-    FieldArea = area;
+    FieldArea = (AreaNodeType *)saved->index;
 }

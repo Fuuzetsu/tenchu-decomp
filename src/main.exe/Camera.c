@@ -48,6 +48,8 @@ void Camera(void)
     s16 pad_dat;
 
     pad_dat = GetPad(0);
+    /* The debug owner menu stores AdtSelect's return here — an odd value
+     * (its -1 cancel sentinel) is not a real Humanoid. */
     if ((s32)CamState.Owner & 1)
     {
         return;
@@ -75,7 +77,7 @@ void Camera(void)
         vDif.vrz = CamState.Owner->model->locate.coord.t[2] - ViewInfo.vrz;
         break;
     default:
-        if (CamState.Owner->pad.data & 4)
+        if (CamState.Owner->pad.data & PADL1)
         {
             SetCameraMode(CMODE_DIRECTION);
             return;
@@ -96,9 +98,9 @@ void Camera(void)
     {
         ModelType *model;
 
-        if (pad_dat & 1)
+        if (pad_dat & PADL2)
         {
-            Projection = 300;
+            Projection = PROJECTION_DISTANCE;
         }
         if (pad_dat & PADLleft)
         {

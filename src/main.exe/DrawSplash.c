@@ -53,7 +53,6 @@
 extern MATRIX GsWSMATRIX;
 extern SVECTOR svec_y_n20_2[];
 
-extern void *memset(void *dst, int value, u32 size);
 
 void DrawSplash(TEffectSlot *ef)
 {

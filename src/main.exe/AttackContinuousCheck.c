@@ -82,7 +82,7 @@ s16 AttackContinuousCheck(BattleType *battle)
         break;
     case WEP_NONE:
         mode = 3;
-        goto skip_mode2;
+        goto no_conflict;
     default:
         DeleteConflict(Me_MOTION_C->model->object[0xD]);
         model = Me_MOTION_C->model->object[0xE];
@@ -90,7 +90,7 @@ s16 AttackContinuousCheck(BattleType *battle)
     }
     DeleteConflict(model);
     mode = 3;
-skip_mode2:
+no_conflict:
     if ((mode & 2) != 0)
     {
         if (Me_MOTION_C->illusion[0] != 0)

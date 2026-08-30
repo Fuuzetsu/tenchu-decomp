@@ -8,7 +8,7 @@
  * docs/psx-sym.md. Do not hand-edit.
  *
  * void ActENGAGE(void);
- *     MOTION.C:1181, 56 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
+ *     MOTION.C:1181, 56 src lines, frame 24 bytes, saved-reg trig 0x80010000 (DEMO build -- see below)
  *
  * Globals it touches, as the original declared them:
  *     extern struct MotionManager *dtM;
@@ -48,8 +48,7 @@ extern void AttackControl(void);
 void ActENGAGE(void)
 {
     short motion_id;
-    short mask;
-    int random;
+    short trig;
 
     switch (dtM->mid)
     {
@@ -82,8 +81,7 @@ void ActENGAGE(void)
         }
         if (dtM->count != 0)
             goto engage_case_post;
-        random = rand();
-        if (random % 20 != 0)
+        if (rand() % 20 != 0)
             goto engage_case_post;
         motID = MOT_ATTACK_TAUNT;
         motMODE = 1;
@@ -130,8 +128,7 @@ void ActENGAGE(void)
     case MOT_ENGAGE:
     {
         SVECTOR *velocity;
-        MotionManager *motion;
-        register int value;
+        int value;
         short count;
 
         velocity = dtV;
@@ -154,10 +151,8 @@ void ActENGAGE(void)
                 value += 4;
             velocity->vz = value;
         }
-        motion = dtM;
-        count = motion->count - 1;
-        motion->count = count;
-        if (count < motion->loop)
+        count = --dtM->count;
+        if (count < dtM->loop)
         {
             switch (dtPAD & PADLdown)
             {
@@ -242,13 +237,13 @@ void ActENGAGE(void)
     }
     else
     {
-        mask = Me_MOTION_C->pad.trig;
-        if (mask & PADRdown)
+        trig = Me_MOTION_C->pad.trig;
+        if (trig & PADRdown)
         {
             JumpControl();
             return;
         }
-        if (mask & PADRup)
+        if (trig & PADRup)
         {
             switch (SelectedItem)
             {
@@ -281,8 +276,7 @@ void ActENGAGE(void)
                 SoundEx(Me_MOTION_C->locate, 0xc);
                 return;
             default:
-                ReqItemDefault(Me_MOTION_C,
-                               (short)SelectedItem);
+                ReqItemDefault(Me_MOTION_C, SelectedItem);
                 return;
             }
         }
@@ -290,7 +284,7 @@ void ActENGAGE(void)
         {
             if (dtPAD & PADRright)
             {
-                if (mask & PADRleft)
+                if (trig & PADRleft)
                 {
                     motID = MOT_ATTACK_CROUCH;
                     motMODE = 1;
@@ -302,7 +296,7 @@ void ActENGAGE(void)
             }
             else
             {
-                if (mask & PADRleft)
+                if (trig & PADRleft)
                 {
                     AttackControl();
                     return;

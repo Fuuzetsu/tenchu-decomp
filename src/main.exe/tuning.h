@@ -93,8 +93,18 @@
  * size * PROJECTION_DISTANCE / depth in every sprite-effect renderer. */
 #define PROJECTION_DISTANCE 300
 
-/* Camera wall avoidance (AntiWall): sideways push vector magnitude. */
+/* Camera wall avoidance (AntiWall/CameraDirection): sideways push
+ * vector magnitude. */
 #define WALL_AVOID_PUSH 1000
+
+/* Models closer than this screen depth draw from the plain renderer
+ * bank; farther ones use the fog bank (DrawModel/DrawClip). */
+#define FOG_DEPTH 300
+
+/* Free-look camera (CameraDirection). */
+#define CAMERA_LOOK_LIMIT_X 0x38E /* ~80 degrees up/down */
+#define CAMERA_LOOK_LIMIT_Y 0x400 /* 90 degrees sideways */
+#define CAMERA_BOOM_LEN 1200      /* eye distance behind the look target */
 
 /* Ledge/hang probe (ActMOVE/ActCHASE): height above the feet at which
  * HangCheck looks for a grabbable edge. */

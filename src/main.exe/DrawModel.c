@@ -98,7 +98,7 @@
  *    cc1 finds, which is what actually broke the LENGTH (4 extra
  *    instructions with the wrong tail).
  *  - The two-arm `if (sz < 300) DrawTMDmode = TMD_BANK_PLAIN; else DrawTMDmode = TMD_BANK_FOG;`
- *    inside unit_vector must be written negated — `if (sz >= 300)
+ *    inside unit_vector must be written negated — `if (sz >= FOG_DEPTH)
  *    DrawTMDmode = TMD_BANK_FOG; else DrawTMDmode = TMD_BANK_PLAIN;` — to match which arm ends
  *    up adjacent to the shared reject/ret tail (worth 4 of the 8
  *    residual bytes on its own; the cookbook's "if(cond)A;else B" A/B
@@ -132,7 +132,6 @@ short DrawModel(ModelType *objp)
 {
     MATRIX mat;
     short atr;
-    long lv;
     long sz;
     s32 iv;
     short rxy[2];
@@ -145,9 +144,9 @@ short DrawModel(ModelType *objp)
         goto ret;
     if ((atr & MODEL_ATTR_NOCULL) == 0)
     {
-        lv = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0);
-        sz = lv >> 2;
-        if ((atr & 4) == 0 || sz != 0)
+        sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
+        
+        if ((atr & MODEL_ATTR_CULL_BEHIND) == 0 || sz != 0)
         {
             if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
             {
@@ -186,15 +185,15 @@ short DrawModel(ModelType *objp)
     else
     {
     unit_vector:
-        lv = RotTransPers(&UnitVector, 0, 0, 0);
-        sz = lv >> 2;
-        if (sz >= 0x4e3)
+        sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
+        
+        if (sz > DEPTH_LIMIT)
         {
         reject:
             sz = -1;
             goto ret;
         }
-        if (sz >= 300)
+        if (sz >= FOG_DEPTH)
         {
             DrawTMDmode = TMD_BANK_FOG;
         }

@@ -190,7 +190,7 @@ void SetCameraMode(TCameraMode mode)
         CamState.OldMode = mode;
         break;
     case CMODE_NORMAL:
-        if (CamState.Owner->pad.data & 4)
+        if (CamState.Owner->pad.data & PADL1)
         {
             SetCameraMode(CMODE_DIRECTION);
             return;

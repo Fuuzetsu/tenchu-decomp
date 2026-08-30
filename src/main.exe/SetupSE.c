@@ -52,7 +52,7 @@ SoundEffect *SetupSE(u8 *vab)
 {
     SoundEffect *se;
     s32 size;
-    u16 t;
+    u16 programs;
 
     if (vab == 0)
     {
@@ -64,11 +64,11 @@ SoundEffect *SetupSE(u8 *vab)
     {
         SystemOut(msg_sound_setup_failure);
     }
-    t = *(u16 *)(vab + 0x12);
-    /* Byte-required raw spelling: (s16)t << 9 emits one sll; the target
+    programs = *(u16 *)(vab + 0x12);
+    /* Byte-required raw spelling: (s16)programs << 9 emits one sll; the target
      * keeps the sll16/sra7 pair. Semantically programs * 0x200 + 0xA20. */
-    size = ((t << 16) >> 7) + 0xA20;
-    se->program = t;
+    size = ((programs << 16) >> 7) + 0xA20;
+    se->program = programs;
     SsVabTransBody(vab + size, se->VABid);
     SsVabTransCompleted(1);
     se->VABhead = vrealloc(vab, size);

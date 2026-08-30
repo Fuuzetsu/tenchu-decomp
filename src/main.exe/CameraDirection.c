@@ -39,8 +39,8 @@
 
 /*
  * The free-look camera (CMODE_DIRECTION): stick input pans the aim angles
- * (clamped to ~80 deg up/down and 90 deg sideways; SIGHT mode halves the
- * sensitivity, releasing the trigger drops back to the normal camera), and
+ * (clamped to ~80 deg up/down and 90 deg sideways; while the PREVIOUS mode
+ * was SIGHT the stick is halved and the L1 release check is skipped), and
  * the eye sits at head height nudged toward open space, looking down the
  * rotated forward ray.
  */
@@ -67,35 +67,35 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
         x = x / 2;
         y = y / 2;
     }
-    else if ((CamState.Owner->pad.data & 4) == 0)
+    else if ((CamState.Owner->pad.data & PADL1) == 0)
     {
         SetCameraMode(CMODE_NORMAL);
     }
 
     CamState.DirectionRX = CamState.DirectionRX - y;
     CamState.DirectionRY = CamState.DirectionRY + x;
-    if (CamState.DirectionRX > 0x38E)
+    if (CamState.DirectionRX > CAMERA_LOOK_LIMIT_X)
     {
-        CamState.DirectionRX = 0x38E;
+        CamState.DirectionRX = CAMERA_LOOK_LIMIT_X;
     }
-    else if (CamState.DirectionRX < -0x38E)
+    else if (CamState.DirectionRX < -CAMERA_LOOK_LIMIT_X)
     {
-        CamState.DirectionRX = -0x38E;
+        CamState.DirectionRX = -CAMERA_LOOK_LIMIT_X;
     }
-    if (CamState.DirectionRY > 0x400)
+    if (CamState.DirectionRY > CAMERA_LOOK_LIMIT_Y)
     {
-        CamState.DirectionRY = 0x400;
+        CamState.DirectionRY = CAMERA_LOOK_LIMIT_Y;
     }
-    else if (CamState.DirectionRY < -0x400)
+    else if (CamState.DirectionRY < -CAMERA_LOOK_LIMIT_Y)
     {
-        CamState.DirectionRY = -0x400;
+        CamState.DirectionRY = -CAMERA_LOOK_LIMIT_Y;
     }
 
     rx = rsin(mad->rotate.vy) / 6;
     ry = rcos(mad->rotate.vy) / 6;
     r.vx = 0;
     r.vy = 0;
-    r.vz = 1200;
+    r.vz = CAMERA_BOOM_LEN;
     RotateVectorS(&r,
                   mad->rotate.vx + CamState.DirectionRX,
                   mad->rotate.vy + CamState.DirectionRY,
@@ -104,7 +104,7 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     CamLoc.vx = mad->locate.coord.t[0];
     CamLoc.vy = mad->locate.coord.t[1] - CAMERA_EYE_HEIGHT;
     CamLoc.vz = mad->locate.coord.t[2];
-    push_from_walls_(&CamLoc, 1000);
+    push_from_walls_(&CamLoc, WALL_AVOID_PUSH);
     CamLoc.vx -= rx;
     CamLoc.vz -= ry;
     if (r.vy > 0)
@@ -119,9 +119,9 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     target.vrx = CamLoc.vx - r.vx;
     target.vry = CamLoc.vy - r.vy;
     target.vrz = CamLoc.vz - r.vz;
+    target.vpx = CamLoc.vx + r.vx;
     target.vpy = CamLoc.vy + r.vy;
     target.vpz = CamLoc.vz + r.vz;
-    target.vpx = CamLoc.vx + r.vx;
 
     vDif->vrx = (target.vrx - ViewInfo.vrx) / 4;
     vDif->vry = (target.vry - ViewInfo.vry) / 4;
