@@ -62,30 +62,37 @@
  * Register-allocation notes, verified against cc1 2.8.1's own -dl/-dg/-dS
  * dumps and its source (flow.c, global.c, sched.c) this session.
  *
- * WHY ry CARRIES THE APPLIED Z-STEP (the `ry = zz` on all three reflect
- * paths, plus `ry &= ~1` before `ry >>= 1`): $s0 must go to a value that
+ * WHY reflect_dz EXISTS (the `reflect_dz = zz` on all three reflect
+ * paths, the `&= ~1` before the halving, and the final negate-and-add):
+ * $s0 must go to a value that
  * beats `i` in global-alloc priority (floor_log2(refs)*refs/live_length,
  * refs weighted by loop depth at flow time) AND that conflicts with i's
  * live ranges, or find_reg simply gives $s0 to both. Written with zz
  * doing everything (halved in place, subtracted at the tail), zz counts
  * 18 weighted refs over 160 live insns (4500) against i's ~9100-9950: i
  * takes $s0 and every callee-saved assignment shifts off the retail
- * bytes. Re-using the dead ry as the applied displacement builds a
- * short, hot, call-crossing carrier instead: three path copies + the
- * mask + the shift + the tail use = 8-13 refs over ~24-40 insns, with
- * the turn-block copy sitting above the `if (i > 0)` test so ry
- * overlaps (and thus conflicts with) i, and before MoveHumanoid so ry
- * crosses a call. ry then takes $s0 first, i lands on $s1, and zz -
- * dying at each `ry = zz` - shares $s0 afterward, so all three copies
- * coalesce to nothing. Three details are load-bearing, all measured:
- * the copies must sit in three separate blocks (a same-block copy is
- * combined into the `&=` and stops crossing the call); the turn-block
- * copy must precede the `if (i > 0)` (below it, ry no longer overlaps
- * i and i shares $s0); and `ry &= ~1; ry >>= 1;` must be two
- * statements (the fused `(ry & ~1) >> 1` loses a counted ref and the
- * race). The mask is value-free next to the arithmetic shift and
- * combine folds it away after flow has counted it: no instruction is
- * generated for it. This is not a compiler quirk of ours: GCC
+ * bytes. Splitting the applied displacement into reflect_dz builds a
+ * short, hot, call-crossing carrier instead: three path copies + mask
+ * + shift + negate + the tail use = 10 refs over 24 insns (12500),
+ * with the turn-block copy above the `if (i > 0)` test so reflect_dz
+ * overlaps (and thus conflicts with) i, and before MoveHumanoid so it
+ * crosses a call. reflect_dz takes $s0 first, i lands on $s1, and zz
+ * - dying at each `reflect_dz = zz` - shares $s0 afterward, so the
+ * copies coalesce to nothing. The mask folds into the sra
+ * (simplify_shift_const) and the negate folds into the add
+ * (A + (-B) -> A - B), both AFTER flow counts them: no instruction is
+ * generated for either. Load-bearing details, all measured: the three
+ * copies must sit in separate blocks (a same-block copy combines into
+ * the `&=` and stops crossing the call); the turn-block copy must
+ * precede the `if (i > 0)` (below it, nothing conflicts with i and
+ * find_reg gives $s0 to BOTH); and the mask+shift must be two
+ * statements (the fused form loses a counted ref). Re-using the dead
+ * PSX.SYM ry as the carrier also measures byte-identical (thinner
+ * margin, 8 refs); reflect_dz is the joint Claude+Codex pick for its
+ * narration and headroom. The conflict loop has no equivalent
+ * partition: GetDirection's result must die before SetNowMotion and
+ * the vz save-restore crosses nothing, so no loop-range piece can
+ * cross a call honestly - measured and argued from both sides. This is not a compiler quirk of ours: GCC
  * 2.8.0-psx, 2.8.1-psx and the gs107 build emit byte-identical code
  * for this function, 2.7.2-class codegen cannot reproduce even its
  * instruction count, and every era-plausible flag measures inert on
@@ -337,6 +344,7 @@ short DefaultActionHumanoid(Humanoid *human)
         else
         {
             s32 angle_abs;
+            long reflect_dz;
 
             direction = map->vector;
             ry = RefrectVector[direction];
@@ -375,7 +383,9 @@ short DefaultActionHumanoid(Humanoid *human)
                         SVECTOR *rotate;
                         s32 rotate_y;
 
-                        ry = zz;
+                        /* Preserve the displacement selected before the
+                         * movement code runs. */
+                        reflect_dz = zz;
                         rotate = human->rotate;
                         rotate_y = rotate->vy;
                         if (i > 0)
@@ -392,21 +402,23 @@ short DefaultActionHumanoid(Humanoid *human)
                     }
                     else
                     {
-                        ry = zz;
+                        reflect_dz = zz;
                     }
                     xx >>= 1;
-                    /* ry re-used as the applied z-step; the mask folds into
-                     * the sra. Staging and placement are allocation-load-
-                     * bearing -- see the header. */
-                    ry &= ~1;
-                    ry >>= 1;
+                    /* Make the fixed-point displacement even, then take its
+                     * exact half. */
+                    reflect_dz &= ~1;
+                    reflect_dz >>= 1;
                 }
                 else
                 {
-                    ry = zz;
+                    reflect_dz = zz;
                 }
                 locate->vx -= xx;
-                locate->vz -= ry;
+                /* Turn the outward displacement into the correction to
+                 * apply. */
+                reflect_dz = -reflect_dz;
+                locate->vz += reflect_dz;
             }
         }
     }
