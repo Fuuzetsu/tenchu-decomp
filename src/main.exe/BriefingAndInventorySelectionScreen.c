@@ -315,23 +315,16 @@ void BriefingAndInventorySelectionScreen(void)
                 u8 already = ps->selItem[ITEM_ARMOUR];
                 if (already != 0 || (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] == 1)
                 {
-                    do
-                    {
-                        do
+                    ONCE2(if ((s16)nsel < MAX_SELECTED_ITEMS) {
+                        if (already == 0)
                         {
-                            if ((s16)nsel < MAX_SELECTED_ITEMS)
-                            {
-                                if (already == 0)
-                                {
-                                    nsel++;
-                                    taken++;
-                                }
-                                ps->selItem[ITEM_ARMOUR] = 0xFF;
-                                (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
-                                SoundEx(0, 8);
-                            }
-                        } while (0);
-                    } while (0);
+                            nsel++;
+                            taken++;
+                        }
+                        ps->selItem[ITEM_ARMOUR] = 0xFF;
+                        (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
+                        SoundEx(0, 8);
+                    });
                 }
             }
             break;

@@ -842,19 +842,7 @@ void mission_score_screen(void)
 
             i = 0;
             rowSprite = &number;
-            do
-            {
-                do
-                {
-                    do
-                    {
-                        do
-                        {
-                            rankSpriteBase = rankSprites;
-                        } while (0);
-                    } while (0);
-                } while (0);
-            } while (0);
+            ONCE4(rankSpriteBase = rankSprites);
         do
         {
             do

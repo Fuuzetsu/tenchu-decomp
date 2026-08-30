@@ -229,13 +229,7 @@ void game_over_screen_(void)
             shade -= 2;
             if (shade <= 0)
             {
-                do
-                {
-                    do
-                    {
-                        state = 2;
-                    } while (0);
-                } while (0);
+                ONCE2(state = 2);
                 shade = 0;
                 clear_rect.x = 0x280;
                 clear_rect.y = 360;

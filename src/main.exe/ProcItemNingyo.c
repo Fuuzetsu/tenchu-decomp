@@ -201,18 +201,9 @@ void ProcItemNingyo(TItem *item)
         }
 
     dispose:
-        do
-        {
-            do
-            {
-                if (item->proc == 0)
-                {
-                    return;
-                }
-            } while (0);
-            item->mode = ff;
-            item->proc(item);
-        } while (0);
+        ONCE(ONCE(if (item->proc == 0) { return; });
+             item->mode = ff;
+             item->proc(item));
         DeleteConflict(item->locate);
         if (item->mode != 0)
         {

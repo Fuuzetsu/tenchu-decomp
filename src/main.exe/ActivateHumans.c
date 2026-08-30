@@ -107,16 +107,7 @@ void ActivateHumans(void)
         /* Every do/while (0) in this function is a byte-required
          * loop-depth weight (removing any of them shifts the s-register
          * assignment; measured). */
-        do
-        {
-            do
-            {
-                do
-                {
-                    activate_distance = ACTIVATE_RADIUS;
-                } while (0);
-            } while (0);
-        } while (0);
+        ONCE(ONCE2(activate_distance = ACTIVATE_RADIUS));
     }
 
     if (GameClock % 30 != 0 || SkipFrame != 0)
@@ -155,16 +146,7 @@ void ActivateHumans(void)
             return;
         }
         human = HumanGroup[(s16)i];
-        do
-        {
-            do
-            {
-                if (human == target)
-                {
-                    goto next_human;
-                }
-            } while (0);
-        } while (0);
+        ONCE2(if (human == target) { goto next_human; });
 
         distance = GetVectorDistance(human->locate, &vc);
         if (distance > DEACTIVATE_RADIUS)

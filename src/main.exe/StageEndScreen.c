@@ -269,19 +269,7 @@ void StageEndScreen(void)
 
     {
         /* Preserve the target allocator weight for this reused identity. */
-        do
-        {
-            do
-            {
-                do
-                {
-                    do
-                    {
-                        best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
-                    } while (0);
-                } while (0);
-            } while (0);
-        } while (0);
+        ONCE4(best_x = TENCHU_PERSISTENT_STATE_ADDRESS);
         if (((TLinkInfo *)best_x)->StageNo == 7)
         {
             if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)

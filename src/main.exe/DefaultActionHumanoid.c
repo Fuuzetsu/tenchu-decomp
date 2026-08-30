@@ -95,17 +95,6 @@
  * promoted `int mode` without hiding either behind a false prototype.
  */
 
-/* One-shot statement wrappers (each level is one do/while (0)): the
- * register-pressure dial the header note measures. */
-#define ONCE(stmt)                                                            \
-    do                                                                        \
-    {                                                                         \
-        stmt;                                                                 \
-    } while (0)
-#define ONCE2(stmt) ONCE(ONCE(stmt))
-#define ONCE4(stmt) ONCE2(ONCE2(stmt))
-#define ONCE8(stmt) ONCE4(ONCE4(stmt))
-
 short DefaultActionHumanoid(Humanoid *human)
 {
     MapVector *map;
