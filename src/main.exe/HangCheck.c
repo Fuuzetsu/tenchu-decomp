@@ -197,8 +197,8 @@ short HangCheck(void)
         return 0;
     }
     GetMoveSpeed(&vect, dtR->vy, (Me_MOTION_C->width >> 1) + 300, 0);
-    y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, yy - 400, dtL->vz + vect.vz, 2);
-    if (y == (u32)LEVEL_NONE || y > 400)
+    y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, yy - LEDGE_PROBE_RISE, dtL->vz + vect.vz, 2);
+    if (y == (u32)LEVEL_NONE || y > LEDGE_PROBE_RISE)
     {
         return 0;
     }
@@ -220,9 +220,9 @@ short HangCheck(void)
     }
     rys = ry;
     GetMoveSpeed(&vect, rys, (Me_MOTION_C->width >> 1) + 300, 0);
-    dy = (dtL->vy - Me_MOTION_C->height) - 400;
+    dy = (dtL->vy - Me_MOTION_C->height) - LEDGE_PROBE_RISE;
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy, dtL->vz + vect.vz, 2);
-    if (y == (u32)LEVEL_NONE || y > 400)
+    if (y == (u32)LEVEL_NONE || y > LEDGE_PROBE_RISE)
     {
         dtL->vy = dtL->vy - (oy - 5);
         return 0;
@@ -230,7 +230,7 @@ short HangCheck(void)
     dtR->vy = ry;
     GetMoveSpeed(&vect, rys, (Me_MOTION_C->width >> 1) + 100, 0);
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy, dtL->vz + vect.vz, 2);
-    if (y != (u32)LEVEL_NONE && y <= 400)
+    if (y != (u32)LEVEL_NONE && y <= LEDGE_PROBE_RISE)
     {
         GetMoveSpeed(&vect, dtR->vy, -200, 0);
         dtL->vx = dtL->vx + vect.vx;
