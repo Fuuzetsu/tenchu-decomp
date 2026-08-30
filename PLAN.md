@@ -585,6 +585,27 @@ call-crossing range. Cookbook gained the empty-fence substitution
 rule, the label trap, the declaration-order tie lever (correcting
 the older blanket no-op claim), and the load-grouping anti-rule.
 
+DAH BARRIER PROVENANCE + KEYWORD SWEEP (2026-08-30, owner challenge
+"there must be some other explanation -- volatile etc?"): keywords
+measured out -- `volatile` on a short field is byte-visible (blocks
+the lh fusion: lhu+sll+sra), so retail's fused lh EXCLUDES volatile
+from the original outright; a volatile s32 read fences only memory
+ops, not the ALU address chain (measures at the flat baseline);
+const/register inert. The region edge itself is unavoidable in flat
+C: yy holds both the position load and the turn-arm value (both $a0;
+one PSX.SYM local), two sets deny its load the birthing bump, so
+only an edge pins it. But the "crazy talk" reading of the empty
+do{}while(0)s is wrong in the other direction: an empty one-shot is
+exactly what the standard 90s debug macro (#define DBG(x)
+do { } while (0)) leaves in a release build; the debug-side
+do { FntPrint x; } while (0) wrapper is measured byte-invisible
+around a live call; the demo build has bare FntPrint dumps in this
+TU; and the three sites are natural collision-record dump spots.
+Three deleted debug prints explain all three barriers as ordinary
+human source. The seven-level weight tower remains the one construct
+with no such reading (it nests around a live statement). File header
+and cookbook 3.10 updated.
+
 HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
 adversarial rounds continued -- the Act*/think header re-audit fixed
 five wrong glosses (and caught commit 1b20da30 claiming fixes its
