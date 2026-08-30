@@ -104,17 +104,7 @@ void ActivateHumans(void)
     activate_distance = ACTIVATE_RADIUS_WIDE;
     if (StagePlayer->motion->mid != MOT_ITEM_SHINSOKU)
     {
-        /* Weight fence: activate_distance needs +2 weighted refs to keep
-         * $s2 from the StageChar-base temp (the race measures 471 vs 481
-         * flat — see regalloc.py --order). The two other fences this file
-         * once carried re-measured stale (2026-08-31) and are gone. */
-        do
-        {
-            do
-            {
-                activate_distance = ACTIVATE_RADIUS;
-            } while (0);
-        } while (0);
+        activate_distance = ACTIVATE_RADIUS;
     }
 
     if (GameClock % 30 != 0 || SkipFrame != 0)
