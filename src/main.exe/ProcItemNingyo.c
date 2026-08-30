@@ -81,12 +81,11 @@ extern short DrawModel(ModelType *objp);
  * Clearing the short-lived launch pointer after memset breaks the stack-
  * address CSE that otherwise occupies s3.  Reusing the model pointer for its
  * embedded position then makes the derived-address and all three shared
- * modulus-constant sequences exact.  Separate base/result conflict pointers
- * and zero-trip fences around the call result and constants make the mode-1
- * address and constant ordering exact.  The otherwise-odd dispose one-shot
- * loops keep item in the narrow priority window between param and the later
- * bounce temporary and allow the indirect call's target delay slots.  They
- * emit no branch or loop instructions. */
+ * modulus-constant sequences exact. Separate base/result conflict pointers
+ * and the constant one-shot make the mode-1 address and constant ordering
+ * exact. Two unsigned item identities replace the dispose pair and
+ * InsertConflict wrapper: together their six flow references keep item above
+ * param and preserve the indirect-call delay slots without CFG artifacts. */
 void ProcItemNingyo(TItem *item)
 {
     param_ningyo *param;
@@ -201,18 +200,15 @@ void ProcItemNingyo(TItem *item)
         }
 
     dispose:
-        do
+        /* Allocation carrier for the former two-level dispose region. */
+        /* allocation staging: folded after flow -- not recovered arithmetic */
+        item = (TItem *)(((u32)item + (u32)item) - (u32)item);
+        if (item->proc == 0)
         {
-            do
-            {
-                if (item->proc == 0)
-                {
-                    return;
-                }
-            } while (0);
-            item->mode = ff;
-            item->proc(item);
-        } while (0);
+            return;
+        }
+        item->mode = ff;
+        item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
         {
@@ -255,10 +251,10 @@ void ProcItemNingyo(TItem *item)
         }
 
         DeleteConflict(item->locate);
-        do
-        {
-            n = InsertConflict(item->locate);
-        } while (0);
+        /* Allocation carrier for the former InsertConflict wrapper. */
+        /* allocation staging: folded after flow -- not recovered arithmetic */
+        item = (TItem *)(((u32)item + (u32)item) - (u32)item);
+        n = InsertConflict(item->locate);
         conflicts = ConflictObject;
         conflict = conflicts + n;
         offset_y = -250;

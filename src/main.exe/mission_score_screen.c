@@ -839,15 +839,10 @@ void mission_score_screen(void)
 
             i = 0;
             rowSprite = &number;
-            /* weight fence — split per the DefaultActionHumanoid method:
-             * +2 weighted refs lift rankSpriteBase's priority over the
-             * li-10 pseudo (s7/s8 swap); the old depth-4 tower overshot
-             * (depth 2 measured minimal, depth 1 swaps back). */
-            do
-            {
-                rankSpriteBase = rankSprites;
-                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
-            } while (0);
+            /* Allocation carrier: keep rankSpriteBase above the shared divisor. */
+            rankSpriteBase = rankSprites;
+            /* allocation staging: folded after flow -- not recovered arithmetic */
+            rankSpriteBase = (GsSPRITE *)(((u32)rankSpriteBase + (u32)rankSpriteBase) - (u32)rankSpriteBase);
         do
         {
             s32 dividend;
@@ -973,10 +968,9 @@ void mission_score_screen(void)
 
     FadeOutDirect(0x20, 2, 8, 8, 8);
     clear_screen_();
-    do
-    {
-        statePtr = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    } while (0);
+    /* Allocation carrier: keep the persistent-state role ahead of goNext. */
+    /* allocation staging: folded after flow -- not recovered arithmetic */
+    statePtr = (TLinkInfo *)(TENCHU_PERSISTENT_STATE_ADDRESS + (u32)insertedRank - (u32)insertedRank);
     if (gfMemory != 0)
     {
         LoadTIMAndFree(PathFileRead(path_image_3, path_font_tim));

@@ -31,10 +31,10 @@
  *      preference set makes global alloc tie the store address into n's
  *      dying v1 (addu v1,t0,v1). The textually-identical case-1 copy keeps
  *      the plain `mx < c` spelling and the fresh-a0 shape (permuter r5).
- *   3. case-0x1F body: NESTED do{}while(0) (two deep, statement
- *      granularity) -- each level adds +1 loop_depth to flow.c's ref
- *      weighting, flipping the {v0,v1} pairing of the chr reload chain vs
- *      the li 255 (permuter r4).
+ *   3. case-0x1F body: ordinary nested ifs. Either one-shot left by itself
+ *      flips the chr-reload/li-255 {v0,v1} pair (12 lines), while removing
+ *      both restores the target pairing: this is a paired conflict, not a
+ *      required weight.
  *   4. Cursor-move exts written as HAND-SPLIT shift pairs:
  *      `hx = j << 0x10; hy = shown << 0x10; k = cursor; ddx = hx >> 0x10;
  *      ddy = hy >> 0x10;` -- combine collapses (sign_extend)<<16 into one
@@ -315,23 +315,17 @@ void BriefingAndInventorySelectionScreen(void)
                 u8 already = ps->selItem[ITEM_ARMOUR];
                 if (already != 0 || (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] == 1)
                 {
-                    do
+                    if ((s16)nsel < MAX_SELECTED_ITEMS)
                     {
-                        do
+                        if (already == 0)
                         {
-                            if ((s16)nsel < MAX_SELECTED_ITEMS)
-                            {
-                                if (already == 0)
-                                {
-                                    nsel++;
-                                    taken++;
-                                }
-                                ps->selItem[ITEM_ARMOUR] = 0xFF;
-                                (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
-                                SoundEx(0, 8);
-                            }
-                        } while (0);
-                    } while (0);
+                            nsel++;
+                            taken++;
+                        }
+                        ps->selItem[ITEM_ARMOUR] = 0xFF;
+                        (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
+                        SoundEx(0, 8);
+                    }
                 }
             }
             break;

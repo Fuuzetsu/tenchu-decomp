@@ -37,11 +37,12 @@
 /*
  * STATUS: MATCHING — pure C, all 568 bytes / 142 instructions exact.
  * Reusing the PSX.SYM `i` for both archive loops and `j` for the nested
- * parent search produces the target loop and found-path layout. The nested
- * one-shot loops around the offset load emit no code; their two allocation
- * weights make `prntp` outrank `prnt`, giving the target s3/s4 assignment.
- * Assigning `count` in loop2's comparison and initializing `j` before the
- * parent copy preserve the two target instruction-order pairs.
+ * parent search produces the target loop and found-path layout. The offset
+ * consumer's unsigned prntp cancellation supplies the two allocation reads
+ * that make `prntp` outrank `prnt`, giving the target s3/s4 assignment with
+ * no one-shot wrappers. Assigning `count` in loop2's comparison and
+ * initializing `j` before the parent copy preserve the two target
+ * instruction-order pairs.
  */
 
 extern void *valloc(u32 size);
@@ -83,13 +84,9 @@ loop1:
     s32 offset;
     if (idx >= mad->n)
         goto loop1_end;
-    do
-    {
-        do
-        {
-            offset = prntp[idx].index;
-        } while (0);
-    } while (0);
+    /* Allocation carrier for both former offset-load wrappers. */
+    /* allocation staging: folded after flow -- not recovered arithmetic */
+    offset = prntp[idx].index + (u32)prntp - (u32)prntp;
     i++;
     objp = LoadOrnament((u_long *)(tmdp + offset));
     mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);
