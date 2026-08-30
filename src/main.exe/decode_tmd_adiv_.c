@@ -33,6 +33,7 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
                       u_long work)
 {
     int step;
+    int count;
     struct TMD_STRUCT *tmd;
     u_short *prim;
     int n;
@@ -71,22 +72,22 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
             GsOUT_PACKET_P = GsTMDfastTNF3(prim, vertop, GsOUT_PACKET_P,
                                            *prim, shift, ot,
                                            work);
-            n -= *prim;
-            do
-            {
-                step = *prim * 7;
-            } while (0);
+            /* The named count (here and in case 0x35) replaced two weight
+             * fences: it re-orders the local v0/v1 quantities the fences
+             * pinned. The other arms need the plain *prim spelling
+             * (measured). */
+            count = *prim;
+            n -= count;
+            step = count * 7;
             step <<= 2;
             break;
         case 0x35:
             GsOUT_PACKET_P = GsTMDfastTNG3(prim, vertop, GsOUT_PACKET_P,
                                            *prim, shift, ot,
                                            work);
-            n -= *prim;
-            do
-            {
-                step = *prim * 9;
-            } while (0);
+            count = *prim;
+            n -= count;
+            step = count * 9;
             step <<= 2;
             break;
         default:
