@@ -627,8 +627,25 @@ residual motion ids under unrelated variable names (y/pd/value/id),
 MOT_NORMAL_TURN_R/L, ProcMisc/CameraType1/vrealloc comment corrections
 (vrealloc's bit31 compare + words-vs-bytes memcpy quirk now stated
 straight), ~10 new measured adjudications. Probe economy holds: ~60%
-of flagged constructs are free respells, the rest get notes. Round 4
-in flight.
+of flagged constructs are free respells, the rest get notes. Rounds
+4-8 (128 files audited total): the readers now also verify comments
+against code — a steady stream of factually wrong or stale notes got
+corrected (BreedLife's "leash flag", vrealloc's dead-compare claim,
+AfsInit's "one 0x3C block" = five handles, tile_sprite_'s wrong
+caller/bits, cd_seek's unsigned clamp, trace_ground_'s fixed-point
+return, Think3hitaway/Think1sleep glosses, the dmy stub family's
+copy-pasted "primitive-sort" wording across 69 TMD files). New free
+classes landed: no-op width casts (writer-width rule), cast
+sandwiches (subdivide_quad_ ×25), dead-t comma chains and the
+comma-assignment condition in ActATTACK, laundered-zero arguments,
+constant-on-the-left flips, paren-member (p->f).g flattening,
+fifteen-name OR chains -> masked constants. Recurring byte-required
+levers keep confirming: mid-sequence pointer aliases, staged
+temporaries, twin cross-jump bodies, entry guards before whiles,
+register-held constants — each now carries a measured note where
+found. Retail's own latent bugs documented, never fixed: AddEnemy's
+ItemName[70]/[71] tail writes, AdtSelect's uninitialized first pad
+read, cd_seek's dead zero-clamp arm, ActSWIM's dead item arms.
 
 CLOSURE (2026-08-27, loop stopped): a final scanner pass surfaced and
 fixed the true last stragglers — leFindEnemy's `local_40` (now epos),
