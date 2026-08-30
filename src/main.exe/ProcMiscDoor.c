@@ -41,9 +41,9 @@
  * Matching notes:
  *  - The message tests follow their physical target order; the labels keep the
  *    create/destroy/pause/resume bodies readable without changing that CFG.
- *  - The one-shot loop around the angle calculation emits no loop at runtime.
- *    Its RTL loop note gives `t` the original allocation priority, allowing
- *    `t`, `wrap`, and `dir` to reuse $v0 at their non-overlapping lifetimes.
+ *  - An unsigned self-identity after the angle calculation gives `t` the
+ *    original allocation priority, allowing `t`, `wrap`, and `dir` to reuse
+ *    $v0 at their non-overlapping lifetimes without a zero-trip loop.
  *  - `__builtin_abs` is intentional.  This build disables ordinary builtin
  *    folding, while the explicit builtin produces the target's inline
  *    bgez/nop/negu sequence and the required DoorData register allocation.
@@ -145,13 +145,12 @@ do_control:
                 s32 wrap;
                 s32 dir;
 
-                do
-                {
-                    t = ratan2(
+                t = ratan2(
                             ConflictObject[cid].position.vz - param->locate->locate.coord.t[2],
                             ConflictObject[cid].position.vx - param->locate->locate.coord.t[0]) +
                         param->locate->rotate.vy;
-                } while (0);
+                /* allocation staging: folded after flow -- not recovered arithmetic */
+                t = ((u32)t + (u32)t) - (u32)t;
                 wrap = t + 0x2000;
                 /* dir stages the predicate before the speed: byte-required
                  * (a plain if/else puts the store in a1, not v0; measured). */

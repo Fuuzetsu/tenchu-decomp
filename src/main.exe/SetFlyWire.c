@@ -124,11 +124,8 @@ found:
                 v = dx + 0xff;
             }
             dx = v >> 8;
-            /* One-shot fences here: byte-required (collapse measured; see cookbook). */
-            do
-            {
-                v = dy;
-            } while (0);
+            /* Folded after flow to replace the former dy allocation weight. */
+            v = ((u32)dy + (u32)dy) - (u32)dy;
             if (dy < 0)
             {
                 v = dy + 0xff;

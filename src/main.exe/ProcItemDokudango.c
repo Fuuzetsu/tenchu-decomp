@@ -181,11 +181,11 @@ void ProcItemDokudango(TItem *item)
                                 goto hit;
                             }
                         }
-                        /* One-shot fences here: byte-required (collapse measured; see cookbook). */
-                        do
-                        {
-                            group++;
-                        } while (0);
+                        /* GCC folds this unsigned pointer progression after
+                         * flow; its extra group reference replaces the old
+                         * allocation-only wrapper. */
+                        group = (Humanoid **)(((u32)group + (u32)group) -
+                                              (u32)group) + 1;
                         i++;
                         continue;
                     }

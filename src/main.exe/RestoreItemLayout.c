@@ -38,9 +38,9 @@
  * copy, while the following whole PARAM_ITEM_STAY assignment emits its second
  * batched copy.  The late `search_success` trampoline reproduces the target's
  * success-only vx/vz stores and jump back to the shared k==4 check without
- * cloning ReqItemStay.  The three one-shot loops around the final level/x/z
- * stores are zero-code global-allocation weights: they order level, z, x,
- * offs, and k into the target s0-s4 homes while leaving scheduling intact.
+ * cloning ReqItemStay.  Folded unsigned identities at the final level/x/z
+ * stores order level, z, x, offs, and k into the target s0-s4 homes while
+ * leaving scheduling intact.
  */
 
 /* The [4] bound is LOAD-BEARING CODEGEN, not a claim about the table's length:
@@ -138,10 +138,8 @@ loop2:
                 goto skip_stay;
             }
         }
-        do
-        {
-            param.locate.vy = level;
-        } while (0);
+        /* allocation staging: folded after flow -- not recovered arithmetic */
+        param.locate.vy = ((u32)level + (u32)level) - (u32)level;
         ReqItemStay(&param);
     skip_stay:;
     }
@@ -150,13 +148,9 @@ loop2:
     goto loop2;
 
 search_success:
-    do
-    {
-        param.locate.vx = x;
-    } while (0);
-    do
-    {
-        param.locate.vz = z;
-    } while (0);
+    /* allocation staging: folded after flow -- not recovered arithmetic */
+    param.locate.vx = ((u32)x + (u32)x) - (u32)x;
+    /* allocation staging: folded after flow -- not recovered arithmetic */
+    param.locate.vz = ((u32)z + (u32)z) - (u32)z;
     goto search_check;
 }
