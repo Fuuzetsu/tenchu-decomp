@@ -363,19 +363,20 @@ dispatch:
             }
             motMODE = 1;
             i = 0;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                if (MotionUpdateMode != 0)
+            } while (0);
+            if (MotionUpdateMode != 0)
+            {
+                for (; i < 5; i++)
                 {
-                    for (; i < 5; i++)
+                    if (CVAhuman[i].human == Me_MOTION_C)
                     {
-                        if (CVAhuman[i].human == Me_MOTION_C)
-                        {
-                            goto no_motion;
-                        }
+                        goto no_motion;
                     }
                 }
-            } while (0);
+            }
             goto set_motion;
         }
         break;
@@ -477,19 +478,20 @@ dispatch:
             }
             motMODE = 1;
             i = 0;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                if (MotionUpdateMode != 0)
+            } while (0);
+            if (MotionUpdateMode != 0)
+            {
+                for (; i < 5; i++)
                 {
-                    for (; i < 5; i++)
+                    if (CVAhuman[i].human == Me_MOTION_C)
                     {
-                        if (CVAhuman[i].human == Me_MOTION_C)
-                        {
-                            goto no_motion;
-                        }
+                        goto no_motion;
                     }
                 }
-            } while (0);
+            }
             goto set_motion;
         }
         break;
@@ -522,19 +524,20 @@ dispatch:
         set_combo:
             motMODE = 1;
             i = 0;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                if (MotionUpdateMode != 0)
+            } while (0);
+            if (MotionUpdateMode != 0)
+            {
+                for (; i < 5; i++)
                 {
-                    for (; i < 5; i++)
+                    if (CVAhuman[i].human == Me_MOTION_C)
                     {
-                        if (CVAhuman[i].human == Me_MOTION_C)
-                        {
-                            goto no_motion;
-                        }
+                        goto no_motion;
                     }
                 }
-            } while (0);
+            }
         set_motion:
             t = SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;

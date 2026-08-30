@@ -66,9 +66,10 @@ void PlayMusicFormID(s32 id)
     table_base = MusicIDTable;
     MusicNo = id - 100;
     i = 0;
+    first = *table_base;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
-        first = *table_base;
     } while (0);
     if (first != 0xFF)
     {
