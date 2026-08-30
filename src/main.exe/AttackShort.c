@@ -88,6 +88,7 @@ short AttackShort(void)
         status_human = Me_THINK_C;
         status_raw = 0;
         status_pad = status_raw;
+        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
         } while (0);

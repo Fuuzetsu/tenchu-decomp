@@ -99,6 +99,7 @@ void ComPad(int port, u8 *rxbuf)
         int i;
 
         pad->button = raw;
+        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
         } while (0);

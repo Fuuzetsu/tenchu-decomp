@@ -59,6 +59,7 @@ void set_boot_exec_(u8 *file, u32 stack, u32 size)
     BootExecRecord *rec;
 
     magic = 0xDEF0C0DE;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
     } while (0);

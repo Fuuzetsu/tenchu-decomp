@@ -249,6 +249,7 @@ void PlayVoice(int id)
         filename_entry = filenames + CHOSEN_LANGUAGE;
         language = filename_entry - filenames;
         voice_entry = tables + language;
+        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
         } while (0);

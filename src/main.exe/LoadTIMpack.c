@@ -133,6 +133,7 @@ short LoadTIMpack(unsigned long *adr)
                 rect.w = tim.cw;
                 rect.h = tim.ch;
                 LoadImage(&rect, tim.clut);
+                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
                 } while (0);

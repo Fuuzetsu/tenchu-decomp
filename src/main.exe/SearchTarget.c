@@ -227,6 +227,7 @@ degree_done:
 
             passage_raw = -2;
             passage_pad = passage_raw;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
             } while (0);
