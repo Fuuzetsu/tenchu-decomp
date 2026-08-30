@@ -689,6 +689,24 @@ mutual-race permutation playbook (7 levers) is cookbook doctrine.
 Round 5 in flight: subdivide_quad_ mega-pair, GetAreaMapLevel region
 fence, and a 15-file mid pack.
 
+ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
+layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
+x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
+ProcItemDokudango); decode_tmd_adiv_ separately went fence-free via a
+NAMED SHARED LOAD (count = *prim) - the best kind of fix, better C
+than the original. Project taste policy now: a carrier lands only at
+<= one clean commented line per removed layer, <= 3 mentions of one
+value; under that bar four ASM-IDENTICAL results were REJECTED and
+their fences kept as least-bad (subdivide_quad_'s +23-ref/25-read
+blob, AddMisc's 5-read bound, SetCameraMode's and StateTransition's
+cast triples). Whole-file keeps with mechanism recorded:
+GetAreaMapLevel (region corridor incl. transient quartet),
+AttackLong (return-staging region), SetBlood (broad init), vmemoryGC
+(inline-helper shape), AttackIndirect (cse constant-carrier),
+update_card retry wrapper (block boundary). Round 6 in flight:
+ProcItemNingyo's two 174s, mission_score remnants, Briefing l320,
+LoadOrnamentArchive, DrawConstruction corridors, AttackIndirect.
+
 DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
 supersedes the no-macro ruling above for RECOVERED content only):
 the file now carries a release-emptied DBG(x) macro (#ifdef DEBUG:
