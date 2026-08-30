@@ -73,14 +73,11 @@ s16 Think3firstattack(void)
         s32 masked;
 
         masked = result & ~0x5FFF;
-        if (masked != 0)
+        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+        do
         {
-            degree = Degree;
-        }
-        else
-        {
-            degree = Degree;
-        }
+        } while (0);
+        degree = Degree;
         if (degree < 0)
         {
             degree = -degree;

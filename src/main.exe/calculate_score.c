@@ -56,14 +56,11 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
     penalty = stealth_base - penalty;
     /* Identical arms on a never-zero test: retail's own dead branch,
      * byte-required (collapsing mismatches; measured). */
-    if (stealth_base != 0)
+    early->spottedScore = penalty;
+    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+    do
     {
-        early->spottedScore = penalty;
-    }
-    else
-    {
-        early->spottedScore = penalty;
-    }
+    } while (0);
     result = &STAGE_SCORE_COMPONENTS;
     if (result->spottedScore < 0)
     {
