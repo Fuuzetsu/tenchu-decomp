@@ -550,6 +550,41 @@ re-refuted with measurements: `zz = zz;` and dead-boundary `ry = zz;`
 add 0 refs (deleted before .lreg counts). The DAH endgame stays
 closed; only the spelling changed.
 
+DAH HUMANISED (2026-08-30, owner-directed max-effort round 2 — five
+commits, all byte-gated): the four-label goto probe block dissolved
+into one if/else with inline ternary-abs conditions (cross-jumping
+builds the shared GetAreaMapVector tail; call_map/probe staging and
+the duplicated `probe = locate` were chase artifacts); the -1-arm
+width pun became `(short)(human->width >> 2)` (combine canonicalizes
+the narrow into the sll16/sra18 extract); the conflict scan became
+`while ((i = GetConflictResult(object, -1)) >= 0)`; the rcos line is
+now symmetric with rsin (no yy staging). The four weight fences are
+ONE seven-level tower on `zz >>= 1` — the recorded "site choice is
+forced / four fences irreplaceable" conclusion was label-renumbering
+noise in raw .s diffs (any +14 distribution over the four zz-only
+statements is byte-identical; canonicalize labels before scoring —
+cookbook §3.10). The identical-arms `if (object_id != 0)` and the
+two-level conflict/object_id nest are gone: THREE EMPTY do{}while(0)
+statements bound the same sched1 regions at zero weight, each
+measured individually load-bearing, with plain assignments between.
+What remains machine-shaped, both proven irreplaceable-in-function
+under the pinned toolchain and documented in the header from cc1's
+own source and dumps: the tower (zz 18->32 weighted refs, priority
+10000 vs i's 9948 across the floor_log2 step at 32) and the three
+empty barriers (the backward scheduler's potential_hazard groups
+ready memory ops, so retail's load order is unreachable from any
+flat statement order). Era question re-closed with a sharper
+instrument: 2.8.0-psx / 2.8.1-psx / gs107 emit identical asm for
+this function flat AND fenced, 2.7.2-class cannot reproduce even its
+instruction count, every plausible flag is inert on the allocation
+fingerprint, and the demo (Oct 1997) predates GCC 2.8.0 entirely —
+its caller-saved i needs no rivalry story beyond its missing damage
+arm. Split-i (mode/no) re-refuted by measurement: the probe/reflect
+piece colors caller-saved ($a3) because the loop tail is the only
+call-crossing range. Cookbook gained the empty-fence substitution
+rule, the label trap, the declaration-order tie lever (correcting
+the older blanket no-op claim), and the load-grouping anti-rule.
+
 HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
 adversarial rounds continued -- the Act*/think header re-audit fixed
 five wrong glosses (and caught commit 1b20da30 claiming fixes its
