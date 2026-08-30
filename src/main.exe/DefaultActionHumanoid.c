@@ -3,6 +3,18 @@
 #include "humanoid.h"
 #include "item.h"
 
+/* The release-emptied debug print, the idiom the demo build shows live: a
+ * debug build defines it as do { FntPrint x; } while (0) (the demo binary
+ * carries this TU's prints compiled in; retail still links FntPrint). The
+ * name is a stand-in -- the original macro name is unrecoverable. The empty
+ * expansion's loop notes are load-bearing at three sites in the conflict
+ * arm; see the register-allocation notes below. */
+#ifdef DEBUG
+#define DBG(x) do { FntPrint x; } while (0)
+#else
+#define DBG(x) do { } while (0)
+#endif
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -113,13 +125,13 @@
  *     "l%d h%d v%x ah%x al%x %04x\n"     (level, height, vector,
  *                                          angleH, angleL, attrib)
  * (strings at 0x800106d4/0x800106f4; 31 FntPrint sites across the
- * demo build). Retail kept the machinery -- FntPrint is still linked
- * and called (the ADT debug menu), and debug_printf_/debug_msg_open_
- * are RETAIL-era additions -- so per-frame dumps compiled out while
- * diagnostics stayed. An empty barrier at the demo's own print site
- * is measured byte-inert in retail, and the three load-bearing sites
- * sit exactly where a dev debugging the new damage arm would dump the
- * collision record. Three deleted debug prints explain the barriers
+ * demo build). That pair now stands in the code below under the DBG
+ * macro, measured byte-inert. Retail kept the machinery -- FntPrint
+ * is still linked and called (the ADT debug menu), and
+ * debug_printf_/debug_msg_open_ are RETAIL-era additions -- so
+ * per-frame dumps compiled out while diagnostics stayed. The three
+ * load-bearing empty sites sit exactly where a dev debugging the new
+ * damage arm would dump the collision record. Three deleted debug prints explain the barriers
  * without anyone typing a bare one-shot loop. (The weight tower above
  * is NOT explainable that way: it nests seven deep around a live
  * statement, which no emptied macro produces.)
@@ -178,6 +190,21 @@ short DefaultActionHumanoid(Humanoid *human)
     else
     {
         GetAreaMapVector(GlobalAreaMap, map, locate, human->width, (short)i);
+    }
+
+    /* The demo build's own dump of the probe result, recovered verbatim
+     * from the demo binary (strings at 0x800106d4/0x800106f4, arguments
+     * matched field-for-field against its call sites); compiled out of
+     * retail, where this whole statement folds to nothing. */
+    if (map->level == LEVEL_NONE)
+    {
+        DBG(("l(ia) h%d v%x ah%x al%x %04x\n", map->height, map->vector,
+             map->angleH, map->angleL, map->attrib));
+    }
+    else
+    {
+        DBG(("l%d h%d v%x ah%x al%x %04x\n", map->level, map->height,
+             map->vector, map->angleH, map->angleL, map->attrib));
     }
 
     if (map->attrib & 2)
@@ -424,23 +451,25 @@ short DefaultActionHumanoid(Humanoid *human)
                                    ? human->width : -human->width) / 8;
 
                 /* The three empty one-shots are sched1 region fences the
-                 * bytes require -- most plausibly emptied debug prints
-                 * (see the header). */
+                 * bytes require -- DBG residue whose print text, unlike the
+                 * map-probe pair above, is unrecoverable (these postdate the
+                 * demo); spelling them DBG(("...")) would mean inventing it.
+                 * See the header. */
                 conflict = &ConflictObject[i];
                 do
                 {
-                    /* deleted debug print */
+                    /* deleted debug print (text lost) */
                 } while (0);
                 object_id = object->id;
                 do
                 {
-                    /* deleted debug print */
+                    /* deleted debug print (text lost) */
                 } while (0);
                 size_y = conflict->size.vy;
                 yy = conflict->position.vy;
                 do
                 {
-                    /* deleted debug print */
+                    /* deleted debug print (text lost) */
                 } while (0);
                 object_y = ConflictObject[object_id].position.vy;
                 top = yy - size_y;

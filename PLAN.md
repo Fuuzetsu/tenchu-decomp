@@ -622,6 +622,20 @@ format strings (fiction) and re-tread the banned-macro costume; the
 tower stays a bare honest compiler dial (no debug reading exists for
 a 7-deep nest around a live statement).
 
+DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
+supersedes the no-macro ruling above for RECOVERED content only):
+the file now carries a release-emptied DBG(x) macro (#ifdef DEBUG:
+do { FntPrint x; } while (0), else do { } while (0); name is a
+stand-in) and the demo-recovered map-probe dump pair spelled
+verbatim under it — both arms, real strings, args matched
+field-for-field; measured byte-inert in retail, and a -DDEBUG
+compile emits exactly the two FntPrint calls the demo build had.
+The three conflict-arm barriers stay BARE empties with
+"text lost" comments: their prints postdate the demo, so any
+DBG(("...")) there would be invented text — known content gets the
+macro, unknown content stays an honest residue. matchdiff MATCH +
+./Build check green.
+
 HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
 adversarial rounds continued -- the Act*/think header re-audit fixed
 five wrong glosses (and caught commit 1b20da30 claiming fixes its

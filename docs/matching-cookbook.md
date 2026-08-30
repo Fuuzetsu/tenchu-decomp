@@ -1464,7 +1464,12 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   if/else pair dumping the map-probe result, "l%d h%d v%x ah%x al%x
   %04x"), retail still links and calls FntPrint (ADT menu) and even
   ADDED debug_printf_/debug_msg_open_ after the demo — the machinery
-  survived; only per-frame dumps compiled out. The keyword sweep
+  survived; only per-frame dumps compiled out. Presentation rule from the
+  owner: RECOVERED prints go back in verbatim under a release-emptied
+  DBG(x) macro (byte-inert where the bytes need nothing; the #ifdef DEBUG
+  arm must actually compile — check it once with -DDEBUG through the
+  probe pipeline); UNRECOVERABLE residue stays a bare empty do{}while(0)
+  with a "text lost" comment — never invent format strings. The keyword sweep
   came up empty: `volatile` on a short field is BYTE-VISIBLE — it blocks
   the load/sign-extend fusion and turns `lh` into `lhu + sll + sra`, so
   any matched function whose bytes fuse `lh` on a field thereby PROVES
