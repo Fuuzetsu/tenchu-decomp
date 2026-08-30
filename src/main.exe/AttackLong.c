@@ -67,7 +67,7 @@ short AttackLong(void)
     pad = 0;
     if (Me_THINK_C->status == STAT_ATTACK)
     {
-        s32 status_degree;
+        s32 deg;
 
         /* One-shot fence: byte-required (collapse measured; see cookbook). */
         do
@@ -80,12 +80,12 @@ short AttackLong(void)
             }
             if (Distance < 3000)
             {
-                status_degree = Degree;
-                if (status_degree < 0)
+                deg = Degree;
+                if (deg < 0)
                 {
-                    status_degree = -status_degree;
+                    deg = -deg;
                 }
-                if (status_degree < 1500)
+                if (deg < 1500)
                 {
                     goto choose_attack;
                 }
@@ -98,6 +98,8 @@ short AttackLong(void)
         } while (0);
 
     choose_attack:
+        /* The doubled |= PADRleft around the goto is byte-required (the
+         * flat else-if respell mismatches; measured). */
         if (Degree > 300)
         {
             pad = PADLright;
@@ -153,7 +155,7 @@ short AttackLong(void)
 
     if ((Me_THINK_C->motion->count & 0xf) != 0)
     {
-        s32 motion_degree;
+        s32 deg;
 
         pad = Me_THINK_C->pad.data;
         if (Distance >= 3000)
@@ -161,13 +163,13 @@ short AttackLong(void)
             goto return_pad;
         }
         ad = Degree;
-        motion_degree = (ad >= 0) ? ad : -ad;
-        if (motion_degree < 500)
+        deg = (ad >= 0) ? ad : -ad;
+        if (deg < 500)
         {
             pad = PADLdown;
             goto return_pad;
         }
-        if (motion_degree <= 1500)
+        if (deg <= 1500)
         {
             goto return_pad;
         }
@@ -179,6 +181,8 @@ short AttackLong(void)
     {
         Humanoid *me;
 
+        /* The mid-sequence alias and mixed spellings are byte-required
+         * (uniform spelling recolors the stores; measured). */
         Me_THINK_C->actmode = 0;
         me = Me_THINK_C;
         Me_THINK_C->chase[1] = 0;

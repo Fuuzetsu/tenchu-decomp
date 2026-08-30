@@ -180,7 +180,6 @@ extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 
 void ActATTACK(void)
-
 {
     bool is_player;
     SVECTOR *v;
@@ -221,10 +220,14 @@ void ActATTACK(void)
             attack_id = GetAttackDBID(Me_MOTION_C, motID);
             human = Me_MOTION_C;
             human->warid = attack_id;
-            sound_id = 0xb;
-            if ((motID != MOT_ATTACK_TAUNT) && (sound_id = 10, (motID & 1U) != 0))
+            sound_id = 11;
+            if (motID != MOT_ATTACK_TAUNT)
             {
-                sound_id = 9;
+                sound_id = 10;
+                if (motID & 1)
+                {
+                    sound_id = 9;
+                }
             }
             Sound(human, sound_id);
         }
@@ -239,8 +242,8 @@ void ActATTACK(void)
         short turn;
         short direction;
 
-        direction = GetDirection((target->locate).coord.t[0] - dtL->vx,
-                                 (target->locate).coord.t[2] - dtL->vz, dtR->vy);
+        direction = GetDirection(target->locate.coord.t[0] - dtL->vx,
+                                 target->locate.coord.t[2] - dtL->vz, dtR->vy);
         human = Me_MOTION_C;
         turn = human->turn;
         if ((int)direction > (int)turn)
@@ -341,8 +344,8 @@ dispatch:
             AttackBowControl(0);
             break;
         }
-        if ((((Me_MOTION_C->pad).trig & PADRleft) != 0) &&
-            (t = AttackContinuousCheck(battle), t != 0))
+        if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
+            AttackContinuousCheck(battle) != 0)
         {
             short i;
 
@@ -394,8 +397,8 @@ dispatch:
         {
             AttackBowControl(1);
         }
-        if ((((Me_MOTION_C->pad).trig & PADRleft) != 0) &&
-            (t = AttackContinuousCheck(battle), t != 0))
+        if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
+            AttackContinuousCheck(battle) != 0)
         {
             short i;
 
@@ -424,8 +427,8 @@ dispatch:
         {
             AttackBowControl(1);
         }
-        if ((((Me_MOTION_C->pad).trig & PADRleft) != 0) &&
-            (t = AttackContinuousCheck(battle), t != 0))
+        if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
+            AttackContinuousCheck(battle) != 0)
         {
             short i;
 
@@ -459,8 +462,8 @@ dispatch:
             weapon = Me_MOTION_C->weapon;
             SWAP_TWIN_BLADE(52, 16);
         }
-        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
-            (t = AttackContinuousCheck(battle), t != 0))
+        if ((((Me_MOTION_C->pad.trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
+            AttackContinuousCheck(battle) != 0)
         {
             short i;
 
@@ -500,8 +503,8 @@ dispatch:
             weapon = Me_MOTION_C->weapon;
             SWAP_TWIN_BLADE(43, 13);
         }
-        if (((((Me_MOTION_C->pad).trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
-            (t = AttackContinuousCheck(battle), t != 0))
+        if ((((Me_MOTION_C->pad.trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
+            AttackContinuousCheck(battle) != 0)
         {
             short i;
 
@@ -552,7 +555,7 @@ dispatch:
         break;
     }
     case MOT_ATTACK_DIVE:
-        if ((dtM->count == 1) && (3000 < (Me_MOTION_C->map).height))
+        if ((dtM->count == 1) && (Me_MOTION_C->map.height > 3000))
         {
             SetCameraMode(CMODE_FALL);
         }
@@ -635,7 +638,7 @@ dispatch:
             motMODE = 1;
             goto unmask;
         }
-        if (0 < (Me_MOTION_C->map).height)
+        if (Me_MOTION_C->map.height > 0)
         {
             return;
         }
@@ -676,12 +679,14 @@ dispatch:
             CamState.snap_pending = 1;
             return;
         }
-        if ((dtM->loop == 0) && (dtL->vy == (Me_MOTION_C->target->locate).coord.t[1]))
+        if ((dtM->loop == 0) && (dtL->vy == Me_MOTION_C->target->locate.coord.t[1]))
         {
             return;
         }
         waist = *Me_MOTION_C->model->object;
         ActionHalt = 0;
+        /* Re-walks the chain rather than reading waist->id: byte-required
+         * (the second full deref is in the bytes; measured). */
         conflict_id = (int)(*Me_MOTION_C->model->object)->id;
         if (conflict_id >= 0)
         {
@@ -689,8 +694,8 @@ dispatch:
             dtL->vz = ConflictObject[conflict_id].position.vz;
         }
         (void)*(Humanoid *volatile *)&Me_MOTION_C;
-        (waist->locate).coord.t[2] = 0;
-        (waist->locate).coord.t[0] = 0;
+        waist->locate.coord.t[2] = 0;
+        waist->locate.coord.t[0] = 0;
         ReturnNormal();
         saved_mid = motID;
         motion_flag = motMODE;
@@ -710,7 +715,7 @@ dispatch:
         dtM->count = 0;
         dtM->loop = 0;
         PlayMotion(dtM, 1);
-        motMODE = 0xffff;
+        motMODE = -1;
         CamState.snap_pending = 1;
         return;
     }
@@ -751,7 +756,7 @@ dispatch:
                 CamState.snap_pending = 1;
             }
         }
-        (Me_MOTION_C->pad).time = 0;
+        Me_MOTION_C->pad.time = 0;
         return;
     }
     {

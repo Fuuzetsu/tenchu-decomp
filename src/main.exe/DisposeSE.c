@@ -27,9 +27,9 @@
  * sound-effect object's VAB header buffer and the SoundEffect itself. Same
  * null-check-then-free shape as DisposeBG/DisposeAfterimage, plus an extra
  * unconditional SsUtAllKeyOff(0)/SsVabClose(se->VABid) pair before the frees
- * (se survives all four calls in a callee-saved register). Local struct
- * matches Ghidra's real SoundEffect exactly (VABid@0 s16, program@2 s16
- * unused here, VABhead@4 pointer) — no truncation needed, it's the whole type.
+ * (se survives the first three calls in a callee-saved register; the last
+ * call takes it as the argument). Uses game_types.h's shared SoundEffect
+ * (VABid@0 s16, program@2 s16 unused here, VABhead@4 pointer).
  */
 extern void SsUtAllKeyOff(s32 flag);
 extern void SsVabClose(s16 vabId);

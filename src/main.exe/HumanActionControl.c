@@ -39,8 +39,8 @@
  * HumanActionControl (0x8001c80c, 0x124 bytes) — the per-humanoid, per-frame
  * top-level driver: snapshots the pad, latches the "d-globals" (dtL/dtR/dtV/
  * dtM/motID) other MOTION.C functions read, runs whichever of
- * DamageControl/FallCheck-then-{HangCheck,SwimCheck} applies, sanitizes a
- * jump-pad bit out of dtPAD, dispatches through `ActionFunc[human->status]`
+ * DamageControl/FallCheck-then-{HangCheck,SwimCheck} applies, drops the
+ * D-pad directions from dtPAD while L1 (camera-center) is held, dispatches through `ActionFunc[human->status]`
  * (an indirect call through a proven 18-entry function-pointer table), and
  * finally runs MotionAndMove() unless the dispatched handler left
  * `motMODE` at its reset sentinel (-1).
@@ -78,8 +78,8 @@
  */
 
 /* TU-local UNSIGNED view of MotionManager's leading `mid` (item.h keeps the
- * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - MOT_ACTION)`
- * in ActACTION.c). Reading through this view is what gives MOTION.C's `lhu`
+ * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - MOT_HANG)`
+ * in ActHANG.c). Reading through this view is what gives MOTION.C's `lhu`
  * while keeping the access a COMPONENT_REF — see the note above; the
  * `*(u16 *)&motion->mid` cast spelling costs 11 bytes. */
 typedef struct
@@ -148,7 +148,7 @@ void HumanActionControl(Humanoid *human)
     }
     if ((MOTION_PAD_BITS & PADL1) != 0)
     {
-        dtPAD = MOTION_PAD_BITS & 0xFFF;
+        dtPAD = MOTION_PAD_BITS & ~(PADLup | PADLright | PADLdown | PADLleft);
     }
     ActionFunc[Me_MOTION_C->status]();
     if (motMODE != -1)

@@ -133,9 +133,8 @@ void DoMiscProc(void)
             }
         next:
             i++;
-            d = i < MaxMisc;
             p++;
-            if (d)
+            if (i < MaxMisc)
                 goto cull_loop;
         }
         DrawTMDmode = TMD_BANK_FOG;

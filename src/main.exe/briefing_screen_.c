@@ -274,7 +274,7 @@ void briefing_screen_(void)
     u16 previous_pad;
     s16 fade;
     s16 counter;
-    s32 page_x;
+    s32 fade_now;
     s16 sequence;
     s32 fade_step;
     s32 adjusted;
@@ -285,8 +285,8 @@ void briefing_screen_(void)
     u8 brightness;
     s32 left_brightness;
     s32 scaled_left_brightness;
-    s32 edge_brightness;
-    s32 scaled_brightness;
+    s32 right_brightness;
+    s32 scaled_right_brightness;
     s16 i;
 
     file = PathFileRead((u8 *)path_demo,
@@ -346,8 +346,8 @@ void briefing_screen_(void)
             exec_process_(PROCESS_MENU);
         }
 
-        page_x = fade;
-        if (page_x >= 0xff)
+        fade_now = fade;
+        if (fade_now >= 0xff)
         {
             break;
         }
@@ -356,7 +356,7 @@ void briefing_screen_(void)
         switch (sequence)
         {
         case 0:
-            if (page_x == 0)
+            if (fade_now == 0)
             {
                 s16 music;
 
@@ -391,7 +391,7 @@ void briefing_screen_(void)
             if (counter >= 0)
             {
                 s32 renderer_tpage = tpage_base >> 16;
-                s32 renderer_width = (s16)strip_width;
+                s32 renderer_width = strip_width;
                 s32 renderer_offset;
                 s32 renderer_x;
                 s16 renderer_raw_x;
@@ -399,8 +399,8 @@ void briefing_screen_(void)
                 {
                     sprite.u = counter << 2;
                     sprite.tpage = GetTPage(0, 0,
-                                            renderer_tpage + (s16)counter, 0x100);
-                    renderer_offset = renderer_width - (s16)counter;
+                                            renderer_tpage + counter, 0x100);
+                    renderer_offset = renderer_width - counter;
                     renderer_offset <<= 3;
                     renderer_raw_x = xbase - renderer_offset;
                     sprite.x = renderer_raw_x;
@@ -437,17 +437,19 @@ void briefing_screen_(void)
                     {
                         goto brightness_center;
                     }
-                    scaled_brightness = edge_brightness =
-                        0xa0 - renderer_x;
-                    scaled_brightness <<= 1;
-                    scaled_brightness += edge_brightness;
-                    brightness = scaled_brightness;
+                    right_brightness = 0xa0 - renderer_x;
+                    scaled_right_brightness = right_brightness;
+                    scaled_right_brightness <<= 1;
+                    scaled_right_brightness += right_brightness;
+                    brightness = scaled_right_brightness;
                     goto brightness_right_store;
 
                 brightness_center:
                     brightness = 0x80;
                     goto brightness_right_store;
 
+                /* Twin store bodies: byte-required (one merged label loses
+                 * the cross-jump layout; measured). */
                 brightness_left_store:
                     sprite.r = brightness;
                     sprite.g = brightness;

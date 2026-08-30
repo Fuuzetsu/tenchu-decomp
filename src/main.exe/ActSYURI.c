@@ -33,12 +33,14 @@
 /*
  * ActSYURI (0x80025dd0, 0x2a4 bytes) — the shuriken-throw action state
  * (MOTION.C's ActionFunc[] table, dispatched by HumanActionControl on
- * human->status). Two motion ids: 0xE00 (throw) spawns the shuriken item at
+ * human->status). Two motion ids: MOT_SYURI (throw) spawns the shuriken item at
  * the weapon-hand model's absolute position on frame 1 (count == 1), or —
- * past that frame — holds the aim lock (spare_item_slot_) until it breaks or the
- * player cancels via pad.trig & (PADRleft | PADRdown | PADRright); 0xE01 (recover) restocks the AI's
+ * past that frame — checks the spare-shuriken slot (spare_item_slot_) and
+ * drops to recover when it runs out or the player cancels via pad.trig &
+ * (PADRleft | PADRdown | PADRright); MOT_SYURI_RECOVER restocks the AI's
  * shuriken (ReqItemDefault) and returns to motion 0 or the weapon-drawn
- * engage stance (0x501, attribute & ATTR_ALERT) when the motion runs out.
+ * engage stance (MOT_ENGAGE_STANCE, attribute & ATTR_ALERT) when the
+ * motion runs out.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `switch (dtM->mid)` (a real switch: sequential beqs + `j default`,
@@ -66,7 +68,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern s32 spare_item_slot_(s32 arg0, Humanoid *arg1);
+extern s32 spare_item_slot_(s32 mode, Humanoid *human);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ActSYURI(void)
@@ -76,7 +78,7 @@ void ActSYURI(void)
 
     switch (dtM->mid)
     {
-    case 0xE00:
+    case MOT_SYURI:
         if (Me_MOTION_C != StagePlayer)
         {
             if (dtM->count != 0)

@@ -6,8 +6,11 @@
  * cd_seek (0x8005f634) — classic fseek(handle, offset, whence) over the
  * proven `FILE *` (shared with cd_close/cd_getsize/cd_tell/cd_init/cd_open/
  * cd_read): CDSEEK_SET is absolute, CDSEEK_CUR is relative to f->pos, and
- * CDSEEK_END is relative to f->finfo.size; clamps the new position into
- * [0, f->finfo.size] before storing it back to f->pos. A NULL handle
+ * CDSEEK_END is relative to f->finfo.size; clamps the new position to
+ * f->finfo.size before storing it back to f->pos — an UNSIGNED compare
+ * (size is u32), so a negative position also takes the clamp-to-size arm
+ * and the `pos < 0` zero arm below it is dead (retail carries the same
+ * dead bgez). A NULL handle
  * reports via puts() and returns -1 (see cd_getsize's header for the
  * guard-clause polarity note).
  *
@@ -40,7 +43,7 @@ extern char msg_cd_seek_invalid_handle[]; /* cd_seek:invalid handle */ /* "cd_se
 
 int cd_seek(FILE *f, int offset, TSeekMode whence)
 {
-    s32 ret;
+    s32 pos;
     u32 size;
 
     if (f == 0)
@@ -56,23 +59,23 @@ int cd_seek(FILE *f, int offset, TSeekMode whence)
         goto do_end;
     goto merge;
 do_set:
-    ret = offset;
+    pos = offset;
     goto merge;
 do_end:
-    ret = f->finfo.size + offset;
+    pos = f->finfo.size + offset;
     goto merge;
 do_cur:
-    ret = f->pos + offset;
+    pos = f->pos + offset;
 merge:
     size = f->finfo.size;
-    if (size < ret)
+    if (size < pos)
     {
-        ret = size;
+        pos = size;
     }
-    else if (ret < 0)
+    else if (pos < 0)
     {
-        ret = 0;
+        pos = 0;
     }
-    f->pos = ret;
+    f->pos = pos;
     return 0;
 }
