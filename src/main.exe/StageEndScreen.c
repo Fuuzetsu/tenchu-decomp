@@ -375,9 +375,10 @@ void StageEndScreen(void)
                     GsSPRITE *sprite;
                     s32 enemy_count;
 
+                    sprite = &digit;
+                    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                     do
                     {
-                        sprite = &digit;
                     } while (0);
                     enemy_count = stats.stageEnemies;
                     i = stats.stageBosses;
@@ -464,11 +465,12 @@ void StageEndScreen(void)
                 }
                 DRAW_LAST_SCORE_NUMBER((u16)best.score);
 
+                rank.x = -25;
+                rank.y = 78;
+                pulse = rsin((GameClock << 12) / 90) * 0x7f;
+                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
-                    rank.x = -25;
-                    rank.y = 78;
-                    pulse = rsin((GameClock << 12) / 90) * 0x7f;
                 } while (0);
                 /* Biased-shift /4096: byte-required (plain division
                  * mismatches; measured). */

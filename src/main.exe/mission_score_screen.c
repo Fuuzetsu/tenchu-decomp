@@ -845,9 +845,10 @@ void mission_score_screen(void)
              * (depth 2 measured minimal, depth 1 swaps back). */
             do
             {
+                rankSpriteBase = rankSprites;
+                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
-                    rankSpriteBase = rankSprites;
                 } while (0);
             } while (0);
         do
@@ -930,6 +931,7 @@ void mission_score_screen(void)
                 rowBrightness = 0x80;
             }
             sprite->r = sprite->g = sprite->b = rowBrightness;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
             } while (0);

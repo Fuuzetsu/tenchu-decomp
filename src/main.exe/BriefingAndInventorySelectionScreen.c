@@ -375,51 +375,52 @@ void BriefingAndInventorySelectionScreen(void)
             int ddx, ddy, hx, hy;
             int k;
 
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                shown = 0x10;
-                if ((np & PADLdown) == 0)
-                {
-                    shown = 0;
-                    if ((np & PADLup) != 0)
-                    {
-                        shown = -0x10;
-                    }
-                }
-                j = 0x10;
-                if ((np & PADLright) == 0)
-                {
-                    j = 0;
-                    if ((np & PADLleft) != 0)
-                    {
-                        j = -0x10;
-                    }
-                }
-                hx = j << 0x10;
-                hy = shown << 0x10;
-                k = cursor;
-                ddx = hx >> 0x10;
-                ddy = hy >> 0x10;
-                if (ddx != 0 || ddy != 0)
-                {
-                    int best = 0x7FFFFFFF;
-                    int bi = cursor;
-                    int tx = SHOP_ITEM_DEFAULTS[bi].x + ddx;
-                    int ty = SHOP_ITEM_DEFAULTS[bi].y + ddy;
-                    for (si = 0; si < 0x13; si++)
-                    {
-                        int ex = SHOP_ITEM_DEFAULTS[si].x - tx;
-                        int ey = SHOP_ITEM_DEFAULTS[si].y - ty;
-                        int d = ex * ex + ey * ey;
-                        if (d < best && 0 <= ex * ddx && 0 <= ey * ddy && si != k)
-                        {
-                            best = d;
-                            bi = si;
-                        }
-                    }
-                    cursor = bi;
-                }
             } while (0);
+            shown = 0x10;
+            if ((np & PADLdown) == 0)
+            {
+                shown = 0;
+                if ((np & PADLup) != 0)
+                {
+                    shown = -0x10;
+                }
+            }
+            j = 0x10;
+            if ((np & PADLright) == 0)
+            {
+                j = 0;
+                if ((np & PADLleft) != 0)
+                {
+                    j = -0x10;
+                }
+            }
+            hx = j << 0x10;
+            hy = shown << 0x10;
+            k = cursor;
+            ddx = hx >> 0x10;
+            ddy = hy >> 0x10;
+            if (ddx != 0 || ddy != 0)
+            {
+                int best = 0x7FFFFFFF;
+                int bi = cursor;
+                int tx = SHOP_ITEM_DEFAULTS[bi].x + ddx;
+                int ty = SHOP_ITEM_DEFAULTS[bi].y + ddy;
+                for (si = 0; si < 0x13; si++)
+                {
+                    int ex = SHOP_ITEM_DEFAULTS[si].x - tx;
+                    int ey = SHOP_ITEM_DEFAULTS[si].y - ty;
+                    int d = ex * ex + ey * ey;
+                    if (d < best && 0 <= ex * ddx && 0 <= ey * ddy && si != k)
+                    {
+                        best = d;
+                        bi = si;
+                    }
+                }
+                cursor = bi;
+            }
         }
         if ((np & (PADLup | PADLright | PADLdown | PADLleft)) != 0)
         {
