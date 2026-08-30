@@ -91,7 +91,7 @@
  *    round-robin, not find_reg), so no fence tuning can close the 9.
  *
  * 3. The single-use `name` temp was removed (byte-NEUTRAL, 9->9): the site-1
- *    deref is now the `if (menu->name != 0)` count guard directly.  The
+ *    deref is now the `menu[count].name != 0` count guard directly.  The
  *    RTL is identical because combine always folded the temp — reg 93 below is
  *    the loaded name value of that guard, whether or not a C `name`
  *    named it (measured: candidate with the temp is byte-for-byte the same).
@@ -435,6 +435,8 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
     short i;
     char *fmt;
 
+    /* pad is read uninitialized on the first pass below (trg = pad before
+     * the first AdtPadRead): retail's own. */
     do
     {
     } while (AdtPadRead(0) != 0);
@@ -456,7 +458,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
         pad = AdtPadRead(0);
         trg = ~trg & pad;
         page = mode / 18;
-        first = page * 0x12;
+        first = page * 18;
         last = first + 18;
         if (count < last)
             last = count;
@@ -464,8 +466,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
         if (pages > 1)
             FntPrint(fmt_count_pair, page + 1, pages);
         FntPrint(str_blank_line);
-        i = first;
-        for (; i < last; i++)
+        for (i = first; i < last; i++)
         {
             if (mode == i)
                 fmt = str_arrow;
@@ -484,6 +485,8 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
             mode = count - 1;
             break;
         }
+        /* i doubles as the cursor delta: byte-required (a separate local
+         * loses the s-register identity; measured). */
         if (trg & PADLup)
             i = -1;
         else if (trg & PADLdown)

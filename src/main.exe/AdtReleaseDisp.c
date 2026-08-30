@@ -16,18 +16,18 @@
  * +0x5c, and DRAWENV's own tpage@0x14/dr_env@0x1c fields inside THAT slot
  * fall at +0x70/+0x78). Those are really TAdtDisp's OWN `rect`@0x70 and
  * `backup`@0x78 fields (reference/psxsym-types.h) — the real parameter is
- * `TAdtDisp *`, not a DRAWENV array. `LoadImage(&ad->rect, ad->backup)`
+ * `TAdtDisp *`, not a DRAWENV array. `LoadImage(&disp->rect, disp->backup)`
  * reproduces the exact same addresses without the array-indexing fiction.
  */
 extern AdtFntState AdtFnt;
 
-void AdtReleaseDisp(TAdtDisp *ad)
+void AdtReleaseDisp(TAdtDisp *disp)
 {
     FntLoad(AdtFnt.tx, AdtFnt.ty);
     FntOpen(AdtFnt.x, AdtFnt.y, AdtFnt.w, AdtFnt.h,
             AdtFnt.isbg, AdtFnt.n);
-    LoadImage(&ad->rect, (u_long *)ad->backup);
+    LoadImage(&disp->rect, disp->backup);
     DrawSync(0);
-    PutDrawEnv(&ad->draw);
-    PutDispEnv(&ad->disp);
+    PutDrawEnv(&disp->draw);
+    PutDispEnv(&disp->disp);
 }

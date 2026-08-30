@@ -46,13 +46,14 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  * Distance/SR/Degree/Attrib — see gpsyms).
  *
  * If close (Distance < 10000) and not already in the "-2" SR state, clear
- * SR. If the character just got hit (character_status == 7): clear actflg,
- * zero out `some_other_x_position`/`some_other_z_position` (Ghidra's
- * `chase[0]`/`chase[1]`), and SuccessionAttack(3000, 1500) for the result.
- * Else if not already acting (actflg == 0): face the player if aim is
- * close (abs(Degree) < 1000, via turn_towards_player_ OR'd with a walk/run
- * hint) or ChasetoTarget(5000) otherwise; roll a 1-in-30 chance (Distance <
- * 2000) to add a "hit" flag (0x40); arm actflg once far enough away
+ * SR. While in the attack state (STAT_ATTACK): clear actflg,
+ * zero out `chase[0]`/`chase[1]` (Ghidra's `some_other_x_position`/
+ * `some_other_z_position`), and SuccessionAttack(3000, 1500) for the result.
+ * Else if not already acting (actflg == 0): if aim is close
+ * (abs(Degree) < 1000) keep only the turn bits from turn_towards_player_
+ * and force PADLdown (back away), else ChasetoTarget(5000); roll a
+ * 1-in-30 chance (Distance <
+ * 2000) to press PADRdown (jump); arm actflg once far enough away
  * (Distance > 4000) or once Attrib bit 0x400 is set. Else (already
  * acting): dispatch through AttackFunc[wpatk>>4]() — same
  * zero-argument indirect-call idiom as Think3chase.c.

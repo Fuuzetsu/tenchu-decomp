@@ -49,7 +49,7 @@
  * the throw velocity into the embedded param_ninken.koro record but — unlike
  * them — only reads end.vx/end.vz from the caller: end.vy is never loaded,
  * and koro.vy instead gets the hardcoded
- * constant -0xfa (a fixed vertical/launch parameter for the tracker dog).
+ * constant -250 (a fixed vertical/launch parameter for the tracker dog).
  * PSX.SYM identifies the following word and halfword as the slave and count
  * fields of param_ninken, respectively.
  *
@@ -60,7 +60,7 @@
  *    as the other twins.
  *  - aowner/atype and x/z are real temps, same shape as the other twins (no `y`
  *    temp here: end.vy is never read). The block-scoped
- *    `param_korogari *param` is PSX.SYM's second `param`.
+ *    `koro` is PSX.SYM's second `param`.
  *  - `item->param.ninken.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */

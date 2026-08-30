@@ -50,7 +50,9 @@ s16 ThinkBasicHuman1(void)
     }
     if (pad & PADR1)
     {
-        pad = (pad & (PADLleft | PADLdown | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADL1 | PADR2 | PADL2)) | PADRright;
+        /* 0xfff7 = all pad bits except PADR1; the 16-bit spelling keeps
+         * the andi (~PADR1 widens to a 32-bit mask; measured). */
+        pad = (pad & 0xfff7) | PADRright;
     }
     return pad;
 }

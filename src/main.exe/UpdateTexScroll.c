@@ -40,7 +40,7 @@
  *  - `tscr->x`/`tscr->image.w` are DIFFERENT fields at DIFFERENT offsets
  *    (0xC vs 0x18) even though both read as the divisor's/SetDrawMove's
  *    "width" — Ghidra's `param_1 + 0x18` (div) and `param_1 + 0xc`
- *    (SetDrawMove's w arg) are genuinely separate struct members, not the
+ *    (SetDrawMove's destination-x arg) are genuinely separate struct members, not the
  *    same field twice; `image` is a real embedded RECT{x,y,w,h} whose w/h
  *    (0x18/0x1A in the composite slot) are set by SetupTexScroll to the scroll
  *    region's extent and reused here as the wrap divisor; this routine only
@@ -65,16 +65,13 @@ void UpdateTexScroll(TEffectSlot *ef)
 {
     TexScroll *tscr;
     DR_MOVE *prim;
-    s32 x, y;
 
     tscr = &ef->param.texscroll;
-    tscr->px = (u16)((u32)(tscr->px + tscr->vx) %
-                     (u32)(tscr->image.w << 4));
-    tscr->py = (u16)((u32)(tscr->py + tscr->vy) %
-                     (u32)(tscr->image.h << 4));
+    tscr->px = (u32)(tscr->px + tscr->vx) % (u32)(tscr->image.w << 4);
+    tscr->py = (u32)(tscr->py + tscr->vy) % (u32)(tscr->image.h << 4);
 
-    tscr->image.x = (u16)tscr->sx + tscr->px / 16;
-    tscr->image.y = (u16)tscr->sy + tscr->py / 16;
+    tscr->image.x = tscr->sx + tscr->px / 16;
+    tscr->image.y = tscr->sy + tscr->py / 16;
 
     prim = (DR_MOVE *)GsGetWorkBase();
     GsSetWorkBase(prim + 1);

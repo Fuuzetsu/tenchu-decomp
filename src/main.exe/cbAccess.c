@@ -33,7 +33,7 @@
  * cbAccess (0x80018dec, 0x114 bytes) — the access-meter's vsync-callback
  * draw routine (armed by PrepareAccess/FileRead): advances AccessPower by 8
  * (wrapping mod 256) and re-tints AccessImage's 4 vertices to a
- * lighten-towards-white gradient from that value, then swaps in a draw
+ * four-corner tint cycling each corner between v and its complement, then swaps in a draw
  * environment with the display's own clip rect (so the meter draws
  * unclipped over the current frame), draws it, and restores the original
  * draw environment. Same canonical DRAWENV/DISPENV/RECT types as sibling

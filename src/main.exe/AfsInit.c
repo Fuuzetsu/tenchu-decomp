@@ -6,7 +6,7 @@
  * AfsInit (0x8005ee80) — initializes a TAFS archive-filesystem handle:
  * zeroes 4 of its 7 fields (fModified and posElement are left untouched —
  * proven by the asm, only fpVol/pElement/maxElements/maxElementArea get an
- * `sw zero`), then valloc()s a fixed 0x3C-byte TAFSFileHandle block; on OOM
+ * `sw zero`), then valloc()s a five-entry TAFSFileHandle pool; on OOM
  * it reports via AdtMessageBox and returns early, otherwise it zeroes the
  * freshly-allocated block with memset. Called by AfsOpenVolume.
  *
@@ -41,10 +41,10 @@ void AfsInit(TAFS *handle)
     handle->maxElements = 0;
     handle->maxElementArea = 0;
     handle->pElement = 0;
-    p = valloc(0x3C);
+    p = valloc(5 * sizeof(TAFSFileHandle));
     handle->pHandle = p;
     if (p == 0)
         AdtMessageBox(msg_afsinit_not_enough_memory);
     else
-        memset(p, 0, 0x3C);
+        memset(p, 0, 5 * sizeof(TAFSFileHandle));
 }

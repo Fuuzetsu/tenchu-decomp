@@ -9,13 +9,14 @@
  * for it.
  *
  * Steps from `from` toward `to` in units of 0x1F4000 / GetVectorLength(delta)
- * (i.e. a fixed number of world-space steps along the ray, up to 0x1000 of
- * them), sampling the ground level at each step via CGetLevel; stops as soon
+ * (a fixed 500-world-unit step in 1.12 fixed point, so the iteration count
+ * scales with the ray length), sampling the ground level at each step via
+ * CGetLevel; stops as soon
  * as the ground rises above the ray's height there (CGetLevel's result <
  * the step's own y). Writes the last step that stayed above ground into
- * `*out` (skipped when NULL) and returns the step index reached — callers
- * use it as a crude "how far can you see/walk" measure (SetCameraMode
- * treats a return > 0x7FF as "clear").
+ * `*out` (skipped when NULL) and returns how far along the ray it got in
+ * the same 1.12 fixed point (0x1000 == reached `to`) — SetCameraMode
+ * treats a return > 0x7FF (past halfway) as "clear".
  *
  * Confirmed 4-parameter signature (Ghidra's own decompilation only shows 3):
  * SearchItemTarget2.c and SetCameraMode.c already document the trailing
@@ -78,7 +79,7 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     dy = to->vy - y;
     z = from->vz;
     dz = to->vz - z;
-    step = 0x1F4000 / GetVectorLength(dx, dy, dz);
+    step = (500 << 12) / GetVectorLength(dx, dy, dz);
     lx = x;
     ly = y;
     lz = z;

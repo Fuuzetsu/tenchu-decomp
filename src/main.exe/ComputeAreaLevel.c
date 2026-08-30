@@ -35,7 +35,7 @@
  *
  * Matching notes (docs/matching-cookbook.md; all verified against the bytes;
  * PSX.SYM only names ONE extra local ("yy") — wrong here, the asm needs four
- * more (dz/zspan/dx/xspan), each read TWICE (the mask test and a case body)):
+ * more (dz/zspan/dx/xspan, plus the named `mask` below), each read TWICE (the mask test and a case body)):
  *  - Real runtime divisions (variable divisor) — this file needs
  *    maspsx --expand-div (Build.hs maspsxGpExterns).
  *  - x1/z1/x2/z2/division read `lhu` (Ghidra's own (uint)(ushort) casts
@@ -54,12 +54,12 @@
  *    truncating sra with the shift into one `sra x,x,14` — one instruction
  *    SHORTER than the target. The fusion is suppressed here only because
  *    `dz`/`dx` (the plain truncated diffs) are each read a SECOND time later
- *    (in the case_4000/case_8000 slope multiply), so cc1 must keep the
+ *    (in the slope_x/slope_z slope multiply), so cc1 must keep the
  *    unshifted value alive in its own register instead of folding it away.
  *  - **Two guard-goto ladder, THEN a modify-shared-variable-and-fall-through
  *    tail**, not two independent `return EXPR;` guards: `if (attr==0x4000)
- *    goto case_4000; if (attr==0x8000) goto case_8000; goto tail; case_4000:
- *    yy = yy + slope; goto tail; case_8000: yy = yy + slope; tail: return
+ *    goto slope_x; if (attr==0x8000) goto slope_z; goto tail; slope_x:
+ *    yy = yy + slope; goto tail; slope_z: yy = yy + slope; tail: return
  *    yy;` reproduces the target's SINGLE shared return tail (cross-jump
  *    merges the two case bodies' truncate-and-return code with the default's
  *    only when every path funnels through one `return yy;` — three separate
@@ -94,15 +94,15 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
     yy = node->y;
 
     if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
-        goto case_4000;
+        goto slope_x;
     if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
-        goto case_8000;
+        goto slope_z;
     goto tail;
 
-case_4000:
+slope_x:
     yy = yy + dx * node->dy / xspan;
     goto tail;
-case_8000:
+slope_z:
     yy = yy + dz * node->dy / zspan;
 
 tail:

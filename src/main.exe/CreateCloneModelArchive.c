@@ -36,13 +36,13 @@
  * CreateCloneModelArchive (0x80017874, 0x1a4 bytes) - ModelArchiveType's
  * allocate+init constructor, the archive-level sibling of CreateCloneModel.c
  * (single ModelType) and CreateCloneOrnament.c (OrnamentType): valloc a
- * ModelArchiveType (0x6c bytes, item.h), copy the source's sub-model COUNT
+ * ModelArchiveType (0x6c bytes, game_types.h), copy the source's sub-model COUNT
  * (`n`) and allocate a matching `object` pointer table, hook the archive's
  * own GsCOORDINATE2 into the SOURCE's hierarchy (`mad->locate.super`, not
  * World - this level nests under whatever the clone source was attached
  * to), zero+RotMatrixYXZ its own translation like every other clone
  * constructor in this TU, then for each of the `n` sub-models: valloc a
- * fresh ModelType (item.h, 0x74 bytes), self-reference its `object.coord2`,
+ * fresh ModelType (game_types.h, 0x74 bytes), self-reference its `object.coord2`,
  * root ITS GsCOORDINATE2 under World this time (sub-models always hang off
  * World, only the archive root inherits the source's own parent), zero+
  * RotMatrixYXZ its translation, and - when the corresponding source
@@ -91,7 +91,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
     newmad->n = mad->n;
     newmad->object = (ModelType **)valloc(newmad->n * sizeof(ModelType *));
-    GsInitCoordinate2(mad->locate.super, (GsCOORDINATE2 *)newmad);
+    GsInitCoordinate2(mad->locate.super, &newmad->locate);
     newmad->locate.coord.t[0] = 0;
     newmad->locate.coord.t[1] = 0;
     newmad->locate.coord.t[2] = 0;
@@ -112,9 +112,9 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
         {
             objp = mad->object[i];
             dim = (ModelType *)valloc(sizeof(ModelType));
-            dim->object.coord2 = (GsCOORDINATE2 *)dim;
+            dim->object.coord2 = &dim->locate;
             dim->object.attribute = 0;
-            GsInitCoordinate2(&World.locate, (GsCOORDINATE2 *)dim);
+            GsInitCoordinate2(&World.locate, &dim->locate);
             dim->locate.coord.t[0] = 0;
             dim->locate.coord.t[1] = 0;
             dim->locate.coord.t[2] = 0;
@@ -136,6 +136,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
             i++;
         } while (i < newmad->n);
     }
+    /* Read even when n == 0 (object[0] then never written): retail's own. */
     newmad->rotate.pad = (short)newmad->object[0]->locate.coord.t[1];
     return newmad;
 }

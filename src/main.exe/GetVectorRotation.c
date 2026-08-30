@@ -39,9 +39,9 @@
 
 void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry)
 {
-    s32 dz;
     s32 dx;
     s32 dy;
+    s32 dz;
 
     dx = end->vx - start->vx;
     dz = end->vz - start->vz;

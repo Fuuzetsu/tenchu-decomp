@@ -51,6 +51,8 @@ void spawn_damage_effect_(Humanoid *human, int mode)
 
         work.launch.type = ITEM_NAPALM;
         work.launch.user = human;
+        /* The start.vy/end.vx/vy/vz double stores below are retail's own
+         * (both writes of each pair are in the bytes). */
         x = human->model->locate.coord.t[0];
         work.launch.start.vx = x;
         y = human->model->locate.coord.t[1];
@@ -61,6 +63,8 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         work.launch.end.vx = x;
         work.launch.end.vy = y - 100;
         work.launch.end.vz = z;
+        /* vx/vz staging: byte-required (inlining the reads recolors the
+         * store registers; measured). */
         vx = human->vector.vx;
         work.launch.end.vx = x + vx;
         vz = human->vector.vz;
@@ -117,7 +121,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
             if (slot->proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+                if (idx + 1 > N_EFFECT_SLOTS - 1)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
@@ -127,10 +131,8 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         } while (count < N_EFFECT_SLOTS);
         found_slot = &dmy;
     found:
-        idx = 0;
         frame = &found_slot->param.frame;
         frame->px = position->vx;
-        count = idx;
         frame->py = position->vy;
         frame->pz = position->vz;
         frame->mode = 0;
@@ -139,7 +141,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         frame->super = &model->locate;
         found_slot->proc = (void (*)())DrawFrame;
 
-        SetBleedsDir(GetAbsolutePosition(model, idx, count, idx),
+        SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
                      &work.blood.scratch.direction,
                      100, 10, 30, 0x64643C);
         SoundEx((VECTOR *)human->model->locate.coord.t, 0x39);

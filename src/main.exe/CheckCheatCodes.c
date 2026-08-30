@@ -48,7 +48,7 @@ extern char str_number_of[];   /* number of */
  * Triangle x2 — the debug item-grant code. */
 extern s16 CheatSeq[];
 /* The retail command grew from the demo's original short [15] to 21
- * entries: Triangle Cross Square Circle, Cross x4, Triangle x4,
+ * entries (20 buttons + the -1 terminator): Triangle Cross Square Circle, Cross x4, Triangle x4,
  * Square Circle Triangle Cross, Square x2, Circle x2 — the debug-mode
  * code. */
 extern s16 ForbiddenCommand[21];
