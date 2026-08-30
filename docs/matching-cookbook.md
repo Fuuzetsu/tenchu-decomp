@@ -807,6 +807,12 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   assigned once before the loop (RestoreItemLayout, LoadOrnamentArchive);
   in-loop economics beyond this are §3.14.
 
+- **`while ((x = call()) >= 0)` ≡ `while (1) { x = call(); if (x < 0) break; }`**:
+  identical RTL including a short-returning callee's sll/sra narrowing
+  (DefaultActionHumanoid's GetConflictResult scan). Pick whichever reads
+  human; converting a matched while(1)+break to the assignment-in-condition
+  form is free.
+
 ### 3.4 Expressions, widths, arithmetic
 
 Mechanised spellings live in the index (`type-width`, `param-width`,
@@ -989,6 +995,13 @@ judgment:
   window still matched). Spell negative sentinels as a `#define` beside the
   enum, and treat "window matches but the image does not" as this class of
   header side effect: `cmp -l` the two images and map the offsets to symbols.
+
+- **`(short)(u16_field >> 2)` IS the `sll 16; sra 18` pair**: combine
+  canonicalizes unsigned-shift-then-narrow into one sign_extract, so the
+  natural spelling and the explicit `((u16)f << 16) >> 18` pun compile
+  identically (DefaultActionHumanoid's width/4). Prefer the natural one; only
+  reach for the shift pun when a (short) cast of a shifted unsigned field
+  does NOT reproduce the extract.
 
 ### 3.5 Calls, prototypes, inline helpers
 
@@ -1365,11 +1378,17 @@ preference machinery, REG_N_DEATHS, reload round-robin). The craft:
   first); source liveness across a call beats final scheduled position
   (DrawBlood; SaveCard's inverse); a pre-call narrow capture + post-call
   widening separates a saved copy from its mask (draw_glyph_). But it is the
-  order of the SETs/USES that matters, NOT the order of scalar DECLARATIONS:
-  reordering scalar local declarations is a nullcheck no-op — gcc-2.8.1 defers
-  scalar pseudo allocation to first-use, so declaration order cannot renumber
-  allocnos or break an equal-priority coloring tie (draw_fade_; contrast
-  address-taken/stack locals, whose declaration order DOES fix slot order, §3.8).
+  order of the SETs/USES that matters most, and a declaration reorder can be a
+  nullcheck no-op (draw_fade_) — but declaration order is NOT always inert:
+  in DefaultActionHumanoid's conflict arm the block-scoped s32 locals got
+  pseudo numbers in DECLARATION order (the .lreg dump numbers top/object_y/
+  size_y/object_id/conflict in source declaration order even though `top` is
+  set last), allocno_compare breaks EQUAL priorities by pseudo number, and
+  swapping two declarations alone flipped both a0/a1 and a2/a3 pairs
+  (measured, 2026-08-30). When two caller-saved locals tie at the same
+  floor_log2(refs)*refs/live priority, try the declaration swap FIRST — it is
+  the cheapest tie lever there is (contrast address-taken/stack locals, whose
+  declaration order fixes slot order, §3.8).
 - **The `%hi` reload tie is `combine_regs` refusing a block-crossing pseudo**
   (compiler-facts): a shared local funnelled from both if/else arms into one
   post-join call can never tie with its `%hi` temp — call the function
@@ -1425,6 +1444,32 @@ NON-LOCAL). A
 fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
 `weapon++`). The mechanisms:
 
+- **When the need is boundary-only, an EMPTY `do{}while(0)` is a full
+  replacement for heavier fences** (DefaultActionHumanoid, 2026-08-30): its
+  loop-note pair bounds a sched1 region with ZERO reweighting, and three bare
+  `do { } while (0);` statements reproduced, byte-for-byte, what a two-level
+  statement-wrapping nest plus an identical-arms `if` had been doing — the
+  fake control flow and the wrapped statements all flattened to plain code.
+  Try the empty-fence substitution on every sched-role fence you meet before
+  accepting an arms construct or a statement wrap; only weight roles need
+  refs inside.
+- **Weighted-ref boosts are additive and site-agnostic** (measured on
+  DefaultActionHumanoid's four zz-only statements): any distribution of the
+  needed +N weighted refs across fence sites — four shallow nests, two, or
+  one deep tower on a single statement — produces identical bytes, provided
+  no co-resident variable trips its own floor_log2 step (one extra xx ref at
+  15→16 refs reshuffled $s2-$s4; object's step sits at 8). Consolidating the
+  weight into ONE tower with ONE comment is free, and fewer sites read
+  better. An earlier session concluded the opposite ("site choice is
+  forced") from raw `.s` text diffs — see the label trap below.
+- **The label-renumbering trap**: fence levels consume `$L` label numbers, so
+  two variants with identical CODE can text-diff at 100+ lines of pure
+  `$L139`-vs-`$L127` noise, and a ternary abs that hits the mips.md abssi2
+  pattern prints numeric `1:`/`1f` labels where separate statements print
+  `$L` labels — same bytes either way. Never score fence variants by raw
+  `.s` diff; canonicalize label names first (map each `$LNNN`/`1:` to
+  first-appearance indices), or trust only matchdiff. A wrong
+  "irreplaceable fence" conclusion was recorded from exactly this noise.
 - **`do{}while(0)` buys exactly three things**: (1) REF WEIGHT — +1 weighted ref
   per enclosed ref per depth, a DIAL (feeds global priority AND local-alloc's
   QTY_CMP_PRI — an unexplained caller-saved shift near fenced code is this);
@@ -1714,6 +1759,17 @@ LUID, barriers). The levers:
   narrow object (`sb; andi` order with no surviving load, FileOption) — the
   memory-unit tiebreak anti-rule means [store][alu] is unreachable for
   simultaneously-ready independent pairs; make them not simultaneously ready.
+  The LOAD variant of that anti-rule: after the backward pass picks a load,
+  potential_hazard pulls another ready memory op next to it, so a target
+  order [lh A][lw B][long alu chain][lw C] with A/B/C all ready is
+  unreachable from a flat block — one of A/B will glue to C. The fix is a
+  region boundary between the pair and the chain (an EMPTY `do{}while(0)`,
+  §3.10), not statement order. Related lever: sched1's birthing bump lifts
+  ONLY single-set pseudos (`REG_N_SETS == 1`) to max_priority, so a load
+  into a multi-set function-scope variable is systematically out-scheduled
+  by loads into fresh single-set temps regardless of source order — a
+  same-length load-order residual between two such loads can flip on which
+  side is the multi-set one (DefaultActionHumanoid's size/position pair).
 - **Delay slots** (reorg mechanics in compiler-facts): read the BLOCK LEADER,
   not the branch — `.flow` vs `.sched` first: if pre-sched order already
   matches, the lever is sched1 priority, not reorg (DrawBleed, where every
