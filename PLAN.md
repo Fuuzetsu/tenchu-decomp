@@ -506,6 +506,17 @@ note-based loop ref-weighting, i.e. the do-while(0) tower family. The
 original source necessarily contained a construct that reduces to it
 (nested statement macros were the period idiom). The tower stays, fully
 documented in the file; no further endgame experiments planned.
+RE-VERIFIED AND RESPELLED (2026-08-30, owner request): a fresh removal
+campaign measured the remaining unlisted levers — register keyword
+inert; reuse + 5-level tower repairs the allocation but the projected
+donors (rotate_y, in-place abs) sit in caller-saved registers in the
+retail bytes, so only ry is a byte-legal donor (23/174 — nowhere near
+the bar; family minimum = ry-merge + depth 11, at the cost of a
+PSX.SYM-attested local). Elimination arithmetically impossible. The
+tower is now SPELLED as the file-local ONCE/ONCE2/ONCE4/ONCE8
+statement-macro family (token-identical expansion, depth arithmetic
+visible: 4 + 8 + 2 = 14); cookbook §3.10 records the presentation
+rule.
 
 HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
 adversarial rounds continued -- the Act*/think header re-audit fixed
