@@ -28,20 +28,6 @@
         motMODE = -1;                                                         \
     }
 
-/* One-shot statement wrappers (each level is one do/while (0)). A single
- * ONCE is the period fence idiom; the composed counts spell the measured
- * register-pressure dials (see DefaultActionHumanoid's header note for
- * the mechanism: each level adds one weighted reference to the pseudos
- * inside without emitting a byte). */
-#define ONCE(stmt)                                                            \
-    do                                                                        \
-    {                                                                         \
-        stmt;                                                                 \
-    } while (0)
-#define ONCE2(stmt) ONCE(ONCE(stmt))
-#define ONCE4(stmt) ONCE2(ONCE2(stmt))
-#define ONCE8(stmt) ONCE4(ONCE4(stmt))
-
 /* Clamp a >>2 screen depth into [0, DEPTH_LIMIT - 1] for the OT sort;
  * the copy-paste block every sprite-effect renderer carries (macro is
  * reconstruction shorthand, expands to the identical text). */

@@ -170,8 +170,15 @@ scan_z:
     if (ez < l)
         goto next_y;
     cell_z = l;
-    ONCE2(visible = IsVisible(cell_x * 16000 + 8000, cell_y * 16000 + 8000,
-                              cell_z * 16000 + 8000, 0x2BC1));
+    do
+    {
+        do
+        {
+            visible = IsVisible(cell_x * 16000 + 8000,
+                                cell_y * 16000 + 8000,
+                                cell_z * 16000 + 8000, 0x2BC1);
+        } while (0);
+    } while (0);
     if (visible)
     {
         cur = ((WorldType *)(((cell_z & 7) << 2) +
@@ -193,14 +200,20 @@ scan_z:
              * nesting depth is the weight. */
             do
             {
-                /* IsVisible left its view-space vector in the scratchpad;
-                 * +0x08 is that vector's z. */
-                ONCE2(signed_size = cur->ModelSize;
-                      bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
-                                 signed_size) >>
-                                8) -
-                               11;
-                      plimit = (u16)cur->ModelSize);
+                do
+                {
+                    do
+                    {
+                        signed_size = cur->ModelSize;
+                        /* IsVisible left its view-space vector in the
+                         * scratchpad; +0x08 is that vector's z. */
+                        bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
+                                   signed_size) >>
+                                  8) -
+                                 11;
+                        plimit = (u16)cur->ModelSize;
+                    } while (0);
+                } while (0);
                 if (bucket < 0)
                     bucket = 0;
                 /* Offset spelling: byte-required (indexing flips the addu; measured). */

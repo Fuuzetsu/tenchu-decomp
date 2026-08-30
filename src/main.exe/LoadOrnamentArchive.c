@@ -83,7 +83,13 @@ loop1:
     s32 offset;
     if (idx >= mad->n)
         goto loop1_end;
-    ONCE2(offset = prntp[idx].index);
+    do
+    {
+        do
+        {
+            offset = prntp[idx].index;
+        } while (0);
+    } while (0);
     i++;
     objp = LoadOrnament((u_long *)(tmdp + offset));
     mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);

@@ -175,7 +175,15 @@ loop:
         } while (0);
         return;
     }
-    /* Signed pointer compare (slt, not the plain compare's sltu):
-     * byte-required; the (s32) views are the lever. */
-    ONCE2(p++; if ((s32)p < (s32)(base + MaxMisc)) goto loop);
+    do
+    {
+        do
+        {
+            p++;
+            /* Signed pointer compare (slt, not the plain compare's sltu):
+             * byte-required; the (s32) views are the lever. */
+            if ((s32)p < (s32)(base + MaxMisc))
+                goto loop;
+        } while (0);
+    } while (0);
 }

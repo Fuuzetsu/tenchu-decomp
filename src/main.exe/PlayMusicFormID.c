@@ -75,7 +75,16 @@ void PlayMusicFormID(s32 id)
         p = MusicIDTable;
         flag = 0xFF;
     search:
-        ONCE2(if (*(u8 *)(i + (s32)p) == MusicNo) { goto found; });
+        do
+        {
+            do
+            {
+                if (*(u8 *)(i + (s32)p) == MusicNo)
+                {
+                    goto found;
+                }
+            } while (0);
+        } while (0);
         j = i + 1;
         i = j;
         if (*(u8 *)(j + (s32)p) != flag)
