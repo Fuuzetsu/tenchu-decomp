@@ -44,24 +44,25 @@
 /*
  * CVAsetup (0x8004ff98, 0x218 bytes) — prepares a CVA cutscene: frees any
  * previous CVAdata blob and loads the new one
- * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter selecting the
- * Attract/Retail-ish variant per CHOSEN_CHARACTER), then a fixed
+ * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter is the character's
+ * initial — 'R' Rikimaru / 'A' Ayame), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, x0..x3 = -0xA0/0xA0/-0xA0/0xA0 —
  * the canonical PsyQ SDK POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
  * "tanka.tpd" and populates 6 TANKA_SPRITES_ Sprite3D slots.
- * Each slot's `attribute` gets bit 0 set (visible-but-hidden-until-faded),
+ * Each slot's `attribute` gets MODEL_ATTR_HIDDEN set,
  * and the embedded GsSPRITE's x/y are
  * laid out in a fan (`(2-i)*20+10`, `(i%3)*8-4`) — then the LAST slot's
- * embedded sprite is nudged (x -= 8, y = 0x28) before the tpd is freed.
+ * embedded sprite is nudged (x -= 8, y = 40) before the tpd is freed.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - The embedded-GsSPRITE x/y stores go through a FRESH
  *    `TANKA_SPRITES_[i]` re-read each time (matching
  *    Ghidra's own `*piVar2` — a dereference of the SLOT ADDRESS, not the
  *    `pSVar1` variable already holding the same value) — only the
- *    `attribute |= 1` update reuses `pSVar1` directly. Same lever as
+ *    `attribute |= 1` update reuses `pSVar1` directly, and the r/g/b
+ *    stores go through a third re-read held in `slot`. Same lever as
  *    CVArun's GsSortSprite re-read.
- *  - `uVar3` (the trailing filename letter) is a real `int` local,
+ *  - `letter` (the trailing filename letter) is a real `int` local,
  *    computed by a plain if/else BEFORE the sprintf call — writing it
  *    inline would evaluate it at the wrong point relative to the other
  *    vararg materialisation.
@@ -86,7 +87,7 @@ void CVAsetup(void)
     s16 i;
     u_long *adr;
     Sprite3D *sprite;
-    Sprite3D *reload;
+    Sprite3D *slot;
     int letter;
     u8 name[50];
     GsIMAGE image;
@@ -95,10 +96,10 @@ void CVAsetup(void)
     {
         vfree(CVAdata);
     }
-    letter = 0x41;
+    letter = 'A';
     if (PSTATE->CharType == RIKIMARU_0)
     {
-        letter = 0x52;
+        letter = 'R';
     }
     sprintf((char *)name, fmt_stage_cad,
             STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
@@ -121,13 +122,13 @@ void CVAsetup(void)
             GetTIMpackInfo(adr, &image, i);
             sprite = SetupSprite(0, &image);
             TANKA_SPRITES_[i] = sprite;
-            sprite->attribute = sprite->attribute | MODEL_ATTR_HIDDEN;
-            TANKA_SPRITES_[i]->sprite.x = (2 - i) * 0x14 + 10;
+            sprite->attribute |= MODEL_ATTR_HIDDEN;
+            TANKA_SPRITES_[i]->sprite.x = (2 - i) * 20 + 10;
             TANKA_SPRITES_[i]->sprite.y = (i % 3) * 8 - 4;
-            reload = TANKA_SPRITES_[i];
-            reload->sprite.b = 0;
-            reload->sprite.g = 0;
-            reload->sprite.r = 0;
+            slot = TANKA_SPRITES_[i];
+            slot->sprite.b = 0;
+            slot->sprite.g = 0;
+            slot->sprite.r = 0;
         }
         TANKA_SPRITES_[5]->sprite.x = TANKA_SPRITES_[5]->sprite.x - 8;
         TANKA_SPRITES_[5]->sprite.y = 40;
