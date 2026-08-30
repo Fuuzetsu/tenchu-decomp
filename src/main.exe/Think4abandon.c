@@ -46,7 +46,7 @@
  *    reproduces the target's `sltiu`; casting only the operand promotes
  *    back to a signed int subtraction and gives `slti` instead — same
  *    length, wrong instruction.
- *  - Both `if (kind==0x80) {...} return turn_towards_player_(...)&~0x5FFF;`
+ *  - Both `if ((Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS) {...} return turn_towards_player_(...)&~0x5FFF;`
  *    and the sibling `if (EmergencyNotice!=0) {...} return turn_towards_player_(...)
  *    &~0x5FFF;` need their OWN independent `return` statement (not a shared
  *    `goto` to one trailing label). Two adjacent, textually-identical
@@ -107,7 +107,7 @@ s16 Think4abandon(void)
                 }
             }
         }
-        return (s16)(turn_towards_player_(0, 0) & ~0x5FFF);
+        return (turn_towards_player_(0, 0) & ~0x5FFF);
     }
     else
     {
@@ -117,13 +117,13 @@ s16 Think4abandon(void)
             {
                 Attrib = cleared | PHASE_ALERT;
             }
-            return (s16)(turn_towards_player_(0, 0) & ~0x5FFF);
+            return (turn_towards_player_(0, 0) & ~0x5FFF);
         }
         else
         {
             if (Me_THINK_C->think[3] == Think4abandon)
             {
-                result = (s16)(turn_towards_player_(0, 0) & ~0x5FFF);
+                result = (turn_towards_player_(0, 0) & ~0x5FFF);
                 if (result != 0)
                 {
                     return result;
@@ -131,24 +131,24 @@ s16 Think4abandon(void)
             }
             if (SR == SR_SEEN)
             {
-                goto sr_eq_1;
+                goto sr_seen;
             }
             if (SR < 2)
             {
-                goto sr_low;
+                goto sr_lost;
             }
             if (SR == SR_GLIMPSE)
             {
-                goto sr_eq_2;
+                goto sr_glimpse;
             }
             return 0;
 
-        sr_low:
-            if (SR >= 0)
+        sr_lost:
+            if (SR >= SR_NONE)
             {
                 return 0;
             }
-            if (SR < -2)
+            if (SR < SR_GONE)
             {
                 return 0;
             }
@@ -159,13 +159,13 @@ s16 Think4abandon(void)
             Sound(Me_THINK_C, 0xE);
             return 0;
 
-        sr_eq_2:
+        sr_glimpse:
             /* Only a glimpse: drop to suspicious and stand down. */
             Attrib = cleared | PHASE_SUSPICIOUS;
             SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
             return 0;
 
-        sr_eq_1:
+        sr_seen:
             Attrib = cleared | PHASE_ALERT;
             return 0;
         }

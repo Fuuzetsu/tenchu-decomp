@@ -42,8 +42,8 @@
 
 /*
  * ActKAGI (0x80020a40, 0x830 bytes) — the grappling-hook action states.
- * 0x400 launches the hook and aims it at the camera target, 0x401 waits for
- * SetFlyWire, and 0x402 pulls the character toward the target before
+ * MOT_KAGI launches the hook and aims it at the camera target, MOT_KAGI_FLY
+ * waits for SetFlyWire, and MOT_KAGI_PULL pulls the character toward the target before
  * returning to the normal motion system.
  *
  * Matching notes:
@@ -53,10 +53,11 @@
  *    target's working copy of the narrow index before its scale and copies
  *    the increment back afterward; spelling the increment as a separate
  *    statement is one instruction short.
- *  - The camera-target block is a local-allocator tie.  `motID = 0x401`
- *    must precede the direct x/z subtraction expressions; preloading either
- *    operand into a temporary rotates v0/v1/a0/a1/a2 even when scheduling
- *    leaves the instruction order unchanged.
+ *  - The camera-target block is a local-allocator tie.  `motID =
+ *    MOT_KAGI_FLY` must precede the x/z subtraction expressions, which go
+ *    through the register-pinned locate/target pointer pair — reordering
+ *    either rotates v0/v1/a0/a1/a2 even when scheduling leaves the
+ *    instruction order unchanged.
  *  - `quantized` must stay full-width through the 0xc00/0x200 rounding.
  *    Narrowing it to u16 creates an extra merge move.  Conversely, the CVA
  *    scan needs its own short counter (`scan_i`) instead of reusing the
@@ -65,9 +66,6 @@
  *    so a normal abs() prototype would emit three calls.  The explicit
  *    builtin expands to the target branch/negu chains, and the short-circuit
  *    while duplicates those chains at the loop head and latch exactly.
- *  - The one-shot do around `human = Me_MOTION_C` is a scheduler/allocator
- *    fence: it keeps the human pointer live beside mmp without emitting code,
- *    producing a0/a1 and allowing the attribute load to fill its delay.
  */
 
 extern Humanoid *Me_MOTION_C;
@@ -106,8 +104,8 @@ void ActKAGI(void)
         {
             register VECTOR *target;
             register VECTOR *locate;
-            u32 dx;
-            u32 dz;
+            s32 dx;
+            s32 dz;
 
             motID = MOT_KAGI_FLY;
             locate = dtL;
@@ -161,7 +159,7 @@ void ActKAGI(void)
         }
 
         if ((*(u16 *)&Me_MOTION_C->map.attrib & MAP_WATER) &&
-            ((s8)((u16)motID >> 8) != STAT_KAGI))
+            ((motID >> 8) != STAT_KAGI))
         {
             ModelArchiveType *model;
 
@@ -175,12 +173,9 @@ void ActKAGI(void)
                 ry = model->n - 1;
             }
             i = 7;
-            if (i <= ry)
+            while (i <= ry)
             {
-                do
-                {
-                    *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
-                } while (i <= ry);
+                *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
             }
             *(u16 *)&model->object[0]->attribute |= MODEL_ATTR_HIDDEN;
             motID = MOT_SWIM;
@@ -193,7 +188,6 @@ void ActKAGI(void)
     {
         MotionManager *mmp;
         Humanoid *human;
-        u16 count;
         u16 attrib;
 
         if (dtM->count == 0 && dtM->loop == 1)
@@ -209,9 +203,7 @@ void ActKAGI(void)
         {
             return;
         }
-        count = mmp->count - 1;
-        mmp->count = count;
-        if ((s16)count >= 0)
+        if (--mmp->count >= 0)
         {
             return;
         }
@@ -272,6 +264,9 @@ void ActKAGI(void)
                 quantized += 0x400;
             }
             rotation->vy = quantized;
+            /* The vy = sum store above is dead (quantized overwrites it)
+             * but both sh are in the bytes; adjust_root is the asm's own
+             * reload of object[0] beside root. */
             adjust_root = human->model->object[0];
             motID = MOT_STATE_FALL;
             adjust_root->rotate.vy += old_ry - quantized;

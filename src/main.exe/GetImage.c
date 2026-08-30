@@ -52,7 +52,7 @@
  * Images;}` rendering: with Ghidra's literal polarity, cc1 put the no-call
  * `return Images+index;` arm as the branch TARGET and the AdtMessageBox arm
  * as the fallthrough (needing its own `j` to skip to the epilogue) — the
- * opposite of the target. Writing `if (index >= 0x3e) {bad; return Images;}
+ * opposite of the target. Writing `if ((unsigned)index >= 0x3e) {bad; return Images;}
  * else return Images+index;` (condition inverted, bodies swapped to match)
  * reproduces the target's good-path-fallthrough/bad-path-branch-target
  * layout exactly.

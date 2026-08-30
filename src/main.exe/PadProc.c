@@ -48,28 +48,27 @@
 extern void ComPad(int port, u8 *rxbuf);
 extern u8 Anakon;
 
-static inline void PadProcShock(s32 port, s32 value1, s32 value2)
+static inline void PadShock(s32 port, s32 act1, s32 act2)
 {
     TPadPort *p = &PadPort[port >> 4][port & 3];
-    TPadPort *q = p;
 
     if (Anakon != 0)
     {
-        if (value2 < 0)
+        if (act2 < 0)
         {
-            p->act1 = value1;
-            p->act2 = value2 + 0x100;
+            p->act1 = act1;
+            p->act2 = act2 + 0x100;
         }
         else
         {
-            p->act1 = value1;
-            p->act2 = value2;
+            p->act1 = act1;
+            p->act2 = act2;
         }
     }
     else
     {
-        q->act1 = 0;
-        q->act2 = 0;
+        p->act1 = 0;
+        p->act2 = 0;
     }
 }
 
@@ -80,11 +79,13 @@ void PadProc(void)
     ComPad(0, ComBuf[0]);
     ComPad(0x10, ComBuf[1]);
 
+    /* The negate-then-add split is byte-required (the folded subtract
+     * recolors the loads; measured). */
     ct = -PadArrange.time++;
     ct += PadArrange.attack;
     if (ct > 0)
     {
-        PadProcShock(0, 1,
+        PadShock(0, 1,
                      PadArrange.pow * (PadArrange.attack - ct) /
                          PadArrange.attack);
     }
@@ -93,12 +94,12 @@ void PadProc(void)
         ct += PadArrange.release;
         if (ct <= 0)
             goto motor_off;
-        PadProcShock(0, 0,
+        PadShock(0, 0,
                      PadArrange.pow * ct / PadArrange.release);
     }
     PadArrange.time++;
     return;
 
 motor_off:
-    PadProcShock(0, 0, 0);
+    PadShock(0, 0, 0);
 }

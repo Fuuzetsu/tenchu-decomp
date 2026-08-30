@@ -33,7 +33,7 @@ s16 think_alarm_reaction_(void)
     s32 z_diff;
     s16 result;
     u8 state;
-    VECTOR *new_var;
+    VECTOR *loc;
     Humanoid *self;
 
     result = 0;
@@ -82,7 +82,7 @@ s16 think_alarm_reaction_(void)
                 }
                 else
                 {
-                    nextState = 8;
+                    nextState = STAGE_CURE_PRINCESS;
                     alertTime = StageID;
                     if (alertTime != nextState)
                     {
@@ -99,7 +99,6 @@ s16 think_alarm_reaction_(void)
                 nextState = 1;
             }
             self->actscnt = nextState;
-            goto done;
         }
         goto done;
     }
@@ -126,7 +125,7 @@ s16 think_alarm_reaction_(void)
                 absoluteDegree = __builtin_abs(degree);
                 if (absoluteDegree > 700)
                 {
-                    result = -0x8000;
+                    result = -PADLleft;
                     if (degree > 0)
                     {
                         result = PADLright;
@@ -145,7 +144,7 @@ s16 think_alarm_reaction_(void)
                         {
                             goto done;
                         }
-                        result = -0x8000;
+                        result = -PADLleft;
                     }
                     else
                     {
@@ -159,23 +158,23 @@ s16 think_alarm_reaction_(void)
 
     {
         s16 direction;
-        s32 absoluteDirection;
+        s32 direction2;
         s32 turnBits;
 
         direction = GetDirection(x_diff, z_diff,
                                  Me_THINK_C->rotate->vy);
-        absoluteDirection = direction;
+        direction2 = direction;
         turnBits = PADLright;
-        if (absoluteDirection > 0)
+        if (direction2 > 0)
         {
             turnBits = PADLleft;
         }
-        if (absoluteDirection < 0)
+        if (direction2 < 0)
         {
-            absoluteDirection = -absoluteDirection;
+            direction2 = -direction2;
         }
         result = turnBits | PADLdown;
-        if (absoluteDirection >= 1000)
+        if (direction2 >= 1000)
         {
             result = turnBits | PADLup;
         }
@@ -227,11 +226,13 @@ s16 think_alarm_reaction_(void)
             Sound(Me_THINK_C, soundId);
 
             type = AIDHumanType[StageID][rand() % 2];
-            rotation = (SVECTOR *)Me_THINK_C->rotate;
+            rotation = Me_THINK_C->rotate;
             newRotation = rotation->vy + direction;
-            new_var = Me_THINK_C->locate;
+            /* Staged locate read straddling the vy store: byte-required
+             * (a direct position load recolors the base; measured). */
+            loc = Me_THINK_C->locate;
             rotation->vy = newRotation;
-            position = new_var;
+            position = loc;
             human = BreedLife(type, position->vx, position->vy, position->vz,
                               newRotation);
 
@@ -240,7 +241,7 @@ s16 think_alarm_reaction_(void)
             human->think[1] = Think2Func[4];
             human->think[2] = Think3Func[4];
             think4 = Think4Func[4];
-            *(u16 *)&human->attribute |= 4;
+            *(u16 *)&human->attribute |= ATTR_CUSTOMAI;
             human->think[3] = think4;
             EquipWeapon(human, 1);
             SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
@@ -258,8 +259,7 @@ s16 think_alarm_reaction_(void)
             {
                 soundId = 9;
             }
-            self = (Humanoid *)human;
-            Sound((Humanoid *)self, soundId);
+            Sound(human, soundId);
             StageEnemies++;
         }
     }

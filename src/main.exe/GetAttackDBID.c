@@ -31,8 +31,7 @@
 /*
  * GetAttackDBID (0x8002a8ec, 0x8c bytes) — resolves the character's current
  * motion to a row index into the BattleDB attack-pattern table: linear-search
- * BattleDB[].mid for a match against GetMotionID(character's
- * something_about_current_animation, mid), sentinel-terminated by
+ * BattleDB[].mid for a match against GetMotionID(human->motion, mid), sentinel-terminated by
  * mid == -1. Returns the matching row's index, or (no match before the
  * sentinel) the sentinel's own index.
  *

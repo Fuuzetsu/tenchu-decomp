@@ -27,7 +27,7 @@
 
 /*
  * GetDirection (0x8002972c, 0x68 bytes) — angle-difference-to-target,
- * wrapped into [-0x800, 0x7FF] (a 0x1000/4096 = one full turn representation,
+ * corrected as written: `0x1000 - diff` reflects the high side, `diff + 0x1000` wraps the low side (a 0x1000/4096 = one full turn representation,
  * same units as SVECTOR rotation components). Same "Humanoid control" TU as
  * is_humanoid_on_stage_.c; called by turn_towards_player_.
  *
@@ -42,8 +42,8 @@
  * sll+sra, CSE'd across both slti's), while the arithmetic reads the
  * original untruncated $v1 — if `diff` itself were s16, the arithmetic
  * would have to reuse the SAME truncated register instead of a second one.
- * `result` defaults to `diff` (the mid-range case) as the FIRST statement,
- * unconditionally, before either test — this default-then-override shape
+ * `result` defaults to `diff` (the mid-range case) unconditionally,
+ * before either test — this default-then-override shape
  * (not if/else-if/else) is what lets reorg hoist the default assignment
  * into the first branch's delay slot, harmless on the "too high" path
  * since it's overwritten before use there. The final (short)-return
