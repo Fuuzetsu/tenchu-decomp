@@ -1484,6 +1484,24 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   variable carrying a load here and an unrelated value later, both byte-
   forced into the same register — because a multi-set dest never gets the
   birthing bump, and only a region edge holds the backward pass off it.
+- **Live-range fission beats ref-weight towers — but the winner must
+  CONFLICT with the rival** (DefaultActionHumanoid, 2026-08-31, joint with
+  a Codex collaboration): when a variable needs a callee-saved register
+  ahead of a higher-priority rival, do not boost the variable itself with
+  fence towers — split its FINAL range into a short, hot carrier (here the
+  dead, PSX.SYM-attested ry reused for the applied displacement: one copy
+  per incoming path, a foldable `&= ~1` ref carrier, the shift, the tail
+  use = 8-13 refs over ~24-40 insns, priority ~10000). Three requirements,
+  each measured as load-bearing: (1) the carrier must CROSS A CALL (place
+  one path's copy before the arm's call) or it colors caller-saved; (2) it
+  must OVERLAP one of the rival's live ranges (here: the copy sits above
+  the rival's last use) — a winner that merely outranks the rival without
+  conflicting SHARES the register with it and the whole file cascades;
+  (3) the copies must sit in separate basic blocks from the consuming
+  statement, or combine folds a copy forward into it and the call-crossing
+  dies. Also measured: the fused `(x & ~1) >> 1` loses a counted ref vs
+  the two-statement spelling, and the copies coalesce to nothing when
+  source and carrier share the register (both die at the boundary).
 - **Post-flow-folded identities are a measured weight source, calibrated**:
   `zz = zz + zz - zz;` survives parse-fold and cse, is erased by combine,
   and contributes exactly +3 loop-depth-weighted refs at depth 1 (bounds

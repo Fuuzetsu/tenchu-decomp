@@ -622,6 +622,22 @@ format strings (fiction) and re-tread the banned-macro costume; the
 tower stays a bare honest compiler dial (no debug reading exists for
 a 7-deep nest around a live statement).
 
+DAH TOWER ELIMINATED (2026-08-31, Claude+Codex collaboration, owner-
+directed): the seven-level do{}while(0) nest is GONE — replaced by ry
+live-range fission: `ry = zz` on the three reflect paths (the turn-
+block copy above `if (i > 0)` and before MoveHumanoid), `ry &= ~1;
+ry >>= 1;` on the turn path, tail subtracts ry. Codex proposed the
+fission + mask-carrier mechanism (round 1); measurement found the
+missing requirement — the $s0 winner must CONFLICT with i, not just
+outrank it (a non-overlapping winner SHARES $s0 with i and the file
+cascades) — and the corridor placement + attested-ry reuse closed it.
+Oracle along the way: register zz asm("$16") leaves only 28 diff
+lines (cse constant-carrier effects), proving the coloring race is
+~99% of the tower's job. Load-bearing details in the file header;
+reusable pattern in cookbook 3.10. The function now contains no
+multi-level fence nests at all: five DBG sites (two recovered demo
+prints, three lost-text placeholders) and plain C.
+
 DAH KNOWN DEBUG PRINTS RESTORED (2026-08-30, owner-directed —
 supersedes the no-macro ruling above for RECOVERED content only):
 the file now carries a release-emptied DBG(x) macro (#ifdef DEBUG:
