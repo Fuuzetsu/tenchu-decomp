@@ -136,7 +136,11 @@
 /* Loadout: how many item stacks fit in the mission inventory. */
 #define MAX_SELECTED_ITEMS 6
 
-/* End-of-stage scoring (calculate_score). */
+/* End-of-stage scoring (calculate_score / mission_score_screen). */
+#define SCORE_CLOCK_MAX 0x1A5C2 /* highest recorded stage clock */
+#define MEDAL_PULSE_PERIOD 90
+#define MEDAL_PULSE_AMPLITUDE 80
+#define ROW_PULSE_AMPLITUDE 60
 #define SCORE_PER_CRITICAL 20
 #define SCORE_PER_MURDER 5
 #define SCORE_PER_FRIEND_HIT (-30)

@@ -1,7 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* Private GTE register setters used by this libgs object. */
+/* Declared here because the SDK header spells these as macros. */
 extern void SetDQA(long dqa);
 extern void SetDQB(long dqb);
 

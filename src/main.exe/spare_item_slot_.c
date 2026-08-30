@@ -24,7 +24,7 @@
  *  - Ghidra's `field_0xcd`/m2c's `unkCD` is item.h's proven `item[0x1A]`
  *    array at Humanoid+0xB4: 0xCD - 0xB4 = 0x19, its LAST element — trust
  *    the shared proven struct over Ghidra's invented field name.
- *  - `arg1->item[ITEM_N] == 1` is the standard MIPS no-`seq`-instruction
+ *  - `human->item[ITEM_N] == 1` is the standard MIPS no-`seq`-instruction
  *    equality idiom (`xori`, `sltiu`), not anything hand-shaped.
  *  - Explicit goto-ladder, NOT nested if/else (cookbook's "if (cond) goto L;
  *    ladder decouples test ORDER from body LAYOUT"): all 3 tests
@@ -43,10 +43,10 @@
  *    independent `return 0;` statements is not guaranteed (cookbook:
  *    "Multiple return CONST; statements cross-jump unpredictably; a
  *    labeled return body pins them").
- *  - case0 needs a FRESH local (`Humanoid *p = arg1;`) rather than
+ *  - case0 needs a FRESH local (`Humanoid *p = human;`) rather than
  *    reassigning the parameter — it ends up hard-allocated to $v0 (dead by
  *    the time `ret0:` reuses $v0 for the return value), whereas case1
- *    keeps reassigning `arg1` itself (stays in $a1, its parameter home).
+ *    keeps reassigning `human` itself (stays in $a1, its parameter home).
  *    Both fallbacks still use the shared `CamState.Owner` field; the distinct
  *    local identities are enough to produce the target's register forms.
  */
@@ -54,17 +54,17 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern char fmt_not_support_yet[]; /* not support yet %d */
 
-s32 spare_item_slot_(s32 arg0, Humanoid *arg1)
+s32 spare_item_slot_(s32 mode, Humanoid *human)
 {
-    if (arg0 == 0)
+    if (mode == 0)
         goto case0;
-    if (arg0 == 1)
+    if (mode == 1)
         goto case1;
     goto do_default;
 
 case0:
 {
-    Humanoid *p = arg1;
+    Humanoid *p = human;
     if (p == 0)
         p = CamState.Owner;
     p->item[ITEM_N] = 0;
@@ -72,12 +72,12 @@ case0:
     goto ret0;
 
 case1:
-    if (arg1 == 0)
-        arg1 = CamState.Owner;
-    return arg1->item[ITEM_N] == 1;
+    if (human == 0)
+        human = CamState.Owner;
+    return human->item[ITEM_N] == 1;
 
 do_default:
-    AdtMessageBox(fmt_not_support_yet, arg0);
+    AdtMessageBox(fmt_not_support_yet, mode);
 ret0:
     return 0;
 }

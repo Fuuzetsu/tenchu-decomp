@@ -92,13 +92,13 @@ void ProcItemJirai(TItem *item)
     param_smoke *param;
     void (*proc)(TItem *);
     TItem *call_item;
-    u8 ff;
+    u8 dispose;
     ProcItemJiraiScratch scratch;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    dispose = ITEM_MODE_DISPOSE;
+    if (item->mode == dispose)
     {
         item->mode = 0;
         return;
@@ -133,14 +133,14 @@ void ProcItemJirai(TItem *item)
                 return;
             }
             call_item = item;
-            item->mode = ff;
+            item->mode = dispose;
             goto dispose;
         }
 
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);
         size = 500;
-        collision_mode = 8;
+        collision_mode = CONFLICT_SOFT;
         SET_ITEM_COLLISION(n, size, CONFLICT_OWNER_ITEM, collision_mode);
         item->mode++;
         break;

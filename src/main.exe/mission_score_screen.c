@@ -158,6 +158,8 @@ void mission_score_screen(void)
         u32 width;
 
         tim = get_tim_from_archive(archive, i);
+        /* The two-step base+offset walk is byte-required (plain
+         * &rankSprites[i] indexing mismatches badly; measured). */
         initSprite = (GsSPRITE *)((u8 *)&storage +
                                   i * sizeof(GsSPRITE));
         initSprite = (GsSPRITE *)((u8 *)initSprite +
@@ -239,7 +241,7 @@ void mission_score_screen(void)
         {
             if (SCORE_STATE->t_time[i] == 0)
             {
-                SCORE_STATE->t_time[i] = 0x1A5C2;
+                SCORE_STATE->t_time[i] = SCORE_CLOCK_MAX;
                 SCORE_STATE->t_char[i] = 0;
                 SCORE_STATE->t_dani[i] = 0;
             }
@@ -278,7 +280,7 @@ void mission_score_screen(void)
                     SCORE_STATE->t_char[i] = SCORE_STATE->t_char[i - 1];
                     SCORE_STATE->t_dani[i] = SCORE_STATE->t_dani[i - 1];
                     i--;
-                } while (insertedRank < (s16)i);
+                } while (insertedRank < i);
             }
 
             {
@@ -359,11 +361,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -432,11 +434,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -481,11 +483,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = sprite->u;
-                    sprite->u = signBaseU + sprite->w * ten;
+                    sprite->u = signBaseU + sprite->w * minusGlyph;
                     GsSortSprite(sprite, OTablePt, 0);
                     sprite->u = signBaseU;
                 }
@@ -533,11 +535,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -573,7 +575,7 @@ void mission_score_screen(void)
 
                 signedValue = (s32)value;
                 drawY = -0x35;
-                drawnSprite->x = (0x2F);
+                drawnSprite->x = 0x2F;
                 drawnSprite->y = drawY;
                 negative = 0;
                 if (signedValue < 0)
@@ -597,11 +599,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -647,11 +649,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -676,7 +678,7 @@ void mission_score_screen(void)
                 signedValue = (s32)value;
                 drawY = -0x24;
                 drawnSprite->x = 0x23;
-                (drawnSprite->y = drawY);
+                drawnSprite->y = drawY;
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -699,11 +701,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -726,7 +728,7 @@ void mission_score_screen(void)
                 signedValue = (s16)value;
                 drawY = -0x24;
                 drawnSprite->x = resultX;
-                (drawnSprite->y = drawY);
+                drawnSprite->y = drawY;
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -749,11 +751,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -778,7 +780,7 @@ void mission_score_screen(void)
                 signedValue = (s16)value;
                 drawY = -0x12;
                 drawnSprite->x = resultX;
-                (drawnSprite->y = drawY);
+                drawnSprite->y = drawY;
                 negative = 0;
                 if (signedValue < 0)
                 {
@@ -801,11 +803,11 @@ void mission_score_screen(void)
                 if (negative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * ten;
+                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
                     GsSortSprite(drawnSprite, OTablePt, 0);
                     drawnSprite->u = signBaseU;
                 }
@@ -819,7 +821,7 @@ void mission_score_screen(void)
             medal->y = -0xE;
             medal->scalex = 0x1000;
             medal->scaley = 0x1000;
-            medalBrightness = rcos((GameClock << 12) / 90) * 80;
+            medalBrightness = rcos((GameClock << 12) / MEDAL_PULSE_PERIOD) * MEDAL_PULSE_AMPLITUDE;
             if (medalBrightness < 0)
             {
                 medalDraw = medal;
@@ -864,22 +866,22 @@ void mission_score_screen(void)
                 s16 signedValue;
                 s32 widenedValue;
                 s32 drawY;
-                register s32 negative;
+                register s32 rowNegative;
 
-                signedValue = (i + 1);
+                signedValue = i + 1;
                 value = signedValue;
                 drawY = (i * 0x16 + 0x18);
-                rowSprite->x = (-0x8F);
+                rowSprite->x = -0x8F;
                 rowSprite->y = drawY;
                 widenedValue = signedValue;
                 if (widenedValue < 0)
                 {
                     value = -widenedValue;
-                    negative = 1;
+                    rowNegative = 1;
                 }
                 else
                 {
-                    negative = 0;
+                    rowNegative = 0;
                 }
                 do
                 {
@@ -894,14 +896,14 @@ void mission_score_screen(void)
                     quotient <<= 16;
                     rowSprite->u = baseU;
                 } while (quotient != 0);
-                if (negative != 0)
+                if (rowNegative != 0)
                 {
                     u32 signBaseU;
-                    s32 ten;
+                    s32 minusGlyph;
 
-                    ten = 10;
+                    minusGlyph = 10;
                     signBaseU = rowSprite->u;
-                    rowSprite->u = signBaseU + rowSprite->w * ten;
+                    rowSprite->u = signBaseU + rowSprite->w * minusGlyph;
                     GsSortSprite(rowSprite, OTablePt, 0);
                     rowSprite->u = signBaseU;
                 }
@@ -924,7 +926,7 @@ void mission_score_screen(void)
             sprite->y = i * 0x16 + 0x16;
             if (i == insertedRank)
             {
-                rowBrightness = rsin((GameClock << 12) / 90) * 60;
+                rowBrightness = rsin((GameClock << 12) / MEDAL_PULSE_PERIOD) * ROW_PULSE_AMPLITUDE;
                 if (rowBrightness < 0)
                 {
                     rowBrightness += 0xFFF;
@@ -967,6 +969,8 @@ void mission_score_screen(void)
         brightness = stageItem;
         if (state->gItem[brightness + (state->CharType << 5)] == ITEM_LOCKED)
         {
+            /* += 3 on a 0xFE ITEM_LOCKED slot wraps the u8 to 1: the
+             * unlock hands the player a single item. */
             state->gItem[brightness + (state->CharType << 5)] += 3;
         }
         stageItem = StageItem[state->StageNo];

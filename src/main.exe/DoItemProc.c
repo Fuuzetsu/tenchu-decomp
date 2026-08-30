@@ -33,7 +33,7 @@
  *    this same TU compile differently, so the SOURCE shape (for vs
  *    while(1)+break), not the bound, decides it.
  *  - `it->proc(it)` is a plain indirect call through the struct's own
- *    `proc` field (no null-check/cast dance) — the field's own type
+ *    `proc` field (no cast dance — the field's own type supplies the signature) — the field's own type
  *    (`void (*proc)(TItem *)` in item.h) already supplies the call
  *    signature.
  */

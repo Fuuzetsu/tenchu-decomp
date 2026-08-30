@@ -27,7 +27,7 @@
  * GetVectorDistance (0x80039808, 0x13c bytes) — same clamp-then-scale
  * magnitude idiom as the sibling GetVectorLength.c (this TU), but takes the
  * delta between two VECTOR points instead of three raw components. See
- * GetVectorLength.c's header for the two idioms this shares:
+ * GetVectorLength.c's header for the three idioms this shares:
  *  - `abs()` must be declared `long abs(long)`, not `int abs(int)` — the
  *    latter is cc1's recognized builtin and inlines to branch+negate (no
  *    `jal`) even though this build's `-fno-builtin` never reaches cc1
@@ -45,6 +45,14 @@ extern long abs(long x);
 
 int GetVectorDistance(VECTOR *v1, VECTOR *v2)
 {
+    enum
+    {
+        patch = 4096
+    };
+    enum
+    {
+        div = 256
+    };
     long dx, dy, dz;
     long len;
     int big;
@@ -55,7 +63,7 @@ int GetVectorDistance(VECTOR *v1, VECTOR *v2)
     dz = v1->vz - v2->vz;
 
     big = 0;
-    if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+    if (abs(dx) > patch || abs(dy) > patch || abs(dz) > patch)
     {
         big = 1;
     }
@@ -63,15 +71,15 @@ int GetVectorDistance(VECTOR *v1, VECTOR *v2)
     {
         v = dx;
         if (dx < 0)
-            v = dx + 0xff;
+            v = dx + div - 1;
         dx = v >> 8;
         v = dy;
         if (dy < 0)
-            v = dy + 0xff;
+            v = dy + div - 1;
         dy = v >> 8;
         v = dz;
         if (dz < 0)
-            v = dz + 0xff;
+            v = dz + div - 1;
         dz = v >> 8;
         len = SquareRoot0(dx * dx + dy * dy + dz * dz);
         len = len << 8;

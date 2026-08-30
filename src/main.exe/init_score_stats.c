@@ -9,7 +9,7 @@
  * stage score/stats record from the low bytes of six per-run halfword
  * counters. The explicit `u8 *` views preserve retail's `lbu` snapshots
  * without lying about the globals' PSX.SYM-proven widths, followed by a
- * GameClock tick count clamped to 0x1A5C2 (the only absolute/non-gp global
+ * GameClock tick count clamped to SCORE_CLOCK_MAX (the only absolute/non-gp global
  * here — GameClock is
  * defined in the think/DoInfoViewProc TU, see item.h's gp note). Returns
  * the same pointer it was given (arg0 survives in $v0 via the jr delay
@@ -28,9 +28,9 @@ ScoreStats *init_score_stats(ScoreStats *stats)
     stats->criticals = *(u8 *)&Criticals;
     stats->friendHits = *(u8 *)&FriendHits;
     clock = GameClock;
-    if (clock > 0x1A5C2)
+    if (clock > SCORE_CLOCK_MAX)
     {
-        clock = 0x1A5C2;
+        clock = SCORE_CLOCK_MAX;
     }
     stats->clock = clock;
     return stats;

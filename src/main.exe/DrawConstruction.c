@@ -5,11 +5,14 @@
 #include <psxsdk/libgpu.h>
 #include "tmdfast.h"
 
+#define N_DRAW_BUCKETS 153
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
- * void DrawConstruction(void);
+
+void DrawConstruction(void);
  *     WORLD.C:798, 234 src lines, frame 1920 bytes, saved-reg mask 0xc0ff0000 (DEMO build -- see below)
  *
  * Original parameters and locals (the demo COUNT and TYPES are high-value
@@ -88,7 +91,7 @@ void DrawConstruction(void)
     int nz;
     int ndl;
     int ndt;
-    ObjectSlotType *DrawList[153];
+    ObjectSlotType *DrawList[N_DRAW_BUCKETS];
     ObjectSlotType Slot[100];
     ObjectSlotManager SlotMan;
     int sx;
@@ -143,7 +146,7 @@ have_z:
     SlotMan.slot = Slot;
     SlotMan.n = 0;
 
-    for (j = 0; j < 153; j++)
+    for (j = 0; j < N_DRAW_BUCKETS; j++)
         DrawList[j] = 0;
 
     SetRotMatrix(&GsWSMATRIX);
@@ -192,7 +195,9 @@ scan_z:
             int bucket;
             int signed_size;
 
-            /* The one-shot loops retain the original cc1 allocation priorities. */
+            /* Every do/while (0) in this function (including the IsVisible pair
+             * above) retains the original cc1 allocation priorities; the
+             * nesting depth is the weight. */
             do
             {
                 do
@@ -200,6 +205,8 @@ scan_z:
                     do
                     {
                         signed_size = cur->ModelSize;
+                        /* IsVisible left its view-space vector in the
+                         * scratchpad; +0x08 is that vector's z. */
                         bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
                                    signed_size) >>
                                   8) -
@@ -209,6 +216,7 @@ scan_z:
                 } while (0);
                 if (bucket < 0)
                     bucket = 0;
+                /* Offset spelling: byte-required (indexing flips the addu; measured). */
                 slot = (ObjectSlotType **)(bucket * sizeof(*slot) + (u32)DrawList);
                 model = cur->model;
 
@@ -247,7 +255,7 @@ scan_done:
     packet_base = GsGetWorkBase();
     DrawTMDmode = TMD_BANK_FOG;
     ot = *OTablePt;
-    ot.org += 0x37;
+    ot.org += 0x37; /* bias the local OT into the global table's depth window */
 
     cur = DrawList[0];
 draw_near:
@@ -267,7 +275,7 @@ draw_near:
 draw_far_start:
     j = 1;
 draw_bucket:
-    if (153 <= j)
+    if (j >= N_DRAW_BUCKETS)
         goto draw_done;
     cur = DrawList[j];
 draw_far:
@@ -280,7 +288,7 @@ draw_far:
         GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         DrawTMD(&cur->model->object, OTablePt, 0);
     }
-    if ((u32)(GsGetWorkBase() - packet_base) > 0x6400)
+    if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
         goto overload;
     cur = cur->next;
     goto draw_far;
