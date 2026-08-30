@@ -47,62 +47,54 @@
  * END PSX.SYM */
 
 /*
- * The nested one-shot loops around the conflict pointer and object id place
- * sched1 loop-note fences between the target's pointer, id, and size loads.
- * The identical yy arms add a zero-code CFG fence without loop-weighting the
- * collision pointer and rotating its a1/a2 allocation.
- * The four small do{}while(0) fences on zz statements are ONE register-
- * pressure dial split across sites (regalloc.py --order on every shape):
- * cc1 weights a pseudo's refs by loop depth, +1 per enclosed ref per level,
- * linearly in depth, defs and uses alike (`zz >>= 1` encloses 2). zz needs
- * +14 weighted refs (18 -> 32) so its global-alloc priority
- * (floor_log2(refs)*refs/live_length) crosses the floor_log2 cliff at 32
- * refs -- 10062 vs 9701 -- and beats i's pseudo to $s0, which the whole
- * callee-saved assignment hangs on. The depths here (map->level @2, >>=1
- * @3, the conflict locate->vz store @3, the abs @3) sum to exactly +14 =
- * 2+6+3+3. Site choice is forced, all measured: fencing any statement
- * mentioning i raises the rival as fast as zz (GetDirection's args are +2 i
- * per level); any mentioning xx trips xx's floor_log2 cliff at 16 refs (one
- * boosted ref lifts it over locate/human and reshuffles s2-s4); and
- * `zz = locate->vz` (the conflict read-back) is fence-toxic for a third
- * reason -- the target schedules that load into the ConflictDistance.vx
- * load-delay shadow, and a fence barrier there pins it early and buys a
- * +4-byte nop. Refuted substitutes: the flat form cascades to ~114 diffs; a
- * single-site tower on the abs needs 14 levels (1 enclosed ref; 5/6 levels
- * stall at 43); extra source-level zz reads, `zz = zz;`, and a
- * dead-boundary copy (`ry = zz;`) all add 0 refs (deleted before .lreg
- * counts); a block-scoped local cannot take $s0 (crosses no call);
- * `register` is a no-op at -O2; zz-as-selector and the ry-merge land
- * 43-diffs-or-worse and the merge deletes a PSX.SYM-attested local.
- * Splitting the rival `i` (mode/angle/scan/body roles) is impossible on
- * two independent measured axes: only its loop tail crosses calls, so
- * every other piece colors caller-saved (t0/a0/a3 measured) while its
- * byte sites demand $s1 — the single-pseudo `i` inherits $s1 purely
- * from its tail; and every tail-containing piece (5298-8640) outranks
- * natural zz (18/160 -> 4500) and shares $s0 freely with ry (a set-dest
- * and an input dying at the same insn never conflict), so it takes $s0
- * before zz allocates. Every partition measured 114-124 diffs or a
- * length mismatch. The four fences are irreplaceable.
- * PROVENANCE (2026-08-30, demo-binary witness + 83-config sweep): the
- * JP demo's DAH (0x80024de0, HUMAN.C:155) is instruction-identical to
- * retail in every shared region and compiles the surviving fenced
- * statements fence-free with zz already in $s0 — because the demo's
- * `i` never crosses a call and colors caller-saved $a2. Retail's added
- * damage arm makes i live across GetDirection/SetNowMotion/Sound,
- * promoting it into the callee-saved file ($s1; the whole map shifts
- * down one, giving retail its ninth save, $s8) — that promotion CREATES
- * the i-vs-zz rivalry these fences resolve. Two of the four fenced
- * statements do not even exist in demo-era source, so the fences are
- * not release-emptied debug-macro fossils (the demo's real debug idiom
- * was bare FntPrint dumps, one block of which sat after the map probe
- * — deleted in retail with no residue). Wrong-flags and wrong-compiler
- * are excluded by measurement: 83 configurations across cc1 2.6/2.7.2/
- * 2.8.0/2.8.1/gs107 never bring flat DAH under 118 differing bytes,
- * every length-preserving flag is provably inert here, and 2.7.2-class
- * compilers cannot reproduce even the fenced bytes at any setting.
- * Retail narrows the recovered `long i` at both map-query calls; explicit
- * casts retain that local's original type and the shared API's original
- * promoted `int mode` without hiding either behind a false prototype.
+ * Register-allocation notes, verified against cc1 2.8.1's own -dl/-dg/-dS
+ * dumps and its source (flow.c, global.c, sched.c) this session.
+ *
+ * THE TOWER (seven nested do{}while(0) around `zz >>= 1`): cc1 counts a
+ * variable's RTL mentions weighted linearly by syntactic loop depth
+ * (flow.c: REG_N_REFS += loop_depth), and global-alloc assigns registers
+ * in order of priority = floor_log2(refs)*refs/live_length, each allocno
+ * taking the lowest free register. Written flat, zz counts 18 weighted
+ * refs and i counts 39: i is then the highest-priority call-crossing
+ * value, find_reg hands it $s0, and every callee-saved assignment shifts
+ * off the retail bytes (~118 differing bytes). zz overtakes i only at 32
+ * refs, where floor_log2 steps from 4 to 5 (here 5*32/160 = 10000 vs i's
+ * 5*39/196 = 9948). The tower adds 7 levels x 2 refs = +14: exactly
+ * 18 -> 32. Any spread of +14 across the four zz-only statements gives
+ * identical bytes (measured); one site keeps the construct in one place.
+ * The other statements are toxic carriers: anything mentioning i feeds
+ * the rival one-for-one, one extra xx ref trips xx's own floor_log2 step
+ * at 16 refs and reshuffles $s2-$s4, and one extra object ref trips
+ * object's step at 8. This is not a compiler quirk of ours: GCC
+ * 2.8.0-psx, 2.8.1-psx and the gs107 build emit byte-identical code for
+ * this function (flat and fenced), 2.7.2-class codegen cannot reproduce
+ * even its instruction count, and every era-plausible flag measures
+ * inert on this allocation.
+ *
+ * WHY RETAIL NEEDS IT AT ALL: the JP demo's DefaultActionHumanoid
+ * (0x80024de0; Oct 1997, so necessarily a pre-2.8.0-era compiler) has no
+ * damage arm in the conflict loop. Its i never lives across a call,
+ * colors caller-saved $a2, and its zz takes $s0 uncontested. Retail's
+ * added damage arm (GetDirection/SetNowMotion/Sound) makes i live across
+ * calls, promoting it into the callee-saved file — that promotion
+ * creates the i-vs-zz contest the tower settles. The demo's debug idiom
+ * was bare FntPrint dumps (still compiled into the demo binary), deleted
+ * in retail without residue; two of the zz statements postdate the demo,
+ * so the tower is no debug-macro fossil.
+ *
+ * THE CONFLICT-ARM FENCES (the small do{}while(0) pair around the
+ * conflict pointer and the identical-arms `if (object_id != 0)`): pure
+ * scheduling, no weight. Loop notes bound sched1 regions, and the dead
+ * branch (its arms are identical, so jump2 cross-jumps them and deletes
+ * the test after reload, at zero bytes) keeps the position load in its
+ * own block. Flat, sched's backward pass places one of the two
+ * conflict-record loads next to ConflictObject[object_id]'s load
+ * (sched.c's potential_hazard prefers a memory op after a memory op) and
+ * no statement order reaches the retail sequence lh size / lw position /
+ * index chain / lw position — visible directly in the -dS trace.
+ *
+ * Retail narrows the recovered `long i` at both map-query calls; the
+ * explicit casts keep the shared API's promoted `int mode` visible.
  */
 
 short DefaultActionHumanoid(Humanoid *human)
@@ -239,14 +231,7 @@ short DefaultActionHumanoid(Humanoid *human)
     if (map->vector != 0)
     {
         human->attribute |= ATTR_WALL;
-        /* zz weight fence -- see header */
-        do
-        {
-            do
-            {
-                zz = map->level;
-            } while (0);
-        } while (0);
+        zz = map->level;
         if (zz == LEVEL_NONE)
         {
             {
@@ -343,16 +328,28 @@ short DefaultActionHumanoid(Humanoid *human)
                                      human->motion->motion->sidespd);
                     }
                     xx >>= 1;
-                    /* zz weight fence -- see header */
+                    /* the zz weight tower -- see the header */
                     do
                     {
-                        do
-                        {
-                            do
-                            {
-                                zz >>= 1;
-                            } while (0);
-                        } while (0);
+                    do
+                    {
+                    do
+                    {
+                    do
+                    {
+                    do
+                    {
+                    do
+                    {
+                    do
+                    {
+                    zz >>= 1;
+                    } while (0);
+                    } while (0);
+                    } while (0);
+                    } while (0);
+                    } while (0);
+                    } while (0);
                     } while (0);
                 }
                 locate->vx -= xx;
@@ -404,6 +401,7 @@ short DefaultActionHumanoid(Humanoid *human)
                                    : -human->width) /
                               8;
 
+                /* scheduling fence, not weight -- see the header */
                 do
                 {
                     do
@@ -413,6 +411,8 @@ short DefaultActionHumanoid(Humanoid *human)
                     object_id = object->id;
                 } while (0);
                 size_y = conflict->size.vy;
+                /* identical arms: the test cross-jumps away after reload
+                 * (zero bytes); it exists to schedule this load -- header */
                 if (object_id != 0)
                 {
                     yy = conflict->position.vy;
@@ -426,17 +426,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 if (object_y < top)
                 {
                     locate->vx = xx;
-                    /* zz weight fence -- see header */
-                    do
-                    {
-                        do
-                        {
-                            do
-                            {
-                                locate->vz = zz;
-                            } while (0);
-                        } while (0);
-                    } while (0);
+                    locate->vz = zz;
                     if (conflict->size.pad & CONFLICT_STAND)
                     {
                         vector->vy = 0;
@@ -465,17 +455,7 @@ short DefaultActionHumanoid(Humanoid *human)
                                        * rotation: retail's own bug (every
                                        * other caller passes rotate->vy). */
                                       (s16)human->locate->vy);
-                    /* zz weight fence -- see header */
-                    do
-                    {
-                        do
-                        {
-                            do
-                            {
-                                direction_abs = zz >= 0 ? zz : -zz;
-                            } while (0);
-                        } while (0);
-                    } while (0);
+                    direction_abs = zz >= 0 ? zz : -zz;
                     direction = MOT_DAMAGE_BACK_LIGHT;
                     if (direction_abs < 1100)
                     {
