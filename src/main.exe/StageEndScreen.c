@@ -268,10 +268,9 @@ void StageEndScreen(void)
     }
 
     {
-        /* Weight fence: best_x needs +3 weighted refs in total — 1 here
-         * plus 2 on the language test below. The old depth-2 nest here
-         * re-measured as an overshoot (either single layer suffices,
-         * removing both breaks; 2026-08-31). */
+        /* Weight fence: best_x needs +1 weighted ref (this single layer;
+         * the former second fence on the language test re-measured
+         * redundant and is gone, 2026-08-31). */
         do
         {
             best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
