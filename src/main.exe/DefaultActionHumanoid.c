@@ -94,7 +94,8 @@
  * in retail without residue; two of the zz statements postdate the demo,
  * so the tower is no debug-macro fossil.
  *
- * THE THREE EMPTY do{}while(0) IN THE CONFLICT ARM: pure scheduling, no
+ * THE THREE DBG SITES IN THE CONFLICT ARM (empty do{}while(0) once
+ * expanded for release): pure scheduling, no
  * weight (nothing inside them, so nothing is ref-boosted). A loop-note
  * pair bounds a sched1 region even when empty, and these keep the four
  * conflict-record loads in retail's order: written flat, sched's
@@ -450,27 +451,18 @@ short DefaultActionHumanoid(Humanoid *human)
                 locate->vz -= ((ConflictDistance.vz >= 0)
                                    ? human->width : -human->width) / 8;
 
-                /* The three empty one-shots are sched1 region fences the
-                 * bytes require -- DBG residue whose print text, unlike the
-                 * map-probe pair above, is unrecoverable (these postdate the
-                 * demo); spelling them DBG(("...")) would mean inventing it.
-                 * See the header. */
+                /* Three DBG sites the bytes require (their empty release
+                 * expansions are sched1 region fences -- see the header).
+                 * Unlike the map-probe pair above, the real print text
+                 * postdates the demo and is unrecoverable; the argument
+                 * below is a placeholder, not a recovered string. */
                 conflict = &ConflictObject[i];
-                do
-                {
-                    /* deleted debug print (text lost) */
-                } while (0);
+                DBG(("deleted debug print (text lost)\n"));
                 object_id = object->id;
-                do
-                {
-                    /* deleted debug print (text lost) */
-                } while (0);
+                DBG(("deleted debug print (text lost)\n"));
                 size_y = conflict->size.vy;
                 yy = conflict->position.vy;
-                do
-                {
-                    /* deleted debug print (text lost) */
-                } while (0);
+                DBG(("deleted debug print (text lost)\n"));
                 object_y = ConflictObject[object_id].position.vy;
                 top = yy - size_y;
                 if (object_y < top)

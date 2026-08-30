@@ -1468,8 +1468,11 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   owner: RECOVERED prints go back in verbatim under a release-emptied
   DBG(x) macro (byte-inert where the bytes need nothing; the #ifdef DEBUG
   arm must actually compile — check it once with -DDEBUG through the
-  probe pipeline); UNRECOVERABLE residue stays a bare empty do{}while(0)
-  with a "text lost" comment — never invent format strings. The keyword sweep
+  probe pipeline); UNRECOVERABLE residue is spelled through the same
+  macro with a self-describing placeholder (DBG(("deleted debug print
+  (text lost)\n")) — the release cpp discards the argument, so the text
+  is documentation, and a -DDEBUG build prints the placeholder) — never
+  present invented format strings as recovered. The keyword sweep
   came up empty: `volatile` on a short field is BYTE-VISIBLE — it blocks
   the load/sign-extend fusion and turns `lh` into `lhu + sll + sra`, so
   any matched function whose bytes fuse `lh` on a field thereby PROVES
