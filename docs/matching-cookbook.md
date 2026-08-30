@@ -1488,19 +1488,6 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   (vmemoryGC — and re-visit broad call-site fences after a source-identity
   merge; the old weights become the next cycle's cause).
 
-**Presenting a forced tower**: when a deep one-shot nest is a measured
-register-pressure dial that cannot be removed (DefaultActionHumanoid's
-14-level tower: the amplified pseudo needs floor_log2(refs)*refs/live
-past a competitor and only note-based loop weighting adds refs with
-zero bytes), spell it with a file-local ONCE() statement-macro family
-(`#define ONCE(stmt) do { stmt; } while (0)`, ONCE2/ONCE4/ONCE8
-composing it). The expansion is token-identical, the depth arithmetic
-becomes visible (ONCE8(ONCE2(...)) inside four ONCEs = 14), and the
-period idiom reads as intent instead of noise. Measured floor for that
-tower's whole family: merging the only byte-legal reuse donor (ry)
-still needs depth 11 and deletes a PSX.SYM-attested local — elimination
-is arithmetically impossible.
-
 ### 3.11 cse, blocks, labels
 
 - **Both spellings of one field can be in the source** — cse hashes by address

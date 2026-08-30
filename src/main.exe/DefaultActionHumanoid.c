@@ -87,24 +87,11 @@
  * zero-code ref amplifier is required, and in cc1 2.8.1 only
  * note-based loop weighting -- the do-while(0) family -- adds refs
  * without emitting a single byte. Whatever the 1998 source spelled, it
- * reduced to exactly this construct; the ONCE() statement-macro family
- * below is the period idiom for it, and expands to the identical
- * one-shot nest.
+ * reduced to exactly this construct.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
  */
-
-/* One-shot statement wrappers (each level is one do/while (0)): the
- * register-pressure dial the header note measures. */
-#define ONCE(stmt)                                                            \
-    do                                                                        \
-    {                                                                         \
-        stmt;                                                                 \
-    } while (0)
-#define ONCE2(stmt) ONCE(ONCE(stmt))
-#define ONCE4(stmt) ONCE2(ONCE2(stmt))
-#define ONCE8(stmt) ONCE4(ONCE4(stmt))
 
 short DefaultActionHumanoid(Humanoid *human)
 {
@@ -434,10 +421,14 @@ short DefaultActionHumanoid(Humanoid *human)
                                    : -human->width) /
                               8;
 
-                /* Sched fences between the pointer, id, and size loads —
-                 * see the header note. */
-                ONCE(ONCE(conflict = &ConflictObject[i]);
-                     object_id = object->id);
+                do
+                {
+                    do
+                    {
+                        conflict = &ConflictObject[i];
+                    } while (0);
+                    object_id = object->id;
+                } while (0);
                 size_y = conflict->size.vy;
                 if (object_id != 0)
                 {
@@ -481,18 +472,56 @@ short DefaultActionHumanoid(Humanoid *human)
                                        * rotation: retail's own bug (every
                                        * other caller passes rotate->vy). */
                                       (s16)human->locate->vy);
-                    /* 14 one-shot levels around the abs (4 + 8 + 2): the
-                     * measured minimum weight — see the header note. */
-                    ONCE(ONCE(ONCE(ONCE(ONCE8(ONCE2(
-                                          direction_abs =
-                                              zz >= 0 ? zz : -zz));
-                                        direction = MOT_DAMAGE_BACK_LIGHT);
-                                   if (direction_abs < 1100)
-                                   {
-                                       direction = MOT_DAMAGE;
-                                   });
-                              SetNowMotion(human, direction, 1));
-                         Sound(human, 6));
+                    do
+                    {
+                        do
+                        {
+                            do
+                            {
+                                do
+                                {
+                                    do
+                                    {
+                                        do
+                                        {
+                                            do
+                                            {
+                                                do
+                                                {
+                                                    do
+                                                    {
+                                                        do
+                                                        {
+                                                            do
+                                                            {
+                                                                do
+                                                                {
+                                                                    do
+                                                                    {
+                                                                        do
+                                                                        {
+                                                                            direction_abs = zz >= 0 ? zz : -zz;
+                                                                        } while (0);
+                                                                    } while (0);
+                                                                } while (0);
+                                                            } while (0);
+                                                        } while (0);
+                                                    } while (0);
+                                                } while (0);
+                                            } while (0);
+                                        } while (0);
+                                    } while (0);
+                                    direction = MOT_DAMAGE_BACK_LIGHT;
+                                } while (0);
+                                if (direction_abs < 1100)
+                                {
+                                    direction = MOT_DAMAGE;
+                                }
+                            } while (0);
+                            SetNowMotion(human, direction, 1);
+                        } while (0);
+                        Sound(human, 6);
+                    } while (0);
                 }
 
                 {
