@@ -140,61 +140,21 @@ short DefaultActionHumanoid(Humanoid *human)
         FieldIndex = map->index;
     }
 
+    if (human->status == STAT_ATTACK ||
+        (human->status != STAT_SQUAT && map->height == 0 &&
+         ((vector->vx >= 0 ? vector->vx : -vector->vx) > 0x50 ||
+          (vector->vz >= 0 ? vector->vz : -vector->vz) > 0x50)))
     {
         VECTOR position;
-        VECTOR *probe;
-        MapVector *call_map;
 
-        if (human->status == STAT_ATTACK)
-        {
-            goto use_conflict_position;
-        }
-        call_map = map;
-        if (human->status == STAT_SQUAT)
-        {
-            goto use_locate_position;
-        }
-        probe = locate;
-        if (map->height != 0)
-        {
-            goto probe_map;
-        }
-        {
-            s32 abs_x;
-            s32 abs_z;
-
-            abs_x = vector->vx;
-            if (abs_x < 0)
-            {
-                abs_x = -abs_x;
-            }
-            if (abs_x > 0x50)
-            {
-                goto use_conflict_position;
-            }
-            abs_z = vector->vz;
-            if (abs_z < 0)
-            {
-                abs_z = -abs_z;
-            }
-            if (abs_z <= 0x50)
-            {
-                goto probe_map;
-            }
-        }
-
-    use_conflict_position:
         position = ConflictObject[(*human->model->object)->id].position;
         position.vy = locate->vy;
         GetAreaMapVector(GlobalAreaMap, map, &position, human->width,
                          (short)i);
-        goto map_probe_done;
-    use_locate_position:
-        probe = locate; /* duplicated on both paths: the $L7 block is in the bytes */
-    probe_map:
-        GetAreaMapVector(GlobalAreaMap, call_map, probe, human->width,
-                         (short)i);
-    map_probe_done:;
+    }
+    else
+    {
+        GetAreaMapVector(GlobalAreaMap, map, locate, human->width, (short)i);
     }
 
     if (map->attrib & 2)
