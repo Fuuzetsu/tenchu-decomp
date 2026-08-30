@@ -536,10 +536,11 @@ void BriefingAndInventorySelectionScreen(void)
         }
         if (bounce == 1)
         {
+            t = scale + 0x10;
+            scale = t;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                t = scale + 0x10;
-                scale = t;
             } while (0);
             if ((s16)t > 0x1400)
             {
@@ -548,10 +549,11 @@ void BriefingAndInventorySelectionScreen(void)
         }
         else if (bounce == 0)
         {
+            t = scale - 0x10;
+            scale = t;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                t = scale - 0x10;
-                scale = t;
             } while (0);
             if ((s16)t < 0x1000)
             {
@@ -560,10 +562,11 @@ void BriefingAndInventorySelectionScreen(void)
         }
         else if (bounce == 2)
         {
+            t = scale - 0x10;
+            scale = t;
+            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
-                t = scale - 0x10;
-                scale = t;
             } while (0);
             if ((s16)t < 0x1000)
             {

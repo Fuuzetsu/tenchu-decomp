@@ -847,9 +847,6 @@ void mission_score_screen(void)
             {
                 rankSpriteBase = rankSprites;
                 /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
-                do
-                {
-                } while (0);
             } while (0);
         do
         {

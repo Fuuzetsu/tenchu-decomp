@@ -78,13 +78,10 @@ void PlayMusicFormID(s32 id)
     search:
         do
         {
-            do
+            if (*(u8 *)(i + (s32)p) == MusicNo)
             {
-                if (*(u8 *)(i + (s32)p) == MusicNo)
-                {
-                    goto found;
-                }
-            } while (0);
+                goto found;
+            }
         } while (0);
         j = i + 1;
         i = j;
