@@ -235,40 +235,38 @@ short DefaultActionHumanoid(Humanoid *human)
         zz = map->level;
         if (zz == LEVEL_NONE)
         {
+            MapVector mv;
+            VECTOR position;
+            s32 dx;
+            s32 dz;
+            s32 coefficient_x;
+            s32 coefficient_z;
+
+            position = ConflictObject[(*human->model->object)->id].position;
+            locate->vx = slocate->vx;
+            locate->vz = slocate->vz;
+            locate->vy = slocate->vy;
+            position.vy = locate->vy - 500;
+            GetAreaMapVector(GlobalAreaMap, &mv, &position, 300, 4);
+
+            coefficient_x = RefrectMove[mv.vector][0];
+            dx = position.vx - locate->vx;
+            locate->vx += coefficient_x * ((dx >= 0) ? dx : -dx);
+
+            coefficient_z = RefrectMove[mv.vector][1];
+            dz = position.vz - locate->vz;
+            locate->vz += coefficient_z * ((dz >= 0) ? dz : -dz);
+
+            if (mv.level != LEVEL_NONE && locate->vy < mv.level)
             {
-                MapVector mv;
-                VECTOR position;
-                s32 dx;
-                s32 dz;
-                s32 coefficient_x;
-                s32 coefficient_z;
-
-                position = ConflictObject[(*human->model->object)->id].position;
-                locate->vx = slocate->vx;
-                locate->vz = slocate->vz;
-                locate->vy = slocate->vy;
-                position.vy = locate->vy - 500;
-                GetAreaMapVector(GlobalAreaMap, &mv, &position, 300, 4);
-
-                coefficient_x = RefrectMove[mv.vector][0];
-                dx = position.vx - locate->vx;
-                locate->vx += coefficient_x * ((dx >= 0) ? dx : -dx);
-
-                coefficient_z = RefrectMove[mv.vector][1];
-                dz = position.vz - locate->vz;
-                locate->vz += coefficient_z * ((dz >= 0) ? dz : -dz);
-
-                if (mv.level != LEVEL_NONE && locate->vy < mv.level)
-                {
-                    locate->vy = (vector->vy > 0)
-                                     ? locate->vy + vector->vy
-                                     : locate->vy + 20;
-                }
-                else
-                {
-                    vector->vz = 0;
-                    vector->vx = 0;
-                }
+                locate->vy = (vector->vy > 0)
+                                 ? locate->vy + vector->vy
+                                 : locate->vy + 20;
+            }
+            else
+            {
+                vector->vz = 0;
+                vector->vx = 0;
             }
         }
         else
@@ -309,22 +307,20 @@ short DefaultActionHumanoid(Humanoid *human)
                     if (map->angleH == 0 &&
                         (human->status == STAT_MOVE || human->status == STAT_CHASE))
                     {
-                        {
-                            SVECTOR *rotate;
-                            s32 rotate_y;
+                        SVECTOR *rotate;
+                        s32 rotate_y;
 
-                            rotate = human->rotate;
-                            rotate_y = rotate->vy;
-                            if (i > 0)
-                            {
-                                rotate_y -= 0x20;
-                            }
-                            else
-                            {
-                                rotate_y += 0x20;
-                            }
-                            rotate->vy = rotate_y;
+                        rotate = human->rotate;
+                        rotate_y = rotate->vy;
+                        if (i > 0)
+                        {
+                            rotate_y -= 0x20;
                         }
+                        else
+                        {
+                            rotate_y += 0x20;
+                        }
+                        rotate->vy = rotate_y;
                         MoveHumanoid(human, human->motion->motion->orderspd,
                                      human->motion->motion->sidespd);
                     }
@@ -332,25 +328,25 @@ short DefaultActionHumanoid(Humanoid *human)
                     /* the zz weight tower -- see the header */
                     do
                     {
-                    do
-                    {
-                    do
-                    {
-                    do
-                    {
-                    do
-                    {
-                    do
-                    {
-                    do
-                    {
-                    zz >>= 1;
-                    } while (0);
-                    } while (0);
-                    } while (0);
-                    } while (0);
-                    } while (0);
-                    } while (0);
+                        do
+                        {
+                            do
+                            {
+                                do
+                                {
+                                    do
+                                    {
+                                        do
+                                        {
+                                            do
+                                            {
+                                                zz >>= 1;
+                                            } while (0);
+                                        } while (0);
+                                    } while (0);
+                                } while (0);
+                            } while (0);
+                        } while (0);
                     } while (0);
                 }
                 locate->vx -= xx;
@@ -393,14 +389,9 @@ short DefaultActionHumanoid(Humanoid *human)
                 zz = locate->vz;
 
                 locate->vx -= ((ConflictDistance.vx >= 0)
-                                   ? human->width
-                                   : -human->width) /
-                              8;
-
+                                   ? human->width : -human->width) / 8;
                 locate->vz -= ((ConflictDistance.vz >= 0)
-                                   ? human->width
-                                   : -human->width) /
-                              8;
+                                   ? human->width : -human->width) / 8;
 
                 /* The empty one-shot loops are sched1 region fences
                  * (no weight; nothing inside) -- see the header. */
