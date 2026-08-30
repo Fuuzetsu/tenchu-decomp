@@ -300,7 +300,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 }
                 else
                 {
-                    i = ((u16)human->width << 16) >> 18; /* width / 4; the u16 view is the retail lhu access width, and the sll16/sra18 pair (not >> 2) is in the bytes */
+                    i = (short)(human->width >> 2);
                     xx = RefrectMove[direction][0] * i;
                     zz = RefrectMove[direction][1] * i;
                 }
@@ -310,9 +310,8 @@ short DefaultActionHumanoid(Humanoid *human)
             else
             {
                 xx = (rsin(ry) * human->width) >> 14;
-                yy = rcos(ry);
+                zz = (rcos(ry) * human->width) >> 14;
                 i = human->rotate->vy - ry;
-                zz = (yy * human->width) >> 14;
                 angle_abs = (i >= 0) ? i : -i;
                 if (angle_abs >= 2000)
                 {
@@ -364,13 +363,8 @@ short DefaultActionHumanoid(Humanoid *human)
 
     if (object->attribute & MODEL_ATTR_CONFLICT)
     {
-        while (1)
+        while ((i = GetConflictResult(object, -1)) >= 0)
         {
-            i = GetConflictResult(object, -1);
-            if (i < 0)
-            {
-                break;
-            }
             if (ConflictObject[i].common == human)
             {
                 continue;
