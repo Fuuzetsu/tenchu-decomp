@@ -3,7 +3,7 @@
 #include "filesystem.h"
 
 /*
- * cd_init (0x8005f710) — clears the `flagUse` slot-free flag for all 10
+ * cd_init (0x8005f710) — clears `flagUse` (marking the handle free) for all 10
  * entries of the CD file-handle pool (`FileHandlePool`, Ghidra symbols.tsv
  * @0x800c2d70; element type is the already-proven `FILE` from
  * cd_close/cd_getsize/cd_tell/AfsInit — `sw $zero,0x18(...)` is a single
@@ -19,6 +19,6 @@ void cd_init(void)
 {
     int i;
 
-    for (i = 9; i >= 0; i--)
+    for (i = 10 - 1; i >= 0; i--)
         FileHandlePool[i].flagUse = 0;
 }

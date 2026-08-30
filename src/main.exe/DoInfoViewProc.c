@@ -72,7 +72,7 @@
  *    into the conditional backjump's delay slot, retargets the branch past
  *    it, and compensates (+1) on the fallthrough exit. Loading into `i`
  *    first and copying to `cur` puts the lh in i's register (move a0,v1).
- *  - gp smalls of this TU: fInitialize (fInitialize),
+ *  - gp smalls of this TU: fInitialize,
  *    ItemCursor, PutMapMode (Build.hs maspsxGpExterns +
  *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/str_opt are other
  *    TUs' — plain absolute externs.
@@ -80,7 +80,7 @@
 
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
-extern u8 fInitialize; /* fInitialize */
+extern u8 fInitialize;
 
 extern char str_select_item[]; /* "select item" */
 extern char str_number_of[]; /* "number of" */
@@ -173,16 +173,13 @@ void DoInfoViewProc(void)
 {
     enum
     {
-        TESTPAD = 3
-    };
-    enum
-    {
         ENEMY = 0,
         ITEM = 1,
         CHARGE = 2,
         FILE = 3,
         PLAYER = 4,
-        STAGE = 5
+        STAGE = 5,
+        HIDDEN_EFFECT = 0x63
     };
     u16 pad;
     u16 trig;
@@ -197,7 +194,7 @@ void DoInfoViewProc(void)
     {
         InitializeInfoView();
     }
-    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == TESTPAD)
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == (PADL2 | PADR2))
     {
         __builtin_memcpy(Option, DEBUG_MENU_MAIN_SCREEN_OPTIONS,
                          sizeof(Option));
@@ -223,7 +220,7 @@ void DoInfoViewProc(void)
         case STAGE:
             debug_menu_stage_option();
             break;
-        case 0x63:
+        case HIDDEN_EFFECT:
             EffectSpawnMenu();
             break;
         }
@@ -231,7 +228,7 @@ void DoInfoViewProc(void)
 
     if ((pad & PADRup) == 0)
     {
-        if ((trig & 2) != 0)
+        if ((trig & PADR2) != 0)
         {
             i = ItemCursor;
             cur = i;
@@ -242,7 +239,7 @@ void DoInfoViewProc(void)
                     i = ITEM_N;
             } while (CamState.Owner->item[i] == 0 && i != cur);
         }
-        else if ((trig & 1) != 0)
+        else if ((trig & PADL2) != 0)
         {
             i = ItemCursor;
             cur = i;
@@ -266,9 +263,9 @@ nosel:
         PauseProc();
     }
     PutItemList();
-    PutLifeBar(-0x94, 0x69, CamState.Owner->life, CamState.Owner->lifemax, 0);
+    PutLifeBar(-148, 105, CamState.Owner->life, CamState.Owner->lifemax, 0);
     PutLifeBarS();
-    PutStrain(-0x86, 0x5C);
+    PutStrain(-134, 92);
     if ((GetPad(0) & PADselect) &&
         (SystemFlag & (SYSFLAG_DEBUGPRINT | SYSFLAG_PAUSE)) == 0)
     {

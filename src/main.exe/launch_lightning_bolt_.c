@@ -48,7 +48,7 @@ void launch_lightning_bolt_(s16 frame)
         p.start.vx = start_pos->vx;
         p.start.vy = start_pos->vy;
         p.start.vz = start_pos->vz;
-        GetMoveSpeed(&move, dtR->vy, (s16)((rand() % 5) * 1000 + 4000), 0);
+        GetMoveSpeed(&move, dtR->vy, ((rand() % 5) * 1000 + 4000), 0);
         p.end.vx = start_pos->vx + move.vx;
         p.end.vy = Me_MOTION_C->target->locate.coord.t[1];
         p.end.vz = start_pos->vz + move.vz;

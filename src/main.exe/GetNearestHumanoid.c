@@ -55,7 +55,7 @@
  * the target's s1 walking pointer while keeping i in s2. `__builtin_abs`
  * keeps each absolute value as one RTL operation until reorg, which lets the
  * first dx multiply issue before dz is formed and hides both MULT hazards.
- * Reusing dx as the 0x90 type-mask threshold gives that first abs result the
+ * Reusing dx as the PAGE_CIVILIAN comparand gives that first abs result the
  * target's distinct v1 output lifetime; dx is overwritten before its
  * distance use. Flattening the guard loses that lifetime and coalesces the
  * abs input/output in v0.
@@ -76,7 +76,7 @@ Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
     {
         return best;
     }
-    for (i = 0; i < Humans; i = i + 1)
+    for (i = 0; i < Humans; i++)
     {
         cur = HumanGroup[i];
         if (cur != human && cur->status != STAT_DEAD &&

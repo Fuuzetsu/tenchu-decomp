@@ -2,6 +2,8 @@
 #include "main.exe.h"
 #include "infoview.h"
 
+#define N_MUSIC_IDS 161
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -128,8 +130,8 @@ void FileOption(void)
         s32 music_by_stage[11];
         struct
         {
-            TAdtSelect targets[162];
-            u8 msg[161][5];
+            TAdtSelect targets[N_MUSIC_IDS + 1];
+            u8 msg[N_MUSIC_IDS][5];
         } music;
     } FileOptionWork;
     s16 n;
@@ -159,6 +161,8 @@ void FileOption(void)
         fname = (u8 *)AdtSelect(msg_load_no, SelectSlot, 0x10);
         if (fname == (u8 *)-1)
             return;
+        /* The caller-side mask is in the bytes (the callee masks again;
+         * the SAVE twin passes TargetIO unmasked): retail's own. */
         load_save_slot_(TargetIO & 0xFF, fname);
         leLayoutEnemy(0);
         break;
@@ -199,10 +203,9 @@ void FileOption(void)
         debug_menu_file_animation_test();
         break;
     case TEST_MUSIC:
-        i = 0;
         targets = Buf.music.targets;
         messages = Buf.music.msg;
-        for (; i < 0xA1; i++)
+        for (i = 0; i < N_MUSIC_IDS; i++)
         {
             sprintf((char *)messages[i], fmt_num_2, i);
             targets[i].name = messages[i];

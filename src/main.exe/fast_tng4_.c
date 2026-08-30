@@ -23,7 +23,7 @@
  * (TMD_FAST_WORK in tmdfast.h); THIS pair stages its POLY_GT4 at work->gt4
  * (the GT3 pair stages at work->gt3).
  *
- * Matching notes: applies the fast_tnf3_ recipe verbatim (read that
+ * Matching notes: applies the fast_tnf3_ recipe verbatim — except the OTZ store, which follows the near-Z guard here (its delay slot is already taken) (read that
  * header). The original TMD_P_TNG4 record type keeps the normal strength-
  * reduced loop on the target's single cursor; the former function-only flag
  * was compensating for decompiler-style byte offsets. New vs the leaf: the
@@ -251,10 +251,10 @@ u_long *fast_tng4_(u_short *primitive, u_long vertop, u_long *packet, int count,
 
             otSlot = (u_long *)work->ot->org + (work->otz >> work->shift);
             prim->tag = *otSlot;
-            ((u_char *)prim)[3] = 0xC;
+            ((u_char *)prim)[3] = 12;
             *(POLY_GT4 *)packet = *prim;
             *otSlot = (u_long)packet & 0xFFFFFF;
-            packet += 0xD;
+            packet += 13;
 
         next:
             count--;
