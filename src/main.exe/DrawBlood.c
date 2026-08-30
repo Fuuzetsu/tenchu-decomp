@@ -283,7 +283,7 @@ void DrawBlood(TEffectSlot *ef)
                 scale_rnd = rand();
                 blood->sprite = blood->sprite + 2;
                 /* random scale in [1/3, 1/2) of 4.12 one */
-            blood->scale = scale_rnd % 0x2ab + 0x555;
+                blood->scale = scale_rnd % 0x2ab + 0x555;
             }
             blood->mode = 1;
             time_rnd = rand();

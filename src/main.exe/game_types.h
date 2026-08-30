@@ -202,6 +202,9 @@ struct AreaNodeType
  *   MAP_SLOPE_X 0x4000 / MAP_SLOPE_Z 0x8000 — the node's dy interpolates
  *                        along x resp. z (camera_terrain_pitch_;
  *                        StickonCheck rejects wall-stick on slopes)
+ *   MAP_DAMAGE  0x0100 — damaging floor: gates the periodic
+ *                        spawn_damage_effect_ tick (DrawShadow,
+ *                        spread_blood_pool_, StateTransition)
  *   MAP_WOOD    0x0008 — wooden planking, identified from the stage ACM
  *                        data itself (data.vol): the training stage's one
  *                        pond-deck node and CAVE2's 17 mine walkways carry
@@ -219,6 +222,7 @@ struct AreaNodeType
 #define LEVEL_NONE ((s32)0x80000000)
 
 #define MAP_WATER 0x0004
+#define MAP_DAMAGE 0x0100
 #define MAP_WOOD 0x0008
 #define MAP_DEATH 0x0200
 #define MAP_SLOPE_X 0x4000

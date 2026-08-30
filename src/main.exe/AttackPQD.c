@@ -53,11 +53,11 @@
  *    CASE_B test — the two tests are in different basic blocks, so a
  *    fresh re-read of `dtM->count` at each site would reload; only a
  *    genuine shared local reproduces the single `lh`.
- *  - `ppOVar1 = human->weapon;` (the array's base, `human+0x94`) is ALSO
+ *  - `weapons = human->weapon;` (the array's base, `human+0x94`) is ALSO
  *    hoisted unconditionally to the top (its `addiu` sits in the FIRST
  *    branch's delay slot — computed before either arm is chosen). BOTH
- *    weapon[2] AND weapon[3] are reached exclusively through `ppOVar1`
- *    (`ppOVar1[2]`/`ppOVar1[3]`) in EVERY branch, never through
+ *    weapon[2] AND weapon[3] are reached exclusively through `weapons`
+ *    (`weapons[2]`/`weapons[3]`) in EVERY branch, never through
  *    `human->weapon[2/3]` directly, even in the branch where that index is
  *    the "own" one being tested — only weapon[0] (offset 0) stays on
  *    `human` directly (folds the 0x94 displacement into human's own
@@ -65,22 +65,22 @@
  *    Ghidra's inconsistent per-statement naming of the identical address.
  *  - Register-allocation tie (permuter, bisected — see below): CASE_A's
  *    "own slot" store must be a CHAINED assignment,
- *    `t0 = (ppOVar1[2] = human->weapon[0]);`, not the seemingly-equivalent
- *    `t0 = human->weapon[0]; ppOVar1[2] = t0;` — the chained form is what
+ *    `held = (weapons[2] = human->weapon[0]);`, not the seemingly-equivalent
+ *    `held = human->weapon[0]; weapons[2] = held;` — the chained form is what
  *    makes cc1 reuse $v0 for weapon[0]'s value (clobbering the
  *    already-tested weapon[3] value and forcing ITS reload into a fresh
  *    register for the swap), matching the target's `lw`+reload shape.
  *    CASE_B needs the opposite: a PLAIN, temp-free inline read at the
- *    store site (`human->weapon[0] = ppOVar1[2];`, no `tOther`) — adding a
+ *    store site (`human->weapon[0] = weapons[2];`, no `stowed`) — adding a
  *    symmetric temp/chain here (the naive mirror of CASE_A's fix)
  *    regressed the WHOLE function (even un-did CASE_A's own fix and the
- *    unrelated `count`/`ppOVar1` register choice), since global-alloc's
+ *    unrelated `count`/`weapons` register choice), since global-alloc's
  *    priority ordering is whole-function, not per-branch. Found via
  *    `tools/permute.py --stop-on-zero` (one ~2 min run, score 0 on the
  *    first `--stop-on-zero` hit) after the plain temp-per-branch draft
  *    landed on a 20-byte pure register-coloring residual that neither
  *    statement order nor declaration order moved; the winning candidate
- *    also had two dead `if (!ppOVar1) {}` / bare `;` no-ops that bisection
+ *    also had two dead `if (!weapons) {}` / bare `;` no-ops that bisection
  *    showed were NOT load-bearing (removed here).
  *  - `if (count == efrm || efrm == -1)` keeps Ghidra's literal polarity
  *    (De-Morgan lever: an `||`'s THEN body is reached by the first
@@ -98,35 +98,35 @@ void AttackPQD(s16 sfrm, s16 efrm)
 {
     Humanoid *human;
     s16 count;
-    OrnamentType **ppOVar1;
-    OrnamentType *t0;
-    OrnamentType *tOther;
+    OrnamentType **weapons;
+    OrnamentType *held;
+    OrnamentType *stowed;
     s32 seid;
 
     human = Me_MOTION_C;
     count = dtM->count;
-    ppOVar1 = human->weapon;
+    weapons = human->weapon;
     if (count == efrm || efrm == -1)
     {
-        if (ppOVar1[3] == 0)
+        if (weapons[3] == 0)
             return;
         seid = 1;
-        t0 = (ppOVar1[2] = human->weapon[0]);
-        tOther = ppOVar1[3];
-        human->weapon[0] = tOther;
-        ppOVar1[3] = 0;
+        held = (weapons[2] = human->weapon[0]);
+        stowed = weapons[3];
+        human->weapon[0] = stowed;
+        weapons[3] = 0;
     }
     else
     {
         if (count != sfrm)
             return;
-        if (ppOVar1[2] == 0)
+        if (weapons[2] == 0)
             return;
         seid = 0;
-        t0 = human->weapon[0];
-        ppOVar1[3] = t0;
-        human->weapon[0] = ppOVar1[2];
-        ppOVar1[2] = 0;
+        held = human->weapon[0];
+        weapons[3] = held;
+        human->weapon[0] = weapons[2];
+        weapons[2] = 0;
     }
     Sound(human, seid);
 }

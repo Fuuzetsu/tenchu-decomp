@@ -11,7 +11,6 @@
  * writeup), filling the slot straight from its 4 caller-supplied parameters
  * (a raw "spawn exactly as told" setter, no randomization) and handing it
  * to DrawSnow — a DIFFERENT draw callback from DrawBlood/DrawImpact,
- * still unmatched itself. Called once, from ProcMiscSnowfall.c
  * (`SetSnow(&pos, &vel, 0x1000, 0);`) — a falling-snowflake
  * spawner, not blood.
  *

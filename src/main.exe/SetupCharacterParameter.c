@@ -102,6 +102,7 @@ Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
     human->life = life;
 
     idx = -1;
+    /* (u16): the sltiu range test is in the bytes. */
     if ((u16)type > 1)
     {
         idtbl = StageAppearance[NowStage];
@@ -115,6 +116,6 @@ Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
             idx++;
         }
     }
-    human->sound = (idx + 6) * 0x10;
+    human->sound = (idx + 6) * 0x10 /* SE bank: 0x50 for player/partner (idx -1), 0x60+ per stage */;
     return human;
 }

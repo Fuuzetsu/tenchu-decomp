@@ -23,10 +23,11 @@ void DrawSnow(TEffectSlot *ef)
     s32 y;
     s32 z;
     s32 ground;
+    /* delta widths are u32: the unsigned % SNOW_SPAN is in the bytes. */
     u32 delta_y;
     u32 delta;
     u32 offset;
-    s32 state;
+    s32 wrapped;
     s32 size;
     s16 scale;
     s16 depth;
@@ -37,6 +38,8 @@ void DrawSnow(TEffectSlot *ef)
     view_x = ViewInfo.vrx;
     view_y = ViewInfo.vry;
     view_z = ViewInfo.vrz;
+    /* Field loads in this machine order: byte-required (the plain
+     * x = param->x + param->velocity[0] spelling reorders; measured). */
     {
         s16 velocity_x;
         s16 velocity_z;
@@ -53,7 +56,7 @@ void DrawSnow(TEffectSlot *ef)
         ground = param->ground;
         z += velocity_z;
     }
-    state = 0;
+    wrapped = 0;
 
     if (ground < y)
     {
@@ -63,38 +66,38 @@ void DrawSnow(TEffectSlot *ef)
 
     delta_y = y - view_y;
     delta = x - view_x;
-    if ((s32)delta_y > 3000)
+    if ((s32)delta_y > SNOW_RANGE)
     {
-        state = 1;
-        offset = delta_y % 6000 - 3000;
+        wrapped = 1;
+        offset = delta_y % SNOW_SPAN - SNOW_RANGE;
         y = view_y + offset;
     }
-    if (3000 < abs(delta))
+    if (SNOW_RANGE < abs(delta))
     {
-        state = 1;
-        offset = delta % 6000 - 3000;
+        wrapped = 1;
+        offset = delta % SNOW_SPAN - SNOW_RANGE;
         x = view_x + offset;
     }
     delta = z - view_z;
-    if (3000 < abs(delta))
+    if (SNOW_RANGE < abs(delta))
     {
-        state = 1;
-        offset = delta % 6000 - 3000;
+        wrapped = 1;
+        offset = delta % SNOW_SPAN - SNOW_RANGE;
         z = view_z + offset;
     }
 
-    if (state != 0)
+    if (wrapped != 0)
     {
         /* Retail reuses the rewrap flag's register for the ground query
          * (a fresh local, or reusing `ground`, re-colors a pseudo --
          * measured). */
-        state = GetAreaMapLevel(GlobalAreaMap, x, param->sample_y, z, 8);
-        if (state < y)
+        wrapped = GetAreaMapLevel(GlobalAreaMap, x, param->sample_y, z, 8);
+        if (wrapped < y)
         {
             ef->proc = 0;
             return;
         }
-        param->ground = state;
+        param->ground = wrapped;
     }
 
     param->x = x;

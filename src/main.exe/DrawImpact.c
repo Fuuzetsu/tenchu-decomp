@@ -33,6 +33,9 @@
  * the green/blue start-colour inputs, and the later coordinate pointer.  One
  * ordinary reusable `work` local for the latter two roles gives those loads
  * the pointer call's $a0 preference and reproduces all four register fields.
+ * The colour-lerp locals end/start2/inverse are reused the same way for
+ * the px/py/pz captures (and start2 a third time for the OT depth) —
+ * same shared-role lever.
  * No priority fence, dead carrier, or no-op is needed.  The one-shot wrapper
  * around the px capture remains load-bearing: unwrapping it changes 7 bytes
  * in the following grouped-load block.

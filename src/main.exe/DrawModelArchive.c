@@ -54,22 +54,23 @@
  *    guards), `result` ($v0) is the "-1 = reject / else the accepted OTZ"
  *    value the tail sums with `gap` — assigned only at each exit edge, never
  *    once up front, so cc1 rematerialises `li v0,-1` per reject.
- *  - There is exactly ONE shared `reject:` block. Every reject site reaches
- *    it with `goto reject;` — including attribute&1, exactly as the matched
- *    sibling DrawSprite spells it. The asm LOOKS like four independent
+ *  - The reject sites split into two categories (as in the matched
+ *    sibling DrawSprite): the HIDDEN test and the screen-cull's outer
+ *    band use `goto reject;` (the one shared block), while the other
+ *    three culls spell their own `result = -1; goto tail;` bodies. The asm LOOKS like four independent
  *    "direct to tail" rejects (`bcond tail` + own `li v0,-1` in the delay
  *    slot) plus one branch to a shared stub, but that is reorg's doing, not
  *    the source's: reorg steals reject's own `li v0,-1` into each eligible
  *    branch's delay slot and retargets the branch THROUGH reject's `j tail`
- *    to tail itself. The iv2>=0xb5 site (0x8001775c) still points at the real
+ *    to tail itself. The iv>=0xb5 site (0x8001775c) still points at the real
  *    `reject:` only because its delay slot was already taken by
  *    `andi v0,s0,0x10`, so reorg had nothing to steal with. The five
  *    `li v0,-1` in the target are one real + four stolen copies.
- *    Do NOT spell any reject as its own `result = -1; goto tail;` body: a
- *    trailing `result=-1` block adjacent to `tail:` gets a free fallthrough,
- *    which is an identical instruction stream to reject's `li v0,-1; j tail`,
- *    so it absorbs reject and swaps reject with the DrawTMDmode==0 arm
- *    (44 bytes).
+ *    Do NOT move the remaining `goto reject;` sites to their own
+ *    `result = -1; goto tail;` bodies: a trailing `result=-1` block
+ *    adjacent to `tail:` gets a free fallthrough, identical to reject's
+ *    `li v0,-1; j tail`, so it absorbs reject and swaps reject with the
+ *    DrawTMDmode==0 arm (44 bytes).
  *  - `if (SkipFrame == 1) goto ret1;` must be a GOTO to the function's single
  *    trailing `return 1;`, not an inline `return 1;`. An inline early return
  *    leaves a join CODE_LABEL (RTL `code_label 25`) between the `mad`

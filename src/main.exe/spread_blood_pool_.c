@@ -41,7 +41,7 @@ void spread_blood_pool_(Humanoid *human)
         return;
     }
 
-    if ((human->map.attrib & 0x100) != 0)
+    if ((human->map.attrib & MAP_DAMAGE) != 0)
     {
         if ((GameClock & 0xf) == 0)
         {

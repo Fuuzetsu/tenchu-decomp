@@ -77,7 +77,6 @@ typedef union
         SVECTOR position;
         SVECTOR vector;
     } dead;
-    u8 bytes[0x28];
 } ActDeadScratch;
 
 extern Humanoid *Me_MOTION_C;
@@ -182,7 +181,7 @@ void ActDEAD(void)
         goto splash_dead;
     if (mid < MOT_DEAD_DROWN)
         goto ordinary_dead;
-    if (mid > 0x110e)
+    if (mid > MOT_DEAD_STEALTH_SIDE_AYAME)
         goto ordinary_dead;
     goto event_dead;
 

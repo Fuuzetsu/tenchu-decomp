@@ -38,7 +38,7 @@
  * END PSX.SYM */
 
 /*
- * Chooses a short-range humanoid attack.  Status 7 waits for the current
+ * Chooses a short-range humanoid attack.  STAT_ATTACK waits for the current
  * BattleDB continuation frame; the ordinary path handles chase, turn, item,
  * and SetCommand choices from distance, facing, and EngageLevel rolls.
  *
@@ -147,7 +147,7 @@ short AttackShort(void)
             status_raw |= PADRleft;
             if (Degree < -300)
             {
-                status_raw = (s16)PADLleft;
+                status_raw = (s16)PADLleft; /* (s16): addiu -32768, not ori (measured) */
             }
             else
             {
@@ -331,7 +331,7 @@ short AttackShort(void)
         {
             if (degree >= 200 || Distance <= 3500)
             {
-                goto return_with_1000;
+                goto press_up;
             }
             if ((rand() & 1) != 0)
             {
@@ -346,7 +346,7 @@ short AttackShort(void)
             ItemUse();
             goto return_pad;
 
-        return_with_1000:
+        press_up:
             pad |= PADLup;
             goto return_pad;
         }

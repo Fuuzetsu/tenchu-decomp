@@ -45,7 +45,7 @@
  * every bone's rotation (mmp->model->object[i]->rotate, cast to a short[3]
  * array of vx/vy/vz) into canonical range: first snap a value that
  * overshot by nearly a half turn back a full turn (abs > 0x800 -> +-0x1000),
- * then wrap it into 0..0xFFF via a floor-divide-by-0x1000 subtract. Returns
+ * then reduce it mod 0x1000, keeping the sign (a truncating divide). Returns
  * 1 on success.
  *
  * Matching notes:

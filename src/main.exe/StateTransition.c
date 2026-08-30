@@ -625,7 +625,7 @@ void StateTransition(Humanoid *human)
         {
         periodic_check:
             if (GameClock % 90 == 0 &&
-                (((u16)Me_THINK_C->map.attrib & 0x100) ||
+                (((u16)Me_THINK_C->map.attrib & MAP_DAMAGE) ||
                  ((pad & PADLup) && ProbeLevelLow <= 2200 &&
                   ProbeLevelLow != LEVEL_NONE) ||
                  ((pad & PADLdown) && ProbeLevelHigh <= 2200 &&

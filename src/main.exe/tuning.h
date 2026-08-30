@@ -100,6 +100,11 @@
  * HangCheck looks for a grabbable edge. */
 #define LEDGE_PROBE_RISE 400
 
+/* Snowfall (SetSnow/DrawSnow/ProcMiscSnowfall): flakes wrap in a
+ * SNOW_SPAN-wide box around the viewpoint. */
+#define SNOW_RANGE 3000
+#define SNOW_SPAN 6000
+
 /* Grapple wire rendering (SetWire). */
 #define WIRE_SEG_LEN 300 /* world units per drawn segment */
 #define WIRE_SAG_DIV 32  /* midpoint sags by length / this */

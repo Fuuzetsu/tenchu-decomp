@@ -80,15 +80,12 @@ void DrawGore(TEffectSlot *ef)
     GsSPRITE *spr2;
     DrawGoreScratch scratch;
     u32 index;
-    int state;
 
     param = &ef->param.blood;
     index = param->sprite;
     spr = &sprBlood[index];
     spr2 = &sprBloodStay[index];
-    state = param->mode;
-
-    switch (state)
+    switch (param->mode)
     {
     case 3:
     {
@@ -228,6 +225,8 @@ void DrawGore(TEffectSlot *ef)
         z10 = z / 10;
         param->vy += 10;
         node = param->hint;
+        /* The in-condition node_y store is byte-required (a hoisted read
+         * changes the short-circuit shape; measured). */
         if (node == 0 || y10 < (node_y = node->y) - 200 || node_y < y10 ||
             x10 < node->x1 || z10 < node->z1 || node->x2 < x10 ||
             node->z2 < z10)
@@ -266,7 +265,7 @@ void DrawGore(TEffectSlot *ef)
                 r = rand();
                 param->sprite += 2;
                 /* random scale in [1/3, 1/2) of 4.12 one */
-        param->scale = r % 0x2ab + 0x555;
+                param->scale = r % 0x2ab + 0x555;
             }
             param->mode = 1;
             param->time = rand() % 10;

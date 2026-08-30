@@ -117,9 +117,9 @@ do_tick:
         vel = jitter;
 
         memset(&posRaw, 0, sizeof(posRaw));
-        posRaw.vx = ViewInfo.vrx + (rand() % 6000 - 3000);
-        posRaw.vy = ViewInfo.vry + (rand() % 3000 - 6000);
-        posRaw.vz = ViewInfo.vrz + (rand() % 6000 - 3000);
+        posRaw.vx = ViewInfo.vrx + (rand() % SNOW_SPAN - SNOW_RANGE);
+        posRaw.vy = ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN);
+        posRaw.vz = ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE);
         pos = posRaw;
         SetSnow(&pos, &vel, 0x1000, 0);
     }

@@ -176,7 +176,7 @@ void DrawShadow(Humanoid *human)
             effect->proc = (void (*)())DrawSplash;
         }
     }
-    else if (attribute & 0x100)
+    else if (attribute & MAP_DAMAGE)
     {
         if (human->map.height == 0)
         {
