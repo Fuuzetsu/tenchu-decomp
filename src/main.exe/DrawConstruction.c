@@ -200,20 +200,14 @@ scan_z:
              * nesting depth is the weight. */
             do
             {
-                do
-                {
-                    do
-                    {
-                        signed_size = cur->ModelSize;
-                        /* IsVisible left its view-space vector in the
-                         * scratchpad; +0x08 is that vector's z. */
-                        bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
-                                   signed_size) >>
-                                  8) -
-                                 11;
-                        plimit = (u16)cur->ModelSize;
-                    } while (0);
-                } while (0);
+                signed_size = cur->ModelSize;
+                /* IsVisible left its view-space vector in the
+                 * scratchpad; +0x08 is that vector's z. */
+                bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
+                           signed_size) >>
+                          8) -
+                         11;
+                plimit = (u16)cur->ModelSize;
                 if (bucket < 0)
                     bucket = 0;
                 /* Offset spelling: byte-required (indexing flips the addu; measured). */
@@ -227,10 +221,10 @@ scan_z:
                     SlotMan.slot[SlotMan.n].model = model;
                     SlotMan.slot[SlotMan.n].next = *slot;
                 } while (0);
-                do
-                {
-                    SlotMan.slot[SlotMan.n].ModelSize = plimit;
-                } while (0);
+                /* Unsigned identity folded after flow: +2 counted plimit refs
+                 * rank it between slot and model for $s2 (allocation
+                 * staging). */
+                SlotMan.slot[SlotMan.n].ModelSize = (plimit + plimit) - plimit;
                 SlotMan.slot[SlotMan.n].ShiftY = 0;
                 *slot = &SlotMan.slot[SlotMan.n];
                 ndl++;

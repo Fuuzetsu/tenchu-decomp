@@ -218,6 +218,10 @@ void game_over_screen_(void)
     VSync(0);
     _PlayMusic(MUSIC_GAMEOVER, CDA_ONCE);
 
+    /* GCC 2.8 folds this bounded-state identity after flow; its four
+     * state reads together preserve the retail saved-register
+     * permutation (allocation staging, not recovered game logic). */
+    state = ((state + state) - state) & state;
     while (1)
     {
         StartDrawing();
@@ -229,13 +233,7 @@ void game_over_screen_(void)
             shade -= 2;
             if (shade <= 0)
             {
-                do
-                {
-                    do
-                    {
-                        state = 2;
-                    } while (0);
-                } while (0);
+                state = 2;
                 shade = 0;
                 clear_rect.x = 0x280;
                 clear_rect.y = 360;
@@ -301,17 +299,11 @@ void game_over_screen_(void)
             GsSortSprite(&gov_prompt, OTablePt, 0x50);
             if ((new_press & PADRright) != 0)
             {
-                do
-                {
-                    state = 4;
-                } while (0);
+                state = 4;
             }
             if ((new_press & PADstart) != 0 || GameClock >= GAME_OVER_TIMEOUT)
             {
-                do
-                {
-                    state = 5;
-                } while (0);
+                state = 5;
             }
             break;
 

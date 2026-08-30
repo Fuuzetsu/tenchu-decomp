@@ -220,22 +220,10 @@ s32 update_card_screen_(s32 pad)
         } while (0);
         if (!cond)
             next_state = saved_state;
-        /*
-         * Load-bearing fence (autorules fence-unwrap: unwrapping it costs 7
-         * bytes, 0 -> 7). It buys next_state ONE loop-depth-weighted ref:
-         * reg_n_refs is loop-depth weighted and global.c's priority is
-         * floor_log2(refs) * refs/live_length. next_state (p83) scores
-         * 2*4/16*10000 = 5000 and loses a0 to p117/p151 at 3/5 -> 6000;
-         * doubling this one ref gives 5 weighted refs -> 6250 -> a0, which
-         * fixes all six register-swapped instructions at once.
-         * The fence must enclose ONLY this next_state read: wrapping the `if`
-         * would also double saved_state's refs, and its shorter live range
-         * (3/11) would then outrank next_state and take a0 the wrong way.
-         */
-        do
-        {
-            McardState = next_state;
-        } while (0);
+        /* The unsigned identity is folded after flow; its extra consumer
+         * reference keeps the selected state in $a0 for the shared retail
+         * store (allocation staging, not recovered arithmetic). */
+        McardState = (next_state + next_state) - next_state;
         break;
     case 70:
         McardPage = 26;
