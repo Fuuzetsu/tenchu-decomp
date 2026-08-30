@@ -105,13 +105,24 @@
  * inert. The likely original spelling is no spelling at all: an empty
  * do{}while(0) is exactly what the period's standard debug-print
  * macro (#define DBG(x) do { } while (0)) leaves in a release build,
- * the debug-side wrapper do { FntPrint x; } while (0) is measured
- * byte-invisible around a live call, the demo binary carries bare
- * FntPrint dumps in this very TU, and the three sites are the natural
- * places to dump a collision record. Three deleted debug prints
- * explain the barriers without anyone typing a bare one-shot loop.
- * (The weight tower above is NOT explainable that way: it nests seven
- * deep around a live statement, which no emptied macro produces.)
+ * and the debug-side wrapper do { FntPrint x; } while (0) is measured
+ * byte-invisible around a live call. The demo binary carries this
+ * function's actual debug prints: an if/else pair straight after the
+ * map probe dumping the probe result --
+ *     "l(ia) h%d v%x ah%x al%x %04x\n"   (map->level == LEVEL_NONE)
+ *     "l%d h%d v%x ah%x al%x %04x\n"     (level, height, vector,
+ *                                          angleH, angleL, attrib)
+ * (strings at 0x800106d4/0x800106f4; 31 FntPrint sites across the
+ * demo build). Retail kept the machinery -- FntPrint is still linked
+ * and called (the ADT debug menu), and debug_printf_/debug_msg_open_
+ * are RETAIL-era additions -- so per-frame dumps compiled out while
+ * diagnostics stayed. An empty barrier at the demo's own print site
+ * is measured byte-inert in retail, and the three load-bearing sites
+ * sit exactly where a dev debugging the new damage arm would dump the
+ * collision record. Three deleted debug prints explain the barriers
+ * without anyone typing a bare one-shot loop. (The weight tower above
+ * is NOT explainable that way: it nests seven deep around a live
+ * statement, which no emptied macro produces.)
  *
  * Retail narrows the recovered `long i` at both map-query calls; the
  * explicit casts keep the shared API's promoted `int mode` visible.
@@ -412,20 +423,24 @@ short DefaultActionHumanoid(Humanoid *human)
                 locate->vz -= ((ConflictDistance.vz >= 0)
                                    ? human->width : -human->width) / 8;
 
-                /* The empty one-shot loops are sched1 region fences
-                 * (no weight; nothing inside) -- see the header. */
+                /* The three empty one-shots are sched1 region fences the
+                 * bytes require -- most plausibly emptied debug prints
+                 * (see the header). */
                 conflict = &ConflictObject[i];
                 do
                 {
+                    /* deleted debug print */
                 } while (0);
                 object_id = object->id;
                 do
                 {
+                    /* deleted debug print */
                 } while (0);
                 size_y = conflict->size.vy;
                 yy = conflict->position.vy;
                 do
                 {
+                    /* deleted debug print */
                 } while (0);
                 object_y = ConflictObject[object_id].position.vy;
                 top = yy - size_y;

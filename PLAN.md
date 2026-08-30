@@ -606,6 +606,22 @@ human source. The seven-level weight tower remains the one construct
 with no such reading (it nests around a live statement). File header
 and cookbook 3.10 updated.
 
+DAH DEBUG-PRINT FORENSICS (2026-08-30, owner asked for demo hints +
+presentation ruling): the demo's actual DAH prints RECOVERED — an
+if/else pair right after the map probe, format strings at
+0x800106d4/0x800106f4 ("l(ia) h%d v%x ah%x al%x %04x" for the
+LEVEL_NONE arm, "l%d h%d ..." otherwise), dumping
+level/height/vector/angleH/angleL/attrib; 31 FntPrint sites across
+the demo build, unconditional (Fnt buffer only draws when flushed).
+Retail kept the machinery: FntPrint still linked AND called (ADT
+debug menu), debug_printf_/debug_msg_open_ are retail-era additions.
+Presentation ruling: no macro — the barriers stay bare empty
+do{}while(0) with "deleted debug print" comments inside the braces
+and the evidence in the header; a DBG() spelling would need invented
+format strings (fiction) and re-tread the banned-macro costume; the
+tower stays a bare honest compiler dial (no debug reading exists for
+a 7-deep nest around a live statement).
+
 HUMANISING LOOP 9 (2026-08-29, family lenses + decimal campaign):
 adversarial rounds continued -- the Act*/think header re-audit fixed
 five wrong glosses (and caught commit 1b20da30 claiming fixes its

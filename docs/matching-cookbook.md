@@ -1459,7 +1459,12 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   release no-op, its debug-side `do { FntPrint x; } while (0)` wrapper is
   byte-invisible around a live call, and the JP demo carries bare FntPrint
   dumps in the same TU — so an empty barrier can be READ as a deleted
-  debug print rather than hand-written scaffolding. The keyword sweep
+  debug print rather than hand-written scaffolding. For DAH the actual
+  demo prints were recovered (format strings 0x800106d4/0x800106f4: an
+  if/else pair dumping the map-probe result, "l%d h%d v%x ah%x al%x
+  %04x"), retail still links and calls FntPrint (ADT menu) and even
+  ADDED debug_printf_/debug_msg_open_ after the demo — the machinery
+  survived; only per-frame dumps compiled out. The keyword sweep
   came up empty: `volatile` on a short field is BYTE-VISIBLE — it blocks
   the load/sign-extend fusion and turns `lh` into `lhu + sll + sra`, so
   any matched function whose bytes fuse `lh` on a field thereby PROVES
