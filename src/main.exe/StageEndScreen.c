@@ -268,26 +268,27 @@ void StageEndScreen(void)
     }
 
     {
-        /* Preserve the target allocator weight for this reused identity. */
+        /* Preserve the target allocator weight for this reused identity:
+         * best_x needs +4 weighted refs; weight fence — split per the
+         * DefaultActionHumanoid method as 2 here + 2 on the language test
+         * below (two best_x occurrences at one level).  Depth 1 is refuted:
+         * the 0x7f reload is fence-toxic (scheduling). */
         do
         {
             do
             {
-                do
-                {
-                    do
-                    {
-                        best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
-                    } while (0);
-                } while (0);
+                best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
             } while (0);
         } while (0);
         if (((TLinkInfo *)best_x)->StageNo == 7)
         {
-            if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)
+            do
             {
-                ((TLinkInfo *)best_x)->mission_flags |= 0x400;
-            }
+                if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)
+                {
+                    ((TLinkInfo *)best_x)->mission_flags |= 0x400;
+                }
+            } while (0);
         }
         else
         {

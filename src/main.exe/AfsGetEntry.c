@@ -16,9 +16,13 @@
  *  - The two error calls are written before the success body.  jump2 merges
  *    their common call/return suffix at the earlier target address while each
  *    branch still materializes its string directly in the a0 argument chain.
- *  - The nested zero-trip loops emit no code.  Their loop-depth weighting,
- *    plus one local weight on the element-base copy, reproduces the retail
- *    saved-register priorities.
+ *  - The nested zero-trip loops emit no code.  Their loop-depth weighting
+ *    reproduces the retail saved-register priorities; the depth-2 pair is
+ *    irreducible (i's only refs outside it are fence-toxic: i = 0 blocks a
+ *    code motion, the back edge costs a branch, and enclosing the label
+ *    revives the induction-pointer explosion).  The old third level on the
+ *    element-base copy is split per the DefaultActionHumanoid method onto
+ *    the elements error arm below (elements must stay above raw).
  *  - The marker's high and low bytes intentionally use the raw and packed
  *    cursors respectively; the inline helper also preserves the target's
  *    address-taken stack-halfword store.
@@ -56,12 +60,17 @@ int AfsGetEntry(TAFS *handle)
     }
 
     elements = valloc(handle->maxElements * sizeof(TAFSElement));
-    if (elements == 0)
+    /* weight fence — split per the DefaultActionHumanoid method (see the
+     * header note). */
+    do
     {
-        AdtMessageBox(msg_afsgetenty_no_memory);
-        vfree(elements);
-        return 1;
-    }
+        if (elements == 0)
+        {
+            AdtMessageBox(msg_afsgetenty_no_memory);
+            vfree(elements);
+            return 1;
+        }
+    } while (0);
 
     buffer = valloc(handle->maxElements * sizeof(TAFSElement));
     if (buffer != 0)
@@ -82,18 +91,15 @@ entry_ready:
             handle->maxElements * sizeof(TAFSElement));
 
     raw = buffer;
-    /* One-shot fences: every do/while (0) in this nest, including the lone
-     * element = elements one, is byte-required (collapse measured; cookbook). */
+    /* One-shot fences: the depth-2 pair is byte-required and irreducible
+     * (collapse measured; cookbook, and the header note). */
     do
     {
         do
         {
             if (handle->maxElements != 0)
             {
-                do
-                {
-                    element = elements;
-                } while (0);
+                element = elements;
                 packed = raw + 1;
             entry_loop:
                 element->flag = ((u16)packed[1] << 8) | packed[2];

@@ -50,10 +50,12 @@
  *    both color arms while leaving the four line-coordinate stores and first
  *    jal shared after the join. Long nearx/neary locals avoid the short
  *    addiu-then-move hops; x/y still update in place as PSX.SYM suggests.
- *  - The nested one-shot loops in the small arm emit no runtime branches.
- *    Their loop notes give old cc1 the exact global-allocation priority
- *    window: x=14222, y=14166, neary=10909, otz=7317, nearx=4000, producing
- *    target homes s0/s1/s2/s3/s4 respectively.
+ *  - The one-shot loops in both arms emit no runtime branches. Their loop
+ *    notes give old cc1 the exact global-allocation priority window:
+ *    x=14222, y=14166, neary=10909, otz=7317, nearx=4000, producing target
+ *    homes s0/s1/s2/s3/s4 respectively (x +7, y +8, nearx +1, neary +4
+ *    weighted refs, split at depth <= 2 per the DefaultActionHumanoid
+ *    method).
  *  - The call-site declaration takes a full-width priority because both arms
  *    already narrow otz in place. This preserves the target's plain `move
  *    a2,s3` at the second call instead of inserting a redundant mask.
@@ -82,8 +84,21 @@ void DrawTargetS(long x, long y, long z, long color)
         otz = (u16)otz;
         callpri = otz;
         nearx = x - 20;
-        neary = y - 20;
-        x = x + 20;
+        /* weight fences — split per the DefaultActionHumanoid method: the
+         * old else-arm cage (x +7, y +8, nearx +1, neary +4 weighted refs)
+         * redistributed at depth <= 2; neary's 1 else-arm occurrence caps
+         * at +2 there, so +2 rides this arm's statements. */
+        do
+        {
+            do
+            {
+                neary = y - 20;
+            } while (0);
+        } while (0);
+        do
+        {
+            x = x + 20;
+        } while (0);
         ot = OTablePt;
         y = y + 20;
     }
@@ -95,22 +110,19 @@ void DrawTargetS(long x, long y, long z, long color)
         do
         {
             nearx = x - 2;
+        } while (0);
+        do
+        {
             do
             {
-                do
-                {
-                    do
-                    {
-                        neary = y - 2;
-                    } while (0);
-                } while (0);
+                neary = y - 2;
             } while (0);
+        } while (0);
+        do
+        {
             do
             {
-                do
-                {
-                    x = x + 2;
-                } while (0);
+                x = x + 2;
             } while (0);
         } while (0);
         ot = OTablePt;

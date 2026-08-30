@@ -106,15 +106,14 @@ void ActivateHumans(void)
     {
         /* Every do/while (0) in this function is a byte-required
          * loop-depth weight (removing any of them shifts the s-register
-         * assignment; measured). */
+         * assignment; measured).  activate_distance needs +3 weighted refs;
+         * weight fence — split per the DefaultActionHumanoid method: 2 here
+         * + 1 at the near_human compare below. */
         do
         {
             do
             {
-                do
-                {
-                    activate_distance = ACTIVATE_RADIUS;
-                } while (0);
+                activate_distance = ACTIVATE_RADIUS;
             } while (0);
         } while (0);
     }
@@ -155,6 +154,9 @@ void ActivateHumans(void)
             return;
         }
         human = HumanGroup[(s16)i];
+        /* human/target each need +2 weighted refs here; a depth-1 split is
+         * refuted — target's only other refs (the CamState.Owner load and
+         * the vc copy) are fence-toxic, each shifting prologue scheduling. */
         do
         {
             do
@@ -194,10 +196,13 @@ void ActivateHumans(void)
             visible = distance < activate_distance;
             goto visible_done;
         }
-        if (distance < activate_distance)
+        do
         {
-            goto near_human;
-        }
+            if (distance < activate_distance)
+            {
+                goto near_human;
+            }
+        } while (0);
 
     set_inactive:
         active = 0;

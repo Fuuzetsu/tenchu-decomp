@@ -124,7 +124,13 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
         work->zmax = fp->vp[1]->sz;
         work->zmin = fp->vp[0]->sz;
     }
-    zA = fp->vp[2]->sz;
+    /* weight fence — split per the DefaultActionHumanoid method: +1 fp ref
+     * pairing with the depth-2 leaf-copy fence below (fp must out-rank work
+     * for s0; 6*99/666 > 6*110/743). */
+    do
+    {
+        zA = fp->vp[2]->sz;
+    } while (0);
     if (zA < work->zmin)
     {
         work->zmin = zA;
@@ -220,14 +226,15 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     ((work->maxx - work->minx < 0xff) &&
                      (work->maxy - work->miny < 0x7f)))
                 {
-                    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
+                    /* Weight fence — split per the DefaultActionHumanoid
+                     * method: depth 2 here + the zA fence above keep fp
+                     * ahead of work (the old depth-3 tower overshot;
+                     * depth 2 alone swaps s0/s1). */
                     do
                     {
                         do
                         {
-                            do
-                            {
-                                prim = (int)work->out;
+                            prim = (int)work->out;
                                 *(u32 *)(prim + 8) = *(u32 *)&fp->vp[0]->sxy;
                                 *(u32 *)(prim + 0x14) = *(u32 *)&fp->vp[1]->sxy;
                                 *(u32 *)(prim + 0x20) = *(u32 *)&fp->vp[2]->sxy;
@@ -240,7 +247,6 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                                 *(u32 *)(prim + 0x10) = *(u32 *)&fp->vp[1]->col;
                                 *(u32 *)(prim + 0x1c) = *(u32 *)&fp->vp[2]->col;
                                 *(u32 *)(prim + 0x28) = *(u32 *)&fp->vp[3]->col;
-                            } while (0);
                         } while (0);
                     } while (0);
                     *(u16 *)(prim + 0xe) = proto->clut;

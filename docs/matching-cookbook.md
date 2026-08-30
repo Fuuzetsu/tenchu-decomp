@@ -1498,6 +1498,22 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   (vmemoryGC — and re-visit broad call-site fences after a source-identity
   merge; the old weights become the next cycle's cause).
 
+**The split-fence law** (measured across DefaultActionHumanoid and six
+other towers): cc1 weights REG_N_REFS by +1 per enclosed REG occurrence
+per do/while(0) level, linearly, defs and uses alike — so a deep tower
+on one statement can usually be split into shallow fences on several
+statements referencing the same pseudo, summing (occurrences x depth)
+to the same weight, byte-identically. Towers frequently OVERSHOOT (two
+had >= 2 levels of slack — measure the actual requirement first).
+Hazards: fencing a statement that mentions the rival pseudo is
+self-defeating; fence-toxicity concentrates in prologue/epilogue-
+adjacent statements, statements feeding call-argument code motion, and
+anything that would put a label inside the fence (loop.c induction
+explosion); a call result consumed in an error arm can count its ref
+on the copy pseudo, not the named local. regalloc.py priority
+arithmetic predicts split outcomes to the ref. Deepest proven-
+irreducible nest: DrawConstruction's 3.
+
 ### 3.11 cse, blocks, labels
 
 - **Both spellings of one field can be in the source** — cse hashes by address

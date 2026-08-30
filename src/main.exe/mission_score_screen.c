@@ -842,17 +842,15 @@ void mission_score_screen(void)
 
             i = 0;
             rowSprite = &number;
+            /* weight fence — split per the DefaultActionHumanoid method:
+             * +2 weighted refs lift rankSpriteBase's priority over the
+             * li-10 pseudo (s7/s8 swap); the old depth-4 tower overshot
+             * (depth 2 measured minimal, depth 1 swaps back). */
             do
             {
                 do
                 {
-                    do
-                    {
-                        do
-                        {
-                            rankSpriteBase = rankSprites;
-                        } while (0);
-                    } while (0);
+                    rankSpriteBase = rankSprites;
                 } while (0);
             } while (0);
         do

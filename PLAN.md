@@ -506,6 +506,11 @@ note-based loop ref-weighting, i.e. the do-while(0) tower family. The
 original source necessarily contained a construct that reduces to it
 (nested statement macros were the period idiom). The tower stays, fully
 documented in the file; no further endgame experiments planned.
+SPLIT-FENCE GENERALIZATION (2026-08-30): the per-occurrence weighting
+law dissolved the other deep towers too — ActivateHumans 3->2,
+StageEndScreen 4->2, mission_score 4->2, DrawTargetS cages all <=2,
+subdivide_quad_ 3->2, AfsGetEntry 3->2; DrawConstruction's 3 proven
+irreducible. Deepest nest repo-wide is now 3 (one site, measured).
 RE-VERIFIED AND RESPELLED (2026-08-30, owner request): a fresh removal
 campaign measured the remaining unlisted levers — register keyword
 inert; reuse + 5-level tower repairs the allocation but the projected
