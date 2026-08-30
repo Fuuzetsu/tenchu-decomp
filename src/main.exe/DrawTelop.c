@@ -56,5 +56,5 @@ void DrawTelop(void)
     TelopbgP.y2 = -90;
     GsSortPoly(&TelopbgP, OTablePt, 1);
     w = telop_text_width_(TelopText);
-    draw_telop_line_(OTablePt->org, -(w / 2), 0x5c, TelopText);
+    draw_telop_line_(OTablePt->org, -(w / 2), 92, TelopText);
 }
