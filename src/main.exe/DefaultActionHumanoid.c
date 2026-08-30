@@ -395,6 +395,9 @@ short DefaultActionHumanoid(Humanoid *human)
                         ry = zz;
                     }
                     xx >>= 1;
+                    /* ry re-used as the applied z-step; the mask folds into
+                     * the sra. Staging and placement are allocation-load-
+                     * bearing -- see the header. */
                     ry &= ~1;
                     ry >>= 1;
                 }
