@@ -74,6 +74,15 @@
  * counts); a block-scoped local cannot take $s0 (crosses no call);
  * `register` is a no-op at -O2; zz-as-selector and the ry-merge land
  * 43-diffs-or-worse and the merge deletes a PSX.SYM-attested local.
+ * Splitting the rival `i` (mode/angle/scan/body roles) is impossible on
+ * two independent measured axes: only its loop tail crosses calls, so
+ * every other piece colors caller-saved (t0/a0/a3 measured) while its
+ * byte sites demand $s1 — the single-pseudo `i` inherits $s1 purely
+ * from its tail; and every tail-containing piece (5298-8640) outranks
+ * natural zz (18/160 -> 4500) and shares $s0 freely with ry (a set-dest
+ * and an input dying at the same insn never conflict), so it takes $s0
+ * before zz allocates. Every partition measured 114-124 diffs or a
+ * length mismatch. The four fences are irreplaceable.
  * Retail narrows the recovered `long i` at both map-query calls; explicit
  * casts retain that local's original type and the shared API's original
  * promoted `int mode` without hiding either behind a false prototype.
