@@ -72,22 +72,18 @@ extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
  *    copy vanishes); `human ? active : active` -> 1604 (fold-const collapses
  *    `a ? b : b`); `if (target)` instead of `if (human)` -> 10 bytes.
  */
+/* One thinking human costs about this many GPU packet bytes, and the
+ * budget keeps PacketUsed a whole unit clear of the end of a Packet[]
+ * row: 0x10000 - THINK_PACKET_COST == 0xec78. */
+#define THINK_PACKET_COST 5000
+#define THINK_PACKET_LIMIT (0x10000 - THINK_PACKET_COST)
+
 void ActivateHumans(void)
 {
     s32 i;
     Humanoid *target;
-    Humanoid *human;
     VECTOR vc;
-    VECTOR query;
-    VECTOR work;
-    s32 active;
-    s32 final;
-    s32 visible;
-    s32 distance;
     s32 activate_distance;
-    s32 n;
-    s32 level;
-    s16 j;
 
     target = CamState.Owner;
     vc = *target->locate;
@@ -102,32 +98,21 @@ void ActivateHumans(void)
         return;
     }
 
-    /* GPU-packet headroom: how many more humans may think this frame at
-     * a worst-case ~5000 packet bytes each, keeping PacketUsed under the
-     * 0xec78 reserve line. */
-    n = (0xec78 - PacketUsed) / 5000 - 1;
-    ThinkBudgetRaw = n;
-    if ((s16)n < 2)
-    {
-        n = (u16)ThinkBudget - 1;
-    }
-    ThinkBudget = n;
-    if ((s16)n < 7)
-    {
-        if ((s16)n < 3)
-        {
-            n = 3;
-        }
-    }
-    else
-    {
-        n = 6;
-    }
+    /* GPU-packet headroom: how many more humans may think this frame. */
+    ThinkBudgetRaw = (THINK_PACKET_LIMIT - PacketUsed) / THINK_PACKET_COST - 1;
+    ThinkBudget = ThinkBudgetRaw < 2
+                      ? (u16)ThinkBudget - 1
+                      : ThinkBudgetRaw;
+    /* Clamp the usable budget to 3..6. */
+    ThinkBudget = ThinkBudget < 7
+                      ? (ThinkBudget < 3 ? 3 : ThinkBudget)
+                      : 6;
     i = 0;
-    ThinkBudget = n;
     ThinkCount = 0;
     while (1)
     {
+        Humanoid *human;
+
         if ((s16)i >= Humans)
         {
             return;
@@ -135,6 +120,11 @@ void ActivateHumans(void)
         human = HumanGroup[(s16)i];
         if (human != target)
         {
+            s32 active;
+            s32 final;
+            s32 distance;
+            s16 j;
+
             distance = GetVectorDistance(human->locate, &vc);
             if (distance > DEACTIVATE_RADIUS)
             {
@@ -163,7 +153,7 @@ void ActivateHumans(void)
                 {
                     goto active_done;
                 }
-                visible = distance < activate_distance;
+                final = distance < activate_distance;
                 goto visible_done;
             }
             if (distance >= activate_distance)
@@ -186,15 +176,19 @@ void ActivateHumans(void)
                 }
                 j++;
             }
-            visible = j != VISIBLE_ENEMIES_;
+            final = j != VISIBLE_ENEMIES_;
 
         visible_done:
-            active = visible;
+            /* This earlier `final` lifetime ends at the visibility join; the
+             * active-result join below overwrites it before its next use. */
+            active = final;
         active_done:
             /* The guarded copy keeps `final` in its own register: the bytes
              * hold a `move` before the test, and all three simplifications
              * (plain assignment, dead store alone, arms alone) lose it
-             * together -- measured 2026-08-31. */
+             * together. Rechecked after the visibility-lifetime fusion:
+             * plain assignment and dead-store removal each differ by three
+             * canonical lines (one missing move) -- measured 2026-09-01. */
             if (human)
             {
                 final = 0;
@@ -242,6 +236,10 @@ void ActivateHumans(void)
                 }
                 else if (human->status != STAT_DEAD && ((u16)human->attribute & ATTR_FLOAT) == 0)
                 {
+                    VECTOR query;
+                    VECTOR work;
+                    s32 level;
+
                     /* Built in work, then copied whole: byte-required (filling
                      * query directly drops the struct copy; measured). */
                     memset(&work, 0, sizeof(work));
