@@ -12,63 +12,22 @@
  * STATUS: MATCHING — ordinary human-shaped C under the reused ADT object's
  * pinned GCC 2.8.0 compiler profile.
  *
- * AUTHORITATIVE UPDATE (2026-07-19): the long round-by-round investigation
- * below is retained as history, not as a rulebook. Its "fences are required",
- * "all C levers are closed", and "parked/impossible" conclusions are
- * superseded by fresh source and compiler evidence:
- *
- * - All eleven contiguous C members of the ADT library object are exact under
- *   GCC 2.8.0. Linking their 2.8.0 objects produces zero differing bytes in
- *   main.exe; both canonical and Sony SN32 GCC 2.8.1 leave this function nine
- *   bytes off. In reload.c, 2.8.0 preserves INPADDR/OUTADDR as
- *   RELOAD_FOR_OPADDR_ADDR, while 2.8.1 retypes them unconditionally to
- *   RELOAD_FOR_OPERAND_ADDRESS. That version change alone decides whether the
- *   huge-frame address and value reload may share a3.
- * - Both synthetic do{}while(0) fences are gone. A normal list-display for
- *   loop plus the human D-pad `if / else if` chain reproduces every target
- *   callee-saved allocation. The earlier 37-byte regression came from spelling
- *   mutually exclusive directions as nested negated tests, not from removing
- *   a compiler fence.
- * - The entry count is the ordinary empty indexed loop
- *   `for (count = 0; menu[count].name != 0; count++) {}`. cc1's loop
- *   strength reduction creates the pointer cursor naturally. This clean source
- *   has the same nine-byte residual as the scaffolded draft.
- * - The demo's same-named body independently emits the TARGET self-tie at its
- *   larger frame offset (`lw a3,0(a3)` followed by the dereference), so the
- *   shape is demonstrably produced by the original human source family. It is
- *   evidence to keep searching upstream source identity, not evidence that the
- *   target is unreachable by this compiler.
- * - Fresh RTL localizes the remaining distinction: initial CSE turns the first
- *   test into a direct MEM through spilled menu, while loop strength reduction
- *   later creates a bare cursor pseudo. A fresh re-run corrected an earlier
- *   claim about volatile/address-taken spellings: NONE reproduced the target
- *   self-tie. A volatile parameter made 784 bytes, a volatile pointer local
- *   made 796 bytes, and loading through a volatile alias kept 776 bytes but
- *   caused a 51-byte allocation cascade. The only exact-length split-copy
- *   diagnostic was an empty asm constraint; it reduced the residual to two
- *   bytes but allocated the temporary/value in v0, not a3. It is lifetime
- *   evidence only, not acceptable source.
- * - The 776-byte body, including the a3 self-tie, is byte-identical in the
- *   shipped ENDING.EXE, MAIN.EXE, MENU.EXE, and TRIAL.EXE. This strongly points
- *   to the one reused ADT library object now represented by the build profile.
- *
- * The clean indexed loop below is exact. Any absolute "no natural C" or "do
- * not retry" language in the historical 2.8.1 log below is superseded.
- *
- * The 9 differing bytes are ONE reload decision, in the entry-count block:
- *
- *   target:  lw a3,0(a3); lw v0,0(a3);  ...  li t0,0x80CC; addu; lw v1,0(t0)
- *   ours:    lw t0,0(a3); lw v0,0(t0);  ...  li a3,0x80CC; addu; lw v1,0(a3)
- *
- * Both are the SAME 4-insn shape (`li`/`addu` materialise sp+0x80CC, load
- * menu, deref).  Only the register holding menu's value differs: the target
- * reuses the address register a3, we take t0.  Site 2's t0<->a3 is NOT an
- * independent difference — see the round-robin note below.
- *
- * The superseded round-by-round investigation log for this function lives
- * in docs/matching-archive.md.
+ * Matching constraints:
+ *  - All eleven contiguous members of the reused ADT object are exact under
+ *    GCC 2.8.0, and their linked objects produce zero main.exe differences.
+ *  - Keep the empty indexed entry-count loop, ordinary list-display for loop,
+ *    and human D-pad if/else-if chain. No synthetic one-shot fences are
+ *    required.
+ *  - Compiler identity is the remaining mechanism. GCC 2.8.0 preserves the
+ *    large-frame menu address reload as RELOAD_FOR_OPADDR_ADDR and emits the
+ *    target's a3 self-tie. GCC 2.8.1 reclassifies it and leaves the otherwise
+ *    equal-length body nine bytes off.
+ *  - Volatile pointer spellings change length or cause an allocation cascade;
+ *    an empty asm constraint only diagnoses the lifetime and is not acceptable
+ *    source. Do not restore either workaround.
+ *  - The same 776-byte body in ENDING.EXE, MAIN.EXE, MENU.EXE, and TRIAL.EXE
+ *    identifies this as one reused ADT library object.
  */
-
 extern s32 VSync(s32 mode);
 
 extern char str_select_item_2[]; /* select item */

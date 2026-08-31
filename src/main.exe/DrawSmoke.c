@@ -34,72 +34,31 @@
  * field — see the encoding note below), disposing the slot when the OLD
  * time was 0.
  *
- * Matching notes (docs/matching-cookbook.md):
- *  - `param = &ef->param.smoke;` (SmokeType* at ef+4) — effect.h's proven
- *    layout (`vec`@0, `pos`@8, `rotate`@0x18, `scale`@0x1c, `time`@0x20,
- *    `evtime`@0x21, retail `sprite`@0x22), no new struct.
- *  - `sprSmoke` is genuinely `Sprite3D *sprSmoke[2]`: retail indexes it
- *    (`sll idx,2; addu base,idx`) before the one `lw` that yields `spr`,
- *    and the next global proves its two-pointer extent. PSX.SYM's singular
- *    declaration describes the earlier demo layout.
- *  - `Sprite3D` uses the complete shared PSX.SYM layout (140 bytes):
- *    GsCOORDINATE2.coord.t[0..2] land at +0x18/+0x1c/+0x20 and
- *    `sprite.rotate` at +0x88.
- *  - `param->vec.vx = (param->vec.vx * 80) / 100;` and the `vz` twin are
- *    plain constant-divisor arithmetic — cc1's own magic-multiply
- *    expansion (`0x51EB851F`, the standard divide-by-100 constant)
- *    reproduces the target exactly, no manual bit-tricks needed.
- *  - `param->vec.vy = param->vec.vy / 2;` (a genuine signed `/2`) likewise
- *    self-expands to the sign-correct-then-shift sequence automatically.
- *  - `vz`'s OLD value must be captured into a temp BEFORE `vec.vy`'s own
- *    update statement, with the `vec.vz` WRITE-BACK statement written
- *    LAST (after `vec.vy`'s) — the target's store order is `vx, vy, vz`
- *    even though `vz`'s value is loaded (for the /100) right after `vx`'s
- *    own store, i.e. loaded early, stored late (Ghidra's own `sVar1`
- *    capture confirms the split): `vx_new = ...; vz_old = param->vec.vz;
- *    param->vec.vy = param->vec.vy / 2; param->vec.vz = (vz_old*80)/100;`
- *  - `param->evtime = (param->time - 1) - (rand() % 5);` reassociates under
- *    fold into `time - (remainder + 1)` (the WRONG shape — target keeps
- *    `time-1` as its own subtraction) no matter how it's parenthesized;
- *    already documented for the sibling SetSmoke.c: "fold reassociates
- *    `(x-1)-(a+b)` into `x-(a+b+1)`, so an own-statement temp (`m =
- *    smoke->time - 1;`) is needed to keep the literal `addiu -1` on x's
- *    side." Matching SetSmoke's exact idiom: `r = rand(); m = param->time -
- *    1; param->evtime = m - r % 5;` — THREE statements in that order (the
- *    bare `rand()` call first, `time-1` second so it loads/subtracts
- *    AFTER the call returns instead of needing to survive across it, the
- *    final combine third) is load-bearing; folding the `% 5` into the
- *    `rand()` statement (`r = rand() % 5;`) reintroduces 4 stray bytes.
- *  - `spr = *sprp;` through an explicit `Sprite3D **sprp = &sprSmoke[idx];`
- *    pointer-to-pointer local — not a direct `spr = sprSmoke[idx];` — is
- *    the permuter-found fix for a final 8-byte prologue callee-saved-
- *    register SAVE ORDER tie (`sw s0` vs `sw s2` swapped): the extra
- *    indirection shifts allocation priority enough to match the target's
- *    order. Bisected from the permuter's raw winner, which also carried an
- *    inert `if ((!param) && (!param)) {}` — dead noise, confirmed by
- *    dropping it with no byte change.
- *  - `rotate = param->rotate;` is captured into its own temp, read right
- *    after `spr->scale = param->scale;` but STORED only after the r/g/b
- *    writes (`spr->sprite.rotate = rotate;`) — Ghidra's own `lVar4 =
- *    ...rotate; ...; sprite.rotate = lVar4;` capture confirms the split;
- *    without it the r/g/b stores drift one instruction early, filling a
- *    load-delay slot the target leaves as a bare `nop`.
- *  - `if (param->time < 26) { alfa = param->time * 5; }` re-reads `time`
- *    TWICE (compare, then the multiply) rather than caching it — a plain
- *    `if` with the field used in both the condition and body naturally
- *    does this; `alfa` defaults to 0x80 (materialized once, at the very
- *    top, in the `time==evtime` guard's own delay slot).
- *  - `spr->locate.coord.t[0..2]` re-read `param->pos.vx/vy/vz` FRESH from
- *    memory right after storing them (matching DrawHinoko's own "final
- *    sprite-field stores re-read pos.* fresh" note) — direct field reads,
- *    not reused locals.
- *  - The disposal decrement needs its own captured `oldtime` local, read
- *    ONCE and used for BOTH the `+0xff` store and the `==0` test — the
- *    target's single `lbu` feeds both `addiu v1,v0,0xff` (new value,
- *    stored unconditionally) and `andi v0,v0,0xff` (the old value,
- *    re-tested) from the SAME load: `u8 oldtime = param->time; param->time
- *    = param->time + 0xff; if (oldtime == 0) { ef->proc = 0; }` — verified
- *    a real `+0xff` (0x00FF, positive) here, unlike DrawBleed's `time-1`.
+ * Matching constraints:
+ *  - param is the proven SmokeType at ef+4. sprSmoke is a two-entry
+ *    Sprite3D pointer array in retail, and Sprite3D retains its complete
+ *    140-byte shared layout.
+ *  - Leave the 80/100 damping and signed /2 as plain arithmetic; cc1 emits
+ *    the target magic multiply and sign-correct shift.
+ *  - Capture vz_old immediately after storing vx, update vy next, and store
+ *    the damped vz last. This gives the target load order but vx/vy/vz store
+ *    order.
+ *  - Re-roll in three statements: call rand(), compute m = time - 1, then
+ *    assign m - r % 5. Combining either subtraction lets fold reassociate it
+ *    and leaves four extra bytes.
+ *  - Load spr through a named Sprite3D **sprp. Direct array indexing changes
+ *    the prologue saved-register order; the extra source identity is an
+ *    allocation lever, not a second runtime indirection.
+ *  - Capture rotate after the scale store and write it after r/g/b. Direct
+ *    field assignment lets those color stores fill a delay slot that is a
+ *    target nop.
+ *  - Let the time < 26 guard read time once for its comparison and again for
+ *    the multiply; alfa's 0x80 default is materialized once before dispatch.
+ *  - Re-read pos.vx/vy/vz for the final sprite coordinate stores rather than
+ *    carrying the integration values.
+ *  - Capture oldtime once for the final test, but spell the store as
+ *    param->time + 0xff. The positive byte increment and old-value test share
+ *    one lbu in the target.
  */
 extern short DrawSprite(Sprite3D *sprt);
 

@@ -23,6 +23,8 @@
  * END PSX.SYM */
 
 /*
+ * STATUS: MATCHING.
+ *
  * UpdateMotion (0x8001b65c, 0x278 bytes) — switch mmp's active motion to
  * `mid`, unless it's already the current motion (returns -1, a no-op).
  * Search mmp's own registered-motion table (mmp->motreg, sentinel
@@ -39,69 +41,26 @@
  * then reduce it mod 0x1000, keeping the sign (a truncating divide). Returns
  * 1 on success.
  *
- * Matching notes:
- *  - Same duplicate_loop_exit_test bottom-tested search shape as
- *    GetMotionID.c/GetAttackDBID.c, but with the two sub-conditions in the
- *    OPPOSITE priority: the entry/bottom test here is `mrp[i].mid != mid`
- *    (continue searching) and the in-body break check is
- *    `mrp[i].mid == -1` (hit the sentinel without a match) — i.e.
- *    `while (mrp[i].mid != mid) { if (mrp[i].mid == -1) break; i++; }`,
- *    not GetMotionID's `while (reg[i].mid != -1) { if (reg[i].mid == mid)
- *    break; i++; }`. Confirmed by reading both loops' actual entry-test
- *    register (which value each `beq` compares against first).
- *  - `mrp` is reused for BOTH searches (own table, then MOTcommon) — same
- *    single-pointer-variable-reused shape as SearchMotion.c's `mpd`.
- *  - `i` is reused across all three loops in the function (both searches,
- *    then the bone loop); `mmp->model->n` vs `mmp->motion->n` (a `u8`,
- *    zero-extended by the `lbu`) are min'd into it before being stashed
- *    into mmp->n — no separate temp local exists (matches PSX.SYM's 4
- *    extra locals: mrp/i/j/xyz only), so the min is written directly
- *    against `i`, reused as scratch between the two search loops and the
- *    bone loop.
- *  - Each bone's rotation base is computed in one expression,
- *    `(s16 *)&mmp->model->object[i]->rotate` (ModelType.rotate @ 0x50) —
- *    no separate ModelType* local, matching PSX.SYM again.
- *  - The two per-component (x/y/z, `j` in 0..2) fixups are each a single
- *    self-referencing statement (`xyz[j] = ...xyz[j]...`): cc1 loads
- *    xyz[j] once and reuses the register for every use on the RHS before
- *    the one store, exactly like the asm's single `lh`/single `sh` per
- *    fixup (two `lh`s total per component, one per statement).
- *  - The min MUST be the ternary `(motion->n < model->n) ? motion->n :
- *    model->n` — fold/expr.c's min/max path loads BOTH operands into SI
- *    registers first, then `i = op_model; if (motion < model) i = op_motion`
- *    where the conditional arm is a register MOVE (`move a0,v1`). The
- *    two-statement form (`i = model->n; if (motion->n < i) i = motion->n;`)
- *    re-expands the memory read in the arm as a zero_extend:HI (i is s16) that
- *    cannot CSE with the compare's zero_extend:SI — a reload (`lbu`) plus a
- *    whole different coloring (13 instructions). This one spelling fixed 22 of
- *    the 26 differing bytes.
- *  - The abs MUST be spelled INLINE in the comparison —
- *    `if (((t < 0) ? -t : t) > 0x800)` — so it becomes ABS_EXPR -> the MIPS
- *    `abssi2` insn: ONE opaque insn whose output template is exactly
- *    `bgez;move;subu %0,$0,%0` (negu of the COPY, numeric `1:` label).
- *    Assigning the same ternary to a named temp (`at = (t<0) ? -t : t;`) goes
- *    through expr.c's COND_EXPR singleton path instead: separate copy/branch/
- *    neg-in-place insns that cse's canon_reg immediately rewrites to
- *    `negu v0,v1` (operand canonicalized to the class's first reg — the source
- *    variable always outlives the temp, so the temp can never win
- *    make_regs_eqv's qty_first promotion).
- *  - The +-0x1000 snap is ONE assignment whose ternary arms update t IN PLACE
- *    and whose CONDITION re-reads the memory:
- *    `xyz[j] = (xyz[j] < 0) ? (t += 0x1000) : (t -= 0x1000);`
- *    Three things hang on this exact spelling: the compound arms give the
- *    in-place `addiu v1,v1,+-0x1000`; the single assignment expands the
- *    destination address BEFORE the branch (expand_assignment computes to_rtx
- *    first), which cse folds into a pre-branch copy of the lh's address
- *    (`move v0,a0`, stolen into the bgez delay slot) with the store through
- *    the copy (`sh v1,0(v0)`); and the mem-read in the CONDITION (not `t < 0`,
- *    byte-identical semantics since t == xyz[j] here) shifts the pre-cse
- *    reference structure so cse1's taken-path window keeps the copy alive in
- *    both arms instead of canonicalizing the store back to `0(a0)` (found by
- *    the permuter after hand analysis pinned everything but this last cell;
- *    `t < 0` in the condition = 4 bytes off: nop instead of the move, sh via
- *    a0).
+ * Matching constraints:
+ *  - Both table searches test mid != requested at entry/bottom and test the
+ *    -1 sentinel inside the body. This priority is the reverse of GetMotionID.
+ *    Reuse mrp for both tables and i for both searches, the min, and the bone
+ *    loop; the PSX.SYM local set has no separate copies.
+ *  - Compute each rotation base directly as
+ *    (s16 *)&mmp->model->object[i]->rotate. Each component fixup is one
+ *    self-referencing assignment, giving one load and one store per pass.
+ *  - Keep the min as the ternary motion->n < model->n ? motion->n : model->n.
+ *    It loads both operands in SI mode and moves the chosen value. A staged
+ *    if reloads the u8 field, causes a 13-instruction coloring cascade, and
+ *    accounted for 22 of the former 26 differing bytes.
+ *  - Spell the absolute-value test inline as (t < 0) ? -t : t. In this
+ *    comparison context it becomes one opaque abssi2 pattern; assigning the
+ *    ternary to a temporary exposes a different copy/branch/negate sequence.
+ *  - Keep the full-turn snap as one assignment whose condition re-reads
+ *    xyz[j] and whose arms update t in place. Expanding the destination before
+ *    the branch creates the target address copy in the delay slot and stores
+ *    through that copy; testing t instead loses it.
  */
-
 extern void SetupSpline(MotionManager *mmp);
 
 s16 UpdateMotion(MotionManager *mmp, s16 mid)
