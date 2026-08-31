@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -99,7 +100,7 @@ short AttackAnimal(void)
     }
     else if (am == 30)
     {
-        Sound(Me_THINK_C, 0xc);
+        Sound(Me_THINK_C, CHAR_VOICE_NOTICE);
     }
     else if (am < 90)
     {

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "sound.h"
 
 /*
  * ProcItemSmoke (0x8003ff68) — the smoke bomb item processor. Every frame:
@@ -139,7 +140,7 @@ void ProcItemSmoke(TItem *item)
     case 0:
         if ((u8)cnt != 0)
             return;
-        SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
+        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
         param->count = SMOKE_DURATION;
         item->mode++;
         return;
@@ -218,7 +219,7 @@ void ProcItemSmoke(TItem *item)
                         md = human->motion->motion;
                         MoveHumanoid(human, md->orderspd, md->sidespd);
                     }
-                    Sound(scratch.find.find, 6);
+                    Sound(scratch.find.find, CHAR_VOICE_HURT);
                 }
                 continue;
             hit:

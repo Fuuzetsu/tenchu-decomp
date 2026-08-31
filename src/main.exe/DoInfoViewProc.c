@@ -4,6 +4,7 @@
 #include "item.h"
 #include "misc.h"
 #include "padcmd.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -246,7 +247,7 @@ void DoInfoViewProc(void)
             goto nosel;
         }
         ItemCursor = i;
-        SoundEx(0, 0xB);
+        SoundEx(0, SE_UI_CURSOR);
     }
 nosel:
     if (GameClock > 10)

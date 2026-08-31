@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -122,7 +123,7 @@ void ActHANG(void)
         }
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x1B);
+            Sound(Me_MOTION_C, SE_LEDGE_GRIP);
         }
         break;
     case MOT_HANG_PULLUP:

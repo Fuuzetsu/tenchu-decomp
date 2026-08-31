@@ -4,6 +4,7 @@
 #include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -92,7 +93,7 @@ s16 Think4abandon(void)
                 r = rand();
                 if (r % 60 == 0)
                 {
-                    Sound(Me_THINK_C, 0xD);
+                    Sound(Me_THINK_C, CHAR_VOICE_ALERT);
                 }
             }
         }

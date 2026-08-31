@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -441,7 +442,7 @@ void ProcItemDokudango(TItem *item)
                 motion = human->motion->motion;
                 MoveHumanoid(human, motion->orderspd, motion->sidespd);
             }
-            Sound(param->eater, 6);
+            Sound(param->eater, CHAR_VOICE_HURT);
             return;
         }
 

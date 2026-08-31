@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -67,7 +68,7 @@ void AttackFire(s16 sfrm, s16 efrm)
     {
         if (count == sfrm)
         {
-            Sound(Me_MOTION_C, 0x28);
+            Sound(Me_MOTION_C, SE_FIRE);
         }
         item.type = ITEM_NAPALM;
         item.user = Me_MOTION_C;

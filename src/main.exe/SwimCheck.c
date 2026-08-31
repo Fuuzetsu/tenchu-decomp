@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -121,7 +122,7 @@ short SwimCheck(void)
         {
             motID = MOT_DEAD_DROWN;
             motMODE = 1;
-            Sound(Me_MOTION_C, 8);
+            Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
             Me_MOTION_C->life = 0;
             ReqLifeBar(Me_MOTION_C);
         }
@@ -146,7 +147,7 @@ short SwimCheck(void)
         SetNowMotion(Me_MOTION_C, motID, motMODE);
         motMODE = -1;
     motion_done:
-        Sound(Me_MOTION_C, 0x16);
+        Sound(Me_MOTION_C, SE_WATER_SPLASH);
         reset_alert_duration();
         goto return_one;
     }

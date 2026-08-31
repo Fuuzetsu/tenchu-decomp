@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -76,7 +77,7 @@ void ActJUMP(void)
             dtR->vy = reflected + 0x800;
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
-        Sound(Me_MOTION_C, 0x48);
+        Sound(Me_MOTION_C, SE_JUMP_IMPACT);
         return;
     }
 
@@ -102,7 +103,7 @@ void ActJUMP(void)
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;
         landed_motion_done:
-            Sound(Me_MOTION_C, 6);
+            Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             dtM->count >>= 2;
             if (Me_MOTION_C == StagePlayer)
             {

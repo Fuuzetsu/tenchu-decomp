@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -109,7 +110,7 @@ void ProcItemKaengeki(TItem *item)
             motion = human->motion->motion;
             MoveHumanoid(human, motion->orderspd, motion->sidespd);
         }
-        Sound(item->owner, 0x4c);
+        Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
     }
@@ -121,7 +122,7 @@ void ProcItemKaengeki(TItem *item)
         motion = item->owner->motion;
         if (motion->count == 0 && motion->loop != 0)
         {
-            SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x28);
+            SoundEx((VECTOR *)item->owner->model->locate.coord.t, SE_FIRE);
             item->mode++;
             param->count = KAENGEKI_DELAY;
         }
@@ -243,4 +244,3 @@ void ProcItemKaengeki(TItem *item)
     }
     }
 }
-

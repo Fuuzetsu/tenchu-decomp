@@ -1,6 +1,8 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -84,10 +86,10 @@ void JumpControl(void)
         {
             motID = MOT_JUMP_RUN;
             motMODE = 0;
-            MoveHumanoid(Me_MOTION_C, 0x7F, 0);
+            MoveHumanoid(Me_MOTION_C, RUN_JUMP_SPEED, 0);
             if (Me_MOTION_C == StagePlayer)
             {
-                Sound(Me_MOTION_C, 0x48);
+                Sound(Me_MOTION_C, SE_JUMP_IMPACT);
             }
             Sound(Me_MOTION_C, 0x17);
         }

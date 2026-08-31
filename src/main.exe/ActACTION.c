@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "afterimage.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -192,7 +193,7 @@ void ActACTION(void)
     case MOT_ACTION_NOTICE:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 6);
+            Sound(Me_MOTION_C, CHAR_VOICE_HURT);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {

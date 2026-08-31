@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /*
  * ProcItemFire (0x80044de0) — rolls and draws the fire item, emits a small
@@ -303,7 +304,7 @@ void ProcItemFire(TItem *item)
         scratch.explosion.vec.vy = -200;
         scratch.explosion.vec.vz = 0;
         SetSmoke(&scratch.explosion.pos, &scratch.explosion.vec, 20, 6);
-        SoundEx(&scratch.explosion.pos, 0x25);
+        SoundEx(&scratch.explosion.pos, SE_EXPLOSION);
 
         DeleteConflict(item->locate);
         n = InsertConflict(item->locate);

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "misc.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -84,6 +85,6 @@ do_check:
         vec.vz = 0;
         SetSmoke(&pos, &vec, 20, 6);
         m->count = rand() % 150;
-        SoundEx(&pos, 0x28);
+        SoundEx(&pos, SE_FIRE);
     }
 }

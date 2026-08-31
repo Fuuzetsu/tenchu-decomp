@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "images.h"
 #include "padcmd.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -391,7 +392,7 @@ void BriefingAndInventorySelectionScreen(void)
         }
         if ((newpress & (PADLup | PADLright | PADLdown | PADLleft)) != 0)
         {
-            SoundEx(0, 0xB);
+            SoundEx(0, SE_UI_CURSOR);
             help = -1;
         }
         if (newpress != 0 && pad.s == PADRright)
@@ -423,14 +424,14 @@ void BriefingAndInventorySelectionScreen(void)
                         }
                         else
                         {
-                            SoundEx(0, 0xC);
+                            SoundEx(0, SE_ITEM_UNAVAILABLE);
                             help = 0x14;
                             selected_kinds--;
                         }
                     }
                     else
                     {
-                        SoundEx(0, 0xC);
+                        SoundEx(0, SE_ITEM_UNAVAILABLE);
                         help = 0x13;
                     }
                 }

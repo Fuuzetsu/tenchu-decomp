@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "sound.h"
 
 /*
  * PauseProc (0x8004b4c0) — the in-game pause loop. Entered every frame;
@@ -134,7 +135,7 @@ void PauseProc(void)
                 dispose_weapon_data_of_char_(CamState.Owner, 3);
                 CamState.Owner->status = STAT_NORMAL;
                 ActionHalt = 0;
-                Sound(CamState.Owner, 0x4c);
+                Sound(CamState.Owner, SE_ITEM_USE);
                 SetCameraMode(CMODE_NORMAL);
                 Findenemies++;
                 SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;

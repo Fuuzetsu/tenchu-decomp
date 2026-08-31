@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* The release-emptied debug print, the idiom the demo build shows live: a
  * debug build defines it as do { FntPrint x; } while (0) (the demo binary
@@ -175,7 +176,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 }
                 else
                 {
-                    Sound(human, 8);
+                    Sound(human, CHAR_VOICE_HURT_HEAVY);
                 }
                 human->life = 0;
                 if ((human->type & PAGE_MASK) != PAGE_BOSS && human != StagePlayer)
@@ -436,7 +437,7 @@ short DefaultActionHumanoid(Humanoid *human)
                         direction = MOT_DAMAGE;
                     }
                     SetNowMotion(human, direction, 1);
-                    Sound(human, 6);
+                    Sound(human, CHAR_VOICE_HURT);
                 }
 
                 {

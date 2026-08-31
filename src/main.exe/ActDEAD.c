@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "effect.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -150,7 +151,7 @@ void ActDEAD(void)
         if (dtM->count >= 10)
             return;
         PadShockAR(0, 0xff, 10, 10);
-        Sound(Me_MOTION_C, 8);
+        Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
         Sound(StagePlayer, 5);
         return;
     }
@@ -174,7 +175,7 @@ void ActDEAD(void)
 splash_dead:
 {
     if (rand() % 20 == 0)
-        Sound(Me_MOTION_C, 0x16);
+        Sound(Me_MOTION_C, SE_WATER_SPLASH);
     scratch.dead.p.vy = Me_MOTION_C->map.level;
     if ((rand() & 5) == 0)
     {

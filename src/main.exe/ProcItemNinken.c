@@ -3,6 +3,7 @@
 #include "appear.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -240,7 +241,7 @@ void ProcItemNinken(TItem *item)
 
         scratch.spawn.work.vec = svec_y_n50[0];
         SetSmoke(&scratch.spawn.pos, &scratch.spawn.work.vec, 10, 6);
-        SoundEx(&scratch.spawn.pos, 0x23);
+        SoundEx(&scratch.spawn.pos, SE_SMOKE_PUFF);
         param->slave = NINKEN_CHARACTER_PTR;
         NINKEN_CHARACTER_PTR->status = 0;
         slave = param->slave;
@@ -311,7 +312,7 @@ void ProcItemNinken(TItem *item)
         scratch.vec = svec_y_n50[0];
         SetSmoke((VECTOR *)param->slave->model->locate.coord.t,
                  &scratch.vec, 10, 6);
-        SoundEx((VECTOR *)param->slave->model->locate.coord.t, 0x23);
+        SoundEx((VECTOR *)param->slave->model->locate.coord.t, SE_SMOKE_PUFF);
         TurnAroundAllItems(param->slave);
         {
             void (*dispose_proc)(TItem *);

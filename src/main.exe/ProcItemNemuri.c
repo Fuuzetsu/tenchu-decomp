@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "appear.h"
 #include "item.h"
+#include "sound.h"
 
 extern SVECTOR svec_y_n150[];
 
@@ -213,7 +214,7 @@ void ProcItemNemuri(TItem *item)
                  * position is computed and then never passed anywhere --
                  * SetSmoke below gets the body position instead. */
                 random_pos = random_buf;
-                SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
+                SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
 
                 *vec = svec_y_n150[0];
                 memset(&human_buf, 0, sizeof(VECTOR));
@@ -234,7 +235,7 @@ void ProcItemNemuri(TItem *item)
                         human->attribute &= ~ATTR_PHASE;
                     }
                     SetNowMotion(human, MOT_ACTION, 1);
-                    Sound(human, 6);
+                    Sound(human, CHAR_VOICE_HURT);
                 }
 
                 proc = item->proc;

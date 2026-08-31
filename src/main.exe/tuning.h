@@ -32,6 +32,8 @@
 /* Movement speeds (MoveHumanoid order-speed units). */
 #define CHASE_WALK_SPEED 120 /* enemies closing in (ActCHASE/ActENGAGE) */
 #define SWIM_SPEED 60
+#define DAMAGE_LAUNCH_SPEED 0x46 /* high: damage-launch knockback magnitude */
+#define RUN_JUMP_SPEED 0x7F      /* high: MOT_JUMP_RUN transition from a forward dash */
 
 /* Weapon-item damage (DamageControl's per-item switch; a fall-through
  * chain lets a nonzero incoming dmg override the shuriken/happou/gun/

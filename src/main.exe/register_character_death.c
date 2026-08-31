@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 extern u16 DeathIndex;
 extern long EmergencyNotice;
@@ -72,7 +73,7 @@ void register_character_death(Humanoid *dead)
                                       &passage, scale) == 0)
                 {
                     RESET_ALERT_DURATION(alert_time);
-                    Sound(human, 0xc);
+                    Sound(human, CHAR_VOICE_NOTICE);
                     SetNowMotion(human, MOT_STATE_DRAW, 1);
                     dead->attribute |= ATTR_SEARCH;
                     human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;

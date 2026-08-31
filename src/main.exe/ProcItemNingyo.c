@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 typedef struct
 {
@@ -147,7 +148,7 @@ void ProcItemNingyo(TItem *item)
             scratch.drop.sv = svec_y_n25[0];
             SetSmoke((VECTOR *)item->locate->locate.coord.t,
                      &scratch.drop.sv, 10, 6);
-            SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
+            SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
             if (NingyoCount < 3)
             {
                 param->hp = 3;
@@ -336,7 +337,7 @@ void ProcItemNingyo(TItem *item)
                 {
                     SetBleeds((VECTOR *)item->locate->locate.coord.t,
                               0, 30, 30, 30, 0xffff00);
-                    SoundEx((VECTOR *)item->locate->locate.coord.t, 0x23);
+                    SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
                     if (item->proc != 0)
                     {
                         item->mode = ITEM_MODE_DISPOSE;

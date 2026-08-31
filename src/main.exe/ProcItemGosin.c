@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "sound.h"
 
 /*
  * ProcItemGosin (0x80041bf4) — the gosin (protection charm) item processor.
@@ -84,7 +85,7 @@ void ProcItemGosin(TItem *item)
     {
     case 0:
         SetNowMotion(item->owner, MOT_ITEM_KAENGEKI, 1);
-        Sound(item->owner, 0x4c);
+        Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 

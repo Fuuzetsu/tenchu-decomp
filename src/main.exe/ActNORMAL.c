@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -94,7 +95,7 @@ void ActNORMAL(void)
 
     case MOT_NORMAL_TURN_R:
         if (dtM->count == 1)
-            Sound(Me_MOTION_C, 0x10);
+            Sound(Me_MOTION_C, SE_TURN_STEP);
         if (dtPAD & PADLright)
         {
             dtR->vy += Me_MOTION_C->turn;
@@ -108,7 +109,7 @@ void ActNORMAL(void)
 
     case MOT_NORMAL_TURN_L:
         if (dtM->count == 1)
-            Sound(Me_MOTION_C, 0x10);
+            Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLleft) == 0)
         {
             motID = 0;
@@ -213,7 +214,7 @@ void ActNORMAL(void)
             return;
 
         item_sound:
-            SoundEx(Me_MOTION_C->locate, 0xc);
+            SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
             return;
 
         item_default:

@@ -44,11 +44,13 @@
  * not one cached value.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The two-stage address construction is load-bearing, but its pointed-to
- *    type is not. Assign `idx` as its own statement, then form a typed
- *    `BowTimingEntry *` from the byte base and read `min`/`max` as fields.
- *    This emits the index shift pair before the table base. A direct
- *    `BowTiming[n]` subscript reverses those instruction groups.
+ *  - The two-stage address construction is load-bearing, but the cast need
+ *    not be repeated at each read. Assign each byte offset as its own
+ *    statement, then pass it to `BowTimingFromByteOffset`. The inlined
+ *    helper preserves the index shift pair before the table base while
+ *    exposing a const `BowTimingEntry *` at both use sites. Natural
+ *    element-scaled spellings (`BowTiming + n`, `&BowTiming[n]`, and
+ *    `&BowTiming[idx >> 2]`) all reverse those instruction groups.
  *  - **`idx`/`p` are TWO variables per site, not one shared pair** (19 -> 15
  *    bytes). The target holds the table pointer in `$v1` at the range-check
  *    site but `$v0` at the merge site; since cc1 2.8.1 never splits a live
@@ -97,6 +99,11 @@ extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern short DrawOrnament(OrnamentType *objp);
 
+static inline const BowTimingEntry *BowTimingFromByteOffset(s32 byte_offset)
+{
+    return (const BowTimingEntry *)((const u8 *)BowTiming + byte_offset);
+}
+
 void AttackBowControl(s16 n)
 {
     s16 count;
@@ -105,10 +112,10 @@ void AttackBowControl(s16 n)
                             same 48-byte dead-local frame lever as
                             AttackGunControl; item.h's proven 0x28-byte struct) */
     SVECTOR vect;           /* PSX.SYM's "struct SVECTOR vect" (also unused) */
-    s32 idx;
-    BowTimingEntry *p;
-    s32 idx2;
-    BowTimingEntry *p2;
+    s32 byte_offset;
+    const BowTimingEntry *p;
+    s32 byte_offset2;
+    const BowTimingEntry *p2;
 
     count = dtM->count;
     if (count == 1)
@@ -117,17 +124,17 @@ void AttackBowControl(s16 n)
     }
     else
     {
-        idx = n << 2;
-        p = (BowTimingEntry *)((u8 *)BowTiming + idx);
+        byte_offset = n << 2;
+        p = BowTimingFromByteOffset(byte_offset);
         if (p->min <= count && count < p->max)
         {
             UpdateOrnament(Me_MOTION_C->weapon[2], 0);
             DrawOrnament(Me_MOTION_C->weapon[2]);
         }
     }
-    idx2 = n;
-    idx2 = (s16)idx2 << 2;
-    p2 = (BowTimingEntry *)((u8 *)BowTiming + idx2);
+    byte_offset2 = n;
+    byte_offset2 = (s16)byte_offset2 << 2;
+    p2 = BowTimingFromByteOffset(byte_offset2);
     if (dtM->count == p2->max)
     {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);

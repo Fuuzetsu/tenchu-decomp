@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #define DeleteConflict DeleteConflict_prototype
 #include "main.exe.h"
 #undef DeleteConflict
@@ -311,7 +312,7 @@ dispatch:
                 }
                 if (t == first_frame)
                 {
-                    Sound(Me_MOTION_C, 0x28);
+                    Sound(Me_MOTION_C, SE_FIRE);
                 }
                 item.type = ITEM_NAPALM;
                 item.user = Me_MOTION_C;

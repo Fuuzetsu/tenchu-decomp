@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -284,7 +285,7 @@ void ActSWIM(void)
     return;
 
 item_sound:
-    SoundEx(Me_MOTION_C->locate, 0xc);
+    SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
     return;
 
 item_default:

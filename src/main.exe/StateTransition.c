@@ -6,6 +6,7 @@
 #include "game_globals.h"
 #include "item.h"
 #include "padcmd.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -260,7 +261,7 @@ void StateTransition(Humanoid *human)
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
                 if (SetNowMotion(Me_THINK_C, MOT_ACTION_NOTICE, 1) == 0)
                 {
-                    Sound(Me_THINK_C, 0xd);
+                    Sound(Me_THINK_C, CHAR_VOICE_ALERT);
                 }
                 me = Me_THINK_C;
                 life = me->life;
@@ -298,7 +299,7 @@ void StateTransition(Humanoid *human)
                     Me_THINK_C->chase[0] = 0;
                 }
                 Attrib = atr0 | PHASE_SUSPICIOUS;
-                Sound(Me_THINK_C, 0xc);
+                Sound(Me_THINK_C, CHAR_VOICE_NOTICE);
             }
         }
         break;
@@ -337,7 +338,7 @@ void StateTransition(Humanoid *human)
             }
             Me_THINK_C->chase[1] = 0;
             Me_THINK_C->chase[0] = 0;
-            Sound(Me_THINK_C, 0xd);
+            Sound(Me_THINK_C, CHAR_VOICE_ALERT);
             if (Me_THINK_C->life > 0)
             {
                 Humanoid *me;
@@ -487,7 +488,7 @@ void StateTransition(Humanoid *human)
         {
             Humanoid *me;
 
-            Sound(Me_THINK_C, 0xd);
+            Sound(Me_THINK_C, CHAR_VOICE_ALERT);
             reset_alert_duration();
             me = Me_THINK_C;
             if (me->type < PAGE_BOSS &&

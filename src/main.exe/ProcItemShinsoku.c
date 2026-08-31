@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -105,7 +106,7 @@ void ProcItemShinsoku(TItem *item)
     {
     case 0:
         SetNowMotion(item->owner, MOT_ITEM_SHINSOKU, 1);
-        Sound(item->owner, 0x4c);
+        Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 

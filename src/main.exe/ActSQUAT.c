@@ -3,6 +3,7 @@
 #include "humanoid.h"
 #include "item.h"
 #include "padcmd.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -106,7 +107,7 @@ void ActSQUAT(void)
     case MOT_SQUAT_WALK_F:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x11);
+            Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
         if ((MOTION_PAD_BITS & PADLup) == 0)
         {
@@ -124,7 +125,7 @@ void ActSQUAT(void)
     case MOT_SQUAT_WALK_B:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x11);
+            Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
         if ((MOTION_PAD_BITS & PADLdown) == 0)
         {
@@ -161,7 +162,7 @@ void ActSQUAT(void)
     case MOT_SQUAT_WALK_R:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x11);
+            Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
         if ((MOTION_PAD_BITS & PADLright) == 0)
         {
@@ -181,7 +182,7 @@ void ActSQUAT(void)
     case MOT_SQUAT_WALK_L:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x11);
+            Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
         if ((dtPAD & PADLleft) == 0)
         {
@@ -325,7 +326,7 @@ void ActSQUAT(void)
         return;
 
     item_sound:
-        SoundEx(Me_MOTION_C->locate, 0xC);
+        SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
         return;
 
     item_default:

@@ -3,6 +3,7 @@
 #include "appear.h"
 #include "item.h"
 #include "afterimage.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -305,7 +306,7 @@ void ActSTATE(void)
                     {
                         fall_human->life = 0;
                     }
-                    Sound(Me_MOTION_C, 8);
+                    Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                     ReqLifeBar(Me_MOTION_C);
                 }
                 return;

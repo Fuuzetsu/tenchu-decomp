@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "effect.h"
 #include "images.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -260,7 +261,7 @@ void DrawGore(TEffectSlot *ef)
             }
             param->mode = 1;
             param->time = rand() % 10;
-            SoundEx((VECTOR *)&param->px, 0x37);
+            SoundEx((VECTOR *)&param->px, SE_BLOOD_SPLATTER);
         }
         else
         {

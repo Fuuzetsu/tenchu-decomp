@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -178,7 +179,7 @@ short HangCheck(void)
     motMODE = 1;
     SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:
-    Sound(Me_MOTION_C, 0x1B);
+    Sound(Me_MOTION_C, SE_LEDGE_GRIP);
     if (StagePlayer != Me_MOTION_C)
     {
         return -1;

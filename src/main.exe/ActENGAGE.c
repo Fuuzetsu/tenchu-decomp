@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "padcmd.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -106,7 +107,7 @@ void ActENGAGE(void)
     case MOT_ENGAGE_TURN_R:
         dtR->vy = dtR->vy + Me_MOTION_C->turn;
         if (dtM->count == 1)
-            Sound(Me_MOTION_C, 0x10);
+            Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLright) == 0)
         {
             motID = MOT_ENGAGE_STANCE;
@@ -117,7 +118,7 @@ void ActENGAGE(void)
     case MOT_ENGAGE_TURN_L:
         dtR->vy = dtR->vy - Me_MOTION_C->turn;
         if (dtM->count == 1)
-            Sound(Me_MOTION_C, 0x10);
+            Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLleft) == 0)
         {
             motID = MOT_ENGAGE_STANCE;
@@ -273,7 +274,7 @@ void ActENGAGE(void)
                 return;
             case ITEM_NONE:
             case ITEM_KAWARIMI:
-                SoundEx(Me_MOTION_C->locate, 0xc);
+                SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
                 return;
             default:
                 ReqItemDefault(Me_MOTION_C, SelectedItem);
@@ -312,4 +313,3 @@ void ActENGAGE(void)
         }
     }
 }
-

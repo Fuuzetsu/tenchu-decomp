@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "infoview.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -74,7 +75,7 @@ void CheckCheatCodes(s16 *rec, int n)
         __builtin_memcpy(menu.Num, sel_quantity, sizeof(sel_quantity));
         CamState.Owner->item[sel] +=
             AdtSelect(str_number_of, menu.Num, 0);
-        SoundEx(0, 0x4c);
+        SoundEx(0, SE_ITEM_USE);
     }
     else
     {

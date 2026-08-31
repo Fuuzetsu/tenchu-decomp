@@ -3,6 +3,7 @@
 #include "padcmd.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -164,7 +165,7 @@ void ActCHASE(void)
     {
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x11);
+            Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
 
         if ((dtPAD & PADLdown) == 0)
@@ -293,7 +294,7 @@ void ActCHASE(void)
         return;
 
     item_sound:
-        SoundEx(Me_MOTION_C->locate, 0xc);
+        SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
         return;
 
     item_default:
@@ -305,4 +306,3 @@ void ActCHASE(void)
         AttackControl();
     }
 }
-

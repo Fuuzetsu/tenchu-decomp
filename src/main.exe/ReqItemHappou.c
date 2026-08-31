@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "afterimage.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -199,6 +200,6 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         ai->vector2.vz = 0;
         param->count = 8;
     }
-    Sound(p->user, 0x4c);
+    Sound(p->user, SE_ITEM_USE);
     return 1;
 }

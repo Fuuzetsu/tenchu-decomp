@@ -1,8 +1,10 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "appear.h"
 #include "humanoid.h"
 #include "item.h"
+#include "sound.h"
 
 
 
@@ -106,8 +108,8 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    copy out of the lhu load-delay slot; the explicit `if (abs_direction < 0)`
  *    spelling exposes a real branch that always does steal it.
  *  - The deg == 3 arm keeps the abs INSIDE the call's ternary argument:
- *    `MoveHumanoid(Me, (0x400 < __builtin_abs((int)(short)did)) ? 0x46
- *    : -0x46, 0)`. A move_speed variable costs +4 length.
+ *    `MoveHumanoid(Me, (0x400 < __builtin_abs((int)(short)did)) ? DAMAGE_LAUNCH_SPEED
+ *    : -DAMAGE_LAUNCH_SPEED, 0)`. A move_speed variable costs +4 length.
  *
  * Widths and calls
  *  - `id` is an int loaded via `(u16)vector.pad` (lhu) with `(short)id`
@@ -190,7 +192,7 @@ void DamageControl(void)
         {
             motID = MOT_DAMAGE;
             motMODE = 1;
-            Sound(Me_MOTION_C, 6);
+            Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             reset_alert_duration();
         }
         else
@@ -211,7 +213,7 @@ void DamageControl(void)
             }
             if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
             {
-                Sound(Me_MOTION_C, 8);
+                Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                 reset_alert_duration();
             }
         }
@@ -354,14 +356,14 @@ resolve_hit:
                     motID = MOT_DAMAGE_LAUNCH_BACK;
                     motMODE = 0;
                     dtR->vy = dtR->vy + did;
-                    MoveHumanoid(Me_MOTION_C, -0x46, 0);
+                    MoveHumanoid(Me_MOTION_C, -DAMAGE_LAUNCH_SPEED, 0);
                 }
                 else
                 {
                     motID = MOT_DAMAGE_LAUNCH_FORE;
                     motMODE = 0;
                     dtR->vy = (0x800 + did) + dtR->vy;
-                    MoveHumanoid(Me_MOTION_C, 0x46, 0);
+                    MoveHumanoid(Me_MOTION_C, DAMAGE_LAUNCH_SPEED, 0);
                 }
             }
             if ((Me_MOTION_C == StagePlayer) && (ARMOUR_EQUIPPED_ != 0))
@@ -381,7 +383,7 @@ resolve_hit:
                         motID = MOT_DEAD;
                         motMODE = 1;
                     }
-                    Sound(Me_MOTION_C, 8);
+                    Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                     {
                         TItemType item_type;
 
@@ -655,7 +657,10 @@ resolve_hit:
                 if (deg == 3)
                 {
                     MoveHumanoid(Me_MOTION_C,
-                                 (__builtin_abs(did) > 0x400) ? 0x46 : -0x46, 0);
+                                 (__builtin_abs(did) > 0x400)
+                                     ? DAMAGE_LAUNCH_SPEED
+                                     : -DAMAGE_LAUNCH_SPEED,
+                                 0);
                 }
                 else
                 {
@@ -716,7 +721,7 @@ resolve_hit:
                     }
                     if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
                     {
-                        Sound(Me_MOTION_C, 8);
+                        Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                         reset_alert_duration();
                     }
                 }

@@ -4,6 +4,7 @@
 #include "humanoid.h"
 #include "game_globals.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -118,7 +119,7 @@ s16 Think1target(void)
                     SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
                     Me_THINK_C->chase[1] = 0;
                     Me_THINK_C->chase[0] = 0;
-                    Sound(Me_THINK_C, 13);
+                    Sound(Me_THINK_C, CHAR_VOICE_ALERT);
                     RESET_ALERT_DURATION(alert_time);
                 }
             }

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 typedef union
 {
@@ -183,7 +184,7 @@ void ProcItemJirai(TItem *item)
         scratch.explosion.vec.vy = -400;
         scratch.explosion.vec.vz = 0;
         SetSmoke(&scratch.explosion.pos, &scratch.explosion.vec, 20, 6);
-        SoundEx(&scratch.explosion.pos, 0x25);
+        SoundEx(&scratch.explosion.pos, SE_EXPLOSION);
         item->mode++;
         param->count = 3;
         reset_alert_duration();

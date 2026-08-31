@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "effect.h"
 #include "images.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -279,7 +280,7 @@ void DrawBlood(TEffectSlot *ef)
             blood->mode = 1;
             time_rnd = rand();
             blood->time = time_rnd % 10;
-            SoundEx((VECTOR *)&blood->px, 0x37);
+            SoundEx((VECTOR *)&blood->px, SE_BLOOD_SPLATTER);
         }
         else
         {
