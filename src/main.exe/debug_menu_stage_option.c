@@ -43,6 +43,19 @@ extern void CVAsetup(void);
 
 void debug_menu_stage_option(void)
 {
+    /* The row values, with the labels DEBUG_MENU_STAGE_OPTIONS actually
+     * ships (tools/gamedata.py DebugStageMenu). The blank rows and
+     * "cancel" all carry 99 and fall through this switch untouched. */
+    enum
+    {
+        DBGSTAGE_NEXT_STAGE = 0,
+        DBGSTAGE_SELECT_STAGE = 1,
+        DBGSTAGE_INFORMATION = 2,
+        DBGSTAGE_ENGLISH = 3,
+        DBGSTAGE_FRENCH = 4,
+        DBGSTAGE_ITALIAN = 5,
+        DBGSTAGE_JAPANESE = 6
+    };
     TAdtSelect menu[11];
     s32 sel;
     ScoreStats stats;
@@ -52,14 +65,14 @@ void debug_menu_stage_option(void)
     sel = AdtSelect(str_stage_option, menu, 0);
     switch (sel)
     {
-    case 0:
+    case DBGSTAGE_NEXT_STAGE:
         StageEndScreen();
         return;
-    case 1:
+    case DBGSTAGE_SELECT_STAGE:
         SelectStage(PSTATE);
         exec_process_(PROCESS_MAIN);
         return;
-    case 2:
+    case DBGSTAGE_INFORMATION:
         init_score_stats(&stats);
         sr = *calculate_score(&stats, CHOSEN_STAGE);
         AdtMessageBox(fmt_layout_no, STAGE_LAYOUT_NUMBER + 1,
@@ -69,16 +82,16 @@ void debug_menu_stage_option(void)
                       stats.criticals, stats.murders, stats.findEnemies,
                       stats.friendHits, sr.score);
         return;
-    case 3:
+    case DBGSTAGE_ENGLISH:
         CHOSEN_LANGUAGE = LANG_ENGLISH;
         break;
-    case 4:
+    case DBGSTAGE_FRENCH:
         CHOSEN_LANGUAGE = LANG_FRENCH;
         break;
-    case 5:
+    case DBGSTAGE_ITALIAN:
         CHOSEN_LANGUAGE = LANG_ITALIAN;
         break;
-    case 6:
+    case DBGSTAGE_JAPANESE:
         CHOSEN_LANGUAGE = LANG_JAPANESE;
         break;
     default:

@@ -35,6 +35,10 @@ TABLES = {
                     [("name", "name", 0), ("value", "<h", 4)]),
     "MOTcommon":   (0x80086B94,  8, "the shared motion registration table",
                     [("mid", "<h", 0), ("id", "<h", 2)]),
+    # AdtSelect menus are {char *name; u_long value} rows: the shipped label
+    # text is the evidence for what each numeric case in the handler means.
+    "DebugStageMenu": (0x800145F0, 8, "debug stage-option menu (AdtSelect rows)",
+                    [("name", "name", 0), ("value", "<I", 4)]),
 }
 
 
