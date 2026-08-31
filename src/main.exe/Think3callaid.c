@@ -49,8 +49,10 @@
  * bumping StageEnemies/StageCitizens by +1/-1 when the new character is a
  * civilian-turned-enemy (character_kind & 0xF0 == PAGE_CIVILIAN).
  *
- * `newhuman->think[0..3] = Think1Func[4]/Think2Func[4]/Think3Func[4]/
- * Think4Func[4]` — PSX.SYM's original `short (*think[4])()` field, shifted
+ * `newhuman->think[0..3]` takes index 4 from all four tables — ThinkDB
+ * names that row 1B-WATCH / 2B-CONTACT / 3B-ATK-CHASE / 4B-CONTACT, so the
+ * summoned fighter watches, closes, chases its attacker and holds contact
+ * (see item.h) — PSX.SYM's original `short (*think[4])()` field, shifted
  * from demo +0x58 to retail +0x60 by the expanded MapVector.
  *
  * The possession assignment intentionally updates Humanoid.attribute in the
@@ -146,11 +148,11 @@ short Think3callaid(void)
         human = Me_THINK_C;
         newhuman->target = human->target;
         KillHumanoid(human);
-        newhuman->think[0] = Think1Func[4];
-        newhuman->think[1] = Think2Func[4];
-        newhuman->think[2] = Think3Func[4];
+        newhuman->think[0] = Think1Func[THINK1_WATCH];
+        newhuman->think[1] = Think2Func[THINK2_CONTACT];
+        newhuman->think[2] = Think3Func[THINK3_ATK_CHASE];
         Pad = &newhuman->pad;
-        func = Think4Func[4];
+        func = Think4Func[THINK4_CONTACT];
         (Me_THINK_C = newhuman)->attribute |= ATTR_CUSTOMAI;
         newhuman->think[3] = func;
         EquipWeapon(newhuman, 1);

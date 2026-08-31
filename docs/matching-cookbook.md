@@ -1948,6 +1948,25 @@ irreducible nest: DrawConstruction's 3.
   the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
   a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
   bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **Before inventing a name for a constant, look for one in the retail
+  DATA.** Several of the game's own tables carry a `char *name` beside the
+  id they describe, because the engine builds file paths and debug-menu
+  rows out of them, so the original names are sitting in `disks/tenchu/
+  main.exe` — decode with `struct.unpack_from` at `addr - load + 0x800`
+  (`load` is the word at file offset 0x18). Known name-carrying tables:
+  `HumanData[]` (character roster, +0x10), `WeaponModel[]` (weapon kinds,
+  +0x0 — retail runs 0x04..0x37, more rows than the demo's 41),
+  `ThinkDB[]` (AI think types, and the name encodes its own table and
+  index), `TStageConfig` and `TAdtSelect`. This settled three naming
+  questions in one sitting: ActATTACK's seven attack cases, the whole
+  `weapon_kind` enum (which turned out to already match, making it the
+  authority and the parallel `WEP_*` defines the guess), and the think
+  dispatch indices. It also caught a wrong note — 0x35 was documented as
+  "Kataoka's matchlock gun" and is `KATAYUMI`, a bow.
+  **When several ids share one case, ask what the carriers have in common
+  rather than naming it after the first one**: ActATTACK's cases each
+  turned out to be one WEAPON, and every attack id the switch ignores is
+  shared across several weapons, which is the whole selector.
 - **An invented LOCAL is the usual reason a human spelling will not match.**
   Before concluding that ugly address arithmetic is byte-required, run
   `tools/symtypes.py --locals <Func>`: it diffs our declaration block against

@@ -86,13 +86,35 @@ extern s32 ic;
 
 /* THINK_4.C's original short-returning dispatch tables. PSX.SYM supplies
  * both their element type and exact bounds; Humanoid stores one selected
- * function from each table. */
+ * function from each table.
+ *
+ * ThinkDB[] (retail data at 0x80089e40) names every think type the level
+ * editor could assign, and the name says where it lives: the leading digit
+ * is the table, the letter is the index in it, and the packed value puts
+ * that index in the matching nibble — which is what SetupThinkFunction
+ * unpacks. Read out, it is
+ *
+ *     Think1Func  3 1A-TRACE   4 1B-WATCH    5 1C-RANDOM
+ *                 6 1D-NINJA   7 1E-SLEEP    8 1F-CHASE
+ *     Think2Func  3 2A-CONFIRM 4 2B-CONTACT
+ *     Think3Func  3 3A-CALLAID 4 3B-ATK-CHASE 5 3C-ATK-POINT
+ *                 6 3D-ESCAPE  7 3E-ATK-AREA  8 3F-ATK-HITAWAY
+ *     Think4Func  3 4A-ABANDON 4 4B-CONTACT   5 4C-CHASE
+ *
+ * plus the two whole-word player types 0x1111 and 0x2222 ("1 -PAD 1" and
+ * "1 -PAD 2"). Our Think* function names already match these throughout.
+ * Only the indices some caller spells literally are named here. */
 typedef s16 (*ThinkFunc)(void);
 extern ThinkFunc Think1Func[10];
 extern ThinkFunc Think2Func[5];
 extern ThinkFunc Think3Func[10];
 extern ThinkFunc Think4Func[6];
 extern ThinkFunc AttackFunc[4];
+
+#define THINK1_WATCH 4     /* 1B-WATCH */
+#define THINK2_CONTACT 4   /* 2B-CONTACT */
+#define THINK3_ATK_CHASE 4 /* 3B-ATK-CHASE */
+#define THINK4_CONTACT 4   /* 4B-CONTACT */
 
 /* The henshin disguise's saved model state. PSX.SYM recovers the original
  * field names and its fifteen-part capacity; retail keeps the same layout. */
