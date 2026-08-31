@@ -233,7 +233,7 @@ void ProcItemNinken(TItem *item)
             (NINKEN_CHARACTER_PTR->attribute & ATTR_SUSPEND) == 0)
         {
             item->mode--;
-            param->count = 15;
+            param->count = 15; /* retry the spawn shortly */
             return;
         }
 

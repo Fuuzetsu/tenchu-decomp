@@ -141,8 +141,8 @@ void PutItemList(void)
                 spr = &ItemImage[i]->sprite;
                 spr->x = x;
                 spr->y = ItemY - 8;
-                spr->scalex = 0xAAA;
-                spr->scaley = 0xAAA;
+                spr->scalex = FIXED_ONE * 2 / 3;
+                spr->scaley = FIXED_ONE * 2 / 3;
                 GsSortSprite(spr, OTablePt, 0);
             }
             x -= ItemGap;
