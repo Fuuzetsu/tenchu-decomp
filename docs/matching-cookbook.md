@@ -1976,7 +1976,13 @@ irreducible nest: DrawConstruction's 3.
   (reassigned three more times). But not always: StageEndScreen has the
   SAME sequence twice on the same variable, and only the second folds;
   the first sits next to a one-shot fence. Check liveness first, then
-  stop — do not assume a sibling's verdict transfers. **Test each site alone AND in combination** --
+  stop — do not assume a sibling's verdict transfers.
+  This rule had already been WRITTEN DOWN, in UpdateTexScroll's own
+  header ("the round-toward-zero correction for signed division by a
+  power of two is automatic codegen, not a hand-written idiom"), and sat
+  there un-generalised while the same expansion stayed transcribed in
+  eight other files. When a per-file note states a fact about the
+  COMPILER rather than about that function, it belongs here. **Test each site alone AND in combination** --
   MoveFly's three fold together, but an early wrong-target rewrite made
   them look like they conflicted.
 - **The EffectSlot pool scan's `idx`/`slot` lockstep is byte-required.**
