@@ -878,6 +878,27 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   there is a missing required block, not permission to take the cleaner
   source (ActNORMAL = 7 lines; ItemControl = 38-44).
 
+- **Nesting normalisation: taste gate BEFORE the byte gate** (round 11).
+  Combine two nested predicates only when they answer ONE named question
+  ("eligible to count", "selectable stock", "skip head tracking"); do NOT
+  combine merely because one `if` is the only child of another. Keep the
+  nesting when the outer condition owns later work, owns an inner `else`,
+  or computes a value between the two tests — that hierarchy is what a
+  reader needs (Think3attack, AttackShort, UpdateMotion, MotionAndMove
+  were all kept on those grounds with no byte probe promoted). A
+  short-circuit conjunction may absorb a CALL only when left-to-right
+  order preserves exactly when the call happens. The biggest single
+  readability win in this class is not a combined test at all: when an
+  arm demonstrably always returns, delete its trailing `else` and
+  unindent the whole continuation (ControlHumanoid). And a tasteful
+  rewrite can still be mechanism-blocked — record the numbers and keep
+  the nested form (ActSTATE 25/135, ControlHumanoid's clamp 26).
+- **Renaming is a zero-byte axis, but PSX.SYM wins**: rename only
+  unrecovered shorthand whose role is materially clearer afterwards
+  (`ad` -> `abs_direction`, `np` -> `newpress`, `ff` -> `dispose_mode`),
+  never a recovered local, and update any matching note that quotes the
+  old name in the same commit.
+
 ### 3.4 Expressions, widths, arithmetic
 
 Mechanised spellings live in the index (`type-width`, `param-width`,
