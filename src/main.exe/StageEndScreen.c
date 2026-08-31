@@ -221,10 +221,13 @@ void StageEndScreen(void)
 
         state = PSTATE;
         state->mission_flags |= 1 << (item_index - 1);
-        /* Campaign SLOT 7 (not a stage uid) is the final mission. */
+        /* Campaign SLOT 7 (not a stage uid) is the final mission. Bit 10
+         * sits in the same bitset as the per-mission bits above; nothing
+         * in main.exe reads it back, so what it unlocks is unknown and it
+         * is left spelled as the bit rather than given a name. */
         if (state->StageNo == 7 && state->language == LANG_ENGLISH)
         {
-            state->mission_flags |= 0x400;
+            state->mission_flags |= 1 << 10;
         }
     }
 
@@ -282,7 +285,7 @@ void StageEndScreen(void)
             {
                 if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)
                 {
-                    ((TLinkInfo *)best_x)->mission_flags |= 0x400;
+                    ((TLinkInfo *)best_x)->mission_flags |= 1 << 10;
                 }
             } while (0);
         }
