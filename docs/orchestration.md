@@ -586,6 +586,14 @@ ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
   than a batch at the end. Validated on its first use: round 23 was cut
   off at five of ten targets and cost nothing, because the report already
   covered exactly those five with their recipes and bisection tables.
+* **Shrink the round when the API is saturated.** Rounds 22-24 hit
+  `Selected model is at capacity` six times in an afternoon. A ten-target
+  round that dies at 128k tokens delivers nothing; a two-target round has
+  a real chance of finishing both. Pair that with the incremental report
+  and partial progress becomes the normal outcome rather than a loss.
+  Retrying immediately does not help when the whole model is saturated --
+  space the retries and do your own work in between, since the loop is
+  meant to run in parallel anyway.
 * **Cite the sibling that has the evidence when the target does not.**
   Round 22 dropped a staging local in ActMOVE, which has no PSX.SYM
   record at all, leaving the change looking like preference. It was
