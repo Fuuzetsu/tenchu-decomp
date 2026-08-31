@@ -556,6 +556,21 @@ ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
   campaign was a behaviour-summary header that collided with an owner
   directive living only in feedback history. If a rule is not in `docs/`,
   the external model cannot know it — put it in the brief.
+* **A resumed session can become unresumable; keep the state on disk.**
+  Three consecutive `Selected model is at capacity` failures left round 22's
+  thread refusing `exec resume --last` with `cannot resume an unloaded
+  multi-agent v2 sub-agent through its parent`. Capacity errors are
+  transient (retry after ~10 minutes), but the corruption is not
+  recoverable — start a FRESH `codex exec` instead. That costs nothing if
+  the shared directory carries the context, which is the real reason to
+  keep briefs, reports and the harness there rather than in the
+  conversation: a `BOOTSTRAP.md` naming the puzzle, the harness command,
+  which files to read, and the standing rules brought a new session back
+  to full speed in one prompt. Also check what a dead round left behind
+  before harvesting it — round 22's first attempt died mid-flight and its
+  candidate files were unmodified baselines that all gated
+  `ASM-IDENTICAL` (they differed from the tree by one trailing newline).
+  A green gate on a file the other side never edited is not a result.
 * **Let it pick the dimension once it knows the tree.** Rounds 12-13 were
   Codex's own choice (header contracts), and it independently reached the
   same conclusion this session had about the biggest remaining anomaly.
