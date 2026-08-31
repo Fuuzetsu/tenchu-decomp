@@ -37,15 +37,11 @@
  * return to the normal standing motion.
  *
  * Matching notes (2,680 bytes / 670 instructions):
- *  - The two terminal motion-selection paths use signed, full-width motion-id
- *    temporaries.  Their SImode producers keep the source-level tails distinct
- *    until jump2 folds only the duplicated final motMODE store.
- *  - The redundant count test after the non-special MOT_ENGAGE_STANCE selection preserves
- *    the original block notes.  Both arms intentionally perform the same
- *    store; the late jump passes eliminate the test while its earlier RTL
- *    lifetime gives the target's register allocation.
- *  - The random-fall arm uses a separate block-local humanoid pointer.  This
- *    keeps the two motion-id producer islands distinct without emitted code.
+ *  - One signed full-width temporary is reused by the chase-Z store and both
+ *    terminal motion-selection paths. Its SImode motion producers let jump2
+ *    fold only the duplicated final motMODE store.
+ *  - The fall graph uses the global humanoid pointer directly; neither its
+ *    outer tests nor the random-damage tail need a pointer alias.
  */
 
 extern Humanoid *Me_MOTION_C;
@@ -55,7 +51,9 @@ extern int ReqLifeBar(Humanoid *h);
 
 void ActSTATE(void)
 {
-    short i;
+    short i, cleanup_guard;
+    long t;
+    Humanoid *human;
 
     switch (dtM->mid)
     {
@@ -63,11 +61,7 @@ void ActSTATE(void)
         if (dtM->count == 1)
         {
             {
-                short cleanup_guard;
-                short kind;
-
-                kind = Me_MOTION_C->wpatk;
-                switch (kind)
+                switch (Me_MOTION_C->wpatk)
                 {
                 case FIST:
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
@@ -111,17 +105,15 @@ void ActSTATE(void)
                         SetCameraMode(CMODE_NORMAL);
                     }
                     {
-                        s32 stance_id;
-
                         if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                         {
-                            stance_id = MOT_ENGAGE_STANCE;
+                            t = MOT_ENGAGE_STANCE;
                         }
                         else
                         {
                             goto zero_motion;
                         }
-                        motID = stance_id;
+                        motID = t;
                     }
                     break;
                 }
@@ -131,14 +123,7 @@ void ActSTATE(void)
                 return;
             }
             motID = MOT_ENGAGE_STANCE;
-            if (dtM->count != 0)
-            {
-                motMODE = 1;
-            }
-            else
-            {
-                motMODE = 1;
-            }
+            motMODE = 1;
             return;
 
         }
@@ -157,19 +142,14 @@ void ActSTATE(void)
             return;
         }
         {
-            Humanoid *human;
-            Humanoid *player;
-            long chase_z;
-
             human = Me_MOTION_C;
             if ((human->attribute & ATTR_PHASE) == 0)
             {
                 human->attribute |= ATTR_SEARCH | PHASE_ALERT;
-                player = StagePlayer;
-                human->chase[HUMANOID_CHASE_X] = player->locate->vx;
-                chase_z = player->locate->vz;
+                human->chase[HUMANOID_CHASE_X] = StagePlayer->locate->vx;
+                t = StagePlayer->locate->vz;
                 human->actscnt = 1;
-                human->chase[HUMANOID_CHASE_Z] = chase_z;
+                human->chase[HUMANOID_CHASE_Z] = t;
             }
         }
         SET_MOTION(MOT_ENGAGE_STANCE, 1);
@@ -180,11 +160,7 @@ void ActSTATE(void)
         if (dtM->count == 1)
         {
             {
-                short cleanup_guard;
-                short kind;
-
-                kind = Me_MOTION_C->wpatk;
-                switch (kind)
+                switch (Me_MOTION_C->wpatk)
                 {
                 case FIST:
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
@@ -253,14 +229,11 @@ void ActSTATE(void)
             SET_MOTION(MOT_ATTACK_DIVE, 0);
         }
         {
-            Humanoid *human;
-
-            human = Me_MOTION_C;
-            if ((human->attribute & ATTR_NOFLOOR) != 0 || human->map.height <= 0)
+            if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0 || Me_MOTION_C->map.height <= 0)
             {
                 if (dtM->count < -0x28)
                 {
-                    if (human == StagePlayer)
+                    if (Me_MOTION_C == StagePlayer)
                     {
                         SetCameraMode(CMODE_NORMAL);
                     }
@@ -277,7 +250,7 @@ void ActSTATE(void)
                 }
                 if (dtM->count > -0x15)
                 {
-                    if ((human->type & PAGE_MASK) != PAGE_GUARD)
+                    if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_GUARD)
                     {
                         SET_MOTION(MOT_STATE_LAND_HEAVY, 0);
                         return;
@@ -290,15 +263,12 @@ void ActSTATE(void)
                 }
 
                 {
-                    Humanoid *fall_human;
-
                     motMODE = 0;
                     motID = (rand() & 1) ? MOT_DAMAGE_SLAM_BACK : MOT_DAMAGE_SLAM_FORE;
-                    fall_human = Me_MOTION_C;
-                    fall_human->life -= 10;
-                    if (fall_human->life < 0)
+                    Me_MOTION_C->life -= 10;
+                    if (Me_MOTION_C->life < 0)
                     {
-                        fall_human->life = 0;
+                        Me_MOTION_C->life = 0;
                     }
                     Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                     ReqLifeBar(Me_MOTION_C);
@@ -332,16 +302,8 @@ void ActSTATE(void)
     case MOT_STATE_LAND_FLIP:
         if (dtM->count == 1)
         {
-            Humanoid *human;
-            short sound;
-
-            sound = SE_LAND_HEAVY;
-            human = Me_MOTION_C;
-            if (motID == MOT_STATE_LAND)
-            {
-                sound = SE_LAND_LIGHT;
-            }
-            Sound(human, sound);
+            Sound(Me_MOTION_C,
+                  motID == MOT_STATE_LAND ? SE_LAND_LIGHT : SE_LAND_HEAVY);
             spawn_smoke_burst_(dtL, 300, SMOKE_DRIFT_DIVISOR_DEFAULT, 10);
             if (StagePlayer == Me_MOTION_C)
             {
@@ -363,27 +325,18 @@ void ActSTATE(void)
             }
             if (Me_MOTION_C == StagePlayer)
             {
-                /* The value-typed cast is load-bearing: gcc 2.8.1's
-                 * find_cross_jump compares CALL_INSN_FUNCTION_USAGE plus the
-                 * pattern code, and every sibling SetCameraMode(0) call has
-                 * identical 1-arg usage — only value-typing (call_value vs
-                 * call) makes this one unmergeable. Retail emits a plain jal —
-                 * an earlier note claiming jalr was wrong. See ActATTACK's
-                 * DeleteConflict case for the two-partner analysis. */
-                ((s16 (*)(s32))SetCameraMode)(CMODE_NORMAL);
+                SetCameraMode(CMODE_NORMAL);
             }
             {
-                s32 stance_id;
-
                 if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                 {
-                    stance_id = MOT_ENGAGE_STANCE;
+                    t = MOT_ENGAGE_STANCE;
                 }
                 else
                 {
                     goto zero_motion;
                 }
-                motID = stance_id;
+                motID = t;
             }
             goto positive_motion;
         }
