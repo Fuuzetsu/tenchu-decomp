@@ -102,44 +102,40 @@ long DrawClip(ModelType *objp, long *xy)
                 {
                     iv = -iv;
                 }
-                if (iv < 0xb5)
+                if (iv >= 0xb5)
                 {
-                    goto reject_check;
+                    goto reject;
                 }
-                goto reject;
             }
-            result = -1;
-            goto ret;
+            else
+            {
+                result = -1;
+                goto ret;
+            }
         }
-    reject_check:
         if ((attr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
         {
             result = -1;
             goto ret;
         }
-        goto unit_vector;
     }
-    else
+    sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
+    if (sz > DEPTH_LIMIT)
     {
-    unit_vector:
-        sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
-        if (sz > DEPTH_LIMIT)
-        {
-        reject:
-            result = -1;
-            goto ret;
-        }
-        if (xy != 0)
-        {
-            result = sz;
-            goto ret;
-        }
-        if (sz >= FOG_DEPTH)
-            DrawTMDmode = TMD_BANK_FOG;
-        else
-            DrawTMDmode = TMD_BANK_PLAIN;
-        result = sz;
+    reject:
+        result = -1;
+        goto ret;
     }
+    if (xy != 0)
+    {
+        result = sz;
+        goto ret;
+    }
+    if (sz >= FOG_DEPTH)
+        DrawTMDmode = TMD_BANK_FOG;
+    else
+        DrawTMDmode = TMD_BANK_PLAIN;
+    result = sz;
 ret:
     return result;
 }

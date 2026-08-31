@@ -153,45 +153,41 @@ short DrawModel(ModelType *objp)
                     {
                         iv = -iv;
                     }
-                    if (iv < 0xb5)
+                    if (iv >= 0xb5)
                     {
-                        goto reject_check;
+                        goto reject;
                     }
                 }
-                goto reject;
+                else
+                {
+                    goto reject;
+                }
             }
-        reject_check:
             if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
             {
                 sz = -1;
                 goto ret;
             }
-            goto unit_vector;
         }
         else
         {
             goto reject;
         }
     }
+    sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
+    if (sz > DEPTH_LIMIT)
+    {
+    reject:
+        sz = -1;
+        goto ret;
+    }
+    if (sz >= FOG_DEPTH)
+    {
+        DrawTMDmode = TMD_BANK_FOG;
+    }
     else
     {
-    unit_vector:
-        sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
-        
-        if (sz > DEPTH_LIMIT)
-        {
-        reject:
-            sz = -1;
-            goto ret;
-        }
-        if (sz >= FOG_DEPTH)
-        {
-            DrawTMDmode = TMD_BANK_FOG;
-        }
-        else
-        {
-            DrawTMDmode = TMD_BANK_PLAIN;
-        }
+        DrawTMDmode = TMD_BANK_PLAIN;
     }
 ret:
     if (sz == -1)
