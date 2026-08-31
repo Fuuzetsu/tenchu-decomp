@@ -242,13 +242,13 @@ s16 think_alarm_reaction_(void)
             human->think[1] = Think2Func[4];
             human->think[2] = Think3Func[4];
             think4 = Think4Func[4];
-            *(u16 *)&human->attribute |= ATTR_CUSTOMAI;
+            ATTR_BITS(human) |= ATTR_CUSTOMAI;
             human->think[3] = think4;
             EquipWeapon(human, 1);
             SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
             human->actscnt = 0;
             human->actcnt = 1;
-            *(u16 *)&human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
+            ATTR_BITS(human) |= ATTR_SEARCH | PHASE_SUSPICIOUS;
 
             human->chase[HUMANOID_CHASE_X] = Me_THINK_C->chase[HUMANOID_CHASE_X] +
                               (rand() % 5 - 2) * 500;

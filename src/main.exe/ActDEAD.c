@@ -117,12 +117,12 @@ void ActDEAD(void)
             dtM->loop = -1;
             if (motID != MOT_DEAD_DROWN)
             {
-                *(u16 *)&Me_MOTION_C->attribute &= ~ATTR_SEARCH;
+                ATTR_BITS(Me_MOTION_C) &= ~ATTR_SEARCH;
             }
             else
             {
-                *(u16 *)&Me_MOTION_C->attribute |= ATTR_SEARCH; /* drowned */
-                *(u16 *)&Me_MOTION_C->model->attribute |= MODEL_ATTR_HIDDEN;
+                ATTR_BITS(Me_MOTION_C) |= ATTR_SEARCH; /* drowned */
+                ATTR_BITS(Me_MOTION_C->model) |= MODEL_ATTR_HIDDEN;
             }
 
             velocity = dtV;

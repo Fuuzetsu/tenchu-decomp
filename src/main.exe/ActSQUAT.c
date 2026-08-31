@@ -326,7 +326,7 @@ void ActSQUAT(void)
         {
             SetCameraMode(CMODE_NORMAL);
         }
-        if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+        if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
         {
             SET_MOTION(MOT_ENGAGE_STANCE, 1);
             return;

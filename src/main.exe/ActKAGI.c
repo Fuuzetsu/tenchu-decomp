@@ -114,7 +114,7 @@ void ActKAGI(void)
                 {
                     SetCameraMode(CMODE_NORMAL);
                 }
-                if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+                if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
                 {
                     SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 }
@@ -137,7 +137,7 @@ void ActKAGI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+            if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
@@ -166,7 +166,7 @@ void ActKAGI(void)
             {
                 *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
             }
-            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
+            ATTR_BITS(model->object[MODEL_PART_WAIST]) |= MODEL_ATTR_HIDDEN;
             SET_MOTION(MOT_SWIM, 1);
             dtM->mask = 0x7fff;
         }
@@ -222,7 +222,7 @@ void ActKAGI(void)
         if (__builtin_abs(v.vx) < 400 && __builtin_abs(v.vy) < 400 &&
             __builtin_abs(v.vz) < 400)
         {
-            *(u16 *)&Me_MOTION_C->attribute |= ATTR_WALL;
+            ATTR_BITS(Me_MOTION_C) |= ATTR_WALL;
         }
 
         {

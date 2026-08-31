@@ -328,7 +328,7 @@ s16 CVAupdate(void)
                     {
                         do
                         {
-                            *(u16 *)&TANKA_SPRITES_[i]->attribute |= MODEL_ATTR_HIDDEN;
+                            ATTR_BITS(TANKA_SPRITES_[i]) |= MODEL_ATTR_HIDDEN;
                             i++;
                         } while (i < 6);
                     }

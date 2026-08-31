@@ -113,7 +113,7 @@ void HumanActionControl(Humanoid *human)
     motion = Me_MOTION_C->motion;
     rotate = Me_MOTION_C->rotate;
     mid = ((MotionManagerU *)motion)->mid;
-    attr = *(u16 *)&Me_MOTION_C->attribute;
+    attr = ATTR_BITS(Me_MOTION_C);
     dtV = &Me_MOTION_C->vector;
     dtL = locate;
     dtR = rotate;

@@ -69,7 +69,7 @@ void set_model_hide_(Humanoid *human, s16 hide)
             attr = attr | MODEL_ATTR_HIDDEN;
             *attribute = attr;
         }
-        *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
+        ATTR_BITS(model->object[MODEL_PART_WAIST]) |= MODEL_ATTR_HIDDEN;
         return;
     }
     i = 7;
@@ -83,5 +83,5 @@ void set_model_hide_(Humanoid *human, s16 hide)
         attr = attr & ~MODEL_ATTR_HIDDEN;
         *attribute = attr;
     }
-    *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+    ATTR_BITS(model->object[MODEL_PART_WAIST]) &= ~MODEL_ATTR_HIDDEN;
 }

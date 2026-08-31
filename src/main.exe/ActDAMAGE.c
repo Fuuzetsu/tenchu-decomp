@@ -82,7 +82,7 @@ void ActDAMAGE(void)
                 attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+            ATTR_BITS(model->object[MODEL_PART_WAIST]) &= ~MODEL_ATTR_HIDDEN;
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -92,7 +92,7 @@ void ActDAMAGE(void)
         {
             dtV->vy = (dtM->count - dtM->motion->time) * 6;
         }
-        if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
+        if ((ATTR_BITS(Me_MOTION_C) & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
             SET_MOTION(MOT_DAMAGE_SLAM_BACK, 0);
@@ -126,7 +126,7 @@ void ActDAMAGE(void)
                 attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+            ATTR_BITS(model->object[MODEL_PART_WAIST]) &= ~MODEL_ATTR_HIDDEN;
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -136,7 +136,7 @@ void ActDAMAGE(void)
         {
             dtV->vy = (dtM->count - dtM->motion->time) * 6;
         }
-        if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
+        if ((ATTR_BITS(Me_MOTION_C) & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
             SET_MOTION(MOT_DAMAGE_SLAM_FORE, 0);
@@ -179,7 +179,7 @@ void ActDAMAGE(void)
             dtM->loop = -2;
             human->status = STAT_DEAD;
             velocity = dtV;
-            *(u16 *)&human->attribute &= ~ATTR_SEARCH;
+            ATTR_BITS(human) &= ~ATTR_SEARCH;
             velocity->vz = 0;
             velocity->vy = 0;
             velocity->vx = 0;
@@ -257,15 +257,15 @@ void ActDAMAGE(void)
         register Humanoid *human;
 
         human = Me_MOTION_C;
-        if (*(u16 *)&human->attribute & ATTR_ALERT)
+        if (ATTR_BITS(human) & ATTR_ALERT)
         {
             u16 attribute;
 
             motID = MOT_ENGAGE_STANCE;
-            attribute = *(u16 *)&human->attribute;
+            attribute = ATTR_BITS(human);
             motMODE = 1;
             attribute = (attribute & (u16)~ATTR_PHASE) | PHASE_ALERT;
-            *(u16 *)&human->attribute = attribute;
+            ATTR_BITS(human) = attribute;
         }
         else
         {

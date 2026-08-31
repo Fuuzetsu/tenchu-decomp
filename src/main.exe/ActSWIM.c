@@ -188,7 +188,7 @@ void ActSWIM(void)
                 attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+            ATTR_BITS(model->object[MODEL_PART_WAIST]) &= ~MODEL_ATTR_HIDDEN;
             Sound(Me_MOTION_C, SE_WATER_MOVE);
             return;
         }
@@ -196,7 +196,7 @@ void ActSWIM(void)
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);
-            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+            if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 return;
@@ -246,7 +246,7 @@ void ActSWIM(void)
             attr = attr & ~MODEL_ATTR_HIDDEN;
             *attribute = attr;
         }
-        *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+        ATTR_BITS(model->object[MODEL_PART_WAIST]) &= ~MODEL_ATTR_HIDDEN;
     }
 
     switch (SelectedItem)
