@@ -31,6 +31,9 @@ extern void DrawFlyWire(TEffectSlot *ef);
 
 int SetFlyWire(VECTOR *start, VECTOR *end)
 {
+    /* The pool-scan aliases are independent allocation boundaries: direct
+     * `EffectSlot` for base is 69 lines, reusing slot for ef is 60, and
+     * deleting both is 75. Direct returns in place of result are 14. */
     TEffectSlot *base;
     TEffectSlot *slot;
     TEffectSlot *ef;
@@ -85,8 +88,6 @@ found:
         int big;
         long v;
         long root;
-        long scaled;
-        long range;
         long base_x;
         long base_y;
         long base_z;
@@ -107,8 +108,9 @@ found:
         if (big)
         {
             /* The whole hand-spelled /0x100 cluster through `v` is
-             * byte-required (plain dx /= 0x100 recolors the mult pair;
-             * measured -- unlike the SetWire/SetLightningI twins). */
+             * byte-required (the complete plain `/= 0x100` graph is 32
+             * lines; unlike the SetWire/SetLightningI twins). `big` and
+             * `root` are separately 72 and 4 lines, or 74 together. */
             v = dx;
             if (dx < 0)
             {
@@ -141,23 +143,20 @@ found:
         param->NCenter.vz = (param->start.vz + param->end.vz) / 2;
         param->time = dist / 1000;
 
-        scaled = dist;
-        if (dist < 0)
-        {
-            scaled = dist + 0xf;
-        }
-        dist = scaled >> 4;
+        dist /= 16;
         /* empty one-shot: a sched1 region fence (an emptied debug print
          * reads the same way -- see DefaultActionHumanoid's header). */
         do
         {
         } while (0);
 
+        /* The branch-arm carriers remain real scheduling boundaries. Removing
+         * base_x/y/z costs 7 lines each; removing value_x/y/z costs 17/10/9;
+         * the complete direct center graph is 81 lines. */
         base_x = param->NCenter.vx;
-        range = dist * 2;
-        if (range > 0)
+        if (dist * 2 > 0)
         {
-            value_x = base_x + (rand() % range - dist);
+            value_x = base_x + (rand() % (dist * 2) - dist);
         }
         else
         {
@@ -177,10 +176,9 @@ found:
         param->center.vy = value_y;
 
         base_z = param->NCenter.vz;
-        range = dist * 2;
-        if (range > 0)
+        if (dist * 2 > 0)
         {
-            value_z = base_z + (rand() % range - dist);
+            value_z = base_z + (rand() % (dist * 2) - dist);
         }
         else
         {
