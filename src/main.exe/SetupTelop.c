@@ -1,5 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
+
+/* A lit telop pixel: white in the 15-bit BGR the bitmap holds. */
+#define TELOP_WHITE 0x7fff
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -37,7 +40,7 @@
  *    bits |= raw_bits << 8. A fused expression reverses the operand emission
  *    order even though loop.c still hoists it.
  *  - The fill constant may remain literal in the bitmap assignment; CSE
- *    retains the target's single 0x7fff value.
+ *    retains the target's single TELOP_WHITE value.
  *
  * The rounds 1–4 allocation floor was a property of the scaffolded draft, not
  * the recovered decomposition. Its superseded autopsy remains in
@@ -58,7 +61,6 @@ void SetupTelop(u8 *telop, short line)
     s16 *font;
     s16 bits;
     u16 raw_bits;
-    s16 outline_white;
     s32 line_y;
     s32 signed_v;
     s32 final_v;
@@ -120,23 +122,21 @@ void SetupTelop(u8 *telop, short line)
                     u = 0;
                     do
                     {
-                        bitmap[v][15 - u] = ((bits >> u) & 1) ? 0x7fff : 0;
+                        bitmap[v][15 - u] = ((bits >> u) & 1) ? TELOP_WHITE : 0;
                         u++;
                     } while (u < 16);
                     v++;
                 } while (v < 15);
-
-                outline_white = 0x7fff;
                 u = 1;
                 v = 1;
                 do
                 {
                     if (bitmap[v][u] == 0)
                     {
-                        if ((bitmap[v - 1][u] == outline_white && bitmap[v][u - 1] == outline_white) ||
-                            (bitmap[v][u - 1] == outline_white && bitmap[v + 1][u] == outline_white) ||
-                            (bitmap[v + 1][u] == outline_white && bitmap[v][u + 1] == outline_white) ||
-                            (bitmap[v][u + 1] == outline_white && bitmap[v - 1][u] == outline_white))
+                        if ((bitmap[v - 1][u] == TELOP_WHITE && bitmap[v][u - 1] == TELOP_WHITE) ||
+                            (bitmap[v][u - 1] == TELOP_WHITE && bitmap[v + 1][u] == TELOP_WHITE) ||
+                            (bitmap[v + 1][u] == TELOP_WHITE && bitmap[v][u + 1] == TELOP_WHITE) ||
+                            (bitmap[v][u + 1] == TELOP_WHITE && bitmap[v - 1][u] == TELOP_WHITE))
                         {
                             bitmap[v][u] = 0x1ce7;
                         }
