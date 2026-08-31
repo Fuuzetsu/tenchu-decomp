@@ -61,7 +61,7 @@ AfterimageType *SetupAfterimage(ModelType *model, short len)
     s32 size;
 
     image = AfterIMG;
-    afi = (AfterimageType *)valloc(0x58);
+    afi = (AfterimageType *)valloc(sizeof(AfterimageType));
     size = len * 4;
     afi->model = model;
     afi->vector1 = UnitVector;

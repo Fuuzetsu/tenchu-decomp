@@ -115,7 +115,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     {
         SystemOut(msg_human_overflow);
     }
-    human = (Humanoid *)vcalloc(0xd0, 0);
+    human = (Humanoid *)vcalloc(sizeof(Humanoid), 0);
     human->type = type;
     human->status = STAT_NORMAL;
     human->attribute = 0;
