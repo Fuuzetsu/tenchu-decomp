@@ -2004,6 +2004,17 @@ irreducible nest: DrawConstruction's 3.
   load-bearing in DrawGore (11 lines). The demo's shorter local list is
   a version difference — its SetBlood took four parameters and scanned
   differently — not a target.
+- **When a change moves a CALL, count `jal` in both, not call sites in
+  the source.** Cross-jumping merges identical arm tails, so the source
+  and the binary legitimately disagree: ActACTION now writes five
+  DeleteConflict calls that emit three, and one PlayMotion site of two
+  emits one. Both times this session the source count looked like a
+  regression and was not (ActSTATE's SetCameraMode was the other).
+  `grep -c 'jal.*<Name>'` on the reference `.s` and on the candidate
+  settles it in one command. The same mechanism is why hoisting a call
+  into a shared carrier variable is often the WRONG reconstruction —
+  writing it per-arm and letting find_cross_jump re-share it is what the
+  bytes usually want.
 - **For a pure RENAME the byte gate is not a check.** Renaming a local
   cannot change codegen, so `ASM-IDENTICAL` says only that you did not
   collide with another name or create a semantic accident. It is silent
