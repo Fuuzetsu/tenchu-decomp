@@ -205,20 +205,20 @@ void briefing_screen_(void)
                     renderer_raw_x = xbase - renderer_offset;
                     sprite.x = renderer_raw_x;
                     renderer_x = renderer_raw_x;
-                    if (renderer_x < -0xa0)
+                    if (renderer_x < -(SCREEN_W / 2))
                     {
                         goto brightness_zero;
                     }
                     if (renderer_x < -120)
                     {
-                        left_brightness = renderer_x + 0xa0;
+                        left_brightness = renderer_x + SCREEN_W / 2;
                         scaled_left_brightness = left_brightness;
                         scaled_left_brightness <<= 1;
                         scaled_left_brightness += left_brightness;
                         brightness = scaled_left_brightness;
                         goto brightness_left_store;
                     }
-                    if (renderer_x > 0xa0)
+                    if (renderer_x > SCREEN_W / 2)
                     {
                     brightness_zero:
                         sprite.r = 0;
@@ -226,9 +226,9 @@ void briefing_screen_(void)
                         sprite.b = 0;
                         goto brightness_done;
                     }
-                    if (renderer_x >= 0x79)
+                    if (renderer_x > 120)
                     {
-                        right_brightness = 0xa0 - renderer_x;
+                        right_brightness = SCREEN_W / 2 - renderer_x;
                         scaled_right_brightness = right_brightness;
                         scaled_right_brightness <<= 1;
                         scaled_right_brightness += right_brightness;

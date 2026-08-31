@@ -60,10 +60,10 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     *(u_long *)(work + 0x88) = shift;
     *(u_long *)(work + 0x90) = ot;
     GsTON = attr >> 0x1e & 1;
-    *(u_long *)(work + 0x94) = -0xa0;  /* clipx0 */
-    *(u_long *)(work + 0x98) = 0xa0;   /* clipx1 */
-    *(u_long *)(work + 0x9c) = -0x78;  /* clipy0 */
-    *(u_long *)(work + 0xa0) = 0x78;   /* clipy1 */
+    *(u_long *)(work + 0x94) = -SCREEN_W / 2; /* clipx0 */
+    *(u_long *)(work + 0x98) = SCREEN_W / 2;  /* clipx1 */
+    *(u_long *)(work + 0x9c) = -SCREEN_H / 2; /* clipy0 */
+    *(u_long *)(work + 0xa0) = SCREEN_H / 2;  /* clipy1 */
     *(u_long *)(work + 0x84) = 0x4a98; /* farz */
     *(u_long *)(work + 0x8c) = 15000;  /* fogz */
     while (n != 0)
