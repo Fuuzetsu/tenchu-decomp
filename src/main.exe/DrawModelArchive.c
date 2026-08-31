@@ -68,7 +68,7 @@
  *    every CODE_LABEL, so the a0 == mad equivalence dies there and cc1 emits
  *    a redundant `move a0,s2`, which reorg then hoists into the `bltz s3`
  *    delay slot the target leaves as a bare `nop`. Inverse guards around the
- *    body (`SkipFrame != 1`) and visibility pass (`gap >= 0`) keep the one
+ *    body (`SkipFrame != SKIPFRAME_SKIPPED`) and visibility pass (`gap >= 0`) keep the one
  *    return and compile exactly without source labels. The `nop` is the
  *    symptom: with the copy gone the fallthrough starts with the `jal`, which
  *    is ineligible for a delay slot. Verified with rtldump and tryf.
@@ -99,7 +99,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
     ModelType *objp;
     short rxy[2];
 
-    if (SkipFrame != 1)
+    if (SkipFrame != SKIPFRAME_SKIPPED)
     {
         if (gap >= 0)
         {

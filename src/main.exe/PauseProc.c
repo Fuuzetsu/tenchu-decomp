@@ -36,7 +36,7 @@
  *    it jumps to the li itself (.L80C). Writing the call in each path
  *    cross-jumps less (the arg li gets scheduled away from the call and the
  *    suffixes stop matching) — +6 instructions.
- *  - `cur = pad;` sits before `SkipFrame = 2;` — its move is what reorg puts
+ *  - `cur = pad;` sits before `SkipFrame = SKIPFRAME_AFTER_LOAD;` — its move is what reorg puts
  *    in the pause-flag beqz delay slot.
  *  - The recorder increments through a short temp BEFORE the call:
  *    `j = i + 1; i = j; CheckCheatCodes(buf, j + 1);` reproduces
@@ -112,7 +112,7 @@ void PauseProc(void)
     if (!(SystemFlag & SYSFLAG_PAUSE))
         return;
     cur = pad;
-    SkipFrame = 2;
+    SkipFrame = SKIPFRAME_AFTER_LOAD;
     SsSetMVol(MASTER_VOLUME_MUTE, MASTER_VOLUME_MUTE);
     while (1)
     {

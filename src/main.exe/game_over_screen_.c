@@ -335,7 +335,7 @@ void game_over_screen_(void)
             break;
         }
 
-        SkipFrame = 2;
+        SkipFrame = SKIPFRAME_AFTER_LOAD;
         EndDrawing(0);
     }
 }

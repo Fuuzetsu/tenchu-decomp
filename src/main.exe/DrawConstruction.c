@@ -91,7 +91,7 @@ void DrawConstruction(void)
     int ez;
     ObjectSlotType *cur;
 
-    if (SkipFrame == 1)
+    if (SkipFrame == SKIPFRAME_SKIPPED)
         return;
 
     {

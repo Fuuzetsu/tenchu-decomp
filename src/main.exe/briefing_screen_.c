@@ -288,7 +288,7 @@ void briefing_screen_(void)
             draw_shade_quad_((u8 *)OTablePt->org,
                              intensity, intensity, intensity);
         }
-        SkipFrame = 2;
+        SkipFrame = SKIPFRAME_AFTER_LOAD;
         EndDrawing(0);
     }
 

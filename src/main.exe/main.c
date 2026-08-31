@@ -50,7 +50,7 @@
  *    returns `short` (the `sll 16 / sra 16` sign-extend of its result feeds the
  *    `== 1` / `== -1` tests). The constant 1 is hoisted into a callee-saved
  *    register (`s1`) by loop.c as a loop invariant shared by the `seq == 1`
- *    and `SkipFrame == 1` tests.
+ *    and `SkipFrame == SKIPFRAME_SKIPPED` tests.
  */
 
 extern u16 ControlScheme;
@@ -144,7 +144,7 @@ int main(void)
         {
             FntPrint(fmt_free_memory, vgetfreesize(), vgetmaxsize());
         }
-        if (SkipFrame != 1 && (SystemFlag & SYSFLAG_DEBUGPRINT) != 0)
+        if (SkipFrame != SKIPFRAME_SKIPPED && (SystemFlag & SYSFLAG_DEBUGPRINT) != 0)
         {
             FntFlush(-1);
         }

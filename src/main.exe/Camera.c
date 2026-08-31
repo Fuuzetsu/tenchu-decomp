@@ -84,7 +84,7 @@ void Camera(void)
     ViewInfo.vpz += vDif.vpz;
     GsSetRefView2(&ViewInfo);
 
-    if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != 1 &&
+    if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != SKIPFRAME_SKIPPED &&
         (pad_dat & PADselect) != 0)
     {
         ModelType *model;

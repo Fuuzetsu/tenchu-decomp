@@ -47,7 +47,7 @@ void score_screen_input_(void)
             result = lastpad;
         }
         result = update_card_screen_(result);
-        SkipFrame = 2;
+        SkipFrame = SKIPFRAME_AFTER_LOAD;
         EndDrawing(2);
     } while (result == 0);
 }

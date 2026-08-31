@@ -7,6 +7,18 @@
 struct Humanoid;
 
 extern long GameClock;
+/* SkipFrame: EndDrawing drops a frame when VSync says the last one
+ * overran, and the renderers check it to skip work they can afford to
+ * miss. Every screen that has just finished a long load parks it in
+ * AFTER_LOAD so the first frame back is presented without being judged
+ * as an overrun. */
+enum
+{
+    SKIPFRAME_NONE = 0,
+    SKIPFRAME_SKIPPED = 1,
+    SKIPFRAME_AFTER_LOAD = 2
+};
+
 extern short SkipFrame;
 extern int StageID;
 extern AreaMapType *GlobalAreaMap;

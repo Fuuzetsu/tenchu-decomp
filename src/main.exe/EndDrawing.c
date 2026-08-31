@@ -145,15 +145,15 @@ void EndDrawing(short sync)
     sk = SkipFrame;
     switch (sk)
     {
-    case 0:
+    case SKIPFRAME_NONE:
         if (VSync(1) > ((sync - (sync << 4)) << 4) - 0xA)
         {
-            SkipFrame = 1;
+            SkipFrame = SKIPFRAME_SKIPPED;
             return;
         }
         break;
 
-    case 1:
+    case SKIPFRAME_SKIPPED:
         t = sync;
         sync = t << 1;
         SkipFrame = 0;
@@ -162,7 +162,7 @@ void EndDrawing(short sync)
         OTablePt = &OTable[DrawingPage];
         break;
 
-    case 2:
+    case SKIPFRAME_AFTER_LOAD:
         SkipFrame = 0;
         break;
         }

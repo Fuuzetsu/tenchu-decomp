@@ -500,7 +500,7 @@ void StageEndScreen(void)
                     GsSortSprite(icon, OTablePt, 1);
                 }
 
-                SkipFrame = 2;
+                SkipFrame = SKIPFRAME_AFTER_LOAD;
                 EndDrawing(0);
             }
 

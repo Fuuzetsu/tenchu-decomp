@@ -136,10 +136,10 @@ void CreateStage(int StageNo, int CharType)
     StartDrawing();
     GsSortPoly(&ply_ten, OTablePt, 0);
     DrawBG(bg);
-    SkipFrame = 2;
+    SkipFrame = SKIPFRAME_AFTER_LOAD;
     EndDrawing(0);
     StartDrawing();
-    SkipFrame = 2;
+    SkipFrame = SKIPFRAME_AFTER_LOAD;
     EndDrawing(0);
     DisposeBG(bg);
 

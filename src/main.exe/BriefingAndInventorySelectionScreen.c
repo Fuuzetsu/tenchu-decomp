@@ -603,7 +603,7 @@ void BriefingAndInventorySelectionScreen(void)
                 dsp->u = c;
             }
         }
-        SkipFrame = 2;
+        SkipFrame = SKIPFRAME_AFTER_LOAD;
         EndDrawing(0);
     } while (1);
 

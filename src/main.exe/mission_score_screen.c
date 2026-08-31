@@ -606,7 +606,7 @@ void mission_score_screen(void)
         } while (i < 3);
         }
 
-        SkipFrame = 2;
+        SkipFrame = SKIPFRAME_AFTER_LOAD;
         EndDrawing(0);
     }
 
