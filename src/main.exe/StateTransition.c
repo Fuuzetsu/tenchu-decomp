@@ -87,7 +87,7 @@ extern s32 ProbeLevelHigh;
 extern u16 ProbeAttrib[2];
 extern s32 PlayerSSR;
 
-extern void reset_alert_duration();
+extern void reset_alert_duration(void);
 extern s16 Think2confirm(void);
 extern s16 think_alarm_reaction_(void);
 extern s16 Think3firstattack(void);
@@ -278,7 +278,7 @@ void StateTransition(Humanoid *human)
                 {
                     Humanoid *alert_me;
 
-                    reset_alert_duration(life);
+                    reset_alert_duration();
                     alert_me = Me_THINK_C;
                     switch (alert_me->type < PAGE_BOSS)
                     {

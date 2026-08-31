@@ -50,6 +50,9 @@
  *    incompatible ANSI signature merely to reproduce the promotion schedule.
  */
 extern GsIMAGE FONT_IMAGE_;
+/* Deleting this also gates ASM-IDENTICAL, and must not be done: this
+ * file does not include images.h, so the call would fall back to an
+ * implicit declaration rather than the real prototype. */
 extern void SetupImageToPolyGT4();
 
 void draw_glyph_(void *ot, short x, short y0, u32 code)

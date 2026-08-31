@@ -2004,6 +2004,18 @@ irreducible nest: DrawConstruction's 3.
   load-bearing in DrawGore (11 lines). The demo's shorter local list is
   a version difference — its SetBlood took four parameters and scanned
   differently — not a target.
+- **Removing a declaration can gate green by falling back to an IMPLICIT
+  one.** Auditing the four K&R `extern void f();` redeclarations in the
+  tree, three of them compiled and matched with the line deleted — but
+  two of those were deleting the only declaration in scope, so the call
+  silently became implicitly declared. `PutNumber` really is
+  `(int,int,int,int)` called with three arguments (retail's own sloppiness;
+  the target sets no $a3) and nothing prototypes it; `draw_glyph_` does
+  not include images.h at all. Both are now documented as
+  deliberately-kept. **Before believing a prototype change, check the
+  real prototype is actually in scope.** The fourth,
+  StateTransition's `reset_alert_duration(life)` on a `(void)` function,
+  was genuine noise and is gone.
 - **When a change moves a CALL, count `jal` in both, not call sites in
   the source.** Cross-jumping merges identical arm tails, so the source
   and the binary legitimately disagree: ActACTION now writes five

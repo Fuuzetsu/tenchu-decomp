@@ -73,7 +73,11 @@ extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern void exec_process_(int arg);
 extern short DrawBG(BackGround *bg);
-/* Retail's only caller omits PutNumber's dead fourth parameter. */
+/* Retail's only caller omits PutNumber's dead fourth parameter (it is
+ * `void PutNumber(int x, int y, int cols, int n)` and the target sets
+ * no $a3). No header prototypes it, so DELETING this line still gates
+ * ASM-IDENTICAL -- by falling back to an implicit declaration, which
+ * is worse than saying so. Keep it. */
 extern void PutNumber();
 extern void DisposeBG(BackGround *bg);
 extern int check_cheat_command_(s16 pad, s16 newpress);
