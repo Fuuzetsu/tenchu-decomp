@@ -4,20 +4,23 @@
 #include "item.h"
 #include "sound.h"
 
-typedef struct
-{
-    VECTOR v;
-    VECTOR pos;
-} ProcItemNingyoVectors;
-
 typedef union
 {
     struct
     {
-        SVECTOR sv;
-        PARAM_ITEM_LAUNCH launch;
+        SVECTOR smoke_velocity;
+        PARAM_ITEM_LAUNCH request;
     } drop;
-    ProcItemNingyoVectors vectors;
+    struct
+    {
+        VECTOR scale;
+        VECTOR source_scale;
+    } growth;
+    struct
+    {
+        VECTOR position;
+        VECTOR source_position;
+    } impact;
 } ProcItemNingyoScratch;
 
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
@@ -69,7 +72,7 @@ extern short DrawModel(ModelType *objp);
  * item/param/sentinel homes s3/s4/s5.  The drop path's direct model load
  * preserves the target owner/type/model load order in s2/s1/s0.
  *
- * Clearing the short-lived launch pointer after memset breaks the stack-
+ * Clearing the short-lived request pointer after memset breaks the stack-
  * address CSE that otherwise occupies s3.  Reusing the model pointer for its
  * embedded position then makes the derived-address and all three shared
  * modulus-constant sequences exact. Separate base/result conflict pointers
@@ -79,8 +82,30 @@ extern short DrawModel(ModelType *objp);
  * param and preserve the indirect-call delay slots without CFG artifacts. */
 void ProcItemNingyo(TItem *item)
 {
+    enum
+    {
+        NINGYO_MODE_WAIT = 0,
+        NINGYO_MODE_GROW = 1,
+        NINGYO_MODE_ACTIVE = 2,
+        NO_CONFLICT = -1,
+        MAX_ACTIVE_NINGYO = 3,
+        ACTIVE_NINGYO_HP = 3,
+        APPEAR_SMOKE_COUNT = 10,
+        APPEAR_SMOKE_TIME = 6,
+        DROP_HORIZONTAL_SPREAD = 200,
+        DROP_VERTICAL_SPREAD = 100,
+        DROP_UPWARD_SPEED = 200,
+        GROWTH_SCALE_SHIFT = 8,
+        GROWTH_FRAMES = FIXED_ONE >> GROWTH_SCALE_SHIFT,
+        NINGYO_COLLISION_SIZE = 500,
+        FIRST_RETARGET_DELAY = 3,
+        RETARGET_INTERVAL = 30,
+        NINGYO_LURE_RANGE = 10000,
+        KNOCKBACK_Y_SPEED = 100,
+        KNOCKBACK_SPREAD = 20
+    };
     param_ningyo *param;
-    s32 cid;
+    s32 conflict_id;
     s32 dispose_mode;
     ProcItemNingyoScratch scratch;
 
@@ -90,35 +115,36 @@ void ProcItemNingyo(TItem *item)
     {
         if (param->hp != NINGYO_HP)
         {
-            s32 i;
-            s32 n;
-            Humanoid **humans;
+            s32 human_index;
+            s32 human_count;
+            Humanoid **human_cursor;
 
-            n = Humans;
-            if (n > 0)
+            human_count = Humans;
+            if (human_count > 0)
             {
-                s32 limit;
-                TCameraStatus *camera;
+                s32 human_limit;
+                TCameraStatus *camera_state;
 
                 do
                 {
-                    i = 0;
+                    human_index = 0;
                 } while (0);
-                camera = &CamState;
-                limit = n;
-                humans = HumanGroup;
+                camera_state = &CamState;
+                human_limit = human_count;
+                human_cursor = HumanGroup;
                 do
                 {
                     Humanoid *human;
 
-                    human = *humans;
+                    human = *human_cursor;
                     if (human->target == item->locate)
                     {
-                        human->target = (ModelType *)camera->Owner->model;
+                        human->target =
+                            (ModelType *)camera_state->Owner->model;
                     }
-                    i++;
-                    humans++;
-                } while (i < limit);
+                    human_index++;
+                    human_cursor++;
+                } while (human_index < human_limit);
             }
             NingyoCount--;
         }
@@ -134,53 +160,59 @@ void ProcItemNingyo(TItem *item)
 
     switch (item->mode)
     {
-    case 0:
+    case NINGYO_MODE_WAIT:
     {
-        s32 count;
+        s32 activation_countdown;
 
-        count = param->count - 1;
-        param->count = count;
-        if ((u8)count == 0)
+        activation_countdown = param->count - 1;
+        param->count = activation_countdown;
+        if ((u8)activation_countdown == 0)
         {
             param->count = 0;
             item->mode++;
-            scratch.drop.sv = svec_y_n25[0];
+            scratch.drop.smoke_velocity = svec_y_n25[0];
             SetSmoke((VECTOR *)item->locate->locate.coord.t,
-                     &scratch.drop.sv, 10, 6);
+                     &scratch.drop.smoke_velocity,
+                     APPEAR_SMOKE_COUNT, APPEAR_SMOKE_TIME);
             SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
-            if (NingyoCount < 3)
+            if (NingyoCount < MAX_ACTIVE_NINGYO)
             {
-                param->hp = 3;
+                param->hp = ACTIVE_NINGYO_HP;
                 NingyoCount++;
                 goto draw_mode0;
             }
             else
             {
                 Humanoid *owner;
-                s32 type;
+                s32 item_type;
                 ModelType *model;
-                PARAM_ITEM_LAUNCH *launchp;
+                PARAM_ITEM_LAUNCH *request;
 
                 owner = item->owner;
-                type = item->type;
+                item_type = item->type;
                 model = item->locate;
-                launchp = &scratch.drop.launch;
-                memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
-                launchp = 0;
-                scratch.drop.launch.type = type;
-                scratch.drop.launch.user = owner;
+                request = &scratch.drop.request;
+                memset(request, 0, sizeof(PARAM_ITEM_LAUNCH));
+                request = 0;
+                scratch.drop.request.type = item_type;
+                scratch.drop.request.user = owner;
                 {
-                    VECTOR *pos;
+                    VECTOR *position;
 
-                    pos = (VECTOR *)model->locate.coord.t;
-                    scratch.drop.launch.start.vx = pos->vx;
-                    scratch.drop.launch.start.vy = pos->vy;
-                    scratch.drop.launch.start.vz = pos->vz;
+                    position = (VECTOR *)model->locate.coord.t;
+                    scratch.drop.request.start.vx = position->vx;
+                    scratch.drop.request.start.vy = position->vy;
+                    scratch.drop.request.start.vz = position->vz;
                 }
-                scratch.drop.launch.end.vx = rand() % 200 - 100;
-                scratch.drop.launch.end.vy = rand() % 100 - 200;
-                scratch.drop.launch.end.vz = rand() % 200 - 100;
-                ReqItemDrop(&scratch.drop.launch);
+                scratch.drop.request.end.vx =
+                    rand() % DROP_HORIZONTAL_SPREAD -
+                    DROP_HORIZONTAL_SPREAD / 2;
+                scratch.drop.request.end.vy =
+                    rand() % DROP_VERTICAL_SPREAD - DROP_UPWARD_SPEED;
+                scratch.drop.request.end.vz =
+                    rand() % DROP_HORIZONTAL_SPREAD -
+                    DROP_HORIZONTAL_SPREAD / 2;
+                ReqItemDrop(&scratch.drop.request);
             }
         }
         else
@@ -218,124 +250,130 @@ void ProcItemNingyo(TItem *item)
         return;
     }
 
-    case 1:
+    case NINGYO_MODE_GROW:
     {
-        s32 n;
-        s32 size;
-        s32 offset_y;
-        s32 collision_mode;
-        ConflictObjectType *conflicts;
+        s32 new_conflict_id;
+        s32 collision_size;
+        s32 collision_offset_y;
+        s32 conflict_class;
+        ConflictObjectType *conflict_pool;
         ConflictObjectType *conflict;
 
         param->count++;
-        memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
-        scratch.vectors.pos.vx = param->count << 8;
-        scratch.vectors.pos.vy = param->count << 8;
-        scratch.vectors.pos.vz = param->count << 8;
-        scratch.vectors.v = scratch.vectors.pos;
+        memset(&scratch.growth.source_scale, 0, sizeof(VECTOR));
+        scratch.growth.source_scale.vx =
+            param->count << GROWTH_SCALE_SHIFT;
+        scratch.growth.source_scale.vy =
+            param->count << GROWTH_SCALE_SHIFT;
+        scratch.growth.source_scale.vz =
+            param->count << GROWTH_SCALE_SHIFT;
+        scratch.growth.scale = scratch.growth.source_scale;
         RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
-        ScaleMatrix(&item->locate->locate.coord, &scratch.vectors.v);
+        ScaleMatrix(&item->locate->locate.coord, &scratch.growth.scale);
         item->locate->locate.flg = 0;
         NingyoModel->locate = item->locate->locate;
         DrawModel(NingyoModel);
-        if (param->count < 16)
+        if (param->count < GROWTH_FRAMES)
         {
             return;
         }
 
         DeleteConflict(item->locate);
-        n = InsertConflict(item->locate);
-        conflicts = ConflictObject;
-        conflict = conflicts + n;
-        offset_y = -250;
-        size = 500;
+        new_conflict_id = InsertConflict(item->locate);
+        conflict_pool = ConflictObject;
+        conflict = conflict_pool + new_conflict_id;
+        collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
+        collision_size = NINGYO_COLLISION_SIZE;
         /* empty one-shot: a sched1 region fence (an emptied debug print
          * reads the same way -- see DefaultActionHumanoid's header). */
         do
         {
         } while (0);
         conflict->common = CONFLICT_OWNER_ITEM;
-        collision_mode = 12;
+        conflict_class = CONFLICT_STAND | CONFLICT_SOFT;
         conflict->offset.vx = 0;
         conflict->offset.vz = 0;
-        conflict->offset.vy = offset_y;
-        conflict->size.vz = size;
-        conflict->size.vy = size;
-        conflict->size.vx = size;
-        conflict->size.pad = collision_mode;
-        item->collision.mode = collision_mode;
-        item->collision.size = size;
-        item->collision.ofsY = offset_y;
+        conflict->offset.vy = collision_offset_y;
+        conflict->size.vz = collision_size;
+        conflict->size.vy = collision_size;
+        conflict->size.vx = collision_size;
+        conflict->size.pad = conflict_class;
+        item->collision.mode = conflict_class;
+        item->collision.size = collision_size;
+        item->collision.ofsY = collision_offset_y;
         item->collision.pause = 0;
-        param->count = 3;
+        param->count = FIRST_RETARGET_DELAY;
         item->mode++;
         return;
     }
 
-    case 2:
+    case NINGYO_MODE_ACTIVE:
     {
-        s32 count;
+        s32 retarget_countdown;
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            cid = -1;
+            conflict_id = NO_CONFLICT;
         }
         else
         {
-            cid = GetConflictResult(item->locate, -1);
+            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
         }
 
-        count = param->count - 1;
-        param->count = count;
-        if ((u8)count == 0)
+        retarget_countdown = param->count - 1;
+        param->count = retarget_countdown;
+        if ((u8)retarget_countdown == 0)
         {
-            s32 i;
-            Humanoid **humans;
+            s32 human_index;
+            Humanoid **human_cursor;
 
-            i = 0;
-            humans = HumanGroup;
+            human_index = 0;
+            human_cursor = HumanGroup;
             while (1)
             {
                 Humanoid *human;
-                s32 len;
+                s32 distance_to_decoy;
 
-                if (i >= Humans)
+                if (human_index >= Humans)
                 {
                     break;
                 }
-                human = *humans;
-                len = GetVectorDistance(
+                human = *human_cursor;
+                distance_to_decoy = GetVectorDistance(
                     (VECTOR *)item->locate->locate.coord.t,
                     human->locate);
-                if (len < 10000 && human->target != 0 &&
-                    len < GetVectorDistance(
-                              (VECTOR *)human->target->locate.coord.t,
-                              human->locate) &&
+                if (distance_to_decoy < NINGYO_LURE_RANGE &&
+                    human->target != 0 &&
+                    distance_to_decoy <
+                        GetVectorDistance(
+                            (VECTOR *)human->target->locate.coord.t,
+                            human->locate) &&
                     ((u16)human->type & PAGE_MASK) != PAGE_BOSS)
                 {
                     human->target = item->locate;
                 }
-                humans++;
-                i++;
+                human_cursor++;
+                human_index++;
             }
-            param->count = 30;
+            param->count = RETARGET_INTERVAL;
         }
-        else if (cid != -1)
+        else if (conflict_id != NO_CONFLICT)
         {
             ConflictObjectType *conflict;
-            ConflictObjectType *conflicts;
-            s32 collision_mode;
+            ConflictObjectType *conflict_pool;
+            s32 conflict_class;
 
-            conflicts = ConflictObject;
-            conflict = &conflicts[cid];
-            collision_mode = conflict->size.pad;
-            if (collision_mode == 1)
+            conflict_pool = ConflictObject;
+            conflict = &conflict_pool[conflict_id];
+            conflict_class = conflict->size.pad;
+            if (conflict_class == CONFLICT_HIT)
             {
                 if (param->hp == 0)
                 {
                     SetBleeds((VECTOR *)item->locate->locate.coord.t,
                               0, 30, 30, 30, COLOR_YELLOW);
-                    SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
+                    SoundEx((VECTOR *)item->locate->locate.coord.t,
+                            SE_SMOKE_PUFF);
                     if (item->proc != 0)
                     {
                         item->mode = ITEM_MODE_DISPOSE;
@@ -353,77 +391,74 @@ void ProcItemNingyo(TItem *item)
                 }
                 else
                 {
-                    enum
-                    {
-                        R = 100
-                    };
-                    s32 vz;
-                    s32 vx;
-                    s32 shifted_vx;
+                    s32 delta_z;
+                    s32 delta_x;
+                    s32 knockback_x;
 
-                    memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
-                    scratch.vectors.pos.vx = conflict->position.vx;
-                    scratch.vectors.pos.vy = conflict->position.vy;
-                    scratch.vectors.pos.vz = conflict->position.vz;
-                    scratch.vectors.v = scratch.vectors.pos;
-                    vx = -ConflictDistance.vx;
-                    if (vx < 0)
+                    memset(&scratch.impact.source_position, 0,
+                           sizeof(VECTOR));
+                    scratch.impact.source_position.vx = conflict->position.vx;
+                    scratch.impact.source_position.vy = conflict->position.vy;
+                    scratch.impact.source_position.vz = conflict->position.vz;
+                    scratch.impact.position = scratch.impact.source_position;
+                    delta_x = -ConflictDistance.vx;
+                    if (delta_x < 0)
                     {
-                        vx += 15;
+                        delta_x += 15;
                     }
-                    shifted_vx = vx >> 4;
-                    vz = -ConflictDistance.vz;
-                    if (vz < 0)
+                    knockback_x = delta_x >> 4;
+                    delta_z = -ConflictDistance.vz;
+                    if (delta_z < 0)
                     {
-                        vz += 15;
+                        delta_z += 15;
                     }
-                    param->koro.vx = shifted_vx;
-                    param->koro.vy = -R;
-                    param->koro.vz = vz >> 4;
+                    param->koro.vx = knockback_x;
+                    param->koro.vy = -KNOCKBACK_Y_SPEED;
+                    param->koro.vz = delta_z >> 4;
                     param->koro.hint = 0;
                     param->koro.status = KORO_NORMAL;
                     param->hp--;
-                    SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
+                    SoundEx((VECTOR *)item->locate->locate.coord.t,
+                            SE_PROJECTILE_HIT);
                 }
             }
-            else if (collision_mode != 8)
+            else if (conflict_class != CONFLICT_SOFT)
             {
-                enum
-                {
-                    R = 100
-                };
-                s32 random_x;
-                s32 random_z;
-                s32 vx;
-                s32 vy;
-                s32 vz;
-                s16 xbase;
-                s16 xrem;
+                s32 x_random;
+                s32 z_random;
+                s32 delta_x;
+                s32 knockback_y;
+                s32 delta_z;
+                s16 knockback_x;
+                s16 x_jitter;
 
-                random_x = rand();
-                vx = -ConflictDistance.vx;
-                if (vx < 0)
+                x_random = rand();
+                delta_x = -ConflictDistance.vx;
+                if (delta_x < 0)
                 {
-                    vx += 7;
+                    delta_x += 7;
                 }
-                xbase = vx >> 3;
-                xrem = random_x % 20;
-                vy = 0;
-                if (ConflictDistance.vy >= -500)
+                knockback_x = delta_x >> 3;
+                x_jitter = x_random % KNOCKBACK_SPREAD;
+                knockback_y = 0;
+                if (ConflictDistance.vy >= -NINGYO_COLLISION_SIZE)
                 {
-                    vy = -R;
+                    knockback_y = -KNOCKBACK_Y_SPEED;
                 }
-                random_z = rand();
-                vz = -ConflictDistance.vz;
-                if (vz < 0)
+                z_random = rand();
+                delta_z = -ConflictDistance.vz;
+                if (delta_z < 0)
                 {
-                    vz += 7;
+                    delta_z += 7;
                 }
-                param->koro.vx = xbase + xrem - 10;
-                param->koro.vy = vy;
+                param->koro.vx = knockback_x + x_jitter -
+                                 KNOCKBACK_SPREAD / 2;
+                param->koro.vy = knockback_y;
                 param->koro.hint = 0;
                 param->koro.status = KORO_NORMAL;
-                param->koro.vz = (vz >> 3) + random_z % 20 - 10;
+                param->koro.vz = (delta_z >> 3) +
+                                 z_random % KNOCKBACK_SPREAD -
+                                 KNOCKBACK_SPREAD / 2;
             }
         }
 

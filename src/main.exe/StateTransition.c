@@ -64,7 +64,7 @@
  *  - The one-shot `do` around the case-0 chase resets emits no control-flow
  *    instructions.  Its loop-depth notes weight the two pointer uses enough
  *    for local-alloc to choose the target's $v0/$v1 order naturally.
- *  - Repeating `me->target` for the two coordinate reads makes cse preserve
+ *  - Repeating `attacker->target` for the two coordinate reads makes cse preserve
  *    the loaded target pointer with the target's explicit copy.  The >=-form
  *    ternaries likewise expand the two absolute values directly as abssi2.
  *  - reset_alert_duration has an old-style declaration intentionally.  The
@@ -99,30 +99,45 @@ extern s32 rand(void);
 
 void StateTransition(Humanoid *human)
 {
+    enum
+    {
+        STRAIN_NO_THREAT = 0x7fffffff,
+        STRAIN_ALERTED = -0x8000,
+        HALT_TARGET_RANGE = 2000,
+        ATTACK_HEIGHT_RANGE = 2000,
+        DANGER_PROBE_DELTA = 5000,
+        TARGET_ANGLE_LIMIT = 500,
+        STEP_DELTA_TOLERANCE = 500,
+        HIGH_STEP_DELTA = 6100,
+        TERRAIN_CHECK_PERIOD = 90,
+        PERIODIC_PROBE_DELTA_MAX = 2200,
+        FORWARD_PROBE = 0,
+        BACKWARD_PROBE = 1
+    };
     s16 pad;
-    s16 atr0;
-    s32 ssr;
-    s16 motid;
-    s32 distance;
-    SVECTOR vect;
+    s16 base_attrib;
+    s32 saved_strain_ratio;
+    s16 dash_command;
+    s32 player_distance;
+    SVECTOR probe_offset;
 
-    ssr = StrainRatio;
+    saved_strain_ratio = StrainRatio;
     Me_THINK_C = human;
     Pad = &human->pad;
     Attrib = human->attribute;
-    atr0 = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
+    base_attrib = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
 
     if (human == StagePlayer)
     {
-        PlayerSSR = ssr;
-        StrainRatio = 0x7fffffff;
+        PlayerSSR = saved_strain_ratio;
+        StrainRatio = STRAIN_NO_THREAT;
     }
 
-    if ((u16)(human->status - STAT_DAMAGE) < 2)
+    if ((u16)(human->status - STAT_DAMAGE) <= STAT_DEAD - STAT_DAMAGE)
     {
         if (human != StagePlayer && human->life > 0 && StrainRatio > 0)
         {
-            StrainRatio = -0x8000;
+            StrainRatio = STRAIN_ALERTED;
         }
         update_pressed_buttons(Pad, 0);
         return;
@@ -130,25 +145,27 @@ void StateTransition(Humanoid *human)
 
     if (ActionHalt != 0)
     {
-        s32 dx;
-        s32 dz;
-        s16 direction;
+        s32 target_dx;
+        s32 target_dz;
+        s16 target_direction;
 
         pad = 0;
-        if ((u16)(human->type - 0x10) < 0x70)
+        if ((u16)(human->type - PAGE_GUARD) < PAGE_BOSS - PAGE_GUARD)
         {
-            dx = human->target->locate.coord.t[0] - human->locate->vx;
-            dz = human->target->locate.coord.t[2] - human->locate->vz;
-            direction = GetDirection(dx, dz, human->rotate->vy);
-            if (direction > Me_THINK_C->turn)
+            target_dx = human->target->locate.coord.t[0] - human->locate->vx;
+            target_dz = human->target->locate.coord.t[2] - human->locate->vz;
+            target_direction = GetDirection(target_dx, target_dz,
+                                            human->rotate->vy);
+            if (target_direction > Me_THINK_C->turn)
             {
                 pad = PADLright;
             }
-            else if (-Me_THINK_C->turn > direction)
+            else if (-Me_THINK_C->turn > target_direction)
             {
                 pad = PADLleft;
             }
-            if (SquareRoot0(dx * dx + dz * dz) < 2000)
+            if (SquareRoot0(target_dx * target_dx + target_dz * target_dz) <
+                HALT_TARGET_RANGE)
             {
                 pad |= PADLdown;
             }
@@ -157,7 +174,7 @@ void StateTransition(Humanoid *human)
         return;
     }
 
-    if ((Attrib & 4) == 0)
+    if ((Attrib & ATTR_CUSTOMAI) == 0)
     {
         if (human == StagePlayer && EmergencyNotice != 0)
         {
@@ -167,7 +184,7 @@ void StateTransition(Humanoid *human)
                 EmergencyNotice = 0;
             }
         }
-        pad = Me_THINK_C->think[0]();
+        pad = Me_THINK_C->think[PHASE_CALM]();
         update_pressed_buttons(Pad, pad);
         return;
     }
@@ -175,18 +192,20 @@ void StateTransition(Humanoid *human)
     SR = SearchTarget(human, &Distance, &Degree);
     if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
     {
-        distance = Distance;
+        player_distance = Distance;
     }
     else
     {
-        s32 dx;
-        s32 dy;
-        s32 dz;
+        s32 player_dx;
+        s32 player_dy;
+        s32 player_dz;
 
-        dx = StagePlayer->locate->vx - Me_THINK_C->locate->vx;
-        dy = StagePlayer->locate->vy - Me_THINK_C->locate->vy;
-        dz = StagePlayer->locate->vz - Me_THINK_C->locate->vz;
-        distance = SquareRoot0(dx * dx + dy * dy + dz * dz);
+        player_dx = StagePlayer->locate->vx - Me_THINK_C->locate->vx;
+        player_dy = StagePlayer->locate->vy - Me_THINK_C->locate->vy;
+        player_dz = StagePlayer->locate->vz - Me_THINK_C->locate->vz;
+        player_distance = SquareRoot0(player_dx * player_dx +
+                                      player_dy * player_dy +
+                                      player_dz * player_dz);
     }
 
     {
@@ -196,7 +215,7 @@ void StateTransition(Humanoid *human)
             if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS &&
                 (Me_THINK_C->type & PAGE_MASK) != PAGE_BEAST &&
                 (StagePlayer->itmctl != ITEM_MANEBUE ||
-                 (Attrib & 3) != PHASE_ALERT))
+                 (Attrib & ATTR_PHASE) != PHASE_ALERT))
             {
                 if (EmergencyNotice != 0)
                 {
@@ -211,7 +230,7 @@ void StateTransition(Humanoid *human)
             {
                 SR = SR_UNSEEN;
             }
-            else if ((Attrib & 3) == PHASE_CALM)
+            else if ((Attrib & ATTR_PHASE) == PHASE_CALM)
             {
                 SR = SR_GLIMPSE;
             }
@@ -222,70 +241,71 @@ void StateTransition(Humanoid *human)
         }
     }
 
-    GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
+    GetMoveSpeed(&probe_offset, Me_THINK_C->rotate->vy,
                  (s16)(Me_THINK_C->width * 2), 0);
     ProbeLevelLow = GetAreaMapLevel(GlobalAreaMap,
-                                    Me_THINK_C->locate->vx + vect.vx,
+                                    Me_THINK_C->locate->vx + probe_offset.vx,
                                     Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                    Me_THINK_C->locate->vz + vect.vz,
+                                    Me_THINK_C->locate->vz + probe_offset.vz,
                                     AREA_LEVEL_RETURN_DELTA |
                                         AREA_LEVEL_FIRST_HIT |
                                         AREA_LEVEL_REUSE_CACHED);
     {
-        u16 field_attrib;
+        u16 forward_attrib;
 
-        field_attrib = FieldAttrib;
+        forward_attrib = FieldAttrib;
         ProbeLevelHigh = GetAreaMapLevel(GlobalAreaMap,
-                                         Me_THINK_C->locate->vx - vect.vx,
+                                         Me_THINK_C->locate->vx - probe_offset.vx,
                                          Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                         Me_THINK_C->locate->vz - vect.vz,
-                                         (ProbeAttrib[0] = field_attrib,
+                                         Me_THINK_C->locate->vz - probe_offset.vz,
+                                         (ProbeAttrib[FORWARD_PROBE] = forward_attrib,
                                           AREA_LEVEL_RETURN_DELTA |
                                               AREA_LEVEL_FIRST_HIT |
                                               AREA_LEVEL_REUSE_CACHED));
     }
-    ProbeAttrib[1] = FieldAttrib;
+    ProbeAttrib[BACKWARD_PROBE] = FieldAttrib;
 
-    switch (Attrib & 3)
+    switch (Attrib & ATTR_PHASE)
     {
-    case 0:
-        if (distance < StrainRatio)
+    case PHASE_CALM:
+        if (player_distance < StrainRatio)
         {
-            StrainRatio = distance;
+            StrainRatio = player_distance;
         }
-        pad = Me_THINK_C->think[0]();
-        if (Me_THINK_C->type >= 7)
+        pad = Me_THINK_C->think[PHASE_CALM]();
+        if (Me_THINK_C->type >= KERAI_KATANA)
         {
             if (SR == SR_SEEN)
             {
-                Humanoid *me;
-                s32 life;
+                Humanoid *actor;
+                s32 actor_life;
 
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
                 if (SetNowMotion(Me_THINK_C, MOT_ACTION_NOTICE, 1) == 0)
                 {
                     Sound(Me_THINK_C, CHAR_VOICE_ALERT);
                 }
-                me = Me_THINK_C;
-                life = me->life;
-                Attrib = atr0 | PHASE_ALERT;
+                actor = Me_THINK_C;
+                actor_life = actor->life;
+                Attrib = base_attrib | PHASE_ALERT;
                 do
                 {
-                    me->chase[HUMANOID_CHASE_Z] = 0;
-                    me->chase[HUMANOID_CHASE_X] = 0;
+                    actor->chase[HUMANOID_CHASE_Z] = 0;
+                    actor->chase[HUMANOID_CHASE_X] = 0;
                 } while (0);
-                if (life > 0)
+                if (actor_life > 0)
                 {
-                    Humanoid *alert_me;
+                    Humanoid *alert_actor;
 
                     reset_alert_duration();
-                    alert_me = Me_THINK_C;
-                    switch (alert_me->type < PAGE_BOSS)
+                    alert_actor = Me_THINK_C;
+                    switch (alert_actor->type < PAGE_BOSS)
                     {
                     case 0:
                         break;
                     default:
-                        if (alert_me->target == (ModelType *)StagePlayer->model)
+                        if (alert_actor->target ==
+                            (ModelType *)StagePlayer->model)
                         {
                             Findenemies++;
                         }
@@ -301,18 +321,18 @@ void StateTransition(Humanoid *human)
                     Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
                     Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
                 }
-                Attrib = atr0 | PHASE_SUSPICIOUS;
+                Attrib = base_attrib | PHASE_SUSPICIOUS;
                 Sound(Me_THINK_C, CHAR_VOICE_NOTICE);
             }
         }
         break;
 
-    case 1:
+    case PHASE_SUSPICIOUS:
         if (EmergencyNotice != 0 || (Attrib & ATTR_SEARCH) != 0)
         {
             if (StrainRatio > 0)
             {
-                StrainRatio = -0x8000;
+                StrainRatio = STRAIN_ALERTED;
             }
             if (Attrib & ATTR_SEARCH)
             {
@@ -325,16 +345,16 @@ void StateTransition(Humanoid *human)
         }
         else
         {
-            if (StrainRatio > 0 || StrainRatio < -distance)
+            if (StrainRatio > 0 || StrainRatio < -player_distance)
             {
-                StrainRatio = -distance;
+                StrainRatio = -player_distance;
             }
-            pad = Me_THINK_C->think[1]();
+            pad = Me_THINK_C->think[PHASE_SUSPICIOUS]();
         }
 
         if (SR == SR_SEEN || ((Attrib & ATTR_HIT) != 0 && SR > 0))
         {
-            Attrib = atr0 | PHASE_ALERT;
+            Attrib = base_attrib | PHASE_ALERT;
             if ((Attrib & ATTR_ALERT) == 0)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
@@ -344,29 +364,29 @@ void StateTransition(Humanoid *human)
             Sound(Me_THINK_C, CHAR_VOICE_ALERT);
             if (Me_THINK_C->life > 0)
             {
-                Humanoid *me;
+                Humanoid *alert_actor;
 
                 reset_alert_duration();
-                me = Me_THINK_C;
-                if (me->type < PAGE_BOSS &&
-                    me->target == (ModelType *)StagePlayer->model)
+                alert_actor = Me_THINK_C;
+                if (alert_actor->type < PAGE_BOSS &&
+                    alert_actor->target == (ModelType *)StagePlayer->model)
                 {
                     Findenemies++;
                 }
             }
         }
         else if (EmergencyNotice < 2 &&
-                 (u16)(SR + 2) < 2)
+                 (u16)(SR - SR_GONE) <= SR_UNSEEN - SR_GONE)
         {
             if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
             }
-            Attrib = atr0;
+            Attrib = base_attrib;
         }
         break;
 
-    case 2:
+    case PHASE_ALERT:
     {
         if (Attrib & ATTR_ALERT)
         {
@@ -376,7 +396,7 @@ void StateTransition(Humanoid *human)
             }
             else if (StrainRatio > 0)
             {
-                StrainRatio = -0x8000;
+                StrainRatio = STRAIN_ALERTED;
             }
         }
         else
@@ -386,7 +406,7 @@ void StateTransition(Humanoid *human)
 
         if (Attrib & ATTR_SEARCH)
         {
-            pad = Me_THINK_C->think[2]();
+            pad = Me_THINK_C->think[PHASE_ALERT]();
         }
         else
         {
@@ -399,22 +419,23 @@ void StateTransition(Humanoid *human)
 
         if (pad & PADRleft)
         {
-            Humanoid *me;
-            s32 dy;
+            Humanoid *attacker;
+            s32 target_dy;
 
             if (StagePlayer->motion->mid == MOT_DAMAGE_DOWNED)
             {
                 goto mask_attack;
             }
 
-            me = Me_THINK_C;
-            dy = me->target->locate.coord.t[1] - me->locate->vy;
-            dy = dy >= 0 ? dy : -dy;
-            if (dy < 2000)
+            attacker = Me_THINK_C;
+            target_dy = attacker->target->locate.coord.t[1] -
+                        attacker->locate->vy;
+            target_dy = target_dy >= 0 ? target_dy : -target_dy;
+            if (target_dy < ATTACK_HEIGHT_RANGE)
             {
                 goto random_attack;
             }
-            if (WPATK_CLASS(me->wpatk) == WPATK_CLASS_RANGED)
+            if (WPATK_CLASS(attacker->wpatk) == WPATK_CLASS_RANGED)
             {
                 goto random_attack;
             }
@@ -433,26 +454,29 @@ void StateTransition(Humanoid *human)
     attack_checked:
         if (SR == SR_GONE)
         {
-            Humanoid *me;
-            s32 target_z;
+            Humanoid *searcher;
+            s32 last_seen_z;
 
-            me = Me_THINK_C;
-            Attrib = atr0 | ATTR_SEARCH | PHASE_INVESTIGATE;
-            me->chase[HUMANOID_CHASE_X] = me->target->locate.coord.t[0];
-            target_z = me->target->locate.coord.t[2];
-            me->actscnt = 1;
-            me->chase[HUMANOID_CHASE_Z] = target_z;
+            searcher = Me_THINK_C;
+            Attrib = base_attrib | ATTR_SEARCH | PHASE_INVESTIGATE;
+            searcher->chase[HUMANOID_CHASE_X] =
+                searcher->target->locate.coord.t[0];
+            last_seen_z = searcher->target->locate.coord.t[2];
+            searcher->actscnt = 1;
+            searcher->chase[HUMANOID_CHASE_Z] = last_seen_z;
         }
 
         if (Me_THINK_C->pad_hold == 0)
         {
             if ((pad & PADLdown) &&
-                ((ProbeAttrib[1] & (MAP_DEATH | MAP_WATER)) || ProbeLevelHigh > 5000))
+                ((ProbeAttrib[BACKWARD_PROBE] & (MAP_DEATH | MAP_WATER)) ||
+                 ProbeLevelHigh > DANGER_PROBE_DELTA))
             {
                 Me_THINK_C->pad_hold = PAD_HOLD(PADLup, 30);
             }
             if ((pad & PADLup) &&
-                ((ProbeAttrib[0] & (MAP_DEATH | MAP_WATER)) || ProbeLevelLow > 5000))
+                ((ProbeAttrib[FORWARD_PROBE] & (MAP_DEATH | MAP_WATER)) ||
+                 ProbeLevelLow > DANGER_PROBE_DELTA))
             {
                 pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
             }
@@ -460,35 +484,35 @@ void StateTransition(Humanoid *human)
                 (rand() % (EngageLevel + 1) == 0 ||
                  (Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS))
             {
-                motid = (rand() & 1) ? CMD_DASH_LEFT : CMD_DASH_RIGHT;
-                pad = SetCommand(&Me_THINK_C->pad, motid);
+                dash_command = (rand() & 1) ? CMD_DASH_LEFT : CMD_DASH_RIGHT;
+                pad = SetCommand(&Me_THINK_C->pad, dash_command);
             }
             break;
         }
         break;
     }
 
-    case 3:
+    case PHASE_INVESTIGATE:
         if (StrainRatio > 0)
         {
-            StrainRatio = -0x8000;
+            StrainRatio = STRAIN_ALERTED;
         }
-        pad = Me_THINK_C->think[3]();
+        pad = Me_THINK_C->think[PHASE_INVESTIGATE]();
         if ((Attrib & ATTR_WALL) && Me_THINK_C->pad_hold == 0)
         {
             Me_THINK_C->pad_hold = Degree > 0 ? PAD_HOLD(PADLright, 8)
                                                : PAD_HOLD(PADLleft, 8);
         }
-        if ((Attrib & 3) == PHASE_ALERT)
+        if ((Attrib & ATTR_PHASE) == PHASE_ALERT)
         {
-            Humanoid *me;
+            Humanoid *alert_actor;
 
             Sound(Me_THINK_C, CHAR_VOICE_ALERT);
             reset_alert_duration();
-            me = Me_THINK_C;
-            if (me->type < PAGE_BOSS &&
+            alert_actor = Me_THINK_C;
+            if (alert_actor->type < PAGE_BOSS &&
                 (Attrib & ATTR_SEARCH) == 0 &&
-                me->target == (ModelType *)StagePlayer->model)
+                alert_actor->target == (ModelType *)StagePlayer->model)
             {
                 Findenemies++;
             }
@@ -499,12 +523,12 @@ void StateTransition(Humanoid *human)
     {
         pad = Me_THINK_C->pad_hold >> 16;
         {
-            s32 count;
+            s32 hold_frames;
 
-            count = (u8)Me_THINK_C->pad_hold - 1;
-            if (count != 0)
+            hold_frames = (u8)Me_THINK_C->pad_hold - 1;
+            if (hold_frames != 0)
             {
-                Me_THINK_C->pad_hold = PAD_HOLD(pad, count);
+                Me_THINK_C->pad_hold = PAD_HOLD(pad, hold_frames);
             }
             else if (pad & (PADLleft | PADLright))
             {
@@ -519,43 +543,46 @@ void StateTransition(Humanoid *human)
     }
 
     {
-        Humanoid *me;
+        Humanoid *actor;
 
-        me = Me_THINK_C;
-        if (me->status == STAT_HANG)
+        actor = Me_THINK_C;
+        if (actor->status == STAT_HANG)
         {
-            s32 degree;
-            s32 abs_degree;
+            s32 target_angle;
+            s32 abs_target_angle;
 
-            degree = Degree;
-            abs_degree = degree;
-            abs_degree = abs_degree >= 0 ? abs_degree : -abs_degree;
+            target_angle = Degree;
+            abs_target_angle = target_angle;
+            abs_target_angle = abs_target_angle >= 0 ? abs_target_angle
+                                                     : -abs_target_angle;
             pad = PADLup;
-            if (abs_degree >= 500)
+            if (abs_target_angle >= TARGET_ANGLE_LIMIT)
             {
                 pad = PADLdown;
-                if ((Attrib & 3) == PHASE_CALM)
+                if ((Attrib & ATTR_PHASE) == PHASE_CALM)
                 {
                     pad = PADLup;
                 }
                 else
                 {
-                    s32 hint;
+                    s32 turn_hold;
 
-                    hint = PAD_HOLD(PADLleft, 15);
-                    if (degree > 0)
+                    turn_hold = PAD_HOLD(PADLleft, 15);
+                    if (target_angle > 0)
                     {
-                        hint = PAD_HOLD(PADLright, 15);
+                        turn_hold = PAD_HOLD(PADLright, 15);
                     }
-                    me->pad_hold = hint;
+                    actor->pad_hold = turn_hold;
                 }
             }
         }
-        else if ((ProbeAttrib[0] & (MAP_DEATH | MAP_WATER)) && (pad & PADLup))
+        else if ((ProbeAttrib[FORWARD_PROBE] & (MAP_DEATH | MAP_WATER)) &&
+                 (pad & PADLup))
         {
             pad &= (PADLleft | PADLdown | PADLright | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
-        else if ((ProbeAttrib[1] & (MAP_DEATH | MAP_WATER)) && (pad & PADLdown))
+        else if ((ProbeAttrib[BACKWARD_PROBE] & (MAP_DEATH | MAP_WATER)) &&
+                 (pad & PADLdown))
         {
             pad &= (PADLleft | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
@@ -563,56 +590,62 @@ void StateTransition(Humanoid *human)
         {
             if (Me_THINK_C->motion->count == 0)
             {
-                s32 abs_degree;
+                s32 abs_target_angle;
 
-                abs_degree = Degree;
-                if (abs_degree < 0)
+                abs_target_angle = Degree;
+                if (abs_target_angle < 0)
                 {
-                    abs_degree = -abs_degree;
+                    abs_target_angle = -abs_target_angle;
                 }
-                if (abs_degree < 500 &&
-                    (Me_THINK_C->think[0] == Think1ninja ||
+                if (abs_target_angle < TARGET_ANGLE_LIMIT &&
+                    (Me_THINK_C->think[PHASE_CALM] == Think1ninja ||
                      ((Me_THINK_C->type & PAGE_MASK) == PAGE_NINJA && gNannido != DIFFICULTY_EASY)))
                 {
-                    s32 level;
-                    s32 next_level;
+                    s32 current_level;
+                    s32 forward_delta;
 
-                    GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
+                    GetMoveSpeed(&probe_offset, Me_THINK_C->rotate->vy,
                                  (s16)(Me_THINK_C->width * 5), 0);
-                    level = GetAreaMapLevel(GlobalAreaMap,
-                                            Me_THINK_C->locate->vx,
-                                            Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                            Me_THINK_C->locate->vz,
-                                            AREA_LEVEL_STEP_DOWN |
-                                                AREA_LEVEL_FIRST_HIT |
-                                                AREA_LEVEL_REUSE_CACHED);
-                    next_level = GetAreaMapLevel(GlobalAreaMap,
-                                                 Me_THINK_C->locate->vx + vect.vx,
-                                                 Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                                 Me_THINK_C->locate->vz + vect.vz,
-                                                 AREA_LEVEL_RETURN_DELTA |
-                                                     AREA_LEVEL_FIRST_HIT |
-                                                     AREA_LEVEL_REUSE_CACHED);
-                    if (level == Me_THINK_C->map.level)
+                    current_level = GetAreaMapLevel(
+                        GlobalAreaMap,
+                        Me_THINK_C->locate->vx,
+                        Me_THINK_C->locate->vy - EYE_HEIGHT,
+                        Me_THINK_C->locate->vz,
+                        AREA_LEVEL_STEP_DOWN |
+                            AREA_LEVEL_FIRST_HIT |
+                            AREA_LEVEL_REUSE_CACHED);
+                    forward_delta = GetAreaMapLevel(
+                        GlobalAreaMap,
+                        Me_THINK_C->locate->vx + probe_offset.vx,
+                        Me_THINK_C->locate->vy - EYE_HEIGHT,
+                        Me_THINK_C->locate->vz + probe_offset.vz,
+                        AREA_LEVEL_RETURN_DELTA |
+                            AREA_LEVEL_FIRST_HIT |
+                            AREA_LEVEL_REUSE_CACHED);
+                    if (current_level == Me_THINK_C->map.level)
                     {
-                        if ((next_level >= 0 ? next_level : -next_level) < 500)
+                        if ((forward_delta >= 0 ? forward_delta
+                                                : -forward_delta) <
+                            STEP_DELTA_TOLERANCE)
                         {
                             pad = PADLup | PADRdown;
                             goto tail;
                         }
                     }
-                    if (next_level > 6100)
+                    if (forward_delta > HIGH_STEP_DELTA)
                     {
                         pad = PADLup | PADRdown;
                     }
                     goto tail;
                 }
             }
-            if (GameClock % 90 == 0 &&
+            if (GameClock % TERRAIN_CHECK_PERIOD == 0 &&
                 (((u16)Me_THINK_C->map.attrib & MAP_DAMAGE) ||
-                 ((pad & PADLup) && ProbeLevelLow <= 2200 &&
+                 ((pad & PADLup) &&
+                  ProbeLevelLow <= PERIODIC_PROBE_DELTA_MAX &&
                   ProbeLevelLow != LEVEL_NONE) ||
-                 ((pad & PADLdown) && ProbeLevelHigh <= 2200 &&
+                 ((pad & PADLdown) &&
+                  ProbeLevelHigh <= PERIODIC_PROBE_DELTA_MAX &&
                   ProbeLevelHigh != LEVEL_NONE)))
             {
                 pad |= PADRdown;
@@ -623,7 +656,7 @@ void StateTransition(Humanoid *human)
 tail:
     if (Me_THINK_C->life < 0)
     {
-        StrainRatio = ssr;
+        StrainRatio = saved_strain_ratio;
     }
     Me_THINK_C->attribute = Attrib;
 
