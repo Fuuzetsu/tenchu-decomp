@@ -26,7 +26,7 @@
  * volume on disc: bumps TotalIO, temporarily enables normal ADT messages,
  * and opens `filename` via AfsOpen on the global `systemAFS` handle; a NULL
  * result restores the prior quiet mode and reports via AdtMessageBox. On
- * success, optionally logs (ReadMode & 4), gets the file's size via
+ * success, optionally logs (ReadMode & READ_MODE_TRACE), gets the file's size via
  * AfsFileSize, takes MemoryLoadAddress as a pre-supplied buffer if set
  * (consuming it) or valloc()s a fresh one, reads it via AfsRead, closes
  * the handle, restores the prior quiet mode, and returns the buffer. Same
@@ -82,7 +82,7 @@ u_long *LoadFromCDROM(u8 *filename)
     fd = AfsOpen(&systemAFS, (char *)filename);
     if (fd != 0)
     {
-        if (ReadMode & 4)
+        if (ReadMode & READ_MODE_TRACE)
         {
             AdtMessageBox(fmt_load_cd, TotalIO, filename);
         }

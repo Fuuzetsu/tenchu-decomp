@@ -30,7 +30,7 @@
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - No named local exists in PSX.SYM for the dispatch value (only
- *    `filename`/`ret`) — write `switch (ReadMode & 3)` directly with no
+ *    `filename`/`ret`) — write `switch (ReadMode & READ_SOURCE_MASK)` directly with no
  *    named temp; cc1's own dispatch pseudo never gets a source name. The
  *    asm's `slti $v0,$v1,2` (a SIGNED compare) over a single load of
  *    `ReadMode` confirms a real switch, not an if/else-if ladder (which
@@ -95,13 +95,13 @@ u_long *FileRead(u8 *filename)
     }
     switch (ReadMode & 3)
     {
-    case 0:
+    case READ_SOURCE_DEVPC:
         ret = LoadFromDEVPC(filename);
         break;
-    case 1:
+    case READ_SOURCE_MEMORY:
         ret = LoadFromMEMORY(filename);
         break;
-    case 2:
+    case READ_SOURCE_CDROM:
         ret = LoadFromCDROM(filename);
         break;
     default:

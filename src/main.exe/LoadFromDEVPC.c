@@ -72,7 +72,7 @@ u_long *LoadFromDEVPC(u8 *filename)
         size = PClseek(fd, 0, 2);
         if (size > 0)
         {
-            if (ReadMode & 4)
+            if (ReadMode & READ_MODE_TRACE)
             {
                 AdtMessageBox(fmt_load_pc, TotalIO, filename);
             }
