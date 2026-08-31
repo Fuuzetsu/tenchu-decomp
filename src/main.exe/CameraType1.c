@@ -65,9 +65,12 @@
  *   - dropping `init` and building `pos` in place: the frame lands on 152
  *     exactly, but +288, because retail really does keep both objects and
  *     copy sp+40 to sp+24 between them.
- * PSX.SYM's local list is not a target here: it describes the demo's
- * pre-preset-table shape, with eight 8-byte `campos`/`ref` pairs built
- * inline, where retail copies whole 32-byte TCameraPos presets.
+ * PSX.SYM's local list is not a target here, and the reason is now
+ * exact: those eight `campos`/`ref` pairs are MakeCameraPosition's own
+ * two parameters, recorded once per site because the demo INLINED it.
+ * Retail calls it (three `jal MakeCameraPosition` here), so there is no
+ * scope to recover -- the pairs are a callee's frame, not this
+ * function's locals. See the cookbook rule on reading nested records.
  */
 
 #include "item.h"

@@ -2129,6 +2129,18 @@ irreducible nest: DrawConstruction's 3.
   rather than naming it after the first one**: ActATTACK's cases each
   turned out to be one WEAPON, and every attack id the switch ignores is
   shared across several weapons, which is the whole selector.
+- **A repeated nested block whose names are a CALLEE's parameters is that
+  callee inlined in the demo — not a scope to recover.** With the depth
+  column in place it is tempting to chase every recorded nested local we
+  lack; 100 functions have some, and **46 of them are explained by demo
+  inlining**. `Sound` records `locate`/`seid` at depth 2 and
+  `volume`/`zz`/`xx`/`player` at depth 3, twice — that is `SoundEx`'s
+  parameter frame and body at its two call sites, and retail calls it.
+  `CameraType1`'s eight `campos`/`ref` pairs are MakeCameraPosition's two
+  parameters, once per site. The check is cheap: intersect the missing
+  names with the parameter list of every function the file calls. Do it
+  before proposing a scope, or you will reconstruct a callee's frame as
+  local blocks.
 - **An invented LOCAL is the usual reason a human spelling will not match.**
   Before concluding that ugly address arithmetic is byte-required, run
   `tools/symtypes.py --locals <Func>`: it diffs our declaration block against
