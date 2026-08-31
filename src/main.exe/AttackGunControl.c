@@ -51,7 +51,11 @@ void AttackGunControl(s16 length, s16 frm)
 
     if (dtM->count == frm)
     {
-        bow_shoot_logic(ITEM_GUN, GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, length, -100));
+        bow_shoot_logic(
+            ITEM_GUN,
+            GetAbsolutePosition(
+                Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], 0,
+                length, -100));
         Sound(Me_MOTION_C, CHAR_SE_ATTACK);
     }
 }

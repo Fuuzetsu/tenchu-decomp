@@ -52,7 +52,7 @@ void KillHumanoid(Humanoid *human)
 
     if (human != 0)
     {
-        DeleteConflict(human->model->object[0]);
+        DeleteConflict(human->model->object[MODEL_PART_WAIST]);
         DisposeModelArchive(human->model);
         DisposeMotionManager(human->motion);
         DisposeWeapon(human);

@@ -3,6 +3,7 @@
 #include "infoview.h"
 
 #define N_MUSIC_IDS 161
+#define FILE_SLOT_INITIAL_SELECTION 16
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -149,7 +150,8 @@ void FileOption(void)
         TargetIO = AdtSelect(msg_load_ok, SelectIO, 3);
         if (TargetIO == -1)
             return;
-        fname = (u8 *)AdtSelect(msg_load_no, SelectSlot, 0x10);
+        fname = (u8 *)AdtSelect(msg_load_no, SelectSlot,
+                                FILE_SLOT_INITIAL_SELECTION);
         if (fname == (u8 *)-1)
             return;
         /* The caller-side mask is in the bytes (the callee masks again;
@@ -161,7 +163,8 @@ void FileOption(void)
         TargetIO = AdtSelect(msg_save_ok, SelectIO, 3);
         if (TargetIO != -1)
         {
-            fname = (u8 *)AdtSelect(msg_save_no, SelectSlot, 0x10);
+            fname = (u8 *)AdtSelect(msg_save_no, SelectSlot,
+                                    FILE_SLOT_INITIAL_SELECTION);
             if (fname != (u8 *)-1)
             {
                 lePackEnemyLayout(Buf.bytes, ENESIZE);

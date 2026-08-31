@@ -60,17 +60,17 @@ void AttackCancelControl(s16 mode)
         switch (wk)
         {
         case WEP_ONININ:
-            DeleteConflict(Me_MOTION_C->model->object[8]);
-            model = Me_MOTION_C->model->object[0xB];
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
+            model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
             break;
         case WEP_BEAST:
-            model = Me_MOTION_C->model->object[2];
+            model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
             break;
         case WEP_NONE:
             goto no_conflict;
         default:
-            DeleteConflict(Me_MOTION_C->model->object[0xD]);
-            model = Me_MOTION_C->model->object[0xE];
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
+            model = Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1];
             break;
         }
         DeleteConflict(model);

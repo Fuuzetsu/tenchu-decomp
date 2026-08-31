@@ -70,20 +70,20 @@ void ActSTATE(void)
                 switch (kind)
                 {
                 case WEP_ONININ:
-                    DeleteConflict(Me_MOTION_C->model->object[8]);
-                    DeleteConflict(Me_MOTION_C->model->object[0xb]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                     cleanup_guard = 3;
                     break;
                 case WEP_BEAST:
-                    DeleteConflict(Me_MOTION_C->model->object[2]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                     cleanup_guard = 3;
                     break;
                 case WEP_NONE:
                     cleanup_guard = 3;
                     break;
                 default:
-                    DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                    DeleteConflict(Me_MOTION_C->model->object[0xe]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                     cleanup_guard = 3;
                     break;
                 }
@@ -166,10 +166,10 @@ void ActSTATE(void)
             {
                 human->attribute |= ATTR_SEARCH | PHASE_ALERT;
                 player = StagePlayer;
-                human->chase[0] = player->locate->vx;
+                human->chase[HUMANOID_CHASE_X] = player->locate->vx;
                 chase_z = player->locate->vz;
                 human->actscnt = 1;
-                human->chase[1] = chase_z;
+                human->chase[HUMANOID_CHASE_Z] = chase_z;
             }
         }
         SET_MOTION(MOT_ENGAGE_STANCE, 1);
@@ -187,20 +187,20 @@ void ActSTATE(void)
                 switch (kind)
                 {
                 case WEP_ONININ:
-                    DeleteConflict(Me_MOTION_C->model->object[8]);
-                    DeleteConflict(Me_MOTION_C->model->object[0xb]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                     cleanup_guard = 3;
                     break;
                 case WEP_BEAST:
-                    DeleteConflict(Me_MOTION_C->model->object[2]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                     cleanup_guard = 3;
                     break;
                 case WEP_NONE:
                     cleanup_guard = 3;
                     break;
                 default:
-                    DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                    DeleteConflict(Me_MOTION_C->model->object[0xe]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
+                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                     cleanup_guard = 3;
                     break;
                 }
@@ -342,7 +342,7 @@ void ActSTATE(void)
                 sound = SE_LAND_LIGHT;
             }
             Sound(human, sound);
-            spawn_smoke_burst_(dtL, 300, 0xc, 10);
+            spawn_smoke_burst_(dtL, 300, SMOKE_DRIFT_DIVISOR_DEFAULT, 10);
             if (StagePlayer == Me_MOTION_C)
             {
                 if (motID == MOT_STATE_LAND_HEAVY)

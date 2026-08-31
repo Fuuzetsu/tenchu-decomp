@@ -131,19 +131,23 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         levfl = GetAreaMapLevel(GlobalAreaMap,
                                 mad->locate.coord.t[0] + scratch.probe.vecl.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] + scratch.probe.vecl.vz, 1);
+                                mad->locate.coord.t[2] + scratch.probe.vecl.vz,
+                                AREA_LEVEL_STEP_DOWN);
         levfr = GetAreaMapLevel(GlobalAreaMap,
                                 mad->locate.coord.t[0] + scratch.probe.vecr.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] + scratch.probe.vecr.vz, 1);
+                                mad->locate.coord.t[2] + scratch.probe.vecr.vz,
+                                AREA_LEVEL_STEP_DOWN);
         levbr = GetAreaMapLevel(GlobalAreaMap,
                                 mad->locate.coord.t[0] - scratch.probe.vecl.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] - scratch.probe.vecl.vz, 1);
+                                mad->locate.coord.t[2] - scratch.probe.vecl.vz,
+                                AREA_LEVEL_STEP_DOWN);
         levbl = GetAreaMapLevel(GlobalAreaMap,
                                 mad->locate.coord.t[0] - scratch.probe.vecr.vx,
                                 mad->locate.coord.t[1],
-                                mad->locate.coord.t[2] - scratch.probe.vecr.vz, 1);
+                                mad->locate.coord.t[2] - scratch.probe.vecr.vz,
+                                AREA_LEVEL_STEP_DOWN);
 
         levmap = levfl == LEVEL_NONE ? FL : 0;
         if (levfr == LEVEL_NONE)

@@ -124,7 +124,7 @@ void ControlHumanoid(Humanoid *human)
 
     model = human->model;
     m = 1;
-    if (model->object[0]->id >= 0)
+    if (model->object[MODEL_PART_WAIST]->id >= 0)
     {
         DefaultActionHumanoid(human);
         StateTransition(human);
@@ -152,7 +152,7 @@ void ControlHumanoid(Humanoid *human)
             FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
                      human->motion->loop, human->motion->count);
             FntPrint(fmt_dbg_rot, human->rotate->vy,
-                     human->model->object[0]->id);
+                     human->model->object[MODEL_PART_WAIST]->id);
         }
     }
 
@@ -231,7 +231,7 @@ draw_done:
         }
         else
         {
-            rotation_pair = human->model->object[0]->rotate.vy +
+            rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
                             human->model->object[1]->rotate.vy;
             {
                 s32 magnitude;
@@ -272,7 +272,7 @@ draw_done:
         return;
     }
 
-    rotation_pair = human->model->object[0]->rotate.vy +
+    rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
                     human->model->object[1]->rotate.vy +
                     human->rotate->vy;
     direction = GetDirection(

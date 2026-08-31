@@ -114,7 +114,7 @@ void leLayoutEnemy(int mode)
             owner_model = CamState.Owner->model;
             human->attribute |= ATTR_SUSPEND;
             human->target = (ModelType *)owner_model;
-            human->model->object[0]->attribute &= ~MODEL_ATTR_COLLIDE;
+            human->model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_COLLIDE;
             if (mode == 1)
             {
                 SetupThinkFunction(human, en->ThinkType);

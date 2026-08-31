@@ -48,13 +48,13 @@ void draw_visible_characters_(void)
         cs = VISIBLE_CHARACTERS_ON_STAGE_[i];
         DrawTMDmode = DrawModeSave[i];
         DrawModelArchive(cs->model, -i);
-        if (cs->weapon[0] != 0)
+        if (cs->weapon[WEAPON_SLOT_ACTIVE_0] != 0)
         {
-            DrawOrnament(cs->weapon[0]);
+            DrawOrnament(cs->weapon[WEAPON_SLOT_ACTIVE_0]);
         }
-        if (cs->weapon[1] != 0)
+        if (cs->weapon[WEAPON_SLOT_ACTIVE_1] != 0)
         {
-            DrawOrnament(cs->weapon[1]);
+            DrawOrnament(cs->weapon[WEAPON_SLOT_ACTIVE_1]);
         }
         if (cs->illusion[0] != 0)
         {

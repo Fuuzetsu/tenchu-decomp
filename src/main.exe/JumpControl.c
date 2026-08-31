@@ -75,7 +75,7 @@ void JumpControl(void)
 {
     int id;
 
-    spawn_smoke_burst_(dtL, 150, 12, 8);
+    spawn_smoke_burst_(dtL, 150, SMOKE_DRIFT_DIVISOR_DEFAULT, 8);
     if (GetMotionID(dtM, MOT_JUMP) < 0)
         return;
 
@@ -95,7 +95,7 @@ void JumpControl(void)
     }
     else
     {
-        id = Me_MOTION_C->model->object[0]->id;
+        id = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;
         if (id >= 0)
         {
             dtL->vx = ConflictObject[id].position.vx;

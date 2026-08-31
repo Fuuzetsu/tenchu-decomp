@@ -247,14 +247,14 @@ void ActivateHumans(void)
                     /* Built in work, then copied whole: byte-required (filling
                      * query directly drops the struct copy; measured). */
                     memset(&work, 0, sizeof(work));
-                    work.vx = human->point[0];
+                    work.vx = human->point[HUMANOID_HOME_X];
                     work.vy = human->locate->vy - 1500;
-                    work.vz = human->point[1];
+                    work.vz = human->point[HUMANOID_HOME_Z];
                     query = work;
                     if (GetVectorDistance(&query, &vc) > DEACTIVATE_RADIUS)
                     {
                         level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
-                                                query.vz, 1);
+                                                query.vz, AREA_LEVEL_STEP_DOWN);
                         if (level != LEVEL_NONE)
                         {
                             human->model->locate.coord.t[0] = query.vx;

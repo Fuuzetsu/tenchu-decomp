@@ -101,7 +101,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     y = pos->vy;
     z = pos->vz;
 
-    mvp->level = GetAreaMapLevel(area, x, y, z, (short)(mode & ~0x10));
+    mvp->level = GetAreaMapLevel(area, x, y, z, (short)(mode & ~AREA_LEVEL_REUSE_CACHED));
     mvp->attrib = FieldAttrib;
     mvp->area = FieldArea;
     mvp->index = FieldIndex;
@@ -114,7 +114,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     if ((initial_level ^ (u32)LEVEL_NONE) == 0)
     {
         mvp->height = 0;
-        if (!(mode & 4))
+        if (!(mode & AREA_LEVEL_ALLOW_DEEP))
         {
             /* TRIPLE identical arms, byte-required: collapsing to one body
              * swaps the s7/s8 allocation (measured) — the extra flow joins
@@ -163,7 +163,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     {
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
         if (level2 == (u32)LEVEL_NONE ||
-            ((level2 - y < -500) && !(mode2 & 4) &&
+            ((level2 - y < -500) && !(mode2 & AREA_LEVEL_ALLOW_DEEP) &&
              !(((u16)mvp->attrib | *(u16 *)&FieldAttrib) & (MAP_SLOPE_X | MAP_SLOPE_Z))))
         {
             mvp->vector |= v;

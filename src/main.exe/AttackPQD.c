@@ -100,25 +100,25 @@ void AttackPQD(s16 sfrm, s16 efrm)
     weapons = human->weapon;
     if (count == efrm || efrm == -1)
     {
-        if (weapons[3] == 0)
+        if (weapons[WEAPON_SLOT_INACTIVE_1] == 0)
             return;
         seid = CHAR_SE_WEAPON_CHANGE_B;
-        held = (weapons[2] = human->weapon[0]);
-        stowed = weapons[3];
-        human->weapon[0] = stowed;
-        weapons[3] = 0;
+        held = (weapons[WEAPON_SLOT_INACTIVE_0] = human->weapon[WEAPON_SLOT_ACTIVE_0]);
+        stowed = weapons[WEAPON_SLOT_INACTIVE_1];
+        human->weapon[WEAPON_SLOT_ACTIVE_0] = stowed;
+        weapons[WEAPON_SLOT_INACTIVE_1] = 0;
     }
     else
     {
         if (count != sfrm)
             return;
-        if (weapons[2] == 0)
+        if (weapons[WEAPON_SLOT_INACTIVE_0] == 0)
             return;
         seid = CHAR_SE_WEAPON_CHANGE_A;
-        held = human->weapon[0];
-        weapons[3] = held;
-        human->weapon[0] = weapons[2];
-        weapons[2] = 0;
+        held = human->weapon[WEAPON_SLOT_ACTIVE_0];
+        weapons[WEAPON_SLOT_INACTIVE_1] = held;
+        human->weapon[WEAPON_SLOT_ACTIVE_0] = weapons[WEAPON_SLOT_INACTIVE_0];
+        weapons[WEAPON_SLOT_INACTIVE_0] = 0;
     }
     Sound(human, seid);
 }

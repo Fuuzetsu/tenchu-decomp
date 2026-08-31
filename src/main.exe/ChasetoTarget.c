@@ -45,14 +45,14 @@ short ChasetoTarget(long length)
     me = Me_THINK_C;
     /* chase is formed before the target guard: byte-required (the addiu
      * fills the branch's delay slot; measured). */
-    chase = &me->chase[0];
+    chase = &me->chase[HUMANOID_CHASE_X];
     if (me->target == 0)
     {
         return 0;
     }
 
-    xx = me->target->locate.coord.t[0] + me->chase[0] - me->locate->vx;
-    zz = me->target->locate.coord.t[2] + chase[1] - me->locate->vz;
+    xx = me->target->locate.coord.t[0] + me->chase[HUMANOID_CHASE_X] - me->locate->vx;
+    zz = me->target->locate.coord.t[2] + chase[HUMANOID_CHASE_Z] - me->locate->vz;
 
     if (((xx >= 0 ? xx : -xx) < 500 &&
          (zz >= 0 ? zz : -zz) < 500) ||
@@ -62,13 +62,13 @@ short ChasetoTarget(long length)
     }
 
     if ((Attrib & (ATTR_HIT | ATTR_PUSH)) != 0 ||
-        (me->chase[0] | chase[1]) == 0)
+        (me->chase[HUMANOID_CHASE_X] | chase[HUMANOID_CHASE_Z]) == 0)
     {
         deg = rand();
         vx = rcos(deg) * length >> 12;
-        me->chase[0] = vx;
+        me->chase[HUMANOID_CHASE_X] = vx;
         vz = rsin(deg) * length >> 12;
-        chase[1] = vz;
+        chase[HUMANOID_CHASE_Z] = vz;
     }
     return turn_towards_player_(xx, zz);
 }

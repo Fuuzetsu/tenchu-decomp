@@ -507,7 +507,7 @@ resolve_hit:
                     int conflict_id;
                     VECTOR *blood_pos;
 
-                    conflict_id = Me_MOTION_C->model->object[0]->id;
+                    conflict_id = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;
                     if (conflict_id >= 0)
                     {
                         dtL->vx = ConflictObject[conflict_id].position.vx;
@@ -577,7 +577,7 @@ resolve_hit:
             {
                 int conflict_id;
 
-                conflict_id = Me_MOTION_C->model->object[0]->id;
+                conflict_id = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;
                 if (conflict_id >= 0)
                 {
                     dtL->vx = ConflictObject[conflict_id].position.vx;

@@ -188,7 +188,7 @@ void ActSWIM(void)
                 attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
+            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
             Sound(Me_MOTION_C, SE_WATER_MOVE);
             return;
         }
@@ -246,7 +246,7 @@ void ActSWIM(void)
             attr = attr & ~MODEL_ATTR_HIDDEN;
             *attribute = attr;
         }
-        *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
+        *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
     }
 
     switch (SelectedItem)

@@ -40,7 +40,7 @@ int AfsGetHeader(TAFS *handle)
     u32 pos;
 
     cd_seek(handle->fpVol, 0, CDSEEK_SET);
-    cd_read(handle->fpVol, buf, 0x28);
+    cd_read(handle->fpVol, buf, sizeof(buf));
     if (strcmp((char *)buf, str_afs_vol_200) != 0)
     {
         return 1;

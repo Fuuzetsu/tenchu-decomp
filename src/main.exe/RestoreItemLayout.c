@@ -88,7 +88,7 @@ loop1:
 loop1_end:
 
     j = 0;
-    one = 1;
+    one = AREA_LEVEL_STEP_DOWN;
     sentinel = LEVEL_NONE;
     slot = buf;
 loop2:

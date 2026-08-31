@@ -83,7 +83,7 @@ void debug_menu_player_jump(void)
                                  pos.vx *= 1000,
                                  pos.vy *= 1000,
                                  pos.vz *= 1000,
-                                 1);
+                                 AREA_LEVEL_STEP_DOWN);
         if (pos.vy != LEVEL_NONE)
         {
             player = StagePlayer;

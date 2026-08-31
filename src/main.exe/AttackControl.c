@@ -162,7 +162,7 @@ void AttackControl(void)
                             MoveHumanoid(enemy, enemy->motion->motion->orderspd,
                                          enemy->motion->motion->sidespd);
                         }
-                        DeleteConflict(enemy->model->object[0]);
+                        DeleteConflict(enemy->model->object[MODEL_PART_WAIST]);
                         Criticals++;
                         return;
                     }

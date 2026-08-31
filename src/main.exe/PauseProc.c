@@ -113,7 +113,7 @@ void PauseProc(void)
         return;
     cur = pad;
     SkipFrame = 2;
-    SsSetMVol(0, 0);
+    SsSetMVol(MASTER_VOLUME_MUTE, MASTER_VOLUME_MUTE);
     while (1)
     {
         opad = cur;

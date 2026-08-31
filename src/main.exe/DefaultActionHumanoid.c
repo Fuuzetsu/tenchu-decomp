@@ -95,7 +95,7 @@ short DefaultActionHumanoid(Humanoid *human)
     long ry;
     long direction;
 
-    i = 1;
+    i = AREA_LEVEL_STEP_DOWN;
     map = &human->map;
     locate = human->locate;
     vector = &human->vector;
@@ -108,7 +108,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
     if (map->vector == 0)
     {
-        i = 0x11;
+        i = AREA_LEVEL_STEP_DOWN | AREA_LEVEL_REUSE_CACHED;
     }
     if (human->type != BALMA)
     {
@@ -242,7 +242,8 @@ short DefaultActionHumanoid(Humanoid *human)
             locate->vz = slocate->vz;
             locate->vy = slocate->vy;
             position.vy = locate->vy - 500;
-            GetAreaMapVector(GlobalAreaMap, &mv, &position, 300, 4);
+            GetAreaMapVector(GlobalAreaMap, &mv, &position, 300,
+                             AREA_LEVEL_ALLOW_DEEP);
 
             coefficient_x = RefrectMove[mv.vector][0];
             dx = position.vx - locate->vx;

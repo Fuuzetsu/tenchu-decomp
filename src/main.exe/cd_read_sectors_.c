@@ -2,6 +2,9 @@
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
 
+#define CD_SECTOR_SUBHEADER_SIZE 12
+#define CD_SECTOR_PAYLOAD_SIZE 2048
+
 /*
  * MATCHED: cd_read_sectors_ (0x8005f380, 0x1d8 bytes) reads `length`
  * bytes at (`sector`, `byteOffset`) into `buffer`. It seeks with CdlSetmode,
@@ -53,7 +56,7 @@ void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
     s32 i;
 
     raw = sectorBuf;
-    data = sectorBuf + 0xC;
+    data = sectorBuf + CD_SECTOR_SUBHEADER_SIZE;
 
     if (length < 1)
         return;
@@ -85,7 +88,9 @@ full_retry:
         n = CdReady(0, 0);
         if (n != 1)
             goto full_retry;
-        n = CdGetSector(sectorBuf, 0x203);
+        n = CdGetSector(sectorBuf,
+                        (CD_SECTOR_SUBHEADER_SIZE + CD_SECTOR_PAYLOAD_SIZE) /
+                            sizeof(u32));
         if (n == 0)
             goto full_retry;
 
@@ -101,8 +106,8 @@ full_retry:
         else
         {
             chunk = off + remaining;
-            if (chunk > 0x800)
-                chunk = 0x800;
+            if (chunk > CD_SECTOR_PAYLOAD_SIZE)
+                chunk = CD_SECTOR_PAYLOAD_SIZE;
             chunk -= off;
             for (i = 0; i < chunk; i++)
             {

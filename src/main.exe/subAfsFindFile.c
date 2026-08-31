@@ -47,7 +47,8 @@ u32 subAfsFindFile(TAFS *handle, char *name, u32 mask)
     {
         do
         {
-            if (strncmp(name, (char *)handle->pElement[i].name, 0x14) == 0 &&
+            if (strncmp(name, (char *)handle->pElement[i].name,
+                        sizeof(handle->pElement[i].name)) == 0 &&
                 (mask & handle->pElement[i].flag) != 0)
             {
                 return i;

@@ -80,8 +80,8 @@ s16 Think3hitaway(void)
     if (*(s16 *)&Me_THINK_C->status == STAT_ATTACK)
     {
         Me_THINK_C->actflg = 0;
-        Me_THINK_C->chase[1] = 0;
-        Me_THINK_C->chase[0] = 0;
+        Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+        Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
         return SuccessionAttack(3000, 1500);
     }
     else if (Me_THINK_C->actflg != 0)

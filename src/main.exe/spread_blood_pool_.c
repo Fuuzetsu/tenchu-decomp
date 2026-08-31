@@ -57,7 +57,7 @@ void spread_blood_pool_(Humanoid *human)
         human->chase[0] = 0x1000;
     }
 
-    position = GetAbsolutePosition(human->model->object[0], 0, 0, 0);
+    position = GetAbsolutePosition(human->model->object[MODEL_PART_WAIST], 0, 0, 0);
     height = human->model->rotate.pad;
     position->vy = human->model->locate.coord.t[1];
     BLOOD_POOL_MODEL_->locate.coord.t[0] = position->vx;

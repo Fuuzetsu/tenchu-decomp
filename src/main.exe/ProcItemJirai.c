@@ -109,7 +109,8 @@ void ProcItemJirai(TItem *item)
             GetAreaMapLevel(GlobalAreaMap,
                             item->locate->locate.coord.t[0],
                             item->locate->locate.coord.t[1],
-                            item->locate->locate.coord.t[2], 1);
+                            item->locate->locate.coord.t[2],
+                            AREA_LEVEL_STEP_DOWN);
         if (item->locate->locate.coord.t[1] == LEVEL_NONE ||
             ((u16)FieldArea->attribute & MAP_WATER) != 0)
         {

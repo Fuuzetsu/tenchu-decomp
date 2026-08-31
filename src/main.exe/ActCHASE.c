@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "padcmd.h"
 #include "humanoid.h"
@@ -230,7 +231,7 @@ void ActCHASE(void)
         }
         if (dtM->count < 7)
         {
-            spawn_smoke_burst_(dtL, 150, 12, 1);
+            spawn_smoke_burst_(dtL, 150, SMOKE_DRIFT_DIVISOR_DEFAULT, 1);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {

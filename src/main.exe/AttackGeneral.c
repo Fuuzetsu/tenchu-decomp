@@ -184,8 +184,8 @@ short AttackGeneral(void)
          * AttackLong's identical block). */
         Me_THINK_C->actmode = 0;
         me = Me_THINK_C;
-        Me_THINK_C->chase[1] = 0;
-        me->chase[0] = 0;
+        Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+        me->chase[HUMANOID_CHASE_X] = 0;
         ItemUse();
         return 0;
     }

@@ -111,7 +111,7 @@ void AddItem2(void)
     if (cx < 0)
         cx += 0xfff;
     z = pm->locate.coord.t[2] - (cx >> 12);
-    h = GetAreaMapLevel(GlobalAreaMap, x, y, z, 1);
+    h = GetAreaMapLevel(GlobalAreaMap, x, y, z, AREA_LEVEL_STEP_DOWN);
     if (h != LEVEL_NONE)
     {
         work.spawn.param.locate.vx = x;

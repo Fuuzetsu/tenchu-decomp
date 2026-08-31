@@ -138,7 +138,7 @@ s16 CVAupdate(void)
                     SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
 
                 human->vector = UnitVector;
-                human->model->object[0]->attribute |= MODEL_ATTR_COLLIDE;
+                human->model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_COLLIDE;
                 model = human->model;
                 i = 0;
                 if (model->n > 0)
@@ -159,10 +159,10 @@ s16 CVAupdate(void)
                 if (CVAnow->p != invalid)
                 {
                     position = CVAnow->x * 1000;
-                    human->point[0] = position;
+                    human->point[HUMANOID_HOME_X] = position;
                     human->locate->vx = position;
                     position = CVAnow->z * 1000;
-                    human->point[1] = position;
+                    human->point[HUMANOID_HOME_Z] = position;
                     human->locate->vz = position;
                     i = CVAnow->y * 1000;
                     level = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,

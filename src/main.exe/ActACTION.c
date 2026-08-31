@@ -105,18 +105,18 @@ void ActACTION(void)
             switch (kind)
             {
             case WEP_ONININ:
-                DeleteConflict(Me_MOTION_C->model->object[8]);
-                model = Me_MOTION_C->model->object[0xb];
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
+                model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
                 break;
             case WEP_BEAST:
-                model = Me_MOTION_C->model->object[2];
+                model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
                 break;
             case WEP_NONE:
                 cleanup_guard = 3;
                 goto skip_afterimage_cleanup;
             default:
-                DeleteConflict(Me_MOTION_C->model->object[0xd]);
-                model = Me_MOTION_C->model->object[0xe];
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
+                model = Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1];
                 break;
             }
             DeleteConflict(model);
@@ -143,11 +143,11 @@ void ActACTION(void)
             {
             } while (0);
             weapon = human->weapon;
-            if (human->wpatk == WEP_TWIN_KATANA && weapon[3] != 0)
+            if (human->wpatk == WEP_TWIN_KATANA && weapon[WEAPON_SLOT_INACTIVE_1] != 0)
             {
-                weapon[2] = human->weapon[0];
-                human->weapon[0] = weapon[3];
-                weapon[3] = 0;
+                weapon[WEAPON_SLOT_INACTIVE_0] = human->weapon[WEAPON_SLOT_ACTIVE_0];
+                human->weapon[WEAPON_SLOT_ACTIVE_0] = weapon[WEAPON_SLOT_INACTIVE_1];
+                weapon[WEAPON_SLOT_INACTIVE_1] = 0;
                 Sound(human, CHAR_SE_WEAPON_CHANGE_B);
             }
         }

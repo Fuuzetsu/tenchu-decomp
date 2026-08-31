@@ -103,9 +103,9 @@ void ProcItemGoshikimai(TItem *item)
             return;
         p.type = ITEM_GOSHIKIMAI;
         p.user = item->owner;
-        p.start.vx = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vx;
-        p.start.vy = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vy;
-        p.start.vz = GetAbsolutePosition(item->owner->model->object[0xd], 0, 0, 0)->vz;
+        p.start.vx = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vx;
+        p.start.vy = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vy;
+        p.start.vz = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vz;
         p.end.vx = param->vec.vx;
         p.end.vy = param->vec.vy;
         p.end.vz = param->vec.vz;

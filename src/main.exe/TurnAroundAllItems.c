@@ -53,7 +53,7 @@ void TurnAroundAllItems(Humanoid *user)
 
             if (j >= user->item[i])
                 break;
-            pos = GetAbsolutePosition(user->model->object[0], 0, 0, 0);
+            pos = GetAbsolutePosition(user->model->object[MODEL_PART_WAIST], 0, 0, 0);
             human = user;
             itemID = i;
             memset(&p, 0, sizeof(p));

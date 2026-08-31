@@ -12,6 +12,38 @@
 #define WPATK_CLASS(w) ((w) >> 4)
 #define WPATK_CLASS_RANGED 3
 
+/* ModelArchiveType.object[] roles proven by the humanoid callers.  The
+ * weapon anchors vary with wpatk; the ordinal hand names intentionally do
+ * not claim left or right. */
+#define MODEL_PART_WAIST 0
+#define MODEL_PART_BEAST_HAND_0 2
+#define MODEL_PART_BEAST_HAND_1 1
+#define MODEL_PART_ONININ_HAND_0 8
+#define MODEL_PART_ONININ_HAND_1 0x0B
+#define MODEL_PART_WEAPON_HAND_0 0x0D
+#define MODEL_PART_WEAPON_HAND_1 0x0E
+
+/* The hand index shared by hand[], wepid[], and GetWeaponData's wpid. */
+#define WEAPON_HAND_0 0
+#define WEAPON_HAND_1 1
+#define WEAPON_HAND_NONE (-1)
+
+/* Humanoid.weapon[] holds the two active ornaments followed by their two
+ * inactive alternatives. */
+#define WEAPON_SLOT_ACTIVE_0 0
+#define WEAPON_SLOT_ACTIVE_1 1
+#define WEAPON_SLOT_INACTIVE_0 2
+#define WEAPON_SLOT_INACTIVE_1 3
+#define WEAPON_SLOT_COUNT 4
+#define WEAPON_SLOT_NONE (-1)
+
+/* Components of Humanoid.point (home/spawn point) and chase (AI scratch
+ * point).  spread_blood_pool_ deliberately reuses chase[0] as a timer. */
+#define HUMANOID_HOME_X 0
+#define HUMANOID_HOME_Z 1
+#define HUMANOID_CHASE_X 0
+#define HUMANOID_CHASE_Z 1
+
 /* Humanoid.pad_hold packs a virtual-pad latch: hold `button` for
  * `frames` frames (StateTransition's update_hint unpacks it as
  * pad_hold >> 16 and (u8)pad_hold). */

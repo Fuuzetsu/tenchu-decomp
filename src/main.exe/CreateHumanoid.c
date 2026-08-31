@@ -128,9 +128,10 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     hh = human->height;
     human->model->clip.vy = -((s16)hh / 2);
     UpdateMotion(human->motion, 0);
-    GetAreaMapVector(GlobalAreaMap, &human->map, human->locate, human->width, 1);
+    GetAreaMapVector(GlobalAreaMap, &human->map, human->locate, human->width,
+                     AREA_LEVEL_STEP_DOWN);
     SetupWeapon(human);
-    idx = InsertConflict(human->model->object[0]);
+    idx = InsertConflict(human->model->object[MODEL_PART_WAIST]);
     hh2 = human->height;
     ConflictObject[idx].size.vy = half = (s16)hh2 / 2;
     nhalf = -half;

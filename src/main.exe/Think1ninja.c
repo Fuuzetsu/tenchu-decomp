@@ -95,10 +95,14 @@ s16 Think1ninja(void)
                          (s16)(Me_THINK_C->width * 5), 0);
             d1 = GetAreaMapLevel(GlobalAreaMap, Me_THINK_C->locate->vx,
                                  Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                 Me_THINK_C->locate->vz, 25);
+                                 Me_THINK_C->locate->vz,
+                                 AREA_LEVEL_STEP_DOWN | AREA_LEVEL_FIRST_HIT |
+                                     AREA_LEVEL_REUSE_CACHED);
             d2 = GetAreaMapLevel(GlobalAreaMap, Me_THINK_C->locate->vx + move.vx,
                                  Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                 Me_THINK_C->locate->vz + move.vz, 0x1A);
+                                 Me_THINK_C->locate->vz + move.vz,
+                                 AREA_LEVEL_RETURN_DELTA | AREA_LEVEL_FIRST_HIT |
+                                     AREA_LEVEL_REUSE_CACHED);
             if (d1 == Me_THINK_C->map.level)
             {
                 s32 abs_d2;

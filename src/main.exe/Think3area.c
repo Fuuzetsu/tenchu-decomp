@@ -72,8 +72,8 @@ s16 Think3area(void)
         return Think3attack();
     }
 
-    xx = Me_THINK_C->point[0] - Me_THINK_C->locate->vx;
-    zz = Me_THINK_C->point[1] - Me_THINK_C->locate->vz;
+    xx = Me_THINK_C->point[HUMANOID_HOME_X] - Me_THINK_C->locate->vx;
+    zz = Me_THINK_C->point[HUMANOID_HOME_Z] - Me_THINK_C->locate->vz;
     dist = SquareRoot0(xx * xx + zz * zz);
 
     if (Me_THINK_C->actflg != 0)

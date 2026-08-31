@@ -100,7 +100,10 @@ void ActHANG(void)
         {
             SET_MOTION(MOT_HANG_SHIMMY_LEFT, 1);
         }
-        else if ((MOTION_PAD_BITS & PADLup) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != (u32)LEVEL_NONE)
+        else if ((MOTION_PAD_BITS & PADLup) &&
+                 GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000,
+                                 dtL->vz, AREA_LEVEL_STEP_DOWN) !=
+                     (u32)LEVEL_NONE)
         {
             SET_MOTION(MOT_HANG_PULLUP, 1);
         }

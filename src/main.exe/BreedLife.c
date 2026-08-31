@@ -210,10 +210,11 @@ type_found:
     }
 
     human = CreateHumanoid(type, model);
-    human->point[0] = x;
+    human->point[HUMANOID_HOME_X] = x;
     human->model->locate.coord.t[0] = x;
-    human->model->locate.coord.t[1] = GetAreaMapLevel(GlobalAreaMap, x, y, z, 1);
-    human->point[1] = z;
+    human->model->locate.coord.t[1] = GetAreaMapLevel(
+        GlobalAreaMap, x, y, z, AREA_LEVEL_STEP_DOWN);
+    human->point[HUMANOID_HOME_Z] = z;
     human->model->locate.coord.t[2] = z;
     human->model->rotate.vy = r;
     UpdateCoordinate((ModelType *)human->model);

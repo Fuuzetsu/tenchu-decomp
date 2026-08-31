@@ -93,7 +93,8 @@ s32 InitPersistentState(void)
         ps->gItem[5] = 1;
         ps->gItem[7] = 3;
         ps->gItem[8] = 5;
-        __builtin_memcpy(&ps->gItem[0x20], &ps->gItem[0], 0x20);
+        __builtin_memcpy(&ps->gItem[sizeof(ps->gItem) / 2], &ps->gItem[0],
+                         sizeof(ps->gItem) / 2);
         ps->selItem[1] = 10;
         ps->selItem[0] = 0xff;
         ps->selItem[2] = 5;

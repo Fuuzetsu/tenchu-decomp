@@ -112,7 +112,7 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
     }
     *degree = result_degree;
 
-    if (((GameClock + human->model->object[0]->id) & 0x1f) != 0)
+    if (((GameClock + human->model->object[MODEL_PART_WAIST]->id) & 0x1f) != 0)
     {
         return 0;
     }

@@ -82,7 +82,7 @@ void ActDAMAGE(void)
                 attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
+            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -126,7 +126,7 @@ void ActDAMAGE(void)
                 attr = attr & ~MODEL_ATTR_HIDDEN;
                 *attribute = attr;
             }
-            *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
+            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -185,7 +185,7 @@ void ActDAMAGE(void)
             velocity->vx = 0;
             if (human == player)
                 return;
-            DeleteConflict(human->model->object[0]);
+            DeleteConflict(human->model->object[MODEL_PART_WAIST]);
             TurnAroundAllItems(Me_MOTION_C);
             return;
         }
@@ -241,11 +241,11 @@ void ActDAMAGE(void)
             }
             done = true;
             weapon = Me_MOTION_C->weapon;
-            if (weapon[3] != NULL)
+            if (weapon[WEAPON_SLOT_INACTIVE_1] != NULL)
             {
-                weapon[2] = weapon[0];
-                weapon[0] = weapon[3];
-                weapon[3] = NULL;
+                weapon[WEAPON_SLOT_INACTIVE_0] = weapon[WEAPON_SLOT_ACTIVE_0];
+                weapon[WEAPON_SLOT_ACTIVE_0] = weapon[WEAPON_SLOT_INACTIVE_1];
+                weapon[WEAPON_SLOT_INACTIVE_1] = NULL;
                 Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);
             }
         }

@@ -129,8 +129,8 @@ void AttackBowControl(s16 n)
         p = BowTimingFromByteOffset(byte_offset);
         if (p->min <= count && count < p->max)
         {
-            UpdateOrnament(Me_MOTION_C->weapon[2], 0);
-            DrawOrnament(Me_MOTION_C->weapon[2]);
+            UpdateOrnament(Me_MOTION_C->weapon[WEAPON_SLOT_INACTIVE_0], 0);
+            DrawOrnament(Me_MOTION_C->weapon[WEAPON_SLOT_INACTIVE_0]);
         }
     }
     byte_offset2 = n;
@@ -138,7 +138,7 @@ void AttackBowControl(s16 n)
     p2 = BowTimingFromByteOffset(byte_offset2);
     if (dtM->count == p2->max)
     {
-        pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);
+        pos = GetAbsolutePosition(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0);
         bow_shoot_logic(ITEM_ARROW, pos);
         Sound(Me_MOTION_C, CHAR_SE_ATTACK_ALT);
     }

@@ -166,7 +166,7 @@ void ActKAGI(void)
             {
                 *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
             }
-            *(u16 *)&model->object[0]->attribute |= MODEL_ATTR_HIDDEN;
+            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
             SET_MOTION(MOT_SWIM, 1);
             dtM->mask = 0x7fff;
         }
@@ -215,9 +215,9 @@ void ActKAGI(void)
         v.vz = CamState.TargetVector.vz - dtL->vz;
         dist = SquareRoot0(v.vx * v.vx + v.vz * v.vz);
         ry = GetDirection(v.vx, v.vz, dtR->vy);
-        Me_MOTION_C->model->object[0]->rotate.vy = ry;
-        Me_MOTION_C->model->object[0]->rotate.vx = ratan2(dist, -v.vy);
-        UpdateCoordinate(Me_MOTION_C->model->object[0]);
+        Me_MOTION_C->model->object[MODEL_PART_WAIST]->rotate.vy = ry;
+        Me_MOTION_C->model->object[MODEL_PART_WAIST]->rotate.vx = ratan2(dist, -v.vy);
+        UpdateCoordinate(Me_MOTION_C->model->object[MODEL_PART_WAIST]);
 
         if (__builtin_abs(v.vx) < 400 && __builtin_abs(v.vy) < 400 &&
             __builtin_abs(v.vz) < 400)
@@ -241,7 +241,7 @@ void ActKAGI(void)
             {
                 goto make_wire;
             }
-            root = human->model->object[0];
+            root = human->model->object[MODEL_PART_WAIST];
             rotation = dtR;
             old_ry = rotation->vy;
             sum = old_ry + root->rotate.vy;
@@ -255,7 +255,7 @@ void ActKAGI(void)
             /* The vy = sum store above is dead (quantized overwrites it)
              * but both sh are in the bytes; adjust_root is the asm's own
              * reload of object[0] beside root. */
-            adjust_root = human->model->object[0];
+            adjust_root = human->model->object[MODEL_PART_WAIST];
             motID = MOT_STATE_FALL;
             adjust_root->rotate.vy += old_ry - quantized;
             motMODE = 0;

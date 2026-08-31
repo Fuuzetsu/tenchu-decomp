@@ -129,12 +129,16 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
                                      Me_THINK_C->locate->vx + local.vx,
                                      Me_THINK_C->locate->vy - 500,
                                      Me_THINK_C->locate->vz + local.vz,
-                                     0x1a);
+                                     AREA_LEVEL_RETURN_DELTA |
+                                         AREA_LEVEL_FIRST_HIT |
+                                         AREA_LEVEL_REUSE_CACHED);
                 d2 = GetAreaMapLevel(GlobalAreaMap,
                                      Me_THINK_C->locate->vx - local.vx,
                                      Me_THINK_C->locate->vy - 500,
                                      Me_THINK_C->locate->vz - local.vz,
-                                     0x1a);
+                                     AREA_LEVEL_RETURN_DELTA |
+                                         AREA_LEVEL_FIRST_HIT |
+                                         AREA_LEVEL_REUSE_CACHED);
                 /* pad_hold packs (button << 16) | frames: latch a 30-frame
                  * sidestep toward the clearer flank. */
                 if ((result & PADLright) && (d1 != cached))

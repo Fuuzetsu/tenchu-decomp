@@ -227,7 +227,8 @@ void ActSQUAT(void)
                             dtL->vx + dtV->vx * 4,
                             dtL->vy,
                             dtL->vz + dtV->vz * 4,
-                            3) < STEP_DROP_LIMIT)
+                            AREA_LEVEL_STEP_DOWN |
+                                AREA_LEVEL_RETURN_DELTA) < STEP_DROP_LIMIT)
         {
             dtL->vx -= dtV->vx;
             dtL->vz -= dtV->vz;
@@ -246,7 +247,8 @@ void ActSQUAT(void)
                                           dtL->vx + dtV->vx * 16,
                                           dtL->vy,
                                           dtL->vz + dtV->vz * 16,
-                                          3)) >= 500)
+                                          AREA_LEVEL_STEP_DOWN |
+                                              AREA_LEVEL_RETURN_DELTA)) >= 500)
         {
             dtV->vz = 0;
             dtV->vx = 0;

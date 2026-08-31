@@ -18,20 +18,25 @@
 #define SWAP_TWIN_BLADE(draw_frame, stow_frame)                               \
     if (dtM->count == (draw_frame))                                           \
     {                                                                         \
-        if (weapon[3] != 0)                                                   \
+        if (weapon[WEAPON_SLOT_INACTIVE_1] != 0)                              \
         {                                                                     \
-            weapon[2] = weapon[0];                                            \
-            weapon[0] = weapon[3];                                            \
-            weapon[3] = 0;                                                    \
-            Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);                                            \
+            weapon[WEAPON_SLOT_INACTIVE_0] =                                  \
+                weapon[WEAPON_SLOT_ACTIVE_0];                                 \
+            weapon[WEAPON_SLOT_ACTIVE_0] =                                    \
+                weapon[WEAPON_SLOT_INACTIVE_1];                               \
+            weapon[WEAPON_SLOT_INACTIVE_1] = 0;                               \
+            Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);                      \
         }                                                                     \
     }                                                                         \
-    else if ((dtM->count == (stow_frame)) && (weapon[2] != 0))                \
+    else if ((dtM->count == (stow_frame)) &&                                  \
+             (weapon[WEAPON_SLOT_INACTIVE_0] != 0))                           \
     {                                                                         \
-        weapon[3] = weapon[0];                                                \
-        weapon[0] = weapon[2];                                                \
-        weapon[2] = 0;                                                        \
-        Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);                                                \
+        weapon[WEAPON_SLOT_INACTIVE_1] =                                      \
+            weapon[WEAPON_SLOT_ACTIVE_0];                                     \
+        weapon[WEAPON_SLOT_ACTIVE_0] =                                        \
+            weapon[WEAPON_SLOT_INACTIVE_0];                                   \
+        weapon[WEAPON_SLOT_INACTIVE_0] = 0;                                   \
+        Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);                          \
     }
 
 /* End-of-attack weapon cleanup: drop the striking-limb conflict boxes
@@ -44,20 +49,24 @@
     switch (kind)                                                             \
     {                                                                         \
     case WEP_ONININ:                                                          \
-        DeleteConflict(Me_MOTION_C->model->object[8]);                        \
-        DeleteConflict(Me_MOTION_C->model->object[0xb]);                      \
+        DeleteConflict(                                                       \
+            Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);            \
+        DeleteConflict(                                                       \
+            Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);            \
         cleanup_guard = 3;                                                    \
         break;                                                                \
     case WEP_BEAST:                                                           \
-        DeleteConflict(Me_MOTION_C->model->object[2]);                        \
+        DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);  \
         cleanup_guard = 3;                                                    \
         break;                                                                \
     case WEP_NONE:                                                            \
         cleanup_guard = 3;                                                    \
         break;                                                                \
     default:                                                                  \
-        DeleteConflict(Me_MOTION_C->model->object[0xd]);                      \
-        DeleteConflict(Me_MOTION_C->model->object[0xe]);                      \
+        DeleteConflict(                                                       \
+            Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);            \
+        DeleteConflict(                                                       \
+            Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);            \
         cleanup_guard = 3;                                                    \
         break;                                                                \
     }                                                                         \
@@ -274,7 +283,7 @@ dispatch:
 
             if (dtM->count == 20)
             {
-                pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd], 0, 100, -100);
+                pos = GetAbsolutePosition(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], 0, 100, -100);
                 bow_shoot_logic(ITEM_GUN, pos);
                 Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             }
@@ -286,7 +295,7 @@ dispatch:
 
             if (dtM->count == 22)
             {
-                pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd], 0, 700, -100);
+                pos = GetAbsolutePosition(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], 0, 700, -100);
                 bow_shoot_logic(ITEM_GUN, pos);
                 Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             }
@@ -584,7 +593,7 @@ dispatch:
         {
             SET_MOTION(MOT_ATTACK_DIVE_LAND, 0);
             Sound(Me_MOTION_C, SE_LAND_HEAVY);
-            spawn_smoke_burst_(dtL, 300, 0xc, 10);
+            spawn_smoke_burst_(dtL, 300, SMOKE_DRIFT_DIVISOR_DEFAULT, 10);
         }
         if ((dtM->count == 0) && (dtM->loop == 1))
         {
@@ -764,27 +773,27 @@ dispatch:
         switch (hand_kind)
         {
         case WEP_BEAST:
-            hand[0] = object[2];
-            hand[1] = object[1];
+            hand[WEAPON_HAND_0] = object[MODEL_PART_BEAST_HAND_0];
+            hand[WEAPON_HAND_1] = object[MODEL_PART_BEAST_HAND_1];
             break;
         case WEP_ONININ:
-            hand[0] = object[8];
-            hand[1] = object[0xb];
+            hand[WEAPON_HAND_0] = object[MODEL_PART_ONININ_HAND_0];
+            hand[WEAPON_HAND_1] = object[MODEL_PART_ONININ_HAND_1];
             break;
         default:
-            hand[0] = object[0xd];
-            hand[1] = object[0xe];
+            hand[WEAPON_HAND_0] = object[MODEL_PART_WEAPON_HAND_0];
+            hand[WEAPON_HAND_1] = object[MODEL_PART_WEAPON_HAND_1];
             break;
         }
         if (dtM->count == battle->atks)
         {
-            wid = (int)Me_MOTION_C->wepid[0];
+            wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_0];
             if (wid >= 0)
             {
                 Humanoid *owner;
                 short conflict_size;
 
-                n = InsertConflict(hand[0]);
+                n = InsertConflict(hand[WEAPON_HAND_0]);
                 ConflictObject[n].offset = WeaponDB[wid].confp;
                 conflict_size = WeaponDB[wid].confp.pad;
                 owner = Me_MOTION_C;
@@ -794,13 +803,13 @@ dispatch:
                 ConflictObject[n].size.vx = conflict_size;
                 ConflictObject[n].common = (void *)owner;
             }
-            wid = (int)Me_MOTION_C->wepid[1];
+            wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_1];
             if (wid >= 0)
             {
                 Humanoid *owner;
                 short conflict_size;
 
-                n = InsertConflict(hand[1]);
+                n = InsertConflict(hand[WEAPON_HAND_1]);
                 ConflictObject[n].offset = WeaponDB[wid].confp;
                 conflict_size = WeaponDB[wid].confp.pad;
                 owner = Me_MOTION_C;
@@ -824,7 +833,7 @@ dispatch:
             switch (kind)
             {
             case WEP_ONININ:
-                DeleteConflict(Me_MOTION_C->model->object[8], hand_kind);
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0], hand_kind);
                 /* The value-typed cast is load-bearing, and gcc 2.8.1's own
                  * jump.c proves it is the ONLY C-level escape: find_cross_jump
                  * compares CALL_INSN_FUNCTION_USAGE (the argument-register use
@@ -837,29 +846,29 @@ dispatch:
                  * value-typing this call (call_value vs call) is how. Retail
                  * emits a plain jal — an earlier note claiming jalr was
                  * wrong. */
-                ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[0xb]);
+                ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                 break;
             case WEP_BEAST:
-                DeleteConflict(Me_MOTION_C->model->object[2], hand_kind);
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0], hand_kind);
                 break;
             case WEP_NONE:
                 break;
             default:
-                DeleteConflict(Me_MOTION_C->model->object[0xd], hand_kind);
-                DeleteConflict(Me_MOTION_C->model->object[0xe]);
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], hand_kind);
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                 break;
             }
             dtM->mask = 0x7fff;
         }
         if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST))
         {
-            if (hand[0]->id != -1)
+            if (hand[WEAPON_HAND_0]->id != -1)
             {
-                WeaponHitWeapon(hand[0]);
+                WeaponHitWeapon(hand[WEAPON_HAND_0]);
             }
-            if (hand[1]->id != -1)
+            if (hand[WEAPON_HAND_1]->id != -1)
             {
-                WeaponHitWeapon(hand[1]);
+                WeaponHitWeapon(hand[WEAPON_HAND_1]);
             }
         }
         if (battle->ilus < 1)
@@ -868,20 +877,20 @@ dispatch:
         }
         if (dtM->count == battle->ilus)
         {
-            wid = (int)Me_MOTION_C->wepid[0];
+            wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_0];
             if (wid >= 0)
             {
-                ilu = SetupAfterimage(hand[0], 10);
+                ilu = SetupAfterimage(hand[WEAPON_HAND_0], 10);
                 ilu->vector1 = WeaponDB[wid].ilup0;
                 ilu->vector2 = WeaponDB[wid].ilup1;
                 Me_MOTION_C->illusion[0] = (void *)ilu;
             }
-            wid = (int)Me_MOTION_C->wepid[1];
+            wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_1];
             if (wid < 0)
             {
                 return;
             }
-            ilu = SetupAfterimage(hand[1], 10);
+            ilu = SetupAfterimage(hand[WEAPON_HAND_1], 10);
             ilu->vector1 = WeaponDB[wid].ilup0;
             ilu->vector2 = WeaponDB[wid].ilup1;
             Me_MOTION_C->illusion[1] = (void *)ilu;

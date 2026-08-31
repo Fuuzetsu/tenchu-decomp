@@ -91,7 +91,8 @@ void DrawSnow(TEffectSlot *ef)
         /* Retail reuses the rewrap flag's register for the ground query
          * (a fresh local, or reusing `ground`, re-colors a pseudo --
          * measured). */
-        wrapped = GetAreaMapLevel(GlobalAreaMap, x, param->sample_y, z, 8);
+        wrapped = GetAreaMapLevel(GlobalAreaMap, x, param->sample_y, z,
+                                  AREA_LEVEL_FIRST_HIT);
         if (wrapped < y)
         {
             ef->proc = 0;

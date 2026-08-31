@@ -130,6 +130,7 @@
 
 /* SPU master-volume ceiling used when restoring music/voice. */
 #define MASTER_VOLUME_MAX 0x7F
+#define MASTER_VOLUME_MUTE 0
 
 /* Screen projection distance (GsSetProjection): apparent sprite size is
  * size * PROJECTION_DISTANCE / depth in every sprite-effect renderer. */
@@ -158,6 +159,7 @@
  * scale in [SMOKE_SCALE_MIN, SMOKE_SCALE_MIN + SMOKE_SCALE_SPREAD). */
 #define SMOKE_SCALE_MIN 0x1000
 #define SMOKE_SCALE_SPREAD 0x2000
+#define SMOKE_DRIFT_DIVISOR_DEFAULT 12
 
 /* Snowfall (SetSnow/DrawSnow/ProcMiscSnowfall): flakes wrap in a
  * SNOW_SPAN-wide box around the viewpoint. */

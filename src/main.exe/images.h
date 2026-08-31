@@ -44,6 +44,7 @@ enum
     IMG_CURSOR = 50,
     IMG_FONT_NUMBER = 51,
     IMG_SIGHT = 52,
+    IMG_SMOKE_ALT = 58,
     IMG_TENCHU = 61
 };
 

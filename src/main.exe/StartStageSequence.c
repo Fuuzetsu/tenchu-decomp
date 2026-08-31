@@ -149,10 +149,10 @@ void StartStageSequence(void)
             }
 
             y = stg->position.vx * 1000;
-            human->point[0] = y;
+            human->point[HUMANOID_HOME_X] = y;
             human->locate->vx = y;
             y = stg->position.vz * 1000;
-            human->point[1] = y;
+            human->point[HUMANOID_HOME_Z] = y;
             human->locate->vz = y;
             human->locate->vy = stg->position.vy * 1000;
             y = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,

@@ -149,7 +149,7 @@ void InitEffect(void)
             if (i >= 2)
                 break;
             smoke_id = IMG_SMOKE;
-            smoke_images[1] = (smoke_offset = i * 4, 0x3A);
+            smoke_images[1] = (smoke_offset = i * 4, IMG_SMOKE_ALT);
             /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {

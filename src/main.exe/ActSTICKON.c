@@ -215,7 +215,7 @@ void ActSTICKON(void)
             if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
             {
                 pd = 0;
-                rv = (u16)model->object[0]->rotate.vy >> 10 & 3;
+                rv = (u16)model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
                 if (((pad >> 12) & 1) == 0)
                 {
                     /* loop_pad re-registers pad for the scan:
@@ -241,8 +241,8 @@ void ActSTICKON(void)
                     dtV->vz = 0;
                     dtV->vx = 0;
                     dtM->mask = -2;
-                    model->object[0]->rotate.vx = -0x69;
-                    UpdateCoordinate(model->object[0]);
+                    model->object[MODEL_PART_WAIST]->rotate.vx = -0x69;
+                    UpdateCoordinate(model->object[MODEL_PART_WAIST]);
                 }
                 break;
             }
@@ -254,7 +254,7 @@ void ActSTICKON(void)
             s32 high_item;
             u32 camera_rv;
 
-            camera_rv = (u16)model->object[0]->rotate.vy >> 10 & 3;
+            camera_rv = (u16)model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
             pd = 0;
             switch ((u32)CamState.Mode)
             {
@@ -376,7 +376,7 @@ void ActSTICKON(void)
             goto slide_no_pad;
         }
 
-        rv = (u16)model->object[0]->rotate.vy >> 10 & 3;
+        rv = (u16)model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
         pd = 0;
         if ((((s32)pad_bits >> 28) & 1) == 0)
         {
@@ -418,7 +418,7 @@ void ActSTICKON(void)
             MoveHumanoid(Me_MOTION_C, 0, -30);
         }
 
-        y = model->object[0]->rotate.vy + dtR->vy;
+        y = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
         y &= 0xFFF;
         dtL->vx += dtV->vx;
         dtL->vz += dtV->vz;
@@ -467,7 +467,7 @@ void ActSTICKON(void)
         }
 
         pd = motID != MOT_STICKON_THROW_L;
-        base_angle = model->object[0]->rotate.vy + dtR->vy;
+        base_angle = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
         base_angle_value = base_angle;
         angle = (pd ? base_angle_value - 0x400
                     : base_angle_value + 0x400) &

@@ -90,14 +90,14 @@ void EquipWeapon(Humanoid *human, short mode)
     case JYUTE:
     case EN:
     case KATANA_2:
-        a = wp[0];
-        b = wp[2];
-        c = wp[3];
-        wp[2] = a;
-        a = wp[1];
-        wp[0] = b;
-        wp[1] = c;
-        wp[3] = a;
+        a = wp[WEAPON_SLOT_ACTIVE_0];
+        b = wp[WEAPON_SLOT_INACTIVE_0];
+        c = wp[WEAPON_SLOT_INACTIVE_1];
+        wp[WEAPON_SLOT_INACTIVE_0] = a;
+        a = wp[WEAPON_SLOT_ACTIVE_1];
+        wp[WEAPON_SLOT_ACTIVE_0] = b;
+        wp[WEAPON_SLOT_ACTIVE_1] = c;
+        wp[WEAPON_SLOT_INACTIVE_1] = a;
         break;
     case KOZUKA:
     case NINJA:
@@ -105,10 +105,10 @@ void EquipWeapon(Humanoid *human, short mode)
     case KATANA_0:
     case HOUTOU:
     case KATANA_1:
-        d = wp[2];
-        a = wp[0];
-        wp[0] = d;
-        wp[2] = a;
+        d = wp[WEAPON_SLOT_INACTIVE_0];
+        a = wp[WEAPON_SLOT_ACTIVE_0];
+        wp[WEAPON_SLOT_ACTIVE_0] = d;
+        wp[WEAPON_SLOT_INACTIVE_0] = a;
         break;
     }
 }

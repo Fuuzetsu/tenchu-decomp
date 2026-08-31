@@ -46,8 +46,8 @@ s16 Think1random(void)
     result = 0;
     if (actcnt == 1)
     {
-        Me_THINK_C->chase[0] = Me_THINK_C->point[0] + rand() % 10000 - 5000;
-        Me_THINK_C->chase[1] = Me_THINK_C->point[1] + rand() % 10000 - 5000;
+        Me_THINK_C->chase[HUMANOID_CHASE_X] = Me_THINK_C->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
+        Me_THINK_C->chase[HUMANOID_CHASE_Z] = Me_THINK_C->point[HUMANOID_HOME_Z] + rand() % 10000 - 5000;
     }
     else
     {
@@ -55,8 +55,8 @@ s16 Think1random(void)
         VECTOR *locate;
 
         locate = Me_THINK_C->locate;
-        vx = Me_THINK_C->chase[0] - locate->vx;
-        vz = Me_THINK_C->chase[1] - locate->vz;
+        vx = Me_THINK_C->chase[HUMANOID_CHASE_X] - locate->vx;
+        vz = Me_THINK_C->chase[HUMANOID_CHASE_Z] - locate->vz;
         if ((((vx >= 0) ? vx : -vx) < 1000 &&
              ((vz >= 0) ? vz : -vz) < 1000) ||
             (Attrib & ATTR_WALL))

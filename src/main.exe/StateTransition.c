@@ -230,7 +230,10 @@ void StateTransition(Humanoid *human)
     ProbeLevelLow = GetAreaMapLevel(GlobalAreaMap,
                                     Me_THINK_C->locate->vx + vect.vx,
                                     Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                    Me_THINK_C->locate->vz + vect.vz, 0x1a);
+                                    Me_THINK_C->locate->vz + vect.vz,
+                                    AREA_LEVEL_RETURN_DELTA |
+                                        AREA_LEVEL_FIRST_HIT |
+                                        AREA_LEVEL_REUSE_CACHED);
     {
         u16 field_attrib;
 
@@ -239,7 +242,10 @@ void StateTransition(Humanoid *human)
                                          Me_THINK_C->locate->vx - vect.vx,
                                          Me_THINK_C->locate->vy - EYE_HEIGHT,
                                          Me_THINK_C->locate->vz - vect.vz,
-                                         (ProbeAttrib[0] = field_attrib, 0x1a));
+                                         (ProbeAttrib[0] = field_attrib,
+                                          AREA_LEVEL_RETURN_DELTA |
+                                              AREA_LEVEL_FIRST_HIT |
+                                              AREA_LEVEL_REUSE_CACHED));
     }
     ProbeAttrib[1] = FieldAttrib;
 
@@ -268,8 +274,8 @@ void StateTransition(Humanoid *human)
                 Attrib = atr0 | PHASE_ALERT;
                 do
                 {
-                    me->chase[1] = 0;
-                    me->chase[0] = 0;
+                    me->chase[HUMANOID_CHASE_Z] = 0;
+                    me->chase[HUMANOID_CHASE_X] = 0;
                 } while (0);
                 if (life > 0)
                 {
@@ -295,8 +301,8 @@ void StateTransition(Humanoid *human)
                 if (EmergencyNotice != 0)
                 {
                     SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
-                    Me_THINK_C->chase[1] = 0;
-                    Me_THINK_C->chase[0] = 0;
+                    Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+                    Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
                 }
                 Attrib = atr0 | PHASE_SUSPICIOUS;
                 Sound(Me_THINK_C, CHAR_VOICE_NOTICE);
@@ -336,8 +342,8 @@ void StateTransition(Humanoid *human)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
             }
-            Me_THINK_C->chase[1] = 0;
-            Me_THINK_C->chase[0] = 0;
+            Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+            Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
             Sound(Me_THINK_C, CHAR_VOICE_ALERT);
             if (Me_THINK_C->life > 0)
             {
@@ -443,10 +449,10 @@ void StateTransition(Humanoid *human)
             me = Me_THINK_C;
             target_x = me->target->locate.coord.t[0];
             Attrib = atr0 | ATTR_SEARCH | PHASE_INVESTIGATE;
-            me->chase[0] = target_x;
+            me->chase[HUMANOID_CHASE_X] = target_x;
             target_z = me->target->locate.coord.t[2];
             me->actscnt = 1;
-            me->chase[1] = target_z;
+            me->chase[HUMANOID_CHASE_Z] = target_z;
         }
 
         if (Me_THINK_C->pad_hold == 0)
@@ -588,12 +594,17 @@ void StateTransition(Humanoid *human)
                     level = GetAreaMapLevel(GlobalAreaMap,
                                             Me_THINK_C->locate->vx,
                                             Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                            Me_THINK_C->locate->vz, 25);
+                                            Me_THINK_C->locate->vz,
+                                            AREA_LEVEL_STEP_DOWN |
+                                                AREA_LEVEL_FIRST_HIT |
+                                                AREA_LEVEL_REUSE_CACHED);
                     next_level = GetAreaMapLevel(GlobalAreaMap,
                                                  Me_THINK_C->locate->vx + vect.vx,
                                                  Me_THINK_C->locate->vy - EYE_HEIGHT,
                                                  Me_THINK_C->locate->vz + vect.vz,
-                                                 0x1a);
+                                                 AREA_LEVEL_RETURN_DELTA |
+                                                     AREA_LEVEL_FIRST_HIT |
+                                                     AREA_LEVEL_REUSE_CACHED);
                     if (level == Me_THINK_C->map.level)
                     {
                         abs_next = next_level >= 0 ? next_level : -next_level;

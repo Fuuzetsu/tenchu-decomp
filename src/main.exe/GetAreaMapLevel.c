@@ -120,10 +120,12 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
      * itself generates no code. */
     do
     {
-        if (mode & 1)
+        if (mode & AREA_LEVEL_STEP_DOWN)
             y2 -= 150;
 
-        if (y2 == AreaMapLastY && (mode & 0x10) && FieldArea->x1 <= x && x <= FieldArea->x2 && FieldArea->z1 <= z && z <= FieldArea->z2)
+        if (y2 == AreaMapLastY && (mode & AREA_LEVEL_REUSE_CACHED) &&
+            FieldArea->x1 <= x && x <= FieldArea->x2 &&
+            FieldArea->z1 <= z && z <= FieldArea->z2)
         {
             yy = ComputeAreaLevel(FieldArea, x, z);
         }
@@ -151,7 +153,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             if (index->index != 0)
             {
                 p = &index->index;
-                f8 = mode16 & 8;
+                f8 = mode16 & AREA_LEVEL_FIRST_HIT;
             loop:
                 if (yy == (u32)LEVEL_NONE)
                 {
@@ -218,14 +220,14 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             goto ret_min;
         yy = yy * 10;
         y2 = yy - y;
-        if (y2 < -1000 && (mode16 & 4) == 0)
+        if (y2 < -1000 && (mode16 & AREA_LEVEL_ALLOW_DEEP) == 0)
         {
         ret_min:
             return LEVEL_NONE;
         }
         ret = yy;
     } while (0);
-    if (mode16 & 2)
+    if (mode16 & AREA_LEVEL_RETURN_DELTA)
         ret = y2;
     return ret;
 }

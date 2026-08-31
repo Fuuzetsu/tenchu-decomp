@@ -85,7 +85,7 @@ void DrawShadow(Humanoid *human)
     u16 attribute;
 
     height = -human->model->rotate.pad;
-    position = GetAbsolutePosition(human->model->object[0], 0, 0, 0);
+    position = GetAbsolutePosition(human->model->object[MODEL_PART_WAIST], 0, 0, 0);
 
     if (human->map.level < position->vy || human->map.level == LEVEL_NONE)
     {
