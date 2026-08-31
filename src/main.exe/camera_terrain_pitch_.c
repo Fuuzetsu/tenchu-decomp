@@ -57,18 +57,15 @@ s32 camera_terrain_pitch_(Humanoid *human)
     z = z - (u16)node->z1;
     zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
-    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
-        goto first_x_slope;
-    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
-        goto first_z_slope;
-    goto first_done;
-
-first_x_slope:
-    yy = yy + x * node->dy / xspan;
-    goto first_done;
-first_z_slope:
-    yy = yy + z * node->dy / zspan;
-first_done:
+    switch (node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z))
+    {
+    case MAP_SLOPE_X:
+        yy = yy + x * node->dy / xspan;
+        break;
+    case MAP_SLOPE_Z:
+        yy = yy + z * node->dy / zspan;
+        break;
+    }
     height0 = (short)yy * 10;
     if (height0 == LEVEL_NONE)
         return 0;
@@ -82,18 +79,15 @@ first_done:
     z = z - (u16)node->z1;
     zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
-    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
-        goto second_x_slope;
-    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
-        goto second_z_slope;
-    goto second_done;
-
-second_x_slope:
-    yy = yy + x * node->dy / xspan;
-    goto second_done;
-second_z_slope:
-    yy = yy + z * node->dy / zspan;
-second_done:
+    switch (node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z))
+    {
+    case MAP_SLOPE_X:
+        yy = yy + x * node->dy / xspan;
+        break;
+    case MAP_SLOPE_Z:
+        yy = yy + z * node->dy / zspan;
+        break;
+    }
     height1 = (short)yy * 10;
     if (height1 == LEVEL_NONE)
         return 0;
