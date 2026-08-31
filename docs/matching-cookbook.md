@@ -831,6 +831,18 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   * a distant shared tail of ONE clean action plus `return` can just be
     duplicated: 2.8.1 cross-jumps it back into one block (ActATTACK's
     `unmask`, DamageControl's `alerted`).
+  Scaling rules from round 8 (71 gotos + 16 labels across nine files):
+  normalize a local return ladder into ONE ordered if/else join BEFORE
+  testing direct returns (AttackLong measures 71 lines in the
+  intermediate form, exact once its SetCommand arms share the chain);
+  inverse guards scale from a small diamond to a whole function region
+  (ActivateHumans) or to the body of a hand-written goto loop
+  (GetAreaMapLevel) without adding loop notes; when removing a label,
+  PRESERVE the textual slot of the cold assignment it guarded
+  (ActivateHumans' zero-active block is exact under an inverted near
+  test but 134 lines if relocated); and duplicating a one-line tail is
+  only safe OUTSIDE a real loop — inside one, the operands take
+  loop-depth weight before late cross-jump (ActSTATE 78 lines).
   Gates that still refuse: the reject/sentinel block's TEXTUAL position
   controls reorg (DrawSprite's flatter spelling = 14 lines), a label can
   be a cold-block/CSE boundary (DamageControl's stealth band = 502), a
@@ -838,7 +850,10 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   topology the factored form destroys (DamageControl's scaling ladder =
   183/203), and cross-jump equality alone does not imply byte identity —
   deleting a join can expose different delay-slot candidates
-  (ActATTACK's `dispatch` = 21).
+  (ActATTACK's `dispatch` = 21). A switch's terminal labels can be what
+  separates otherwise-identical case bodies, so a TINY canonical diff
+  there is a missing required block, not permission to take the cleaner
+  source (ActNORMAL = 7 lines; ItemControl = 38-44).
 
 ### 3.4 Expressions, widths, arithmetic
 
