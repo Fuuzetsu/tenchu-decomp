@@ -104,7 +104,7 @@ s16 CVAupdate(void)
                 i = 0;
 
                 human->attribute &= ~ATTR_SUSPEND;
-                human->motion->mask = 0x7FFF;
+                human->motion->mask = MOTION_MASK_ALL;
                 while (1)
                 {
                     if (CVAhuman[i].human == 0)

@@ -636,7 +636,7 @@ dispatch:
             short kind;
 
             DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
-            dtM->mask = 0x7fff;
+            dtM->mask = MOTION_MASK_ALL;
             SetCameraMode(CMODE_NORMAL);
             if (motID == MOT_STATE_FALL)
             {
@@ -658,7 +658,7 @@ dispatch:
             DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             mmp = dtM;
             SET_MOTION(MOT_ENGAGE_STANCE, 1);
-            mmp->mask = 0x7fff;
+            mmp->mask = MOTION_MASK_ALL;
             return;
         }
         if (Me_MOTION_C->map.height > 0)
@@ -763,7 +763,7 @@ dispatch:
         saved_mid = motID;
         DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
         SET_MOTION(MOT_ENGAGE_STANCE, 1);
-        dtM->mask = 0x7fff;
+        dtM->mask = MOTION_MASK_ALL;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:
         dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
@@ -878,7 +878,7 @@ dispatch:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                 break;
             }
-            dtM->mask = 0x7fff;
+            dtM->mask = MOTION_MASK_ALL;
         }
         if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST))
         {
@@ -917,7 +917,7 @@ dispatch:
         DISPOSE_WEAPON_AFTERIMAGE(0);
         DISPOSE_WEAPON_AFTERIMAGE(1);
         mmp = dtM;
-        mmp->mask = 0x7fff;
+        mmp->mask = MOTION_MASK_ALL;
         return;
     }
 }

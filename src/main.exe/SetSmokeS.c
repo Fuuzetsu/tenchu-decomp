@@ -72,7 +72,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     ef = &dmy;
 found:
     smoke = &ef->param.smoke;
-    smoke->scale = rand() % 0x2000 + 0x1000;
+    smoke->scale = rand() % (2 * FIXED_ONE) + FIXED_ONE;
     smoke->rotate = (rand() % 360) * FIXED_ONE;
     smoke->pos.vx = pos->vx;
     smoke->pos.vy = pos->vy;

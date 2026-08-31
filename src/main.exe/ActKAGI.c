@@ -169,7 +169,7 @@ void ActKAGI(void)
             }
             *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
             SET_MOTION(MOT_SWIM, 1);
-            dtM->mask = 0x7fff;
+            dtM->mask = MOTION_MASK_ALL;
         }
         break;
 
@@ -198,7 +198,7 @@ void ActKAGI(void)
         }
         human = Me_MOTION_C;
         motID = MOT_KAGI_PULL;
-        mmp->mask = -2;
+        mmp->mask = MOTION_MASK_NOROOT;
         attrib = human->map.attrib;
         motMODE = 1;
         if (attrib & MAP_WATER)
@@ -260,7 +260,7 @@ void ActKAGI(void)
             motID = MOT_STATE_FALL;
             adjust_root->rotate.vy += old_ry - quantized;
             motMODE = 0;
-            dtM->mask = 0x7fff;
+            dtM->mask = MOTION_MASK_ALL;
             if (MotionUpdateMode != 0)
             {
                 for (i = 0; i < 5; i++)

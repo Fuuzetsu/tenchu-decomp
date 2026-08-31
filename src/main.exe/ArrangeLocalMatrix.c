@@ -61,7 +61,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
     s32 det;
 
     GsGetLw(&model->locate, &m);
-    det = 0x1000;
+    det = FIXED_ONE;
 
     i = 0;
     while (1)
@@ -75,7 +75,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
         t = m.m[i][i];
         if (t == 0)
         {
-            t = 0x1000;
+            t = FIXED_ONE;
         }
         det = det * t / FIXED_ONE;
 
@@ -83,7 +83,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
         {
             m.m[i][k] = m.m[i][k] * FIXED_ONE / t;
         }
-        m.m[i][i] = 0x1000000 / t;
+        m.m[i][i] = FIXED_ONE * FIXED_ONE / t;
 
         j = 0;
         while (1)
@@ -114,7 +114,7 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
         i++;
     }
 
-    if (det >= 0x800 && det <= 0x1000)
+    if (det >= FIXED_HALF && det <= FIXED_ONE)
     {
         MulMatrix(&m, t);
         *t = m;

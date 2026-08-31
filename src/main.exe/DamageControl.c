@@ -313,7 +313,7 @@ attack_break:
     dtL->vy--;
     return;
 resolve_hit:
-    dtM->mask = 0x7fff;
+    dtM->mask = MOTION_MASK_ALL;
     AttackCancelControl(3);
     {
         Humanoid *conflict;

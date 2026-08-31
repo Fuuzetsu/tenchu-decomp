@@ -95,6 +95,6 @@ no_conflict:
             Me_MOTION_C->illusion[1] = 0;
         }
     }
-    dtM->mask = 0x7FFF;
+    dtM->mask = MOTION_MASK_ALL;
     return 1;
 }

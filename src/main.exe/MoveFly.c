@@ -78,7 +78,7 @@ static void MoveFly(TItem *item, param_fly *param)
          * fold back to `q2 / FIXED_ONE` -- q2 is reused as the interpolation weight afterwards,
          * so the schedule differs (9 lines). Its sibling below does. */
         if (q2 < 0)
-            q2 += 0xfff;
+            q2 += FIXED_ONE - 1;
         q2 = q2 >> 12;
         nv = q2;
         w9 = k - d2 + nv;

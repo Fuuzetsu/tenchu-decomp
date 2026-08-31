@@ -112,17 +112,11 @@ short LoadTIMpack(unsigned long *adr)
         do
         {
             GsGetTimInfo((u_long *)((int)p + adr[0] + 4), &tim);
-            rect.x = tim.px;
-            rect.y = tim.py;
-            rect.w = tim.pw;
-            rect.h = tim.ph;
+            setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
             LoadImage(&rect, tim.pixel);
             if ((tim.pmode >> 3 & 1) != 0)
             {
-                rect.x = tim.cx;
-                rect.y = tim.cy;
-                rect.w = tim.cw;
-                rect.h = tim.ch;
+                setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
                 LoadImage(&rect, tim.clut);
                 /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do

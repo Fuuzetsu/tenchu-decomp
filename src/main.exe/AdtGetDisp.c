@@ -28,10 +28,7 @@ void AdtGetDisp(TAdtDisp *disp)
 
     SetDispMask(1);
     DrawSync(0);
-    disp->rect.x = AdtFnt.tx;
-    disp->rect.y = AdtFnt.ty;
-    disp->rect.w = 0x40;
-    disp->rect.h = 0x100;
+    setRECT(&disp->rect, AdtFnt.tx, AdtFnt.ty, 0x40, 0x100);
     StoreImage(&disp->rect, disp->backup);
     DrawSync(0);
     GetDrawEnv(&disp->draw);

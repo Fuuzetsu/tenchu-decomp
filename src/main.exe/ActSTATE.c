@@ -95,7 +95,7 @@ void ActSTATE(void)
                     }
                 }
             }
-            dtM->mask = 0x7fff;
+            dtM->mask = MOTION_MASK_ALL;
             if (Me_MOTION_C->type < KERAI_KATANA)
             {
                 if (Me_MOTION_C->type > AYAME_1)
@@ -194,7 +194,7 @@ void ActSTATE(void)
                     }
                 }
             }
-            dtM->mask = 0x7fff;
+            dtM->mask = MOTION_MASK_ALL;
             if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
             {
                 return;

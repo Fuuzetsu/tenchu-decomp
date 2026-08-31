@@ -421,6 +421,10 @@ struct SplineControlType
     SVECTOR ds1;             /* 0x10 */
 }; /* 0x18 */
 
+/* MotionManager.mask selects which skeleton parts a motion drives. */
+#define MOTION_MASK_ALL 0x7FFF /* all 15 parts */
+#define MOTION_MASK_NOROOT (-2) /* all but the root: pose without root motion */
+
 typedef struct MotionManager MotionManager;
 struct MotionManager
 {

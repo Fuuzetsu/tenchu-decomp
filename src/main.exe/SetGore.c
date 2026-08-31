@@ -115,8 +115,8 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector)
         long start_color;
         long end_color;
 
-        start_color = 0x808080;
-        end_color = 0x808080;
+        start_color = COLOR_GRAY;
+        end_color = COLOR_GRAY;
         rotated[1].vx = position->vx;
         rotated[1].vy = position->vy;
         count = 0;

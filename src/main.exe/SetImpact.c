@@ -38,7 +38,7 @@
  *    doesn't apply once `ef = &dmy;` moves outside the loop body.
  *  - The randomized speed (`spd`) and the two packed colour constants
  *    `start_color`/`end_color`
- *    (0x808080 each), are all named locals assigned BEFORE the loop and
+ *    (COLOR_GRAY each), are all named locals assigned BEFORE the loop and
  *    held live across the whole search (no calls run inside it) — not
  *    literals at their point of use. All three floated only after the
  *    magic-multiply div-by-90 expression for `spd` was written FIRST in
@@ -49,7 +49,7 @@
  *    not just declaring them anywhere before the loop.
  *  - The offset-zero `px` store goes through the slot directly (the impact
  *    pointer isn't computed yet), and only the `pos->vz` capture is delayed
- *    to the very end. Every other impact field, including the two 0x808080
+ *    to the very end. Every other impact field, including the two COLOR_GRAY
  *    colour words, stores immediately in offset order.
  */
 extern void DrawImpact(TEffectSlot *ef);
@@ -68,8 +68,8 @@ void SetImpact(VECTOR *pos, short size, short type)
     long pz;
 
     spd = rand() % 90 + 90;
-    start_color = 0x808080;
-    end_color = 0x808080;
+    start_color = COLOR_GRAY;
+    end_color = COLOR_GRAY;
     count = 0;
     base = EffectSlot;
     idx = EFFECT_CURSOR_;

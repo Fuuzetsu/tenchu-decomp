@@ -85,7 +85,7 @@ short FallCheck(void)
     return 0;
 
 fall:
-    dtM->mask = 0x7fff;
+    dtM->mask = MOTION_MASK_ALL;
     dtL->vx += (Me_MOTION_C->width *
                 RefrectMove[Me_MOTION_C->map.angleH][0]) >> 2;
     dtL->vz += (Me_MOTION_C->width *

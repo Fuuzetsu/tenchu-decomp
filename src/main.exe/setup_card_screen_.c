@@ -3,6 +3,14 @@
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
+/* The card screen borrows a block of VRAM for its own textures and puts the
+ * original contents back on the way out; McardVramSave is exactly that
+ * block's 16-bit pixels, which is where its size comes from. */
+#define MCARD_VRAM_X 0x3c0
+#define MCARD_VRAM_Y 0x100
+#define MCARD_VRAM_W 0x40
+#define MCARD_VRAM_H 0x100
+
 /*
  * setup_card_screen_ (0x8005adbc) — Save or restore the memory-card menu's VRAM window and allocate/free its
  * help text and sprites.  The load path also sanitises the help text, skipping
@@ -46,10 +54,7 @@ s32 setup_card_screen_(s16 mode)
 
     if (mode != 0)
     {
-        rect.x = 0x3c0;
-        rect.y = 0x100;
-        rect.w = 0x40;
-        rect.h = 0x100;
+        setRECT(&rect, MCARD_VRAM_X, MCARD_VRAM_Y, MCARD_VRAM_W, MCARD_VRAM_H);
         LoadImage(&rect, McardVramSave);
         DrawSync(0);
         vfree(McardVramSave);
@@ -66,11 +71,8 @@ s32 setup_card_screen_(s16 mode)
 
     if (McardVramSave == 0)
     {
-        McardVramSave = valloc(0x8000);
-        rect.x = 0x3c0;
-        rect.y = 0x100;
-        rect.w = 0x40;
-        rect.h = 0x100;
+        McardVramSave = valloc(MCARD_VRAM_W * MCARD_VRAM_H * 2);
+        setRECT(&rect, MCARD_VRAM_X, MCARD_VRAM_Y, MCARD_VRAM_W, MCARD_VRAM_H);
         StoreImage(&rect, McardVramSave);
         DrawSync(0);
 

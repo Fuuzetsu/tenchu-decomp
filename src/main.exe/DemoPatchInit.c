@@ -29,10 +29,7 @@ void DemoPatchInit(void)
 {
     RECT rc;
 
-    rc.x = 0x3f0;
-    rc.y = 0x1ff;
-    rc.w = 0x10;
-    rc.h = 1;
+    setRECT(&rc, 0x3f0, 0x1ff, 0x10, 1);
     StoreImage2(&rc, (u_long *)DemoBackupArea);
     DrawSync(0);
 }

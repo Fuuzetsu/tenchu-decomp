@@ -41,17 +41,11 @@ short LoadTIM(unsigned long *adr)
         SystemOut(msg_no_image_data);
     }
     GsGetTimInfo(adr + 1, &tim);
-    rect.x = tim.px;
-    rect.y = tim.py;
-    rect.w = tim.pw;
-    rect.h = tim.ph;
+    setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
     LoadImage(&rect, tim.pixel);
     if ((tim.pmode >> 3) & 1)
     {
-        rect.x = tim.cx;
-        rect.y = tim.cy;
-        rect.w = tim.cw;
-        rect.h = tim.ch;
+        setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
         LoadImage(&rect, tim.clut);
     }
     DrawSync(0);

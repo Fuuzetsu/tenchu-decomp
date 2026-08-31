@@ -133,7 +133,7 @@ void ActACTION(void)
             }
             motion = dtM;
             human = Me_MOTION_C;
-            motion->mask = 0x7fff;
+            motion->mask = MOTION_MASK_ALL;
             /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {

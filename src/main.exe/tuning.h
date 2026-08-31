@@ -13,6 +13,10 @@
 #define SCREEN_W 320
 #define SCREEN_H 240
 
+/* The whole of PSX video memory, as a framebuffer rectangle. */
+#define VRAM_W 1024
+#define VRAM_H 512
+
 /* PSX 12.12 fixed-point values used by sprite/effect scales and angles. */
 #define FIXED_QUARTER 0x0400
 #define FIXED_HALF 0x0800

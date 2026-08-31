@@ -69,10 +69,7 @@ void SetupTelop(u8 *telop, short line)
     TelopP.u0 = 0;
     if ((*telop & 0x80) != 0 && (telop[2] & 0x80) != 0)
     {
-        rect.x = 0x300;
-        rect.y = 0x1f0 - line * 16;
-        rect.w = 0x100;
-        rect.h = 0xf;
+        setRECT(&rect, 0x300, 0x1f0 - line * 16, 0x100, 0xf);
         line_y = line * 16;
         ClearImage(&rect, 0, 0, 0);
         DrawSync(0);

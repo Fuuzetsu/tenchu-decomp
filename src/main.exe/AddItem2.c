@@ -106,7 +106,7 @@ void AddItem2(void)
      * fold back to `sx / FIXED_ONE` -- sx is still live for the x term below,
      * so the schedule differs (64 lines). Its sibling below does. */
     if (sx < 0)
-        sx += 0xfff;
+        sx += FIXED_ONE - 1;
     h = pm->locate.coord.t[1];
     y = h;
     x = pm->locate.coord.t[0] - (sx >> 12);

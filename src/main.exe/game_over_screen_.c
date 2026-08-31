@@ -147,10 +147,7 @@ void game_over_screen_(void)
 
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
-    clear_rect.x = 0;
-    clear_rect.y = 0;
-    clear_rect.w = 0x400;
-    clear_rect.h = 0x200;
+    setRECT(&clear_rect, 0, 0, VRAM_W, VRAM_H);
     ClearImage(&clear_rect, 0, 0, clear_b);
     DrawSync(0);
 

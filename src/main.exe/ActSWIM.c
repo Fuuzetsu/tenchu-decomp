@@ -230,7 +230,7 @@ void ActSWIM(void)
      * except ITEM_KAGINAWA (= 0) is dead — retail's own code, kept as-is. */
     if (SelectedItem != 0)
         return;
-    dtM->mask = -2;
+    dtM->mask = MOTION_MASK_NOROOT;
 
     {
         ModelArchiveType *model;

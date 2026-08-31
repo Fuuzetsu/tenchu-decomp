@@ -40,7 +40,7 @@
  *    Ghidra's `blood.py/pz/scale` and `smoke.*` names are its own wrong
  *    union guess for the same proven offsets (pos@0x8, vec@0x0, time@0x20,
  *    mode@0x21).
- *  - `param->scale = 0x1000;` is a plain independent constant store that
+ *  - `param->scale = FIXED_ONE;` is a plain independent constant store that
  *    floats into the `jal rand`'s delay slot (unrelated to the call);
  *    write it as the first statement, before `rand()`, matching Ghidra.
  *  - `vect->vz` is captured into a temp and stored to `param->vec.vz`
@@ -97,7 +97,7 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
     ef = &dmy;
 found:
     param = &ef->param.explosion;
-    param->scale = 0x1000;
+    param->scale = FIXED_ONE;
     r = rand();
     param->rotate = (r % 360) * FIXED_ONE;
     param->pos.vx = pos->vx;

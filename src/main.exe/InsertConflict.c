@@ -82,6 +82,6 @@ short InsertConflict(ModelType *model)
     ConflictObject[idx].size = UnitVector;
     memset(ConflictObject[idx].result, 0, sizeof(ConflictObject[idx].result));
     model->id = cnt;
-    model->attribute = (model->attribute | MODEL_ATTR_COLLIDE) & 0x7fff;
+    model->attribute = (model->attribute | MODEL_ATTR_COLLIDE) & ~MODEL_ATTR_CONFLICT;
     return idx;
 }

@@ -110,7 +110,7 @@ void ActSTICKON(void)
             if (map == 0)
             {
                 SET_MOTION(MOT_SQUAT, 1);
-                dtM->mask = 0x7FFF;
+                dtM->mask = MOTION_MASK_ALL;
                 return;
             }
 
@@ -182,7 +182,7 @@ void ActSTICKON(void)
 
             if ((s8)(motID >> 8) == STAT_SQUAT)
             {
-                dtM->mask = 0x7FFF;
+                dtM->mask = MOTION_MASK_ALL;
                 if (MotionUpdateMode != 0)
                 {
                     for (i = 0; i < 5; i++)
@@ -233,7 +233,7 @@ void ActSTICKON(void)
                     Me_MOTION_C->status = STAT_STICKON;
                     dtV->vz = 0;
                     dtV->vx = 0;
-                    dtM->mask = -2;
+                    dtM->mask = MOTION_MASK_NOROOT;
                     model->object[MODEL_PART_WAIST]->rotate.vx = -0x69;
                     UpdateCoordinate(model->object[MODEL_PART_WAIST]);
                 }
@@ -298,7 +298,7 @@ void ActSTICKON(void)
                 {
                     motMODE = 1;
                     motID = pd;
-                    dtM->mask = -2;
+                    dtM->mask = MOTION_MASK_NOROOT;
                 }
                 else
                 {
@@ -331,7 +331,7 @@ void ActSTICKON(void)
 
             if ((s8)(motID >> 8) == STAT_SQUAT)
             {
-                dtM->mask = 0x7FFF;
+                dtM->mask = MOTION_MASK_ALL;
                 if (MotionUpdateMode != 0)
                 {
                     for (i = 0; i < 5; i++)
@@ -421,7 +421,7 @@ void ActSTICKON(void)
                 dtL->vz -= dtV->vz;
                 UpdateMotion(dtM, MOT_STICKON);
                 dtM->loop = -1;
-                dtM->mask = 0x7FFF;
+                dtM->mask = MOTION_MASK_ALL;
             }
         }
         dtV->vz = 0;
@@ -434,7 +434,7 @@ void ActSTICKON(void)
 
     slide_no_pad:
         SET_MOTION(MOT_STICKON, 1);
-        dtM->mask = 0x7FFF;
+        dtM->mask = MOTION_MASK_ALL;
         break;
     }
 
@@ -526,7 +526,7 @@ void ActSTICKON(void)
             }
         }
         SET_MOTION(MOT_STICKON, 1);
-        dtM->mask = 0x7FFF;
+        dtM->mask = MOTION_MASK_ALL;
         return;
     }
 
@@ -535,7 +535,7 @@ void ActSTICKON(void)
     }
     if ((dtPAD & PADRright) == 0)
     {
-        dtM->mask = 0x7FFF;
+        dtM->mask = MOTION_MASK_ALL;
         if (Me_MOTION_C == StagePlayer)
         {
             SetCameraMode(CMODE_NORMAL);

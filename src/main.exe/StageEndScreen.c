@@ -479,7 +479,7 @@ void StageEndScreen(void)
                  * one-shot fence, not liveness. */
                 if (pulse < 0)
                 {
-                    pulse += 0xfff;
+                    pulse += FIXED_ONE - 1;
                 }
                 rank.r = rank.g = rank.b =
                     (pulse >> 12) + 0x7f;

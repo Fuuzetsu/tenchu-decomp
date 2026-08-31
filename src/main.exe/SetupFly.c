@@ -126,13 +126,13 @@ skip_default:
     fly->count2 = fly->count;
     if (x_product < 0)
     {
-        x_product += 0xfff;
+        x_product += FIXED_ONE - 1;
     }
     len = len * (yh / 2);
     yw = x_product >> 12;
     if (len < 0)
     {
-        len += 0xfff;
+        len += FIXED_ONE - 1;
     }
     yh = len >> 12;
     midx = (fly->sx + fly->vx) / 2;
