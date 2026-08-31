@@ -1948,6 +1948,15 @@ irreducible nest: DrawConstruction's 3.
   the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
   a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
   bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **A suffixed local alone in a nested block is usually a shadow we
+  renamed.** When an inner scope genuinely needs its own variable, our
+  instinct has been to invent a distinct name for clarity — `scan_i`,
+  `frame_model`, `status_pad`, or just `j` — and PSX.SYM shows the
+  original simply shadowed the outer one. Six found this way so far
+  (SwimCheck `j`, ActKAGI `scan_i`, three `frame_model`, AttackShort
+  `status_pad`), all exact, all with a real outer local of that name.
+  Find them by asking where PSX.SYM records N copies of a name and we
+  have fewer plus a near-miss spelling.
 - **Read `symtypes.py --locals` in BOTH directions, and treat a positive
   symbol as a proposal rather than a spec.** The removal half (names
   PSX.SYM never recorded) is the obvious one. The other half — a name the

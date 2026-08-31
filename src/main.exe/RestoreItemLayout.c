@@ -57,7 +57,6 @@ void RestoreItemLayout(void *buf)
     TItem *it;
     TItemLayout *slot;
     s32 i;
-    s32 j;
     PARAM_ITEM_STAY param;
     s32 level;
     s32 level_mode;
@@ -65,34 +64,38 @@ void RestoreItemLayout(void *buf)
     s32 x;
     s32 z;
 
-    i = 0;
-    it = items;
-loop1:
-    if (i >= MAX_ITEMS)
-        goto loop1_end;
-    if (it->proc != 0)
     {
-        it->mode = ITEM_MODE_DISPOSE;
-        it->proc(it);
-        DeleteConflict(it->locate);
-        if (it->mode != 0)
-        {
-            AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
-        }
-        it->owner = 0;
-        it->proc = 0;
-    }
-    it++;
-    i++;
-    goto loop1;
-loop1_end:
+        s32 i;
 
-    j = 0;
+        i = 0;
+        it = items;
+    loop1:
+        if (i >= MAX_ITEMS)
+            goto loop1_end;
+        if (it->proc != 0)
+        {
+            it->mode = ITEM_MODE_DISPOSE;
+            it->proc(it);
+            DeleteConflict(it->locate);
+            if (it->mode != 0)
+            {
+                AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
+            }
+            it->owner = 0;
+            it->proc = 0;
+        }
+        it++;
+        i++;
+        goto loop1;
+    loop1_end:;
+    }
+
+    i = 0;
     level_mode = AREA_LEVEL_STEP_DOWN;
     sentinel = LEVEL_NONE;
     slot = buf;
 loop2:
-    if (j >= MAX_ITEMS)
+    if (i >= MAX_ITEMS)
         return;
     if (slot->type != -1)
     {
@@ -135,7 +138,7 @@ loop2:
     skip_stay:;
     }
     slot++;
-    j++;
+    i++;
     goto loop2;
 
 search_success:
