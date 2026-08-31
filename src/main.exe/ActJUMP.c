@@ -87,8 +87,7 @@ void ActJUMP(void)
         level = GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy, dtL->vz, 0);
         if (dtL->vy < level)
         {
-            motID = MOT_STATE_FALL;
-            motMODE = 0;
+            SET_MOTION(MOT_STATE_FALL, 0);
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -118,13 +117,11 @@ void ActJUMP(void)
 
             dtR->vy += (*Me_MOTION_C->model->object)->rotate.vy;
             object = *Me_MOTION_C->model->object;
-            motID = MOT_STATE_LAND_FLIP;
-            motMODE = 1;
+            SET_MOTION(MOT_STATE_LAND_FLIP, 1);
             object->rotate.vy = 0;
             return;
         }
-        motID = MOT_STATE_LAND;
-        motMODE = 0;
+        SET_MOTION(MOT_STATE_LAND, 0);
         return;
     }
     else
@@ -132,8 +129,7 @@ void ActJUMP(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             old_mid = (u16)motID;
-            motID = MOT_STATE_FALL;
-            motMODE = 0;
+            SET_MOTION(MOT_STATE_FALL, 0);
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -223,7 +219,6 @@ void ActJUMP(void)
         {
             return;
         }
-        motID = MOT_ATTACK_DIVE;
-        motMODE = 0;
+        SET_MOTION(MOT_ATTACK_DIVE, 0);
     }
 }

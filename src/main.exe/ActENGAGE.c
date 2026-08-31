@@ -57,26 +57,22 @@ void ActENGAGE(void)
     {
         if (dtPAD & PADLright)
         {
-            motID = MOT_ENGAGE_TURN_R;
-            motMODE = 0;
+            SET_MOTION(MOT_ENGAGE_TURN_R, 0);
             goto engage_case_post;
         }
         if (dtPAD & PADLleft)
         {
-            motID = MOT_ENGAGE_TURN_L;
-            motMODE = 0;
+            SET_MOTION(MOT_ENGAGE_TURN_L, 0);
             goto engage_case_post;
         }
         if (dtCMD == CMD_LUNGE_BACK)
         {
-            motID = MOT_ATTACK_LUNGE_BACK;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_LUNGE_BACK, 1);
             goto engage_case_post;
         }
         if (dtCMD == CMD_FLIP)
         {
-            motID = MOT_JUMP_FLIP;
-            motMODE = 0;
+            SET_MOTION(MOT_JUMP_FLIP, 0);
             MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
             goto engage_case_post;
         }
@@ -84,21 +80,18 @@ void ActENGAGE(void)
             goto engage_case_post;
         if (rand() % 20 != 0)
             goto engage_case_post;
-        motID = MOT_ATTACK_TAUNT;
-        motMODE = 1;
+        SET_MOTION(MOT_ATTACK_TAUNT, 1);
     engage_case_post:
         if (ActionHalt == -1 && dtM->count == 0)
         {
             motion_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
             if (motion_id < 0)
             {
-                motID = MOT_STATE_SHEATHE;
-                motMODE = 1;
+                SET_MOTION(MOT_STATE_SHEATHE, 1);
             }
             else
             {
-                motID = MOT_ENGAGE_SHEATHE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_SHEATHE, 1);
             }
         }
         break;
@@ -110,8 +103,7 @@ void ActENGAGE(void)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLright) == 0)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
         }
         break;
 
@@ -121,8 +113,7 @@ void ActENGAGE(void)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLleft) == 0)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
         }
         break;
 
@@ -158,21 +149,18 @@ void ActENGAGE(void)
             switch (dtPAD & PADLdown)
             {
             default:
-                motID = MOT_CHASE_BACK;
-                motMODE = 1;
+                SET_MOTION(MOT_CHASE_BACK, 1);
                 break;
             case 0:
                 if (Me_MOTION_C == StagePlayer)
                     SetCameraMode(CMODE_NORMAL);
                 if (Me_MOTION_C->attribute & ATTR_ALERT)
                 {
-                    motID = MOT_ENGAGE_STANCE;
-                    motMODE = 1;
+                    SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 }
                 else
                 {
-                    motID = 0;
-                    motMODE = 1;
+                    SET_MOTION(0, 1);
                 }
                 break;
             }
@@ -188,8 +176,7 @@ void ActENGAGE(void)
             return;
         if (dtM->loop == 0)
             return;
-        motID = MOT_STATE_SHEATHE;
-        motMODE = 1;
+        SET_MOTION(MOT_STATE_SHEATHE, 1);
         return;
 
     case 0x502:
@@ -197,15 +184,13 @@ void ActENGAGE(void)
             return;
         if (dtM->loop == 0)
             return;
-        motID = MOT_ENGAGE_STANCE;
-        motMODE = 1;
+        SET_MOTION(MOT_ENGAGE_STANCE, 1);
         return;
     }
 
     if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
     {
-        motID = 0;
-        motMODE = 1;
+        SET_MOTION(0, 1);
         return;
     }
     else if (dtCMD != 0)
@@ -213,24 +198,19 @@ void ActENGAGE(void)
         switch (dtCMD)
         {
         case CMD_DASH_FORWARD:
-            motID = MOT_CHASE_DASH_FWD;
-            motMODE = 1;
+            SET_MOTION(MOT_CHASE_DASH_FWD, 1);
             return;
         case CMD_LUNGE:
-            motID = MOT_ATTACK_LUNGE;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_LUNGE, 1);
             return;
         case CMD_DASH_BACKWARD:
-            motID = MOT_CHASE_DASH_BACK;
-            motMODE = 1;
+            SET_MOTION(MOT_CHASE_DASH_BACK, 1);
             return;
         case CMD_DASH_RIGHT:
-            motID = MOT_CHASE_DASH_RIGHT;
-            motMODE = 1;
+            SET_MOTION(MOT_CHASE_DASH_RIGHT, 1);
             return;
         case CMD_DASH_LEFT:
-            motID = MOT_CHASE_DASH_LEFT;
-            motMODE = 1;
+            SET_MOTION(MOT_CHASE_DASH_LEFT, 1);
             return;
         default:
             return;
@@ -249,28 +229,22 @@ void ActENGAGE(void)
             switch (SelectedItem)
             {
             case ITEM_SHURIKEN:
-                motID = MOT_SYURI;
-                motMODE = 1;
+                SET_MOTION(MOT_SYURI, 1);
                 return;
             case ITEM_KAGINAWA:
-                motID = MOT_KAGI;
-                motMODE = 1;
+                SET_MOTION(MOT_KAGI, 1);
                 return;
             case ITEM_MAKIBISHI:
-                motID = MOT_ITEM;
-                motMODE = 1;
+                SET_MOTION(MOT_ITEM, 1);
                 return;
             case ITEM_SMOKE:
-                motID = MOT_ITEM_THROW;
-                motMODE = 1;
+                SET_MOTION(MOT_ITEM_THROW, 1);
                 return;
             case ITEM_FIRE:
-                motID = MOT_ITEM_THROW;
-                motMODE = 1;
+                SET_MOTION(MOT_ITEM_THROW, 1);
                 return;
             case ITEM_JIRAI:
-                motID = MOT_ITEM_PLANT;
-                motMODE = 1;
+                SET_MOTION(MOT_ITEM_PLANT, 1);
                 return;
             case ITEM_NONE:
             case ITEM_KAWARIMI:
@@ -285,12 +259,10 @@ void ActENGAGE(void)
         {
             if (trig & PADRleft)
             {
-                motID = MOT_ATTACK_CROUCH;
-                motMODE = 1;
+                SET_MOTION(MOT_ATTACK_CROUCH, 1);
                 return;
             }
-            motID = MOT_SQUAT;
-            motMODE = 1;
+            SET_MOTION(MOT_SQUAT, 1);
             return;
         }
         else
@@ -302,14 +274,12 @@ void ActENGAGE(void)
             }
             if (dtPAD & PADLup)
             {
-                motID = MOT_CHASE;
-                motMODE = 1;
+                SET_MOTION(MOT_CHASE, 1);
                 return;
             }
             if ((dtPAD & PADLdown) == 0)
                 return;
-            motID = MOT_CHASE_BACK;
-            motMODE = 1;
+            SET_MOTION(MOT_CHASE_BACK, 1);
         }
     }
 }

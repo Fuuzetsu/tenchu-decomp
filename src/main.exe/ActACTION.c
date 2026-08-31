@@ -51,8 +51,7 @@ void ActACTION(void)
             SetCameraMode(CMODE_NORMAL);
         if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
             return;
         }
         goto set_normal_motion;
@@ -66,13 +65,11 @@ void ActACTION(void)
                 SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = MOT_ENGAGE_STANCE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
             else
             {
-                motID = 0;
-                motMODE = 1;
+                SET_MOTION(0, 1);
             }
         }
         if (dtM->count == 1)
@@ -85,13 +82,11 @@ void ActACTION(void)
                 SetCameraMode(CMODE_NORMAL);
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = MOT_ENGAGE_STANCE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
             else
             {
-                motID = 0;
-                motMODE = 1;
+                SET_MOTION(0, 1);
             }
         }
         break;
@@ -171,8 +166,7 @@ void ActACTION(void)
         }
         if (dtM->loop == -1 && dtPAD != 0)
         {
-            motID = MOT_DAMAGE_GETUP;
-            motMODE = 1;
+            SET_MOTION(MOT_DAMAGE_GETUP, 1);
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -197,8 +191,7 @@ void ActACTION(void)
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = MOT_STATE_DRAW;
-            motMODE = 1;
+            SET_MOTION(MOT_STATE_DRAW, 1);
         }
         break;
 
@@ -213,12 +206,10 @@ void ActACTION(void)
             SetCameraMode(CMODE_NORMAL);
         if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT) == 0)
             goto set_normal_motion;
-        motID = MOT_ENGAGE_STANCE;
-        motMODE = 1;
+        SET_MOTION(MOT_ENGAGE_STANCE, 1);
         return;
     set_normal_motion:
-        motID = 0;
-        motMODE = 1;
+        SET_MOTION(0, 1);
         return;
     }
 }

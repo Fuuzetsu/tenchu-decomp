@@ -77,8 +77,7 @@ void ActSYURI(void)
                 return;
             if (dtM->loop == 0)
                 return;
-            motID = MOT_SYURI_RECOVER;
-            motMODE = 1;
+            SET_MOTION(MOT_SYURI_RECOVER, 1);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -98,8 +97,7 @@ void ActSYURI(void)
         }
         else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
-            motID = MOT_SYURI_RECOVER;
-            motMODE = 1;
+            SET_MOTION(MOT_SYURI_RECOVER, 1);
             Sound(Me_MOTION_C, SE_WEAPON_RECOVER);
         }
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
@@ -111,13 +109,11 @@ void ActSYURI(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = MOT_ENGAGE_STANCE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
             else
             {
-                motID = 0;
-                motMODE = 1;
+                SET_MOTION(0, 1);
             }
         }
         break;
@@ -134,13 +130,11 @@ void ActSYURI(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = MOT_ENGAGE_STANCE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
             else
             {
-                motID = 0;
-                motMODE = 1;
+                SET_MOTION(0, 1);
             }
         }
         break;

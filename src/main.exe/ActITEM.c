@@ -102,13 +102,11 @@ void ActITEM(void)
             SetCameraMode(CMODE_NORMAL);
         if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
         }
         else
         {
-            motID = 0;
-            motMODE = 1;
+            SET_MOTION(0, 1);
         }
     }
 }

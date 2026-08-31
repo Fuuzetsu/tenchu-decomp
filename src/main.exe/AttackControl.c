@@ -152,8 +152,7 @@ void AttackControl(void)
 
                         enemy->rotate->vy = dtR->vy;
                         enemy->locate->vx = dtL->vx;
-                        motID = myid;
-                        motMODE = 1;
+                        SET_MOTION(myid, 1);
                         enemy->locate->vz = dtL->vz;
                         enemy->life = 0;
                         if ((enemy->status != STAT_DEAD || enemy->motion->loop != -1) &&
@@ -178,8 +177,7 @@ void AttackControl(void)
         {
             return;
         }
-        motID = MOT_ATTACK_BACK;
-        motMODE = 1;
+        SET_MOTION(MOT_ATTACK_BACK, 1);
     }
     else if (motID == MOT_SQUAT)
     {
@@ -187,8 +185,7 @@ void AttackControl(void)
         {
             return;
         }
-        motID = MOT_ATTACK_CROUCH;
-        motMODE = 1;
+        SET_MOTION(MOT_ATTACK_CROUCH, 1);
     }
     else if (motID == MOT_CHASE_DASH_FWD)
     {
@@ -196,12 +193,10 @@ void AttackControl(void)
         {
             return;
         }
-        motID = MOT_ATTACK;
-        motMODE = 1;
+        SET_MOTION(MOT_ATTACK, 1);
         if (GetMotionID(dtM, MOT_ATTACK_LUNGE) >= 0)
         {
-            motID = MOT_ATTACK_LUNGE;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_LUNGE, 1);
         }
     }
     else

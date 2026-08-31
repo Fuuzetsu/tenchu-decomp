@@ -206,8 +206,7 @@ void ActATTACK(void)
 
             if (Me_MOTION_C->life == 0)
             {
-                motID = MOT_DEAD;
-                motMODE = 1;
+                SET_MOTION(MOT_DEAD, 1);
                 return;
             }
             attack_id = GetAttackDBID(Me_MOTION_C, motID);
@@ -396,8 +395,7 @@ dispatch:
         {
             short i;
 
-            motID = MOT_ATTACK_SLASH3;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_SLASH3, 1);
             if (MotionUpdateMode != 0)
             {
                 for (i = 0; i < 5; i++)
@@ -426,8 +424,7 @@ dispatch:
         {
             short i;
 
-            motID = MOT_ATTACK_SLASH4;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_SLASH4, 1);
             if (MotionUpdateMode != 0)
             {
                 for (i = 0; i < 5; i++)
@@ -585,8 +582,7 @@ dispatch:
         }
         if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0)
         {
-            motID = MOT_ATTACK_DIVE_LAND;
-            motMODE = 0;
+            SET_MOTION(MOT_ATTACK_DIVE_LAND, 0);
             Sound(Me_MOTION_C, SE_LAND_HEAVY);
             spawn_smoke_burst_(dtL, 300, 0xc, 10);
         }
@@ -599,8 +595,7 @@ dispatch:
             dtM->loop--;
             if (dtM->loop < -30)
             {
-                motID = MOT_STATE_FALL;
-                motMODE = 0;
+                SET_MOTION(MOT_STATE_FALL, 0);
             }
         }
         if (motID != MOT_ATTACK_DIVE)
@@ -630,8 +625,7 @@ dispatch:
         {
             DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             mmp = dtM;
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
             mmp->mask = 0x7fff;
             return;
         }
@@ -653,8 +647,7 @@ dispatch:
         {
             return;
         }
-        motID = MOT_ENGAGE_STANCE;
-        motMODE = 1;
+        SET_MOTION(MOT_ENGAGE_STANCE, 1);
         return;
     case MOT_ATTACK_STEALTH_BACK:
     case MOT_ATTACK_STEALTH_FRONT:
@@ -737,8 +730,7 @@ dispatch:
 
         saved_mid = motID;
         DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
-        motID = MOT_ENGAGE_STANCE;
-        motMODE = 1;
+        SET_MOTION(MOT_ENGAGE_STANCE, 1);
         dtM->mask = 0x7fff;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:

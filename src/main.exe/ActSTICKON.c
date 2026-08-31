@@ -107,8 +107,7 @@ void ActSTICKON(void)
             map = StickonCheck();
             if (map == 0)
             {
-                motID = MOT_SQUAT;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT, 1);
                 dtM->mask = 0x7FFF;
                 return;
             }
@@ -167,20 +166,16 @@ void ActSTICKON(void)
             switch (dtCMD)
             {
             case 0x11:
-                motID = MOT_SQUAT_ROLL_F;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_F, 1);
                 break;
             case 0x12:
-                motID = MOT_SQUAT_ROLL_B;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_B, 1);
                 break;
             case 0x13:
-                motID = MOT_SQUAT_ROLL_L;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_L, 1);
                 break;
             case 0x14:
-                motID = MOT_SQUAT_ROLL_R;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_R, 1);
                 break;
             }
 
@@ -331,20 +326,16 @@ void ActSTICKON(void)
             switch (dtCMD)
             {
             case 0x11:
-                motID = MOT_SQUAT_ROLL_F;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_F, 1);
                 break;
             case 0x12:
-                motID = MOT_SQUAT_ROLL_B;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_B, 1);
                 break;
             case 0x13:
-                motID = MOT_SQUAT_ROLL_L;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_L, 1);
                 break;
             case 0x14:
-                motID = MOT_SQUAT_ROLL_R;
-                motMODE = 1;
+                SET_MOTION(MOT_SQUAT_ROLL_R, 1);
                 break;
             }
 
@@ -456,8 +447,7 @@ void ActSTICKON(void)
         break;
 
     slide_no_pad:
-        motID = MOT_STICKON;
-        motMODE = 1;
+        SET_MOTION(MOT_STICKON, 1);
         dtM->mask = 0x7FFF;
         break;
     }
@@ -541,8 +531,7 @@ void ActSTICKON(void)
                 break;
             }
         }
-        motID = MOT_STICKON;
-        motMODE = 1;
+        SET_MOTION(MOT_STICKON, 1);
         dtM->mask = 0x7FFF;
         return;
     }
@@ -559,13 +548,11 @@ void ActSTICKON(void)
         }
         if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
         }
         else
         {
-            motID = 0;
-            motMODE = 1;
+            SET_MOTION(0, 1);
         }
     }
 }

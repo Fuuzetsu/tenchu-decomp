@@ -190,15 +190,13 @@ void DamageControl(void)
         ReqLifeBar(Me_MOTION_C);
         if (Me_MOTION_C->life != 0)
         {
-            motID = MOT_DAMAGE;
-            motMODE = 1;
+            SET_MOTION(MOT_DAMAGE, 1);
             Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             reset_alert_duration();
         }
         else
         {
-            motID = MOT_DEAD;
-            motMODE = 1;
+            SET_MOTION(MOT_DEAD, 1);
             if ((Me_MOTION_C->type != NINKEN) &&
                 ((StagePlayer == enemy || (enemy == (Humanoid *)CONFLICT_OWNER_ITEM))))
             {
@@ -245,13 +243,11 @@ attack_break:
     }
     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
-        motID = MOT_ENGAGE_STANCE;
-        motMODE = 1;
+        SET_MOTION(MOT_ENGAGE_STANCE, 1);
     }
     else
     {
-        motID = 0;
-        motMODE = 1;
+        SET_MOTION(0, 1);
     }
     dtL->vy--;
     return;
@@ -275,8 +271,7 @@ resolve_hit:
             {
             case ITEM_MAKIBISHI:
                 dmg = DMG_MAKIBISHI;
-                motID = MOT_DAMAGE_MAKIBISHI;
-                motMODE = 1;
+                SET_MOTION(MOT_DAMAGE_MAKIBISHI, 1);
                 break;
             case ITEM_SHURIKEN:
                 if (dmg == 0)
@@ -353,15 +348,13 @@ resolve_hit:
                 }
                 if (abs_direction < 0x400)
                 {
-                    motID = MOT_DAMAGE_LAUNCH_BACK;
-                    motMODE = 0;
+                    SET_MOTION(MOT_DAMAGE_LAUNCH_BACK, 0);
                     dtR->vy += did;
                     MoveHumanoid(Me_MOTION_C, -DAMAGE_LAUNCH_SPEED, 0);
                 }
                 else
                 {
-                    motID = MOT_DAMAGE_LAUNCH_FORE;
-                    motMODE = 0;
+                    SET_MOTION(MOT_DAMAGE_LAUNCH_FORE, 0);
                     dtR->vy = (0x800 + did) + dtR->vy;
                     MoveHumanoid(Me_MOTION_C, DAMAGE_LAUNCH_SPEED, 0);
                 }
@@ -380,8 +373,7 @@ resolve_hit:
                     Me_MOTION_C->life = 0;
                     if ((u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1)
                     {
-                        motID = MOT_DEAD;
-                        motMODE = 1;
+                        SET_MOTION(MOT_DEAD, 1);
                     }
                     Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                     {
@@ -678,14 +670,12 @@ resolve_hit:
                     DeadHumanoid = Me_MOTION_C;
                     if (deg != 3)
                     {
-                        motID = MOT_DEAD;
-                        motMODE = 1;
+                        SET_MOTION(MOT_DEAD, 1);
                         SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
                     death_motion_set:
                         if ((rand() & 1) != 0)
                         {
-                            motID = MOT_DEAD_ALT;
-                            motMODE = 1;
+                            SET_MOTION(MOT_DEAD_ALT, 1);
                         }
                     }
                     else
@@ -739,8 +729,7 @@ resolve_hit:
                         deg += 4;
                     }
                     dtM->mid = -1;
-                    motID = damagemotion[deg];
-                    motMODE = 0;
+                    SET_MOTION(damagemotion[deg], 0);
                     reset_alert_duration();
                 }
             }
@@ -801,8 +790,7 @@ resolve_hit:
         Me_MOTION_C->life = Me_MOTION_C->lifemax;
         if ((u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1)
         {
-            motID = MOT_DAMAGE_FRONT_HEAVY;
-            motMODE = 1;
+            SET_MOTION(MOT_DAMAGE_FRONT_HEAVY, 1);
         }
     }
     Me_MOTION_C->pad.time = 0;
@@ -818,8 +806,7 @@ resolve_hit:
             motMODE = -1;
             return;
         }
-        motID = MOT_DEAD_DROWN;
-        motMODE = 1;
+        SET_MOTION(MOT_DEAD_DROWN, 1);
     }
     SET_NOW_MOTION_UNLESS_CVA(return);
     return;

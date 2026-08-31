@@ -111,6 +111,17 @@ struct TracePoint;
 extern short dtPAD;
 extern short motID;
 extern short motMODE;
+
+/* Request a motion: the pair every Act* state writes to hand a new motion
+ * to the shared updater. Macro is reconstruction shorthand (it expands to
+ * the identical two statements), but the original almost certainly had a
+ * one-line spelling: ActENGAGE makes 30 of these requests inside an
+ * estimated 63 source lines (tools/verbosity.py), which two lines apiece
+ * could not fit. */
+#define SET_MOTION(id, mode)                                                  \
+    motID = (id);                                                             \
+    motMODE = (mode)
+
 /* Raw button-bit view for the MOTION.C sites whose retail loads are unsigned. */
 #define MOTION_PAD_BITS (*(unsigned short *)&dtPAD)
 

@@ -95,8 +95,7 @@ void ActDAMAGE(void)
         if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
-            motID = MOT_DAMAGE_SLAM_BACK;
-            motMODE = 0;
+            SET_MOTION(MOT_DAMAGE_SLAM_BACK, 0);
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 60);
@@ -140,8 +139,7 @@ void ActDAMAGE(void)
         if ((*(u16 *)&Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
-            motID = MOT_DAMAGE_SLAM_FORE;
-            motMODE = 0;
+            SET_MOTION(MOT_DAMAGE_SLAM_FORE, 0);
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 60);
@@ -159,8 +157,7 @@ void ActDAMAGE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = MOT_DAMAGE_DOWNED;
-            motMODE = 1;
+            SET_MOTION(MOT_DAMAGE_DOWNED, 1);
             break;
         }
         dtV->vx -= (dtV->vx >> 2);
@@ -195,8 +192,7 @@ void ActDAMAGE(void)
         dtM->loop--;
         if (Me_MOTION_C->life - Me_MOTION_C->lifemax >= dtM->loop)
         {
-            motID = MOT_DAMAGE_GETUP;
-            motMODE = 1;
+            SET_MOTION(MOT_DAMAGE_GETUP, 1);
         }
         break;
 
@@ -273,8 +269,7 @@ void ActDAMAGE(void)
         }
         else
         {
-            motID = MOT_STATE_DRAW;
-            motMODE = 1;
+            SET_MOTION(MOT_STATE_DRAW, 1);
         }
     }
 }

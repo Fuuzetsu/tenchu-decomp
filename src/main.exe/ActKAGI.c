@@ -116,13 +116,11 @@ void ActKAGI(void)
                 }
                 if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
                 {
-                    motID = MOT_ENGAGE_STANCE;
-                    motMODE = 1;
+                    SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 }
                 else
                 {
-                    motID = 0;
-                    motMODE = 1;
+                    SET_MOTION(0, 1);
                 }
             }
             else
@@ -141,13 +139,11 @@ void ActKAGI(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = MOT_ENGAGE_STANCE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
             else
             {
-                motID = 0;
-                motMODE = 1;
+                SET_MOTION(0, 1);
             }
         }
 
@@ -171,8 +167,7 @@ void ActKAGI(void)
                 *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
             }
             *(u16 *)&model->object[0]->attribute |= MODEL_ATTR_HIDDEN;
-            motID = MOT_SWIM;
-            motMODE = 1;
+            SET_MOTION(MOT_SWIM, 1);
             dtM->mask = 0x7fff;
         }
         break;

@@ -47,8 +47,7 @@ void ActMOVE(void)
         }
         if ((dtPAD & PADLup) == 0)
         {
-            motID = 0;
-            motMODE = 1;
+            SET_MOTION(0, 1);
             break;
         }
         if (Me_MOTION_C->attribute & ATTR_WALL)
@@ -93,8 +92,7 @@ void ActMOVE(void)
         }
         if ((dtPAD & PADLdown) == 0)
         {
-            motID = 0;
-            motMODE = 1;
+            SET_MOTION(0, 1);
         }
         {
             int current;
@@ -124,8 +122,7 @@ void ActMOVE(void)
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = 0;
-            motMODE = 1;
+            SET_MOTION(0, 1);
         }
         break;
 
@@ -182,14 +179,12 @@ void ActMOVE(void)
         }
         if (dtPAD & PADRright)
         {
-            motID = MOT_SQUAT;
-            motMODE = 1;
+            SET_MOTION(MOT_SQUAT, 1);
             return;
         }
         if (trig & PADRleft)
         {
-            motID = MOT_STATE_DRAW;
-            motMODE = 1;
+            SET_MOTION(MOT_STATE_DRAW, 1);
         }
     }
 }

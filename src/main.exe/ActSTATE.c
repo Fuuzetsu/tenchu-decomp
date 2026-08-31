@@ -172,8 +172,7 @@ void ActSTATE(void)
                 human->chase[1] = chase_z;
             }
         }
-        motID = MOT_ENGAGE_STANCE;
-        motMODE = 1;
+        SET_MOTION(MOT_ENGAGE_STANCE, 1);
         return;
 
     case MOT_STATE_SHEATHE: /* stand down: sheathe (hitboxes and afterimage off),
@@ -241,8 +240,7 @@ void ActSTATE(void)
         {
             return;
         }
-        motID = 0;
-        motMODE = 1;
+        SET_MOTION(0, 1);
         return;
 
     case MOT_STATE_FALL:
@@ -252,8 +250,7 @@ void ActSTATE(void)
         }
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {
-            motID = MOT_ATTACK_DIVE;
-            motMODE = 0;
+            SET_MOTION(MOT_ATTACK_DIVE, 0);
         }
         {
             Humanoid *human;
@@ -269,13 +266,11 @@ void ActSTATE(void)
                     }
                     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                     {
-                        motID = MOT_ENGAGE_STANCE;
-                        motMODE = 1;
+                        SET_MOTION(MOT_ENGAGE_STANCE, 1);
                     }
                     else
                     {
-                        motID = 0;
-                        motMODE = 1;
+                        SET_MOTION(0, 1);
                     }
                     Sound(Me_MOTION_C, SE_LAND_LIGHT);
                     return;
@@ -284,15 +279,13 @@ void ActSTATE(void)
                 {
                     if ((human->type & PAGE_MASK) != PAGE_GUARD)
                     {
-                        motID = MOT_STATE_LAND_HEAVY;
-                        motMODE = 0;
+                        SET_MOTION(MOT_STATE_LAND_HEAVY, 0);
                         return;
                     }
                 }
                 else
                 {
-                    motID = MOT_STATE_LAND;
-                    motMODE = 0;
+                    SET_MOTION(MOT_STATE_LAND, 0);
                     return;
                 }
 
@@ -332,8 +325,7 @@ void ActSTATE(void)
         if (dtM->count < 5 && (dtPAD & PADRright) != 0 &&
             (Me_MOTION_C->pad.trig & PADRdown) != 0)
         {
-            motID = MOT_SQUAT_BACKFLIP;
-            motMODE = 1;
+            SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
             dtR->vy += 0x800;
         }
         /* fall through */
@@ -411,8 +403,7 @@ void ActSTATE(void)
                 return;
             }
         }
-        motID = MOT_CHASE;
-        motMODE = 1;
+        SET_MOTION(MOT_CHASE, 1);
         if (MotionUpdateMode != 0)
         {
             i = 0;
@@ -450,8 +441,7 @@ void ActSTATE(void)
             break;
         }
     zero_motion:
-        motID = 0;
-        motMODE = 1;
+        SET_MOTION(0, 1);
         return;
 
     default:

@@ -90,36 +90,30 @@ void ActHANG(void)
                 y += 100;
                 dtL->vy = y;
             } while (HangCheck() != 0);
-            motID = MOT_STATE_FALL;
-            motMODE = 0;
+            SET_MOTION(MOT_STATE_FALL, 0);
         }
         else if (MOTION_PAD_BITS & PADLright)
         {
-            motID = MOT_HANG_SHIMMY_RIGHT;
-            motMODE = 1;
+            SET_MOTION(MOT_HANG_SHIMMY_RIGHT, 1);
         }
         else if (MOTION_PAD_BITS & PADLleft)
         {
-            motID = MOT_HANG_SHIMMY_LEFT;
-            motMODE = 1;
+            SET_MOTION(MOT_HANG_SHIMMY_LEFT, 1);
         }
         else if ((MOTION_PAD_BITS & PADLup) && GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000, dtL->vz, 1) != (u32)LEVEL_NONE)
         {
-            motID = MOT_HANG_PULLUP;
-            motMODE = 1;
+            SET_MOTION(MOT_HANG_PULLUP, 1);
         }
         break;
     case MOT_HANG_SHIMMY_RIGHT:
     case MOT_HANG_SHIMMY_LEFT:
         if ((dtPAD & (PADLleft | PADLright)) == 0)
         {
-            motID = MOT_HANG;
-            motMODE = 1;
+            SET_MOTION(MOT_HANG, 1);
         }
         else if (HangCheck() == 0)
         {
-            motID = MOT_STATE_FALL;
-            motMODE = 0;
+            SET_MOTION(MOT_STATE_FALL, 0);
         }
         if (dtM->count == 1)
         {
@@ -135,12 +129,10 @@ void ActHANG(void)
             }
             if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                motID = MOT_ENGAGE_STANCE;
-                motMODE = 1;
+                SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 return;
             }
-            motID = 0;
-            motMODE = 1;
+            SET_MOTION(0, 1);
             return;
         }
         if (dtM->count >= 0)
@@ -155,8 +147,7 @@ void ActHANG(void)
     case MOT_HANG_CATCH:
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = MOT_HANG;
-            motMODE = 1;
+            SET_MOTION(MOT_HANG, 1);
         }
         break;
     }
@@ -164,7 +155,6 @@ void ActHANG(void)
     {
         /* Shoved by a conflict object while hanging: knocked off. */
         MoveHumanoid(Me_MOTION_C, -10, 0);
-        motID = MOT_STATE_FALL;
-        motMODE = 0;
+        SET_MOTION(MOT_STATE_FALL, 0);
     }
 }

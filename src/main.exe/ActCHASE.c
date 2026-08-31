@@ -74,8 +74,7 @@ void ActCHASE(void)
             {
                 short i;
 
-                motID = MOT_STATE_CLIMB;
-                motMODE = 0;
+                SET_MOTION(MOT_STATE_CLIMB, 0);
                 if (MotionUpdateMode != 0)
                 {
                     i = 0;
@@ -170,13 +169,11 @@ void ActCHASE(void)
 
         if ((dtPAD & PADLdown) == 0)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
         }
         else if (dtCMD == CMD_LUNGE_BACK)
         {
-            motID = MOT_ATTACK_LUNGE_BACK;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_LUNGE_BACK, 1);
         }
         else if (dtPAD & (PADLleft | PADLright))
         {
@@ -206,12 +203,10 @@ void ActCHASE(void)
         }
         if (Me_MOTION_C->pad.trig & PADRleft)
         {
-            motID = MOT_ATTACK_CROUCH;
-            motMODE = 1;
+            SET_MOTION(MOT_ATTACK_CROUCH, 1);
             return;
         }
-        motID = MOT_SQUAT;
-        motMODE = 1;
+        SET_MOTION(MOT_SQUAT, 1);
         break;
     }
 
@@ -239,8 +234,7 @@ void ActCHASE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            SET_MOTION(MOT_ENGAGE_STANCE, 1);
         }
         return;
     }
@@ -251,8 +245,7 @@ void ActCHASE(void)
 
     if (dtCMD == CMD_FLIP)
     {
-        motID = MOT_JUMP_FLIP;
-        motMODE = 0;
+        SET_MOTION(MOT_JUMP_FLIP, 0);
         MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
         return;
     }
