@@ -64,6 +64,21 @@ extern s16 Think1target(void);
 
 void ProcItemDokudango(TItem *item)
 {
+    enum
+    {
+        DOKUDANGO_MODE_ROLL = 0,
+        DOKUDANGO_MODE_SEARCH = 1,
+        DOKUDANGO_MODE_EAT = 2,
+        DOKUDANGO_MODE_POISON = 3,
+        INACTIVE_LIFE = -1,
+        DOKUDANGO_PICKUP_RANGE = 500,
+        DOKUDANGO_EAT_RANGE = 1000,
+        DOKUDANGO_ROLL_DELAY = 30,
+        DOKUDANGO_EAT_FRAME = 55,
+        DOKUDANGO_POISON_DURATION = 600,
+        DOKUDANGO_REACTION_PERIOD = 30,
+        DOKUDANGO_REACTION_CHANCE = 3
+    };
     Sprite3D *model;
     param_dokudango *param;
 
@@ -71,21 +86,21 @@ void ProcItemDokudango(TItem *item)
     param = &item->param.dokudango;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        param_dokudango *restore;
+        param_dokudango *restore_param;
 
-        restore = param;
-        if (is_humanoid_on_stage_(restore->eater) != 0 &&
-            restore->org_think != 0)
+        restore_param = param;
+        if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
+            restore_param->org_think != 0)
         {
-            restore->eater->think[0] = restore->org_think;
-            restore->eater->target = (ModelType *)item->owner->model;
+            restore_param->eater->think[0] = restore_param->org_think;
+            restore_param->eater->target = (ModelType *)item->owner->model;
         }
-        restore->eater = 0;
-        item->mode = 0;
+        restore_param->eater = 0;
+        item->mode = DOKUDANGO_MODE_ROLL;
         return;
     }
 
-    if (item->mode < 2 &&
+    if (item->mode < DOKUDANGO_MODE_EAT &&
         (MoveKorogari(item, &param->koro),
          param->koro.status == KORO_WATER))
     {
@@ -98,7 +113,7 @@ void ProcItemDokudango(TItem *item)
     }
     else
     {
-        if (item->mode < 3)
+        if (item->mode < DOKUDANGO_MODE_POISON)
         {
             UpdateCoordinate(item->locate);
             model->locate = item->locate->locate;
@@ -107,13 +122,13 @@ void ProcItemDokudango(TItem *item)
 
         switch (item->mode)
         {
-        case 0:
+        case DOKUDANGO_MODE_ROLL:
         {
-            u16 count;
+            u16 roll_countdown;
 
-            count = param->count - 1;
-            param->count = count;
-            if ((s16)count > 0)
+            roll_countdown = param->count - 1;
+            param->count = roll_countdown;
+            if ((s16)roll_countdown > 0)
             {
                 return;
             }
@@ -121,117 +136,120 @@ void ProcItemDokudango(TItem *item)
             return;
         }
 
-        case 1:
+        case DOKUDANGO_MODE_SEARCH:
         {
-            TFindItemTarget find;
-            TFindItemTarget *q;
+            TFindItemTarget search_state;
+            TFindItemTarget *search_setup;
             TFindItemTarget *search;
-            VECTOR *pos;
-            Humanoid **group;
-            Humanoid *target;
+            VECTOR *item_position;
+            Humanoid **human_cursor;
+            Humanoid *nearest_target;
             Humanoid *candidate;
-            Humanoid *human;
-            Humanoid *found;
-            s32 targetlen;
-            s32 ownerlen;
-            s32 i;
-            s32 dist;
+            Humanoid *eater;
+            Humanoid *scan_result;
+            s32 nearest_distance;
+            s32 owner_distance;
+            s32 human_index;
+            s32 candidate_distance;
 
             if ((GameClock & 1) != 0)
             {
                 return;
             }
-            target = 0;
-            targetlen = DOKUDANGO_RANGE;
-            q = &find;
-            pos = (VECTOR *)item->locate->locate.coord.t;
-            ownerlen = targetlen;
-            q->i = 0;
-            q->pos.vx = pos->vx;
-            search = &find;
-            search->pos.vy = pos->vy;
-            search->pos.vz = pos->vz;
-            search->find_dist = targetlen;
+            nearest_target = 0;
+            nearest_distance = DOKUDANGO_RANGE;
+            search_setup = &search_state;
+            item_position = (VECTOR *)item->locate->locate.coord.t;
+            owner_distance = nearest_distance;
+            search_setup->i = 0;
+            search_setup->pos.vx = item_position->vx;
+            search = &search_state;
+            search->pos.vy = item_position->vy;
+            search->pos.vz = item_position->vz;
+            search->find_dist = nearest_distance;
 
             while (1)
             {
-                i = search->i;
-                group = HumanGroup + i;
+                human_index = search->i;
+                human_cursor = HumanGroup + human_index;
                 while (1)
                 {
-                    if (i < Humans)
+                    if (human_index < Humans)
                     {
-                        candidate = *group;
+                        candidate = *human_cursor;
                         if (candidate->life > 0 &&
                             candidate->motion->mid != MOT_ACTION &&
                             (candidate->attribute & ATTR_SUSPEND) == 0)
                         {
-                            dist = GetVectorDistance(&search->pos,
-                                                     candidate->locate);
-                            if (dist < search->find_dist)
+                            candidate_distance =
+                                GetVectorDistance(&search->pos,
+                                                  candidate->locate);
+                            if (candidate_distance < search->find_dist)
                             {
                                 goto hit;
                             }
                         }
                         /* GCC folds this unsigned pointer progression after
-                         * flow; its extra group reference replaces the old
-                         * allocation-only wrapper. */
-                        group = (Humanoid **)(((u32)group + (u32)group) -
-                                              (u32)group) + 1;
-                        i++;
+                         * flow; its extra human_cursor reference replaces
+                         * the old allocation-only wrapper. */
+                        human_cursor = (Humanoid **)(
+                            ((u32)human_cursor + (u32)human_cursor) -
+                            (u32)human_cursor) + 1;
+                        human_index++;
                         continue;
                     }
-                    found = 0;
+                    scan_result = 0;
                     break;
                 }
             check:
-                if (found == 0)
+                if (scan_result == 0)
                 {
                     break;
                 }
-                if ((find.find->type & PAGE_MASK) != PAGE_BOSS &&
-                    find.find->life != -1 && find.dist < targetlen)
+                if ((search_state.find->type & PAGE_MASK) != PAGE_BOSS &&
+                    search_state.find->life != INACTIVE_LIFE &&
+                    search_state.dist < nearest_distance)
                 {
-                    if (find.find != item->owner)
+                    if (search_state.find != item->owner)
                     {
                         goto set_target;
                     }
-                    ownerlen = find.dist;
+                    owner_distance = search_state.dist;
                 }
                 continue;
             hit:
-                found = candidate;
+                scan_result = candidate;
                 do
                 {
                     search->find = candidate;
-                    search->dist = dist;
-                    search->i = i + 1;
+                    search->dist = candidate_distance;
+                    search->i = human_index + 1;
                 } while (0);
                 goto check;
             set_target:
-                target = find.find;
-                targetlen = find.dist;
+                nearest_target = search_state.find;
+                nearest_distance = search_state.dist;
                 continue;
             }
 
-            if (ownerlen < 500)
+            if (owner_distance < DOKUDANGO_PICKUP_RANGE)
             {
-                PARAM_ITEM_LAUNCH param;
+                PARAM_ITEM_LAUNCH drop_request;
 
-                param.type = item->type;
-                param.user = item->owner;
-                param.start.vx = item->locate->locate.coord.t[0];
-                param.start.vy = item->locate->locate.coord.t[1];
-                param.start.vz = item->locate->locate.coord.t[2];
-                param.end.vx = 0;
-                param.end.vy = 0;
-                param.end.vz = 0;
+                drop_request.type = item->type;
+                drop_request.user = item->owner;
+                drop_request.start.vx = item->locate->locate.coord.t[0];
+                drop_request.start.vy = item->locate->locate.coord.t[1];
+                drop_request.start.vz = item->locate->locate.coord.t[2];
+                drop_request.end.vx = 0;
+                drop_request.end.vy = 0;
+                drop_request.end.vz = 0;
                 if (item->proc != 0)
                 {
                     item->mode = ITEM_MODE_DISPOSE;
                     item->proc(item);
                     DeleteConflict(item->locate);
-                    if (item->mode != 0)
+                    if (item->mode != DOKUDANGO_MODE_ROLL)
                     {
                         AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
@@ -239,31 +257,32 @@ void ProcItemDokudango(TItem *item)
                     item->owner = 0;
                     item->proc = 0;
                 }
-                ReqItemDrop(&param);
+                ReqItemDrop(&drop_request);
                 return;
             }
 
-            if (target == 0)
+            if (nearest_target == 0)
             {
                 return;
             }
             {
-                param_dokudango *restore;
+                param_dokudango *restore_param;
 
-                restore = &item->param.dokudango;
-                if (is_humanoid_on_stage_(restore->eater) != 0 &&
-                    restore->org_think != 0)
+                restore_param = &item->param.dokudango;
+                if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
+                    restore_param->org_think != 0)
                 {
-                    restore->eater->think[0] = restore->org_think;
-                    restore->eater->target = (ModelType *)item->owner->model;
+                    restore_param->eater->think[0] = restore_param->org_think;
+                    restore_param->eater->target =
+                        (ModelType *)item->owner->model;
                 }
-                restore->eater = 0;
+                restore_param->eater = 0;
             }
-            param->eater = target;
-            if (target->target == (ModelType *)item->owner->model &&
-                (target->attribute & ATTR_PHASE) == PHASE_CALM)
+            param->eater = nearest_target;
+            if (nearest_target->target == (ModelType *)item->owner->model &&
+                (nearest_target->attribute & ATTR_PHASE) == PHASE_CALM)
             {
-                param->org_think = target->think[0];
+                param->org_think = nearest_target->think[0];
                 param->eater->target = item->locate;
                 param->eater->think[0] = Think1target;
             }
@@ -272,30 +291,32 @@ void ProcItemDokudango(TItem *item)
                 param->org_think = 0;
             }
 
-            if (targetlen >= 1000)
+            if (nearest_distance >= DOKUDANGO_EAT_RANGE)
             {
                 return;
             }
-            human = param->eater;
-            if (human->status == STAT_DAMAGE || human->status == STAT_STATE ||
-                human->status == STAT_ATTACK || human->life <= 0)
+            eater = param->eater;
+            if (eater->status == STAT_DAMAGE || eater->status == STAT_STATE ||
+                eater->status == STAT_ATTACK || eater->life <= 0)
             {
                 return;
             }
             if (ActionHalt == 0)
             {
-                MotionDataType *motion;
+                MotionDataType *motion_data;
 
-                dispose_weapon_data_of_char_(human, 3);
-                UpdateMotion(human->motion, MOT_ITEM_DRINK);
-                human->status = STAT_ITEM;
-                motion = human->motion->motion;
-                MoveHumanoid(human, motion->orderspd, motion->sidespd);
+                dispose_weapon_data_of_char_(eater, 3);
+                UpdateMotion(eater->motion, MOT_ITEM_DRINK);
+                eater->status = STAT_ITEM;
+                motion_data = eater->motion->motion;
+                MoveHumanoid(eater, motion_data->orderspd,
+                             motion_data->sidespd);
             }
-            if (param->eater->model->n >= 0xf)
+            if (param->eater->model->n > MODEL_PART_WEAPON_HAND_1)
             {
                 item->locate->locate.super =
-                    &param->eater->model->object[14]->locate;
+                    &param->eater->model
+                         ->object[MODEL_PART_WEAPON_HAND_1]->locate;
                 item->locate->locate.coord.t[0] = 0;
                 item->locate->locate.coord.t[1] = 50;
                 item->locate->locate.coord.t[2] = 0;
@@ -303,7 +324,8 @@ void ProcItemDokudango(TItem *item)
             else
             {
                 item->locate->locate.super =
-                    &param->eater->model->object[2]->locate;
+                    &param->eater->model
+                         ->object[MODEL_PART_BEAST_HAND_0]->locate;
                 item->locate->locate.coord.t[0] = 0;
                 item->locate->locate.coord.t[1] = 0;
                 item->locate->locate.coord.t[2] = -150;
@@ -312,61 +334,62 @@ void ProcItemDokudango(TItem *item)
             return;
         }
 
-        case 2:
+        case DOKUDANGO_MODE_EAT:
         {
-            MotionManager *motion;
+            MotionManager *eating_motion;
             Humanoid *eater;
 
             if (is_humanoid_on_stage_(param->eater) == 0)
             {
-                goto dispose_case3;
+                goto dispose_poison;
             }
             eater = param->eater;
-            motion = eater->motion;
-            if (motion->mid != MOT_ITEM_DRINK)
+            eating_motion = eater->motion;
+            if (eating_motion->mid != MOT_ITEM_DRINK)
             {
-                VECTOR *tv;
-                s32 x;
-                s32 y;
-                s32 z;
+                VECTOR *world_position;
+                s32 random_x;
+                s32 random_y;
+                s32 random_z;
 
-                tv = GetAbsolutePosition(item->locate, 0, 0, 0);
+                world_position = GetAbsolutePosition(item->locate, 0, 0, 0);
                 item->locate->locate.super = 0;
-                item->locate->locate.coord.t[0] = tv->vx;
-                item->locate->locate.coord.t[1] = tv->vy;
-                item->locate->locate.coord.t[2] = tv->vz;
-                x = rand();
-                x = x % 200;
-                y = rand();
-                y = y % 100;
-                z = rand();
-                z = z % 200;
-                param->koro.vx = x - 100;
-                param->koro.vy = y - 200;
-                param->count = 30;
+                item->locate->locate.coord.t[0] = world_position->vx;
+                item->locate->locate.coord.t[1] = world_position->vy;
+                item->locate->locate.coord.t[2] = world_position->vz;
+                random_x = rand();
+                random_x = random_x % 200;
+                random_y = rand();
+                random_y = random_y % 100;
+                random_z = rand();
+                random_z = random_z % 200;
+                param->koro.vx = random_x - 100;
+                param->koro.vy = random_y - 200;
+                param->count = DOKUDANGO_ROLL_DELAY;
                 param->koro.hint = 0;
                 param->koro.status = KORO_NORMAL;
-                param->koro.vz = z - 100;
-                item->mode = 0;
+                param->koro.vz = random_z - 100;
+                item->mode = DOKUDANGO_MODE_ROLL;
                 return;
             }
-            if (motion->count == 55)
+            if (eating_motion->count == DOKUDANGO_EAT_FRAME)
             {
-                Humanoid *human;
-                param_dokudango *restore;
+                Humanoid *saved_eater;
+                param_dokudango *restore_param;
 
-                human = eater;
-                restore = &item->param.dokudango;
-                if (is_humanoid_on_stage_(restore->eater) != 0 &&
-                    restore->org_think != 0)
+                saved_eater = eater;
+                restore_param = &item->param.dokudango;
+                if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
+                    restore_param->org_think != 0)
                 {
-                    restore->eater->think[0] = restore->org_think;
-                    restore->eater->target = (ModelType *)item->owner->model;
+                    restore_param->eater->think[0] = restore_param->org_think;
+                    restore_param->eater->target =
+                        (ModelType *)item->owner->model;
                 }
-                restore->eater = 0;
-                param->eater = human;
-                NowReturnNormal(human);
-                param->count = 600;
+                restore_param->eater = 0;
+                param->eater = saved_eater;
+                NowReturnNormal(saved_eater);
+                param->count = DOKUDANGO_POISON_DURATION;
                 item->mode++;
                 return;
             }
@@ -377,28 +400,28 @@ void ProcItemDokudango(TItem *item)
             }
             return;
         }
-        case 3:
+        case DOKUDANGO_MODE_POISON:
         {
-            Humanoid *eater;
-            Humanoid *human;
-            s32 count;
+            Humanoid *poisoned_eater;
+            Humanoid *reaction_target;
+            s32 poison_countdown;
 
             if (is_humanoid_on_stage_(param->eater) == 0)
             {
-                goto dispose_case3;
+                goto dispose_poison;
             }
-            count = param->count - 1;
-            param->count = count;
-            if ((count << 16) == 0)
+            poison_countdown = param->count - 1;
+            param->count = poison_countdown;
+            if ((poison_countdown << 16) == 0)
             {
-                goto dispose_case3;
+                goto dispose_poison;
             }
-            eater = param->eater;
-            if (eater->life > 0)
+            poisoned_eater = param->eater;
+            if (poisoned_eater->life > 0)
             {
                 goto poison_active;
             }
-        dispose_case3:
+        dispose_poison:
         {
             if (item->proc == 0)
             {
@@ -409,38 +432,43 @@ void ProcItemDokudango(TItem *item)
         }
 
         poison_active:
-            if (eater->status == STAT_DAMAGE || eater->status == STAT_STATE ||
-                eater->status == STAT_ATTACK || eater->status == STAT_ITEM)
+            if (poisoned_eater->status == STAT_DAMAGE ||
+                poisoned_eater->status == STAT_STATE ||
+                poisoned_eater->status == STAT_ATTACK ||
+                poisoned_eater->status == STAT_ITEM)
             {
                 return;
             }
-            if (rand() % 30 >= 3)
+            if (rand() % DOKUDANGO_REACTION_PERIOD >=
+                DOKUDANGO_REACTION_CHANCE)
             {
                 return;
             }
-            human = param->eater;
-            if ((human->type & PAGE_MASK) == PAGE_BEAST)
+            reaction_target = param->eater;
+            if ((reaction_target->type & PAGE_MASK) == PAGE_BEAST)
             {
-                if (ActionHalt == 0 && human->life > 0)
+                if (ActionHalt == 0 && reaction_target->life > 0)
                 {
-                    MotionDataType *motion;
+                    MotionDataType *motion_data;
 
-                    dispose_weapon_data_of_char_(human, 3);
-                    UpdateMotion(human->motion, MOT_DAMAGE);
-                    human->status = STAT_ITEM;
-                    motion = human->motion->motion;
-                    MoveHumanoid(human, motion->orderspd, motion->sidespd);
+                    dispose_weapon_data_of_char_(reaction_target, 3);
+                    UpdateMotion(reaction_target->motion, MOT_DAMAGE);
+                    reaction_target->status = STAT_ITEM;
+                    motion_data = reaction_target->motion->motion;
+                    MoveHumanoid(reaction_target, motion_data->orderspd,
+                                 motion_data->sidespd);
                 }
             }
-            else if (ActionHalt == 0 && human->life > 0)
+            else if (ActionHalt == 0 && reaction_target->life > 0)
             {
-                MotionDataType *motion;
+                MotionDataType *motion_data;
 
-                dispose_weapon_data_of_char_(human, 3);
-                UpdateMotion(human->motion, MOT_DAMAGE_CHOKE);
-                human->status = STAT_ITEM;
-                motion = human->motion->motion;
-                MoveHumanoid(human, motion->orderspd, motion->sidespd);
+                dispose_weapon_data_of_char_(reaction_target, 3);
+                UpdateMotion(reaction_target->motion, MOT_DAMAGE_CHOKE);
+                reaction_target->status = STAT_ITEM;
+                motion_data = reaction_target->motion->motion;
+                MoveHumanoid(reaction_target, motion_data->orderspd,
+                             motion_data->sidespd);
             }
             Sound(param->eater, CHAR_VOICE_HURT);
             return;
