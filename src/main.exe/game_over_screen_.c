@@ -116,6 +116,17 @@ void game_over_screen_(void)
     u16 previous_pad;
     u16 new_press;
     s16 shade;
+    /* Fade up from black, hold on the title, let the player page to the
+     * archive text, then fade back down -- to a retry or to the menu,
+     * which is the only difference between the last two. */
+    enum
+    {
+        GAMEOVER_FADE_IN = 1,
+        GAMEOVER_TITLE = 2,
+        GAMEOVER_ARCHIVE = 3,
+        GAMEOVER_FADE_TO_RETRY = 4,
+        GAMEOVER_FADE_TO_MENU = 5
+    };
     s32 state;
     s32 title_brightness;
     s32 setup_brightness;
@@ -127,7 +138,7 @@ void game_over_screen_(void)
     s32 chr_offset;
     char **prefix_entry;
 
-    state = 1;
+    state = GAMEOVER_FADE_IN;
     shade = 0x80;
     title_brightness = 0;
     old_pad = 0;
@@ -227,11 +238,11 @@ void game_over_screen_(void)
 
         switch (state)
         {
-        case 1:
+        case GAMEOVER_FADE_IN:
             shade -= 2;
             if (shade <= 0)
             {
-                state = 2;
+                state = GAMEOVER_TITLE;
                 shade = 0;
                 clear_rect.x = 0x280;
                 clear_rect.y = 360;
@@ -242,14 +253,14 @@ void game_over_screen_(void)
             tile_sprite_(fade_sprite, shade);
             break;
 
-        case 2:
+        case GAMEOVER_TITLE:
             previous_pad = old_pad;
             pad = GetRealPad(0);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
             if ((new_press & PADRright) != 0 && GameClock < 0x23b)
             {
-                state = 3;
+                state = GAMEOVER_ARCHIVE;
                 gov_title.r = gov_title.g = gov_title.b = 0x80;
                 archive_line_1.r = archive_line_1.g = archive_line_1.b =
                     0x80;
@@ -284,7 +295,7 @@ void game_over_screen_(void)
             }
             goto sort_prompt_and_handle_input;
 
-        case 3:
+        case GAMEOVER_ARCHIVE:
             previous_pad = old_pad;
             pad = GetRealPad(0);
             old_pad = pad;
@@ -297,15 +308,15 @@ void game_over_screen_(void)
             GsSortSprite(&gov_prompt, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
             if ((new_press & PADRright) != 0)
             {
-                state = 4;
+                state = GAMEOVER_FADE_TO_RETRY;
             }
             if ((new_press & PADstart) != 0 || GameClock >= GAME_OVER_TIMEOUT)
             {
-                state = 5;
+                state = GAMEOVER_FADE_TO_MENU;
             }
             break;
 
-        case 4:
+        case GAMEOVER_FADE_TO_RETRY:
             shade += 4;
             if (shade >= 0x80)
             {
@@ -319,7 +330,7 @@ void game_over_screen_(void)
             tile_sprite_(fade_sprite, shade);
             break;
 
-        case 5:
+        case GAMEOVER_FADE_TO_MENU:
             shade += 4;
             if (shade >= 0x80)
             {
