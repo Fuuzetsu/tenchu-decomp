@@ -831,12 +831,22 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   * a distant shared tail of ONE clean action plus `return` can just be
     duplicated: 2.8.1 cross-jumps it back into one block (ActATTACK's
     `unmask`, DamageControl's `alerted`).
-  When a goto ladder tests ONE masked value against constants, try a
-  `switch` FIRST: camera_terrain_pitch_'s two slope ladders (6 gotos +
-  6 labels) are byte-identical as switches, while the if/else-if
-  spelling of the same dispatch measures 64/82 lines and caching the
-  mask in a local measures 64 — only the switch reproduces the
-  test-and-branch layout.
+  **When a goto ladder tests ONE value against constants, try a `switch`
+  FIRST — and do not trust a recorded note that says it cannot be one.**
+  Six-for-six on 2026-08-31 (camera_terrain_pitch_ x2, spare_item_slot_,
+  cd_seek, DrawFrame, MoveFly, ProcItemManebue): every such ladder
+  converted byte-identically, 20+ gotos and labels gone. Three of those
+  files carried explicit notes asserting the ladder was required
+  ("explicit goto-ladder, NOT a switch"; "the `zero` variable and the
+  goto ladder reproduce the original dispatch") — all three were
+  falsified, and ProcItemManebue's helper local deleted with its ladder.
+  The mechanism the old notes described is real but is what cc1 emits
+  FROM a switch: tests in source order, case bodies placed out of line
+  after them, and the default's call reached by a jump reorg retargets
+  past stolen delay-slot instructions. Note the if/else-if spelling of
+  the same dispatch is NOT equivalent (64/82 lines on
+  camera_terrain_pitch_), nor is caching the tested value in a local:
+  it is specifically `switch`.
   Scaling rules from round 8 (71 gotos + 16 labels across nine files):
   normalize a local return ladder into ONE ordered if/else join BEFORE
   testing direct returns (AttackLong measures 71 lines in the
