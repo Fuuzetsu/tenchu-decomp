@@ -824,13 +824,47 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   found the hard way. Ascending runs are already natural — leave them.
   Sweep: consecutive lines, same object, same RHS, descending sibling fields.
 
-- **Prefer Sony's own LIBGPU macros over hand-written field runs.** A 1997
-  PS1 team wrote `setRGB0(p, r, g, b)`, not three assignments; the macros are
-  comma expressions, so they emit the identical stores in the identical
-  order. `include/psxsdk/libgpu.h` is a reconstruction — if the macro a site
-  wants is missing (setRGB1/2/3 and setUV4 were), add it from the real SDK
-  rather than open-coding. SetupImageToPolyGT4's twelve neutral `0x7F` byte
-  stores became four `setRGB0..3` lines with zero byte churn.
+- **Prefer Sony's own LIBGPU/LIBGTE macros over hand-written field runs.** A
+  1997 PS1 team wrote `setRGB0(p, r, g, b)` and `setVector(v, x, y, z)`, not
+  three assignments each; the macros are comma expressions, so they emit the
+  identical stores in the identical order. `include/psxsdk/*.h` is a
+  reconstruction — if the macro a site wants is missing, add it from the real
+  SDK rather than open-coding. setRGB1/2/3, setUV4, setVector and copyVector
+  were all absent, which is why ~30 sites spelled them out; SetupImageToPolyGT4's
+  twelve neutral `0x7F` byte stores became four `setRGB0..3` lines with zero
+  byte churn. Judgement still applies at the call: leave the three lines when
+  one would be worse, as with a jitter triple that calls `rand()` three times
+  or an argument list that overflows the line.
+
+- **Check whether the tree already names a value before inventing a name,
+  and check the header's own policy before adding one.** The single most
+  productive sweep of the humanising campaign is finding a file that spells
+  in hex what a constant elsewhere already names: COLOR_GRAY, CMD_ROLL_*,
+  ITEM_INFINITE, ITEM_LOCKED, ATTR_CUSTOMAI, GAME_RETRY_REPLAY, STAT_NORMAL,
+  MOTION_MASK_ALL. Two traps on the other side. (1) A generic name where a
+  domain one exists is still wrong: SetSmoke's scale range is
+  SMOKE_SCALE_MIN/SPREAD — which tuning.h's comment names those exact files
+  for, and which the file's own header quotes — not FIXED_ONE arithmetic.
+  (2) `tuning.h` says to add a constant only when the quantity recurs across
+  files or is an obvious knob, and to leave one-off frame counts inline;
+  respect that instead of promoting every literal you touch.
+
+- **A name has to beat the number, and the siblings decide.** Before naming
+  a literal, look at how sibling files spell the same value. `rand() % 360`
+  is written plainly in four files and needs no `DEGREES_PER_TURN` — the
+  number is self-evident. `case 0:` in a state machine is NOT self-evident,
+  so KAWARIMI_MODE_START earns its place even though ~20 ProcItem siblings
+  still write bare modes: there, being first is right and the siblings are
+  the queue. Ask whether you are the odd one out because you are wrong or
+  because they are.
+
+- **Naming a value creates two follow-up jobs.** Sweep the whole function
+  for every other place that value appears, or you end up testing by name
+  and assigning by number (`if (mode & 1)` with `&= 0xfffe`; a flag raised
+  with GAME_RETRY_REPLAY and cleared with `0xfe`). Then re-read the comments:
+  a note that explains a value by its digits goes stale the moment you name
+  it. A mechanical way to find the first: sweep for `&=` masks whose
+  complement is one or two bits.
 
 - **Decompiler comma chains flatten to nested ifs byte-identically**
   (ActATTACK): `if (A && (x = e, f(x), y != 0) && (g(), z))` is the same
