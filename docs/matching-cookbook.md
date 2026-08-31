@@ -770,6 +770,18 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   is one above a round number, respell it; ~38 sites cleaned in one
   sweep (IsVisible, the Attack* degree windows, Think3chase bands).
 
+- **`p[i * K + j]` — the asm tells you whether it was really `p[i][j]`,
+  before you probe.** A genuine 2D or paired-struct access folds the second
+  element into the load displacement (`lbu $4,1($18)`); flat index arithmetic
+  re-adds the base for each element (`addu $18,$18,1; addu $18,$20,$18;
+  lbu $4,0($18)`). Read the reference first and only convert when you see the
+  displacement form. gItem's `[i + CHOSEN_CHARACTER * 0x20]` converted to
+  `gItem[2][SAVE_ITEM_SLOTS]` on that evidence; InitEffect's
+  `bloodp->image[i * 2]` / `[i * 2 + 1]` looks identical in C but shows the
+  re-add, and both `u8 image[4][2]` and an array of named pairs land 24 lines
+  off. The stride pattern is a strong hint about intent, not a licence to
+  convert.
+
 - **A `*(s32 *)&` on a field that is ALREADY a long is not a no-op.** It
   reads the same bytes, but cc1 treats the punned MEM as a different memory
   reference and schedules around it differently. DrawBleed reads a VECTOR's

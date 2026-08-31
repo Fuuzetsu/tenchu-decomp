@@ -100,6 +100,10 @@ void InitEffect(void)
     bloodp = &blood_images;
     for (; i < 4; i++)
     {
+        /* Not a flattened image[4][2]: the target recomputes the index and
+         * re-adds the base for the second element (addu/addu/lbu 0), where a
+         * real 2D or paired-struct access folds it into the load as lbu 1.
+         * Both spellings measured 24 lines off. */
         image = GetImage(bloodp->image[i * 2]);
         InitSprite(image, &sprBlood[i]);
         sprBlood[i].attribute = SPR_TRANS_ADD;
