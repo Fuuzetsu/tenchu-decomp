@@ -6,7 +6,7 @@
  *
  * The target selects the new state into a register and does ONE store. A
  * ternary is NOT equivalent (cc1 duplicates the McardRetry store into both
- * arms, +8). Three constructs in the shared `update_count` tail are
+ * arms, +8). Three constructs in the shared `update_write_retry` tail are
  * load-bearing; each is measured, and removing any of them costs bytes.
  *
  * The tail's block is LOAD-FREE, so sched cannot reorder it (every insn_cost
@@ -62,47 +62,96 @@ extern s32 draw_card_help_(s32 page, s32 pad);
 
 s32 update_card_screen_(s32 pad)
 {
+    enum
+    {
+        CARD_STATE_EXIT = -1,
+        CARD_ACTIVE_STATE_MIN = 0,
+        CARD_STATE_SHOW_CHECKING = CARD_ACTIVE_STATE_MIN,
+        CARD_STATE_PREPARE_CHECK = 3,
+        CARD_STATE_NO_CARD = 10,
+        CARD_STATE_EXIT_NO_CARD = 11,
+        CARD_STATE_RESTART_NO_CARD = 12,
+        CARD_STATE_DAMAGED = 20,
+        CARD_STATE_EXIT_DAMAGED = 21,
+        CARD_STATE_RESTART_DAMAGED = 22,
+        CARD_STATE_FORMAT_PROMPT = 30,
+        CARD_STATE_FORMAT_COMPLETE = 38,
+        CARD_STATE_CARD_READY = 40,
+        CARD_STATE_FILE_CHECK_WAIT_1 = 41,
+        CARD_STATE_FILE_CHECK_WAIT_2 = 42,
+        CARD_STATE_CHECK_SAVE_FILE = 43,
+        CARD_STATE_BEGIN_NEW_SAVE = 50,
+        CARD_STATE_NEW_SAVE_WAIT_1 = 51,
+        CARD_STATE_NEW_SAVE_WAIT_2 = 52,
+        CARD_STATE_WRITE_NEW_SAVE = 53,
+        CARD_STATE_WRITE_COMPLETE = 54,
+        CARD_STATE_FINISH_SAVE = 55,
+        CARD_STATE_WRITE_FAILED = 56,
+        CARD_STATE_WRITE_FAILURE_ACKNOWLEDGED = 57,
+        CARD_STATE_OVERWRITE_GAME_DATA_PROMPT = 60,
+        CARD_STATE_BEGIN_OVERWRITE = 61,
+        CARD_STATE_CANCEL_OVERWRITE = 62,
+        CARD_STATE_OVERWRITE_WAIT_1 = 63,
+        CARD_STATE_OVERWRITE_WAIT_2 = 64,
+        CARD_STATE_WRITE_OVERWRITE = 65,
+        CARD_STATE_NOT_ENOUGH_SPACE_PROMPT = 70,
+        CARD_STATE_EXIT_NOT_ENOUGH_SPACE = 71,
+        CARD_STATE_RESTART_NOT_ENOUGH_SPACE = 72,
+        CARD_STATE_CANNOT_SAVE_PROMPT = 90,
+        CARD_STATE_SAVE_COMPLETE_EXIT = 99
+    };
+    enum
+    {
+        CARD_PAGE_NONE = 0,
+        CARD_PAGE_WRITING = 7,
+        CARD_PAGE_WRITE_COMPLETE = 9,
+        CARD_PAGE_WRITE_FAILED = 14,
+        CARD_PAGE_NO_CARD_CANNOT_SAVE_PROMPT = 24,
+        CARD_PAGE_DAMAGED_CANNOT_SAVE_PROMPT = 25,
+        CARD_PAGE_NOT_ENOUGH_SPACE_CANNOT_SAVE_PROMPT = 26,
+        CARD_PAGE_OVERWRITE_GAME_DATA_PROMPT = 44
+    };
     u16 saved_state;
     s16 value;
     s32 cond;
     u16 next_state;
-    u16 newstate;
+    u16 save_result_state;
     u16 incremented;
 
     setup_card_screen_(0);
     switch (McardState)
     {
-    case 10:
-        McardPage = 24;
+    case CARD_STATE_NO_CARD:
+        McardPage = CARD_PAGE_NO_CARD_CANNOT_SAVE_PROMPT;
         break;
-    case 20:
-        McardPage = 25;
+    case CARD_STATE_DAMAGED:
+        McardPage = CARD_PAGE_DAMAGED_CANNOT_SAVE_PROMPT;
         break;
-    case 38:
-        McardState = 40;
+    case CARD_STATE_FORMAT_COMPLETE:
+        McardState = CARD_STATE_CARD_READY;
         break;
-    case 40:
-        McardState = 43;
+    case CARD_STATE_CARD_READY:
+        McardState = CARD_STATE_CHECK_SAVE_FILE;
         break;
-    case 43:
+    case CARD_STATE_CHECK_SAVE_FILE:
         value = check_card_file_(McardFile);
         switch (value)
         {
         default:
-            goto clear_state;
+            goto restart_card_check;
         case 0:
-        McardState = 60;
+        McardState = CARD_STATE_OVERWRITE_GAME_DATA_PROMPT;
         break;
         case 5:
-        McardState = 50;
+        McardState = CARD_STATE_BEGIN_NEW_SAVE;
         break;
         }
         break;
-    case 50:
-        McardPage = 7;
+    case CARD_STATE_BEGIN_NEW_SAVE:
+        McardPage = CARD_PAGE_WRITING;
         McardRetry = 0;
         goto increment_state;
-    case 53:
+    case CARD_STATE_WRITE_NEW_SAVE:
         SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                  TENCHU_PERSISTENT_STATE_SIZE, 0);
@@ -112,65 +161,65 @@ s32 update_card_screen_(s32 pad)
         switch (value)
         {
         default:
-            newstate = 56;
+            save_result_state = CARD_STATE_WRITE_FAILED;
             break;
         case 0:
-            newstate = 54;
+            save_result_state = CARD_STATE_WRITE_COMPLETE;
             break;
         case 1:
-            newstate = 10;
+            save_result_state = CARD_STATE_NO_CARD;
             break;
         case 7:
-            newstate = 70;
+            save_result_state = CARD_STATE_NOT_ENOUGH_SPACE_PROMPT;
             break;
         case 4:
-            McardState = 30;
+            McardState = CARD_STATE_FORMAT_PROMPT;
             McardStateFlag = 0;
-            goto retry_53;
+            goto retry_new_save;
         }
-        McardState = newstate;
-    retry_53:
-        if (McardState == 54)
+        McardState = save_result_state;
+    retry_new_save:
+        if (McardState == CARD_STATE_WRITE_COMPLETE)
             break;
-        next_state = 53;
+        next_state = CARD_STATE_WRITE_NEW_SAVE;
         saved_state = (u16)McardState;
         value = McardRetry;
         incremented = value + 1;
-        goto update_count;
-    case 54:
+        goto update_write_retry;
+    case CARD_STATE_WRITE_COMPLETE:
         if (gfMemory == 0)
         {
-            McardPage = 9;
+            McardPage = CARD_PAGE_WRITE_COMPLETE;
             break;
         }
-    case 55:
-        McardState = 99;
+    case CARD_STATE_FINISH_SAVE:
+        McardState = CARD_STATE_SAVE_COMPLETE_EXIT;
         break;
-    case 56:
-        McardPage = 14;
+    case CARD_STATE_WRITE_FAILED:
+        McardPage = CARD_PAGE_WRITE_FAILED;
         break;
-    case 60:
-        McardPage = 44;
+    case CARD_STATE_OVERWRITE_GAME_DATA_PROMPT:
+        McardPage = CARD_PAGE_OVERWRITE_GAME_DATA_PROMPT;
         break;
-    case 61:
-        McardPage = 7;
-        McardState = 63;
+    case CARD_STATE_BEGIN_OVERWRITE:
+        McardPage = CARD_PAGE_WRITING;
+        McardState = CARD_STATE_OVERWRITE_WAIT_1;
         McardRetry = 0;
         break;
-    case 57:
-    case 62:
-        McardState = 90;
+    case CARD_STATE_WRITE_FAILURE_ACKNOWLEDGED:
+    case CARD_STATE_CANCEL_OVERWRITE:
+        McardState = CARD_STATE_CANNOT_SAVE_PROMPT;
         break;
-    case 41:
-    case 42:
-    case 51:
-    case 52:
-    case 63:
-    case 64:
+    case CARD_STATE_FILE_CHECK_WAIT_1:
+    case CARD_STATE_FILE_CHECK_WAIT_2:
+    case CARD_STATE_NEW_SAVE_WAIT_1:
+    case CARD_STATE_NEW_SAVE_WAIT_2:
+    case CARD_STATE_OVERWRITE_WAIT_1:
+    case CARD_STATE_OVERWRITE_WAIT_2:
     increment_state:
         McardState++;
         break;
-    case 65:
+    case CARD_STATE_WRITE_OVERWRITE:
         SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
                  TENCHU_PERSISTENT_STATE_SIZE, 0);
@@ -180,31 +229,31 @@ s32 update_card_screen_(s32 pad)
         switch (value)
         {
         default:
-            newstate = 56;
+            save_result_state = CARD_STATE_WRITE_FAILED;
             break;
         case 0:
-            newstate = 54;
+            save_result_state = CARD_STATE_WRITE_COMPLETE;
             break;
         case 1:
-            newstate = 10;
+            save_result_state = CARD_STATE_NO_CARD;
             break;
         case 7:
-            newstate = 70;
+            save_result_state = CARD_STATE_NOT_ENOUGH_SPACE_PROMPT;
             break;
         case 4:
-            McardState = 30;
+            McardState = CARD_STATE_FORMAT_PROMPT;
             McardStateFlag = 0;
-            goto retry_65;
+            goto retry_overwrite;
         }
-        McardState = newstate;
-    retry_65:
-        if (McardState == 54)
+        McardState = save_result_state;
+    retry_overwrite:
+        if (McardState == CARD_STATE_WRITE_COMPLETE)
             break;
-        next_state = 65;
+        next_state = CARD_STATE_WRITE_OVERWRITE;
         saved_state = (u16)McardState;
         value = McardRetry;
         incremented = value + 1;
-    update_count:
+    update_write_retry:
         cond = value < CARD_RETRY_LIMIT;
         do
         {
@@ -217,33 +266,33 @@ s32 update_card_screen_(s32 pad)
          * store (allocation staging, not recovered arithmetic). */
         McardState = (next_state + next_state) - next_state;
         break;
-    case 70:
-        McardPage = 26;
+    case CARD_STATE_NOT_ENOUGH_SPACE_PROMPT:
+        McardPage = CARD_PAGE_NOT_ENOUGH_SPACE_CANNOT_SAVE_PROMPT;
         break;
-    case 11:
-    case 21:
-    case 71:
-        McardState = -1;
+    case CARD_STATE_EXIT_NO_CARD:
+    case CARD_STATE_EXIT_DAMAGED:
+    case CARD_STATE_EXIT_NOT_ENOUGH_SPACE:
+        McardState = CARD_STATE_EXIT;
         break;
-    case 12:
-    case 22:
-    case 72:
-    clear_state:
-        McardState = 0;
+    case CARD_STATE_RESTART_NO_CARD:
+    case CARD_STATE_RESTART_DAMAGED:
+    case CARD_STATE_RESTART_NOT_ENOUGH_SPACE:
+    restart_card_check:
+        McardState = CARD_STATE_SHOW_CHECKING;
         break;
     default:
         value = update_card_message_((u16 *)&McardState, &McardPage);
         if (value == 0)
         {
-            McardPage = 0;
+            McardPage = CARD_PAGE_NONE;
             McardRetry = 0;
             setup_card_screen_(1);
-            if (McardState < 0)
+            if (McardState < CARD_ACTIVE_STATE_MIN)
             {
-                McardState = 3;
+                McardState = CARD_STATE_PREPARE_CHECK;
                 return 1;
             }
-            McardState = 3;
+            McardState = CARD_STATE_PREPARE_CHECK;
             return -1;
         }
         break;
