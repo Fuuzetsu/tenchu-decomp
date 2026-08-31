@@ -140,26 +140,26 @@ s32 update_card_screen_(s32 pad)
         default:
             goto restart_card_check;
         case 0:
-        McardState = CARD_STATE_OVERWRITE_GAME_DATA_PROMPT;
-        break;
+            McardState = CARD_STATE_OVERWRITE_GAME_DATA_PROMPT;
+            break;
         case 5:
-        McardState = CARD_STATE_BEGIN_NEW_SAVE;
-        break;
-        }
-        break;
-    case CARD_STATE_BEGIN_NEW_SAVE:
-        McardPage = CARD_PAGE_WRITING;
-        McardRetry = 0;
-        goto increment_state;
-    case CARD_STATE_WRITE_NEW_SAVE:
-        SaveCard(0, (u8 *)McardFile,
-                 (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
-                 TENCHU_PERSISTENT_STATE_SIZE, 0);
-        value = SaveCard(0, (u8 *)McardFile,
-                         (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
-                         TENCHU_PERSISTENT_STATE_SIZE, 1);
-        switch (value)
-        {
+            McardState = CARD_STATE_BEGIN_NEW_SAVE;
+            break;
+            }
+            break;
+        case CARD_STATE_BEGIN_NEW_SAVE:
+            McardPage = CARD_PAGE_WRITING;
+            McardRetry = 0;
+            goto increment_state;
+        case CARD_STATE_WRITE_NEW_SAVE:
+            SaveCard(0, (u8 *)McardFile,
+                     (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                     TENCHU_PERSISTENT_STATE_SIZE, 0);
+            value = SaveCard(0, (u8 *)McardFile,
+                             (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
+                             TENCHU_PERSISTENT_STATE_SIZE, 1);
+            switch (value)
+            {
         default:
             save_result_state = CARD_STATE_WRITE_FAILED;
             break;
@@ -216,9 +216,9 @@ s32 update_card_screen_(s32 pad)
     case CARD_STATE_NEW_SAVE_WAIT_2:
     case CARD_STATE_OVERWRITE_WAIT_1:
     case CARD_STATE_OVERWRITE_WAIT_2:
-    increment_state:
-        McardState++;
-        break;
+        increment_state:
+            McardState++;
+            break;
     case CARD_STATE_WRITE_OVERWRITE:
         SaveCard(0, (u8 *)McardFile,
                  (void *)TENCHU_PERSISTENT_STATE_ADDRESS,
@@ -277,9 +277,9 @@ s32 update_card_screen_(s32 pad)
     case CARD_STATE_RESTART_NO_CARD:
     case CARD_STATE_RESTART_DAMAGED:
     case CARD_STATE_RESTART_NOT_ENOUGH_SPACE:
-    restart_card_check:
-        McardState = CARD_STATE_SHOW_CHECKING;
-        break;
+        restart_card_check:
+            McardState = CARD_STATE_SHOW_CHECKING;
+            break;
     default:
         value = update_card_message_((u16 *)&McardState, &McardPage);
         if (value == 0)

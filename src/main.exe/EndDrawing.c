@@ -146,43 +146,43 @@ void EndDrawing(short sync)
     switch (sk)
     {
     case 0:
-    if (VSync(1) > ((sync - (sync << 4)) << 4) - 0xA)
-    {
-        SkipFrame = 1;
-        return;
-    }
-    break;
+        if (VSync(1) > ((sync - (sync << 4)) << 4) - 0xA)
+        {
+            SkipFrame = 1;
+            return;
+        }
+        break;
 
     case 1:
-    t = sync;
-    sync = t << 1;
-    SkipFrame = 0;
-    dp = sk - (u16)DrawingPage;
-    DrawingPage = dp;
-    OTablePt = &OTable[DrawingPage];
-    break;
+        t = sync;
+        sync = t << 1;
+        SkipFrame = 0;
+        dp = sk - (u16)DrawingPage;
+        DrawingPage = dp;
+        OTablePt = &OTable[DrawingPage];
+        break;
 
     case 2:
-    SkipFrame = 0;
-    break;
-    }
+        SkipFrame = 0;
+        break;
+        }
 
-    OTablePt->org[0x7FE] = OTablePt->org[DEPTH_LIMIT];
+        OTablePt->org[0x7FE] = OTablePt->org[DEPTH_LIMIT];
 
-    if (sync <= 0)
-    {
-        DrawSync(0);
-        VSync(-sync);
-    }
-    else
-    {
-        if (VSync(-1) - time < sync)
-            VSync(sync);
-        time = VSync(-1);
-        ResetGraph(1);
-    }
+        if (sync <= 0)
+        {
+            DrawSync(0);
+            VSync(-sync);
+        }
+        else
+        {
+            if (VSync(-1) - time < sync)
+                VSync(sync);
+            time = VSync(-1);
+            ResetGraph(1);
+        }
 
-    GsSwapDispBuff();
-    GsSortClear(Fog.rfc, Fog.gfc, Fog.bfc, OTablePt);
-    GsDrawOt(OTablePt);
-}
+        GsSwapDispBuff();
+        GsSortClear(Fog.rfc, Fog.gfc, Fog.bfc, OTablePt);
+        GsDrawOt(OTablePt);
+    }

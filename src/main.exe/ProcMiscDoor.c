@@ -81,13 +81,13 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 }
 
     case MM_DESTROY:
-    DeleteConflict(param->locate);
-    DisposeModel(param->locate);
-    return;
+        DeleteConflict(param->locate);
+        DisposeModel(param->locate);
+        return;
 
     case MM_PAUSE:
-    DeleteConflict(param->locate);
-    return;
+        DeleteConflict(param->locate);
+        return;
 
     case MM_RESUME:
 {

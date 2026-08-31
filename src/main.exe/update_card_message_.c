@@ -193,9 +193,9 @@ s32 update_card_message_(s16 *state, u16 *message)
     case CARD_STATE_CHECK_WAIT_2:
     case CARD_STATE_FORMAT_WAIT_1:
     case CARD_STATE_FORMAT_WAIT_2:
-    increment_state:
-        next_state++;
-        break;
+        increment_state:
+            next_state++;
+            break;
 
     case CARD_STATE_FORMAT:
         next_state = CARD_STATE_FORMAT_FAILED;

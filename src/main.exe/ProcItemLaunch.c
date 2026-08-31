@@ -153,11 +153,11 @@ void ProcItemLaunch(TItem *item)
     }
 
     case KORO_WATER:
-    dispose:
-        if (item->proc != 0)
-        {
-            DISPOSE_ITEM(item);
+        dispose:
+            if (item->proc != 0)
+            {
+                DISPOSE_ITEM(item);
+            }
+            return;
         }
-        return;
     }
-}
