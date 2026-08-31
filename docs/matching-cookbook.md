@@ -899,6 +899,25 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   never a recovered local, and update any matching note that quotes the
   old name in the same commit.
 
+- **Header hygiene: write a CONTRACT, not a lab notebook** (rounds 12-13,
+  2026-08-31; 1,320 preamble lines removed across 15 files with zero code
+  tokens changed). A matched function's preamble should answer, in order:
+  status; which odd-looking source forms are still required and what each
+  one costs if moved; and which tempting rewrites were measured and
+  rejected. It should NOT narrate when a fact was found, every
+  intermediate byte score, every tool invocation, or a superseded model —
+  git history and `docs/matching-archive.md` carry those. Rules that
+  emerged: select targets by DIARY DENSITY, not line count (a long header
+  full of distinct live facts is not improved by deleting facts to meet a
+  quota — HangCheck's twelve mechanisms stayed at 58 lines); treat a
+  contradiction as a bug (cd_read_sectors_ carried a proof AND the
+  superseded claim it refuted, and only compression exposed it); behaviour
+  prose is a PROVENANCE BOUNDARY — never add a "what it does" summary and
+  never rewrite an existing one, since the owner's directive bans adding
+  them while pre-existing ones were explicitly restored; and never edit a
+  generated PSX.SYM block as prose. Gate the edit three ways: matchdiff,
+  a comments-stripped token comparison, and `symnote --check`.
+
 ### 3.4 Expressions, widths, arithmetic
 
 Mechanised spellings live in the index (`type-width`, `param-width`,

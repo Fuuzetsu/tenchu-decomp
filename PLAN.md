@@ -722,6 +722,22 @@ StageEndScreen's +1/+2 pair, mission_score's row-sort empty), four
 taste-rejects where the fence beats any known cure (subdivide_quad_,
 AddMisc bottom, SetCameraMode first, StateTransition), honest empty
 barriers with the DBG reading, and seven multi-role identical-arms.
+HEADER-CONTRACT CAMPAIGN (2026-08-31, Codex rounds 12-13): fifteen
+session-diary headers rewritten as constraint contracts - 1,320
+preamble lines removed with ZERO code tokens changed (gated by
+matchdiff + a comments-stripped token comparison + symnote --check).
+Targets picked by diary density, not length: BreedLife, EndDrawing,
+fast_tng3_/fast_tnf3_ and DrawAfterimage were deliberately KEPT because
+their length is distinct facts, not repeated chronology. Two results
+worth remembering: cd_read_sectors_'s header contained a live
+CONTRADICTION (a proof that CdGetSector failure does a full retry, plus
+the superseded claim that it only re-primes mode 6) that only
+compression exposed; and AdtSelect finally dropped the 40-line
+superseded rulebook its own header existed to refute. The editorial
+contract is cookbook doctrine, including the provenance boundary:
+behaviour prose is owner-authored (never added, never rewritten),
+status and matching constraints are maintainership metadata.
+
 COMMENT-MASS CAMPAIGN (2026-08-31): the tree carried 30,676 comment
 lines against 42,048 code lines (0.73). Three byte-neutral moves took
 it to ~25,900 (0.62): (1) six self-labelled superseded investigation
