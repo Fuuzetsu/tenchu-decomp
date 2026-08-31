@@ -5,6 +5,10 @@
 #include "humanoid.h"
 #include "item.h"
 
+/* Per-axis limit on the grapple step: the approach is finished once every
+ * axis is inside it, and the wire vector is halved until it fits. */
+#define KAGI_STEP_MAX 400
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -220,8 +224,8 @@ void ActKAGI(void)
         Me_MOTION_C->model->object[MODEL_PART_WAIST]->rotate.vx = ratan2(dist, -v.vy);
         UpdateCoordinate(Me_MOTION_C->model->object[MODEL_PART_WAIST]);
 
-        if (__builtin_abs(v.vx) < 400 && __builtin_abs(v.vy) < 400 &&
-            __builtin_abs(v.vz) < 400)
+        if (__builtin_abs(v.vx) < KAGI_STEP_MAX && __builtin_abs(v.vy) < KAGI_STEP_MAX &&
+            __builtin_abs(v.vz) < KAGI_STEP_MAX)
         {
             Me_MOTION_C->attribute |= ATTR_WALL;
         }
@@ -291,8 +295,8 @@ void ActKAGI(void)
         }
 
     make_wire:
-        while (__builtin_abs(v.vx) > 400 || __builtin_abs(v.vy) > 400 ||
-               __builtin_abs(v.vz) > 400)
+        while (__builtin_abs(v.vx) > KAGI_STEP_MAX || __builtin_abs(v.vy) > KAGI_STEP_MAX ||
+               __builtin_abs(v.vz) > KAGI_STEP_MAX)
         {
             v.vx >>= 1;
             v.vy >>= 1;

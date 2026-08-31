@@ -169,7 +169,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    copy out of the lhu load-delay slot; the explicit `if (abs_direction < 0)`
  *    spelling exposes a real branch that always does steal it.
  *  - The deg == 3 arm keeps the abs INSIDE the call's ternary argument:
- *    `MoveHumanoid(Me, (0x400 < __builtin_abs((int)(short)did)) ? DAMAGE_LAUNCH_SPEED
+ *    `MoveHumanoid(Me, (ANGLE_QUADRANT < __builtin_abs((int)(short)did)) ? DAMAGE_LAUNCH_SPEED
  *    : -DAMAGE_LAUNCH_SPEED, 0)`. A move_speed variable costs +4 length.
  *
  * Widths and calls
@@ -407,7 +407,7 @@ resolve_hit:
                 {
                     abs_direction = -abs_direction;
                 }
-                if (abs_direction < 0x400)
+                if (abs_direction < ANGLE_QUADRANT)
                 {
                     SET_MOTION(MOT_DAMAGE_LAUNCH_BACK, 0);
                     dtR->vy += did;
@@ -651,7 +651,7 @@ resolve_hit:
                 newvy = dtR->vy + did;
                 abs_direction = __builtin_abs(did);
                 dtR->vy = newvy;
-                if (abs_direction < 0x400)
+                if (abs_direction < ANGLE_QUADRANT)
                 {
                     t = -t;
                 }
@@ -662,7 +662,7 @@ resolve_hit:
                 if (deg == 3)
                 {
                     MoveHumanoid(Me_MOTION_C,
-                                 (__builtin_abs(did) > 0x400)
+                                 (__builtin_abs(did) > ANGLE_QUADRANT)
                                      ? DAMAGE_LAUNCH_SPEED
                                      : -DAMAGE_LAUNCH_SPEED,
                                  0);
@@ -700,7 +700,7 @@ resolve_hit:
                         {
                             abs_direction = -abs_direction;
                         }
-                        if (abs_direction > 0x400)
+                        if (abs_direction > ANGLE_QUADRANT)
                         {
                             deg += 4;
                         }
@@ -726,7 +726,7 @@ resolve_hit:
                     {
                         abs_direction = -abs_direction;
                     }
-                    if (abs_direction > 0x400)
+                    if (abs_direction > ANGLE_QUADRANT)
                     {
                         deg += 4;
                     }
