@@ -71,31 +71,34 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_napalm *param;
-    VECTOR *pos;
-    Humanoid *aowner;
-    s32 atype;
     s32 i;
 
     TAKE_ITEM_SLOT();
     param = &item->param.napalm;
     if (item == 0)
         return 0;
-    aowner = p->user;
-    atype = p->type;
-    item->owner = aowner;
-    item->proc = ProcItemNemuri;
-    item->mode = 0;
-    item->type = atype;
-    item->locate->locate.coord.t[0] = p->start.vx;
-    pos = &p->start;
-    item->locate->locate.coord.t[1] = pos->vy;
-    item->locate->locate.coord.t[2] = pos->vz;
-    item->locate->locate.super = 0;
-    UpdateCoordinate(item->locate);
-    /* model-then-size, the reverse of every sibling's order, is
-     * measured byte-required here (swapping them mismatches). */
-    item->model = (ModelType *)sprSmoke[0];
-    item->collision.size = 0;
+    {
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
+
+        aowner = p->user;
+        atype = p->type;
+        item->owner = aowner;
+        item->proc = ProcItemNemuri;
+        item->mode = 0;
+        item->type = atype;
+        item->locate->locate.coord.t[0] = p->start.vx;
+        pos = &p->start;
+        item->locate->locate.coord.t[1] = pos->vy;
+        item->locate->locate.coord.t[2] = pos->vz;
+        item->locate->locate.super = 0;
+        UpdateCoordinate(item->locate);
+        /* model-then-size, the reverse of every sibling's order, is
+         * measured byte-required here (swapping them mismatches). */
+        item->model = (ModelType *)sprSmoke[0];
+        item->collision.size = 0;
+    }
     param->vec.vx = p->end.vx;
     param->vec.vy = p->end.vy;
     param->vec.vz = p->end.vz;

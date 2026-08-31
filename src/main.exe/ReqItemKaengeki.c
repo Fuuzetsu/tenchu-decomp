@@ -59,29 +59,32 @@ int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_kaengeki *param;
-    VECTOR *pos;
-    Humanoid *aowner;
-    s32 atype;
     s32 i;
 
     TAKE_ITEM_SLOT();
     param = &item->param.kaengeki;
     if (item == 0)
         return 0;
-    aowner = p->user;
-    atype = p->type;
-    item->owner = aowner;
-    item->proc = ProcItemKaengeki;
-    item->mode = 0;
-    item->type = atype;
-    item->locate->locate.coord.t[0] = p->start.vx;
-    pos = &p->start;
-    item->locate->locate.coord.t[1] = pos->vy;
-    item->locate->locate.coord.t[2] = pos->vz;
-    item->locate->locate.super = 0;
-    UpdateCoordinate(item->locate);
-    item->collision.size = 0;
-    item->model = (ModelType *)ItemImage[item->type];
+    {
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
+
+        aowner = p->user;
+        atype = p->type;
+        item->owner = aowner;
+        item->proc = ProcItemKaengeki;
+        item->mode = 0;
+        item->type = atype;
+        item->locate->locate.coord.t[0] = p->start.vx;
+        pos = &p->start;
+        item->locate->locate.coord.t[1] = pos->vy;
+        item->locate->locate.coord.t[2] = pos->vz;
+        item->locate->locate.super = 0;
+        UpdateCoordinate(item->locate);
+        item->collision.size = 0;
+        item->model = (ModelType *)ItemImage[item->type];
+    }
     item->param.kaengeki.start.vx = p->start.vx;
     param->start.vy = p->start.vy;
     param->start.vz = p->start.vz;

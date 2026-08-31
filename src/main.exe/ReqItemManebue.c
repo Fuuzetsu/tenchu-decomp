@@ -43,27 +43,30 @@ extern void ProcItemManebue(TItem *item);
 int ReqItemManebue(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
-    VECTOR *pos;
-    Humanoid *aowner;
-    s32 atype;
     s32 i;
 
     TAKE_ITEM_SLOT();
     if (item == 0)
         return 0;
-    aowner = p->user;
-    atype = p->type;
-    item->owner = aowner;
-    item->proc = ProcItemManebue;
-    item->mode = 0;
-    item->type = atype;
-    item->locate->locate.coord.t[0] = p->start.vx;
-    pos = &p->start;
-    item->locate->locate.coord.t[1] = pos->vy;
-    item->locate->locate.coord.t[2] = pos->vz;
-    item->locate->locate.super = 0;
-    UpdateCoordinate(item->locate);
-    item->collision.size = 0;
-    item->model = (ModelType *)ItemImage[item->type];
+    {
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
+
+        aowner = p->user;
+        atype = p->type;
+        item->owner = aowner;
+        item->proc = ProcItemManebue;
+        item->mode = 0;
+        item->type = atype;
+        item->locate->locate.coord.t[0] = p->start.vx;
+        pos = &p->start;
+        item->locate->locate.coord.t[1] = pos->vy;
+        item->locate->locate.coord.t[2] = pos->vz;
+        item->locate->locate.super = 0;
+        UpdateCoordinate(item->locate);
+        item->collision.size = 0;
+        item->model = (ModelType *)ItemImage[item->type];
+    }
     return 1;
 }

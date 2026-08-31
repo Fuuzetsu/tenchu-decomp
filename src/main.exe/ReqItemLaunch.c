@@ -98,8 +98,6 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
     TItem *slot;
     param_launch *param;
     VECTOR *pos;
-    Humanoid *aowner;
-    s32 atype;
     AfterimageType *ai;
     s32 i;
 
@@ -107,20 +105,25 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
     param = &item->param.launch;
     if (item == 0)
         return 0;
-    aowner = p->user;
-    atype = p->type;
-    item->owner = aowner;
-    item->proc = ProcItemLaunch;
-    item->mode = 0;
-    item->type = atype;
-    item->locate->locate.coord.t[0] = p->start.vx;
-    pos = &p->start;
-    item->locate->locate.coord.t[1] = pos->vy;
-    item->locate->locate.coord.t[2] = pos->vz;
-    item->locate->locate.super = 0;
-    UpdateCoordinate(item->locate);
-    item->collision.size = 0;
-    item->model = SyurikenModel;
+    {
+        Humanoid *aowner;
+        s32 atype;
+
+        aowner = p->user;
+        atype = p->type;
+        item->owner = aowner;
+        item->proc = ProcItemLaunch;
+        item->mode = 0;
+        item->type = atype;
+        item->locate->locate.coord.t[0] = p->start.vx;
+        pos = &p->start;
+        item->locate->locate.coord.t[1] = pos->vy;
+        item->locate->locate.coord.t[2] = pos->vz;
+        item->locate->locate.super = 0;
+        UpdateCoordinate(item->locate);
+        item->collision.size = 0;
+        item->model = SyurikenModel;
+    }
     SetupFly(&param->fly, pos, &p->end, FIXED_QUARTER, FIXED_QUARTER, 300);
     item->param.launch.fly.mode = 0;
     ai = SetupAfterimage(item->model, 10);
