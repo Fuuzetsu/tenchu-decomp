@@ -24,17 +24,17 @@
  *      u32 and `volatile unsigned int` score the
  *      same -- the width matters, not the sign). With a u16 return the
  *      (s16)pad ext for check_cheat_command_ was emitted before
- *      the np xor/and chain via a0; with the full-word return it lands after,
+ *      the newpress xor/and chain via a0; with the full-word return it lands after,
  *      reusing the dying pad copy in v0 (permuter r4).
  *   2. Entry-clamp compare re-read `mx < cq->gItem[n]` (for `mx < c`):
  *      byte-neutral (cse folds it back to c's reg) but the changed
  *      preference set makes global alloc tie the store address into n's
  *      dying v1 (addu v1,t0,v1). The textually-identical case-1 copy keeps
  *      the plain `mx < c` spelling and the fresh-a0 shape (permuter r5).
- *   3. case-0x1F body: ordinary nested ifs. Either one-shot left by itself
- *      flips the chr-reload/li-255 {v0,v1} pair (12 lines), while removing
- *      both restores the target pairing: this is a paired conflict, not a
- *      required weight.
+ *   3. case-0x1F body: the selection eligibility checks can be short-circuit
+ *      guards. The old one-shot experiments were a paired conflict: either
+ *      left by itself flips the chr-reload/li-255 {v0,v1} pair (12 lines),
+ *      while removing both restores the target pairing.
  *   4. Cursor-move exts written as HAND-SPLIT shift pairs:
  *      `hx = j << 0x10; hy = shown << 0x10; k = cursor; ddx = hx >> 0x10;
  *      ddy = hy >> 0x10;` -- combine collapses (sign_extend)<<16 into one
@@ -51,6 +51,9 @@
  *      (tying into the subu); the inline read's zext is an expression temp
  *      materialized by reload in source order into the next spill reg:
  *      lhu t9,152 / lhu t5,160 / subu v0,t9,t5 exactly.
+ *   7. `newpress` is the edge-triggered pad mask; `selected_kinds` counts
+ *      occupied selection kinds, distinct from `taken`, the total quantity.
+ *      The right/down handlers need no redundant shared outer guard.
  *
  * Earlier-session levers still load-bearing (see git history for the full
  * derivations): u0 hosted in grid x (multi-def `int c = (u8)var` keeps the
@@ -151,8 +154,8 @@ void BriefingAndInventorySelectionScreen(void)
     u_long *buf;
     int cursor;
     int scale;
-    int nsel;
-    s16 np;
+    int selected_kinds;
+    s16 newpress;
     int i;  /* entry backup loop */
     s16 j;  /* selection/count loop, case1/3 loops, grid, shown, cursor dx, epilogue */
     s32 x;  /* grid x, cursor dy */
@@ -217,7 +220,7 @@ void BriefingAndInventorySelectionScreen(void)
     LoadTIMAndFree(buf);
     spr.w = 0xC;
 
-    nsel = 1;
+    selected_kinds = 1;
     harc = LoadHelpArchive(q);
 
     {
@@ -239,10 +242,10 @@ void BriefingAndInventorySelectionScreen(void)
     do
     {
         rand();
-        np = pad.u;
+        newpress = pad.u;
         pad.u = GetRealPad(0);
-        np = pad.u & (pad.u ^ np);
-        id = check_cheat_command_(pad.s, np);
+        newpress = pad.u & (pad.u ^ newpress);
+        id = check_cheat_command_(pad.s, newpress);
         /* The subtract-then-narrow is retail's own: addiu -1 then an
          * sll/sra s16 truncation before the bound check. The s16 `cheat`
          * temp is byte-required HERE because `id` is an int (the direct
@@ -313,19 +316,18 @@ void BriefingAndInventorySelectionScreen(void)
             if (ps->CharType != RIKIMARU_0)
             {
                 u8 already = ps->selItem[ITEM_ARMOUR];
-                if (already != 0 || (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] == 1)
+                if ((already != 0 ||
+                     (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] == 1) &&
+                    (s16)selected_kinds < MAX_SELECTED_ITEMS)
                 {
-                    if ((s16)nsel < MAX_SELECTED_ITEMS)
+                    if (already == 0)
                     {
-                        if (already == 0)
-                        {
-                            nsel++;
-                            taken++;
-                        }
-                        ps->selItem[ITEM_ARMOUR] = 0xFF;
-                        (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
-                        SoundEx(0, 8);
+                        selected_kinds++;
+                        taken++;
                     }
+                    ps->selItem[ITEM_ARMOUR] = 0xFF;
+                    (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
+                    SoundEx(0, 8);
                 }
             }
             break;
@@ -342,7 +344,7 @@ void BriefingAndInventorySelectionScreen(void)
             exec_process_(PROCESS_MENU);
             break;
         }
-        if (np == PADstart)
+        if (newpress == PADstart)
         {
             goto quit;
         }
@@ -374,19 +376,19 @@ void BriefingAndInventorySelectionScreen(void)
             {
             } while (0);
             shown = 0x10;
-            if ((np & PADLdown) == 0)
+            if ((newpress & PADLdown) == 0)
             {
                 shown = 0;
-                if ((np & PADLup) != 0)
+                if ((newpress & PADLup) != 0)
                 {
                     shown = -0x10;
                 }
             }
             j = 0x10;
-            if ((np & PADLright) == 0)
+            if ((newpress & PADLright) == 0)
             {
                 j = 0;
-                if ((np & PADLleft) != 0)
+                if ((newpress & PADLleft) != 0)
                 {
                     j = -0x10;
                 }
@@ -416,98 +418,92 @@ void BriefingAndInventorySelectionScreen(void)
                 cursor = bi;
             }
         }
-        if ((np & (PADLup | PADLright | PADLdown | PADLleft)) != 0)
+        if ((newpress & (PADLup | PADLright | PADLdown | PADLleft)) != 0)
         {
             SoundEx(0, 0xB);
             help = -1;
         }
-        if (np != 0)
+        if (newpress != 0 && pad.s == PADRright)
         {
-            if (pad.s == PADRright)
-            {
-                np = 0;
-                bounce = 1;
-                {
-                    s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
-                    scale = 0x200;
-                    if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0)
-                    {
-                        if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != ITEM_LOCKED)
-                        {
-                            if ((s16)taken < cap)
-                            {
-                                u8 cnt = (&ps->selItem[0])[idx];
-                                if (cnt == 0)
-                                {
-                                    nsel++;
-                                }
-                                if ((s16)nsel < MAX_SELECTED_ITEMS)
-                                {
-                                    if (idx != ITEM_ARMOUR || ARMOUR_USED == 0)
-                                    {
-                                        (&ps->selItem[0])[idx] = cnt + 1;
-                                        taken++;
-                                        (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
-                                    }
-                                    SoundEx(0, 0xD);
-                                }
-                                else
-                                {
-                                    SoundEx(0, 0xC);
-                                    help = 0x14;
-                                    nsel--;
-                                }
-                            }
-                            else
-                            {
-                                SoundEx(0, 0xC);
-                                help = 0x13;
-                            }
-                        }
-                    }
-                }
-            }
-            if (np != 0 && pad.s == PADRdown)
+            newpress = 0;
+            bounce = 1;
             {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
-                bounce = 2;
+                scale = 0x200;
+                if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0 &&
+                    (&ps->gItem[0])[idx + (ps->CharType << 5)] != ITEM_LOCKED)
                 {
-                    u8 c = (&ps->selItem[0])[idx];
-                    scale = 0x1400;
-                    if (c != 0)
+                    if ((s16)taken < cap)
                     {
-                        if (c == 0xFF)
+                        u8 cnt = (&ps->selItem[0])[idx];
+                        if (cnt == 0)
                         {
-                            (&ps->selItem[0])[idx] = 0;
-                            (&ps->gItem[0])[idx + (ps->CharType << 5)] = 1;
-                            nsel--;
+                            selected_kinds++;
+                        }
+                        if ((s16)selected_kinds < MAX_SELECTED_ITEMS)
+                        {
+                            if (idx != ITEM_ARMOUR || ARMOUR_USED == 0)
+                            {
+                                (&ps->selItem[0])[idx] = cnt + 1;
+                                taken++;
+                                (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
+                            }
+                            SoundEx(0, 0xD);
                         }
                         else
                         {
-                            (&ps->selItem[0])[idx] = c - 1;
-                            (&ps->gItem[0])[idx + (ps->CharType << 5)]++;
-                            if ((&ps->selItem[0])[idx] == 0)
-                            {
-                                nsel--;
-                            }
+                            SoundEx(0, 0xC);
+                            help = 0x14;
+                            selected_kinds--;
                         }
-                        taken--;
-                        SoundEx(0, 0x1F);
+                    }
+                    else
+                    {
+                        SoundEx(0, 0xC);
+                        help = 0x13;
                     }
                 }
-                help = -1;
             }
+        }
+        if (newpress != 0 && pad.s == PADRdown)
+        {
+            s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
+            bounce = 2;
+            {
+                u8 c = (&ps->selItem[0])[idx];
+                scale = 0x1400;
+                if (c != 0)
+                {
+                    if (c == 0xFF)
+                    {
+                        (&ps->selItem[0])[idx] = 0;
+                        (&ps->gItem[0])[idx + (ps->CharType << 5)] = 1;
+                        selected_kinds--;
+                    }
+                    else
+                    {
+                        (&ps->selItem[0])[idx] = c - 1;
+                        (&ps->gItem[0])[idx + (ps->CharType << 5)]++;
+                        if ((&ps->selItem[0])[idx] == 0)
+                        {
+                            selected_kinds--;
+                        }
+                    }
+                    taken--;
+                    SoundEx(0, 0x1F);
+                }
+            }
+            help = -1;
         }
         if ((s16)scale < 0x1000)
         {
             scale += 0xC0;
         }
-        if (help == -1)
+        if (help == -1 &&
+            (&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex +
+                            (ps->CharType << 5)] != ITEM_LOCKED)
         {
-            if ((&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex + (ps->CharType << 5)] != ITEM_LOCKED)
-            {
-                help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
-            }
+            help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
         }
         if (help != -1)
         {

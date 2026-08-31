@@ -44,19 +44,19 @@
  *
  * Matching notes (see ProcItemTeleport.c / ProcItemKusuri.c for the item-TU
  * conventions this shares):
- *  - `ff = ITEM_MODE_DISPOSE` (0xff) is a callee-saved var ($s1), tested at
- *    entry and reused as
- *    `item->mode = ff` in the first two dispose blocks; in the big third
- *    block $s1 has been repurposed for the ViewInfo/CamState addresses, so
- *    the same `ff` variable is rematerialised as a fresh `li 0xff` there.
- *  - `own = item->owner` is ONE load feeding both the hookflag test and the
+ *  - `dispose_mode = ITEM_MODE_DISPOSE` (0xff) is a callee-saved var ($s1),
+ *    tested at entry and reused as `item->mode = dispose_mode` in the first
+ *    two dispose blocks; in the big third block $s1 has been repurposed for
+ *    the ViewInfo/CamState addresses, so the same `dispose_mode` variable is
+ *    rematerialised as a fresh `li 0xff` there.
+ *  - `owner = item->owner` is ONE load feeding both the hookflag test and the
  *    motion->mid test (caller-saved $v1, dies at the first call); the big
  *    block reloads item->owner for its pad-bit test and hookflag clear.
  *  - The dispose tail is written out in all three branches; jump2's
  *    cross-jump merges the identical `jalr`-onward suffix into one shared
  *    tail after the third branch (the mode-store instruction differs — $s1
  *    vs rematerialised $v1 — so the merge starts at the call, not earlier).
- *  - The hook flag lives at Humanoid+0xCD, i.e. `own->item[ITEM_N]` one past
+ *  - The hook flag lives at Humanoid+0xCD, i.e. `owner->item[ITEM_N]` one past
  *    the DoInfoViewProc-indexed slots (item.h sizes item[] to 0x1A to cover
  *    it); read `lbu`, written `sb 0`.
  *  - `w.vx = v.vx; …; w.vx += ViewInfo.vpx; …` is the two-phase raw-copy-
@@ -72,29 +72,29 @@ extern VECTOR vec_z_n20000; /* {0,0,-20000} */
 
 void ProcKaginawa(TItem *item)
 {
-    void (*ppu)(TItem *);
-    Humanoid *own;
+    void (*item_proc)(TItem *);
+    Humanoid *owner;
     VECTOR v;
     VECTOR w;
     s32 rx, ry;
     s32 dist;
     s32 tx, ty, tz;
-    u8 ff;
+    u8 dispose_mode;
 
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    dispose_mode = ITEM_MODE_DISPOSE;
+    if (item->mode == dispose_mode)
     {
         item->mode = 0;
         return;
     }
-    own = item->owner;
-    if (own->item[ITEM_N] == 0)
+    owner = item->owner;
+    if (owner->item[ITEM_N] == 0)
     {
         SetCameraMode(CMODE_DIRECTION);
-        ppu = item->proc;
-        if (ppu == 0)
+        item_proc = item->proc;
+        if (item_proc == 0)
             return;
-        item->mode = ff;
+        item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
@@ -102,12 +102,12 @@ void ProcKaginawa(TItem *item)
         item->owner = 0;
         item->proc = 0;
     }
-    else if (own->motion->mid != MOT_KAGI)
+    else if (owner->motion->mid != MOT_KAGI)
     {
-        ppu = item->proc;
-        if (ppu == 0)
+        item_proc = item->proc;
+        if (item_proc == 0)
             return;
-        item->mode = ff;
+        item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
@@ -155,10 +155,10 @@ void ProcKaginawa(TItem *item)
         }
         SetCameraMode(CMODE_LOCK);
         item->owner->item[ITEM_N] = 0;
-        ppu = item->proc;
-        if (ppu == 0)
+        item_proc = item->proc;
+        if (item_proc == 0)
             return;
-        item->mode = ff;
+        item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

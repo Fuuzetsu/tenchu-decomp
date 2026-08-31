@@ -74,6 +74,8 @@
  *    value into the shared hint body. At the obstacle tail, an inverse guard
  *    removes the periodic label while the one-line obstacle action is safely
  *    duplicated to delete its acyclic label.
+ *  - The case-1 and case-3 Findenemies paths use one short-circuit eligibility
+ *    guard each: type/search/target are all prerequisites for the same count.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -342,12 +344,10 @@ void StateTransition(Humanoid *human)
 
                 reset_alert_duration();
                 me = Me_THINK_C;
-                if (me->type < PAGE_BOSS)
+                if (me->type < PAGE_BOSS &&
+                    me->target == (ModelType *)StagePlayer->model)
                 {
-                    if (me->target == (ModelType *)StagePlayer->model)
-                    {
-                        Findenemies++;
-                    }
+                    Findenemies++;
                 }
             }
         }
@@ -490,12 +490,11 @@ void StateTransition(Humanoid *human)
             Sound(Me_THINK_C, 0xd);
             reset_alert_duration();
             me = Me_THINK_C;
-            if (me->type < PAGE_BOSS && (ATTRIB_BITS & ATTR_SEARCH) == 0)
+            if (me->type < PAGE_BOSS &&
+                (ATTRIB_BITS & ATTR_SEARCH) == 0 &&
+                me->target == (ModelType *)StagePlayer->model)
             {
-                if (me->target == (ModelType *)StagePlayer->model)
-                {
-                    Findenemies++;
-                }
+                Findenemies++;
             }
         }
         break;

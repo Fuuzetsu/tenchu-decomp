@@ -89,6 +89,11 @@
  * 282 bytes.  There is no free ref to remove from magnitude either -- its 16
  * refs correspond exactly to 19 emitted instructions (3 abs defs of 2 insns
  * each + 13 single-insn uses), so none is combine-folded.
+ *
+ * The player arm always returns, so the enemy head-tracking path needs no
+ * trailing `else`. Its two calm-phase exclusions are one short-circuit return
+ * guard. Keep the target-ordered vertical clamp nested: the flatter clamp
+ * ladder differs by 26 lines.
  */
 
 extern s16 VISIBLE_ENEMIES_;
@@ -260,62 +265,54 @@ draw_done:
         UpdateCoordinate(head);
         return;
     }
+    if ((human->attribute & ATTR_PHASE) != PHASE_ALERT &&
+        (human->target == StagePlayer->model ||
+         human->motion->mid == MOT_ACTION))
+    {
+        return;
+    }
+
+    rotation_pair = human->model->object[0]->rotate.vy +
+                    human->model->object[1]->rotate.vy +
+                    human->rotate->vy;
+    direction = GetDirection(
+        human->target->locate.coord.t[0] - human->locate->vx,
+        human->target->locate.coord.t[2] - human->locate->vz,
+        (s16)rotation_pair);
+    magnitude = direction >= 0 ? direction : -direction;
+    if (magnitude >= 1800)
+    {
+        return;
+    }
+
+    head = human->model->object[2];
+    if (magnitude > 900)
+    {
+        head->rotate.vy = magnitude * 900 / direction;
+    }
     else
     {
-        if ((human->attribute & ATTR_PHASE) != PHASE_ALERT)
-        {
-            if (human->target == StagePlayer->model)
-            {
-                return;
-            }
-            if (human->motion->mid == MOT_ACTION)
-            {
-                return;
-            }
-        }
+        head->rotate.vy = direction;
+    }
 
-        rotation_pair = human->model->object[0]->rotate.vy +
-                        human->model->object[1]->rotate.vy +
-                        human->rotate->vy;
-        direction = GetDirection(
-            human->target->locate.coord.t[0] - human->locate->vx,
-            human->target->locate.coord.t[2] - human->locate->vz,
-            (s16)rotation_pair);
-        magnitude = direction >= 0 ? direction : -direction;
-        if (magnitude >= 1800)
+    direction = (human->target->locate.coord.t[1] - human->locate->vy) / 2;
+    if (direction != 0)
+    {
+        if (direction >= -500)
         {
-            return;
-        }
-
-        head = human->model->object[2];
-        if (magnitude > 900)
-        {
-            head->rotate.vy = magnitude * 900 / direction;
-        }
-        else
-        {
-            head->rotate.vy = direction;
-        }
-
-        direction = (human->target->locate.coord.t[1] - human->locate->vy) / 2;
-        if (direction != 0)
-        {
-            if (direction >= -500)
+            if (direction <= 100)
             {
-                if (direction <= 100)
-                {
-                    head->rotate.vx = direction;
-                }
-                else
-                {
-                    head->rotate.vx = 100;
-                }
+                head->rotate.vx = direction;
             }
             else
             {
-                head->rotate.vx = -500;
+                head->rotate.vx = 100;
             }
         }
-        UpdateCoordinate(head);
+        else
+        {
+            head->rotate.vx = -500;
+        }
     }
+    UpdateCoordinate(head);
 }

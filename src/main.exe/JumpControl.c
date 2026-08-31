@@ -42,6 +42,8 @@
  *  - GetMotionID's recovered signed-short result makes each availability
  *    check a direct comparison with zero. GCC still emits the retail
  *    sign-bit test when the result is consumed only by the branch.
+ *    The dash-frame and MOT_JUMP_RUN availability checks are one eligibility
+ *    guard; both are prerequisites for the same recovery body.
  *  - The `motID == 0x607` vs else split is a plain `if/else`: the small
  *    0x607 body is the fallthrough (physically first), the big else body
  *    is the branch target — standard cc1 if/else layout, no polarity
@@ -77,19 +79,17 @@ void JumpControl(void)
 
     if (motID == MOT_CHASE_DASH_FWD)
     {
-        if (dtM->count < 11)
+        if (dtM->count < 11 &&
+            GetMotionID(dtM, MOT_JUMP_RUN) >= 0)
         {
-            if (GetMotionID(dtM, MOT_JUMP_RUN) >= 0)
+            motID = MOT_JUMP_RUN;
+            motMODE = 0;
+            MoveHumanoid(Me_MOTION_C, 0x7F, 0);
+            if (Me_MOTION_C == StagePlayer)
             {
-                motID = MOT_JUMP_RUN;
-                motMODE = 0;
-                MoveHumanoid(Me_MOTION_C, 0x7F, 0);
-                if (Me_MOTION_C == StagePlayer)
-                {
-                    Sound(Me_MOTION_C, 0x48);
-                }
-                Sound(Me_MOTION_C, 0x17);
+                Sound(Me_MOTION_C, 0x48);
             }
+            Sound(Me_MOTION_C, 0x17);
         }
     }
     else

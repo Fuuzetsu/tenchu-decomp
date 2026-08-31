@@ -76,11 +76,11 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    StagePlayer / dtR / dtV; the per-region CSE temps then land in
  *    $a0/$v1 as retail has them. Function-spanning caches were what made
  *    earlier drafts look like they had unreachable "hard conflicts".
- *  - The 0x602 engage block is a plain nested if with an else arm, not a
- *    guard fence: `if (rand() % (EngageLevel + 1) == 0) { type checks;
- *    if (rand() & 1) motID = 0x602; } else { motID = 0x602; }`. Cross-jump
- *    plus eager delay fill produce the shared `sh motID` tail with a
- *    per-predecessor `li 0x602` in the delay slots. ITEM_NAPALM is likewise
+ *  - The 0x602 engage block has one NPC/state/difficulty eligibility guard.
+ *    Inside it, the random if/else remains intact, while ninja-kind and its
+ *    coin flip are one short-circuit condition. Cross-jump plus eager delay
+ *    fill produce the shared `sh motID` tail with a per-predecessor
+ *    `li 0x602` in the delay slots. ITEM_NAPALM is likewise
  *    a plain `if ((rand() & 1) == 0) motID = 0x1003; else motID = 0x1001;`
  *    (no staging temp), and ITEM_MAKIBISHI stores motID/motMODE directly.
  *  - Both ReqLifeBar sites are if/else (`who = enemy` in the taken arm,
@@ -101,9 +101,9 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    (`deg = dmg >> 3;` clamp; clamp; `t = dmg * 5 / 2 + 0x50;`) with no
  *    cached `(u16)dmg << 16` temp, so every read re-extends dmg.
  *  - The knockback absolute value is the assigned form
- *    `ad = __builtin_abs(did);`. cc1's mips abssi2 is ONE insn whose
+ *    `abs_direction = __builtin_abs(did);`. cc1's mips abssi2 is ONE insn whose
  *    template hides the branch, so reorg never steals the `move s0,a1`
- *    copy out of the lhu load-delay slot; the explicit `if (ad < 0)`
+ *    copy out of the lhu load-delay slot; the explicit `if (abs_direction < 0)`
  *    spelling exposes a real branch that always does steal it.
  *  - The deg == 3 arm keeps the abs INSIDE the call's ternary argument:
  *    `MoveHumanoid(Me, (0x400 < __builtin_abs((int)(short)did)) ? 0x46
@@ -128,7 +128,7 @@ void DamageControl(void)
     short deg;
     short t;
     short newvy;
-    int ad;
+    int abs_direction;
     Humanoid *enemy;
     int id;
     short dmg;
@@ -341,15 +341,15 @@ resolve_hit:
             }
             if (Me_MOTION_C->map.height > 0)
             {
-                int ad;
+                int abs_direction;
 
                 did = GetDirection(ConflictDistance.vx, ConflictDistance.vz, dtR->vy);
-                ad = did;
-                if (ad < 0)
+                abs_direction = did;
+                if (abs_direction < 0)
                 {
-                    ad = -ad;
+                    abs_direction = -abs_direction;
                 }
-                if (ad < 0x400)
+                if (abs_direction < 0x400)
                 {
                     motID = MOT_DAMAGE_LAUNCH_BACK;
                     motMODE = 0;
@@ -454,40 +454,37 @@ resolve_hit:
                 return;
             }
             {
-                int ad;
+                int abs_direction;
 
                 did = GetDirection(enemy->locate->vx - dtL->vx,
                                    enemy->locate->vz - dtL->vz, dtR->vy);
                 deg = GetAttackDBID(enemy, enemy->motion->mid);
-                if (Me_MOTION_C != StagePlayer)
+                if (Me_MOTION_C != StagePlayer &&
+                    Me_MOTION_C->status != STAT_ATTACK &&
+                    (Me_MOTION_C->attribute & ATTR_ALERT) != 0 &&
+                    Me_MOTION_C->map.height == 0 &&
+                    gNannido != DIFFICULTY_EASY)
                 {
-                    if ((((Me_MOTION_C->status != STAT_ATTACK) &&
-                          ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)) &&
-                         (Me_MOTION_C->map.height == 0)) &&
-                        (gNannido != DIFFICULTY_EASY))
+                    if (rand() % (EngageLevel + 1) == 0)
                     {
-                        if (rand() % (EngageLevel + 1) == 0)
-                        {
-                            if ((Me_MOTION_C->type == NINJA_0) || (Me_MOTION_C->type == NINJA_1))
-                            {
-                                if ((rand() & 1) != 0)
-                                {
-                                    motID = MOT_CHASE_BACK;
-                                }
-                            }
-                        }
-                        else
+                        if (((Me_MOTION_C->type == NINJA_0) ||
+                             (Me_MOTION_C->type == NINJA_1)) &&
+                            (rand() & 1) != 0)
                         {
                             motID = MOT_CHASE_BACK;
                         }
                     }
+                    else
+                    {
+                        motID = MOT_CHASE_BACK;
+                    }
                 }
-                ad = did;
-                if (ad < 0)
+                abs_direction = did;
+                if (abs_direction < 0)
                 {
-                    ad = -ad;
+                    abs_direction = -abs_direction;
                 }
-                if (ad < 700)
+                if (abs_direction < 700)
                 {
                     if (motID == MOT_CHASE_BACK)
                     {
@@ -645,9 +642,9 @@ resolve_hit:
                 }
                 t = dmg * 5 / 2 + 0x50;
                 newvy = dtR->vy + did;
-                ad = __builtin_abs(did);
+                abs_direction = __builtin_abs(did);
                 dtR->vy = newvy;
-                if (ad < 0x400)
+                if (abs_direction < 0x400)
                 {
                     t = -t;
                 }
@@ -688,14 +685,14 @@ resolve_hit:
                     }
                     else
                     {
-                        int ad;
+                        int abs_direction;
 
-                        ad = did;
-                        if (ad < 0)
+                        abs_direction = did;
+                        if (abs_direction < 0)
                         {
-                            ad = -ad;
+                            abs_direction = -abs_direction;
                         }
-                        if (ad > 0x400)
+                        if (abs_direction > 0x400)
                         {
                             deg = deg + 4;
                         }
@@ -725,14 +722,14 @@ resolve_hit:
                 }
                 else
                 {
-                    int ad;
+                    int abs_direction;
 
-                    ad = did;
-                    if (ad < 0)
+                    abs_direction = did;
+                    if (abs_direction < 0)
                     {
-                        ad = -ad;
+                        abs_direction = -abs_direction;
                     }
-                    if (ad > 0x400)
+                    if (abs_direction > 0x400)
                     {
                         deg = deg + 4;
                     }
@@ -785,12 +782,9 @@ resolve_hit:
                 Sound(Me_MOTION_C, sound_id);
                 r = rand();
                 sound_id = 4;
-                if ((r & 1) == 0)
+                if ((r & 1) == 0 && Me_MOTION_C->life == 0)
                 {
-                    if (Me_MOTION_C->life == 0)
-                    {
-                        sound_id = 5;
-                    }
+                    sound_id = 5;
                 }
                 Sound(enemy, sound_id);
             }
