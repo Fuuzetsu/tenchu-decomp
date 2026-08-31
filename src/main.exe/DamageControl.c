@@ -674,37 +674,34 @@ resolve_hit:
                 {
                     Me_MOTION_C->life = 0;
                     DeadHumanoid = Me_MOTION_C;
-                    if (deg == 3)
+                    if (deg != 3)
                     {
-                        goto directional_death;
-                    }
-                    motID = MOT_DEAD;
-                    motMODE = 1;
-                    SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
-                death_motion_set:
-                    if ((rand() & 1) != 0)
-                    {
-                        motID = MOT_DEAD_ALT;
+                        motID = MOT_DEAD;
                         motMODE = 1;
+                        SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
+                    death_motion_set:
+                        if ((rand() & 1) != 0)
+                        {
+                            motID = MOT_DEAD_ALT;
+                            motMODE = 1;
+                        }
                     }
-                    goto score_kill;
-                directional_death:
-                {
-                    int ad;
+                    else
+                    {
+                        int ad;
 
-                    ad = did;
-                    if (ad < 0)
-                    {
-                        ad = -ad;
+                        ad = did;
+                        if (ad < 0)
+                        {
+                            ad = -ad;
+                        }
+                        if (ad > 0x400)
+                        {
+                            deg = deg + 4;
+                        }
+                        dtM->mid = -1;
+                        motID = damagemotion[deg];
                     }
-                    if (ad > 0x400)
-                    {
-                        deg = deg + 4;
-                    }
-                    dtM->mid = -1;
-                    motID = damagemotion[deg];
-                }
-                score_kill:
                     if (enemy == StagePlayer)
                     {
                         if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)
@@ -723,7 +720,7 @@ resolve_hit:
                     if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
                     {
                         Sound(Me_MOTION_C, 8);
-                        goto alerted;
+                        reset_alert_duration();
                     }
                 }
                 else
@@ -742,7 +739,6 @@ resolve_hit:
                     dtM->mid = -1;
                     motID = damagemotion[deg];
                     motMODE = 0;
-                alerted:
                     reset_alert_duration();
                 }
             }

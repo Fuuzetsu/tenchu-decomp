@@ -10,8 +10,17 @@
  * short DrawSprite(struct Sprite3D *sprt);
  *     3DCTRL.C:593, 14 src lines, frame 72 bytes, saved-reg mask 0x80070000 (DEMO build -- see below)
  *
- * Demo-build parameters and locals (evidence, not a retail spec —
- * see docs/psx-sym.md):
+ * Original parameters and locals (the demo COUNT and TYPES are high-value
+ * codegen evidence, not a retail spec: an earlier-build helper/API change
+ * can replace either). Retail access widths and callee ABI win. A repeated
+ * name is a nested-block scope, not a duplicate.
+ * A ZERO-locals record is unverified, not a claim that the function has none:
+ * vfree lists zero locals yet its byte-matched source needs seven.
+ * The frame size and saved-reg mask above are the DEMO's: retail often needs
+ * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
+ * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+ * and a hint at how many values stay live, never as a spec. The asm wins.
+ * Locals:
  *     param $s1       struct Sprite3D * sprt
  *     stack sp+16     struct MATRIX mat
  *     reg   $a2       long sz
@@ -67,7 +76,7 @@
  *      * DIRECT-to-ret rejects — a plain `if (cond) { result = -1; goto ret; }`
  *        whose test is a conditional branch: reorg branches straight to the
  *        `ret:` tail and drops `li $v0,-1` into the branch's OWN delay slot.
- *        The atr&4&&sz==0, iv>=0xf1, and reject_check(atr&0x10&&sz>0x4e2)
+ *        The atr&4&&sz==0, iv>=0xf1, and far-depth (atr&0x10&&sz>0x4e2)
  *        rejects are these. The atr&4&&sz==0 one MUST be a standalone
  *        `if ((atr&4)!=0 && sz==0)` (NOT the `else` of the enclosing
  *        `if ((atr&4)==0 || sz!=0)` guard) — as an `else` body it is
@@ -78,8 +87,8 @@
  *        very instruction the one-variable draft was missing).
  *      * The SHARED reject block (`reject: result = -1; goto ret;`) — reached
  *        by `goto reject` from the attribute&1 early-out and the iv>=0xb5 box
- *        fail, and as the FALL-THROUGH of unit_vector's own `if (sz>=0x4e3)`.
- *        It lands physically inside unit_vector (the `reject:` label sits in
+ *        fail, and as the FALL-THROUGH of the UnitVector `if (sz>=0x4e3)`.
+ *        It lands physically inside that guard (the `reject:` label sits in
  *        that guard) and compiles to `j ret; li v0,-1`, exactly like the
  *        target's shared block whose two predecessors' branch delay slots are
  *        busy (so they cannot inline the `li` and must route through it).
@@ -147,44 +156,38 @@ short DrawSprite(Sprite3D *sprt)
                 {
                     iv = -iv;
                 }
-                if (iv < 0xb5)
-                {
-                    goto reject_check;
-                }
-                goto reject;
+                if (iv >= 0xb5)
+                    goto reject;
             }
-            result = -1;
-            goto ret;
+            else
+            {
+                result = -1;
+                goto ret;
+            }
         }
-    reject_check:
         if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
         {
             result = -1;
             goto ret;
         }
-        goto unit_vector;
     }
-    else
+    sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
+    if (sz > DEPTH_LIMIT)
     {
-    unit_vector:
-        sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
-        if (sz > DEPTH_LIMIT)
-        {
-        reject:
-            result = -1;
-            goto ret;
-        }
-        if (xy != 0)
-        {
-            result = sz;
-            goto ret;
-        }
-        if (sz >= FOG_DEPTH)
-            DrawTMDmode = TMD_BANK_FOG;
-        else
-            DrawTMDmode = TMD_BANK_PLAIN;
-        result = sz;
+    reject:
+        result = -1;
+        goto ret;
     }
+    if (xy != 0)
+    {
+        result = sz;
+        goto ret;
+    }
+    if (sz >= FOG_DEPTH)
+        DrawTMDmode = TMD_BANK_FOG;
+    else
+        DrawTMDmode = TMD_BANK_PLAIN;
+    result = sz;
 ret:
     pri = result - 5;
     if (pri < 1)

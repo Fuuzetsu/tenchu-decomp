@@ -82,8 +82,17 @@
  * void ActATTACK(void);
  *     MOTION.C:1306, 197 src lines, frame 128 bytes, saved-reg mask 0x80030000 (DEMO build -- see below)
  *
- * Demo-build parameters and locals (evidence, not a retail spec —
- * see docs/psx-sym.md):
+ * Original parameters and locals (the demo COUNT and TYPES are high-value
+ * codegen evidence, not a retail spec: an earlier-build helper/API change
+ * can replace either). Retail access widths and callee ABI win. A repeated
+ * name is a nested-block scope, not a duplicate.
+ * A ZERO-locals record is unverified, not a claim that the function has none:
+ * vfree lists zero locals yet its byte-matched source needs seven.
+ * The frame size and saved-reg mask above are the DEMO's: retail often needs
+ * FEWER callee-saved registers (measured: Think1random exact; Think1chase's
+ * 0x800f0000 = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+ * and a hint at how many values stay live, never as a spec. The asm wins.
+ * Locals:
  *     reg   $s1       struct BattleType * battle
  *     reg   $v1       struct ModelType ** object
  *     stack sp+16     struct ModelType *[2] hand
@@ -630,7 +639,8 @@ dispatch:
             mmp = dtM;
             motID = MOT_ENGAGE_STANCE;
             motMODE = 1;
-            goto unmask;
+            mmp->mask = 0x7fff;
+            return;
         }
         if (Me_MOTION_C->map.height > 0)
         {
@@ -907,7 +917,6 @@ dispatch:
             Me_MOTION_C->illusion[1] = 0;
         }
         mmp = dtM;
-    unmask:
         mmp->mask = 0x7fff;
         return;
     }
