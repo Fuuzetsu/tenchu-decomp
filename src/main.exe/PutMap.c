@@ -94,14 +94,9 @@ void PutMap(void)
     ply = (POLY_XF4 *)GsGetWorkBase();
     GsSetWorkBase(ply + 1);
     SetPolyXF4(ply, 2);
-    ply->ply.x0 = -160;
-    ply->ply.y0 = -120;
-    ply->ply.x1 = 160;
-    ply->ply.y1 = -120;
-    ply->ply.x2 = -160;
-    ply->ply.y2 = 120;
-    ply->ply.x3 = 160;
-    ply->ply.y3 = 120;
+    setXY4(&ply->ply, -SCREEN_W / 2, -SCREEN_H / 2, SCREEN_W / 2,
+           -SCREEN_H / 2, -SCREEN_W / 2, SCREEN_H / 2, SCREEN_W / 2,
+           SCREEN_H / 2);
     rgb = (0xA0 - MapSlideX) / 4;
 
     switch (PutMapMode)

@@ -9,11 +9,11 @@
  * adds the quad and draw mode to the order table.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - The `-0xA0` constant materialized before the first AddPrim call is a
+ *  - The `-SCREEN_W / 2` constant materialized before the first AddPrim call is a
  *    dead/live-across-call scratch (m2c's 3rd "argument" to the first
  *    AddPrim is that leftover register, not a real argument — cookbook's
  *    m2c-overcounts-args rule): AddPrim takes exactly 2 arguments here too.
- *  - **The `ply->ply.x0 = -0xA0` store's SOURCE POSITION is before the tpage
+ *  - **The `ply->ply.x0 = -SCREEN_W / 2` store's SOURCE POSITION is before the tpage
  *    command store, not after it (out of the order Ghidra/m2c both render it
  *    in).** The remaining proven statement order, including `y1` before
  *    `x1`, is retained; this one constant's statement needs to move one slot
@@ -33,15 +33,15 @@ void draw_shade_quad_(u8 *ot, s8 r, s8 g, s8 b)
     setlen(&ply->ply, 5);
     setcode(&ply->ply, 0x2A);
     setlen(&ply->tpage, 1);
-    ply->ply.x0 = -0xA0;
-    ply->tpage.code[0] = 0xE1000240;
-    ply->ply.y0 = -120;
-    ply->ply.y1 = -120;
-    ply->ply.x1 = 0xA0;
-    ply->ply.x2 = -0xA0;
-    ply->ply.y2 = 120;
-    ply->ply.x3 = 0xA0;
-    ply->ply.y3 = 120;
+    ply->ply.x0 = -SCREEN_W / 2;
+    ply->tpage.code[0] = ((2 << 5) | GPU_DRAWMODE_DITHER);
+    ply->ply.y0 = -SCREEN_H / 2;
+    ply->ply.y1 = -SCREEN_H / 2;
+    ply->ply.x1 = SCREEN_W / 2;
+    ply->ply.x2 = -SCREEN_W / 2;
+    ply->ply.y2 = SCREEN_H / 2;
+    ply->ply.x3 = SCREEN_W / 2;
+    ply->ply.y3 = SCREEN_H / 2;
     ply->ply.r0 = r;
     ply->ply.g0 = g;
     ply->ply.b0 = b;

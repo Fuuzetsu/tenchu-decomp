@@ -41,14 +41,14 @@ void draw_fade_(TEffectSlot *ef)
 
     fade = &ef->param.fade;
     SetPolyXF4(&local, 1);
-    local.ply.x0 = -0xA0;
-    local.ply.y0 = -120;
-    local.ply.x1 = 0xA0;
-    local.ply.y1 = -120;
-    local.ply.x2 = -0xA0;
-    local.ply.y2 = 120;
-    local.ply.x3 = 0xA0;
-    local.ply.y3 = 120;
+    local.ply.x0 = -SCREEN_W / 2;
+    local.ply.y0 = -SCREEN_H / 2;
+    local.ply.x1 = SCREEN_W / 2;
+    local.ply.y1 = -SCREEN_H / 2;
+    local.ply.x2 = -SCREEN_W / 2;
+    local.ply.y2 = SCREEN_H / 2;
+    local.ply.x3 = SCREEN_W / 2;
+    local.ply.y3 = SCREEN_H / 2;
 
     mode = fade->mode;
     elapsed = GameClock - fade->start_time;
