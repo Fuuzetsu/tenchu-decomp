@@ -270,9 +270,6 @@ void ActivateHumans(void)
             }
         }
 
-        do
-        {
-            i++;
-        } while (0);
+        i++;
     }
 }
