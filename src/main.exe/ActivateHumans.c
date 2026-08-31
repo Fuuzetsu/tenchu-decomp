@@ -203,6 +203,10 @@ void ActivateHumans(void)
     visible_done:
         active = visible;
     active_done:
+        /* The guarded copy keeps `final` in its own register: the bytes
+         * hold a `move` before the test, and all three simplifications
+         * (plain assignment, dead store alone, arms alone) lose it
+         * together -- measured 2026-08-31. */
         if (human)
         {
             final = 0;
