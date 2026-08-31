@@ -99,9 +99,7 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
         param = &item->param.ninken.koro;
         x = p->end.vx;
         z = p->end.vz;
-        param->vx = x;
-        param->vy = -250;
-        param->vz = z;
+        setVector(param, x, -250, z);
         item->param.ninken.koro.hint = 0;
         param->status = KORO_NORMAL;
     }

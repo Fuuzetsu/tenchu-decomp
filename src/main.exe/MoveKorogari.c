@@ -83,9 +83,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                 }
                 else
                 {
-                    param->vx = 0;
-                    param->vy = 250;
-                    param->vz = 0;
+                    setVector(param, 0, 250, 0);
                 }
                 param->status = KORO_OUT;
                 return;

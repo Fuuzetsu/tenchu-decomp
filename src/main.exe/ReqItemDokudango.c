@@ -101,9 +101,7 @@ int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
         x = p->end.vx;
         y = p->end.vy;
         z = p->end.vz;
-        param->vx = x;
-        param->vy = y;
-        param->vz = z;
+        setVector(param, x, y, z);
         item->param.dokudango.koro.hint = 0;
         param->status = KORO_NORMAL;
     }

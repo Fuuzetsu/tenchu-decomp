@@ -90,9 +90,7 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
     len = GetVectorLength(dx, dy, dz);
     if (len == 0)
     {
-        dest->vx = 0;
-        dest->vy = 0;
-        dest->vz = 0;
+        setVector(dest, 0, 0, 0);
         return;
     }
 
@@ -150,9 +148,7 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
     }
 
     info->spd = (s16)spd;
-    dest->vx = (nv.vx * spd) / len;
-    dest->vy = (nv.vy * spd) / len;
-    dest->vz = (nv.vz * spd) / len;
+    setVector(dest, (nv.vx * spd) / len, (nv.vy * spd) / len, (nv.vz * spd) / len);
     info->bef.vx = nv.vx;
     info->bef.vy = nv.vy;
     info->bef.vz = nv.vz;

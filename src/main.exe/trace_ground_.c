@@ -112,9 +112,7 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     }
     if (out != 0)
     {
-        out->vx = lx;
-        out->vy = ly;
-        out->vz = lz;
+        setVector(out, lx, ly, lz);
     }
     return t;
 }

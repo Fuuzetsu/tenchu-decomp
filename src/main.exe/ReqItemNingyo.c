@@ -125,9 +125,7 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
         x = p->end.vx;
         y = p->end.vy;
         z = p->end.vz;
-        param->vx = x;
-        param->vy = y;
-        param->vz = z;
+        setVector(param, x, y, z);
         item->param.ningyo.koro.hint = 0;
         param->status = KORO_NORMAL;
     }

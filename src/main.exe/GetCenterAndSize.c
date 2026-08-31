@@ -105,9 +105,7 @@ static void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size)
 
     dm = (short)(maxx - minx);
     dz = maxz - minz;
-    center->vx = (maxx + minx) / 2;
-    center->vy = (maxy + miny) / 2;
-    center->vz = (maxz + minz) / 2;
+    setVector(center, (maxx + minx) / 2, (maxy + miny) / 2, (maxz + minz) / 2);
     if (dz < (short)(maxy - miny))
         dz = maxy - miny;
     if (dz < dm)

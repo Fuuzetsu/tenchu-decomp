@@ -99,9 +99,7 @@ static void MoveFly(TItem *item, param_fly *param)
             pk->hint = 0;
             pk->status = KORO_NORMAL;
             param->mode = 1;
-            pk->vx = xs - ax;
-            pk->vy = ys - ay;
-            pk->vz = zs - az;
+            setVector(pk, xs - ax, ys - ay, zs - az);
     }
         else
     {

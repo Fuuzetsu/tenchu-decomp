@@ -83,9 +83,7 @@ static inline void GetWireScreenPosition(long x, long y, long z,
     matrix->t[0] = 0;
     matrix->t[1] = 0;
     matrix->t[2] = 0;
-    vector->vx = x - ViewInfo.vpx;
-    vector->vy = y - ViewInfo.vpy;
-    vector->vz = z - ViewInfo.vpz;
+    setVector(vector, x - ViewInfo.vpx, y - ViewInfo.vpy, z - ViewInfo.vpz);
     SetTransMatrix(matrix);
     SetRotMatrix(&GsWSMATRIX);
     screen->vz = (s16)RotTransPers(

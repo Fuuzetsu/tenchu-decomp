@@ -32,6 +32,13 @@ typedef struct
     short vx, vy;
 } DVECTOR;
 
+/* Common LIBGTE macros retain Sony's original comma-expression shape. */
+#define setVector(v, _x, _y, _z) \
+    (v)->vx = (_x), (v)->vy = (_y), (v)->vz = (_z)
+
+#define copyVector(v0, v1) \
+    (v0)->vx = (v1)->vx, (v0)->vy = (v1)->vy, (v0)->vz = (v1)->vz
+
 /* Canonical PsyQ 4.5/4.6 LIBGTE declarations used by the game. */
 MATRIX *MulMatrix0(MATRIX *m0, MATRIX *m1, MATRIX *m2);
 MATRIX *MulMatrix(MATRIX *m0, MATRIX *m1);

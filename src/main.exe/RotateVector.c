@@ -35,7 +35,5 @@ void RotateVector(VECTOR *vec, int rx, int ry, int rz)
     rot.vz = (short)rz;
     RotMatrixYXZ(&rot, &SMAT);
     ApplyMatrixLV(&SMAT, vec, &vo);
-    vec->vx = vo.vx;
-    vec->vy = vo.vy;
-    vec->vz = vo.vz;
+    setVector(vec, vo.vx, vo.vy, vo.vz);
 }

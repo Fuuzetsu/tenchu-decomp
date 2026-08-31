@@ -298,9 +298,7 @@ void ActKAGI(void)
             v.vy >>= 1;
             v.vz >>= 1;
         }
-        dtV->vx = v.vx;
-        dtV->vy = v.vy;
-        dtV->vz = v.vz;
+        setVector(dtV, v.vx, v.vy, v.vz);
         SetWire(GetAbsolutePosition(Me_MOTION_C->model->object[14], 0, 0, 0),
                 &CamState.TargetVector, 0, FIXED_ONE);
         break;

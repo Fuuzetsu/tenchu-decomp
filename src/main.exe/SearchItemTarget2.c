@@ -118,9 +118,7 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
     tv.vy += start->vy;
     tv.vz += start->vz;
     trace_ground_(start, &tv, &lv, 0);
-    target->vx = lv.vx;
-    target->vy = lv.vy;
-    target->vz = lv.vz;
+    setVector(target, lv.vx, lv.vy, lv.vz);
     dist = GetVectorDistance(&lv, start);
     rrot.vx = -rot->vx;
     rrot.vy = -rot->vy;

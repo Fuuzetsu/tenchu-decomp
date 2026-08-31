@@ -108,9 +108,7 @@ void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 t
     fly->sx = start->vx;
     fly->sy = start->vy;
     fly->sz = start->vz;
-    fly->vx = end->vx;
-    fly->vy = end->vy;
-    fly->vz = end->vz;
+    copyVector(fly, end);
     len = GetVectorDistance(start, end);
     if (time > 0)
     {
