@@ -899,6 +899,19 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   never a recovered local, and update any matching note that quotes the
   old name in the same commit.
 
+- **When to introduce a macro (owner directive, 2026-08-31)**: only when
+  it supplies meaning a bare expression cannot — a named constant for a
+  magic number (`SE_FOOTSTEP`), a packing (`RGB24`, `PAD_HOLD`), a field
+  extract (`WPATK_CLASS`) — or when it covers a MULTI-STATEMENT sequence
+  with evidence behind it (`DISPOSE_ITEM`, `TAKE_ITEM_SLOT`,
+  `SET_MOTION`, whose size proof is in humanoid.h). A macro that only
+  re-spells ONE expression is a rename with no evidence: PSX.SYM carries
+  no macro records at all, so nothing supports it. Three such macros
+  (ATTR_BITS, ATTRIB_BITS, MOTION_PAD_BITS) and two wrappers
+  (FIXED_SCALE, SPRITE_ROTATION) were deleted on that basis. Deleting the
+  first three also exposed that their cast was unnecessary in 26 of 29
+  files — a wrapper can hide the fact that the thing it wraps is not
+  needed.
 - **Longhand arithmetic is usually free; struct assignment is not**
   (2026-08-31 sweeps). `X = X + n;` -> `X += n;` converted in 69 of 89
   files (200+ sites) and every `+= 1` -> `++` converted — but 20 files
