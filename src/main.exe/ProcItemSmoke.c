@@ -102,14 +102,12 @@ void ProcItemSmoke(TItem *item)
 {
     Sprite3D *model;
     param_smoke *param;
-    u8 ff;
     int cnt;
     ProcItemSmokeScratch scratch;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -119,7 +117,7 @@ void ProcItemSmoke(TItem *item)
     {
         if (item->proc == 0)
             return;
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

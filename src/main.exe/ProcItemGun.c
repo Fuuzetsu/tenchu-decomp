@@ -16,12 +16,12 @@
  * Matching notes (all verified against the original bytes; shares
  * ProcItemKawarimi's dispatch/dispose shape and ProcItemLightningBolt's
  * conflict-box insert block — same store order, `n = InsertConflict` as s32):
- *  - `param = &item->param.gun;` + `ff = ITEM_MODE_DISPOSE;` before the
+ *  - `param = &item->param.gun;` + `ITEM_MODE_DISPOSE = ITEM_MODE_DISPOSE;` before the
  *    entry test:
  *    param's addiu fills the entry branch's delay slot, and BOTH stay
  *    caller-saved here (param → $a1: its only use is GetVectorRotation's 2nd
- *    argument via `param->vec`, with no intervening call; ff → $v1, used by
- *    the entry compare and case 2's `item->mode = ff`).
+ *    argument via `param->vec`, with no intervening call; ITEM_MODE_DISPOSE → $v1, used by
+ *    the entry compare and case 2's `item->mode = ITEM_MODE_DISPOSE`).
  *  - The switch INDEX register ($s2) is callee-saved and reused inside case 1
  *    as the source of every `= 1` store (common/size.pad/collision.mode): cse's
  *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
@@ -77,13 +77,11 @@ extern SVECTOR svec_z_150[];
 void ProcItemGun(TItem *item)
 {
     param_gun *param;
-    u8 ff;
     SVECTOR vec;
     VECTOR target;
 
     param = &item->param.gun;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -141,7 +139,7 @@ void ProcItemGun(TItem *item)
     case 2:
         if (item->proc == 0)
             return;
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

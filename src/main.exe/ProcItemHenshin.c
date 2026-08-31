@@ -82,14 +82,12 @@ void ProcItemHenshin(TItem *item)
 {
     Humanoid *human;
     ModelArchiveType *mad;
-    u8 ff;
     ProcItemHenshinScratch scratch;
 
     human = item->owner;
     mad = human->model;
-    ff = ITEM_MODE_DISPOSE;
 
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         if (item == HenshinItem)
         {
@@ -160,7 +158,7 @@ void ProcItemHenshin(TItem *item)
             {
                 return;
             }
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -189,7 +187,7 @@ void ProcItemHenshin(TItem *item)
             old = HenshinItem;
             if (old != 0 && old->proc != 0)
             {
-                old->mode = ff;
+                old->mode = ITEM_MODE_DISPOSE;
                 old->proc(old);
                 DeleteConflict(old->locate);
                 if (old->mode != 0)
@@ -267,7 +265,7 @@ void ProcItemHenshin(TItem *item)
         {
             return;
         }
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

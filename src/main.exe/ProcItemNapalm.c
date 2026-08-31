@@ -11,7 +11,7 @@
  * animate, and dispose; unknown modes still take the shared draw tail.
  *
  * Matching notes:
- *  - `ff` is live to mode 2 in $s6, while `switch (item->mode)` deliberately
+ *  - `ITEM_MODE_DISPOSE` is live to mode 2 in $s6, while `switch (item->mode)` deliberately
  *    reloads the mode into $s4.  Literal `1` stores in case 1 reuse that switch
  *    index through cse's taken-edge equivalence; an explicit `mode` local adds
  *    $s7 and changes the frame.
@@ -74,15 +74,13 @@ void ProcItemNapalm(TItem *item)
     Sprite3D *model;
     param_napalm *param;
     void (*proc)(TItem *);
-    u8 ff;
     u8 count;
     s32 ex;
     s32 cid;
 
     model = (Sprite3D *)item->model;
     param = &item->param.napalm;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -114,7 +112,7 @@ void ProcItemNapalm(TItem *item)
         model->sprite.rotate = (rand() % 360) << 12;
         model->scale = (ex << 12) / 50 + FIXED_ONE;
 
-        sprNapalm2->sprite.r = (ff - model->sprite.r) / 3;
+        sprNapalm2->sprite.r = (ITEM_MODE_DISPOSE - model->sprite.r) / 3;
         sprNapalm2->sprite.g = sprNapalm2->sprite.r;
         sprNapalm2->sprite.b = sprNapalm2->sprite.r;
         sprNapalm2->sprite.rotate = model->sprite.rotate;
@@ -195,7 +193,7 @@ void ProcItemNapalm(TItem *item)
         {
             return;
         }
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

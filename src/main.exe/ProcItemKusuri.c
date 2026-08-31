@@ -15,8 +15,8 @@
  *
  * Matching notes (each verified against the original bytes; see also
  * ProcItemManebue.c for the item-TU conventions):
- *  - `ff` holds ITEM_MODE_DISPOSE in a callee-saved reg ($s4) across calls:
- *    used by the entry test and the drop path's `item->mode = ff`; mode 2's
+ *  - `ITEM_MODE_DISPOSE` holds ITEM_MODE_DISPOSE in a callee-saved reg ($s4) across calls:
+ *    used by the entry test and the drop path's `item->mode = ITEM_MODE_DISPOSE`; mode 2's
  *    dispose rematerializes its 0xff value instead ($s4 is &scratch by then).
  *  - The dispatch is a real `switch`: it reloads item->mode (fresh index load)
  *    and compares it SIGNED (slti) — an if-ladder CSEs the load and compares
@@ -75,7 +75,6 @@ void ProcItemKusuri(TItem *item)
 {
     Sprite3D *model;
     void (*ppu)(TItem *);
-    u8 ff;
     s32 i;
     union
     {
@@ -96,8 +95,7 @@ void ProcItemKusuri(TItem *item)
     } scratch;
 
     model = (Sprite3D *)item->model;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -163,7 +161,7 @@ void ProcItemKusuri(TItem *item)
             ppu = item->proc;
             if (ppu == 0)
                 return;
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

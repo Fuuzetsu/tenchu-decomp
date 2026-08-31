@@ -81,12 +81,12 @@ void ProcItemNingyo(TItem *item)
 {
     param_ningyo *param;
     s32 cid;
-    s32 ff;
+    s32 dispose_mode;
     ProcItemNingyoScratch scratch;
 
     param = &item->param.ningyo;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    dispose_mode = ITEM_MODE_DISPOSE;
+    if (item->mode == dispose_mode)
     {
         if (param->hp != NINGYO_HP)
         {
@@ -200,7 +200,7 @@ void ProcItemNingyo(TItem *item)
         {
             return;
         }
-        item->mode = ff;
+        item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

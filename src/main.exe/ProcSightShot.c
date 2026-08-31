@@ -42,7 +42,7 @@
  * Matching notes:
  *  - `launch = &item->param.launch` is formed in the entry mode-test
  *    delay slot and kept in a0 until the aiming body.
- *    `ff` is s32 and therefore receives the target's long-lived s4.
+ *    `dispose_mode` is s32 and therefore receives the target's long-lived s4.
  *  - The drop block and common disposal block deliberately precede the
  *    `sight_mode` label.  Source-ordering the normal sight path first gives
  *    equivalent behavior but reverses the target's physical basic blocks.
@@ -65,7 +65,7 @@ extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
 void ProcSightShot(TItem *item)
 {
     param_launch *launch;
-    s32 ff;
+    s32 dispose_mode;
     PARAM_ITEM_LAUNCH param;
     SVECTOR rot;
     int rx;
@@ -73,8 +73,8 @@ void ProcSightShot(TItem *item)
     Humanoid *human;
 
     launch = &item->param.launch;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    dispose_mode = ITEM_MODE_DISPOSE;
+    if (item->mode == dispose_mode)
     {
         item->owner->item[ITEM_N] = 0;
         item->mode = 0;
@@ -123,7 +123,7 @@ void ProcSightShot(TItem *item)
 dispose:
     if (item->proc != 0)
     {
-        item->mode = ff;
+        item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
@@ -176,7 +176,7 @@ sight_mode:
         SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
         if (item->proc != 0)
         {
-            item->mode = ff;
+            item->mode = dispose_mode;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -200,7 +200,7 @@ sight_mode:
                           &param.end);
         if (item->proc != 0)
         {
-            item->mode = ff;
+            item->mode = dispose_mode;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

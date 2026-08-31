@@ -58,6 +58,11 @@ short SetCommand(PADtype *pad, short cmd)
     COMMAND *args;
     s16 n;
     s16 j;
+    /* Named for its value, not a role, because the value IS the shared
+     * thing: loop.c hoists one materialization of 1 and both consumers
+     * take it, but they mean different things -- `one < n` asks whether
+     * there is more than one argument, `pad->time = one` sets a one-frame
+     * delay. Any semantic name would be wrong for the other use. */
     s32 one;
     s16 found;
 

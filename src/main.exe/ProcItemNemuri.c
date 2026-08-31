@@ -49,7 +49,7 @@ extern s16 Think1sleep(void);
  * leaving the area map.
  *
  * Matching notes:
- *  - `eight` shares the collision-mode constant between a halfword and a word
+ *  - `collision_mode` shares the collision-mode constant between a halfword and a word
  *    store; two literals produce an extra `li`.
  *  - The byte-identical `bleed_n` arms disappear in jump2, but their CFG keeps
  *    the call-count and colour pseudos out of the wave's register.  `bleed_n`
@@ -74,14 +74,12 @@ void ProcItemNemuri(TItem *item)
     Sprite3D *model;
     param_napalm *param;
     void (*proc)(TItem *);
-    u8 ff;
     u8 count;
     s32 rotate_count;
 
     model = (Sprite3D *)item->model;
     param = &item->param.napalm;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -105,7 +103,7 @@ void ProcItemNemuri(TItem *item)
             {
                 VECTOR *position;
                 s32 n;
-                s32 eight;
+                s32 collision_mode;
 
                 position = GetAbsolutePosition(
                     item->owner->model->object[14], 0, 0, 0);
@@ -116,8 +114,8 @@ void ProcItemNemuri(TItem *item)
                 item->locate->locate.coord.t[2] = position->vz;
                 DeleteConflict(item->locate);
                 n = InsertConflict(item->locate);
-                eight = 8;
-                SET_ITEM_COLLISION(n, 1000, CONFLICT_OWNER_ITEM, eight);
+                collision_mode = 8;
+                SET_ITEM_COLLISION(n, 1000, CONFLICT_OWNER_ITEM, collision_mode);
                 return;
             }
         }
@@ -126,7 +124,7 @@ void ProcItemNemuri(TItem *item)
         {
             return;
         }
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)
@@ -280,7 +278,7 @@ void ProcItemNemuri(TItem *item)
         {
             return;
         }
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

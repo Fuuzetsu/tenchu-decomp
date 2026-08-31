@@ -67,13 +67,11 @@ extern void TurnAroundAllItems(Humanoid *human);
 void ProcItemNinken(TItem *item)
 {
     param_ninken *param;
-    u8 ff;
     s32 water;
     ProcItemNinkenScratch scratch;
 
     param = &item->param.ninken;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         Humanoid *slave;
 
@@ -109,7 +107,7 @@ void ProcItemNinken(TItem *item)
             {
                 return;
             }
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -137,7 +135,7 @@ void ProcItemNinken(TItem *item)
 
             if (item->proc != 0)
             {
-                item->mode = ff;
+                item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
                 if (item->mode != 0)
@@ -277,7 +275,7 @@ void ProcItemNinken(TItem *item)
         {
             if (item->proc != 0)
             {
-                item->mode = ff;
+                item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
                 if (item->mode != 0)
@@ -322,7 +320,7 @@ void ProcItemNinken(TItem *item)
             {
                 return;
             }
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

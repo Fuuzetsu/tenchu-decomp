@@ -15,9 +15,9 @@
  * Matching notes (all verified against the original bytes; this is
  * ProcItemKusuri's shape — see that file for the shared stack scratch and
  * drop-path conventions, ProcItemKawarimi/ProcItemGun for the dispose tail):
- *  - `ff` (u8 ITEM_MODE_DISPOSE) is callee-saved ($s4): entry compare + the
- *    cross-jumped dispose tail's `item->mode = ff` (both copies of the
- *    duplicated tail must spell `ff` or they don't merge).
+ *  - `ITEM_MODE_DISPOSE` (u8 ITEM_MODE_DISPOSE) is callee-saved ($s4): entry compare + the
+ *    cross-jumped dispose tail's `item->mode = ITEM_MODE_DISPOSE` (both copies of the
+ *    duplicated tail must spell `ITEM_MODE_DISPOSE` or they don't merge).
  *  - Real `switch` (fresh lbu + slti tree), bodies in source order 0,1,2;
  *    cases 0 and 1 end in a literal duplicated `item->mode = item->mode + 1;
  *    return;` cross-jumped into case 1's copy.
@@ -72,11 +72,8 @@ extern VECTOR vec_y_n1200_z_400; /* {0,-1200,400} */
 
 void ProcItemGosin(TItem *item)
 {
-    u8 ff;
     ProcItemGosinScratch scratch;
-
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->owner->itmctl = 0;
         item->mode = 0;
@@ -116,7 +113,7 @@ void ProcItemGosin(TItem *item)
             ReqItemDrop(&scratch.p);
             if (item->proc == 0)
                 return;
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -149,7 +146,7 @@ void ProcItemGosin(TItem *item)
         {
             if (item->proc == 0)
                 return;
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

@@ -13,9 +13,9 @@
  * proc/DeleteConflict/owner-clear tail shared by every ProcItem*).
  *
  * Matching notes (see also ProcItemKusuri.c for the item-TU conventions):
- *  - `ff = ITEM_MODE_DISPOSE` (0xff; a callee-saved reg, $s3) is tested at
+ *  - `ITEM_MODE_DISPOSE = ITEM_MODE_DISPOSE` (0xff; a callee-saved reg, $s3) is tested at
  *    entry AND reused
- *    verbatim for the dispose store `item->mode = ff` — this function never
+ *    verbatim for the dispose store `item->mode = ITEM_MODE_DISPOSE` — this function never
  *    repurposes that register for a scratch buffer (unlike Kusuri's mode 2),
  *    so the SAME register feeds both the compare and the later store.
  *  - The pad-bit branch is Ghidra's polarity flipped: the real source is an
@@ -29,7 +29,7 @@
  *    idiom (contrast the cached-pointer rule, which applies when the asm
  *    instead shows ONE load surviving across several uses).
  *  - The dispose tail reuses the proven idiom: `ppu = item->proc; if (ppu ==
- *    0) return; item->mode = ff; item->proc(item);` — checking through `ppu`
+ *    0) return; item->mode = ITEM_MODE_DISPOSE; item->proc(item);` — checking through `ppu`
  *    but calling through the field lets cse fold the reload, landing the
  *    pointer in $v0 (Kusuri/Manebue/Drop's rule).
  */
@@ -58,10 +58,7 @@ extern void SnapCameraTargetVector(void);
 void ProcItemTeleport(TItem *item)
 {
     void (*ppu)(TItem *);
-    u8 ff;
-
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -84,7 +81,7 @@ void ProcItemTeleport(TItem *item)
     ppu = item->proc;
     if (ppu == 0)
         return;
-    item->mode = ff;
+    item->mode = ITEM_MODE_DISPOSE;
     item->proc(item);
     DeleteConflict(item->locate);
     if (item->mode != 0)

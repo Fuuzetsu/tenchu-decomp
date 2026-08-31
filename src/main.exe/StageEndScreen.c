@@ -27,7 +27,7 @@
  * The five current-score fields deliberately capture x = 0x52 in separate
  * block locals.  GCC 2.8.1 combines those real loop movables into the target's
  * single saved-register constant, after the decimal /10 magic and per-sign
- * ten constants.  A function-wide coordinate initializes too early and
+ * divisor constants.  A function-wide coordinate initializes too early and
  * produces a different schedule.
  *
  * The score-table character and stage strides remain explicit because a
@@ -113,11 +113,11 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
         if (negative != 0)                                   \
         {                                                    \
             u32 sign_base_u;                                 \
-            s32 ten;                                         \
+            s32 divisor;                                         \
                                                              \
-            ten = 10;                                        \
+            divisor = 10;                                        \
             sign_base_u = sprite->u;                         \
-            sprite->u = sign_base_u + sprite->w * ten;       \
+            sprite->u = sign_base_u + sprite->w * divisor;       \
             GsSortSprite(sprite, OTablePt, 0);               \
             sprite->u = sign_base_u;                         \
         }                                                    \
@@ -160,11 +160,11 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
         if (negative != 0)                             \
         {                                              \
             u32 sign_base_u;                           \
-            s32 ten;                                   \
+            s32 divisor;                                   \
                                                        \
-            ten = 10;                                  \
+            divisor = 10;                                  \
             sign_base_u = sprite->u;                   \
-            sprite->u = sign_base_u + sprite->w * ten; \
+            sprite->u = sign_base_u + sprite->w * divisor; \
             GsSortSprite(sprite, OTablePt, 0);         \
             sprite->u = sign_base_u;                   \
         }                                              \
@@ -412,11 +412,11 @@ void StageEndScreen(void)
                     if (negative != 0)
                     {
                         u32 sign_base_u;
-                        s32 ten;
+                        s32 divisor;
 
-                        ten = 10;
+                        divisor = 10;
                         sign_base_u = sprite->u;
-                        sprite->u = sign_base_u + sprite->w * ten;
+                        sprite->u = sign_base_u + sprite->w * divisor;
                         GsSortSprite(sprite, OTablePt, 0);
                         sprite->u = sign_base_u;
                     }

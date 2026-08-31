@@ -18,9 +18,9 @@
  *  - `param = &item->param.drop;` is declared before the entry
  *    ITEM_MODE_DISPOSE test — reorg hoists the addiu into that branch's
  *    delay slot.
- *  - `ff` (u8, ITEM_MODE_DISPOSE) is caller-saved ($a1) here, unlike
+ *  - `ITEM_MODE_DISPOSE` (u8, ITEM_MODE_DISPOSE) is caller-saved ($a1) here, unlike
  *    Kusuri's $s4: its
- *    only uses are the entry compare and case 2's `item->mode = ff`, and no
+ *    only uses are the entry compare and case 2's `item->mode = ITEM_MODE_DISPOSE`, and no
  *    call intervenes on that path.
  *  - The dispatch is a real `switch` (fresh lbu + signed slti tree), bodies
  *    in source order 0,1,2. Cases 0 and 1 both end in a literal duplicated
@@ -75,13 +75,11 @@ typedef struct
 void ProcItemKawarimi(TItem *item)
 {
     param_drop *param;
-    u8 ff;
     s32 i;
     ProcItemKawarimiScratch scratch;
 
     param = &item->param.drop;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -131,7 +129,7 @@ void ProcItemKawarimi(TItem *item)
     case 2:
         if (item->proc == 0)
             return;
-        item->mode = ff;
+        item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

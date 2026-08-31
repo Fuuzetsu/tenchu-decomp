@@ -68,7 +68,7 @@ extern void reset_alert_duration(void);
  *    sp+0x18..sp+0x3f working window and 0x60-byte frame.
  *  - `call_item` makes both disposal predecessors materialize the indirect
  *    call argument before entering their shared tail; calling `proc(item)`
- *    instead fills the jalr delay slot and removes one of those moves.
+ *    instead fills the jalr delay slot and removes 1 of those moves.
  *  - The zero-trip wrapper around `i = 0` keeps initialization after the
  *    character-state call, where it fills the following branch delay slot.
  *    That loop note initially gave `i` the allocator's preferred saved
@@ -158,14 +158,12 @@ void ProcItemJirai(TItem *item)
         {
             s32 n;
             s32 size;
-            s32 one;
 
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
             size = 1500;
-            one = 1;
-            SET_ITEM_COLLISION(n, size, (void *)one, one);
-            item->mode += one;
+            SET_ITEM_COLLISION(n, size, (void *)1, 1);
+            item->mode += 1;
         }
         break;
     }
@@ -213,7 +211,7 @@ void ProcItemJirai(TItem *item)
 
             human = (Humanoid *)ConflictObject[cid].common;
             present = is_humanoid_on_stage_(human);
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* empty 1-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
             } while (0);

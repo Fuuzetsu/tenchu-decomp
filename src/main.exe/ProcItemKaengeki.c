@@ -47,7 +47,7 @@
  *    load and dead-overwriting that local before the switch makes
  *    expand_case emit the target's fresh second `lbu`; a direct switch after
  *    the entry guard incorrectly reuses the first load.
- *  - `ff` is an s32 caller-saved local in a1.  It remains live from the entry
+ *  - `dispose_mode` is an s32 caller-saved local in a1.  It remains live from the entry
  *    compare to mode 2's no-call dispose path, while mode 1 rematerializes
  *    ITEM_MODE_DISPOSE as a fresh 0xff value after its calls. That difference
  *    keeps the two dispose prefixes separate while cross-jump merges them at
@@ -76,13 +76,13 @@ void ProcItemKaengeki(TItem *item)
     void (*ppu)(TItem *);
     s32 rx;
     s32 ry;
-    s32 ff;
+    s32 dispose_mode;
     u8 mode_index;
 
     param = &item->param.kaengeki;
-    ff = ITEM_MODE_DISPOSE;
+    dispose_mode = ITEM_MODE_DISPOSE;
     mode_index = item->mode;
-    if (mode_index == ff)
+    if (mode_index == dispose_mode)
     {
         if (item->owner->motion->mid == MOT_ITEM_KAENGEKI)
         {
@@ -231,7 +231,7 @@ void ProcItemKaengeki(TItem *item)
         {
             return;
         }
-        item->mode = ff;
+        item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
         if (item->mode != 0)

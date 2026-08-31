@@ -19,27 +19,27 @@
  *    lever): model's
  *    load is sequential, param's addiu fills the entry branch's delay slot.
  *  - The mode dispatch is a real switch (fresh reload distinct from the
- *    entry ff-check's load, matching the switch rule); with no case for
+ *    entry ITEM_MODE_DISPOSE-check's load, matching the switch rule); with no case for
  *    "neither 0 nor 1", falling out of the switch reaches the shared draw
  *    tail directly — the SAME tail case 0/case 1 reach via `break`.
- *  - `one = 1;` is a real shared variable, not a literal: the
+ *  - `1 = 1;` is a real shared variable, not a literal: the
  *    status==KORO_WATER compare needs `1` in a register anyway (MIPS beq has
  *    no immediate
- *    form), and the SAME register then feeds `item->mode + one`, `.common =
- *    (void *)one`, `.size.pad = one`, and `item->collision.mode = one` — five
+ *    form), and the SAME register then feeds `item->mode + 1`, `.common =
+ *    (void *)1`, `.size.pad = 1`, and `item->collision.mode = 1` — five
  *    uses, unmistakably `addu` (register) not `addiu` (immediate) at the
  *    mode-increment, so it must survive as a live variable across the
- *    DeleteConflict/InsertConflict calls (callee-saved, like `ff`/`m`).
+ *    DeleteConflict/InsertConflict calls (callee-saved, like `ITEM_MODE_DISPOSE`/`m`).
  *  - The dispose after status==KORO_WATER and the dispose after mode 1's
  *    conflict-hit are the SAME code written out TWICE (cross-jump merges
- *    from the jalr on): the KORO_WATER path reuses `ff` (still live,
+ *    from the jalr on): the KORO_WATER path reuses `ITEM_MODE_DISPOSE` (still live,
  *    untouched since entry); the mode-1 path materializes a fresh
- *    ITEM_MODE_DISPOSE value since nothing carries `ff` that far — same
+ *    ITEM_MODE_DISPOSE value since nothing carries `ITEM_MODE_DISPOSE` that far — same
  *    asymmetry as ProcItemKusuri's mode-2 vs mode-1 dispose.
  *  - Collision box field-store order (offset.vx/vz/vy, then size.vz/vy/vx,
  *    then common, then size.pad) exactly mirrors ProcItemDrop's
  *    KORO_GRAND/KORO_STAY case, just different numbers (100 not 0xb4,
- *    one(1) not m(8)).
+ *    1(1) not m(8)).
  */
 #include "item.h"
 
@@ -76,16 +76,13 @@ void ProcItemMakibishi(TItem *item)
     Sprite3D *model;
     param_drop *param;
     void (*ppu)(TItem *);
-    u8 ff;
     u8 st;
-    s32 one;
     s32 i;
     s32 n;
 
     model = (Sprite3D *)item->model;
     param = &item->param.drop;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -94,22 +91,21 @@ void ProcItemMakibishi(TItem *item)
     {
     case 0:
         MoveKorogari(item, &param->koro);
-        one = 1;
         st = param->koro.status;
         switch (st)
         {
         case KORO_STAY:
-            item->mode += one;
+            item->mode += 1;
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(n, 100, (void *)one, one);
+            SET_ITEM_COLLISION(n, 100, (void *)1, 1);
             break;
 
         case KORO_WATER:
             ppu = item->proc;
             if (ppu == 0)
                 return;
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

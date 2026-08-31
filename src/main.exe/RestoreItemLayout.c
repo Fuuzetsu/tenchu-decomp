@@ -60,7 +60,7 @@ void RestoreItemLayout(void *buf)
     s32 j;
     PARAM_ITEM_STAY param;
     s32 level;
-    s32 one;
+    s32 level_mode;
     s32 sentinel;
     s32 x;
     s32 z;
@@ -88,7 +88,7 @@ loop1:
 loop1_end:
 
     j = 0;
-    one = AREA_LEVEL_STEP_DOWN;
+    level_mode = AREA_LEVEL_STEP_DOWN;
     sentinel = LEVEL_NONE;
     slot = buf;
 loop2:
@@ -103,7 +103,7 @@ loop2:
         tmp.locate = slot->locate;
         param = tmp;
 
-        level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, one);
+        level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, level_mode);
         if (level == sentinel || abs(level - param.locate.vy) >= 1000)
         {
             s32 k = 0;
@@ -114,7 +114,7 @@ loop2:
             {
                 x = param.locate.vx + offs[0] * 1000;
                 z = param.locate.vz + offs[1] * 1000;
-                level = GetAreaMapLevel(GlobalAreaMap, x, param.locate.vy, z, one);
+                level = GetAreaMapLevel(GlobalAreaMap, x, param.locate.vy, z, level_mode);
                 if (level == sentinel || abs(level - param.locate.vy) >= 1000)
                 {
                     offs += 2;

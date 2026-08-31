@@ -91,13 +91,11 @@ typedef union
 void ProcItemShinsoku(TItem *item)
 {
     param_shinsoku *param;
-    u8 ff;
     VECTOR pos;
     ProcItemShinsokuScratch scratch;
 
     param = &item->param.shinsoku;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -148,7 +146,7 @@ void ProcItemShinsoku(TItem *item)
             {
                 return;
             }
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -189,7 +187,7 @@ void ProcItemShinsoku(TItem *item)
             {
                 return;
             }
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
