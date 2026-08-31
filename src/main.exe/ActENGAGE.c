@@ -105,7 +105,7 @@ void ActENGAGE(void)
     }
 
     case MOT_ENGAGE_TURN_R:
-        dtR->vy = dtR->vy + Me_MOTION_C->turn;
+        dtR->vy += Me_MOTION_C->turn;
         if (dtM->count == 1)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLright) == 0)
@@ -116,7 +116,7 @@ void ActENGAGE(void)
         break;
 
     case MOT_ENGAGE_TURN_L:
-        dtR->vy = dtR->vy - Me_MOTION_C->turn;
+        dtR->vy -= Me_MOTION_C->turn;
         if (dtM->count == 1)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLleft) == 0)

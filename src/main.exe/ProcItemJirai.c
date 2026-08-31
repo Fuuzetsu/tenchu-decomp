@@ -163,7 +163,7 @@ void ProcItemJirai(TItem *item)
             size = 1500;
             one = 1;
             SET_ITEM_COLLISION(n, size, (void *)one, one);
-            item->mode = item->mode + one;
+            item->mode += one;
         }
         break;
     }

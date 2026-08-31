@@ -76,12 +76,12 @@ void Camera(void)
         CameraType1(CamState.Owner, &vDif);
         break;
     }
-    ViewInfo.vrx = ViewInfo.vrx + vDif.vrx;
-    ViewInfo.vry = ViewInfo.vry + vDif.vry;
-    ViewInfo.vrz = ViewInfo.vrz + vDif.vrz;
-    ViewInfo.vpx = ViewInfo.vpx + vDif.vpx;
-    ViewInfo.vpy = ViewInfo.vpy + vDif.vpy;
-    ViewInfo.vpz = ViewInfo.vpz + vDif.vpz;
+    ViewInfo.vrx += vDif.vrx;
+    ViewInfo.vry += vDif.vry;
+    ViewInfo.vrz += vDif.vrz;
+    ViewInfo.vpx += vDif.vpx;
+    ViewInfo.vpy += vDif.vpy;
+    ViewInfo.vpz += vDif.vpz;
     GsSetRefView2(&ViewInfo);
 
     if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != 1 &&

@@ -110,7 +110,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     if (start != 0)
     {
         pos = CdPosToInt(start);
-        CdaStatus.StartPos = CdaStatus.StartPos + pos;
+        CdaStatus.StartPos += pos;
     }
     param[0] = CdlModeSpeed | CdlModeRT | CdlModeSF | CdlModeDA;
     cd_control(CdlSetmode, param, 0);

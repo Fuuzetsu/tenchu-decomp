@@ -386,7 +386,7 @@ void ProcItemNingyo(TItem *item)
                     param->koro.vz = vz >> 4;
                     param->koro.hint = 0;
                     param->koro.status = KORO_NORMAL;
-                    param->hp = hp - 1;
+                    param->hp -= 1;
                     SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
                 }
             }

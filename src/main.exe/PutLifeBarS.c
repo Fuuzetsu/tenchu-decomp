@@ -45,7 +45,7 @@ s32 PutLifeBarS(void)
             PutLifeBar(x, -90, LifeBar[i].life, LifeBar[i].max, LifeBar[i].style);
             LifeBar[i].count--;
         }
-        x = x + 60;
+        x += 60;
         i++;
     } while (i < nLifeBar);
     return 0;

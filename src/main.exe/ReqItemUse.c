@@ -587,7 +587,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             p->end.vy = t;
             t = p->end.vx;
             u = ((VECTOR *)&param)->vz;
-            t = t + sx;
+            t += sx;
             p->end.vx = t;
             t = p->end.vy;
             p->end.vz = u;
@@ -623,12 +623,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         vx = ((VECTOR *)&work)->vx;
         vy = ((VECTOR *)&work)->vy;
         vz = ((VECTOR *)&work)->vz;
-        param.start.vx = param.start.vx + vx;
+        param.start.vx += vx;
         param.end.vx = vx;
         param.end.vy = vy;
         param.end.vz = vz;
-        param.start.vy = param.start.vy + vy;
-        param.start.vz = param.start.vz + vz;
+        param.start.vy += vy;
+        param.start.vz += vz;
         ReqItemJirai((PARAM_ITEM_DROP *)&param);
         break;
     }

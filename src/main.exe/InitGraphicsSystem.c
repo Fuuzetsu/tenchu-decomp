@@ -112,6 +112,6 @@ void InitGraphicsSystem(void)
     OTable[0].length = 0xb;
     OTable[0].org = ZSortTable[0];
     OTable[1].org = ZSortTable[1];
-    STARTING_RNG_SEED = STARTING_RNG_SEED + VSync(-1);
+    STARTING_RNG_SEED += VSync(-1);
     srand(STARTING_RNG_SEED);
 }

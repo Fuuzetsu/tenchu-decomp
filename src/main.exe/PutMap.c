@@ -129,7 +129,7 @@ void PutMap(void)
         ply->ply.r0 = rgb;
         ply->ply.g0 = rgb;
         ply->ply.b0 = rgb;
-        MapSlideX = MapSlideX - 0x28;
+        MapSlideX -= 0x28;
         if (MapSlideX <= 0)
         {
             PutMapMode++;

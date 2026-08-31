@@ -71,7 +71,7 @@ s16 Think1watch(void)
     }
     else
     {
-        Me_THINK_C->actcnt = actcnt + 1;
+        Me_THINK_C->actcnt += 1;
     }
     return result;
 }

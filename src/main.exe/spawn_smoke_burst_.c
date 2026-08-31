@@ -128,9 +128,9 @@ found:
     smoke->pos.vx = pos->vx;
     smoke->pos.vy = pos->vy;
     smoke->pos.vz = pos->vz;
-    smoke->pos.vx = smoke->pos.vx + smoke->vec.vx;
-    smoke->pos.vy = smoke->pos.vy + smoke->vec.vy;
-    smoke->pos.vz = smoke->pos.vz + smoke->vec.vz;
+    smoke->pos.vx += smoke->vec.vx;
+    smoke->pos.vy += smoke->vec.vy;
+    smoke->pos.vz += smoke->vec.vz;
     smoke->vec.vx = vx;
     smoke->vec.vy = vy;
     smoke->vec.vz = vz;

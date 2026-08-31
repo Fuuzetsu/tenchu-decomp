@@ -80,7 +80,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         objects = human->model->object;
         if (human->model->n > 0)
         {
-            objects = objects + rand() % human->model->n;
+            objects += rand() % human->model->n;
         }
         model = *objects;
 

@@ -97,7 +97,7 @@ void ProcItemMakibishi(TItem *item)
         switch (st)
         {
         case KORO_STAY:
-            item->mode = item->mode + one;
+            item->mode += one;
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
             SET_ITEM_COLLISION(n, 100, (void *)one, one);

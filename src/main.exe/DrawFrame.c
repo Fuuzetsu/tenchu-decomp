@@ -143,7 +143,7 @@ void DrawFrame(TEffectSlot *ef)
         spr->b = rgb;
         spr->g = rgb;
         spr->r = rgb;
-        param->count = param->count - 29;
+        param->count -= 29;
         if (param->count <= 0)
         {
             ef->proc = 0;

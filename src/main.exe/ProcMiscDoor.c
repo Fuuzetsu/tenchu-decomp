@@ -170,7 +170,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 
         w = DoorData[param->type].HitSize;
         r = __builtin_abs(param->r);
-        w = w - (w * r) / 0x2800;
+        w -= (w * r) / 0x2800;
         model = DoorData[param->type].Model[0];
     }
     if (model != (ModelType *)-1)

@@ -87,7 +87,7 @@ loop:
     q = cols / 10;
     img->u = base + (cols % 10) * NW;
     GsSortSprite(img, OTablePt, 0);
-    img->x = img->x - GAP;
+    img->x -= GAP;
     cols = q;
     if (cols != 0)
         goto loop;

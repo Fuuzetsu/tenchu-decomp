@@ -111,7 +111,7 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
         q = t / 10;
         img->u = u + (t % 10) * 4;
         GsSortSprite(img, OTablePt, 0);
-        img->x = img->x - 6;
+        img->x -= 6;
         t = q;
     }
     if (t != 0)

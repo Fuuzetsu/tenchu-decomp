@@ -124,8 +124,8 @@ short HangCheck(void)
         }
         if (dtL->vy < y)
         {
-            dtL->vx = dtL->vx - (vect.vx >> 1);
-            dtL->vz = dtL->vz - (vect.vz >> 1);
+            dtL->vx -= (vect.vx >> 1);
+            dtL->vz -= (vect.vz >> 1);
         }
         return 0;
     }
@@ -140,7 +140,7 @@ short HangCheck(void)
     {
         return 0;
     }
-    dtL->vy = dtL->vy - (105 - y);
+    dtL->vy -= (105 - y);
     if (Me_MOTION_C->status == STAT_HANG)
     {
         return 1;
@@ -152,7 +152,7 @@ short HangCheck(void)
         yc = ry & 0xC00;
         if (ry & 0x200)
         {
-            yc = yc + 0x400;
+            yc += 0x400;
         }
         ry = yc;
     }
@@ -162,7 +162,7 @@ short HangCheck(void)
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy, dtL->vz + vect.vz, 2);
     if (y == (u32)LEVEL_NONE || y > LEDGE_PROBE_RISE)
     {
-        dtL->vy = dtL->vy - (oy - 5);
+        dtL->vy -= (oy - 5);
         return 0;
     }
     dtR->vy = ry;
@@ -171,9 +171,9 @@ short HangCheck(void)
     if (y != (u32)LEVEL_NONE && y <= LEDGE_PROBE_RISE)
     {
         GetMoveSpeed(&vect, dtR->vy, -200, 0);
-        dtL->vx = dtL->vx + vect.vx;
-        dtL->vz = dtL->vz + vect.vz;
-        dtL->vy = dtL->vy - (105 - y);
+        dtL->vx += vect.vx;
+        dtL->vz += vect.vz;
+        dtL->vy -= (105 - y);
     }
     motID = MOT_HANG_CATCH;
     motMODE = 1;

@@ -194,8 +194,8 @@ void ActJUMP(void)
             {
                 GetMoveSpeed(&spd, dtR->vy, 0, 10);
             }
-            spd.vx = spd.vx + dtV->vx;
-            spd.vz = spd.vz + dtV->vz;
+            spd.vx += dtV->vx;
+            spd.vz += dtV->vz;
             if (__builtin_abs(spd.vx) <= 100)
             {
                 if (__builtin_abs(spd.vz) <= 100)

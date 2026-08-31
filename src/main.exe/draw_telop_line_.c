@@ -59,7 +59,7 @@ void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
             if (*text == 10)
             {
                 cursor = x;
-                ypos = ypos + 0x10;
+                ypos += 0x10;
             }
             else
             {
@@ -72,13 +72,13 @@ void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
                 index = ch;
                 if (index > 0x1f)
                 {
-                    index = index - 0x20;
+                    index -= 0x20;
                 }
                 if (ch > 0xbf)
                 {
-                    index = index - 0x40;
+                    index -= 0x40;
                 }
-                cursor = cursor + FontWidth[index];
+                cursor += FontWidth[index];
             }
             text++;
         } while (*text != 0);

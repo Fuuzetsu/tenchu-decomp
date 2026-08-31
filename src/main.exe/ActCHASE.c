@@ -111,7 +111,7 @@ void ActCHASE(void)
 
                 y = dtL->vy;
                 height = Me_MOTION_C->map.height;
-                dtL->vy = y - LEDGE_PROBE_RISE;
+                dtL->vy -= LEDGE_PROBE_RISE;
                 Me_MOTION_C->map.height = 1;
                 if (HangCheck() == 0)
                 {

@@ -114,9 +114,9 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
     ret = 0;
     tv = vec_z_n17000;
     RotateVector(&tv, rot->vx, rot->vy, rot->vz);
-    tv.vx = tv.vx + start->vx;
-    tv.vy = tv.vy + start->vy;
-    tv.vz = tv.vz + start->vz;
+    tv.vx += start->vx;
+    tv.vy += start->vy;
+    tv.vz += start->vz;
     trace_ground_(start, &tv, &lv, 0);
     target->vx = lv.vx;
     target->vy = lv.vy;
@@ -137,9 +137,9 @@ Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR
         lv = tv;
         if (human->life > 0 && human != owner)
         {
-            lv.vx = lv.vx - start->vx;
-            lv.vy = lv.vy - start->vy;
-            lv.vz = lv.vz - start->vz;
+            lv.vx -= start->vx;
+            lv.vy -= start->vy;
+            lv.vz -= start->vz;
             ApplyMatrixLV(&mat, &lv, &lv);
             lv.vz = -lv.vz;
             if (lv.vz > 100)

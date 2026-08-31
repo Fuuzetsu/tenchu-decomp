@@ -141,7 +141,7 @@ void PutStrain(s32 x, s32 y)
             r = newpow / 10;
             img->u = base + (newpow % 10) * 4;
             GsSortSprite(img, OTablePt, 0);
-            img->x = img->x - 6;
+            img->x -= 6;
             newpow = r;
             if (newpow != 0)
                 goto strainloop;
@@ -160,7 +160,7 @@ void PutStrain(s32 x, s32 y)
         StrainPhase = phase;
         osc = rsin(phase) * 0x60;
         if (osc < 0)
-            osc = osc + 0xfff;
+            osc += 0xfff;
         shade = (osc >> 0xc) + range / 2;
         spr->b = shade;
         spr->g = shade;

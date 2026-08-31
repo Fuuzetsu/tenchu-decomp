@@ -84,7 +84,7 @@ short ControlTraceLine(Humanoid *human)
         }
         else if (diff <= -0x800)
         {
-            t = t + 0x1000;
+            t += 0x1000;
         }
         d32 = t;
         degree = d32;

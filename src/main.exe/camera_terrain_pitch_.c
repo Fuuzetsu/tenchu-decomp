@@ -52,18 +52,18 @@ s32 camera_terrain_pitch_(Humanoid *human)
     z = human->locate->vz / 10;
     node = human->map.area;
     yy = (u16)node->y;
-    x = x - (u16)node->x1;
+    x -= (u16)node->x1;
     xspan = (u16)node->x2 - (u16)node->x1 + 1;
-    z = z - (u16)node->z1;
+    z -= (u16)node->z1;
     zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
     switch (node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z))
     {
     case MAP_SLOPE_X:
-        yy = yy + x * node->dy / xspan;
+        yy += x * node->dy / xspan;
         break;
     case MAP_SLOPE_Z:
-        yy = yy + z * node->dy / zspan;
+        yy += z * node->dy / zspan;
         break;
     }
     height0 = (short)yy * 10;
@@ -74,18 +74,18 @@ s32 camera_terrain_pitch_(Humanoid *human)
     z = (human->locate->vz + zshift) / 10;
     node = human->map.area;
     yy = (u16)node->y;
-    x = x - (u16)node->x1;
+    x -= (u16)node->x1;
     xspan = (u16)node->x2 - (u16)node->x1 + 1;
-    z = z - (u16)node->z1;
+    z -= (u16)node->z1;
     zspan = (u16)node->z2 - (u16)node->z1 + 1;
 
     switch (node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z))
     {
     case MAP_SLOPE_X:
-        yy = yy + x * node->dy / xspan;
+        yy += x * node->dy / xspan;
         break;
     case MAP_SLOPE_Z:
-        yy = yy + z * node->dy / zspan;
+        yy += z * node->dy / zspan;
         break;
     }
     height1 = (short)yy * 10;

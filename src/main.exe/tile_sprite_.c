@@ -68,9 +68,9 @@ void tile_sprite_(Sprite3D *g, u16 shade)
             while (sp->x <= width)
             {
                 GsSortSprite(sp, OTablePt, 1);
-                sp->x = sp->x + sp->w;
+                sp->x += sp->w;
             }
-            sp->y = sp->y + sp->h;
+            sp->y += sp->h;
             h = sp->h;
         } while (sp->y <= height + h);
     }

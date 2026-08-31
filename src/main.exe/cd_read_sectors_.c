@@ -103,14 +103,14 @@ full_retry:
             chunk = off + remaining;
             if (chunk > 0x800)
                 chunk = 0x800;
-            chunk = chunk - off;
+            chunk -= off;
             for (i = 0; i < chunk; i++)
             {
                 src = data + off;
                 dst[i] = src[i];
             }
-            dst = dst + chunk;
-            remaining = remaining - chunk;
+            dst += chunk;
+            remaining -= chunk;
             off = 0;
             curSector++;
         }

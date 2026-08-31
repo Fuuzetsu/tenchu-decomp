@@ -581,7 +581,7 @@ void BriefingAndInventorySelectionScreen(void)
                 quo = d / 10;
                 x = dsp->u;
                 rem = d - quo * 10;
-                dsp->u = dsp->u + (s16)rem * dsp->w;
+                dsp->u += (s16)rem * dsp->w;
                 GsSortSprite(dsp, OTablePt, 0);
                 dsp->u = x;
                 dsp->x -= 0xC;

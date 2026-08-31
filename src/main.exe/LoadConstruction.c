@@ -326,7 +326,7 @@ short LoadConstruction(u_long *data)
 
                 GetCenterAndSize(model->object.tmd, &center, &size);
                 nModel = (z << 2) + ((x << 8) + (y << 5));
-                nModel = nModel + (int)WorldMap;
+                nModel += (int)WorldMap;
                 slotman = &ModelSlot;
                 shifty = center.vy;
                 msize = size / 2;

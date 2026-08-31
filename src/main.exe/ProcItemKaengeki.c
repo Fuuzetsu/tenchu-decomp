@@ -181,11 +181,11 @@ void ProcItemKaengeki(TItem *item)
         buttons = human->pad.data;
         if ((buttons & PADLright) != 0)
         {
-            human->model->rotate.vy = human->model->rotate.vy + 0x20;
+            human->model->rotate.vy += 0x20;
         }
         else if ((buttons & PADLleft) != 0)
         {
-            human->model->rotate.vy = human->model->rotate.vy - 0x20;
+            human->model->rotate.vy -= 0x20;
         }
 
         request.rp.user = item->owner;

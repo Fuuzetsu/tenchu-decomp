@@ -104,8 +104,8 @@ AreaMapType *LoadAreaMap(AreaMapType *adr)
     {
         do
         {
-            map[j].index = map[j].index + (long)adr;
-            map[j].y = map[j].y + 2;
+            map[j].index += (long)adr;
+            map[j].y += 2;
             if (map[j].n < 0)
             {
                 ((IndexArrayType *)map[j].index)->index =

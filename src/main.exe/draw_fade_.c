@@ -65,7 +65,7 @@ void draw_fade_(TEffectSlot *ef)
         if ((u32)GameClock >= (u32)fade->end_time)
         {
             fade->mode++;
-            fade->end_time = fade->end_time + 3;
+            fade->end_time += 3;
         }
         break;
     case 1:
@@ -75,7 +75,7 @@ void draw_fade_(TEffectSlot *ef)
         if ((u32)GameClock >= (u32)fade->end_time)
         {
             fade->mode++;
-            fade->end_time = fade->end_time + 0x28;
+            fade->end_time += 0x28;
         }
         break;
     case 2:

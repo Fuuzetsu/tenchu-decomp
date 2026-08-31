@@ -130,7 +130,7 @@ void *vrealloc(void *pt, u32 size)
              * (s32)size >= 0 form of the same in-use test (measured). */
             if (svhp != 0 && (~svhp->size & 0x80000000) != 0)
             {
-                vh.size = vh.size + (svhp->size + 2);
+                vh.size += (svhp->size + 2);
                 vh.next = svhp->next;
             }
             *vhp->next = vh;

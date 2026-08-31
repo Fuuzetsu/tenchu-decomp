@@ -122,7 +122,7 @@ void DrawBlood(TEffectSlot *ef)
         s32 half;
 
         fade = blood->brightness;
-        fade = fade - 5;
+        fade -= 5;
         blood->brightness = fade;
         if (fade <= 0)
         {
@@ -194,7 +194,7 @@ void DrawBlood(TEffectSlot *ef)
         u16 oldtime;
 
         scale_rnd = rand();
-        blood->scale = blood->scale + scale_rnd % 0x1000;
+        blood->scale += scale_rnd % 0x1000;
         oldtime = blood->time;
         blood->time = oldtime - 1;
         if ((s16)oldtime <= 0)
@@ -231,7 +231,7 @@ void DrawBlood(TEffectSlot *ef)
         x = blood->px;
         y = blood->py;
         sx = x / 10;
-        blood->vy = blood->vy + 10;
+        blood->vy += 10;
         area = blood->hint;
         sy = y / 10;
         z = blood->pz;
@@ -273,7 +273,7 @@ void DrawBlood(TEffectSlot *ef)
                 blood->vy = vy_rnd % 8 + 8;
                 blood->rotate = 0;
                 scale_rnd = rand();
-                blood->sprite = blood->sprite + 2;
+                blood->sprite += 2;
                 /* random scale in [1/3, 1/2) of 4.12 one */
                 blood->scale = scale_rnd % 0x2ab + 0x555;
             }
@@ -323,9 +323,9 @@ void DrawBlood(TEffectSlot *ef)
     s32 t;
     s32 pri;
 
-    blood->px = blood->px + blood->vx;
-    blood->py = blood->py + blood->vy;
-    blood->pz = blood->pz + blood->vz;
+    blood->px += blood->vx;
+    blood->py += blood->vy;
+    blood->pz += blood->vz;
     spr->rotate = blood->rotate;
     spr->attribute = 0;
     spr->r = blood->brightness;

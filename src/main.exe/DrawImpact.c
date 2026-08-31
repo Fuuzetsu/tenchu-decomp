@@ -59,10 +59,10 @@ void DrawImpact(TEffectSlot *ef)
     inverse = 0x1000 - ratio;
 
     start = param->start_size * inverse;
-    param->rotate = param->rotate + param->rotate_speed;
+    param->rotate += param->rotate_speed;
     if (start < 0)
     {
-        start = start + 0xfff;
+        start += 0xfff;
     }
 
     size = (start >> 12) + (param->end_size * ratio) / 0x1000;
@@ -72,7 +72,7 @@ void DrawImpact(TEffectSlot *ef)
     end_raw = param->end_color.channel.r;
     if (start < 0)
     {
-        start = start + 0xfff;
+        start += 0xfff;
     }
     spr->r = (start >> 12) + (end_raw * ratio) / 0x1000;
 
@@ -81,7 +81,7 @@ void DrawImpact(TEffectSlot *ef)
     end_raw = param->end_color.channel.g;
     if (start2 < 0)
     {
-        start2 = start2 + 0xfff;
+        start2 += 0xfff;
     }
     start2 = start2 >> 12;
     spr->g = start2 + (end_raw * ratio) / 0x1000;
@@ -91,7 +91,7 @@ void DrawImpact(TEffectSlot *ef)
     end_raw = param->end_color.channel.b;
     if (start2 < 0)
     {
-        start2 = start2 + 0xfff;
+        start2 += 0xfff;
     }
     start2 = start2 >> 12;
     spr->b = start2 + (end_raw * ratio) / 0x1000;

@@ -143,7 +143,7 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
         mspd += 0x1FFF;
     }
     spd = mspd >> 0xD;
-    spd = spd + info->ac;
+    spd += info->ac;
     if (ip < spd)
     {
         spd = ip;

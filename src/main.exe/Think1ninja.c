@@ -81,7 +81,7 @@ s16 Think1ninja(void)
         return 0;
     }
     actscnt = Me_THINK_C->actscnt;
-    Me_THINK_C->actscnt = actscnt + 1;
+    Me_THINK_C->actscnt += 1;
     if (actscnt > 30)
     {
         result = Think1random();

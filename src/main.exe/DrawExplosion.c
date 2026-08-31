@@ -102,8 +102,8 @@ void DrawExplosion(TEffectSlot *ef)
         }
         else
         {
-            param->scale = param->scale + 0x2000;
-            param->rotate = param->rotate + 100 * 4096; /* 100 deg/frame */
+            param->scale += 0x2000;
+            param->rotate += 100 * 4096; /* 100 deg/frame */
         }
         spr = sprBomb[0];
         break;
@@ -113,14 +113,14 @@ void DrawExplosion(TEffectSlot *ef)
             param->time = fo;
             param->mode++;
         }
-        param->scale = param->scale + 0x2000;
-        param->rotate = param->rotate + 100 * 4096; /* 100 deg/frame */
+        param->scale += 0x2000;
+        param->rotate += 100 * 4096; /* 100 deg/frame */
         spr = sprBomb[1];
         break;
     case 2:
         alfa = (u8)((param->time << 7) / fo);
-        param->scale = param->scale - 0x333;
-        param->rotate = param->rotate + 90 * 4096; /* 90 deg/frame */
+        param->scale -= 0x333;
+        param->rotate += 90 * 4096; /* 90 deg/frame */
         if (param->time == 0)
         {
             ef->proc = 0;
@@ -129,9 +129,9 @@ void DrawExplosion(TEffectSlot *ef)
         break;
     }
     param->time--;
-    param->pos.vx = param->pos.vx + param->vec.vx;
-    param->pos.vy = param->pos.vy + param->vec.vy;
-    param->pos.vz = param->pos.vz + param->vec.vz;
+    param->pos.vx += param->vec.vx;
+    param->pos.vy += param->vec.vy;
+    param->pos.vz += param->vec.vz;
     spr->locate.coord.t[0] = param->pos.vx;
     spr->locate.coord.t[1] = param->pos.vy;
     spr->locate.coord.t[2] = param->pos.vz;

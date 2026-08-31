@@ -161,8 +161,8 @@ void ActDAMAGE(void)
             motMODE = 1;
             break;
         }
-        dtV->vx = dtV->vx - (dtV->vx >> 2);
-        dtV->vz = dtV->vz - (dtV->vz >> 2);
+        dtV->vx -= (dtV->vx >> 2);
+        dtV->vz -= (dtV->vz >> 2);
         break;
 
     case MOT_DAMAGE_DOWNED:

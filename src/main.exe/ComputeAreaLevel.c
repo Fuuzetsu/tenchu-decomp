@@ -81,7 +81,7 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
             yy = yy + dx * node->dy / xspan;
             break;
         case MAP_SLOPE_Z:
-            yy = yy + dz * node->dy / zspan;
+            yy += dz * node->dy / zspan;
             break;
         }
         return yy;

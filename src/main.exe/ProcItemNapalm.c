@@ -105,8 +105,8 @@ void ProcItemNapalm(TItem *item)
         item->locate->locate.coord.t[2] += param->vec.vz * ex / 100;
 
         t = rand() % 25;
-        t = t - 26;
-        t = t - param->count * 230 / MaxCount;
+        t -= 26;
+        t -= param->count * 230 / MaxCount;
         model->sprite.r = t;
         model->sprite.g = model->sprite.r;
         model->sprite.b = model->sprite.r;

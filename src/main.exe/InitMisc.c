@@ -74,7 +74,7 @@ void InitMisc(void)
 
     i = MaxMisc - 1;
     tm = misc;
-    tm = tm + (MaxMisc - 1);
+    tm += (MaxMisc - 1);
     do
     {
         tm->proc = 0;

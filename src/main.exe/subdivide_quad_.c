@@ -28,7 +28,7 @@
         dz = va->sz;                                                          \
         if (dz < 0)                                                           \
         {                                                                     \
-            dz = dz + 3;                                                      \
+            dz += 3;                                                      \
         }                                                                     \
         work->zmax = dz >> 2;                                                 \
         pk[3] = (u32) * (u16 *)&va->tu;                                       \
@@ -46,7 +46,7 @@
         work->otp = (u_long *)slot;                                           \
         *pk = *slot & 0xffffff | 0x9000000;                                   \
         *(u32 *)work->otp = (u32)pk & 0xffffff;                               \
-        work->out = work->out + 10;                                           \
+        work->out += 10;                                           \
     }
 
 /*
@@ -154,7 +154,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     zC = work->zmax;
     if (zC < 0)
     {
-        zC = zC + 3;
+        zC += 3;
     }
     work->zmax = zC >> 2;
     if (work->adivz <= zC >> 2)
@@ -375,7 +375,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         dz = vb->sz;
                         if (dz < 0)
                         {
-                            dz = dz + 3;
+                            dz += 3;
                         }
                         work->zmax = dz >> 2;
                         pk[3] = (u32) * (u16 *)&vb->tu;

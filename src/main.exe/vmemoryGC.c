@@ -224,7 +224,7 @@ void *vmemoryGC(void *pt)
                     prev = vh.next;
                     if (prev != 0 && (~prev->size & mask) != 0)
                     {
-                        vh.size = vh.size + (prev->size + 2);
+                        vh.size += (prev->size + 2);
                         vh.next = prev->next;
                     }
                     *(struct VMhead *)vmpt = vh;

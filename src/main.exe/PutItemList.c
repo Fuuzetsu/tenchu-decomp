@@ -63,7 +63,7 @@ static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
     CursorImage.y = y;
     CursorImage.scalex = size;
     CursorImage.scaley = size;
-    CursorImage.rotate = CursorImage.rotate + rotdif;
+    CursorImage.rotate += rotdif;
     GsSortSprite(&CursorImage, OTablePt, 1);
 }
 
@@ -80,7 +80,7 @@ loop:
     q = cols / 10;
     NumberImage.u = ou + (cols % 10) * 4;
     GsSortSprite(&NumberImage, OTablePt, 0);
-    NumberImage.x = NumberImage.x - 6;
+    NumberImage.x -= 6;
     cols = q;
     if (cols != 0)
         goto loop;
@@ -144,7 +144,7 @@ void PutItemList(void)
                 spr->scaley = 0xAAA;
                 GsSortSprite(spr, OTablePt, 0);
             }
-            x = x - ItemGap;
+            x -= ItemGap;
         }
         i++;
     }

@@ -63,8 +63,8 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
         SetCameraMode(CMODE_NORMAL);
     }
 
-    CamState.DirectionRX = CamState.DirectionRX - y;
-    CamState.DirectionRY = CamState.DirectionRY + x;
+    CamState.DirectionRX -= y;
+    CamState.DirectionRY += x;
     if (CamState.DirectionRX > CAMERA_LOOK_LIMIT_X)
     {
         CamState.DirectionRX = CAMERA_LOOK_LIMIT_X;

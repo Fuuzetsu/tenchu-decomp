@@ -573,8 +573,8 @@ dispatch:
                 GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 0, 10);
             }
             v = dtV;
-            scratch.fall_velocity.vx = scratch.fall_velocity.vx + dtV->vx;
-            scratch.fall_velocity.vz = scratch.fall_velocity.vz + dtV->vz;
+            scratch.fall_velocity.vx += dtV->vx;
+            scratch.fall_velocity.vz += dtV->vz;
             if ((((scratch.fall_velocity.vx >= 0) ? scratch.fall_velocity.vx : -scratch.fall_velocity.vx) <= 100) &&
                 (((scratch.fall_velocity.vz >= 0) ? scratch.fall_velocity.vz : -scratch.fall_velocity.vz) <= 100))
             {
@@ -639,8 +639,8 @@ dispatch:
             return;
         }
         v = dtV;
-        dtV->vx = dtV->vx - (dtV->vx >> 2);
-        v->vz = v->vz - (v->vz >> 2);
+        dtV->vx -= (dtV->vx >> 2);
+        v->vz -= (v->vz >> 2);
         return;
     }
     case MOT_ATTACK_TAUNT:
@@ -741,7 +741,7 @@ dispatch:
         dtM->mask = 0x7fff;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:
-        dtR->vy = dtR->vy + (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
+        dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
         is_player = Me_MOTION_C == StagePlayer;
         ((*Me_MOTION_C->model->object)->rotate).vy = dtM->motion->rotate[0]->y;
         if (is_player)

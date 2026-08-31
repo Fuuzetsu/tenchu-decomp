@@ -92,9 +92,9 @@ normal:
         dir.vx = 0;
         dir.vy = -400;
         dir.vz = 0;
-        pos.vy = pos.vy + 2000;
+        pos.vy += 2000;
         SetSmoke(&pos, &dir, 1, 1);
-        pos.vy = pos.vy - 2000;
+        pos.vy -= 2000;
         SetSplash(&pos, 0x4000, 0x2000, 10);
     }
 }

@@ -66,7 +66,7 @@ long GetTargetDistance(Humanoid *human, short *deg)
     }
     else if (deg2 <= -0x800)
     {
-        deg2 = deg2 + 0x1000;
+        deg2 += 0x1000;
     }
     *deg = deg2;
     return SquareRoot0(dx * dx + dz * dz);

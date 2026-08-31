@@ -64,7 +64,7 @@ void set_boot_exec_(u8 *file, u32 stack, u32 size)
     {
     } while (0);
     rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
-    file = file + 6;
+    file += 6;
     rec->magic = magic;
     i = 0;
     if (*file != 0)

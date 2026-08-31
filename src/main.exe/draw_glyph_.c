@@ -76,23 +76,23 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
     t1 = c0;
     if (t1 > 0x1f)
     {
-        t1 = t1 - 0x20;
+        t1 -= 0x20;
     }
     if (c0 > 0xbf)
     {
-        t1 = t1 - 0x40;
+        t1 -= 0x40;
     }
     t2 = t1;
     cell = (u16)t2;
     img = FONT_IMAGE_;
-    img.px = img.px + (cell & 0xf) * 3;
+    img.px += (cell & 0xf) * 3;
     if (t2 < 0)
     {
-        t2 = t2 + 0xf;
+        t2 += 0xf;
     }
     img.pw = 3;
     img.ph = 0x10;
-    img.py = img.py + (t2 >> 4) * 0x10;
+    img.py += (t2 >> 4) * 0x10;
     if ((0x1f < raw - 0xc0) || (nudge = -4, raw == 199))
     {
         if (raw - 0xe0 < 0x20)

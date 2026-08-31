@@ -355,7 +355,7 @@ resolve_hit:
                 {
                     motID = MOT_DAMAGE_LAUNCH_BACK;
                     motMODE = 0;
-                    dtR->vy = dtR->vy + did;
+                    dtR->vy += did;
                     MoveHumanoid(Me_MOTION_C, -DAMAGE_LAUNCH_SPEED, 0);
                 }
                 else
@@ -450,7 +450,7 @@ resolve_hit:
                 dir.vz >>= 1;
             }
             p = *dtL;
-            p.vy = p.vy - 1000;
+            p.vy -= 1000;
             if (GetAreaMapPassage(GlobalAreaMap, &p, &dir, t) != 0)
             {
                 return;
@@ -522,7 +522,7 @@ resolve_hit:
                         dtL->vz = ConflictObject[conflict_id].position.vz;
                     }
                     mmp = dtM;
-                    dtR->vy = dtR->vy + did;
+                    dtR->vy += did;
                     Me_MOTION_C->status = STAT_ENGAGE;
                     mmp->count = 0;
                     PlayMotion(mmp, 1);
@@ -614,7 +614,7 @@ resolve_hit:
                 goto apply_multipliers;
             }
         difficulty_bonus:
-            dmg = dmg - ((u8)gNannido - DIFFICULTY_HARD);
+            dmg -= ((u8)gNannido - DIFFICULTY_HARD);
         apply_multipliers:
             if (enemy->type == NINKEN)
             {
@@ -699,7 +699,7 @@ resolve_hit:
                         }
                         if (abs_direction > 0x400)
                         {
-                            deg = deg + 4;
+                            deg += 4;
                         }
                         dtM->mid = -1;
                         motID = damagemotion[deg];
@@ -736,7 +736,7 @@ resolve_hit:
                     }
                     if (abs_direction > 0x400)
                     {
-                        deg = deg + 4;
+                        deg += 4;
                     }
                     dtM->mid = -1;
                     motID = damagemotion[deg];

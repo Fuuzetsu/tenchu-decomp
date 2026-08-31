@@ -120,7 +120,7 @@ void *valloc(u32 size)
     }
 
     if ((size & 3) != 0)
-        size = size + 4;
+        size += 4;
     size = size >> 2;
 
     vmpt = (u32 *)virtual_memory_pool;

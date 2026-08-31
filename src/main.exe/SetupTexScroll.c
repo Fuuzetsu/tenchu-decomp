@@ -165,14 +165,14 @@ found:
         }
     }
 
-    TexScrollY = TexScrollY + 0x40;
+    TexScrollY += 0x40;
     tscr->vx = vx;
     tscr->vy = vy;
     ef->proc = (void (*)())UpdateTexScroll;
     if (TexScrollY > 0x200)
     {
         TexScrollY = 0x100;
-        TexScrollX = TexScrollX + 0x40;
+        TexScrollX += 0x40;
     }
 }
 }

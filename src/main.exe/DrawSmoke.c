@@ -87,7 +87,7 @@ void DrawSmoke(TEffectSlot *ef)
             param->vec.vy = param->vec.vy / 2;
             param->vec.vz = (vz_old * 80) / 100;
         }
-        param->scale = param->scale + 0x400;
+        param->scale += 0x400;
         r = rand();
         m = param->time - 1;
         param->evtime = m - r % 5;
@@ -114,7 +114,7 @@ void DrawSmoke(TEffectSlot *ef)
     DrawSprite(spr);
 
     oldtime = param->time;
-    param->time = param->time + 0xff;
+    param->time += 0xff;
     if (oldtime == 0)
     {
         ef->proc = 0;
