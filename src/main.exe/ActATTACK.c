@@ -302,7 +302,7 @@ dispatch:
         t = GetMotionID(dtM, MOT_ATTACK);
         switch (t)
         {
-        case 0xf1:
+        case ATTACK_MOTID_HANBE:
         {
             OrnamentType **weapon;
 
@@ -310,21 +310,21 @@ dispatch:
             SWAP_TWIN_BLADE(42, 6);
             break;
         }
-        case 0xab:
+        case ATTACK_MOTID_ECHIGOYA:
         {
             VECTOR *pos;
 
             FIRE_GUN_AT_FRAME(20, 100);
             break;
         }
-        case 0xac:
+        case ATTACK_MOTID_PIRATEA:
         {
             VECTOR *pos;
 
             FIRE_GUN_AT_FRAME(22, 700);
             break;
         }
-        case 0xf5:
+        case ATTACK_MOTID_MANJI:
         {
             int last_frame;
             PARAM_ITEM_LAUNCH *request;
@@ -332,12 +332,12 @@ dispatch:
 
             /* The frame-window constants staged in first_frame/last_frame
              * are byte-required (direct literals recolor; measured). */
-            first_frame = 0x24;
+            first_frame = 36;
             t = dtM->count;
             request = &item;
             if (first_frame <= t)
             {
-                last_frame = 0x41;
+                last_frame = 65;
                 if (last_frame < t)
                 {
                     break;
@@ -360,11 +360,11 @@ dispatch:
             }
             break;
         }
-        case 0xe9:
-            launch_lightning_bolt_(0xd);
+        case ATTACK_MOTID_MEIOU:
+            launch_lightning_bolt_(13);
             break;
-        case 0xaa:
-        case 0x1a4:
+        case ATTACK_MOTID_KERAI:
+        case ATTACK_MOTID_KATAOKA:
             AttackBowControl(0);
             break;
         }
@@ -416,7 +416,7 @@ dispatch:
         }
         else if (t == WEP_MEIOU)
         {
-            launch_lightning_bolt_(0xd);
+            launch_lightning_bolt_(13);
         }
         else if (t == WEP_KATAOKA)
         {
@@ -445,7 +445,7 @@ dispatch:
     case MOT_ATTACK_SLASH3:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
-            launch_lightning_bolt_(0xd);
+            launch_lightning_bolt_(13);
         }
         else if (Me_MOTION_C->wpatk == WEP_KATAOKA)
         {
@@ -473,7 +473,7 @@ dispatch:
     case MOT_ATTACK_SLASH4:
         if (Me_MOTION_C->wpatk == WEP_MEIOU)
         {
-            launch_lightning_bolt_(0xd);
+            launch_lightning_bolt_(13);
         }
         break;
     case MOT_ATTACK_RIGHT1:

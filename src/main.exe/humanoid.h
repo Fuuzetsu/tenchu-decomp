@@ -121,6 +121,24 @@ extern short motMODE;
     motID = (id);                                                             \
     motMODE = (mode)
 
+/* Attack-animation ids, for the one switch that keys on them (ActATTACK).
+ *
+ * `GetMotionID(dtM, MOT_ATTACK)` returns the `id` of the mid == MOT_ATTACK
+ * row of the ATTACKING CHARACTER's own registration table, HumanData[].mtbl.
+ * So the value identifies a character, not a state, and each case below is
+ * that character's swing: the names are the game's own, read from
+ * HumanData[].name (retail data at 0x80088a8c) by walking each row's mtbl to
+ * its MOT_ATTACK entry.  Ids are global rather than per-character because
+ * SearchMotion resolves them against three shared pools (common, player,
+ * stage), which is how eight different enemies share 0xaa. */
+#define ATTACK_MOTID_KERAI 0xaa /* + ROUNIN ROUBAN ASIGARU SISI MANJI5 TENGU KABANE */
+#define ATTACK_MOTID_ECHIGOYA 0xab
+#define ATTACK_MOTID_PIRATEA 0xac
+#define ATTACK_MOTID_MEIOU 0xe9
+#define ATTACK_MOTID_HANBE 0xf1  /* + TUZI */
+#define ATTACK_MOTID_MANJI 0xf5  /* + both MOURYO rows */
+#define ATTACK_MOTID_KATAOKA 0x1a4
+
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);
 extern struct Humanoid *CreateHumanoid(short type, unsigned long *mad);
