@@ -1985,6 +1985,16 @@ irreducible nest: DrawConstruction's 3.
   reports genuine divergences — UpdateTexScroll's demo parameter is a
   `TexScroll *` because retail turned it into an effect-slot proc — so
   say so at the site rather than "fixing" it.
+- **Do NOT rewrite `>> 12` as `/ FIXED_ONE`.** They are the same quantity
+  and not the same operation: an arithmetic shift FLOORS, a division
+  TRUNCATES TOWARD ZERO, and for a signed operand those differ. cc1 knows
+  it — asking for the division emits the round-toward-zero correction (the
+  rule below), so a single such rewrite in ActSTICKON costs 68 lines. The
+  shift in the source is therefore evidence in itself: the author either
+  wanted the floor or knew the value was non-negative. Note also that not
+  every `>> 12` is fixed-point at all — `(dtPAD >> 12) & 1` is a bit
+  position. The division sites are safe to name (`/ FIXED_ONE`, done
+  across ten files); the shift sites are not the same question.
 - **`if (x < 0) x += 2**n - 1;` before `x >> n` is cc1's OWN signed
   division, written out.** Where our source spells that sequence, the
   original almost certainly wrote `x / 2**n` and we transcribed the
