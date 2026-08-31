@@ -997,7 +997,19 @@ made the parallel `WEP_*` defines the guess and they are gone),
 `ThinkDB` (AI think types, whose names encode their own table and
 index). `--whatis <value>` searches every table at once.
 
-Landed so far: Codex round 20 (37 invented locals across eight files),
+A sub-seam with a lot left in it: **shadowed scopes**. Where PSX.SYM
+records N copies of a name and we have fewer, the original declared it
+per block and we either renamed it (`scan_i`, `frame_model`,
+`status_pad`, `j`) or flattened it. Six were pure renames and one
+(`RestoreItemLayout`) needed the block that justifies the name; all
+exact, because a loop counter or pointer lives in a register and nesting
+it costs no frame. **107 such name/count gaps remain** — not all are
+recoverable (some are demo-only logic, and concurrently-live counters
+like DrawConstruction's j/k/l are genuinely distinct), but it is the
+largest measured queue we have.
+
+Landed so far: Codex rounds 20 and 21 (58 invented locals across
+eighteen files, plus PutLifeBar's recovered nested x/y/n),
 ActATTACK's attack switch named as the weapon dispatch it is, 65
 pointer-punned reads that were doing nothing, the adiv scratch offsets
 spelled in one unit.
