@@ -78,7 +78,7 @@ static inline void GetWireScreenPosition(long x, long y, long z,
                                          SVECTOR *screen)
 {
     MATRIX *matrix = (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS;
-    SVECTOR *vector = (SVECTOR *)TENCHU_SCRATCHPAD(0x20);
+    SVECTOR *vector = (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT);
 
     matrix->t[0] = 0;
     matrix->t[1] = 0;
@@ -87,8 +87,8 @@ static inline void GetWireScreenPosition(long x, long y, long z,
     SetTransMatrix(matrix);
     SetRotMatrix(&GsWSMATRIX);
     screen->vz = (s16)RotTransPers(
-        vector, (s32 *)screen, (s32 *)TENCHU_SCRATCHPAD(0x28),
-        (s32 *)TENCHU_SCRATCHPAD(0x2c));
+        vector, (s32 *)screen, (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
 }
 
 static inline void GetWireRotation(VECTOR *start, VECTOR *end, int *rx,

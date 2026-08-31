@@ -111,7 +111,7 @@ extern short dtPAD;
 extern short motID;
 extern short motMODE;
 
-/* Facing angles are 12 bits: a full turn is 0x1000, so a quadrant is
+/* Facing angles are 12 bits: a full turn is ANGLE_FULL, so a quadrant is
  * ANGLE_QUADRANT and half of one is ANGLE_HALF_QUADRANT. Snapping a
  * facing to the nearest quadrant is the same three lines in ActKAGI,
  * HangCheck and ActSTICKON -- mask to ANGLE_QUADRANT_MASK, then add a
@@ -123,6 +123,9 @@ extern short motMODE;
  *
  * (0x1000 also spells FIXED_ONE in tuning.h; same value, unrelated
  * meaning -- these names are for angles.) */
+#define ANGLE_FULL 0x1000
+#define ANGLE_HALF 0x800
+#define ANGLE_MASK 0xfff
 #define ANGLE_QUADRANT 0x400
 #define ANGLE_QUADRANT_MASK 0xc00
 #define ANGLE_HALF_QUADRANT 0x200

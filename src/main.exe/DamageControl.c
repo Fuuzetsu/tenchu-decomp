@@ -657,7 +657,7 @@ resolve_hit:
                 }
                 else
                 {
-                    dtR->vy = newvy - 0x800;
+                    dtR->vy = newvy - ANGLE_HALF;
                 }
                 if (deg == 3)
                 {

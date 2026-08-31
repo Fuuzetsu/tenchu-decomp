@@ -60,17 +60,17 @@ void DrawTarget(s32 x, s32 y, s32 z, s32 color)
     SVECTOR scr;
     SVECTOR *p;
 
-    *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(0x1c) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (s16)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (s16)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (s16)ViewInfo.vpz;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TZ) = 0;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = x - (s16)ViewInfo.vpx;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = y - (s16)ViewInfo.vpy;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (s16)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
     p = &scr;
-    p->vz = RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)p,
-                         (s32 *)TENCHU_SCRATCHPAD(0x28),
-                         (s32 *)TENCHU_SCRATCHPAD(0x2c));
+    p->vz = RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)p,
+                         (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+                         (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
     DrawTargetS(scr.vx, scr.vy, scr.vz - 5, color);
 }

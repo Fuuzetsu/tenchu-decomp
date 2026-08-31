@@ -61,7 +61,7 @@
  *  - `rotate.vx = 0;` is scheduled into the FIRST `rand()` call's delay slot
  *    (it's independent of the call and textually precedes it — ordinary
  *    scheduler delay-slot filling, no special source shape needed).
- *  - `rotate.vy = rand() % 0x1000;` — power-of-2 modulo, automatic from a
+ *  - `rotate.vy = rand() % ANGLE_FULL;` — power-of-2 modulo, automatic from a
  *    plain `%` (fully compiler-generated sign/shift dance, same idiom family
  *    as the cookbook's magic-multiply rule but the power-of-2 special case).
  *    Its STORE is scheduled into the SECOND `rand()` call's delay slot
@@ -131,7 +131,7 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
     }
     param->count = NINGYO_DURATION;
     item->locate->rotate.vx = 0;
-    item->locate->rotate.vy = rand() % 0x1000;
+    item->locate->rotate.vy = rand() % ANGLE_FULL;
     item->locate->rotate.vz = rand() % 68;
     param->hp = NINGYO_HP;
     SetNowMotion(item->owner, MOT_ITEM_THROW, 1);

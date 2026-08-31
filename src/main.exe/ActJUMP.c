@@ -75,7 +75,7 @@ void ActJUMP(void)
         }
         else
         {
-            dtR->vy = ry + 0x800;
+            dtR->vy = ry + ANGLE_HALF;
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
         Sound(Me_MOTION_C, SE_JUMP_IMPACT);

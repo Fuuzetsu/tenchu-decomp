@@ -100,7 +100,7 @@ short DefaultActionHumanoid(Humanoid *human)
     locate = human->locate;
     vector = &human->vector;
     object = *human->model->object;
-    human->rotate->vy &= 0xfff;
+    human->rotate->vy &= ANGLE_MASK;
     /* The cast (not &= 0xff) makes the reload an lbu: byte-required
      * (verified against the .s). */
     human->attribute = (u8)human->attribute;

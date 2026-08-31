@@ -139,7 +139,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
                 wrap = t + 0x2000;
                 /* dir stages the predicate before the speed: byte-required
                  * (a plain if/else puts the store in a1, not v0; measured). */
-                dir = (wrap % 0x1000) <= 0x800;
+                dir = (wrap % ANGLE_FULL) <= ANGLE_HALF;
                 if (dir != 0)
                     dir = 0x40;
                 else

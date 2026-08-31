@@ -158,15 +158,15 @@ void DrawFrame(TEffectSlot *ef)
 
     if (hint != 0)
     {
-        *(s16 *)TENCHU_SCRATCHPAD(0x20) = px;
-        *(s16 *)TENCHU_SCRATCHPAD(0x22) = py;
-        *(s16 *)TENCHU_SCRATCHPAD(0x24) = pz;
+        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = px;
+        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = py;
+        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = pz;
         GsGetLs(hint, (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         scr.vz = (s16)RotTransPers(
-            (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)&scr,
-            (s32 *)TENCHU_SCRATCHPAD(0x28),
-            (s32 *)TENCHU_SCRATCHPAD(0x2c));
+            (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)&scr,
+            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
     }
     else
     {

@@ -63,12 +63,12 @@ void DrawSplash(TEffectSlot *ef)
     y = *(s32 *)&param->py;
     z = *(s32 *)&param->pz;
 
-    *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(0x1c) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (s16)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (s16)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (s16)ViewInfo.vpz;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TZ) = 0;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = x - (s16)ViewInfo.vpx;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = y - (s16)ViewInfo.vpy;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (s16)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
     /* `scrp` is not a redundant alias for `&scr`: spelling the address
@@ -79,9 +79,9 @@ void DrawSplash(TEffectSlot *ef)
      * reachable by renaming. */
     scrp = &scr;
     scrp->vz = (s16)RotTransPers(
-        (SVECTOR *)TENCHU_SCRATCHPAD(0x20), (s32 *)scrp,
-        (s32 *)TENCHU_SCRATCHPAD(0x28),
-        (s32 *)TENCHU_SCRATCHPAD(0x2c));
+        (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)scrp,
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
     {
         s32 z;
 

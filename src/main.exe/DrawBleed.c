@@ -94,12 +94,12 @@ void DrawBleed(TEffectSlot *ef)
     z = *(s32 *)&param->pos.vz;
     param->time--;
 
-    *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(0x1c) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(0x20) = x - (short)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(0x22) = y - (short)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (short)ViewInfo.vpz;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
+    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TZ) = 0;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = x - (short)ViewInfo.vpx;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = y - (short)ViewInfo.vpy;
+    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (short)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
     /* `scrp` is not a redundant alias for `&scr`: spelling the address
@@ -109,10 +109,10 @@ void DrawBleed(TEffectSlot *ef)
      * are simultaneously live in retail's shape, so that is not
      * reachable by renaming. */
     scrp = &scr;
-    scrp->vz = (s16)RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20),
+    scrp->vz = (s16)RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT),
                                  (s32 *)scrp,
-                                 (s32 *)TENCHU_SCRATCHPAD(0x28),
-                                 (s32 *)TENCHU_SCRATCHPAD(0x2c));
+                                 (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+                                 (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
 
     t = (s32)((u32)(u16)scr.vz << 16);
     otz = t >> 16;

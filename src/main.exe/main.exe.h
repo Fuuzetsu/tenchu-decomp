@@ -77,6 +77,26 @@ extern TCameraPos CamPosCriticalHit[4];
 extern TCameraPos CamPos;
 extern TCameraPos CamPosDefault;
 extern GsRVIEW2 ViewInfo;
+
+/* Every routine that projects a single world point borrows the same corner of
+ * the scratchpad for its GTE work frame: a MATRIX at 0 whose rotation comes
+ * from GsWSMATRIX and whose translation is zeroed, the view-relative SVECTOR
+ * fed through it, and RotTransPers's two long out-params. Other functions
+ * borrow other corners for unrelated temporaries -- the pad is a scratch
+ * arena, not one shared struct. These stay separate integer constants rather
+ * than members of a MATRIX/SVECTOR because retail materialises each address
+ * as its own lui+ori; a struct spelling folds them into load displacements
+ * and does not match (ram_layout.h records the measurement). */
+#define SCRATCH_LS 0x00                     /* MATRIX ls */
+#define SCRATCH_LS_TX (SCRATCH_LS + 0x14)   /* its long t[3] translation */
+#define SCRATCH_LS_TY (SCRATCH_LS + 0x18)
+#define SCRATCH_LS_TZ (SCRATCH_LS + 0x1c)
+#define SCRATCH_POINT 0x20                  /* the SVECTOR fed through it */
+#define SCRATCH_POINT_X (SCRATCH_POINT + 0)
+#define SCRATCH_POINT_Y (SCRATCH_POINT + 2)
+#define SCRATCH_POINT_Z (SCRATCH_POINT + 4)
+#define SCRATCH_RTP_P 0x28                  /* RotTransPers long *p */
+#define SCRATCH_RTP_FLAG 0x2c               /* RotTransPers long *flag */
 extern ModelType World;
 extern WorldType WorldMap[8][8][8];
 #define MAX_ENEMIES 30

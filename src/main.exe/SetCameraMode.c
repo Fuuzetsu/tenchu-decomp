@@ -174,8 +174,8 @@ void SetCameraMode(TCameraMode mode)
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
             rx -= CamState.Owner->model->rotate.vx;
             ry -= CamState.Owner->model->rotate.vy;
-            rx = (rx + 0x2800) % 0x1000 - 0x800;
-            ry = (ry + 0x2800) % 0x1000 - 0x800;
+            rx = (rx + 2 * ANGLE_FULL + ANGLE_HALF) % ANGLE_FULL - ANGLE_HALF;
+            ry = (ry + 2 * ANGLE_FULL + ANGLE_HALF) % ANGLE_FULL - ANGLE_HALF;
             CamState.DirectionRX = 0;
             CamState.DirectionRY = ry;
         }
