@@ -542,3 +542,25 @@ On the disc itself:
 **The retail disc has none of this.** Its `DATA.VOL` holds 1048 files and the only
 `.TXT` entries are the memory-card description strings (`CARD_J.TXT` etc.); no `.BAT`,
 no `.EXE`, no `.SYM`. The demo is the single source.
+
+## Array extents: retail grew them, and ours check out
+
+`symtypes.py` reports 15 arrays whose count differs from PSX.SYM's. All
+of them are retail growing a table, not us getting one wrong. Five can
+be confirmed exactly, because the gap between consecutive retail
+addresses in `reference/psxsym-globals.h` is a whole multiple of the
+element width (which the demo's own size/count gives):
+
+    HumanData    63 -> 78     BattleDB    78 -> 105
+    WeaponModel  41 -> 48     ItemImage   25 -> 26
+    PitfallData   2 -> 3
+
+and each matches what we declare. `HumanData` and `WeaponModel` were
+independently confirmed by decoding the retail rows (see
+`tools/gamedata.py`).
+
+Do NOT generalise that method: `psxsym-globals.h` lists only the globals
+PSX.SYM typed AND our decomp already names, so it is sparse, and most
+gaps contain unlisted symbols. Applied blindly it implies 991 `MOTcommon`
+rows against an actual 41-row sentinel-terminated table. It bounds an
+extent only when you can show nothing else lives in the gap.
