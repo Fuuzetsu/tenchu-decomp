@@ -99,7 +99,7 @@ found:
     param = &ef->param.explosion;
     param->scale = 0x1000;
     r = rand();
-    param->rotate = (r % 360) * 0x1000;
+    param->rotate = (r % 360) * FIXED_ONE;
     param->pos.vx = pos->vx;
     param->pos.vy = pos->vy;
     param->pos.vz = pos->vz;

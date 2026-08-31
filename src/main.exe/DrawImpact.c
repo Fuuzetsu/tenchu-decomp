@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 
@@ -63,7 +64,7 @@ void DrawImpact(TEffectSlot *ef)
         start += 0xfff;
     }
 
-    size = (start >> 12) + (param->end_size * ratio) / 0x1000;
+    size = (start >> 12) + (param->end_size * ratio) / FIXED_ONE;
 
     start = param->start_color.channel.r;
     start = start * inverse;
@@ -72,7 +73,7 @@ void DrawImpact(TEffectSlot *ef)
     {
         start += 0xfff;
     }
-    spr->r = (start >> 12) + (end_raw * ratio) / 0x1000;
+    spr->r = (start >> 12) + (end_raw * ratio) / FIXED_ONE;
 
     work = param->start_color.channel.g;
     start2 = work * inverse;
@@ -82,7 +83,7 @@ void DrawImpact(TEffectSlot *ef)
         start2 += 0xfff;
     }
     start2 = start2 >> 12;
-    spr->g = start2 + (end_raw * ratio) / 0x1000;
+    spr->g = start2 + (end_raw * ratio) / FIXED_ONE;
 
     work = param->start_color.channel.b;
     start2 = work * inverse;
@@ -92,7 +93,7 @@ void DrawImpact(TEffectSlot *ef)
         start2 += 0xfff;
     }
     start2 = start2 >> 12;
-    spr->b = start2 + (end_raw * ratio) / 0x1000;
+    spr->b = start2 + (end_raw * ratio) / FIXED_ONE;
 
     end = param->px;
     /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */

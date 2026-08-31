@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
 
@@ -162,7 +163,7 @@ void PutStrain(s32 x, s32 y)
         spr->y = (s16)y;
         phase = StrainPhase + (s >> 5);
         StrainPhase = phase;
-        shade = rsin(phase) * 0x60 / 0x1000 + range / 2;
+        shade = rsin(phase) * 0x60 / FIXED_ONE + range / 2;
         spr->b = shade;
         spr->g = shade;
         spr->r = shade;

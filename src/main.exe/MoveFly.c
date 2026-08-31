@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -74,7 +75,7 @@ static void MoveFly(TItem *item, param_fly *param)
         q2 = q * q;
         d2 = q * 2;
         /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
-         * fold back to `q2 / 0x1000` -- q2 is reused as the interpolation weight afterwards,
+         * fold back to `q2 / FIXED_ONE` -- q2 is reused as the interpolation weight afterwards,
          * so the schedule differs (9 lines). Its sibling below does. */
         if (q2 < 0)
             q2 += 0xfff;
@@ -83,11 +84,11 @@ static void MoveFly(TItem *item, param_fly *param)
         w9 = k - d2 + nv;
         w8 = d2 + nv * -2;
         x = w9 * param->p.fly.sx + w8 * param->p.fly.rx + nv * param->p.fly.vx;
-        xs = x / 0x1000;
+        xs = x / FIXED_ONE;
         y = w9 * param->p.fly.sy + w8 * param->p.fly.ry + q2 * param->p.fly.vy;
-        ys = y / 0x1000;
+        ys = y / FIXED_ONE;
         z = w9 * param->p.fly.sz + w8 * param->p.fly.rz + nv * param->p.fly.vz;
-        zs = z / 0x1000;
+        zs = z / FIXED_ONE;
         if (t == 0)
     {
             model = item->locate;

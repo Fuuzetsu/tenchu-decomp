@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 
@@ -72,7 +73,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
 found:
     smoke = &ef->param.smoke;
     smoke->scale = rand() % 0x2000 + 0x1000;
-    smoke->rotate = (rand() % 360) * 0x1000;
+    smoke->rotate = (rand() % 360) * FIXED_ONE;
     smoke->pos.vx = pos->vx;
     smoke->pos.vy = pos->vy;
     smoke->pos.vz = pos->vz;

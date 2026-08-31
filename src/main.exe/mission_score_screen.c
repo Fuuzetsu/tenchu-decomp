@@ -503,8 +503,8 @@ void mission_score_screen(void)
             medal = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
             medal->x = 0x8A;
             medal->y = -0xE;
-            medal->scalex = 0x1000;
-            medal->scaley = 0x1000;
+            medal->scalex = FIXED_ONE;
+            medal->scaley = FIXED_ONE;
             medalBrightness = rcos((GameClock << 12) / MEDAL_PULSE_PERIOD) * MEDAL_PULSE_AMPLITUDE;
             if (medalBrightness < 0)
             {

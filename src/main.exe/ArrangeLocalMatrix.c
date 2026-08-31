@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -76,11 +77,11 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
         {
             t = 0x1000;
         }
-        det = det * t / 0x1000;
+        det = det * t / FIXED_ONE;
 
         for (k = 0; k < n; k++)
         {
-            m.m[i][k] = m.m[i][k] * 0x1000 / t;
+            m.m[i][k] = m.m[i][k] * FIXED_ONE / t;
         }
         m.m[i][i] = 0x1000000 / t;
 
@@ -100,11 +101,11 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
                 {
                     if (k != i)
                     {
-                        m.m[j][k] -= m.m[i][k] * u / 0x1000;
+                        m.m[j][k] -= m.m[i][k] * u / FIXED_ONE;
                     }
                     else
                     {
-                        m.m[j][i] = (-u * 0x1000) / t;
+                        m.m[j][i] = (-u * FIXED_ONE) / t;
                     }
                 }
             }

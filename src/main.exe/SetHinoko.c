@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 
@@ -115,7 +116,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
     found:
         param = &ef->param.hinoko;
         param->scale = rand() % 0x1000 + 0x1000;
-        param->rotate = (rand() % 360) * 0x1000;
+        param->rotate = (rand() % 360) * FIXED_ONE;
         param->pos.vx = pos->vx;
         param->pos.vy = pos->vy;
         param->pos.vz = pos->vz;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "infoview.h"
 #include "item.h"
@@ -102,7 +103,7 @@ void AddItem2(void)
     sx = rsin(CamState.Owner->model->rotate.vy) * 1000;
     pm = CamState.Owner->model;
     /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
-     * fold back to `sx / 0x1000` -- sx is still live for the x term below,
+     * fold back to `sx / FIXED_ONE` -- sx is still live for the x term below,
      * so the schedule differs (64 lines). Its sibling below does. */
     if (sx < 0)
         sx += 0xfff;
@@ -111,7 +112,7 @@ void AddItem2(void)
     x = pm->locate.coord.t[0] - (sx >> 12);
     cx = rcos(pm->rotate.vy) * 1000;
     pm = CamState.Owner->model;
-    z = pm->locate.coord.t[2] - (cx / 0x1000);
+    z = pm->locate.coord.t[2] - (cx / FIXED_ONE);
     h = GetAreaMapLevel(GlobalAreaMap, x, y, z, AREA_LEVEL_STEP_DOWN);
     if (h != LEVEL_NONE)
     {

@@ -490,10 +490,10 @@ void StageEndScreen(void)
                     icon = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
                     icon->x = -120;
                     icon->y = 0x38;
-                    icon->scalex = 0x1000;
-                    icon->scaley = 0x1000;
+                    icon->scalex = FIXED_ONE;
+                    icon->scaley = FIXED_ONE;
                     pulse = rcos((GameClock << 12) / 90) * 0x50;
-                    icon->r = icon->g = icon->b = (pulse / 0x1000) + 0x7f;
+                    icon->r = icon->g = icon->b = (pulse / FIXED_ONE) + 0x7f;
                     GsSortSprite(icon, OTablePt, 1);
                 }
 
