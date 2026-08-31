@@ -837,6 +837,11 @@ dispatch:
                  * spelling merges with that one instead). No argument shape
                  * differs from both at once; only the pattern code does, and
                  * value-typing this call (call_value vs call) is how. Retail
+                 * Still true HERE, at 32 lines -- but ActSTATE carried the same
+                 * cast on SetCameraMode citing this note, and once its four nested
+                 * humanoid aliases went the plain call matched. The mechanism is
+                 * real; whether a site needs it depends on what else is in the
+                 * function, so re-test rather than inheriting the verdict.
                  * emits a plain jal — an earlier note claiming jalr was
                  * wrong. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
