@@ -25,6 +25,67 @@ extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                            s16 rotate, u16 rotate_speed, u16 time, u16 type);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 
+#define RECORD_PLAYER_KILL()                                                 \
+    if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)                    \
+    {                                                                         \
+        FriendHits++;                                                         \
+    }                                                                         \
+    else if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)      \
+    {                                                                         \
+        Criticals++;                                                          \
+    }                                                                         \
+    else                                                                      \
+    {                                                                         \
+        Murders++;                                                            \
+    }
+
+#define RECOIL_ATTACKER(rumble_power_, rumble_release_)                      \
+    if (enemy->status == STAT_ATTACK)                                         \
+    {                                                                         \
+        enemy->motion->loop = dmg / -3 - 1;                                  \
+        enemy->vector.vz = 0;                                                 \
+        enemy->vector.vx = 0;                                                 \
+        if (StagePlayer == enemy)                                             \
+        {                                                                     \
+            PadShockAR(0, rumble_power_, RUMBLE_ATTACK_NORMAL,                \
+                       rumble_release_);                                      \
+        }                                                                     \
+    }
+
+#define REQUEST_DAMAGE_FEEDBACK(rumble_release_)                             \
+    {                                                                         \
+        Humanoid *who;                                                        \
+                                                                              \
+        if (StagePlayer == Me_MOTION_C)                                       \
+        {                                                                     \
+            PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL,            \
+                       rumble_release_);                                      \
+            who = enemy;                                                      \
+        }                                                                     \
+        else                                                                  \
+        {                                                                     \
+            who = Me_MOTION_C;                                                \
+        }                                                                     \
+        ReqLifeBar(who);                                                      \
+    }
+
+#define PLAY_RANDOM_HURT_VOICE(random_, sound_)                              \
+    random_ = rand();                                                         \
+    sound_ = CHAR_VOICE_HURT_ALT;                                             \
+    if ((random_ & 1) != 0)                                                   \
+    {                                                                         \
+        sound_ = CHAR_VOICE_HURT;                                             \
+    }                                                                         \
+    Sound(Me_MOTION_C, sound_)
+
+#define SNAP_TO_WAIST_CONFLICT(conflict_id_)                                 \
+    conflict_id_ = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;          \
+    if (conflict_id_ >= 0)                                                    \
+    {                                                                         \
+        dtL->vx = ConflictObject[conflict_id_].position.vx;                   \
+        dtL->vz = ConflictObject[conflict_id_].position.vz;                   \
+    }
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -383,18 +444,7 @@ resolve_hit:
                         if ((item_type < ITEM_GUN) ||
                             (item_type > ITEM_ARROW && item_type != ITEM_LIGHTNINGBOLT))
                         {
-                            if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)
-                            {
-                                FriendHits++;
-                            }
-                            else if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
-                            {
-                                Criticals++;
-                            }
-                            else
-                            {
-                                Murders++;
-                            }
+                            RECORD_PLAYER_KILL();
                         }
                     }
                 }
@@ -403,13 +453,7 @@ resolve_hit:
                     int r;
                     short sound_id;
 
-                    r = rand();
-                    sound_id = CHAR_VOICE_HURT_ALT;
-                    if ((r & 1) != 0)
-                    {
-                        sound_id = CHAR_VOICE_HURT;
-                    }
-                    Sound(Me_MOTION_C, sound_id);
+                    PLAY_RANDOM_HURT_VOICE(r, sound_id);
                 }
             }
             if (StagePlayer == Me_MOTION_C)
@@ -507,12 +551,7 @@ resolve_hit:
                     int conflict_id;
                     VECTOR *blood_pos;
 
-                    conflict_id = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;
-                    if (conflict_id >= 0)
-                    {
-                        dtL->vx = ConflictObject[conflict_id].position.vx;
-                        dtL->vz = ConflictObject[conflict_id].position.vz;
-                    }
+                    SNAP_TO_WAIST_CONFLICT(conflict_id);
                     mmp = dtM;
                     dtR->vy += did;
                     Me_MOTION_C->status = STAT_ENGAGE;
@@ -521,16 +560,7 @@ resolve_hit:
                     dmg = (u16)BattleDB[deg].power;
                     dtM->loop = -dmg - 8;
                     MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
-                    if (enemy->status == STAT_ATTACK)
-                    {
-                        enemy->motion->loop = dmg / -3 - 1;
-                        enemy->vector.vz = 0;
-                        enemy->vector.vx = 0;
-                        if (StagePlayer == enemy)
-                        {
-                            PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
-                        }
-                    }
+                    RECOIL_ATTACKER(RUMBLE_POWER_HALF, RUMBLE_RELEASE_NONE);
                     DeleteConflict(ConflictObject[(short)id].model);
                     blood_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, (short)(dmg * 10 + 100), 0);
                     t = 0;
@@ -542,20 +572,7 @@ resolve_hit:
                         SetBleed(blood_pos, &pv, rand() % 20 + 20, COLOR_YELLOW);
                         t++;
                     } while (t < 10);
-                    {
-                        Humanoid *who;
-
-                        if (StagePlayer == Me_MOTION_C)
-                        {
-                            PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
-                            who = enemy;
-                        }
-                        else
-                        {
-                            who = Me_MOTION_C;
-                        }
-                        ReqLifeBar(who);
-                    }
+                    REQUEST_DAMAGE_FEEDBACK(RUMBLE_RELEASE_NONE);
                     {
                         s16 r;
 
@@ -577,12 +594,7 @@ resolve_hit:
             {
                 int conflict_id;
 
-                conflict_id = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;
-                if (conflict_id >= 0)
-                {
-                    dtL->vx = ConflictObject[conflict_id].position.vx;
-                    dtL->vz = ConflictObject[conflict_id].position.vz;
-                }
+                SNAP_TO_WAIST_CONFLICT(conflict_id);
             }
             dmg = (u16)BattleDB[deg].power;
             if (enemy != StagePlayer)
@@ -696,18 +708,7 @@ resolve_hit:
                     }
                     if (enemy == StagePlayer)
                     {
-                        if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)
-                        {
-                            FriendHits++;
-                        }
-                        else if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
-                        {
-                            Criticals++;
-                        }
-                        else
-                        {
-                            Murders++;
-                        }
+                        RECORD_PLAYER_KILL();
                     }
                     if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
                     {
@@ -733,47 +734,19 @@ resolve_hit:
                     reset_alert_duration();
                 }
             }
-            if (enemy->status == STAT_ATTACK)
-            {
-                enemy->motion->loop = dmg / -3 - 1;
-                enemy->vector.vz = 0;
-                enemy->vector.vx = 0;
-                if (StagePlayer == enemy)
-                {
-                    PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);
-                }
-            }
+            RECOIL_ATTACKER(RUMBLE_POWER_MAX, RUMBLE_RELEASE_SHORT);
             DeleteConflict(ConflictObject[(short)id].model);
             p.vx = dtL->vx;
             p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
             SetBlood(&p, 5, 120);
             SetImpact(&p, 6 * FIXED_ONE, 2);
-            {
-                Humanoid *who;
-
-                if (StagePlayer == Me_MOTION_C)
-                {
-                    PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_LONG);
-                    who = enemy;
-                }
-                else
-                {
-                    who = Me_MOTION_C;
-                }
-                ReqLifeBar(who);
-            }
+            REQUEST_DAMAGE_FEEDBACK(RUMBLE_RELEASE_LONG);
             {
                 int r;
                 short sound_id;
 
-                r = rand();
-                sound_id = CHAR_VOICE_HURT_ALT;
-                if ((r & 1) != 0)
-                {
-                    sound_id = CHAR_VOICE_HURT;
-                }
-                Sound(Me_MOTION_C, sound_id);
+                PLAY_RANDOM_HURT_VOICE(r, sound_id);
                 r = rand();
                 sound_id = CHAR_SE_IMPACT;
                 if ((r & 1) == 0 && Me_MOTION_C->life == 0)
@@ -811,3 +784,8 @@ resolve_hit:
     SET_NOW_MOTION_UNLESS_CVA(return);
     return;
 }
+#undef SNAP_TO_WAIST_CONFLICT
+#undef PLAY_RANDOM_HURT_VOICE
+#undef REQUEST_DAMAGE_FEEDBACK
+#undef RECOIL_ATTACKER
+#undef RECORD_PLAYER_KILL

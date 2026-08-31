@@ -39,6 +39,47 @@
         Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);                          \
     }
 
+#define DISPOSE_WEAPON_AFTERIMAGE(slot_)                                      \
+    if (Me_MOTION_C->illusion[slot_] != 0)                                    \
+    {                                                                         \
+        DisposeAfterimage(Me_MOTION_C->illusion[slot_]);                      \
+        Me_MOTION_C->illusion[slot_] = 0;                                     \
+    }
+
+#define INSERT_WEAPON_CONFLICT(hand_)                                         \
+    wid = (int)Me_MOTION_C->wepid[hand_];                                     \
+    if (wid >= 0)                                                             \
+    {                                                                         \
+        Humanoid *owner;                                                      \
+        short conflict_size;                                                  \
+                                                                              \
+        n = InsertConflict(hand[hand_]);                                      \
+        ConflictObject[n].offset = WeaponDB[wid].confp;                       \
+        conflict_size = WeaponDB[wid].confp.pad;                              \
+        owner = Me_MOTION_C;                                                  \
+        ConflictObject[n].size.pad = CONFLICT_HIT;                            \
+        ConflictObject[n].size.vz = conflict_size;                            \
+        ConflictObject[n].size.vy = conflict_size;                            \
+        ConflictObject[n].size.vx = conflict_size;                            \
+        ConflictObject[n].common = (void *)owner;                             \
+    }
+
+#define SETUP_WEAPON_AFTERIMAGE(hand_)                                        \
+    ilu = SetupAfterimage(hand[hand_], 10);                                   \
+    ilu->vector1 = WeaponDB[wid].ilup0;                                       \
+    ilu->vector2 = WeaponDB[wid].ilup1;                                       \
+    Me_MOTION_C->illusion[hand_] = (void *)ilu
+
+#define FIRE_GUN_AT_FRAME(frame_, y_)                                         \
+    if (dtM->count == frame_)                                                 \
+    {                                                                         \
+        pos = GetAbsolutePosition(                                            \
+            Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0],             \
+            0, y_, -100);                                                     \
+        bow_shoot_logic(ITEM_GUN, pos);                                       \
+        Sound(Me_MOTION_C, CHAR_SE_ATTACK);                                   \
+    }
+
 /* End-of-attack weapon cleanup: drop the striking-limb conflict boxes
  * for the weapon class and dispose both afterimage trails. Retail
  * copy-pastes this block three times; the macro is reconstruction
@@ -72,16 +113,8 @@
     }                                                                         \
     if ((cleanup_guard & 2) != 0)                                             \
     {                                                                         \
-        if (Me_MOTION_C->illusion[0] != 0)                                    \
-        {                                                                     \
-            DisposeAfterimage(Me_MOTION_C->illusion[0]);                      \
-            Me_MOTION_C->illusion[0] = 0;                                     \
-        }                                                                     \
-        if (Me_MOTION_C->illusion[1] != 0)                                    \
-        {                                                                     \
-            DisposeAfterimage(Me_MOTION_C->illusion[1]);                      \
-            Me_MOTION_C->illusion[1] = 0;                                     \
-        }                                                                     \
+        DISPOSE_WEAPON_AFTERIMAGE(0);                                         \
+        DISPOSE_WEAPON_AFTERIMAGE(1);                                         \
     }
 
 
@@ -281,24 +314,14 @@ dispatch:
         {
             VECTOR *pos;
 
-            if (dtM->count == 20)
-            {
-                pos = GetAbsolutePosition(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], 0, 100, -100);
-                bow_shoot_logic(ITEM_GUN, pos);
-                Sound(Me_MOTION_C, CHAR_SE_ATTACK);
-            }
+            FIRE_GUN_AT_FRAME(20, 100);
             break;
         }
         case 0xac:
         {
             VECTOR *pos;
 
-            if (dtM->count == 22)
-            {
-                pos = GetAbsolutePosition(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], 0, 700, -100);
-                bow_shoot_logic(ITEM_GUN, pos);
-                Sound(Me_MOTION_C, CHAR_SE_ATTACK);
-            }
+            FIRE_GUN_AT_FRAME(22, 700);
             break;
         }
         case 0xf5:
@@ -787,38 +810,8 @@ dispatch:
         }
         if (dtM->count == battle->atks)
         {
-            wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_0];
-            if (wid >= 0)
-            {
-                Humanoid *owner;
-                short conflict_size;
-
-                n = InsertConflict(hand[WEAPON_HAND_0]);
-                ConflictObject[n].offset = WeaponDB[wid].confp;
-                conflict_size = WeaponDB[wid].confp.pad;
-                owner = Me_MOTION_C;
-                ConflictObject[n].size.pad = CONFLICT_HIT;
-                ConflictObject[n].size.vz = conflict_size;
-                ConflictObject[n].size.vy = conflict_size;
-                ConflictObject[n].size.vx = conflict_size;
-                ConflictObject[n].common = (void *)owner;
-            }
-            wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_1];
-            if (wid >= 0)
-            {
-                Humanoid *owner;
-                short conflict_size;
-
-                n = InsertConflict(hand[WEAPON_HAND_1]);
-                ConflictObject[n].offset = WeaponDB[wid].confp;
-                conflict_size = WeaponDB[wid].confp.pad;
-                owner = Me_MOTION_C;
-                ConflictObject[n].size.pad = CONFLICT_HIT;
-                ConflictObject[n].size.vz = conflict_size;
-                ConflictObject[n].size.vy = conflict_size;
-                ConflictObject[n].size.vx = conflict_size;
-                ConflictObject[n].common = (void *)owner;
-            }
+            INSERT_WEAPON_CONFLICT(WEAPON_HAND_0);
+            INSERT_WEAPON_CONFLICT(WEAPON_HAND_1);
             Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             if (Me_MOTION_C == StagePlayer)
             {
@@ -880,38 +873,28 @@ dispatch:
             wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_0];
             if (wid >= 0)
             {
-                ilu = SetupAfterimage(hand[WEAPON_HAND_0], 10);
-                ilu->vector1 = WeaponDB[wid].ilup0;
-                ilu->vector2 = WeaponDB[wid].ilup1;
-                Me_MOTION_C->illusion[0] = (void *)ilu;
+                SETUP_WEAPON_AFTERIMAGE(WEAPON_HAND_0);
             }
             wid = (int)Me_MOTION_C->wepid[WEAPON_HAND_1];
             if (wid < 0)
             {
                 return;
             }
-            ilu = SetupAfterimage(hand[WEAPON_HAND_1], 10);
-            ilu->vector1 = WeaponDB[wid].ilup0;
-            ilu->vector2 = WeaponDB[wid].ilup1;
-            Me_MOTION_C->illusion[1] = (void *)ilu;
+            SETUP_WEAPON_AFTERIMAGE(WEAPON_HAND_1);
             return;
         }
         if (dtM->count != battle->ilue)
         {
             return;
         }
-        if (Me_MOTION_C->illusion[0] != 0)
-        {
-            DisposeAfterimage(Me_MOTION_C->illusion[0]);
-            Me_MOTION_C->illusion[0] = 0;
-        }
-        if (Me_MOTION_C->illusion[1] != 0)
-        {
-            DisposeAfterimage(Me_MOTION_C->illusion[1]);
-            Me_MOTION_C->illusion[1] = 0;
-        }
+        DISPOSE_WEAPON_AFTERIMAGE(0);
+        DISPOSE_WEAPON_AFTERIMAGE(1);
         mmp = dtM;
         mmp->mask = 0x7fff;
         return;
     }
 }
+#undef FIRE_GUN_AT_FRAME
+#undef SETUP_WEAPON_AFTERIMAGE
+#undef INSERT_WEAPON_CONFLICT
+#undef DISPOSE_WEAPON_AFTERIMAGE

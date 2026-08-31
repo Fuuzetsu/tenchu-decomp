@@ -235,6 +235,62 @@
         (ry) = (mdl)->rotate.vy;                                              \
     }
 
+#define REQUEST_ROTATED_ITEM(vector_, request_)                               \
+    VECTOR *st;                                                               \
+    ModelArchiveType *model;                                                  \
+    s32 rx;                                                                   \
+    s32 ry;                                                                   \
+    s32 rz;                                                                   \
+                                                                              \
+    *(VECTOR *)&param = vector_[0];                                           \
+    st = (VECTOR *)&param;                                                    \
+    model = p->user->model;                                                   \
+    GET_THROW_ROTATION(model, rx, ry, rz);                                    \
+    RotateVector(st, rx, ry, rz);                                             \
+    p->end.vx = ((VECTOR *)&param)->vx;                                       \
+    p->end.vy = ((VECTOR *)&param)->vy;                                       \
+    p->end.vz = ((VECTOR *)&param)->vz;                                       \
+    request_(p)
+
+#define SETUP_ROTATED_DROP(vector_)                                           \
+    memset(&work, 0, sizeof(PARAM_ITEM_LAUNCH));                              \
+    work.type = p->type;                                                      \
+    work.user = p->user;                                                      \
+    work.start = p->start;                                                    \
+    param = work;                                                             \
+    *(VECTOR *)&work = vector_[0];                                            \
+    model = p->user->model;                                                   \
+    GET_THROW_ROTATION(model, rx, ry, rz);                                    \
+    RotateVector((VECTOR *)&work, rx, ry, rz)
+
+#define RECLAIM_POOL_ITEM()                                                   \
+    cur->mode = ITEM_MODE_DISPOSE;                                            \
+    cur->proc(cur);                                                           \
+    DeleteConflict(cur->locate);                                              \
+    if (cur->mode != 0)                                                       \
+    {                                                                         \
+        AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);      \
+    }                                                                         \
+    it = cur;                                                                 \
+    it->owner = 0;                                                            \
+    it->proc = 0
+
+#define SETUP_POOL_ITEM(proc_, model_)                                        \
+    us = p->user;                                                             \
+    ty = p->type;                                                             \
+    it->owner = us;                                                           \
+    it->proc = proc_;                                                         \
+    it->mode = 0;                                                             \
+    it->type = ty;                                                            \
+    it->locate->locate.coord.t[0] = p->start.vx;                              \
+    st = &p->start;                                                           \
+    it->locate->locate.coord.t[1] = st->vy;                                   \
+    it->locate->locate.coord.t[2] = st->vz;                                   \
+    it->locate->locate.super = 0;                                             \
+    UpdateCoordinate(it->locate);                                             \
+    it->collision.size = 0;                                                   \
+    it->model = model_
+
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
 extern VECTOR vec_z_n100[];        /* {0,0,-100} */
@@ -305,15 +361,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 rz;
         s32 i;
 
-        memset(&work, 0, sizeof(PARAM_ITEM_LAUNCH));
-        work.type = p->type;
-        work.user = p->user;
-        work.start = p->start;
-        param = work;
-        *(VECTOR *)&work = vec_z_100[0];
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector((VECTOR *)&work, rx, ry, rz);
+        SETUP_ROTATED_DROP(vec_z_100);
         i = 0;
         while (1)
         {
@@ -355,35 +403,13 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                 i++;
             } while (i < MAX_ITEMS - 1);
 
-            cur->mode = ITEM_MODE_DISPOSE;
-            cur->proc(cur);
-            DeleteConflict(cur->locate);
-            if (cur->mode != 0)
-            {
-                AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
-            }
-            it = cur;
-            it->owner = 0;
-            it->proc = 0;
+        RECLAIM_POOL_ITEM();
 
-        found_shuriken:
+    found_shuriken:
             param = &it->param.launch;
             if (it == 0)
                 return 0;
-            us = p->user;
-            ty = p->type;
-            it->owner = us;
-            it->proc = ProcSightShot;
-            it->mode = 0;
-            it->type = ty;
-            it->locate->locate.coord.t[0] = p->start.vx;
-            st = &p->start;
-            it->locate->locate.coord.t[1] = st->vy;
-            it->locate->locate.coord.t[2] = st->vz;
-            it->locate->locate.super = 0;
-            UpdateCoordinate(it->locate);
-            it->collision.size = 0;
-            it->model = SyurikenModel;
+        SETUP_POOL_ITEM(ProcSightShot, SyurikenModel);
             param->count = 5;
             it->owner->item[ITEM_N] = 1;
         }
@@ -402,97 +428,27 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_SMOKE:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_z_n60[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemSmoke(p);
+        REQUEST_ROTATED_ITEM(vec_z_n60, ReqItemSmoke);
         break;
     }
     case ITEM_DOKUDANGO:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n240[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemDokudango(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n240, ReqItemDokudango);
         break;
     }
     case ITEM_NEMURI:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemNemuri(p);
+        REQUEST_ROTATED_ITEM(vec_z_n120, ReqItemNemuri);
         break;
     }
     case ITEM_NINGYO:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemNingyo(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n120, ReqItemNingyo);
         break;
     }
     case ITEM_GOSHIKIMAI:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_z_n100[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemGoshikimai(p);
+        REQUEST_ROTATED_ITEM(vec_z_n100, ReqItemGoshikimai);
         break;
     }
     case ITEM_KAENGEKI:
@@ -506,59 +462,17 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_NINKEN:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemNinken(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n120, ReqItemNinken);
         break;
     }
     case ITEM_HAPPOU:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemHappou(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n120, ReqItemHappou);
         break;
     }
     case ITEM_FIRE:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemFire(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n120, ReqItemFire);
         break;
     }
     case ITEM_LIGHTNINGBOLT:
@@ -611,15 +525,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 vy;
         s32 vz;
 
-        memset(&work, 0, sizeof(PARAM_ITEM_LAUNCH));
-        work.type = p->type;
-        work.user = p->user;
-        work.start = p->start;
-        param = work;
-        *(VECTOR *)&work = vec_z_n1000[0];
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector((VECTOR *)&work, rx, ry, rz);
+        SETUP_ROTATED_DROP(vec_z_n1000);
         vx = ((VECTOR *)&work)->vx;
         vy = ((VECTOR *)&work)->vy;
         vz = ((VECTOR *)&work)->vz;
@@ -658,35 +564,13 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             i++;
         } while (i < MAX_ITEMS - 1);
 
-        cur->mode = ITEM_MODE_DISPOSE;
-        cur->proc(cur);
-        DeleteConflict(cur->locate);
-        if (cur->mode != 0)
-        {
-            AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
-        }
-        it = cur;
-        it->owner = 0;
-        it->proc = 0;
+        RECLAIM_POOL_ITEM();
 
     found_kaginawa:
         if (it == 0)
             return 0;
         y = (s32)ProcKaginawa;
-        us = p->user;
-        ty = p->type;
-        it->owner = us;
-        it->proc = (void (*)(TItem *))y;
-        it->mode = 0;
-        it->type = ty;
-        it->locate->locate.coord.t[0] = p->start.vx;
-        st = &p->start;
-        it->locate->locate.coord.t[1] = st->vy;
-        it->locate->locate.coord.t[2] = st->vz;
-        it->locate->locate.super = 0;
-        UpdateCoordinate(it->locate);
-        it->collision.size = 0;
-        it->model = 0;
+        SETUP_POOL_ITEM((void (*)(TItem *))y, 0);
         it->owner->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
@@ -695,21 +579,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_SHINSOKU:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_z_n500[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemShinsoku(p);
+        REQUEST_ROTATED_ITEM(vec_z_n500, ReqItemShinsoku);
         break;
     }
     case ITEM_TELEPORT:
@@ -736,73 +606,23 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             i++;
         } while (i < MAX_ITEMS - 1);
 
-        cur->mode = ITEM_MODE_DISPOSE;
-        cur->proc(cur);
-        DeleteConflict(cur->locate);
-        if (cur->mode != 0)
-        {
-            AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
-        }
-        it = cur;
-        it->owner = 0;
-        it->proc = 0;
+        RECLAIM_POOL_ITEM();
 
     found_teleport:
         if (it == 0)
             return 0;
-        us = p->user;
-        ty = p->type;
-        it->owner = us;
-        it->proc = ProcItemTeleport;
-        it->mode = 0;
-        it->type = ty;
-        it->locate->locate.coord.t[0] = p->start.vx;
-        st = &p->start;
-        it->locate->locate.coord.t[1] = st->vy;
-        it->locate->locate.coord.t[2] = st->vz;
-        it->locate->locate.super = 0;
-        UpdateCoordinate(it->locate);
-        it->collision.size = 0;
-        it->model = 0;
+        SETUP_POOL_ITEM(ProcItemTeleport, 0);
         CamState.Mode = CMODE_SIGHT;
         break;
     }
     case ITEM_KUSURI:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemKusuri(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n120, ReqItemKusuri);
         break;
     }
     case ITEM_GOSIN:
     {
-        VECTOR *st;
-        ModelArchiveType *model;
-        s32 rx;
-        s32 ry;
-        s32 rz;
-
-        *(VECTOR *)&param = vec_y_n120_z_n120[0];
-        st = (VECTOR *)&param;
-        model = p->user->model;
-        GET_THROW_ROTATION(model, rx, ry, rz);
-        RotateVector(st, rx, ry, rz);
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
-        ReqItemGosin(p);
+        REQUEST_ROTATED_ITEM(vec_y_n120_z_n120, ReqItemGosin);
         break;
     }
     case ITEM_GUN:
@@ -836,16 +656,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             i++;
         } while (i < MAX_ITEMS - 1);
 
-        cur->mode = ITEM_MODE_DISPOSE;
-        cur->proc(cur);
-        DeleteConflict(cur->locate);
-        if (cur->mode != 0)
-        {
-            AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);
-        }
-        it = cur;
-        it->owner = 0;
-        it->proc = 0;
+        RECLAIM_POOL_ITEM();
 
     found_napalm:
         pp = &it->param.napalm;
@@ -853,20 +664,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             return 0;
         if ((GameClock & 1) == 0)
             return 0;
-        us = p->user;
-        ty = p->type;
-        it->owner = us;
-        it->proc = ProcItemNapalm;
-        it->mode = 0;
-        it->type = ty;
-        it->locate->locate.coord.t[0] = p->start.vx;
-        st = &p->start;
-        it->locate->locate.coord.t[1] = st->vy;
-        it->locate->locate.coord.t[2] = st->vz;
-        it->locate->locate.super = 0;
-        UpdateCoordinate(it->locate);
-        it->collision.size = 0;
-        it->model = (ModelType *)sprNapalm;
+        SETUP_POOL_ITEM(ProcItemNapalm, (ModelType *)sprNapalm);
         it->param.napalm.vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;
         pp->vec.vz = p->end.vz - p->start.vz;
@@ -886,3 +684,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     return 1;
 }
+#undef SETUP_POOL_ITEM
+#undef RECLAIM_POOL_ITEM
+#undef SETUP_ROTATED_DROP
+#undef REQUEST_ROTATED_ITEM
