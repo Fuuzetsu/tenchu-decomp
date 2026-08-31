@@ -52,6 +52,9 @@
  *    shrink SPLIT tail's size is `excess - 2`. Different constants (0x11 vs
  *    0x13) gate the two splits too — read the raw immediate in each branch,
  *    don't assume they're the same threshold.
+ *  - Locate either split header in allocator words: cast `vhp` to `u32 *`,
+ *    add `size`, then add `sizeof(*vhp) / sizeof(u32)`. The left-associated
+ *    form preserves retail's base-plus-payload-plus-header address order.
  *  - `vh.next` in the shrink-split branch is read fresh off `vhp->next`
  *    (not the cached `svhp`), even though the two are numerically identical
  *    at that point — matches Ghidra's own literal `*(uint*)(pt+-4)` reread.
@@ -120,7 +123,8 @@ void *vrealloc(void *pt, u32 size)
             vh.size = size2 - 2;
             vh.next = vhp->next;
             vhp->size = size | 0x80000000;
-            nb = (struct VMhead *)((u8 *)vhp + (size << 2) + 8);
+            nb = (struct VMhead *)((u32 *)vhp + size +
+                                   sizeof(*vhp) / sizeof(u32));
             vhp->next = nb;
             /* Byte-required spelling: the not-and differs from line 144's
              * (s32)size >= 0 form of the same in-use test (measured). */
@@ -154,7 +158,8 @@ void *vrealloc(void *pt, u32 size)
                     vh.size = size2;
                     vh.next = svhp->next;
                     vhp->size = size | mask;
-                    nb = (struct VMhead *)((u8 *)vhp + (size << 2) + 8);
+                    nb = (struct VMhead *)((u32 *)vhp + size +
+                                           sizeof(*vhp) / sizeof(u32));
                     vhp->next = nb;
                     *nb = vh;
                 }

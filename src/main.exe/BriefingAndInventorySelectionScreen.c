@@ -16,62 +16,33 @@
 /*
  * Pre-mission briefing / item selection screen (0x80052084, 0xE24 bytes).
  *
- * MATCHED (905/905 instructions, byte-identical; four sessions:
- * 241 -> 94 -> 28 -> 0). The 28 residual register-tie diffs fell to six
- * levers, all in this file (permuter rounds 4-6 found 1/3/5, hand-derived
- * 4/6 from the gcc 2.8.1 local-alloc.c/global.c tie+preference conditions):
- *   1. GetRealPad's shared return type must be the recovered `long` (s32;
- *      u32 and `volatile unsigned int` score the
- *      same -- the width matters, not the sign). With a u16 return the
- *      (s16)pad ext for check_cheat_command_ was emitted before
- *      the newpress xor/and chain via a0; with the full-word return it lands after,
- *      reusing the dying pad copy in v0 (permuter r4).
- *   2. Entry-clamp compare re-read `mx < cq->gItem[n]` (for `mx < c`):
- *      byte-neutral (cse folds it back to c's reg) but the changed
- *      preference set makes global alloc tie the store address into n's
- *      dying v1 (addu v1,t0,v1). The textually-identical case-1 copy keeps
- *      the plain `mx < c` spelling and the fresh-a0 shape (permuter r5).
- *   3. case-0x1F body: the selection eligibility checks can be short-circuit
- *      guards. The old one-shot experiments were a paired conflict: either
- *      left by itself flips the chr-reload/li-255 {v0,v1} pair (12 lines),
- *      while removing both restores the target pairing.
- *   4. Cursor-move exts written as HAND-SPLIT shift pairs:
- *      `hx = j << 0x10; hy = shown << 0x10; k = cursor; ddx = hx >> 0x10;
- *      ddy = hy >> 0x10;` -- combine collapses (sign_extend)<<16 into one
- *      sll (no extra insns), both intermediates overlap (v0+v1 like the
- *      target's interleave [sll][sll][move][sra][bnez][slot: sra]), and
- *      reorg steals the second sra into the bnez slot. Natural `ddx = j;`
- *      pairs each sll/sra and one scratch serves both (no interleave).
- *   5. Bounce arms: do{}while(0) around each `t = scale +/- 0x10;
- *      scale = t;` pair (all three arms) -- makes the (s16)t ext read the
- *      addiu temp's reg (sll v0,v0) instead of the coalesced scale
- *      (sll v0,s7) (permuter r5 found one arm; same lever fixed all three).
- *   6. Digit-entry reads: `t1 = cap;` int temp + INLINE `av = t1 - taken;`.
- *      Named temps for BOTH operands let local-alloc give taken's zext v0
- *      (tying into the subu); the inline read's zext is an expression temp
- *      materialized by reload in source order into the next spill reg:
- *      lhu t9,152 / lhu t5,160 / subu v0,t9,t5 exactly.
- *   7. `newpress` is the edge-triggered pad mask; `selected_kinds` counts
- *      occupied selection kinds, distinct from `taken`, the total quantity.
- *      The right/down handlers need no redundant shared outer guard.
+ * STATUS: MATCHING — all 905 instructions are byte-identical.
  *
- * Earlier-session levers still load-bearing (see git history for the full
- * derivations): u0 hosted in grid x (multi-def `int c = (u8)var` keeps the
- * andi alive); shown-loop's (s16)j ext through grid y; digit-loop division
- * via int d/quo with the loop-carried copy at the bottom; index sums
- * spelled `[idx + (ps->CharType << 5)]` (shift skips EXPAND_SUM's mult-first
- * special case, 7 sites); the grid loop as a real `for` (VTOP => reorg
- * duplicates j++ into the skip branch's delay slot); do{}while(0) around
- * the cursor-move block; `dsp->u = dsp->u + ...` / `int c = (u8)dsp->u;`
- * re-read respellings seeding the s1/s2 mirror.
- *
- * Permuter dirs: scratch/permuter-{briefing,b2,b3} (rounds 1-3, main
- * checkout) and .shake/permuter/BriefingAndInventorySelectionScreen
- * (rounds 4-6, this tree). NOTE tools/permute.py's find_nonmatching_s
- * concatenates the 8 split .s pieces in LEXICOGRAPHIC order; the target
- * needs ADDRESS order (entry, switchD, caseD_0, caseD_1, caseD_3,
- * caseD_1f, caseD_7, caseD_2) -- rebuild target.s/.o by hand after setup
- * until permute.py is fixed.
+ * Matching constraints:
+ *  - Keep GetRealPad's recovered full-word `long` return type. A u16 return
+ *    moves the cheat-command sign extension ahead of the new-press chain.
+ *  - The entry clamp must re-read `mx < cq->gItem[n]`; the similar case-1
+ *    clamp must retain `mx < c`. CSE makes the former byte-neutral while its
+ *    preference set fixes the store-address register.
+ *  - In case 0x1f, keep both eligibility tests as ordinary short-circuit
+ *    guards. Changing either one alone creates a paired register conflict.
+ *  - Preserve the hand-split `hx`/`hy` cursor shift pairs and intervening
+ *    `k = cursor` copy. Their overlapping lifetimes produce the interleaved
+ *    extensions and branch-delay-slot fill.
+ *  - Retain the do/while(0) boundary around each bounce arm's temporary
+ *    update, and the separate boundary around the cursor-move block.
+ *  - Digit entry needs an int `t1 = cap` temporary but an inline
+ *    `av = t1 - taken`; naming both operands changes local allocation.
+ *  - `newpress` is the edge-triggered mask. `selected_kinds` and `taken`
+ *    are distinct counts, and the right/down handlers have no shared guard.
+ *  - Keep the grid's multi-definition `int c = (u8)var`, the shown loop's
+ *    `(s16)j` path through grid y, and the digit loop's int `d`/`quo` with
+ *    its loop-carried copy at the bottom.
+ *  - Spell all seven item indices as `[idx + (ps->CharType << 5)]` and keep
+ *    the grid traversal as a real for loop; both shapes affect expansion and
+ *    delay-slot duplication.
+ *  - Preserve the two `dsp->u` memory rereads. They seed the required s1/s2
+ *    register assignment; caching either value changes the allocation.
  */
 
 /* The persistent state is accessed three ways in the original, on purpose:

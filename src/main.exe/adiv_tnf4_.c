@@ -12,14 +12,12 @@
  * Compiled-style GTE function under the restricted gte.h policy
  * (docs/gte-policy.md).
  *
- * The workspace layout is ADIV_WORK (tmdfast.h); the per-store comments name
- * the fields.  The SPELLING must stay index-based off the u_long* scratch,
- * though: retail derives every vertex-record store from the workspace base
- * register (not from the v0..v3 record pointers), and typing the header
- * stores as struct members frees cc1's true_dependence (a struct-varying
- * store never aliases a scalar-fixed access in gcc 2.8) to reorder them
- * around the volatile shift/ot parameter reads — measured: the entry parm
- * copies leave a0/a1 and the prologue reschedules.  Same mechanism as the
+ * The workspace layout is ADIV_WORK (tmdfast.h). Vertex-record and
+ * timing-sensitive header stores must remain index-based off the `u_long *`
+ * scratch: struct-member stores weaken gcc 2.8's alias dependencies and
+ * reschedule the volatile shift/ot reads. The output cursor and terminal
+ * POLY_GT4 metadata are safe typed exceptions: `out`, `clut`, `tpage`, and
+ * `setlen`/`setcode` all compile identically. Same mechanism as the
  * decode_tmd_fast_ int-parameter lever (cookbook 3.13).
  *
  * This is the flat-colour TMD_P_TNF4 sibling of adiv_tng4_.  Keeping the
@@ -76,11 +74,11 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     t0 = *(u_long *)(o + 4);
     init = 150;
     work[8] = init;                      /* adivz */
-    *(u_char *)((int)work + 0x4f) = 0xc; /* packet len */
+    setlen(&((ADIV_WORK *)work)->packet, 0xc);
     code = 0x3c;
     work[3] = t1;                         /* shift */
-    work[5] = (u_long)packet;             /* out */
-    *(u_char *)((int)work + 0x53) = code; /* packet code */
+    ((ADIV_WORK *)work)->out = packet;
+    setcode(&((ADIV_WORK *)work)->packet, code);
     work[4] = t0;                         /* org */
     cnt = count;
     if (cnt != 0)
@@ -137,13 +135,13 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
                 t2 = (u_long)(work + 0x2a);
                 t1 = (u_long)(work + 0x30);
                 gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1, work + 0x36);
-                *(short *)((int)work + 0x5a) = primitive->clut;  /* packet.clut */
-                *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
+                ((ADIV_WORK *)work)->packet.clut = primitive->clut;
+                ((ADIV_WORK *)work)->packet.tpage = primitive->tpage;
                 subdivide_quad_(frame, work, 0);
             }
             cnt--;
             primitive++;
         } while (cnt != 0);
     }
-    return (u_long *)work[5]; /* out */
+    return ((ADIV_WORK *)work)->out;
 }

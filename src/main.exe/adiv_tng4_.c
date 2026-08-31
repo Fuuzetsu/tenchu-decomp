@@ -76,10 +76,10 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     shiftWord = shift;
     work[8] = 150;                       /* adivz */
     work[3] = shiftWord;                 /* shift */
-    *(u_char *)((int)work + 0x4f) = 0xc; /* packet len */
+    setlen(&((ADIV_WORK *)work)->packet, 0xc);
     code = 0x3c;
-    work[5] = (u_long)packet;             /* out */
-    *(u_char *)((int)work + 0x53) = code; /* packet code */
+    ((ADIV_WORK *)work)->out = packet;
+    setcode(&((ADIV_WORK *)work)->packet, code);
     work[4] = t0;                         /* org */
     if (count != 0)
     {
@@ -135,13 +135,13 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
                 t2 = (u_long)(work + 0x2a);
                 t1 = (u_long)(work + 0x30);
                 gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1, work + 0x36);
-                *(short *)((int)work + 0x5a) = primitive->clut;  /* packet.clut */
-                *(short *)((int)work + 0x66) = primitive->tpage; /* packet.tpage */
+                ((ADIV_WORK *)work)->packet.clut = primitive->clut;
+                ((ADIV_WORK *)work)->packet.tpage = primitive->tpage;
                 subdivide_quad_(po, work, 0);
             }
             count--;
             primitive++;
         } while (count != 0);
     }
-    return (u_long *)work[5]; /* out */
+    return ((ADIV_WORK *)work)->out;
 }

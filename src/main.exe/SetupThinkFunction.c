@@ -27,24 +27,19 @@
  * `type`, then sets or clears attribute bit 4 depending on whether `type` is
  * one of three "default" sentinels (0, 0x1111, 0x2222).
  *
- * Think1Func/Think4Func are plain arrays — their index is explicitly scaled
- * (`sll ,2`) before being added to the base. Think2Func/Think3Func are
- * indexed through raw BYTE-offset pointer arithmetic instead: the shift
- * amount (18/22) already produces a word-aligned byte offset with no
- * separate scale instruction, matching Ghidra's own
- * `*(T *)((int)Think2Func + (shifted >> 18 & 0x3C))` rendering exactly.
- * The final sentinel check re-derives an int from `type<<16` instead of
- * reusing the s16 parameter — matching Ghidra's separate `iVar2`.
- *
- * `table2`/`table3` (permuter-found, docs/matching-cookbook.md): copying
- * Think2Func/Think3Func into a local pointer BEFORE adding the byte offset
- * — instead of casting the extern array name directly inline — is what
- * makes cc1 schedule each table's base-address materialization (lui/addiu)
- * ahead of the PRECEDING table's load/store (a 2-deep software-pipelined
- * schedule); the inline-cast form computes the shift/mask first and the
- * address after, a stable but non-matching alternative schedule with
- * identical instruction content. Think4Func (last table, no following
- * table to prefetch for) needed no such temp.
+ * Matching constraints:
+ *  - All four callbacks can use ordinary array indexing. For Think2Func and
+ *    Think3Func, select the nibble before cc1's implicit pointer scaling:
+ *    `(((s32)type << 16) >> 20) & 0xf` and the corresponding `>> 24`.
+ *    These compile identically to the older masked byte-offset casts.
+ *  - Keep `table2` and `table3` as pointer locals assigned before their
+ *    lookups. They make cc1 materialize each base ahead of the preceding
+ *    table's load/store; indexing either extern directly changes scheduling.
+ *  - Each shifted selector spells its own full-width `type << 16` compound.
+ *    Sharing a narrowed `type` value merges the extensions and reorders the
+ *    prologue.
+ *  - The final sentinel check independently re-derives signed `type` through
+ *    its shift pair rather than reusing another selector.
  */
 void SetupThinkFunction(Humanoid *human, TThinkType type)
 {
@@ -54,14 +49,10 @@ void SetupThinkFunction(Humanoid *human, TThinkType type)
 
     human->think[0] = Think1Func[type & 0xF];
     table2 = Think2Func;
-    /* Each selector spells its own ((s32)type << 16) >> N compound: a
-     * shared (s16)type narrowing would be cse-unified into one sll/sra
-     * pair feeding per-site shifts, but retail keeps four independent
-     * fused pairs (measured: the (s16)type spelling reorders the
-     * prologue). */
-    human->think[1] = *(ThinkFunc *)((u8 *)table2 + ((((s32)type << 16) >> 18) & 0x3C));
+    /* A shared (s16)type narrowing merges these per-site extensions. */
+    human->think[1] = table2[(((s32)type << 16) >> 20) & 0xF];
     table3 = Think3Func;
-    human->think[2] = *(ThinkFunc *)((u8 *)table3 + ((((s32)type << 16) >> 22) & 0x3C));
+    human->think[2] = table3[(((s32)type << 16) >> 24) & 0xF];
     human->think[3] = Think4Func[(u32)((s32)type << 16) >> 28];
     check = ((s32)type << 16) >> 16;
     if (check == THINK_MIX_NONE || check == THINK_MIX_PLAYER ||

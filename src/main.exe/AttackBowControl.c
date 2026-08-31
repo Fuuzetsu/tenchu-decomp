@@ -44,16 +44,11 @@
  * not one cached value.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - **Ghidra's own literal form — `iVar2 = (n<<16)>>14;` as its OWN
- *    statement, THEN `*(s16*)((u8*)BowTiming + iVar2)` — is load-bearing,
- *    not just a reference style.** Writing the equivalent `BowTiming[n]`
- *    array subscript inline computes the SAME address but in the OPPOSITE
- *    instruction order (base lui/addiu, then the idx sll/sra, then addu);
- *    only when `idx` is a NAMED local assigned as its own prior statement
- *    does cc1 emit the idx shift-pair FIRST (from the preceding statement)
- *    and the base address second (when evaluating the pointer-arithmetic
- *    expression that consumes it) — matching the target exactly. Same
- *    value, same final instructions, pure source-shape-driven ORDER lever.
+ *  - The two-stage address construction is load-bearing, but its pointed-to
+ *    type is not. Assign `idx` as its own statement, then form a typed
+ *    `BowTimingEntry *` from the byte base and read `min`/`max` as fields.
+ *    This emits the index shift pair before the table base. A direct
+ *    `BowTiming[n]` subscript reverses those instruction groups.
  *  - **`idx`/`p` are TWO variables per site, not one shared pair** (19 -> 15
  *    bytes). The target holds the table pointer in `$v1` at the range-check
  *    site but `$v0` at the merge site; since cc1 2.8.1 never splits a live
@@ -90,7 +85,13 @@
  *    order) all plateaued at exactly 15 — the copy is the only lever.
  */
 
-extern s16 BowTiming[]; /* byte-addressed; {min,max} pairs, stride 4 */
+typedef struct BowTimingEntry
+{
+    s16 min;
+    s16 max;
+} BowTimingEntry;
+
+extern BowTimingEntry BowTiming[];
 extern Humanoid *Me_MOTION_C;
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
@@ -105,9 +106,9 @@ void AttackBowControl(s16 n)
                             AttackGunControl; item.h's proven 0x28-byte struct) */
     SVECTOR vect;           /* PSX.SYM's "struct SVECTOR vect" (also unused) */
     s32 idx;
-    u8 *p;
+    BowTimingEntry *p;
     s32 idx2;
-    u8 *p2;
+    BowTimingEntry *p2;
 
     count = dtM->count;
     if (count == 1)
@@ -117,8 +118,8 @@ void AttackBowControl(s16 n)
     else
     {
         idx = n << 2;
-        p = (u8 *)BowTiming + idx;
-        if (*(s16 *)p <= count && count < *(s16 *)(p + 2))
+        p = (BowTimingEntry *)((u8 *)BowTiming + idx);
+        if (p->min <= count && count < p->max)
         {
             UpdateOrnament(Me_MOTION_C->weapon[2], 0);
             DrawOrnament(Me_MOTION_C->weapon[2]);
@@ -126,8 +127,8 @@ void AttackBowControl(s16 n)
     }
     idx2 = n;
     idx2 = (s16)idx2 << 2;
-    p2 = (u8 *)BowTiming + idx2;
-    if (dtM->count == *(s16 *)(p2 + 2))
+    p2 = (BowTimingEntry *)((u8 *)BowTiming + idx2);
+    if (dtM->count == p2->max)
     {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);
         bow_shoot_logic(ITEM_ARROW, pos);

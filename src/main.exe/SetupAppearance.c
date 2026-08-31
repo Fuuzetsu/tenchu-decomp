@@ -38,8 +38,8 @@
  * Matching notes:
  *  - `pt = (u8 *)0x80010000` is the recovered `unsigned char *pt` local. It
  *    keeps the PersistentState base in one register for the +0x58/+0x1a
- *    reads; the later literal +0x1a clear must rematerialize the address
- *    after `pt` is repurposed.
+ *    reads. The later armour clear uses an absolute TLinkInfo field view so
+ *    the address is rematerialized after `pt` is repurposed.
  *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
  *    preserves their adjacent halfword layout and their mode-cache/stage-cache
  *    roles despite other globals inserted ahead of them since the demo.
@@ -82,10 +82,8 @@ void SetupAppearance(short mode, short stage)
         HumanData[0].name = str_rikimaua;
         HumanData[1].name = appearance != 0xff ? str_ayamea : str_ayames;
         /* Wearing the armour consumes it from the mission loadout. The
-         * absolute-address spelling is byte-required: the struct view
-         * through `pt` re-bases the store and mismatches. (+0x1a =
-         * TLinkInfo.selItem[ITEM_ARMOUR].) */
-        *(u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS + 0x1a) = 0;
+         * TLinkInfo view stays absolute because `pt` is repurposed below. */
+        ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[ITEM_ARMOUR] = 0;
         ARMOUR_EQUIPPED_ = -1;
     }
 

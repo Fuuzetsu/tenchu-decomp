@@ -37,11 +37,11 @@
         pk[1] = *(u32 *)&va->col;                                             \
         pk[4] = *(u32 *)&vb->col;                                             \
         pk[7] = *(u32 *)&(m)->col;                                            \
-        *(u16 *)((int)pk + 0xe) = work->packet.clut;                          \
+        ((POLY_GT3 *)pk)->clut = work->packet.clut;                           \
         tp = work->packet.tpage;                                              \
-        *(u8 *)((int)pk + 3) = 9;                                             \
-        *(u8 *)((int)pk + 7) = 0x34;                                          \
-        *(u16 *)((int)pk + 0x1a) = tp;                                        \
+        setlen(pk, 9);                                                        \
+        setcode(pk, 0x34);                                                    \
+        ((POLY_GT3 *)pk)->tpage = tp;                                         \
         slot = (u32 *)(work->org + (work->zmax >> work->shift));              \
         work->otp = (u_long *)slot;                                           \
         *pk = *slot & 0xffffff | 0x9000000;                                   \
@@ -79,6 +79,9 @@
  *    rest through the midpoint pointer, per the matched bytes.
  *  - Each GT3 emission re-derives the packet/OT fields from the workspace
  *    (never from the leaf `proto` pointer) — distinct spellings, kept.
+ *  - Packet payload transfers use a u32 word view because each assignment
+ *    copies a packed colour, XY, or UV word. Named metadata uses POLY_GT3/
+ *    POLY_GT4 fields and the SDK setlen/setcode macros.
  */
 
 void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
@@ -91,7 +94,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     int zA;
     int zB;
     int zC;
-    int prim;
+    u32 *packet_words;
     ADIV_VERT *pv;
     ADIV_VERT *pv2;
     u32 *otp;
@@ -234,23 +237,23 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     {
                         do
                         {
-                            prim = (int)work->out;
-                                *(u32 *)(prim + 8) = *(u32 *)&fp->vp[0]->sxy;
-                                *(u32 *)(prim + 0x14) = *(u32 *)&fp->vp[1]->sxy;
-                                *(u32 *)(prim + 0x20) = *(u32 *)&fp->vp[2]->sxy;
-                                *(u32 *)(prim + 0x2c) = *(u32 *)&fp->vp[3]->sxy;
-                                *(u32 *)(prim + 0xc) = *(u32 *)&fp->vp[0]->tu;
-                                *(u32 *)(prim + 0x18) = *(u32 *)&fp->vp[1]->tu;
-                                *(u32 *)(prim + 0x24) = *(u32 *)&fp->vp[2]->tu;
-                                *(u32 *)(prim + 0x30) = *(u32 *)&fp->vp[3]->tu;
-                                *(u32 *)(prim + 4) = *(u32 *)&fp->vp[0]->col;
-                                *(u32 *)(prim + 0x10) = *(u32 *)&fp->vp[1]->col;
-                                *(u32 *)(prim + 0x1c) = *(u32 *)&fp->vp[2]->col;
-                                *(u32 *)(prim + 0x28) = *(u32 *)&fp->vp[3]->col;
+                            packet_words = (u32 *)work->out;
+                            packet_words[2] = *(u32 *)&fp->vp[0]->sxy;
+                            packet_words[5] = *(u32 *)&fp->vp[1]->sxy;
+                            packet_words[8] = *(u32 *)&fp->vp[2]->sxy;
+                            packet_words[11] = *(u32 *)&fp->vp[3]->sxy;
+                            packet_words[3] = *(u32 *)&fp->vp[0]->tu;
+                            packet_words[6] = *(u32 *)&fp->vp[1]->tu;
+                            packet_words[9] = *(u32 *)&fp->vp[2]->tu;
+                            packet_words[12] = *(u32 *)&fp->vp[3]->tu;
+                            packet_words[1] = *(u32 *)&fp->vp[0]->col;
+                            packet_words[4] = *(u32 *)&fp->vp[1]->col;
+                            packet_words[7] = *(u32 *)&fp->vp[2]->col;
+                            packet_words[10] = *(u32 *)&fp->vp[3]->col;
                         } while (0);
                     } while (0);
-                    *(u16 *)(prim + 0xe) = proto->clut;
-                    *(u16 *)(prim + 0x1a) = proto->tpage;
+                    ((POLY_GT4 *)packet_words)->clut = proto->clut;
+                    ((POLY_GT4 *)packet_words)->tpage = proto->tpage;
                     *(u_long *)work->out = proto->tag;
                     otp = (u32 *)(work->org + (work->zmax >> work->shift));
                     work->otp = (u_long *)otp;
@@ -381,11 +384,11 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         pk[1] = *(u32 *)&vb->col;
                         pk[4] = *(u32 *)&va->col;
                         pk[7] = *(u32 *)&m31->col;
-                        *(u16 *)((int)pk + 0xe) = work->packet.clut;
+                        ((POLY_GT3 *)pk)->clut = work->packet.clut;
                         tp = work->packet.tpage;
-                        *(u8 *)((int)pk + 3) = 9;
-                        *(u8 *)((int)pk + 7) = 0x34;
-                        *(u16 *)((int)pk + 0x1a) = tp;
+                        setlen(pk, 9);
+                        setcode(pk, 0x34);
+                        ((POLY_GT3 *)pk)->tpage = tp;
                         slot = (u32 *)(work->org + (work->zmax >> work->shift));
                         work->otp = (u_long *)slot;
                         *pk = *slot & 0xffffff | 0x9000000;
