@@ -520,6 +520,51 @@ Two habits follow, both cheap:
   days; the ones that cost the most were the ones phrased as instructions rather
   than evidence.
 
+## Working with an external model (the Codex loop)
+
+The 2026-08-31 humanising campaign ran as a two-model loop: this session
+plus a Codex CLI session (`nix run github:sadjow/codex-cli-nix -- exec
+--dangerously-bypass-approvals-and-sandbox`, continued across rounds with
+`exec resume --last`). It produced ~13 rounds and several results neither
+side reached alone, so the protocol is worth reusing.
+
+**The shape.** Each round is: a `RESULTS<N>.md` brief written into a shared
+scratch directory → Codex works and writes `ROUND<N+1>.md` plus winner `.c`
+files → this session verifies independently and lands. Run it in the
+background (`run_in_background: true`) and keep working in parallel on files
+the other side is not holding; a file-appearance waiter (`until [ -s
+ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
+
+**What makes it work:**
+
+* **Give it a real harness, not just prose.** Codex self-verified every
+  candidate with the same `tryf.sh` wrapper this session used (compile with
+  the build profile, canonicalize labels, diff). Its hit rate was near 100%
+  because it never proposed anything it had not measured.
+* **Ask for recipes, not just files.** Winner files can be stale (built from
+  a snapshot predating a change on your side). Exact recipes let you rebuild
+  the edit onto current HEAD, and a three-way `git merge-file` handles the
+  overlap when both sides touched a file.
+* **Verify independently anyway.** Re-run the gate on every candidate before
+  landing; also `symnote.py --check --all`, because externally produced files
+  can reintroduce an old generated block.
+* **Ask for the negatives with numbers.** "Blocked, and here is the diff
+  count and the mechanism" is as valuable as a win: those verdicts stop the
+  next session re-spending the same measurements, and several went straight
+  into the cookbook.
+* **Brief the project's unwritten rules.** The one correction needed all
+  campaign was a behaviour-summary header that collided with an owner
+  directive living only in feedback history. If a rule is not in `docs/`,
+  the external model cannot know it — put it in the brief.
+* **Let it pick the dimension once it knows the tree.** Rounds 12-13 were
+  Codex's own choice (header contracts), and it independently reached the
+  same conclusion this session had about the biggest remaining anomaly.
+
+**Convergence is a signal.** Both sides independently discovered the
+`switch` lever (a goto ladder testing one value against constants is usually
+an ordinary `switch`) within an hour, on disjoint files. When two
+independent searches land on the same mechanism, promote it to doctrine.
+
 ## Picking targets
 
 `tools/triage.py` (easiest first, or `--leverage` for high call in-degree, or
