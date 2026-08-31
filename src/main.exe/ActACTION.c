@@ -94,32 +94,28 @@ void ActACTION(void)
     case MOT_ACTION:
         if (dtM->count == 1)
         {
-            s16 kind;
-            ModelType *model;
             s16 cleanup_guard;
             MotionManager *motion;
             Humanoid *human;
             OrnamentType **weapon;
 
-            kind = Me_MOTION_C->wpatk;
-            switch (kind)
+            switch (Me_MOTION_C->wpatk)
             {
             case FIST:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-                model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                 break;
             case JAW:
-                model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                 break;
             case NO_WEAPON:
                 cleanup_guard = 3;
                 goto skip_afterimage_cleanup;
             default:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-                model = Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1];
+                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                 break;
             }
-            DeleteConflict(model);
             cleanup_guard = 3;
         skip_afterimage_cleanup:
             if (cleanup_guard & 2)
@@ -152,13 +148,10 @@ void ActACTION(void)
             }
         }
         {
-            MotionManager *motion;
-
-            motion = dtM;
             if (dtM->count == 0 && dtM->loop > 0)
             {
                 dtM->count = dtM->motion->time - 1;
-                PlayMotion(motion, 1);
+                PlayMotion(dtM, 1);
                 dtM->loop = -1;
                 dtV->vz = 0;
                 dtV->vx = 0;
