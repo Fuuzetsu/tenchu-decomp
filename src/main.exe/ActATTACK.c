@@ -853,7 +853,19 @@ dispatch:
                  * 54. The answer is a structural difference in this block we
                  * have not found -- exactly the situation ActSTATE was in
                  * until its nested humanoid aliases came out and its own
-                 * SetCameraMode cast stopped being needed. */
+                 * SetCameraMode cast stopped being needed.
+                 *
+                 * Narrowed further since: the cast is uniquely required
+                 * GIVEN this structure. Dropping just the cast while
+                 * keeping the fake arguments costs 32; moving the fake
+                 * argument onto this arm's second call instead of the
+                 * cast, or onto default's, costs 56 either way. And the
+                 * retail arms end in identical two-instruction
+                 * `jal DeleteConflict; j <join>` tails that cc1 did NOT
+                 * merge, while the macro switch above merges its
+                 * three-instruction ones -- so retail's calls really did
+                 * differ in RTL argument usage or pattern, and finding
+                 * what source produced that is the open question. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                 break;
             case JAW:
