@@ -1392,9 +1392,9 @@ typedef struct TLinkInfo
                                        *       demo +0x0, short) */
     u8 StageNo;                       /* 0x005 CHOSEN_STAGE (demo +0x2) */
     u8 layout;                        /* 0x006 STAGE_LAYOUT_NUMBER */
-    u8 selItem[SAVE_ITEM_SLOTS]; /* 0x007 selected count per item;
+    u8 selItem[SAVE_ITEM_SLOTS];      /* 0x007 selected count per item;
                                        *       retail expansion of demo selItem[30] */
-    u8 saveItem[SAVE_ITEM_SLOTS]; /* 0x027 loadout backup (restore on abort);
+    u8 saveItem[SAVE_ITEM_SLOTS];     /* 0x027 loadout backup (restore on abort);
                                        *       retail expansion of demo saveItem[30] */
     u8 analog_pad_present;            /* 0x047 bit0: analog pad detected */
     u8 GameRetry;                     /* 0x048 bit0: retry/continue current stage;
@@ -1419,7 +1419,7 @@ typedef struct TLinkInfo
     u8 StageNoMAX[2];                 /* 0x060 highest stage uid per character;
                                        *       official demo member name (demo +0x3) */
     ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
-    u8 gItem[2][SAVE_ITEM_SLOTS]; /* 0x40C shop stock, per character;
+    u8 gItem[2][SAVE_ITEM_SLOTS];     /* 0x40C shop stock, per character;
                                        *       [CharType][item];
                                        *       retail expansion of demo gItem[30];
                                        *       0xFE = locked, 0xFF = infinite;
