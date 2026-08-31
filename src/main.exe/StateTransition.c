@@ -110,7 +110,7 @@ void StateTransition(Humanoid *human)
     Me_THINK_C = human;
     Pad = &human->pad;
     Attrib = human->attribute;
-    atr0 = ATTRIB_BITS & ~(ATTR_SEARCH | ATTR_PHASE);
+    atr0 = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
 
     if (human == StagePlayer)
     {
@@ -157,7 +157,7 @@ void StateTransition(Humanoid *human)
         return;
     }
 
-    if ((ATTRIB_BITS & 4) == 0)
+    if ((Attrib & 4) == 0)
     {
         if (human == StagePlayer && EmergencyNotice != 0)
         {
@@ -199,7 +199,7 @@ void StateTransition(Humanoid *human)
 
             kind = Me_THINK_C->type & PAGE_MASK;
             if (kind != PAGE_BOSS && kind != PAGE_BEAST &&
-                (active_item != ITEM_MANEBUE || (ATTRIB_BITS & 3) != PHASE_ALERT))
+                (active_item != ITEM_MANEBUE || (Attrib & 3) != PHASE_ALERT))
             {
                 if (EmergencyNotice != 0)
                 {
@@ -214,7 +214,7 @@ void StateTransition(Humanoid *human)
             {
                 SR = SR_UNSEEN;
             }
-            else if ((ATTRIB_BITS & 3) == PHASE_CALM)
+            else if ((Attrib & 3) == PHASE_CALM)
             {
                 SR = SR_GLIMPSE;
             }
@@ -249,7 +249,7 @@ void StateTransition(Humanoid *human)
     }
     ProbeAttrib[1] = FieldAttrib;
 
-    switch (ATTRIB_BITS & 3)
+    switch (Attrib & 3)
     {
     case 0:
         if (distance < StrainRatio)
@@ -311,13 +311,13 @@ void StateTransition(Humanoid *human)
         break;
 
     case 1:
-        if (EmergencyNotice != 0 || (ATTRIB_BITS & ATTR_SEARCH) != 0)
+        if (EmergencyNotice != 0 || (Attrib & ATTR_SEARCH) != 0)
         {
             if (StrainRatio > 0)
             {
                 StrainRatio = -0x8000;
             }
-            if (ATTRIB_BITS & ATTR_SEARCH)
+            if (Attrib & ATTR_SEARCH)
             {
                 pad = think_alarm_reaction_();
             }
@@ -335,10 +335,10 @@ void StateTransition(Humanoid *human)
             pad = Me_THINK_C->think[1]();
         }
 
-        if (SR == SR_SEEN || ((ATTRIB_BITS & ATTR_HIT) != 0 && SR > 0))
+        if (SR == SR_SEEN || ((Attrib & ATTR_HIT) != 0 && SR > 0))
         {
             Attrib = atr0 | PHASE_ALERT;
-            if ((ATTRIB_BITS & ATTR_ALERT) == 0)
+            if ((Attrib & ATTR_ALERT) == 0)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
             }
@@ -371,7 +371,7 @@ void StateTransition(Humanoid *human)
 
     case 2:
     {
-        if (ATTRIB_BITS & ATTR_ALERT)
+        if (Attrib & ATTR_ALERT)
         {
             if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
             {
@@ -387,13 +387,13 @@ void StateTransition(Humanoid *human)
             StrainRatio = -1;
         }
 
-        if (ATTRIB_BITS & ATTR_SEARCH)
+        if (Attrib & ATTR_SEARCH)
         {
             pad = Me_THINK_C->think[2]();
         }
         else
         {
-            if ((ATTRIB_BITS & ATTR_ALERT) == 0)
+            if ((Attrib & ATTR_ALERT) == 0)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
             }
@@ -485,12 +485,12 @@ void StateTransition(Humanoid *human)
             StrainRatio = -0x8000;
         }
         pad = Me_THINK_C->think[3]();
-        if ((ATTRIB_BITS & ATTR_WALL) && Me_THINK_C->pad_hold == 0)
+        if ((Attrib & ATTR_WALL) && Me_THINK_C->pad_hold == 0)
         {
             Me_THINK_C->pad_hold = Degree > 0 ? PAD_HOLD(PADLright, 8)
                                                : PAD_HOLD(PADLleft, 8);
         }
-        if ((ATTRIB_BITS & 3) == PHASE_ALERT)
+        if ((Attrib & 3) == PHASE_ALERT)
         {
             Humanoid *me;
 
@@ -498,7 +498,7 @@ void StateTransition(Humanoid *human)
             reset_alert_duration();
             me = Me_THINK_C;
             if (me->type < PAGE_BOSS &&
-                (ATTRIB_BITS & ATTR_SEARCH) == 0 &&
+                (Attrib & ATTR_SEARCH) == 0 &&
                 me->target == (ModelType *)StagePlayer->model)
             {
                 Findenemies++;
@@ -545,7 +545,7 @@ void StateTransition(Humanoid *human)
             if (abs_degree >= 500)
             {
                 pad = PADLdown;
-                if ((ATTRIB_BITS & 3) == PHASE_CALM)
+                if ((Attrib & 3) == PHASE_CALM)
                 {
                     pad = PADLup;
                 }
@@ -638,7 +638,7 @@ tail:
     {
         StrainRatio = ssr;
     }
-    Me_THINK_C->attribute = ATTRIB_BITS;
+    Me_THINK_C->attribute = Attrib;
 
     update_pressed_buttons(Pad, pad);
 }

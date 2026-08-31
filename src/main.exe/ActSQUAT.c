@@ -50,7 +50,7 @@
  *    4. That multi-predecessor label preserves the target's physical order:
  *    continuation, case 9, then the default case.
  *  - Case 9 uses `time >> 1`, not `/ 2`; the latter adds the signed division
- *    correction sequence. The signed dtPAD object and MOTION_PAD_BITS view
+ *    correction sequence. The signed dtPAD object and dtPAD view
  *    likewise preserve the target's site-specific `lh`/`lhu` loads.
  */
 
@@ -72,22 +72,22 @@ void ActSQUAT(void)
         {
             dtM->loop = -1;
         }
-        if (MOTION_PAD_BITS & PADLup)
+        if (dtPAD & PADLup)
         {
             SET_MOTION(MOT_SQUAT_WALK_F, 1);
             break;
         }
-        if (MOTION_PAD_BITS & PADLdown)
+        if (dtPAD & PADLdown)
         {
             SET_MOTION(MOT_SQUAT_WALK_B, 1);
             break;
         }
-        if (MOTION_PAD_BITS & PADLright)
+        if (dtPAD & PADLright)
         {
             SET_MOTION(MOT_SQUAT_WALK_R, 1);
             break;
         }
-        if (MOTION_PAD_BITS & PADLleft)
+        if (dtPAD & PADLleft)
         {
             SET_MOTION(MOT_SQUAT_WALK_L, 1);
             break;
@@ -104,7 +104,7 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
-        if ((MOTION_PAD_BITS & PADLup) == 0)
+        if ((dtPAD & PADLup) == 0)
         {
             SET_MOTION(MOT_SQUAT, 1);
         }
@@ -120,12 +120,12 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
-        if ((MOTION_PAD_BITS & PADLdown) == 0)
+        if ((dtPAD & PADLdown) == 0)
         {
             SET_MOTION(MOT_SQUAT, 1);
             break;
         }
-        if (MOTION_PAD_BITS & (PADLleft | PADLright))
+        if (dtPAD & (PADLleft | PADLright))
         {
             /* The staged read-modify-write through current/result (vs the
              * sibling arms' direct dtR->vy += turn) is measured
@@ -136,7 +136,7 @@ void ActSQUAT(void)
 
             rotation = dtR;
             current = rotation->vy;
-            if (MOTION_PAD_BITS & PADLright)
+            if (dtPAD & PADLright)
             {
                 result = current + turn;
             }
@@ -156,12 +156,12 @@ void ActSQUAT(void)
         {
             Sound(Me_MOTION_C, SE_FOOTSTEP);
         }
-        if ((MOTION_PAD_BITS & PADLright) == 0)
+        if ((dtPAD & PADLright) == 0)
         {
             SET_MOTION(MOT_SQUAT, 1);
             break;
         }
-        if (MOTION_PAD_BITS & PADLdown)
+        if (dtPAD & PADLdown)
         {
             dtR->vy += turn;
             dtV->vz = 0;
@@ -180,7 +180,7 @@ void ActSQUAT(void)
             SET_MOTION(MOT_SQUAT, 1);
             break;
         }
-        if (MOTION_PAD_BITS & PADLdown)
+        if (dtPAD & PADLdown)
         {
             dtR->vy -= turn;
             dtV->vz = 0;
@@ -320,13 +320,13 @@ void ActSQUAT(void)
         return;
     }
 
-    if ((MOTION_PAD_BITS & PADRright) == 0)
+    if ((dtPAD & PADRright) == 0)
     {
         if (Me_MOTION_C == StagePlayer)
         {
             SetCameraMode(CMODE_NORMAL);
         }
-        if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
+        if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
             SET_MOTION(MOT_ENGAGE_STANCE, 1);
             return;

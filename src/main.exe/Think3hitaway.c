@@ -111,7 +111,7 @@ s16 Think3hitaway(void)
                 result |= PADRdown;
             }
         }
-        if (Distance > 4000 || (ATTRIB_BITS & ATTR_WALL))
+        if (Distance > 4000 || (Attrib & ATTR_WALL))
         {
             Me_THINK_C->actflg = 1;
         }

@@ -38,7 +38,7 @@
  *
  * Like Think2contact.c, this retail site reads the recovered signed `Attrib`
  * object's raw flag bits with `lhu`, represented by the shared
- * `ATTRIB_BITS` view.
+ * `Attrib` view.
  *
  * `old_actscnt` must be a real local: the asm stores actscnt+1 back
  * UNCONDITIONALLY (in the branch's delay slot) before testing whether the
@@ -124,7 +124,7 @@ s16 Think1trace(void)
     else
     {
         Me_THINK_C->actcnt++;
-        if (ATTRIB_BITS & ATTR_TRACE)
+        if (Attrib & ATTR_TRACE)
         {
             result = ControlTraceLine(Me_THINK_C);
         }

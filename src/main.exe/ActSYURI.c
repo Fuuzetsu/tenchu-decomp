@@ -107,7 +107,7 @@ void ActSYURI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
@@ -128,7 +128,7 @@ void ActSYURI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (ATTR_BITS(Me_MOTION_C) & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }

@@ -210,7 +210,7 @@ short AttackShort(void)
                 pad = PADLup | PADRdown;
             }
         }
-        if ((ATTRIB_BITS & ATTR_HIT) != 0)
+        if ((Attrib & ATTR_HIT) != 0)
         {
             Me_THINK_C->actmode = 1;
         }
@@ -266,7 +266,7 @@ short AttackShort(void)
         goto return_pad;
     }
 
-    if ((ATTRIB_BITS & ATTR_WALL) != 0)
+    if ((Attrib & ATTR_WALL) != 0)
     {
         Me_THINK_C->actmode = 0;
     }

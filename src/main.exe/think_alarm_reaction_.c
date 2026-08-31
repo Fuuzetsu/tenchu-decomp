@@ -13,7 +13,7 @@
  * spawns a second humanoid when the target remains far away.
  *
  * This translation unit reads the recovered signed `Attrib` object's raw flag
- * bits through the shared unsigned `ATTRIB_BITS` view.
+ * bits through the shared unsigned `Attrib` view.
  */
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
@@ -50,7 +50,7 @@ s16 think_alarm_reaction_(void)
 
         result = turn_towards_player_(x_diff, z_diff);
         distance = SquareRoot0(x_diff * x_diff + z_diff * z_diff);
-        if (distance < 2000 || (ATTRIB_BITS & ATTR_WALL))
+        if (distance < 2000 || (Attrib & ATTR_WALL))
         {
             s32 alertTime;
             s32 nextState;
@@ -180,7 +180,7 @@ s16 think_alarm_reaction_(void)
             result = turnBits | PADLup;
         }
 
-        if (ATTRIB_BITS & ATTR_WALL)
+        if (Attrib & ATTR_WALL)
         {
             s32 degree;
             s32 absoluteDegree;
@@ -242,13 +242,13 @@ s16 think_alarm_reaction_(void)
             human->think[1] = Think2Func[4];
             human->think[2] = Think3Func[4];
             think4 = Think4Func[4];
-            ATTR_BITS(human) |= ATTR_CUSTOMAI;
+            human->attribute |= ATTR_CUSTOMAI;
             human->think[3] = think4;
             EquipWeapon(human, 1);
             SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
             human->actscnt = 0;
             human->actcnt = 1;
-            ATTR_BITS(human) |= ATTR_SEARCH | PHASE_SUSPICIOUS;
+            human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
 
             human->chase[HUMANOID_CHASE_X] = Me_THINK_C->chase[HUMANOID_CHASE_X] +
                               (rand() % 5 - 2) * 500;

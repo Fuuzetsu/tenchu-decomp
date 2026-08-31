@@ -53,7 +53,7 @@
  *    predecessor just its own `li` in the branch delay slot).
  *  - `motMODE = 1;` written literally per arm (never hoisted/shared);
  *    cc1's cross-jump does all the merging (same rule as ActSYURI.c).
- *  - dtPAD has its recovered signed object type. MOTION_PAD_BITS supplies
+ *  - dtPAD has its recovered signed object type. dtPAD supplies
  *    the case-0 `lhu` mask tests, while case 2/3's plain signed view gives the
  *    target's `lh`; attribute@0x4 likewise diverges per-site: `*(u16 *)&`
  *    for case 4's `& 0x40` (lhu) vs the plain s16 field for the tail's
@@ -82,7 +82,7 @@ void ActHANG(void)
     switch (dtM->mid)
     {
     case MOT_HANG:
-        if (MOTION_PAD_BITS & PADLdown)
+        if (dtPAD & PADLdown)
         {
             y = dtL->vy;
             do
@@ -92,15 +92,15 @@ void ActHANG(void)
             } while (HangCheck() != 0);
             SET_MOTION(MOT_STATE_FALL, 0);
         }
-        else if (MOTION_PAD_BITS & PADLright)
+        else if (dtPAD & PADLright)
         {
             SET_MOTION(MOT_HANG_SHIMMY_RIGHT, 1);
         }
-        else if (MOTION_PAD_BITS & PADLleft)
+        else if (dtPAD & PADLleft)
         {
             SET_MOTION(MOT_HANG_SHIMMY_LEFT, 1);
         }
-        else if ((MOTION_PAD_BITS & PADLup) &&
+        else if ((dtPAD & PADLup) &&
                  GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000,
                                  dtL->vz, AREA_LEVEL_STEP_DOWN) !=
                      (u32)LEVEL_NONE)
@@ -130,7 +130,7 @@ void ActHANG(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 return;

@@ -21,7 +21,7 @@
  * arm it (0x80000008, or 0x20000008 if Degree > 0), then just forward to
  * turn_towards_player_(0, 0). Same TU as Think1sleep.c/Think2confirm.c.  The
  * recovered Attrib object is a signed `short`; this retail site reads its raw
- * flag bits with `lhu`, so it uses the shared `ATTRIB_BITS` view while signed
+ * flag bits with `lhu`, so it uses the shared `Attrib` view while signed
  * consumers use `Attrib` directly.
  */
 extern Humanoid *Me_THINK_C;
@@ -30,7 +30,7 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 
 s16 Think2contact(void)
 {
-    if ((ATTRIB_BITS & ATTR_WALL) && (Me_THINK_C->pad_hold == 0))
+    if ((Attrib & ATTR_WALL) && (Me_THINK_C->pad_hold == 0))
     {
         s32 hint;
 

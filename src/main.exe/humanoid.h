@@ -102,7 +102,6 @@
 #define ATTR_HIT 0x4000
 #define ATTR_PUSH 0x8000
 
-
 struct Humanoid;
 struct TraceLine;
 struct TracePoint;
@@ -121,14 +120,6 @@ extern short motMODE;
 #define SET_MOTION(id, mode)                                                  \
     motID = (id);                                                             \
     motMODE = (mode)
-
-/* Raw button-bit view for the MOTION.C sites whose retail loads are unsigned. */
-#define MOTION_PAD_BITS (*(unsigned short *)&dtPAD)
-
-/* Unsigned view of a humanoid's (or a model part's) attribute word, for the
- * sites whose retail loads are lhu. Same shape as ATTRIB_BITS, which does
- * this for the think-side `Attrib` global. */
-#define ATTR_BITS(obj) (*(unsigned short *)&(obj)->attribute)
 
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);

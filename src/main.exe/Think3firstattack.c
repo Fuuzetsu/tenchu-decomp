@@ -56,7 +56,7 @@ s16 Think3firstattack(void)
     }
     if ((Me_THINK_C->type & PAGE_MASK) == PAGE_CIVILIAN)
     {
-        ATTRIB_BITS |= ATTR_SEARCH;
+        Attrib |= ATTR_SEARCH;
     }
     idx = WPATK_CLASS(Me_THINK_C->wpatk);
     if (idx == WPATK_CLASS_RANGED)
@@ -82,7 +82,7 @@ s16 Think3firstattack(void)
     if (Distance < atkd2[idx])
     {
         result |= PADRleft;
-        ATTRIB_BITS |= ATTR_SEARCH;
+        Attrib |= ATTR_SEARCH;
     }
     return result;
 }

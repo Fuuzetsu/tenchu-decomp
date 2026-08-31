@@ -73,7 +73,7 @@ s16 Think3escape(void)
     {
         result |= PADLup;
     }
-    if (ATTRIB_BITS & ATTR_WALL)
+    if (Attrib & ATTR_WALL)
     {
         Humanoid *human;
         s32 degree2;

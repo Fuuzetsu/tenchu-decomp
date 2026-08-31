@@ -37,7 +37,6 @@ extern long Distance;
 extern short Degree;
 extern short Attrib;
 /* Raw flag-bit view for THINK.C sites whose retail loads are unsigned. */
-#define ATTRIB_BITS (*(unsigned short *)&Attrib)
 /* SearchTarget result/state code (-2..2), not a distance. The value
  * names are invented from the return contexts: */
 enum

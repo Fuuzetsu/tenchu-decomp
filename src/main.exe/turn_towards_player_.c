@@ -24,7 +24,7 @@
  * 0x2000/0x8000 "turn right/left") truncated to s16 on return.
  *
  * Attrib and Degree keep their recovered signed object types.  This function's
- * `lhu` flag reads use the shared `ATTRIB_BITS` view, while the raw-angle path
+ * `lhu` flag reads use the shared `(*(u16 *)&Attrib)` view, while the raw-angle path
  * below takes a localized unsigned view of Degree.
  *
  * Matching notes (all byte-proven):
@@ -106,9 +106,9 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     {
         result |= PADLup;
     }
-    if (!(ATTRIB_BITS & 3))
+    if (!((*(u16 *)&Attrib) & 3))
     {
-        if (ATTRIB_BITS & ATTR_WALL)
+        if ((*(u16 *)&Attrib) & ATTR_WALL)
         {
             s32 cached;
 

@@ -27,7 +27,7 @@
  * helper, HUMAN.C's own name for FUN_8001aba0, called TWICE) when
  * human->type == BALMA (0x85).
  *
- * `ATTR_BITS(human)` forces the `lhu` this TU's access uses against
+ * `human->attribute` forces the `lhu` this TU's access uses against
  * item.h's proven-signed `s16 attribute` (same per-TU load-width divergence
  * as HumanActionControl.c's identical cast on the same field/offset).
  *
@@ -61,7 +61,7 @@ short ControlAllHumanoid(void)
         do
         {
             human = HumanGroup[i];
-            if ((ATTR_BITS(human) & ATTR_SUSPEND) == 0)
+            if ((human->attribute & ATTR_SUSPEND) == 0)
             {
                 if (human->type == BALMA)
                 {

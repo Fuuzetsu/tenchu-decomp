@@ -171,7 +171,7 @@ void AttackControl(void)
         }
     }
 
-    if (MOTION_PAD_BITS & PADLdown)
+    if (dtPAD & PADLdown)
     {
         if (GetMotionID(dtM, MOT_ATTACK_BACK) < 0)
         {
@@ -201,15 +201,15 @@ void AttackControl(void)
     }
     else
     {
-        if (MOTION_PAD_BITS & PADLup)
+        if (dtPAD & PADLup)
         {
             motID = MOT_ATTACK;
         }
-        else if (MOTION_PAD_BITS & PADLright)
+        else if (dtPAD & PADLright)
         {
             motID = MOT_ATTACK_RIGHT1;
         }
-        else if (MOTION_PAD_BITS & PADLleft)
+        else if (dtPAD & PADLleft)
         {
             motID = MOT_ATTACK_LEFT1;
         }

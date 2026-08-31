@@ -113,7 +113,7 @@ void HumanActionControl(Humanoid *human)
     motion = Me_MOTION_C->motion;
     rotate = Me_MOTION_C->rotate;
     mid = ((MotionManagerU *)motion)->mid;
-    attr = ATTR_BITS(Me_MOTION_C);
+    attr = Me_MOTION_C->attribute;
     dtV = &Me_MOTION_C->vector;
     dtL = locate;
     dtR = rotate;
@@ -134,9 +134,9 @@ void HumanActionControl(Humanoid *human)
             SwimCheck();
         }
     }
-    if ((MOTION_PAD_BITS & PADL1) != 0)
+    if ((dtPAD & PADL1) != 0)
     {
-        dtPAD = MOTION_PAD_BITS & ~(PADLup | PADLright | PADLdown | PADLleft);
+        dtPAD = dtPAD & ~(PADLup | PADLright | PADLdown | PADLleft);
     }
     ActionFunc[Me_MOTION_C->status]();
     if (motMODE != -1)
