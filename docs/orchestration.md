@@ -583,7 +583,9 @@ ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
   holds, and PSX.SYM still arbitrates) but it is slow and it caught a
   claim that was simply wrong. Ask for each file's section appended as it
   is finished, and each candidate written as soon as it gates, rather
-  than a batch at the end.
+  than a batch at the end. Validated on its first use: round 23 was cut
+  off at five of ten targets and cost nothing, because the report already
+  covered exactly those five with their recipes and bisection tables.
 * **Cite the sibling that has the evidence when the target does not.**
   Round 22 dropped a staging local in ActMOVE, which has no PSX.SYM
   record at all, leaving the change looking like preference. It was
