@@ -98,63 +98,60 @@ s16 Think4abandon(void)
         }
         return (turn_towards_player_(0, 0) & ~0x5FFF);
     }
+    else if (EmergencyNotice != 0)
+    {
+        if (SR == SR_SEEN)
+        {
+            Attrib = cleared | PHASE_ALERT;
+        }
+        return (turn_towards_player_(0, 0) & ~0x5FFF);
+    }
     else
     {
-        if (EmergencyNotice != 0)
+        if (Me_THINK_C->think[3] == Think4abandon)
         {
-            if (SR == SR_SEEN)
+            result = (turn_towards_player_(0, 0) & ~0x5FFF);
+            if (result != 0)
             {
-                Attrib = cleared | PHASE_ALERT;
+                return result;
             }
-            return (turn_towards_player_(0, 0) & ~0x5FFF);
         }
-        else
+        if (SR == SR_SEEN)
         {
-            if (Me_THINK_C->think[3] == Think4abandon)
+            goto sr_seen;
+        }
+        if (SR >= 2)
+        {
+            if (SR == SR_GLIMPSE)
             {
-                result = (turn_towards_player_(0, 0) & ~0x5FFF);
-                if (result != 0)
-                {
-                    return result;
-                }
+                goto sr_glimpse;
             }
-            if (SR == SR_SEEN)
-            {
-                goto sr_seen;
-            }
-            if (SR >= 2)
-            {
-                if (SR == SR_GLIMPSE)
-                {
-                    goto sr_glimpse;
-                }
-                return 0;
-            }
-
-            if (SR >= SR_NONE)
-            {
-                return 0;
-            }
-            if (SR < SR_GONE)
-            {
-                return 0;
-            }
-            /* Target lost: stand down (0x80f sheathes and returns to
-             * idle — ActSTATE) with the give-up voice line. */
-            Attrib = cleared;
-            SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
-            Sound(Me_THINK_C, 0xE);
-            return 0;
-
-        sr_glimpse:
-            /* Only a glimpse: drop to suspicious and stand down. */
-            Attrib = cleared | PHASE_SUSPICIOUS;
-            SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
-            return 0;
-
-        sr_seen:
-            Attrib = cleared | PHASE_ALERT;
             return 0;
         }
+
+        if (SR >= SR_NONE)
+        {
+            return 0;
+        }
+        if (SR < SR_GONE)
+        {
+            return 0;
+        }
+        /* Target lost: stand down (0x80f sheathes and returns to
+         * idle — ActSTATE) with the give-up voice line. */
+        Attrib = cleared;
+        SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
+        Sound(Me_THINK_C, 0xE);
+        return 0;
+
+    sr_glimpse:
+        /* Only a glimpse: drop to suspicious and stand down. */
+        Attrib = cleared | PHASE_SUSPICIOUS;
+        SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
+        return 0;
+
+    sr_seen:
+        Attrib = cleared | PHASE_ALERT;
+        return 0;
     }
 }

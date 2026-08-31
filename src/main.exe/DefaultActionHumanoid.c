@@ -252,25 +252,22 @@ short DefaultActionHumanoid(Humanoid *human)
             goto ground_motion;
         }
     }
-    else
+    else if (vector->vy > 0 || map->level == LEVEL_NONE)
     {
-        if (vector->vy > 0 || map->level == LEVEL_NONE)
+        if ((map->attrib & MAP_DEATH) == 0)
         {
-            if ((map->attrib & MAP_DEATH) == 0)
-            {
-                human->attribute |= ATTR_NOFLOOR;
-            }
-            if (map->level != LEVEL_NONE)
-            {
-                locate->vy = map->level;
-            }
-            vector->vy = 0;
+            human->attribute |= ATTR_NOFLOOR;
         }
+        if (map->level != LEVEL_NONE)
+        {
+            locate->vy = map->level;
+        }
+        vector->vy = 0;
+    }
     ground_motion:
-        if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
-        {
-            SetNowMotion(human, MOT_DEAD, 1);
-        }
+    if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
+    {
+        SetNowMotion(human, MOT_DEAD, 1);
     }
 
     /* One lw covering vector/direct/angleL/angleH; the high half is the

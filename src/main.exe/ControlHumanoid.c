@@ -125,13 +125,10 @@ void ControlHumanoid(Humanoid *human)
         StateTransition(human);
         DrawShadow(human);
     }
-    else
+    else if (human->status == STAT_DEAD)
     {
-        if (human->status == STAT_DEAD)
-        {
-            register_character_death(human);
-            spread_blood_pool_(human);
-        }
+        register_character_death(human);
+        spread_blood_pool_(human);
     }
     HumanActionControl(human);
     if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)

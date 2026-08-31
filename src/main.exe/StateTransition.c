@@ -141,12 +141,9 @@ void StateTransition(Humanoid *human)
             {
                 pad = PADLright;
             }
-            else
+            else if (-Me_THINK_C->turn > direction)
             {
-                if (-Me_THINK_C->turn > direction)
-                {
-                    pad = PADLleft;
-                }
+                pad = PADLleft;
             }
             if (SquareRoot0(dx * dx + dz * dz) < 2000)
             {
@@ -373,12 +370,9 @@ void StateTransition(Humanoid *human)
             {
                 StrainRatio = 0;
             }
-            else
+            else if (StrainRatio > 0)
             {
-                if (StrainRatio > 0)
-                {
-                    StrainRatio = -0x8000;
-                }
+                StrainRatio = -0x8000;
             }
         }
         else

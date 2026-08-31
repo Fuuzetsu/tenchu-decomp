@@ -124,43 +124,40 @@ void ActSWIM(void)
             MoveHumanoid(human, speed, 0);
             break;
         }
+        else if (MOTION_PAD_BITS & PADLdown)
+        {
+            if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
+            {
+                SVECTOR *velocity;
+                VECTOR *locate;
+
+                velocity = dtV;
+                locate = dtL;
+                locate->vx -= velocity->vx;
+                locate->vz -= velocity->vz;
+                velocity->vz = 0;
+                velocity->vx = 0;
+                break;
+            }
+            if ((dtPAD & (PADLleft | PADLright)) != 0)
+            {
+                int current;
+                int result;
+                SVECTOR *rotation;
+
+                rotation = dtR;
+                current = rotation->vy;
+                if (MOTION_PAD_BITS & PADLright)
+                    result = current - Me_MOTION_C->turn;
+                else
+                    result = current + Me_MOTION_C->turn;
+                rotation->vy = result;
+            }
+            speed = -SWIM_SPEED;
+        }
         else
         {
-            if (MOTION_PAD_BITS & PADLdown)
-            {
-                if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
-                {
-                    SVECTOR *velocity;
-                    VECTOR *locate;
-
-                    velocity = dtV;
-                    locate = dtL;
-                    locate->vx -= velocity->vx;
-                    locate->vz -= velocity->vz;
-                    velocity->vz = 0;
-                    velocity->vx = 0;
-                    break;
-                }
-                if ((dtPAD & (PADLleft | PADLright)) != 0)
-                {
-                    int current;
-                    int result;
-                    SVECTOR *rotation;
-
-                    rotation = dtR;
-                    current = rotation->vy;
-                    if (MOTION_PAD_BITS & PADLright)
-                        result = current - Me_MOTION_C->turn;
-                    else
-                        result = current + Me_MOTION_C->turn;
-                    rotation->vy = result;
-                }
-                speed = -SWIM_SPEED;
-            }
-            else
-            {
-                goto set_swim_idle;
-            }
+            goto set_swim_idle;
         }
 
         MoveHumanoid(Me_MOTION_C, speed, 0);

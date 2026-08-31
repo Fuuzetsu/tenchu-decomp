@@ -280,38 +280,35 @@ void ActENGAGE(void)
                 return;
             }
         }
-        else
+        else if (dtPAD & PADRright)
         {
-            if (dtPAD & PADRright)
+            if (trig & PADRleft)
             {
-                if (trig & PADRleft)
-                {
-                    motID = MOT_ATTACK_CROUCH;
-                    motMODE = 1;
-                    return;
-                }
-                motID = MOT_SQUAT;
+                motID = MOT_ATTACK_CROUCH;
                 motMODE = 1;
                 return;
             }
-            else
+            motID = MOT_SQUAT;
+            motMODE = 1;
+            return;
+        }
+        else
+        {
+            if (trig & PADRleft)
             {
-                if (trig & PADRleft)
-                {
-                    AttackControl();
-                    return;
-                }
-                if (dtPAD & PADLup)
-                {
-                    motID = MOT_CHASE;
-                    motMODE = 1;
-                    return;
-                }
-                if ((dtPAD & PADLdown) == 0)
-                    return;
-                motID = MOT_CHASE_BACK;
-                motMODE = 1;
+                AttackControl();
+                return;
             }
+            if (dtPAD & PADLup)
+            {
+                motID = MOT_CHASE;
+                motMODE = 1;
+                return;
+            }
+            if ((dtPAD & PADLdown) == 0)
+                return;
+            motID = MOT_CHASE_BACK;
+            motMODE = 1;
         }
     }
 }
