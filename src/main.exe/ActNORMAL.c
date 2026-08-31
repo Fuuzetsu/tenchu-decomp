@@ -133,9 +133,10 @@ void ActNORMAL(void)
     {
         int command;
 
-        /* A hand goto ladder, provably not a peeled-zero switch: the
-         * bodies lay out 1,2,3,0,4 — command 0's (non-case) body sits
-         * BETWEEN case bodies, which no switch emission can produce. */
+        /* A hand goto ladder, not a switch: the bodies lay out 1,2,3,0,4
+         * and the tests run 0, 2, <3, 3, 4. Re-measured 2026-08-31 with
+         * the cases written in that physical order (the switch lever that
+         * converted six other ladders that day): 67 diff lines. */
         command = dtCMD;
         if (command == 0)
             goto command_0;
