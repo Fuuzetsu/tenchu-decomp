@@ -770,6 +770,16 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   is one above a round number, respell it; ~38 sites cleaned in one
   sweep (IsVisible, the Attack* degree windows, Think3chase bands).
 
+- **A `*(s32 *)&` on a field that is ALREADY a long is not a no-op.** It
+  reads the same bytes, but cc1 treats the punned MEM as a different memory
+  reference and schedules around it differently. DrawBleed reads a VECTOR's
+  three longs as one plain field and two punned ones; making all three plain
+  costs 30 lines, either single one 21/23, and hoisting a `VECTOR *pos` to
+  write `pos->vy` costs 30 too. This is why ~10 of these survived the sweep
+  that retired 65 — they are not leftovers, and the type alone does not tell
+  you which kind you have. Measure before removing, and record the cost at
+  the site so the next reader does not retry it.
+
 - **Rewrite ALL of a pun's consumers at once, or the test lies.** A shifted
   scratch temp with two readers looks load-bearing when you collapse one
   reader and leave the other: DrawBleed's `t = (u32)(u16)scr.vz << 16` with

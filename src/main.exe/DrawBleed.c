@@ -89,6 +89,10 @@ void DrawBleed(TEffectSlot *ef)
         }
     }
     x = param->pos.vx;
+    /* pos is a VECTOR, so these casts read the same longs the plain field
+     * spelling would -- but they are not free to cc1, which schedules the
+     * punned MEMs differently. Dropping both costs 30 lines, either one
+     * alone 21/23, and hoisting a `VECTOR *pos` costs 30 as well. */
     y = *(s32 *)&param->pos.vy;
     z = *(s32 *)&param->pos.vz;
     param->time--;
