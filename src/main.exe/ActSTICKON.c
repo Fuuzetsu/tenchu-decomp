@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "humanoid.h"
+#include "padcmd.h"
 #include "item.h"
 #include "sound.h"
 
@@ -127,17 +128,17 @@ void ActSTICKON(void)
             reflected = (s16)reflected_raw;
             if (reflected == 0)
             {
-                dtR->vy += 0x800;
+                dtR->vy += ANGLE_HALF;
             }
-            if (__builtin_abs(reflected) > 0x800)
+            if (__builtin_abs(reflected) > ANGLE_HALF)
             {
                 if (reflected > 0)
                 {
-                    reflected_raw = reflected - 0x1000;
+                    reflected_raw = reflected - ANGLE_FULL;
                 }
                 else
                 {
-                    reflected_raw = reflected + 0x1000;
+                    reflected_raw = reflected + ANGLE_FULL;
                 }
                 rv = reflected_raw;
             }
@@ -145,7 +146,7 @@ void ActSTICKON(void)
             dtR->vy += (t - dtR->vy) / -dtM->count;
             dtM->motion->rotate[0]->y = rv;
             rotation = dtM->motion->rotate[2];
-            if (rv & 0x400)
+            if (rv & ANGLE_QUADRANT)
             {
                 rotation->y = -rv;
             }
@@ -166,16 +167,16 @@ void ActSTICKON(void)
         {
             switch (dtCMD)
             {
-            case 0x11:
+            case CMD_ROLL_FORWARD:
                 SET_MOTION(MOT_SQUAT_ROLL_F, 1);
                 break;
-            case 0x12:
+            case CMD_ROLL_BACKWARD:
                 SET_MOTION(MOT_SQUAT_ROLL_B, 1);
                 break;
-            case 0x13:
+            case CMD_ROLL_LEFT:
                 SET_MOTION(MOT_SQUAT_ROLL_L, 1);
                 break;
-            case 0x14:
+            case CMD_ROLL_RIGHT:
                 SET_MOTION(MOT_SQUAT_ROLL_R, 1);
                 break;
             }
@@ -315,16 +316,16 @@ void ActSTICKON(void)
         {
             switch (dtCMD)
             {
-            case 0x11:
+            case CMD_ROLL_FORWARD:
                 SET_MOTION(MOT_SQUAT_ROLL_F, 1);
                 break;
-            case 0x12:
+            case CMD_ROLL_BACKWARD:
                 SET_MOTION(MOT_SQUAT_ROLL_B, 1);
                 break;
-            case 0x13:
+            case CMD_ROLL_LEFT:
                 SET_MOTION(MOT_SQUAT_ROLL_L, 1);
                 break;
-            case 0x14:
+            case CMD_ROLL_RIGHT:
                 SET_MOTION(MOT_SQUAT_ROLL_R, 1);
                 break;
             }
@@ -405,7 +406,7 @@ void ActSTICKON(void)
         }
 
         y = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
-        y &= 0xFFF;
+        y &= ANGLE_MASK;
         dtL->vx += dtV->vx;
         dtL->vz += dtV->vz;
         map = StickonCheck();
@@ -458,8 +459,8 @@ void ActSTICKON(void)
              * forming the angle directly is 10 canonical lines off. */
             base_angle_value =
                 (s16)(model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy);
-            angle = (pd ? base_angle_value - 0x400
-                        : base_angle_value + 0x400) &
+            angle = (pd ? base_angle_value - ANGLE_QUADRANT
+                        : base_angle_value + ANGLE_QUADRANT) &
                     0xF00;
         }
         item.user = Me_MOTION_C;
@@ -476,11 +477,11 @@ void ActSTICKON(void)
 
         if (pd != 0)
         {
-            angle -= 0x200;
+            angle -= ANGLE_HALF_QUADRANT;
         }
         else
         {
-            angle += 0x200;
+            angle += ANGLE_HALF_QUADRANT;
         }
 
         if (item.type == ITEM_MAKIBISHI)

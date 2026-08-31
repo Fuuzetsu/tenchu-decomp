@@ -151,7 +151,7 @@ void ActJUMP(void)
                 {
                     return;
                 }
-                dtR->vy += 0x800;
+                dtR->vy += ANGLE_HALF;
                 (*Me_MOTION_C->model->object)->rotate.vy = 0;
             }
             dtM->count >>= 1;

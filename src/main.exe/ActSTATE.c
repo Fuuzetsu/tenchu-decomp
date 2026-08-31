@@ -296,7 +296,7 @@ void ActSTATE(void)
             (Me_MOTION_C->pad.trig & PADRdown) != 0)
         {
             SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
-            dtR->vy += 0x800;
+            dtR->vy += ANGLE_HALF;
         }
         /* fall through */
     case MOT_STATE_LAND_FLIP:

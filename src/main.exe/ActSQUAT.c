@@ -95,7 +95,7 @@ void ActSQUAT(void)
         if (Me_MOTION_C->pad.trig & PADRdown)
         {
             SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
-            dtR->vy += 0x800;
+            dtR->vy += ANGLE_HALF;
         }
         break;
 
@@ -111,7 +111,7 @@ void ActSQUAT(void)
         else if (Me_MOTION_C->pad.trig & PADRdown)
         {
             SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
-            dtR->vy += 0x800;
+            dtR->vy += ANGLE_HALF;
         }
         break;
 

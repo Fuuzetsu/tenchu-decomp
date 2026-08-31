@@ -416,7 +416,7 @@ resolve_hit:
                 else
                 {
                     SET_MOTION(MOT_DAMAGE_LAUNCH_FORE, 0);
-                    dtR->vy = (0x800 + did) + dtR->vy;
+                    dtR->vy = (ANGLE_HALF + did) + dtR->vy;
                     MoveHumanoid(Me_MOTION_C, DAMAGE_LAUNCH_SPEED, 0);
                 }
             }

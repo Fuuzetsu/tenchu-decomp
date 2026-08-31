@@ -131,15 +131,15 @@ short SoundEx(VECTOR *locate, short seid)
         {
             angle -= CamState.DirectionRY;
         }
-        if (angle > 0x800)
+        if (angle > ANGLE_HALF)
         {
-            angle = 0x1000 - angle;
+            angle = ANGLE_FULL - angle;
         }
         else
         {
             if (angle < -0x7ff)
             {
-                angle += 0x1000;
+                angle += ANGLE_FULL;
             }
         }
     }

@@ -100,13 +100,13 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
     raw_degree = ratan2(-vect.vx, -vect.vz) - roty;
     signed_degree = raw_degree;
     result_degree = raw_degree;
-    if (signed_degree > 0x800)
+    if (signed_degree > ANGLE_HALF)
     {
-        result_degree = 0x1000 - raw_degree;
+        result_degree = ANGLE_FULL - raw_degree;
     }
-    else if (signed_degree <= -0x800)
+    else if (signed_degree <= -ANGLE_HALF)
     {
-        result_degree = raw_degree + 0x1000;
+        result_degree = raw_degree + ANGLE_FULL;
     }
     *degree = result_degree;
 
