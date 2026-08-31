@@ -770,6 +770,27 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   is one above a round number, respell it; ~38 sites cleaned in one
   sweep (IsVisible, the Attack* degree windows, Think3chase bands).
 
+- **Rewrite ALL of a pun's consumers at once, or the test lies.** A shifted
+  scratch temp with two readers looks load-bearing when you collapse one
+  reader and leave the other: DrawBleed's `t = (u32)(u16)scr.vz << 16` with
+  `otz = t >> 16` and `pri = t >> 18` refused every one-consumer rewrite
+  (12 lines off) and then went byte-identical the moment BOTH became
+  `otz = scr.vz` / `pri = otz >> 2`. Half a collapse leaves the sll feeding
+  one consumer, which is a different graph from either endpoint. Count the
+  temp's readers first, rewrite them together, and only then believe a DIFF.
+
+- **`x << 16` compared against zero is `(s16)x` compared against zero.**
+  cc1 narrows to a signed short by shifting into the high half; the human
+  spelling is the cast, and it is byte-identical at every site tested
+  (`0 < (count << 16)`, `(s32)((u32)count << 16) > 0`,
+  `0 <= (SsUtKeyOnV(...) << 16)`). Likewise an unsigned-wrapped range test
+  on a motion id — `(u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1` — is two
+  named comparisons, `motID != MOT_DAMAGE_LAUNCH_BACK && motID !=
+  MOT_DAMAGE_LAUNCH_FORE`, and cc1 rebuilds the range check itself.
+  Not every cast pyramid folds: a `(u32)` guarding a value that is then
+  NEGATED stays (PlaySE), as does a shifted temp that must survive being
+  reset to 0 inside a loop (SetupTexScroll, 62 lines off).
+
 - **A run of same-value stores in DESCENDING field order is a chained
   assignment.** `a = b = c = v` associates right-to-left, so cc1 stores the
   LAST target first. Whenever consecutive lines write one value to sibling

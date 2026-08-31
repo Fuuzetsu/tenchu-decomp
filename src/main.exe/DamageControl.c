@@ -432,7 +432,7 @@ resolve_hit:
                 if (hp <= 0)
                 {
                     Me_MOTION_C->life = 0;
-                    if ((u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1)
+                    if (motID != MOT_DAMAGE_LAUNCH_BACK && motID != MOT_DAMAGE_LAUNCH_FORE)
                     {
                         SET_MOTION(MOT_DEAD, 1);
                     }
@@ -762,7 +762,7 @@ resolve_hit:
     {
         ReqItemDefault(Me_MOTION_C, ITEM_KAWARIMI);
         Me_MOTION_C->life = Me_MOTION_C->lifemax;
-        if ((u32)(u16)motID - MOT_DAMAGE_LAUNCH_BACK > 1)
+        if (motID != MOT_DAMAGE_LAUNCH_BACK && motID != MOT_DAMAGE_LAUNCH_FORE)
         {
             SET_MOTION(MOT_DAMAGE_FRONT_HEAVY, 1);
         }

@@ -128,7 +128,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
         {
             objp = mad->object[i];
             super = (ModelType *)mad;
-            if (prntp[i].np >= 0 && (j = 0, 0 < (count << 16)))
+            if (prntp[i].np >= 0 && (j = 0, (s16)count > 0))
             {
                 parent = prntp[i].np;
                 limit = mad->n;

@@ -70,7 +70,6 @@ void DrawBleed(TEffectSlot *ef)
     SVECTOR scr;
     SVECTOR *scrp;
     long x, y, z;
-    s32 t;
     s32 otz;
     s16 pri;
     s16 sz;
@@ -114,8 +113,7 @@ void DrawBleed(TEffectSlot *ef)
                                  (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
                                  (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
 
-    t = (s32)((u32)(u16)scr.vz << 16);
-    otz = t >> 16;
+    otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
         plyBleed.x0 = scr.vx;
@@ -130,13 +128,13 @@ void DrawBleed(TEffectSlot *ef)
         plyBleed.r0 = param->r;
         plyBleed.g0 = param->g;
         plyBleed.b0 = param->b;
-        pri = t >> 18;
+        pri = otz >> 2;
         if (pri >= 0)
         {
             pri = DEPTH_LIMIT - 1;
-            if ((t >> 18) < DEPTH_LIMIT)
+            if ((otz >> 2) < DEPTH_LIMIT)
             {
-                pri = t >> 18;
+                pri = otz >> 2;
             }
         }
         else

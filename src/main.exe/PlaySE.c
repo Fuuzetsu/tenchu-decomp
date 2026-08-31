@@ -71,12 +71,11 @@ short PlaySE(SoundEffect *se, short pt, long dv)
         else if (v < 0)
         {
             v = (v < 0) ? -v : v;
-            d = (s32)((u32)(v & 0x3ff) >> 4);
+            d = (v & 0x3ff) >> 4;
         }
         voice = (voice + 1) % 24;
-        if (0 <= (SsUtKeyOnV(voice, se->VABid, pt >> 4, pt & 0xf, 0x24, 0, voll,
-                             voll)
-                  << 16))
+        if ((s16)SsUtKeyOnV(voice, se->VABid, pt >> 4, pt & 0xf, 0x24, 0, voll,
+                            voll) >= 0)
         {
             SsUtAutoPan(voice, 0x40, (s16)(0x40 - d), 1);
             return voice;

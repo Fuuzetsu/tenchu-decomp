@@ -113,7 +113,7 @@ void ProcItemDokudango(TItem *item)
 
             count = param->count - 1;
             param->count = count;
-            if ((s32)((u32)count << 16) > 0)
+            if ((s16)count > 0)
             {
                 return;
             }
