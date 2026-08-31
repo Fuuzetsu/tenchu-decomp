@@ -1961,6 +1961,18 @@ irreducible nest: DrawConstruction's 3.
   reports genuine divergences — UpdateTexScroll's demo parameter is a
   `TexScroll *` because retail turned it into an effect-slot proc — so
   say so at the site rather than "fixing" it.
+- **The EffectSlot pool scan's `idx`/`slot` lockstep is byte-required.**
+  `SetBlood`, `SetImpact`, `SetSmokeS` and `SetupTexScroll` all carry the
+  same five locals (`idx`, `base`, `slot`, `count`, `ef`) maintaining an
+  index and a pointer in step, which looks like the most obvious
+  redundancy left in the tree — PSX.SYM records none of the five for any
+  of them. It is not redundant: keeping only the index and deriving
+  `base + idx` each iteration costs 35 lines, keeping only the pointer
+  and deriving `idx = slot - base` costs 31 (measured on SetSmokeS).
+  Retail really does keep both live. `base` is separately measured as
+  load-bearing in DrawGore (11 lines). The demo's shorter local list is
+  a version difference — its SetBlood took four parameters and scanned
+  differently — not a target.
 - **For a pure RENAME the byte gate is not a check.** Renaming a local
   cannot change codegen, so `ASM-IDENTICAL` says only that you did not
   collide with another name or create a semantic accident. It is silent
