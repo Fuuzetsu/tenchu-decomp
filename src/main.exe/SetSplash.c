@@ -78,7 +78,7 @@ found:
     fp = &ef->param.splash;
     fp->py = pos->vy;
     tmp = pos->vz;
-    fp->mode = 0;
+    fp->mode = SPLASH_MODE_SPAWN;
     fp->sx = sx;
     fp->sy = sy;
     fp->speed = speed;

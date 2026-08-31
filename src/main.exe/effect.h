@@ -87,6 +87,16 @@ struct TexScroll /* size 24 */
     RECT image; /* +0x10 */
 };
 
+/* BloodType.mode runs the same four phases as GoreType.mode: airborne
+ * until it lands, then spread, linger, and fade out. */
+enum
+{
+    BLOOD_MODE_AIRBORNE = 0,
+    BLOOD_MODE_SPREAD = 1,
+    BLOOD_MODE_LINGER = 2,
+    BLOOD_MODE_FADE = 3
+};
+
 struct BloodType /* size 36 */
 {
     struct AreaNodeType *hint; /* +0x0 */
@@ -115,6 +125,15 @@ struct BleedType /* size 32 */
     u8 b;        /* +0x1a */
     u8 time;     /* +0x1b */
     u8 mode;     /* +0x1c */
+};
+
+/* SplashType.mode: the first frame spawns the droplet burst, then the
+ * column rises over `speed` frames and collapses again over another. */
+enum
+{
+    SPLASH_MODE_SPAWN = 0,
+    SPLASH_MODE_RISE = 1,
+    SPLASH_MODE_FALL = 2
 };
 
 struct SplashType /* size 20 */
@@ -152,6 +171,17 @@ struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
     long scale;  /* +0x1c */
     u8 time;     /* +0x20 */
     u8 mode;     /* +0x21 */
+};
+
+/* GoreType.mode: SetGore launches a gob airborne, DrawGore walks it the
+ * rest of the way -- on landing it spreads into a pool, sits for a while,
+ * then fades its brightness to nothing and releases the slot. */
+enum
+{
+    GORE_MODE_AIRBORNE = 0,
+    GORE_MODE_SPREAD = 1,
+    GORE_MODE_LINGER = 2,
+    GORE_MODE_FADE = 3
 };
 
 struct GoreType /* size 32 */

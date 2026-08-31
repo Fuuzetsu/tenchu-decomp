@@ -110,7 +110,7 @@ void DrawBlood(TEffectSlot *ef)
 
     switch (blood->mode)
     {
-    case 3:
+    case BLOOD_MODE_FADE:
     {
         s16 screen_scale;
         s32 scale;
@@ -162,7 +162,7 @@ void DrawBlood(TEffectSlot *ef)
         return;
     }
 
-    case 2:
+    case BLOOD_MODE_LINGER:
     {
         u16 oldtime;
 
@@ -176,7 +176,7 @@ void DrawBlood(TEffectSlot *ef)
         break;
     }
 
-    case 1:
+    case BLOOD_MODE_SPREAD:
     {
         u16 oldtime;
 
@@ -191,7 +191,7 @@ void DrawBlood(TEffectSlot *ef)
         break;
     }
 
-    default:
+    default: /* BLOOD_MODE_AIRBORNE */
     {
         long x;
         long y;
@@ -256,7 +256,7 @@ void DrawBlood(TEffectSlot *ef)
                 /* random scale in [1/3, 1/2) of 4.12 one */
                 blood->scale = scale_random % 0x2ab + 0x555;
             }
-            blood->mode = 1;
+            blood->mode = BLOOD_MODE_SPREAD;
             blood->time = rand() % 10;
             SoundEx((VECTOR *)&blood->px, SE_BLOOD_SPLATTER);
         }

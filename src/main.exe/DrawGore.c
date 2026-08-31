@@ -81,7 +81,7 @@ void DrawGore(TEffectSlot *ef)
     spr2 = &sprBloodStay[param->sprite];
     switch (param->mode)
     {
-    case 3:
+    case GORE_MODE_FADE:
     {
         s32 brightness;
         s32 size;
@@ -133,7 +133,7 @@ void DrawGore(TEffectSlot *ef)
         return;
     }
 
-    case 2:
+    case GORE_MODE_LINGER:
     {
         u16 count;
 
@@ -147,7 +147,7 @@ void DrawGore(TEffectSlot *ef)
         break;
     }
 
-    case 1:
+    case GORE_MODE_SPREAD:
     {
         u16 count;
 
@@ -162,7 +162,7 @@ void DrawGore(TEffectSlot *ef)
         break;
     }
 
-    default:
+    default: /* GORE_MODE_AIRBORNE */
     {
         s32 x;
         s32 y;
@@ -234,7 +234,7 @@ void DrawGore(TEffectSlot *ef)
                 /* random scale in [1/3, 1/2) of 4.12 one */
                 param->scale = scale_random % 0x2ab + 0x555;
             }
-            param->mode = 1;
+            param->mode = GORE_MODE_SPREAD;
             param->time = rand() % 10;
             SoundEx((VECTOR *)&param->px, SE_BLOOD_SPLATTER);
         }

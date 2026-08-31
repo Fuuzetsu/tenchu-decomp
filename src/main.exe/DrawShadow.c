@@ -161,7 +161,7 @@ void DrawShadow(Humanoid *human)
             param->sx = 0x2000;
             param->sy = 0x2000;
             param->speed = 4;
-            param->mode = 0;
+            param->mode = SPLASH_MODE_SPAWN;
             param->pz = z;
             effect->proc = (void (*)())DrawSplash;
         }

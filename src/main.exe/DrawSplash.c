@@ -95,7 +95,7 @@ void DrawSplash(TEffectSlot *ef)
 
             switch (param->mode)
             {
-            case 0:
+            case SPLASH_MODE_SPAWN:
                 param->count = 0;
                 param->mode++;
                 {
@@ -105,7 +105,7 @@ void DrawSplash(TEffectSlot *ef)
                     SetBleedsDir(&pos, &direction, 100, 6, 30, RGB24(144, 152, 160));
                 }
                 /* fall through */
-            case 1:
+            case SPLASH_MODE_RISE:
                 spr->scaley = (spr->scaley * param->count) / param->speed;
                 param->count++;
                 if (param->count >= param->speed)
@@ -114,7 +114,7 @@ void DrawSplash(TEffectSlot *ef)
                     param->mode++;
                 }
                 break;
-            case 2:
+            case SPLASH_MODE_FALL:
                 spr->scaley = (spr->scaley * (param->speed - param->count)) /
                               param->speed;
                 spr->scalex = spr->scalex / 2;
