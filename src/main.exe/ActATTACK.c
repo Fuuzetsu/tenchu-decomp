@@ -827,23 +827,33 @@ dispatch:
             {
             case FIST:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0], hand_kind);
-                /* The value-typed cast is load-bearing, and gcc 2.8.1's own
-                 * jump.c proves it is the ONLY C-level escape: find_cross_jump
-                 * compares CALL_INSN_FUNCTION_USAGE (the argument-register use
-                 * list) plus the pattern code. This call has two potential
-                 * merge partners — default's 1-arg call (the fallthrough
-                 * before the join label; measured: plain 1-arg merges into it)
-                 * and case 3's 2-arg call (measured: a hand_kind 2-arg
-                 * spelling merges with that one instead). No argument shape
-                 * differs from both at once; only the pattern code does, and
-                 * value-typing this call (call_value vs call) is how. Retail
-                 * Still true HERE, at 32 lines -- but ActSTATE carried the same
-                 * cast on SetCameraMode citing this note, and once its four nested
-                 * humanoid aliases went the plain call matched. The mechanism is
-                 * real; whether a site needs it depends on what else is in the
-                 * function, so re-test rather than inheriting the verdict.
-                 * emits a plain jal — an earlier note claiming jalr was
-                 * wrong. */
+                /* NOT something anyone wrote. Both this cast and the
+                 * bogus second argument on the sibling calls exist for one
+                 * reason: to stop gcc 2.8.1's find_cross_jump merging these
+                 * arms' identical `jal DeleteConflict; j <join>` tails.
+                 * find_cross_jump compares CALL_INSN_FUNCTION_USAGE plus the
+                 * pattern code, so a spurious extra argument (which emits
+                 * NOTHING here -- the target sets only $a0) or value-typing
+                 * the call (call_value vs call) makes two arms differ.
+                 *
+                 * What is actually wrong is upstream, and the file proves it:
+                 * the SAME switch appears in
+                 * DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES above with plain
+                 * one-argument calls, and there the merge is CORRECT -- its
+                 * five source calls emit three at each of its three sites
+                 * (offsets 32/52/56; the ONININ_HAND_1 and BEAST_HAND_0 tails
+                 * merge away). This switch's five all survive in retail
+                 * (32/44/8/52/56), so the original had something here that
+                 * blocked the merge, and it was not a cast.
+                 *
+                 * Measured while looking for it: plain one-argument calls
+                 * throughout cost 35 lines (two arms merge); restoring the
+                 * real prototype as well changes nothing further; moving the
+                 * `dtM->mask` store from after the switch into each arm costs
+                 * 54. The answer is a structural difference in this block we
+                 * have not found -- exactly the situation ActSTATE was in
+                 * until its nested humanoid aliases came out and its own
+                 * SetCameraMode cast stopped being needed. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                 break;
             case JAW:
