@@ -73,28 +73,74 @@ def shape(stars: int, dims: list) -> str:
 
 
 LOCALS = ROOT / "reference" / "psxsym-locals.tsv"
-# The declaration block of a matched function, up to its first statement.
-DECL_LINE = re.compile(r"^\s{4}([A-Za-z_][\w \t*]*?)\s*\**(\w+)\s*(\[[^;]*\])?;\s*$")
+# A declaration line: a type, then a separator that is whitespace or stars,
+# then the name. The separator is what keeps `break;` from parsing as a
+# declaration of `reak`.
+DECL_LINE = re.compile(
+    r"^\s+([A-Za-z_][\w \t]*[\w])[ \t]*(?:\*+[ \t]*|[ \t]+)"
+    r"(\w+)[ \t]*(\[[^;]*\])?;[ \t]*$")
+
+
+KEYWORD = {"return", "goto", "if", "else", "break", "continue", "do",
+           "while", "for", "switch", "case", "default"}
+
+
+def strip_comments(txt: str) -> str:
+    """Blank out comment bodies, keeping line structure.
+
+    Braces inside prose would otherwise unbalance the body scan -- these
+    files carry long comment blocks, and one stray `{` in one sends the
+    scan off the end of the function.
+    """
+    out, i, n = [], 0, len(txt)
+    while i < n:
+        if txt.startswith("/*", i):
+            end = txt.find("*/", i + 2)
+            end = n if end < 0 else end + 2
+            out.append("".join(c if c == "\n" else " " for c in txt[i:end]))
+            i = end
+        elif txt.startswith("//", i):
+            end = txt.find("\n", i)
+            end = n if end < 0 else end
+            out.append(" " * (end - i))
+            i = end
+        else:
+            out.append(txt[i])
+            i += 1
+    return "".join(out)
 
 
 def our_locals(path: pathlib.Path, func: str):
-    """The local names a function declares, in order."""
-    txt = path.read_text(errors="replace")
+    """Every local the function declares, nested block scopes included.
+
+    Counting only the top-level block would report a nested declaration as
+    one the original had and we dropped, which is backwards: declaring
+    inside the block that uses it is the shape we are trying to recover.
+    """
+    txt = strip_comments(path.read_text(errors="replace"))
     m = re.search(rf"^[\w \t*]*\b{re.escape(func)}\s*\([^;{{]*\)\s*\n?\{{",
                   txt, re.M)
     if not m:
         return None
-    out = []
+    out, depth, type_depth, in_type = [], 1, 0, False
     for line in txt[m.end():].splitlines():
         s = line.strip()
         if not s or s.startswith(("/*", "*", "//")):
             continue
+        # A function-local type definition is not a declaration of a local.
+        if not in_type and re.match(r"(enum|struct|union)\b[^;]*$", s):
+            in_type, type_depth = True, 0
+        if in_type:
+            type_depth += line.count("{") - line.count("}")
+            if type_depth <= 0 and s.endswith(";"):
+                in_type = False
+            continue
         d = DECL_LINE.match(line)
-        if not d:
-            break  # first statement ends the declaration block
-        if d.group(1).split()[0] in ("return", "goto", "if", "else"):
-            break
-        out.append(d.group(2))
+        if d and d.group(1).split()[0] not in KEYWORD:
+            out.append(d.group(2))
+        depth += line.count("{") - line.count("}")
+        if depth <= 0:
+            break  # end of the function body
     return out
 
 

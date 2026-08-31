@@ -93,6 +93,11 @@ void DrawShadow(Humanoid *human)
     position->vy = human->map.level;
     if (human->map.attrib & MAP_WOOD)
     {
+        /* One word covers BOTH vx and vy (SVECTOR is four shorts), so this
+         * is "moving horizontally or falling", not an x-only test: vy is
+         * the gravity accumulator DefaultActionHumanoid adds to and
+         * ControlHumanoid applies. The target loads it that way
+         * (`lw $2,64($16)`); `human->vector.vx != 0` emits `lh` instead. */
         if ((*(s32 *)&human->vector != 0 || human->motion->mid == MOT_STATE_LAND ||
              human->motion->mid == MOT_ATTACK_DIVE_LAND) &&
             human->map.height == 0 && (GameClock & 1) != 0)
