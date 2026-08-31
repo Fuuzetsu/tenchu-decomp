@@ -30,7 +30,9 @@
  * Matching constraints:
  *  - All four callbacks can use ordinary array indexing. For Think2Func and
  *    Think3Func, select the nibble before cc1's implicit pointer scaling:
- *    `(((s32)type << 16) >> 20) & 0xf` and the corresponding `>> 24`.
+ *    the staged `packed` value's `>> 20` / `>> 24` nibble reads (naming the
+ *    stage is required: reading the nibbles straight off `type` costs 43
+ *    lines, and the stage must be assigned AFTER the think[0] store).
  *    These compile identically to the older masked byte-offset casts.
  *  - Keep `table2` and `table3` as pointer locals assigned before their
  *    lookups. They make cc1 materialize each base ahead of the preceding
@@ -44,17 +46,20 @@
 void SetupThinkFunction(Humanoid *human, TThinkType type)
 {
     s32 check;
+    s32 packed;
     ThinkFunc *table2;
     ThinkFunc *table3;
 
     human->think[0] = Think1Func[type & 0xF];
     table2 = Think2Func;
-    /* A shared (s16)type narrowing merges these per-site extensions. */
-    human->think[1] = table2[(((s32)type << 16) >> 20) & 0xF];
+    /* One shared narrowing of the packed nibble field; each level then
+     * reads its nibble out of the staged value (bits 4-7, 8-11, 12-15). */
+    packed = (s32)type << 16;
+    human->think[1] = table2[(packed >> 20) & 0xF];
     table3 = Think3Func;
-    human->think[2] = table3[(((s32)type << 16) >> 24) & 0xF];
-    human->think[3] = Think4Func[(u32)((s32)type << 16) >> 28];
-    check = ((s32)type << 16) >> 16;
+    human->think[2] = table3[(packed >> 24) & 0xF];
+    human->think[3] = Think4Func[(u32)packed >> 28];
+    check = packed >> 16;
     if (check == THINK_MIX_NONE || check == THINK_MIX_PLAYER ||
         check == THINK_MIX_PAD2)
     {
