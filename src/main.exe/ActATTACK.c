@@ -89,18 +89,18 @@
     kind = Me_MOTION_C->wpatk;                                                \
     switch (kind)                                                             \
     {                                                                         \
-    case WEP_ONININ:                                                          \
+    case FIST:                                                          \
         DeleteConflict(                                                       \
             Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);            \
         DeleteConflict(                                                       \
             Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);            \
         cleanup_guard = 3;                                                    \
         break;                                                                \
-    case WEP_BEAST:                                                           \
+    case JAW:                                                           \
         DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);  \
         cleanup_guard = 3;                                                    \
         break;                                                                \
-    case WEP_NONE:                                                            \
+    case NO_WEAPON:                                                            \
         cleanup_guard = 3;                                                    \
         break;                                                                \
     default:                                                                  \
@@ -409,16 +409,16 @@ dispatch:
         OrnamentType **weapon;
 
         t = Me_MOTION_C->wpatk;
-        if (t == WEP_TWIN_KATANA)
+        if (t == KATANAL)
         {
             weapon = Me_MOTION_C->weapon;
             SWAP_TWIN_BLADE(52, 1);
         }
-        else if (t == WEP_MEIOU)
+        else if (t == SEVEN)
         {
             launch_lightning_bolt_(13);
         }
-        else if (t == WEP_KATAOKA)
+        else if (t == KATAYUMI)
         {
             AttackBowControl(1);
         }
@@ -443,11 +443,11 @@ dispatch:
         break;
     }
     case MOT_ATTACK_SLASH3:
-        if (Me_MOTION_C->wpatk == WEP_MEIOU)
+        if (Me_MOTION_C->wpatk == SEVEN)
         {
             launch_lightning_bolt_(13);
         }
-        else if (Me_MOTION_C->wpatk == WEP_KATAOKA)
+        else if (Me_MOTION_C->wpatk == KATAYUMI)
         {
             AttackBowControl(1);
         }
@@ -471,7 +471,7 @@ dispatch:
         }
         break;
     case MOT_ATTACK_SLASH4:
-        if (Me_MOTION_C->wpatk == WEP_MEIOU)
+        if (Me_MOTION_C->wpatk == SEVEN)
         {
             launch_lightning_bolt_(13);
         }
@@ -480,7 +480,7 @@ dispatch:
     {
         OrnamentType **weapon;
 
-        if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
+        if (Me_MOTION_C->wpatk == KATANAL)
         {
             weapon = Me_MOTION_C->weapon;
             SWAP_TWIN_BLADE(52, 16);
@@ -522,7 +522,7 @@ dispatch:
     {
         OrnamentType **weapon;
 
-        if (Me_MOTION_C->wpatk == WEP_TWIN_KATANA)
+        if (Me_MOTION_C->wpatk == KATANAL)
         {
             weapon = Me_MOTION_C->weapon;
             SWAP_TWIN_BLADE(43, 13);
@@ -795,11 +795,11 @@ dispatch:
         hand_kind = Me_MOTION_C->wpatk;
         switch (hand_kind)
         {
-        case WEP_BEAST:
+        case JAW:
             hand[WEAPON_HAND_0] = object[MODEL_PART_BEAST_HAND_0];
             hand[WEAPON_HAND_1] = object[MODEL_PART_BEAST_HAND_1];
             break;
-        case WEP_ONININ:
+        case FIST:
             hand[WEAPON_HAND_0] = object[MODEL_PART_ONININ_HAND_0];
             hand[WEAPON_HAND_1] = object[MODEL_PART_ONININ_HAND_1];
             break;
@@ -825,7 +825,7 @@ dispatch:
             kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
-            case WEP_ONININ:
+            case FIST:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0], hand_kind);
                 /* The value-typed cast is load-bearing, and gcc 2.8.1's own
                  * jump.c proves it is the ONLY C-level escape: find_cross_jump
@@ -841,10 +841,10 @@ dispatch:
                  * wrong. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                 break;
-            case WEP_BEAST:
+            case JAW:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0], hand_kind);
                 break;
-            case WEP_NONE:
+            case NO_WEAPON:
                 break;
             default:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], hand_kind);

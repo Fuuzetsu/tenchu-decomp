@@ -59,14 +59,14 @@ void AttackCancelControl(s16 mode)
         wk = Me_MOTION_C->wpatk;
         switch (wk)
         {
-        case WEP_ONININ:
+        case FIST:
             DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
             model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
             break;
-        case WEP_BEAST:
+        case JAW:
             model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
             break;
-        case WEP_NONE:
+        case NO_WEAPON:
             goto no_conflict;
         default:
             DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);

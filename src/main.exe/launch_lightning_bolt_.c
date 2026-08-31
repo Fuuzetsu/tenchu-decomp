@@ -17,7 +17,7 @@
  * matrix) rather than a computed offset.
  *
  * This descriptive retail name is intentional (launches Mei-Oh's lightning
- * bolt: every caller is ActATTACK's WEP_MEIOU arm). The historical
+ * bolt: every caller is ActATTACK's SEVEN arm). The historical
  * `AttackFire` assignment was a call-fingerprint collision: this callback has one short
  * parameter and launches a lightning bolt, while the demo `AttackFire` has two
  * shorts and launches fire over a frame range. That original name now belongs

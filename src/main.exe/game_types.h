@@ -316,9 +316,9 @@ struct ModelType
 }; /* 0x74 */
 
 /* A humanoid's articulated model. The skeleton's sub-object indices
- * the code pins: 0 is the waist/root, 2 the head (WEP_BEAST's bite
+ * the code pins: 0 is the waist/root, 2 the head (JAW's bite
  * hitbox; simple models' attach fallback), 8/0xb the barehanded
- * WEP_ONININ fighter's striking-limb pair, 0xd/0xe the left/right
+ * FIST fighter's striking-limb pair, 0xd/0xe the left/right
  * hands (arrows spawn at 0xd; the grapple hook fires and the medicine
  * bottle attaches at 0xe; armed attacks put hitboxes on both). Ninja
  * models carry 15 parts (HenshinModelSnapshot); NPC models fewer
@@ -897,20 +897,18 @@ struct WeaponModelType
  * SetupWeapon). The high nibble is the RANGE CLASS the think layer
  * extracts with `wpatk >> 4` to pick the Attack* controller (0 short /
  * 1 general / 2 long / 3 indirect-ranged: every *_YUMI archer is 0x32).
- * Named here are only the kinds game code compares against, read off
- * the retail HumanData roster (which carries each wielder's name):
- * WEP_NONE — civilians and Princess Kiku; WEP_ONININ — the great-ninja
- * twins (two blade slots, model objects 8/0xb); WEP_BEAST — rat/cat/dog
- * (the jaw conflict, model object 2); WEP_MEIOU — the final boss;
- * WEP_TWIN_KATANA — the two-sword bosses HANBE and TUZI, whose Act
- * handlers swap weapon[0] with the [2]/[3] sheath slots mid-combo. */
-#define WEP_NONE 0
-#define WEP_ONININ 2
-#define WEP_BEAST 3
-#define WEP_KATAOKA 0x35 /* the boss Kataoka's matchlock gun (roster
-                          * wepid; range class 3 like the archers) */
-#define WEP_MEIOU 0x29
-#define WEP_TWIN_KATANA 0x2a
+ * The names in `weapon_kind` above are the game's own for every kind
+ * from 0x04 up: WeaponModel[] pairs each wid with the string it builds
+ * its .TMD path from, and all of 0x04..0x37 match. Only 0x00..0x03 have
+ * no WeaponModel row, because they load no model at all — GetWeaponData
+ * just registers the id and the strike comes off the body. WeaponDB
+ * gives them away: every carried weapon reaches forward (KATANA_0 sits
+ * at z -450), while CLAW and FIST sit at z 0 on the body itself (y 200
+ * and y 600) and JAW reaches 300 at ground level. Their wielders agree
+ * — CLAW is KUMA plus BALMA's off-hand, FIST the barehanded great-ninja
+ * twins (limbs 8/0xb), JAW the whole beast page including wolf, firedog
+ * and ninken — so those three names describe the strike rather than one
+ * wielder, and are the only invented ones here. */
 
 typedef struct HumanDataType HumanDataType;
 struct HumanDataType
@@ -1076,9 +1074,9 @@ typedef enum weapon_kind weapon_kind;
 enum weapon_kind
 {
     NO_WEAPON = 0x00,
-    KUMA_WEAPON = 0x01,
-    NINJA_0_1_WEAPON = 0x02,
-    RAT_CAT_DOG_WEAPON = 0x03,
+    CLAW = 0x01,
+    FIST = 0x02,
+    JAW = 0x03,
     KODATI = 0x04,
     JYUTE = 0x05,
     JYUTEB = 0x06,

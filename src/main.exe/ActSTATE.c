@@ -69,16 +69,16 @@ void ActSTATE(void)
                 kind = Me_MOTION_C->wpatk;
                 switch (kind)
                 {
-                case WEP_ONININ:
+                case FIST:
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                     cleanup_guard = 3;
                     break;
-                case WEP_BEAST:
+                case JAW:
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                     cleanup_guard = 3;
                     break;
-                case WEP_NONE:
+                case NO_WEAPON:
                     cleanup_guard = 3;
                     break;
                 default:
@@ -186,16 +186,16 @@ void ActSTATE(void)
                 kind = Me_MOTION_C->wpatk;
                 switch (kind)
                 {
-                case WEP_ONININ:
+                case FIST:
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                     cleanup_guard = 3;
                     break;
-                case WEP_BEAST:
+                case JAW:
                     DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                     cleanup_guard = 3;
                     break;
-                case WEP_NONE:
+                case NO_WEAPON:
                     cleanup_guard = 3;
                     break;
                 default:

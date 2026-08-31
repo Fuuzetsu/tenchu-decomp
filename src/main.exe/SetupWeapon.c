@@ -31,7 +31,6 @@
 void SetupWeapon(Humanoid *human)
 {
     s16 i;
-    s16 weapon_kind;
 
     human->wepid[WEAPON_HAND_1] = WEAPON_HAND_NONE;
     human->wepid[WEAPON_HAND_0] = WEAPON_HAND_NONE;
@@ -46,70 +45,69 @@ void SetupWeapon(Humanoid *human)
     {
         i++;
     }
-    weapon_kind = HumanData[i].wepid;
-    human->wpatk = weapon_kind;
+    human->wpatk = HumanData[i].wepid;
 
-    switch (weapon_kind)
+    switch (human->wpatk)
     {
-    case 1:
-    case 2:
+    case CLAW:
+    case FIST:
         GetWeaponData(human, MODEL_PART_WAIST, human->wpatk,
                       WEAPON_HAND_1, WEAPON_SLOT_NONE);
-    case 3:
+    case JAW:
         GetWeaponData(human, MODEL_PART_WAIST, human->wpatk,
                       WEAPON_HAND_0, WEAPON_SLOT_NONE);
         break;
-    case 5:
-    case 7:
+    case JYUTE:
+    case EN:
         GetWeaponData(human, MODEL_PART_WAIST, human->wpatk + 1,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_0);
-    case 4:
+    case KODATI:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
                       WEAPON_HAND_0, WEAPON_SLOT_INACTIVE_0);
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, human->wpatk,
                       WEAPON_HAND_1, WEAPON_SLOT_INACTIVE_1);
         break;
-    case 10:
-    case 0x20:
+    case JYURUR:
+    case CROWR:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
                       WEAPON_HAND_0, WEAPON_SLOT_ACTIVE_0);
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, human->wpatk + 1,
                       WEAPON_HAND_1, WEAPON_SLOT_ACTIVE_1);
         break;
-    case 0x12:
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, 1,
+    case SABRE:
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, CLAW,
                       WEAPON_HAND_1, WEAPON_SLOT_NONE);
-    case 9:
-    case 0x10:
-    case 0x11:
-    case 0x22:
-    case 0x23:
-    case 0x24:
-    case 0x25:
-    case 0x26:
-    case 0x27:
-    case 0x28:
-    case WEP_MEIOU:
+    case ANDON:
+    case IKARI:
+    case BOU:
+    case YARI:
+    case KABUTUTI:
+    case SASUMATA:
+    case HALBERT:
+    case KON:
+    case NAGI:
+    case ENGETU:
+    case SEVEN:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
                       WEAPON_HAND_0, WEAPON_SLOT_ACTIVE_0);
         break;
-    case 0x14:
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, 0x14,
+    case KEITOU:
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, KEITOU,
                       WEAPON_HAND_0, WEAPON_SLOT_INACTIVE_0);
-        GetWeaponData(human, 1, 0x15,
+        GetWeaponData(human, 1, KEITOUB,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_0);
         break;
-    case WEP_TWIN_KATANA:
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, WEP_TWIN_KATANA,
+    case KATANAL:
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, KATANAL,
                       WEAPON_HAND_0, WEAPON_SLOT_INACTIVE_0);
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, 0x2b,
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, SAYAL,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_1);
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, 0x2c,
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, TUKAL,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_0);
         break;
-    case 0x16:
-    case 0x19:
-    case 0x1c:
+    case KATANA_0:
+    case HOUTOU:
+    case KATANA_1:
         GetWeaponData(human, MODEL_PART_WAIST, human->wpatk + 1,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_1);
         GetWeaponData(human, MODEL_PART_WAIST, human->wpatk + 2,
@@ -120,28 +118,28 @@ void SetupWeapon(Humanoid *human)
         human->weapon[WEAPON_SLOT_ACTIVE_1]->locate.coord.t[0] = human->width / 3;
         human->weapon[WEAPON_SLOT_ACTIVE_1]->locate.coord.t[1] = 0;
         human->weapon[WEAPON_SLOT_ACTIVE_1]->locate.coord.t[2] = 0;
-    case 0xc:
-    case 0x13:
+    case KOZUKA:
+    case NINJA:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
                       WEAPON_HAND_0, WEAPON_SLOT_INACTIVE_0);
         break;
-    case 0x1f:
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, 0x1f,
+    case KATANA_2:
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, KATANA_2,
                       WEAPON_HAND_0, WEAPON_SLOT_INACTIVE_0);
-        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, 0x1f,
+        GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, KATANA_2,
                       WEAPON_HAND_1, WEAPON_SLOT_INACTIVE_1);
-        GetWeaponData(human, MODEL_PART_WAIST, 0x2d,
+        GetWeaponData(human, MODEL_PART_WAIST, TUKAANI,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_0);
         break;
-    case 0x30:
-    case 0x31:
+    case TEPPO:
+    case GUN:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_0);
         break;
-    case 0x32:
-    case WEP_KATAOKA:
+    case YUMI:
+    case KATAYUMI:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
-                      human->wpatk == WEP_KATAOKA ? WEAPON_HAND_0 : WEAPON_HAND_NONE,
+                      human->wpatk == KATAYUMI ? WEAPON_HAND_0 : WEAPON_HAND_NONE,
                       WEAPON_SLOT_ACTIVE_0);
         GetWeaponData(human, 1, human->wpatk + 2,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_1);

@@ -104,14 +104,14 @@ void ActACTION(void)
             kind = Me_MOTION_C->wpatk;
             switch (kind)
             {
-            case WEP_ONININ:
+            case FIST:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
                 model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
                 break;
-            case WEP_BEAST:
+            case JAW:
                 model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
                 break;
-            case WEP_NONE:
+            case NO_WEAPON:
                 cleanup_guard = 3;
                 goto skip_afterimage_cleanup;
             default:
@@ -143,7 +143,7 @@ void ActACTION(void)
             {
             } while (0);
             weapon = human->weapon;
-            if (human->wpatk == WEP_TWIN_KATANA && weapon[WEAPON_SLOT_INACTIVE_1] != 0)
+            if (human->wpatk == KATANAL && weapon[WEAPON_SLOT_INACTIVE_1] != 0)
             {
                 weapon[WEAPON_SLOT_INACTIVE_0] = human->weapon[WEAPON_SLOT_ACTIVE_0];
                 human->weapon[WEAPON_SLOT_ACTIVE_0] = weapon[WEAPON_SLOT_INACTIVE_1];

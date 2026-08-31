@@ -234,7 +234,7 @@ void ActDAMAGE(void)
             short weapon_kind;
 
             weapon_kind = Me_MOTION_C->wpatk;
-            if (weapon_kind != WEP_TWIN_KATANA)
+            if (weapon_kind != KATANAL)
             {
                 done = true;
                 break;
