@@ -90,7 +90,7 @@ void ActCHASE(void)
                 MoveHumanoid(Me_MOTION_C, 35, 0);
                 if (dtM->mode & 1)
                 {
-                    dtM->mode &= 0xfffe;
+                    dtM->mode &= ~1;
                     dtM->count = 13;
                 }
                 else
