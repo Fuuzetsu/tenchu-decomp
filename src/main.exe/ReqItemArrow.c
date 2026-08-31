@@ -98,34 +98,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     dir.vx = rx;
     dir.vy = ry;
     SearchItemTarget2(p->user, &dir, &p->start, &target);
-    i = 0;
-    do
-    {
-        ic++;
-        if (ic >= MAX_ITEMS)
-            ic = 0;
-        slot = items + ic;
-        if (slot->proc == 0)
-        {
-            item = slot;
-            goto found;
-        }
-        i++;
-    } while (i < MAX_ITEMS - 1);
-
-    /* pool exhausted: force-dispose the slot the counter landed on */
-    slot->mode = ITEM_MODE_DISPOSE;
-    slot->proc(slot);
-    DeleteConflict(slot->locate);
-    if (slot->mode != 0)
-    {
-        AdtMessageBox(msg_item_dispose_fail, slot->type, (u32)slot->mode);
-    }
-    item = slot;
-    item->owner = 0;
-    item->proc = 0;
-
-found:
+    TAKE_ITEM_SLOT_VIA_CURSOR();
     param = &item->param.arrow;
     if (item == 0)
         return 0;
