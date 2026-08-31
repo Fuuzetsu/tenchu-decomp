@@ -78,7 +78,7 @@ LOCALS = ROOT / "reference" / "psxsym-locals.tsv"
 # declaration of `reak`.
 DECL_LINE = re.compile(
     r"^\s+([A-Za-z_][\w \t]*[\w])[ \t]*(?:\*+[ \t]*|[ \t]+)"
-    r"(\w+)[ \t]*(\[[^;]*\])?;[ \t]*$")
+    r"(\w+)[ \t]*(\[[^;=]*\])?[ \t]*(?:=[^;]*)?;[ \t]*$")
 
 
 KEYWORD = {"return", "goto", "if", "else", "break", "continue", "do",
