@@ -15,6 +15,21 @@ The split of responsibility:
   **reviews and cherry-picks on green**, folds reported rules into the
   cookbook, and **builds a tool whenever a friction recurs**.
 
+## Never copy headers into the collaboration directory
+
+Copy only the `.c` files a round is working on. `#include "foo.h"` is
+resolved against the INCLUDING FILE's own directory before any `-I` path,
+so a `main.exe.h` sitting next to the candidate silently shadows the real
+one. Rounds 36-47 all compiled against headers frozen at the point
+someone first copied them: a candidate that used a newly added constant
+failed with "undeclared" on a name that plainly exists, and every gate
+before that -- the agent's AND the main session's -- was quietly checking
+against the wrong header set. An agent that cannot see an existing name
+is an agent that will invent a second one.
+
+Symptom: a candidate fails to compile on an identifier you can grep in
+`src/main.exe/*.h`. Check for `*.h` in the scratch directory first.
+
 ## Resuming the hands-off flywheel (quick-start)
 
 **State is deliberately not cached here.** Parallel branches make a handwritten
