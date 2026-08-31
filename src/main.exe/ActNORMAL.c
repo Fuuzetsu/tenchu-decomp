@@ -39,7 +39,7 @@ void ActNORMAL(void)
     mid = dtM->mid;
     switch (mid)
     {
-    case 0:
+    case MOT_NORMAL:
         if ((dtPAD & PADL2) && StagePlayer != Me_MOTION_C)
         {
             if (dtPAD & PADLdown)
@@ -75,15 +75,8 @@ void ActNORMAL(void)
         }
         if (dtM->count == 0 && rand() % 100 == 0)
         {
-            int random;
-            short random_motion;
-
             motMODE = 1;
-            random = rand();
-            random_motion = MOT_ACTION_FIDGET_B;
-            if (random & 1)
-                random_motion = MOT_ACTION_FIDGET_A;
-            motID = random_motion;
+            motID = (rand() & 1) ? MOT_ACTION_FIDGET_A : MOT_ACTION_FIDGET_B;
         }
         break;
 
