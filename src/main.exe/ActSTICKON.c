@@ -59,11 +59,11 @@
  *    Case order 6, 9, 7, 10 pairs the two 0xC03 arms and the two 0xC04 arms
  *    and reproduces the target's fall-through block layout.
  *
- * 2. In the makibishi loop, `angle ^= angle ^ next_angle` (the defined
- *    self-XOR update) and the do{}while(0) around it are BOTH load-bearing and
- *    must stay. The XOR keeps the copy from being coalesced away (a plain
- *    `angle = next_angle` loses the `move s2,s0` and the function goes 4 bytes
- *    short). The fence must ENCLOSE the copy: its NOTE_INSN_LOOP_END is what
+ * 2. In the makibishi loop, `angle += next_angle - angle` and the
+ *    do{}while(0) around it are BOTH load-bearing and must stay. The delta
+ *    update keeps the copy from being coalesced away (a plain
+ *    `angle = next_angle` loses the `move s2,s0`). The fence must ENCLOSE the
+ *    copy: its NOTE_INSN_LOOP_END is what
  *    stops local-alloc's optimize_reg_copy_1 (local-alloc.c:753 in this cc1 —
  *    there is no regmove.c in 2.8.1) from rewriting the later `y = next_angle`
  *    read from next_angle (s0) to angle (s2). That scan breaks on a CODE_LABEL,
@@ -87,8 +87,6 @@ void ActSTICKON(void)
     short y;
     short rv;
     short pd;
-    SVECTOR vect;
-    PARAM_ITEM_LAUNCH item;
     short i;
     short t;
 
@@ -99,10 +97,14 @@ void ActSTICKON(void)
         if (dtM->count < 0)
         {
             MotionElementType *rotation;
+            SVECTOR vect;
             u16 reflected_raw;
             s32 reflected;
-            u32 raw_y;
             s32 wall_y;
+
+            /* These are distinct allocation identities: direct rotation is
+             * 33 lines off; deleting reflected/reflected_raw costs 42/306;
+             * replacing wall_y with y costs 19 at best. */
 
             map = StickonCheck();
             if (map == 0)
@@ -112,15 +114,14 @@ void ActSTICKON(void)
                 return;
             }
 
-            raw_y = (u16)dtR->vy;
-            wall_y = raw_y & ANGLE_QUADRANT_MASK;
-            if (raw_y & ANGLE_HALF_QUADRANT)
+            wall_y = dtR->vy & ANGLE_QUADRANT_MASK;
+            if (dtR->vy & ANGLE_HALF_QUADRANT)
             {
                 wall_y += ANGLE_QUADRANT;
             }
-            reflected_raw = (u16)RefrectVector[map->vector] - wall_y;
+            reflected_raw = RefrectVector[map->vector] - wall_y;
             /* t re-registers wall_y for the divide below:
-             * byte-required (direct wall_y use mismatches; measured). */
+             * direct wall_y use differs by 51 canonical lines. */
             t = wall_y;
             rv = reflected_raw;
             reflected = (s16)reflected_raw;
@@ -179,7 +180,7 @@ void ActSTICKON(void)
                 break;
             }
 
-            if ((s8)((u16)motID >> 8) == STAT_SQUAT)
+            if ((s8)(motID >> 8) == STAT_SQUAT)
             {
                 dtM->mask = 0x7FFF;
                 if (MotionUpdateMode != 0)
@@ -206,30 +207,22 @@ void ActSTICKON(void)
         }
 
         {
-            s32 pad;
-            s32 pad_rv;
-            s32 loop_pad;
-            MotionManager *update_motion;
-
-            pad = (s16)(u16)dtPAD;
-            if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
+            if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
             {
                 pd = 0;
-                rv = (u16)model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
-                if (((pad >> 12) & 1) == 0)
+                rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
+                if (((dtPAD >> 12) & 1) == 0)
                 {
-                    /* loop_pad re-registers pad for the scan:
-                     * byte-required (direct pad use mismatches; measured). */
-                    loop_pad = pad;
                     do
                     {
                         pd++;
-                    } while (((loop_pad >> (pd + 12)) & 1) == 0);
+                    } while (((dtPAD >> (pd + 12)) & 1) == 0);
                 }
                 if (rv != ((pd + 2) & 3))
                 {
-                    /* Staged dtM load: byte-required (calling with dtM
-                     * directly reorders the li/lw pair; measured). */
+                    MotionManager *update_motion;
+
+                    /* Direct dtM at the call is 8 canonical lines off. */
                     update_motion = dtM;
                     y = MOT_STICKON_SLIDE_R;
                     if (rv == ((pd + 1) & 3))
@@ -250,66 +243,67 @@ void ActSTICKON(void)
 
         if ((Me_MOTION_C->pad.trig & PADRup) != 0)
         {
-            s32 selected_item;
-            s32 high_item;
-            u32 camera_rv;
-
-            camera_rv = (u16)model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
+            rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
             pd = 0;
             switch ((u32)CamState.Mode)
             {
             case CMODE_STICK_L:
-                if (camera_rv == 2)
+                if (rv == 2)
                 {
                     pd = MOT_STICKON_THROW_L;
                 }
                 break;
             case CMODE_PEEP_L:
-                if (camera_rv == 3)
+                if (rv == 3)
                 {
                     pd = MOT_STICKON_THROW_L;
                 }
                 break;
             case CMODE_STICK_R:
-                if (camera_rv == 2)
+                if (rv == 2)
                 {
                     pd = MOT_STICKON_THROW_R;
                 }
                 break;
             case CMODE_PEEP_R:
-                if (camera_rv == 1)
+                if (rv == 1)
                 {
                     pd = MOT_STICKON_THROW_R;
                 }
                 break;
             }
 
-            selected_item = SelectedItem;
-            /* Second name for selected_item: byte-required (removal
-             * re-colors the pair; measured). */
-            high_item = selected_item;
-            StickonItem = selected_item;
-            if (selected_item <= ITEM_SMOKE)
             {
-                if (selected_item < ITEM_FIRE && selected_item != ITEM_MAKIBISHI)
+                s32 selected_item;
+                s32 high_item;
+
+                selected_item = SelectedItem;
+                /* The second identity is allocation-bearing: folding it into
+                 * selected_item differs by 191 canonical lines. */
+                high_item = selected_item;
+                StickonItem = selected_item;
+                if (selected_item <= ITEM_SMOKE)
+                {
+                    if (selected_item < ITEM_FIRE && selected_item != ITEM_MAKIBISHI)
+                    {
+                        pd = 0;
+                    }
+                }
+                else if (high_item != ITEM_DOKUDANGO)
                 {
                     pd = 0;
                 }
-            }
-            else if (high_item != ITEM_DOKUDANGO)
-            {
-                pd = 0;
-            }
 
-            if (pd != 0)
-            {
-                motMODE = 1;
-                motID = pd;
-                dtM->mask = -2;
-            }
-            else
-            {
-                SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
+                if (pd != 0)
+                {
+                    motMODE = 1;
+                    motID = pd;
+                    dtM->mask = -2;
+                }
+                else
+                {
+                    SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
+                }
             }
         }
         break;
@@ -317,10 +311,6 @@ void ActSTICKON(void)
     case MOT_STICKON_SLIDE_L:
     case MOT_STICKON_SLIDE_R:
     {
-        u32 pad_bits;
-        s32 pad;
-        s32 loop_pad;
-
         if (dtCMD != 0)
         {
             switch (dtCMD)
@@ -339,7 +329,7 @@ void ActSTICKON(void)
                 break;
             }
 
-            if ((s8)((u16)motID >> 8) == STAT_SQUAT)
+            if ((s8)(motID >> 8) == STAT_SQUAT)
             {
                 dtM->mask = 0x7FFF;
                 if (MotionUpdateMode != 0)
@@ -365,27 +355,22 @@ void ActSTICKON(void)
             break;
         }
 
-        /* dtPAD parked in a register's high half so BOTH extractions below
-         * share the one sll: >>16 recovers the whole pad word, >>28 & 1
-         * isolates PADLup (bit 12). Masking `pad` directly does not match
-         * (andi vs the retail sra pair). */
-        pad_bits = (u32)(u16)dtPAD << 16;
-        pad = (s32)pad_bits >> 16;
-        if ((pad & (PADLleft | PADLdown | PADLright | PADLup)) == 0)
+        /* Plain dtPAD reads reproduce both the shared initial shift and the
+         * loop's separate reload; pad/pad_bits/loop_pad aliases are not
+         * required. */
+        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) == 0)
         {
             goto slide_no_pad;
         }
 
-        rv = (u16)model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
+        rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
         pd = 0;
-        if ((((s32)pad_bits >> 28) & 1) == 0)
+        if (((dtPAD >> 12) & 1) == 0)
         {
-            /* A separate dtPAD reload — the extra lhu is in the bytes. */
-            loop_pad = (s16)(u16)dtPAD;
             do
             {
                 pd++;
-            } while (((loop_pad >> (pd + 12)) & 1) == 0);
+            } while (((dtPAD >> (pd + 12)) & 1) == 0);
         }
         if (rv == ((pd + 2) & 3))
         {
@@ -398,6 +383,7 @@ void ActSTICKON(void)
         }
         if (motID != t)
         {
+            /* Reusing y for this selection differs by 10 canonical lines. */
             UpdateMotion(dtM, t);
         }
 
@@ -456,10 +442,8 @@ void ActSTICKON(void)
     case MOT_STICKON_THROW_R:
     {
         VECTOR *position;
-        short base_angle;
-        s32 base_angle_value;
+        PARAM_ITEM_LAUNCH item;
         s32 angle;
-        s32 next_angle;
 
         if (dtM->count != 0 || dtM->loop == 0)
         {
@@ -467,11 +451,17 @@ void ActSTICKON(void)
         }
 
         pd = motID != MOT_STICKON_THROW_L;
-        base_angle = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
-        base_angle_value = base_angle;
-        angle = (pd ? base_angle_value - 0x400
-                    : base_angle_value + 0x400) &
-                0xF00;
+        {
+            s32 base_angle_value;
+
+            /* This full-width boundary preserves the later explicit narrowing;
+             * forming the angle directly is 10 canonical lines off. */
+            base_angle_value =
+                (s16)(model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy);
+            angle = (pd ? base_angle_value - 0x400
+                        : base_angle_value + 0x400) &
+                    0xF00;
+        }
         item.user = Me_MOTION_C;
         item.type = StickonItem;
         Me_MOTION_C->item[StickonItem]--;
@@ -495,11 +485,15 @@ void ActSTICKON(void)
 
         if (item.type == ITEM_MAKIBISHI)
         {
+            s32 next_angle;
+
+            /* Reusing the outer i costs 78 canonical lines; a nested i costs
+             * 30, so the shared t identity remains. */
             for (t = 0; t < 5; t++)
             {
                 next_angle = angle - 10;
                 next_angle += rand() % 20;
-                angle ^= angle ^ next_angle;
+                angle += next_angle - angle;
                 /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
