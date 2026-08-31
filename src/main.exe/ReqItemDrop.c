@@ -48,9 +48,12 @@
  *    allocation priority so p keeps $s1 (after the check, param stole $s1 and the
  *    return-0 block folded away — 2 instructions short, which shifted every
  *    object after this one by 8 bytes).
- *  - aowner/atype and x/y/z are real temps: the original batches the loads before the
- *    stores (`lw`×3 + `sh`×3) — writing `param->koro.vx = p->end.vx` directly lets the
- *    canonical cc1 emit a truncating `lhu` of the low half instead.
+ *  - The post-guard item setup and its velocity tail have their own register-only
+ *    scopes. `aowner`/`atype` and `pos` remain real batching identities: direct
+ *    owner/type stores differ by 10 canonical lines and direct position reads by 5.
+ *  - x/y/z are real temps: the target batches `lw` x3 before `sh` x3. Direct
+ *    stores differ by 12 lines as a group (x/y/z alone: 2/12/12); the complete
+ *    owner/type/position/velocity graph differs by 27.
  *  - `pos = &p->start;` is materialized between the t[0] and t[1] stores (the
  *    vy/vz reads go through it; vx reads p directly).
  *  - First compiled-to-compiled reference: ProcItemKusuri's `jal ReqItemDrop`
@@ -64,12 +67,6 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_drop *param;
-    VECTOR *pos;
-    Humanoid *aowner;
-    s32 atype;
-    s32 x;
-    s32 y;
-    s32 z;
     s32 i;
 
     TAKE_ITEM_SLOT();
@@ -78,27 +75,39 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
         return 0;
     if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz, 0) < p->start.vy)
         return 0;
-    aowner = p->user;
-    atype = p->type;
-    item->owner = aowner;
-    item->proc = ProcItemDrop;
-    item->mode = 0;
-    item->type = atype;
-    item->locate->locate.coord.t[0] = p->start.vx;
-    pos = &p->start;
-    item->locate->locate.coord.t[1] = pos->vy;
-    item->locate->locate.coord.t[2] = pos->vz;
-    item->locate->locate.super = 0;
-    UpdateCoordinate(item->locate);
-    item->collision.size = 0;
-    item->model = (ModelType *)ItemImage[item->type];
-    x = p->end.vx;
-    y = p->end.vy;
-    z = p->end.vz;
-    param->koro.vx = x;
-    param->koro.vy = y;
-    param->koro.vz = z;
-    item->param.drop.koro.hint = 0;
-    param->koro.status = KORO_NORMAL;
+    {
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
+
+        aowner = p->user;
+        atype = p->type;
+        item->owner = aowner;
+        item->proc = ProcItemDrop;
+        item->mode = 0;
+        item->type = atype;
+        item->locate->locate.coord.t[0] = p->start.vx;
+        pos = &p->start;
+        item->locate->locate.coord.t[1] = pos->vy;
+        item->locate->locate.coord.t[2] = pos->vz;
+        item->locate->locate.super = 0;
+        UpdateCoordinate(item->locate);
+        item->collision.size = 0;
+        item->model = (ModelType *)ItemImage[item->type];
+        {
+            s32 x;
+            s32 y;
+            s32 z;
+
+            x = p->end.vx;
+            y = p->end.vy;
+            z = p->end.vz;
+            param->koro.vx = x;
+            param->koro.vy = y;
+            param->koro.vz = z;
+            item->param.drop.koro.hint = 0;
+            param->koro.status = KORO_NORMAL;
+        }
+    }
     return 1;
 }
