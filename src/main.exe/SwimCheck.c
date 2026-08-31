@@ -49,7 +49,6 @@ short SwimCheck(void)
 {
     short status;
     short i;
-    short j;
     VECTOR vect;
     VECTOR *locate;
     int object_id;
@@ -133,15 +132,17 @@ short SwimCheck(void)
 
         if (MotionUpdateMode != 0)
         {
-            j = 0;
+            short i;
+
+            i = 0;
             do
             {
-                if (CVAhuman[j].human == Me_MOTION_C)
+                if (CVAhuman[i].human == Me_MOTION_C)
                 {
                     goto motion_done;
                 }
-                j++;
-            } while (j < 5);
+                i++;
+            } while (i < 5);
         }
         SetNowMotion(Me_MOTION_C, motID, motMODE);
         motMODE = -1;

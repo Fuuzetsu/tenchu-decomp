@@ -53,7 +53,8 @@
  *    instruction order unchanged.
  *  - `quantized` must stay full-width through the 0xc00/0x200 rounding.
  *    Narrowing it to u16 creates an extra merge move.  Conversely, the CVA
- *    scan needs its own short counter (`scan_i`) instead of reusing the
+ *    scan needs its own short counter (a nested `i` shadowing the
+ *    outer one, which is how PSX.SYM records it) instead of reusing the
  *    earlier model-part counter, which gives the target v1/a1/a0 coloring.
  *  - `__builtin_abs` is intentional: Build.hs passes -fno-builtin to cc1,
  *    so a normal abs() prototype would emit three calls.  The explicit
@@ -231,7 +232,7 @@ void ActKAGI(void)
             ModelType *root;
             ModelType *adjust_root;
             short old_ry;
-            short scan_i;
+            short i;
             u16 sum;
             u32 quantized;
 
@@ -262,9 +263,9 @@ void ActKAGI(void)
             dtM->mask = 0x7fff;
             if (MotionUpdateMode != 0)
             {
-                for (scan_i = 0; scan_i < 5; scan_i++)
+                for (i = 0; i < 5; i++)
                 {
-                    if (CVAhuman[scan_i].human == Me_MOTION_C)
+                    if (CVAhuman[i].human == Me_MOTION_C)
                     {
                         goto motion_active;
                     }

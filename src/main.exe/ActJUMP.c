@@ -43,11 +43,11 @@ extern short UpdateMotion(MotionManager *mmp, short mid);
 /* Jump-state motion, collision response, air steering, and landing control. */
 void ActJUMP(void)
 {
-    short old_mid;
+    short mid; /* the motion id saved before SET_MOTION overwrites motID */
     u16 pad;
     MapVector map;
     SVECTOR spd;
-    short reflected;
+    short ry;
     short i;
     long level;
     long apex_offset;
@@ -66,16 +66,16 @@ void ActJUMP(void)
         {
             return;
         }
-        reflected = RefrectVector[map.vector];
+        ry = RefrectVector[map.vector];
         dtL->vy -= 500;
-        if (reflected == -1)
+        if (ry == -1)
         {
             dtV->vx = -dtV->vx;
             dtV->vz = -dtV->vz;
         }
         else
         {
-            dtR->vy = reflected + 0x800;
+            dtR->vy = ry + 0x800;
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
         Sound(Me_MOTION_C, SE_JUMP_IMPACT);
@@ -128,7 +128,7 @@ void ActJUMP(void)
     {
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            old_mid = (u16)motID;
+            mid = (u16)motID;
             SET_MOTION(MOT_STATE_FALL, 0);
             if (MotionUpdateMode != 0)
             {
@@ -145,9 +145,9 @@ void ActJUMP(void)
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;
         fall_motion_done:
-            if (old_mid != MOT_JUMP_RUN)
+            if (mid != MOT_JUMP_RUN)
             {
-                if (old_mid != MOT_JUMP_FLIP)
+                if (mid != MOT_JUMP_FLIP)
                 {
                     return;
                 }
