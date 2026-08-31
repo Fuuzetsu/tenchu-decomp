@@ -106,6 +106,14 @@ void SetupTelop(u8 *telop, short line)
                 v = 0;
                 do
                 {
+                    /* Two pseudos, deliberately: fusing them into one
+                     * `bits = font[v]; bits = bits >> 8 | bits << 8;`
+                     * costs 31 lines. Reading `(u16)font[v]` twice
+                     * instead of naming `raw_bits` is also exact, but
+                     * repeats the load with two added casts and PSX.SYM
+                     * records NEITHER local, so there is no fidelity
+                     * argument either way -- this spelling reads as the
+                     * byte swap it is. */
                     raw_bits = font[v];
                     bits = raw_bits >> 8;
                     bits |= raw_bits << 8;
