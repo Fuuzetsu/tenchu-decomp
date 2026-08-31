@@ -2129,6 +2129,19 @@ irreducible nest: DrawConstruction's 3.
   rather than naming it after the first one**: ActATTACK's cases each
   turned out to be one WEAPON, and every attack id the switch ignores is
   shared across several weapons, which is the whole selector.
+- **The empty `do { } while (0)` fences are NOT compiled-out debug
+  prints — tested, and the DBG reconstruction does not generalise.**
+  DefaultActionHumanoid's fences became `DBG(...)` on real evidence: the
+  demo build calls FntPrint inside that very function, and two of its
+  format strings were recovered. That made it tempting to spread the same
+  spelling over the other 37 empty fences. It would have been fabrication.
+  The demo has debug prints (31 FntPrint calls across 12 functions), and
+  of the 31 files still carrying an empty fence, **not one calls FntPrint
+  in the demo** — the overlap with that caller list is empty. So those
+  fences are what their own site notes say they are: measured scheduling
+  and register-allocation barriers with some other origin. Leave them,
+  and keep the per-site measurement rather than inventing a story that
+  reads better.
 - **Depth records are an indicator, never an instruction (owner
   directive).** A recorded nested scope is excellent evidence of the
   original structure WHERE OUR CODE DOES NOT YET LOOK HUMAN — that is
