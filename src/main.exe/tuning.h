@@ -72,6 +72,9 @@
 #define SHINSOKU_DURATION 75  /* speed-potion boost length */
 #define GOSIN_DURATION 450    /* protection-charm length */
 #define NINKEN_DURATION 1800  /* summoned dog lifetime */
+/* Where the summoned dog waits while it has no orders: far enough off the
+ * map that nothing collides with or draws it. */
+#define NINKEN_PARK_POS 999000
 #define NINGYO_DURATION 90    /* decoy-doll walk time */
 #define NINGYO_HP 99          /* decoy-doll hit points */
 #define MANEBUE_DURATION 30   /* lure-flute effect window */
@@ -162,6 +165,10 @@
 #define SMOKE_SCALE_MIN 0x1000
 #define SMOKE_SCALE_SPREAD 0x2000
 #define SMOKE_DRIFT_DIVISOR_DEFAULT 12
+
+/* Side of one construction grid cell, in world units: DrawConstruction
+ * and LoadConstruction both index the grid as position / this. */
+#define CONSTRUCTION_CELL 16000
 
 /* Snowfall (SetSnow/DrawSnow/ProcMiscSnowfall): flakes wrap in a
  * SNOW_SPAN-wide box around the viewpoint. */

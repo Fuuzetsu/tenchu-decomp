@@ -80,9 +80,9 @@ void ProcItemNinken(TItem *item)
         {
             NowReturnNormal(slave);
             param->slave->attribute |= ATTR_SUSPEND;
-            param->slave->model->locate.coord.t[0] = 999000;
-            param->slave->model->locate.coord.t[1] = 999000;
-            param->slave->model->locate.coord.t[2] = 999000;
+            param->slave->model->locate.coord.t[0] = NINKEN_PARK_POS;
+            param->slave->model->locate.coord.t[1] = NINKEN_PARK_POS;
+            param->slave->model->locate.coord.t[2] = NINKEN_PARK_POS;
             UpdateCoordinate((ModelType *)param->slave->model);
         }
         item->mode = 0;
@@ -200,8 +200,8 @@ void ProcItemNinken(TItem *item)
         }
         if (create != 0)
         {
-            NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000,
-                                             999000, 0);
+            NINKEN_CHARACTER_PTR = BreedLife(NINKEN, NINKEN_PARK_POS, NINKEN_PARK_POS,
+                                             NINKEN_PARK_POS, 0);
             NINKEN_CHARACTER_PTR->attribute |= ATTR_SUSPEND;
         }
 

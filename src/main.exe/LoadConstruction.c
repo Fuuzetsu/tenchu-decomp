@@ -6,7 +6,7 @@
 #include "vmemory.h"
 
 /* Map a world coordinate to its 8x8x8 WorldMap cell index (floor
- * division by the 16000-unit cell, wrapped to 3 bits). Repeated per
+ * division by the CONSTRUCTION_CELL-unit cell, wrapped to 3 bits). Repeated per
  * axis at both construction passes; macro is reconstruction shorthand
  * (expands to the identical text). The copy interleaved with the msize
  * computation stays open-coded. */
@@ -16,9 +16,9 @@
         long q;                                                               \
                                                                               \
         if (a >= 0)                                                           \
-            q = a / 16000;                                                    \
+            q = a / CONSTRUCTION_CELL;                                                    \
         else                                                                  \
-            q = a / 16000 - 1;                                                \
+            q = a / CONSTRUCTION_CELL - 1;                                                \
         out = q & 7;                                                          \
     }
 
@@ -122,8 +122,8 @@
  *    walker variable): loop.c strength-reduces it to the v1 giv, emitting
  *    the hoisted li 2 before the giv init (target preheader order), and the
  *    giv advance lands in the loop branch delay slot.
- *  - Each of the six /16000 divisions is `long a, q; if (a >= 0) q = a/16000;
- *    else q = a/16000 - 1; x = q & 7;` — a in a0, quotient in the v0/v1
+ *  - Each of the six /CONSTRUCTION_CELL divisions is `long a, q; if (a >= 0) q = a/CONSTRUCTION_CELL;
+ *    else q = a/CONSTRUCTION_CELL - 1; x = q & 7;` — a in a0, quotient in the v0/v1
  *    temps, single andi def into the callee-saved home.
  *  - Both WorldMap cell addresses split into offset-then-+base statements
  *    (`nModel = (z<<2)+((x<<8)+(y<<5)); nModel += (int)WorldMap;`), which
@@ -413,9 +413,9 @@ short LoadConstruction(u_long *data)
                      * multiply mismatches; measured). */
                     (parent - parent * 8) * 2;
                 if (a >= 0)
-                    q = a / 16000;
+                    q = a / CONSTRUCTION_CELL;
                 else
-                    q = a / 16000 - 1;
+                    q = a / CONSTRUCTION_CELL - 1;
                 x = q & 7;
             }
             WORLD_CELL(mma->object[i]->locate.coord.t[1], y);

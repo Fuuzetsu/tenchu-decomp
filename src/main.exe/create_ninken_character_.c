@@ -24,7 +24,7 @@ extern Humanoid *NINKEN_CHARACTER_PTR;
 
 void create_ninken_character_(s16 type, s32 stage)
 {
-    NINKEN_CHARACTER_PTR = BreedLife(0xa9, 999000, 999000, 999000, 0);
+    NINKEN_CHARACTER_PTR = BreedLife(NINKEN, NINKEN_PARK_POS, NINKEN_PARK_POS, NINKEN_PARK_POS, 0);
     NINKEN_CHARACTER_PTR->attribute |= ATTR_SUSPEND;
 
     {
@@ -61,7 +61,7 @@ void create_ninken_character_(s16 type, s32 stage)
 
         flag = (type == 1);
         human = BreedLife(HensinT[(s16)stage].type[flag],
-                          999000, 999000, 999000, 0);
+                          NINKEN_PARK_POS, NINKEN_PARK_POS, NINKEN_PARK_POS, 0);
         model = human->model;
         i = 0;
         saved = &HenshinSnapshot;

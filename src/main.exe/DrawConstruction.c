@@ -98,30 +98,30 @@ void DrawConstruction(void)
         long a = ViewInfo.vpx;
 
         if (a >= 0)
-            nx = a / 16000;
+            nx = a / CONSTRUCTION_CELL;
         else
-            nx = a / 16000 - 1;
+            nx = a / CONSTRUCTION_CELL - 1;
     }
     {
         long a = ViewInfo.vpy;
 
         if (a >= 0)
-            ny = a / 16000;
+            ny = a / CONSTRUCTION_CELL;
         else
-            ny = a / 16000 - 1;
+            ny = a / CONSTRUCTION_CELL - 1;
     }
     {
         long a = ViewInfo.vpz;
 
         if (a < 0)
             goto negative_z;
-        nz = a / 16000;
+        nz = a / CONSTRUCTION_CELL;
         goto have_z;
 overload:
         FntPrint(msg_overload);
         goto draw_done;
 negative_z:
-        nz = a / 16000 - 1;
+        nz = a / CONSTRUCTION_CELL - 1;
     }
 have_z:
 
@@ -174,9 +174,9 @@ scan_z:
     {
         do
         {
-            visible = IsVisible(cell_x * 16000 + 8000,
-                                cell_y * 16000 + 8000,
-                                cell_z * 16000 + 8000, 0x2BC1);
+            visible = IsVisible(cell_x * CONSTRUCTION_CELL + 8000,
+                                cell_y * CONSTRUCTION_CELL + 8000,
+                                cell_z * CONSTRUCTION_CELL + 8000, 0x2BC1);
         } while (0);
     } while (0);
     if (visible)
