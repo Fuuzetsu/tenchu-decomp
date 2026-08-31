@@ -24,7 +24,7 @@
  *
  * Matching notes (1,392 bytes / 348 instructions):
  *  - The one-shot loop around the dtM/Me_MOTION_C loads and mask store leaves
- *    the original loop note for sched2.  It keeps the 0x7fff literal at the
+ *    the original loop note for sched2.  It keeps the MOTION_MASK_ALL store at the
  *    shared cleanup join instead of duplicating it into predecessor delay
  *    slots, and preserves the target's dtM-then-Me_MOTION_C load order.
  *  - The case-1 and final motion selections write their complete terminal

@@ -443,9 +443,11 @@ struct MotionManager
     s16 loop;                   /* 0x04 */
     s16 n;                      /* 0x06 */
     s16 mask;                   /* 0x08 (per-bone animation mask: bit i
-                                 * animates skeleton part i — 0x7FFF plays
-                                 * all 15, -2 everything but the root so
-                                 * the pose tracks without root motion;
+                                 * animates skeleton part i —
+                                 * MOTION_MASK_ALL plays all 15,
+                                 * MOTION_MASK_NOROOT everything but the
+                                 * root so the pose tracks without root
+                                 * motion;
                                  * ActiveMotion/SweepMotion walk it) */
     s16 mode;                   /* 0x0A */
     ModelArchiveType *model;    /* 0x0C */
