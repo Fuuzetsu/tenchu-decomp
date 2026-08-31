@@ -102,6 +102,12 @@ void DrawBleed(TEffectSlot *ef)
     *(s16 *)TENCHU_SCRATCHPAD(0x24) = z - (short)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
+    /* `scrp` is not a redundant alias for `&scr`: spelling the address
+     * directly at its uses costs 57 lines. PSX.SYM records `scr` twice
+     * here, once as an SVECTOR and once as a pointer, so the original
+     * had them in separate scopes rather than side by side -- but they
+     * are simultaneously live in retail's shape, so that is not
+     * reachable by renaming. */
     scrp = &scr;
     scrp->vz = (s16)RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(0x20),
                                  (s32 *)scrp,
