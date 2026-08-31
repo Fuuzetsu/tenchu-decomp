@@ -53,7 +53,7 @@ extern void vfree(void *ptr);
  *  - The one-shot loop around the rotation store emits no control flow; its
  *    loop note is the scheduler barrier needed for the target's two load
  *    delay nops.  This was isolated with the RTL-guided autorules pass.
- *  - Direct `point[i]` indexing gives the target's single induction value;
+ *  - Direct `tp[i]` indexing gives the target's single induction value;
  *    a walking TracePoint pointer introduces a second one.
  */
 void leLayoutEnemy(int mode)
@@ -120,19 +120,19 @@ void leLayoutEnemy(int mode)
                 SetupThinkFunction(human, en->ThinkType);
                 if (en->nPath != 0)
                 {
-                    TracePoint *point;
+                    TracePoint *tp;
                     s32 i;
 
-                    point = valloc((en->nPath + 1) * sizeof(TracePoint));
+                    tp = valloc((en->nPath + 1) * sizeof(TracePoint));
                     for (i = 0; i < en->nPath; i++)
                     {
-                        point[i].x = en->path[i].vx;
-                        point[i].z = en->path[i].vz;
-                        point[i].range = 1500;
-                        point[i].pad = 0;
+                        tp[i].x = en->path[i].vx;
+                        tp[i].z = en->path[i].vz;
+                        tp[i].range = 1500;
+                        tp[i].pad = 0;
                     }
-                    point[i].pad = -1;
-                    SetupTraceLine(human, point);
+                    tp[i].pad = -1;
+                    SetupTraceLine(human, tp);
                 }
                 if (human->trace != 0)
                 {

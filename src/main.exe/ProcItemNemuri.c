@@ -101,17 +101,17 @@ void ProcItemNemuri(TItem *item)
                 return;
             }
             {
-                VECTOR *position;
+                VECTOR *pos;
                 s32 n;
                 s32 collision_mode;
 
-                position = GetAbsolutePosition(
+                pos = GetAbsolutePosition(
                     item->owner->model->object[14], 0, 0, 0);
                 param->count = 0;
                 item->mode++;
-                item->locate->locate.coord.t[0] = position->vx;
-                item->locate->locate.coord.t[1] = position->vy;
-                item->locate->locate.coord.t[2] = position->vz;
+                item->locate->locate.coord.t[0] = pos->vx;
+                item->locate->locate.coord.t[1] = pos->vy;
+                item->locate->locate.coord.t[2] = pos->vz;
                 DeleteConflict(item->locate);
                 n = InsertConflict(item->locate);
                 collision_mode = 8;
@@ -209,8 +209,8 @@ void ProcItemNemuri(TItem *item)
                 random_buf.vz = rand() % 200 - 100;
                 /* Dead copy, but retail's own: the 12-byte struct copy is in
                  * the shipped bytes (removal measures -32). The jittered
-                 * position is computed and then never passed anywhere --
-                 * SetSmoke below gets the body position instead. */
+                 * pos is computed and then never passed anywhere --
+                 * SetSmoke below gets the body pos instead. */
                 random_pos = random_buf;
                 SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
 

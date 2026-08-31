@@ -549,7 +549,8 @@ resolve_hit:
                 if (UpdateMotion(dtM, MOT_ENGAGE) != 0)
                 {
                     int conflict_id;
-                    VECTOR *blood_pos;
+                    /* the blood/impact spawn point */
+                    VECTOR *pp;
 
                     SNAP_TO_WAIST_CONFLICT(conflict_id);
                     mmp = dtM;
@@ -562,14 +563,14 @@ resolve_hit:
                     MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
                     RECOIL_ATTACKER(RUMBLE_POWER_HALF, RUMBLE_RELEASE_NONE);
                     DeleteConflict(ConflictObject[(short)id].model);
-                    blood_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, (short)(dmg * 10 + 100), 0);
+                    pp = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, (short)(dmg * 10 + 100), 0);
                     t = 0;
                     do
                     {
                         pv.vx = rand() % 100 - 50;
                         pv.vy = rand() % 100 - 50;
                         pv.vz = rand() % 100 - 50;
-                        SetBleed(blood_pos, &pv, rand() % 20 + 20, COLOR_YELLOW);
+                        SetBleed(pp, &pv, rand() % 20 + 20, COLOR_YELLOW);
                         t++;
                     } while (t < 10);
                     REQUEST_DAMAGE_FEEDBACK(RUMBLE_RELEASE_NONE);
@@ -577,7 +578,7 @@ resolve_hit:
                         s16 r;
 
                         r = rand() % 360;
-                        set_impact_ex_(blood_pos, 0, 2 * FIXED_ONE, 6 * FIXED_ONE, RGB24(220, 220, 220), 0, r, 6, 9, 1);
+                        set_impact_ex_(pp, 0, 2 * FIXED_ONE, 6 * FIXED_ONE, RGB24(220, 220, 220), 0, r, 6, 9, 1);
                     }
                     if ((rand() & 1) != 0)
                     {
