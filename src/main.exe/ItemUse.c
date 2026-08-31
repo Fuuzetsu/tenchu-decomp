@@ -55,7 +55,6 @@ static s16 ItemUse(void)
 {
     Humanoid *me;
     s16 id;
-    s32 d;
 
     if (Me_THINK_C->motion->count != 0)
     {
@@ -76,13 +75,8 @@ static s16 ItemUse(void)
     me = Me_THINK_C;
     if (me->item[ITEM_SHURIKEN] != 0)
     {
-        d = Degree;
-        if (d < 0)
-        {
-            d = -d;
-        }
         id = MOT_SYURI;
-        if (d < 100)
+        if (__builtin_abs(Degree) < 100)
         {
             goto do_motion;
         }
@@ -93,13 +87,8 @@ static s16 ItemUse(void)
         goto end;
     }
 
-    d = Degree;
-    if (d < 0)
-    {
-        d = -d;
-    }
     id = MOT_ITEM_THROW;
-    if (d < 300)
+    if (__builtin_abs(Degree) < 300)
     {
         goto do_motion;
     }

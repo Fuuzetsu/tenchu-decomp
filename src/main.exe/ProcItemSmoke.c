@@ -12,10 +12,10 @@
  *
  * Matching notes (all verified against the original bytes; the deepest RTL
  * dive of the item TU — several pass-level levers):
- *  - `cnt` is `int` with `(u8)cnt` casts at the two zero-tests: a `u8 cnt`
- *    local makes the QI variable and the SI decrement temp separate pseudos
- *    that fail to coalesce here (an extra `move`); `int` + explicit re-narrow
- *    keeps ONE pseudo and still emits the `andi 0xff`s.
+ *  - Direct `param->count--` followed by direct field tests retains the
+ *    target's QI field update and SI test expressions without a staging
+ *    local. Narrowing the operation through a `u8` local instead introduces
+ *    a separate pseudo and an extra move.
  *  - The SetSmoke block's `scratch.smoke.build_pos` component stores are
  *    COMPONENT refs: an in-struct store invalidates cse's
  *    cached `item->locate` load (MEM_IN_STRUCT alias heuristic), reproducing
@@ -102,7 +102,6 @@ void ProcItemSmoke(TItem *item)
 {
     Sprite3D *model;
     param_smoke *param;
-    int cnt;
     ProcItemSmokeScratch scratch;
 
     model = (Sprite3D *)item->model;
@@ -131,12 +130,11 @@ void ProcItemSmoke(TItem *item)
     UpdateCoordinate(item->locate);
     model->locate = item->locate->locate;
     DrawSprite(model);
-    cnt = param->count - 1;
-    param->count = cnt;
+    param->count--;
     switch (item->mode)
     {
     case 0:
-        if ((u8)cnt != 0)
+        if (param->count != 0)
             return;
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
         param->count = SMOKE_DURATION;
@@ -144,14 +142,14 @@ void ProcItemSmoke(TItem *item)
         return;
 
     case 1:
-        if ((u8)cnt == 0)
+        if (param->count == 0)
         {
             if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
             return;
         }
-        if ((cnt & 1) == 0)
+        if ((param->count & 1) == 0)
         {
             scratch.smoke.vec = svec_y_n250[0];
             memset(&scratch.smoke.build_pos, 0, sizeof(VECTOR));
@@ -172,7 +170,6 @@ void ProcItemSmoke(TItem *item)
             Humanoid *found;
             Humanoid *human;
             int dist;
-            MotionDataType *md;
 
             q = &scratch.find;
             pos = (VECTOR *)item->locate->locate.coord.t;
@@ -214,8 +211,9 @@ void ProcItemSmoke(TItem *item)
                         dispose_weapon_data_of_char_(human, 3);
                         UpdateMotion(human->motion, MOT_DAMAGE_CHOKE);
                         human->status = i;
-                        md = human->motion->motion;
-                        MoveHumanoid(human, md->orderspd, md->sidespd);
+                        MoveHumanoid(human,
+                                     human->motion->motion->orderspd,
+                                     human->motion->motion->sidespd);
                     }
                     Sound(scratch.find.find, CHAR_VOICE_HURT);
                 }

@@ -83,7 +83,8 @@
  *    store earlier pins a later vect load below it and introduces a hazard nop.
  *  - Recompute the second (dtL->vy - height) - 400 base after the commit; the
  *    first batch still uses the original yy - 400.
- *  - ry is signed long and rys is its separate s16 narrowing for GetMoveSpeed.
+ *  - Keep ry signed long; explicit `(s16)ry` at the two GetMoveSpeed calls
+ *    retains the target narrowing without a separate carrier.
  *  - Retain MotionAndMove's short-index CVAhuman scan. Its found path jumps
  *    past SetNowMotion rather than returning because both paths must play the
  *    sound.
@@ -101,7 +102,6 @@ short HangCheck(void)
     long dy;
     long oy;
     long yc;
-    short rys;
     short i;
 
     if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_BEAST)
@@ -159,8 +159,7 @@ short HangCheck(void)
         }
         ry = yc;
     }
-    rys = ry;
-    GetMoveSpeed(&vect, rys, (Me_MOTION_C->width >> 1) + 300, 0);
+    GetMoveSpeed(&vect, (s16)ry, (Me_MOTION_C->width >> 1) + 300, 0);
     dy = (dtL->vy - Me_MOTION_C->height) - LEDGE_PROBE_RISE;
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy,
                         dtL->vz + vect.vz, AREA_LEVEL_RETURN_DELTA);
@@ -170,7 +169,7 @@ short HangCheck(void)
         return 0;
     }
     dtR->vy = ry;
-    GetMoveSpeed(&vect, rys, (Me_MOTION_C->width >> 1) + 100, 0);
+    GetMoveSpeed(&vect, (s16)ry, (Me_MOTION_C->width >> 1) + 100, 0);
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx, dy,
                         dtL->vz + vect.vz, AREA_LEVEL_RETURN_DELTA);
     if (y != (u32)LEVEL_NONE && y <= LEDGE_PROBE_RISE)

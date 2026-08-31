@@ -42,10 +42,10 @@
  *    `p` can remain nonvolatile, so the zero store fills the resume jump's
  *    delay slot.  A genuine loop needed a volatile pointee to avoid that GIV,
  *    and the volatile store forced a duplicate counter increment.
- *  - Caching `ViewInfo` explicitly gives the target's s2 base.  Initialising
- *    `i`, `view`, then `p` reproduces the counter/ViewInfo/misc preheader.
- *    The named `coord` temp plus `d = view->field; coord = p->field; d -=
- *    coord;` fixes both the target load order and its v0/v1 subtraction roles.
+ *  - Caching `ViewInfo` explicitly gives the target's s2 base. Initialising
+ *    `i`, `view`, then `p` reproduces the counter/ViewInfo/misc preheader;
+ *    direct `__builtin_abs(view->field - p->field)` expressions retain the
+ *    target load order and subtraction roles without staging locals.
  *  - Cache `p->proc` for the in-range call, but dispatch the out-of-range call
  *    through the field.  That distinction matches the target call carriers.
  *  - `DrawTMDmode = TMD_BANK_FOG;` sits textually right after the cull loop in
@@ -64,9 +64,6 @@ enum
 
 void DoMiscProc(void)
 {
-    s32 i;
-    s32 d;
-    s32 coord;
     TMisc *p;
     GsRVIEW2 *view;
     void (*proc)(TMisc *, TMiscMessage);
@@ -79,6 +76,8 @@ void DoMiscProc(void)
     {
         if (GameClock == (GameClock / 10) * 10)
         {
+            s32 i;
+
             i = 0;
             view = &ViewInfo;
             p = misc;
@@ -86,26 +85,11 @@ void DoMiscProc(void)
             proc = p->proc;
             if (proc != 0)
             {
-                d = view->vrx;
-                coord = p->x;
-                d -= coord;
-                if (d < 0)
-                    d = -d;
-                if (d < LEN)
+                if (__builtin_abs(view->vrx - p->x) < LEN)
                 {
-                    d = view->vry;
-                    coord = p->y;
-                    d -= coord;
-                    if (d < 0)
-                        d = -d;
-                    if (d < LEN)
+                    if (__builtin_abs(view->vry - p->y) < LEN)
                     {
-                        d = view->vrz;
-                        coord = p->z;
-                        d -= coord;
-                        if (d < 0)
-                            d = -d;
-                        if (d < LEN)
+                        if (__builtin_abs(view->vrz - p->z) < LEN)
                         {
                             if (p->pause != 0)
                             {
@@ -128,12 +112,16 @@ void DoMiscProc(void)
             if (i < MaxMisc)
                 goto cull_loop;
         }
-        DrawTMDmode = TMD_BANK_FOG;
-        for (i = 0; i < MaxMisc; i++)
         {
-            if (misc[i].proc != 0 && misc[i].pause == 0)
+            s32 i;
+
+            DrawTMDmode = TMD_BANK_FOG;
+            for (i = 0; i < MaxMisc; i++)
             {
-                misc[i].proc(&misc[i], MM_DO);
+                if (misc[i].proc != 0 && misc[i].pause == 0)
+                {
+                    misc[i].proc(&misc[i], MM_DO);
+                }
             }
         }
     }

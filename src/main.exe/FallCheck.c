@@ -38,8 +38,8 @@
  *  - The default and the looping STAT_SQUAT arm jump to `fall`, after the common
  *    return-zero statement. That source layout emits the target's physical
  *    case order: STAT_SQUAT, return-zero, default.
- *  - Comparing CVAhuman[] against the global Me_MOTION_C (rather than the
- *    cached `human`) preserves the target's CSE copy in the scan prologue.
+ *  - Comparing CVAhuman[] against the global Me_MOTION_C directly preserves
+ *    the target's CSE copy in the scan prologue.
  */
 
 extern Humanoid *Me_MOTION_C;
@@ -48,9 +48,6 @@ extern void AttackCancelControl(short mode);
 
 short FallCheck(void)
 {
-    Humanoid *human;
-    VECTOR *locate;
-
     if (motID == MOT_STATE_FALL)
     {
         return 1;
@@ -89,10 +86,10 @@ short FallCheck(void)
 
 fall:
     dtM->mask = 0x7fff;
-    human = Me_MOTION_C;
-    locate = dtL;
-    locate->vx += (human->width * RefrectMove[human->map.angleH][0]) >> 2;
-    locate->vz += (human->width * RefrectMove[human->map.angleH][1]) >> 2;
+    dtL->vx += (Me_MOTION_C->width *
+                RefrectMove[Me_MOTION_C->map.angleH][0]) >> 2;
+    dtL->vz += (Me_MOTION_C->width *
+                RefrectMove[Me_MOTION_C->map.angleH][1]) >> 2;
     motMODE = 0;
     motID = MOT_STATE_FALL;
     SET_NOW_MOTION_UNLESS_CVA(goto found);
