@@ -60,6 +60,16 @@
  *    into the call's 3rd argument position fixed it in one edit.
  */
 
+enum CVACameraCutTag
+{
+    CVA_CAMERA_CUT_TARGET_RELATIVE_BASE = 0,
+    CVA_CAMERA_CUT_TARGET_RELATIVE_QUARTER_TURN = 1,
+    CVA_CAMERA_CUT_TARGET_RELATIVE_HALF_TURN = 2,
+    CVA_CAMERA_CUT_TARGET_RELATIVE_THREE_QUARTER_TURN = 3,
+    CVA_CAMERA_CUT_FIXED_POSITION = 4,
+    CVA_CAMERA_CUT_HUMANOID_POSITION = 5
+};
+
 void AVCameraSetup(void)
 {
     CVAType *event;
@@ -70,11 +80,11 @@ void AVCameraSetup(void)
     event = CVAnow;
     switch (event->id)
     {
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-        ry = (u16)CameraTarget->rotate->vy + (event->id << 10);
+    case CVA_CAMERA_CUT_TARGET_RELATIVE_BASE:
+    case CVA_CAMERA_CUT_TARGET_RELATIVE_QUARTER_TURN:
+    case CVA_CAMERA_CUT_TARGET_RELATIVE_HALF_TURN:
+    case CVA_CAMERA_CUT_TARGET_RELATIVE_THREE_QUARTER_TURN:
+        ry = (u16)CameraTarget->rotate->vy + event->id * ANGLE_QUADRANT;
         vect.pad = (s16)ry;
         GetMoveSpeed(&vect, (s16)ry, (event->p != 0) ? event->p : 3000, 0);
         ViewInfo.vpx = CameraTarget->locate->vx + vect.vx;
@@ -82,13 +92,13 @@ void AVCameraSetup(void)
         ViewInfo.vpz = CameraTarget->locate->vz + vect.vz;
         break;
 
-    case 4:
+    case CVA_CAMERA_CUT_FIXED_POSITION:
         ViewInfo.vpx = event->x * 100;
         ViewInfo.vpy = event->y * 100;
         ViewInfo.vpz = event->z * 100;
         break;
 
-    case 5:
+    case CVA_CAMERA_CUT_HUMANOID_POSITION:
         human = GetHumanoid(event->p);
         if (human == 0)
         {

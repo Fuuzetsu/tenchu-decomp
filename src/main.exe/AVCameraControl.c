@@ -34,13 +34,26 @@
  *
  * The 2/3 and 6/7 arms contain source-level GetMoveSpeed calls whose common
  * call sequence is merged by cross-jump. The short `ry` needs two ordinary
- * wide copies in the 2/3 arm: `move_base` preserves its signed extension,
+ * wide copies in the 2/3 arm: `base_angle` preserves its signed extension,
  * while `speed` preserves CameraSpeed's signed load. Both optimize away as
  * storage, but without them cc1 uses modulo-short `lhu` arithmetic and
  * coalesces the input/result into the wrong register.
  */
 
 extern void Camera(void);
+
+enum CameraPanTag
+{
+    CAMERA_PAN_DISABLED = 0,
+    CAMERA_PAN_NORMAL_CAMERA = 1,
+    CAMERA_PAN_ORBIT_ANGLE_INCREASE = 2,
+    CAMERA_PAN_ORBIT_ANGLE_DECREASE = 3,
+    CAMERA_PAN_UP = 4,
+    CAMERA_PAN_DOWN = 5,
+    CAMERA_PAN_ZOOM_IN = 6,
+    CAMERA_PAN_ZOOM_OUT = 7,
+    CAMERA_PAN_TRACK_TARGET = 8
+};
 
 void AVCameraControl(void)
 {
@@ -49,7 +62,7 @@ void AVCameraControl(void)
     long zz;
     long len;
     short ry;
-    long move_base;
+    long base_angle;
     long speed;
 
     xx = ViewInfo.vpx - ViewInfo.vrx;
@@ -59,35 +72,37 @@ void AVCameraControl(void)
 
     switch (CameraPanMode)
     {
-    case 0:
+    case CAMERA_PAN_DISABLED:
         return;
-    case 1:
+    case CAMERA_PAN_NORMAL_CAMERA:
         Camera();
         return;
-    case 2:
-    case 3:
-        move_base = ry;
+    case CAMERA_PAN_ORBIT_ANGLE_INCREASE:
+    case CAMERA_PAN_ORBIT_ANGLE_DECREASE:
+        base_angle = ry;
         /* The twin `speed = CameraSpeed;` on both arms is byte-required
          * (hoisting it above the if mismatches). */
-        if (CameraPanMode == 2)
+        if (CameraPanMode == CAMERA_PAN_ORBIT_ANGLE_INCREASE)
         {
             speed = CameraSpeed;
-            ry = move_base + speed;
+            ry = base_angle + speed;
         }
         else
         {
             speed = CameraSpeed;
-            ry = move_base - speed;
+            ry = base_angle - speed;
         }
         GetMoveSpeed(&vect, ry, len, 0);
-        goto apply_move;
-    case 4:
-    case 5:
-        ViewInfo.vpy += (CameraPanMode == 4) ? -CameraSpeed : CameraSpeed;
+        goto apply_eye_xz;
+    case CAMERA_PAN_UP:
+    case CAMERA_PAN_DOWN:
+        ViewInfo.vpy += (CameraPanMode == CAMERA_PAN_UP)
+                            ? -CameraSpeed
+                            : CameraSpeed;
         break;
-    case 6:
-    case 7:
-        if (CameraPanMode == 6)
+    case CAMERA_PAN_ZOOM_IN:
+    case CAMERA_PAN_ZOOM_OUT:
+        if (CameraPanMode == CAMERA_PAN_ZOOM_IN)
         {
             len -= CameraSpeed;
         }
@@ -97,11 +112,11 @@ void AVCameraControl(void)
         }
         GetMoveSpeed(&vect, ry, len, 0);
 
-    apply_move:
+    apply_eye_xz:
         ViewInfo.vpx = ViewInfo.vrx + vect.vx;
         ViewInfo.vpz = ViewInfo.vrz + vect.vz;
         break;
-    case 8:
+    case CAMERA_PAN_TRACK_TARGET:
         ViewInfo.vrx = CameraTarget->locate->vx;
         ViewInfo.vry = CameraTarget->locate->vy - CameraTarget->height + 300;
         ViewInfo.vrz = CameraTarget->locate->vz;
