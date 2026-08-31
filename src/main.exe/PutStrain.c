@@ -96,7 +96,6 @@ void PutStrain(s32 x, s32 y)
     GsSPRITE *spr;
     s32 delta;
     s32 s;
-    s32 osc;
     u16 phase;
     u8 shade;
     s16 scale;
@@ -150,6 +149,10 @@ void PutStrain(s32 x, s32 y)
             img->u = (base + base) - base;
         }
 
+        /* This is cc1's own signed-divide-by-32 expansion, and unlike
+         * the one below it does NOT fold back: `delta / 32` costs 6
+         * lines, because `delta` is still live for the scale below
+         * and the schedule differs. */
         delta = powrange - ratio;
         s = delta;
         if (delta < 0)
@@ -159,10 +162,7 @@ void PutStrain(s32 x, s32 y)
         spr->y = (s16)y;
         phase = StrainPhase + (s >> 5);
         StrainPhase = phase;
-        osc = rsin(phase) * 0x60;
-        if (osc < 0)
-            osc += 0xfff;
-        shade = (osc >> 0xc) + range / 2;
+        shade = rsin(phase) * 0x60 / 0x1000 + range / 2;
         spr->b = shade;
         spr->g = shade;
         spr->r = shade;

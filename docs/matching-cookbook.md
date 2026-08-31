@@ -1961,6 +1961,20 @@ irreducible nest: DrawConstruction's 3.
   reports genuine divergences — UpdateTexScroll's demo parameter is a
   `TexScroll *` because retail turned it into an effect-slot proc — so
   say so at the site rather than "fixing" it.
+- **`if (x < 0) x += 2**n - 1;` before `x >> n` is cc1's OWN signed
+  division, written out.** Where our source spells that sequence, the
+  original almost certainly wrote `x / 2**n` and we transcribed the
+  expansion. Five recovered so far: PutStrain's shade, MoveFly's x/y/z,
+  AddItem2's cx. Grep for `+= 0x(1f|3f|ff|fff|...)` next to a `< 0` test
+  to find more; note the shift may be spelled `>> 12` or `>> 0xc`, and
+  the divided result often lands in a DIFFERENT variable, so the staging
+  collapses too (`xs = x >> 12` becomes `xs = <expr> / 0x1000`).
+  It does not always fold: two siblings in the very same functions
+  refuse, and the reason both times is that the guarded value stays live
+  afterwards (AddItem2's `sx` 64 lines, MoveFly's `q2` 9 lines,
+  PutStrain's `delta` 6). **Test each site alone AND in combination** --
+  MoveFly's three fold together, but an early wrong-target rewrite made
+  them look like they conflicted.
 - **The EffectSlot pool scan's `idx`/`slot` lockstep is byte-required.**
   `SetBlood`, `SetImpact`, `SetSmokeS` and `SetupTexScroll` all carry the
   same five locals (`idx`, `base`, `slot`, `count`, `ef`) maintaining an

@@ -73,6 +73,9 @@ static void MoveFly(TItem *item, param_fly *param)
         q = k - (t << 12) / param->p.fly.count2;
         q2 = q * q;
         d2 = q * 2;
+        /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
+         * fold back to `q2 / 0x1000` -- q2 is reused as the interpolation weight afterwards,
+         * so the schedule differs (9 lines). Its sibling below does. */
         if (q2 < 0)
             q2 += 0xfff;
         q2 = q2 >> 12;
@@ -80,17 +83,11 @@ static void MoveFly(TItem *item, param_fly *param)
         w9 = k - d2 + nv;
         w8 = d2 + nv * -2;
         x = w9 * param->p.fly.sx + w8 * param->p.fly.rx + nv * param->p.fly.vx;
-        if (x < 0)
-            x += 0xfff;
-        xs = x >> 12;
+        xs = x / 0x1000;
         y = w9 * param->p.fly.sy + w8 * param->p.fly.ry + q2 * param->p.fly.vy;
-        if (y < 0)
-            y += 0xfff;
-        ys = y >> 12;
+        ys = y / 0x1000;
         z = w9 * param->p.fly.sz + w8 * param->p.fly.rz + nv * param->p.fly.vz;
-        if (z < 0)
-            z += 0xfff;
-        zs = z >> 12;
+        zs = z / 0x1000;
         if (t == 0)
     {
             model = item->locate;

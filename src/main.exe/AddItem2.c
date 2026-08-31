@@ -101,6 +101,9 @@ void AddItem2(void)
 
     sx = rsin(CamState.Owner->model->rotate.vy) * 1000;
     pm = CamState.Owner->model;
+    /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
+     * fold back to `sx / 0x1000` -- sx is still live for the x term below,
+     * so the schedule differs (64 lines). Its sibling below does. */
     if (sx < 0)
         sx += 0xfff;
     h = pm->locate.coord.t[1];
@@ -108,9 +111,7 @@ void AddItem2(void)
     x = pm->locate.coord.t[0] - (sx >> 12);
     cx = rcos(pm->rotate.vy) * 1000;
     pm = CamState.Owner->model;
-    if (cx < 0)
-        cx += 0xfff;
-    z = pm->locate.coord.t[2] - (cx >> 12);
+    z = pm->locate.coord.t[2] - (cx / 0x1000);
     h = GetAreaMapLevel(GlobalAreaMap, x, y, z, AREA_LEVEL_STEP_DOWN);
     if (h != LEVEL_NONE)
     {
