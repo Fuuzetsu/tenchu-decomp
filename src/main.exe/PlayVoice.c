@@ -79,92 +79,39 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
 }
 
 /*
- * PlayVoice (0x8004eee4) — look up voice-clip `id` in one of several
- * TVoiceTable arrays and CdaPlayXA it. id < 100: current-language event
- * table (VoiceTables..EC / VoiceXaName, indexed by CHOSEN_LANGUAGE).
- * 100 <= id < 200: the INTRO table (id -= 100). id >= 200: the TORA table
- * (id -= 200). If none of those has the id, falls back to the shared
- * VoiceCommon table (always using the first event-table filename).
- * Each table is a linear array of {no,channel,smin,ssec,emin,esec}
- * records terminated by no==0xff. On a total miss: AdtMessageBox + CdaStop.
- * On a hit: clamp the persisted volume byte (gSELevel) to 0x7f, reset the
- * CD-XA mix volume, re-apply the persisted volume, build `start`/`end`
- * CdlLOCs from the record's min/sec (the lead-in-compensated "*2+OFFSET"
- * conversion, exactly _PlayMusic.c's own start/end construction), and
- * CdaPlayXA; a zero return gets its own AdtMessageBox.
- * The selected retail table row is named `match`: PSX.SYM's original `loc`
- * local was instead a CdlLOC pointer, so that name does not belong to this
- * TVoiceTable view.
+ * MATCHED: PlayVoice (0x8004eee4, 756 bytes / 189 instructions) searches a
+ * language table for ids below 100, VoiceBank1 for ids 100-199, or VoiceBank2
+ * for higher ids,
+ * then falls back to VoiceCommon using the first localized filename. A miss
+ * reports the id and stops CD audio.
+ * A hit clamps gSELevel, restores the XA mix, converts the row's minute/second
+ * pairs to start/end locations, and plays its channel; playback failure is
+ * reported with the filename, channel, and id.
  *
- * Matching notes:
- *  - Retail's four localized filename pointers are distinct globals, not one
- *    global array: the target loads all four independently through $gp before
- *    constructing the local `filenames` array. Declaring a global
- *    `VoiceXaName[4]` instead makes cc1 materialize one base and load at
- *    offsets 0/4/8/12, growing this function from 756 to 772 bytes. The first
- *    pointer retains PSX.SYM's original VoiceXaName name; F/I/J are the added
- *    retail localizations visible in the pointed-to filenames.
- *  - The two search loops are DIFFERENT shapes (confirmed against the raw
- *    target .s and cross-checked with Ghidra's own two independent
- *    reconstructions): the CHOSEN_LANGUAGE-indexed loop re-caches the id
- *    scalar (`entry = voice; if (match) break; voice++; entry = 0;` —
- *    Ghidra's own `uVar3 = *pbVar5;` re-read-after-advance shape), while
- *    the INTRO/TORA loop peeks the NEXT record's id through a SEPARATE
- *    pointer before actually advancing the cursor (`entry = voice; if
- *    (match) break; entry = voice + 1; voice++; } while (entry->no
- *    != 0xff);` — Ghidra literally renders this as two assignments,
- *    `pbVar6 = pbVar5 + 6; pbVar5 = pbVar5 + 6;`, that a naive reading
- *    would collapse into one).
- *
- * STATUS: MATCHED — 756 bytes / 189 instructions, pure C.
- *
- * PSX.SYM lists two distinct nested `min`/`sec` pairs. Giving each
- * BuildVoiceLocation call its own block scope, while keeping the volume clamp
- * in an `s32`, fixes the saved-register cycle and makes the complete playback
- * tail exact. The high-ID search keeps separate current and peek-next pointer
- * identities through a jump2-erased equal-arm copy.
- *
- * Two fixes closed 14 -> 4 (both confirmed with tools/regalloc.py, not
- * guessed): (1) naming the language-search loop's exit sentinel
- * (`end_marker = 0xff;` local instead of the literal `0xff` in
- * `while (voice_id != 0xff)`) fixed the emission order of the cached
- * sentinel vs. the `cursor = voice` copy — matches a live permuter find,
- * ported by delta not score, from a bounded run (RESULT.md's
- * `output-50-1`): 14 -> 10 bytes. (2) The SAME reused `end_marker` local,
- * shared with the fallback search (`VoiceCommon`), was forced to CONFLICT
- * with `voice` in regalloc.py's `.greg` dump (`82 conflicts: ... 88`) —
- * `voice`'s pseudo is read every iteration of the CHOSEN_LANGUAGE loop by
- * its nested `if (voice != 0)` fence, so it stays live well past where the
- * target's `a0` copy of it actually dies, and the reused sentinel pseudo
- * (live across BOTH loops) is born inside that extended range. That false
- * conflict exiled the sentinel out of `voice`'s register in the fallback
- * loop too, cascading into the a0/a1 swap there. Giving the fallback search
- * its own `fallback`/`fallback_end` locals (declared, never read by the
- * other two branches) removes the shared pseudo and the false conflict
- * outright — collapsed 3 clusters in one edit: 9 -> 4 bytes, exactly the
- * "fixing one allocation collapses several clusters" pattern.
- *
- * The last 4-byte residual was not a sub-C floor. Compiler dumps showed that
- * it comprised two decisions: global allocation of the adjacent filename and
- * voice-table aggregate bases, then local scheduling of their two indexed
- * addresses. Selecting a filename slot first and deriving `language` from its
- * pointer difference is ordinary pointer code and gives the filename base one
- * additional real RTL reference. In the exact `.lreg`/`.greg` dumps the two
- * bases are p95 = 3 refs / 8 live insns -> s0 and p96 = 2 / 8 -> s1, exactly
- * the target homes. Directly indexing both arrays had instead produced 2 / 10
- * and 2 / 7 and exchanged those homes.
- *
- * With the saved homes fixed, `sched` still chose the table-address `addu`
- * first because its load feeds the immediately following voice-id test. The
- * target forms both addresses first (filename, then table), loads the voice,
- * then fills its load delay with the filename load. The zero-code loop boundary
- * after address formation leaves global allocation unchanged but gives sched
- * exactly that dependency boundary. This was verified pass-by-pass in `.cse`,
- * `.sched`, `.lreg`, and `.greg`; removing only the boundary preserves length
- * and the saved homes but exchanges the four v0/v1 operands at 0x8004f024-30.
- * Both primary-table hit edges can be ordinary loop `break`s. The fallback
- * hit assigns `match` at its actual search site and retains the jump over the
- * miss reset; jump2 recreates the target's small out-of-line hit block.
+ * Matching constraints:
+ *  - VoiceXaName, VoiceXaNameF, VoiceXaNameI, and VoiceXaNameJ are distinct
+ *    globals. Treating them as one global array changes the loads and grows
+ *    the function from 756 to 772 bytes.
+ *  - The language loop advances and then re-caches the current id. The
+ *    INTRO/TORA loop instead peeks the next row through a separate pointer
+ *    before advancing. Do not normalize these two source shapes.
+ *  - The two BuildVoiceLocation calls need separate min/sec block scopes, and
+ *    volume is s32. Together they preserve the playback tail's saved-register
+ *    assignment.
+ *  - The high-bank search keeps current and next as distinct pointer
+ *    identities; jump2 erases the equal-arm copy that expresses this.
+ *  - end_marker belongs only to the language loop. The fallback search has
+ *    separate fallback and fallback_end locals; sharing the sentinel creates
+ *    a false live-range conflict and swaps the fallback registers.
+ *  - Select the filename slot first, then derive language from its pointer
+ *    difference. That extra real reference gives the filename and table bases
+ *    their target saved-register homes; direct indexing swaps them.
+ *  - Keep the zero-code region after forming the two indexed addresses. It
+ *    changes only sched's dependency region, producing filename address,
+ *    table address, voice load, then filename load in the voice load's delay
+ *    slot.
+ *  - Primary-table hits are loop breaks. The fallback hit remains a goto so
+ *    jump2 retains the target's small out-of-line hit block.
  */
 void PlayVoice(int id)
 {

@@ -50,102 +50,36 @@
  * END PSX.SYM */
 
 /*
- * Register-allocation notes, verified against cc1 2.8.1's own -dl/-dg/-dS
- * dumps and its source (flow.c, global.c, sched.c) this session.
+ * Register-allocation constraints:
+ *  - reflect_dz is a short, hot, call-crossing carrier that outranks and
+ *    conflicts with i, so it takes $s0 and moves i to $s1. The earlier zz
+ *    values then share $s0 because each dies at its reflect_dz copy.
+ *  - Keep the three copies in separate control-flow blocks, with the turn-path
+ *    copy before if (i > 0), and keep the mask and shift as two statements.
+ *    Flow counts those references before the copies, mask, and negation fold
+ *    away; moving or combining them loses the required conflict or weight.
+ *    Reusing dead PSX.SYM local ry also matches, but reflect_dz states the value
+ *    being preserved and has more allocation headroom.
+ *  - There is no honest carrier in the conflict loop: GetDirection's result
+ *    dies before SetNowMotion, while the vector save/restore crosses no call.
+ *  - Retail's added damage arm makes i call-crossing, creating the contest that
+ *    the demo build did not have. GCC 2.8.0-psx, 2.8.1-psx, and gs107 agree on
+ *    this allocation; 2.7.2 misses even the instruction count.
  *
- * WHY reflect_dz EXISTS (the `reflect_dz = zz` on all three reflect
- * paths, the `&= ~1` before the halving, and the final negate-and-add):
- * $s0 must go to a value that
- * beats `i` in global-alloc priority (floor_log2(refs)*refs/live_length,
- * refs weighted by loop depth at flow time) AND that conflicts with i's
- * live ranges, or find_reg simply gives $s0 to both. Written with zz
- * doing everything (halved in place, subtracted at the tail), zz counts
- * 18 weighted refs over 160 live insns (4500) against i's ~9100-9950: i
- * takes $s0 and every callee-saved assignment shifts off the retail
- * bytes. Splitting the applied displacement into reflect_dz builds a
- * short, hot, call-crossing carrier instead: three path copies + mask
- * + shift + negate + the tail use = 10 refs over 24 insns (12500),
- * with the turn-block copy above the `if (i > 0)` test so reflect_dz
- * overlaps (and thus conflicts with) i, and before MoveHumanoid so it
- * crosses a call. reflect_dz takes $s0 first, i lands on $s1, and zz
- * - dying at each `reflect_dz = zz` - shares $s0 afterward, so the
- * copies coalesce to nothing. The mask folds into the sra
- * (simplify_shift_const) and the negate folds into the add
- * (A + (-B) -> A - B), both AFTER flow counts them: no instruction is
- * generated for either. Load-bearing details, all measured: the three
- * copies must sit in separate blocks (a same-block copy combines into
- * the `&=` and stops crossing the call); the turn-block copy must
- * precede the `if (i > 0)` (below it, nothing conflicts with i and
- * find_reg gives $s0 to BOTH); and the mask+shift must be two
- * statements (the fused form loses a counted ref). Re-using the dead
- * PSX.SYM ry as the carrier also measures byte-identical (thinner
- * margin, 8 refs); reflect_dz is the joint Claude+Codex pick for its
- * narration and headroom. The conflict loop has no equivalent
- * partition: GetDirection's result must die before SetNowMotion and
- * the vz save-restore crosses nothing, so no loop-range piece can
- * cross a call honestly - measured and argued from both sides. This is not a compiler quirk of ours: GCC
- * 2.8.0-psx, 2.8.1-psx and the gs107 build emit byte-identical code
- * for this function, 2.7.2-class codegen cannot reproduce even its
- * instruction count, and every era-plausible flag measures inert on
- * this allocation. (Historical note: before the fission this file
- * carried a seven-level do{}while(0) nest that boosted zz itself to 32
- * weighted refs - see git history for that mechanism's full story.)
- *
- * WHY RETAIL NEEDS IT AT ALL: the JP demo's DefaultActionHumanoid
- * (0x80024de0; Oct 1997, so necessarily a pre-2.8.0-era compiler) has no
- * damage arm in the conflict loop. Its i never lives across a call,
- * colors caller-saved $a2, and its zz takes $s0 uncontested. Retail's
- * added damage arm (GetDirection/SetNowMotion/Sound) makes i live across
- * calls, promoting it into the callee-saved file — that promotion
- * creates the i-vs-zz contest the ry fission settles. The demo's debug idiom
- * was bare FntPrint dumps (still compiled into the demo binary), deleted
- * in retail without residue.
- *
- * THE THREE DBG SITES IN THE CONFLICT ARM (empty do{}while(0) once
- * expanded for release): pure scheduling, no
- * weight (nothing inside them, so nothing is ref-boosted). A loop-note
- * pair bounds a sched1 region even when empty, and these keep the four
- * conflict-record loads in retail's order: written flat, sched's
- * backward pass places one of the record loads next to
- * ConflictObject[object_id]'s load (sched.c's potential_hazard prefers a
- * memory op right after a memory op) and no plain statement order
- * reaches the retail sequence address / lh id / lh size / lw position /
- * index chain / lw position — measured, and visible in the -dS trace.
- * Each of the three is individually load-bearing, and the size-then-
- * position load order inside the third region is too (all measured).
- * Some region edge is unavoidable in flat C: yy carries both the
- * position load and the later turn-arm value (both $a0 in the bytes;
- * one PSX.SYM local), so it has two assignments, REG_N_SETS != 1
- * denies its load sched1's birthing bump, and nothing else holds the
- * backward pass off it. Keywords cannot substitute (all measured):
- * volatile on the short field is byte-visible — it de-fuses lh into
- * lhu + sll/sra, so the retail bytes rule volatile out on their own;
- * a volatile s32 read orders only memory ops, not the address ALU
- * chain that must stay below the record loads; const and register are
- * inert. The likely original spelling is no spelling at all: an empty
- * do{}while(0) is exactly what the period's standard debug-print
- * macro (#define DBG(x) do { } while (0)) leaves in a release build,
- * and the debug-side wrapper do { FntPrint x; } while (0) is measured
- * byte-invisible around a live call. The demo binary carries this
- * function's actual debug prints: an if/else pair straight after the
- * map probe dumping the probe result --
- *     "l(ia) h%d v%x ah%x al%x %04x\n"   (map->level == LEVEL_NONE)
- *     "l%d h%d v%x ah%x al%x %04x\n"     (level, height, vector,
- *                                          angleH, angleL, attrib)
- * (strings at 0x800106d4/0x800106f4; 31 FntPrint sites across the
- * demo build). That pair now stands in the code below under the DBG
- * macro, measured byte-inert. Retail kept the machinery -- FntPrint
- * is still linked and called (the ADT debug menu), and
- * debug_printf_/debug_msg_open_ are RETAIL-era additions -- so
- * per-frame dumps compiled out while diagnostics stayed. The three
- * load-bearing empty sites sit exactly where a dev debugging the new
- * damage arm would dump the collision record. Three deleted debug prints explain the barriers
- * without anyone typing a bare one-shot loop.
- *
- * Retail narrows the recovered `long i` at both map-query calls; the
- * explicit casts keep the shared API's promoted `int mode` visible.
+ * Scheduling constraints:
+ *  - The three empty DBG one-shot loops in the conflict arm are release forms
+ *    of debug-print sites. Their loop notes form sched1 region boundaries and
+ *    preserve the target's conflict-record load order. Each site, and the
+ *    size-before-position source order in the third region, is required.
+ *  - Qualifiers are not substitutes: volatile on the short field changes the
+ *    load sequence; a volatile word orders memory but not the address ALU;
+ *    const and register are inert.
+ *  - This explanation is consistent with the demo's live map-probe prints and
+ *    its 31 FntPrint calls. Retail still links diagnostic printing, so deleted
+ *    per-frame DBG calls are a natural source for the otherwise empty fences.
+ *  - The recovered long i is explicitly narrowed at both map queries to keep
+ *    the shared API's promoted int mode visible.
  */
-
 short DefaultActionHumanoid(Humanoid *human)
 {
     MapVector *map;

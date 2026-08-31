@@ -24,88 +24,31 @@
  * END PSX.SYM */
 
 /*
- * STATUS: MATCHING — pure C, all 268 bytes exact (67 instructions), with
- * the function-local and whole-image byte counts both at zero.
+ * MATCHED: SuccessionAttack (0x8002fabc, 268 bytes) decides which follow-up
+ * attack buttons to synthesize from the current continuation frame, distance,
+ * angle, and engagement-level random gate.
  *
- * SuccessionAttack (0x8002fabc, 0x10c bytes) — same "think" TU as
- * Think3chase.c/Think3escape.c/Think3firstattack.c/Think1trace.c (s16
- * return; gp-relative Me_THINK_C/Distance/Degree/EngageLevel — see gpsyms).
- * Called (as a static helper, per PSX.SYM) from Think3area/Think3attack/
- * Think3hitaway to decide whether the current attack motion may chain into
- * a follow-up.
- *
- * Guard: only continues if the character's current animation frame
- * (Me_THINK_C->motion->count, the MotionManager frame counter — the same
- * field Think1sleep.c proves, and AttackContinuousCheck's `dtM->count`)
- * equals BattleDB[warid].contfrm — `warid` is Me_THINK_C's field @0x8C, the
- * official Humanoid name (item.h) for what was the guessed
- * `index_s32o_animation_collection`.
- *
- * `BattleType` comes from game_types.h (the official 8-short layout, confirmed
- * identical to `reference/psxsym-types.h`) — `contfrm` @0x8, the offset the
- * asm's `lh v0,8(v0)` confirms after the `sll v0,v0,4` (0x10 stride) index
- * scale.
- *
- * The `t % lev` (`rand() % (EngageLevel+1)`) division-guard trap
- * sequence (`break 7`/`break 6`) needs maspsx `--expand-div` for this file
- * (added to Build.hs's `extra`/permute.py's `MASPSX_EXTRA` — same lever as
- * Think3escape/GetAreaMapLevel/bow_shoot_logic): WITHOUT it the trap guard
- * is silently dropped from the assembled output even though cc1 emitted it,
- * a ~150-byte-diff red herring that looks like a missing C construct.
- *
- * `buttons` must stay 16-bit (NOT the `u8` autorules suggests, which "wins" by
- * 2 bytes but is a FALSE WIN: `buttons = -0x8000;`/`= 0x2000;` truncate to 0 in
- * a u8, an outright wrong value — reject per the cookbook's "never accept
- * an autorules win that changes what a value actually holds" caveat, this
- * time for a plain local rather than a struct field).
- *
- * `int d = deg;` declared as the FIRST statement inside the `Distance<dist`
- * block (not `deg` used inline) fixed the function's LENGTH (was 1
- * instruction/4 bytes short): the fallthrough block's first statement gets
- * hoisted into the OUTER guard branch's delay slot, and only `deg`'s own
- * sign-extension — not `Degree`'s load — is independent enough of the
- * ABS-compute to serve as that filler when it is the textually-first
- * reference.
- *
- * FIVE REAL STRUCTURAL FIXES applied across the focused sessions, found by
- * decoding the target's raw instructions address-by-address (not guessing):
- *
- * 1. The tail's `if/else` at in_range has its arms SWAPPED relative to
- *    Ghidra's rendering: the target's `bnez`/fallthrough shape decodes as
- *    `if (Degree >= 301) { buttons = 0x2000; } else { buttons |= 0x80; if
- *    (Degree < -300) { buttons = -0x8000; } else { goto ret; } } buttons |= 0x80;
- *    ret: return buttons;` — i.e. Ghidra's literal `if (Degree<0x12d){ if
- *    (-0x12d<Degree) return 0x80; ... }` is the INVERSE condition with the
- *    bodies swapped, PLUS the `return 0x80;` is really a `goto` that skips
- *    a SECOND, later `buttons |= 0x80;` (the delay slot of the skip-edge's
- *    `beqz` executes an unconditional `ori s0,s0,0x80` every time that arm
- *    is even considered, per MIPS delay-slot semantics — decode the
- *    disassembly with delay slots in mind, not the pseudo-linear reading).
- *    Getting the if/else polarity right fixed the branch layout AND, via a
- *    named `ret:` label + `goto` (not a second literal `return buttons;` —
- *    two textually-identical `return` tails do NOT cross-jump-merge in this
- *    cc1; route the second through a `goto` to a single shared one, per the
- *    cookbook's Shared-tails section) the shared-return register colouring.
- * 2. `buttons` must be `s16` (not `u16`): assigning the literal `-0x8000`
- *    (0x8000's bit pattern) to a `u16` still folds to the UNSIGNED
- *    representation internally, so cc1 emits `li s0,0x8000` (`ori`) instead
- *    of the target's `li s0,-32768` (`addiu`) — same 4 bytes, wrong opcode.
- *    `s16` reproduces the target's `addiu` encoding exactly.
- * 3. Store `t < d` back into `t` before testing it. This deliberately
- *    reuses Degree's dying carrier, reproducing the target's `slt v1,...` and
- *    `bnez v1` instead of allocating a fresh `$v0` (8 -> 6 bytes).
- * 4. Mutate `raw` with `__builtin_abs` before the comparison. GCC keeps this
- *    as one opaque `abssi2` RTL pattern through delayed-branch reorganization,
- *    then emits the target's in-place `bgez v1; nop; negu v1`. A manual
- *    sign-fix exposed the branch early, allowing `fill_simple_delay_slots` to
- *    steal the preceding `sra v0` into its delay slot. A distinct builtin
- *    destination emitted the three-register `move` form and added 8 bytes;
- *    mutating `raw` gives the exact register tie and schedule.
- * 5. Route the modulo-failure edge through the existing typed `ret` label.
- *    With opaque `abssi2` reducing the visible RTL jump count, a literal
- *    `return buttons` was cross-jump-merged with the initial `return 0`, moving
- *    the early-return block and cascading 100 bytes. `goto ret` preserves the
- *    target's distinct immediate-zero return and shared signed-s16 epilogue.
+ * Matching constraints:
+ *  - The entry guard compares motion->count with
+ *    BattleDB[Me_THINK_C->warid].contfrm. BattleType is the proven
+ *    eight-short, 0x10-byte layout.
+ *  - This file requires maspsx --expand-div so rand() % (EngageLevel + 1)
+ *    retains cc1's divide guards.
+ *  - buttons is s16. u8 destroys the 0x8000/0x2000 values; u16 changes the
+ *    target's signed -0x8000 addiu into an ori.
+ *  - d = deg is the first statement inside the Distance block. Its independent
+ *    sign extension fills the outer guard's delay slot and restores the
+ *    otherwise missing instruction.
+ *  - Assign t = raw < d before testing it, so the comparison reuses Degree's
+ *    dying carrier rather than allocating a fresh result register.
+ *  - Mutate raw with __builtin_abs. The opaque abssi2 pattern preserves the
+ *    target's in-place branch/nop/negu sequence through delay-slot reorg;
+ *    a manual sign fix or separate destination changes the schedule.
+ *  - Preserve the tail topology: Degree > 300 selects PADLright; otherwise
+ *    PADRleft is set before the Degree < -300 test, and the neutral-angle arm
+ *    jumps to the shared ret label. The modulo-failure edge also jumps there.
+ *    These gotos keep that signed epilogue shared while leaving the initial
+ *    zero return distinct.
  */
 extern Humanoid *Me_THINK_C;
 extern int rand(void);

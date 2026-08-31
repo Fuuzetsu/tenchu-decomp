@@ -2,93 +2,29 @@
 #include "main.exe.h"
 
 /*
- * STATUS: MATCHING — exact 112-byte / 28-instruction pure C. The final
- * 15-byte residual was a uniform allocation cascade caused by defining
- * `rp` before the `test` branch. That made its pointer pseudo overlap the
- * condition result and hard-conflict with target `$v0`. Defining the same
- * named pointer at the start of both arms removes the conflict during
- * allocation; delay-slot reorg later shares the identical address
- * calculation into the branch delay slot, reproducing the target.
+ * MATCHED: remap_buttons_ (0x8001b2f4, 112 bytes) applies the selected
+ * eight-button ControlScheme row. For each raw row-zero bit it sets or clears
+ * the corresponding selected-row bit, preserving all other bits.
  *
- * remap_buttons_ (0x8001b2f4) — pad button REMAPPER: called by
- * ThinkBasicHuman1 as `pad = remap_buttons_(GetPad(0));` (see
- * ThinkBasicHuman1.c's matching notes — established prototype
- * `extern s32 remap_buttons_(s16 pad);`, wide s32 return). Not yet named or
- * placed in reference/psxsym-candidates.tsv / psxsym-unplaced.tsv (no
- * PSX.SYM block — checked both by address and by name).
- *
- * ButtonAssign is a 32-byte table: 4 "control-scheme" rows of 8 bytes, each
- * row a permutation of the 8 single-bit pad masks (0x01/0x02/.../0x80).
- * ControlScheme (a %gp_rel short, control-scheme index 0-3) selects the row
- * (`row = ControlScheme << 3`). For each of the 8 canonical button positions
- * i, the function tests the CALLER's raw pad bits against row 0's mask
- * `ButtonAssign[i]` and, if set, OR's the SELECTED scheme's mask
- * `ButtonAssign[row+i]` into the result (remapping physical button i to
- * logical position row+i); if clear, it AND-clears that same logical bit.
- * This is a classic PS1 "control type A/B/C/D" pad remapper. Untried
- * candidate names from the unplaced/candidates lists (SetPadState,
- * SetPad) don't fit this address or behavior.
- *
- * Matching notes:
- *  - `pad` (the parameter, s16) is a byte/bit TEST source only; `acc` (the
- *    OR/AND accumulator, u16, seeded from `pad` so the untouched high
- *    bits/unlisted buttons pass through unchanged) is the separate
- *    register that survives to the return. Ghidra's `ushort uVar2` is the
- *    accumulator's real type — the final `(int)(short)` cast at the
- *    return re-establishes sign, matching the caller's s32-return
- *    prototype.
- *  - The row-clearing branch's mask is read raw as `u8` (`ButtonAssign[row]`)
- *    then bitwise-NOT'd in the FULL (int-promoted, zero-extended) width —
- *    this is what compiles to the `nor $zero,v0` / `and` pair, not an
- *    `andi` (0x80011210's bytes never need masking down further).
- *  - `i` (0..7, the row-0 test index) and `row` (the selected row's index,
- *    incrementing in lockstep) are two SEPARATE loop-carried values
- *    (register $a2 / $v1) — both start together (`i=0`, `row=scheme<<3`)
- *    and both `+= 1` every iteration, but they are NOT the same variable
- *    (only `row`'s start is offset by the scheme selection).
- *  - Loop is a genuine `do { ... } while (i < 8);` — `i` starts at 0 and
- *    the bound is a compile-time constant 8, so jump.c's
- *    duplicate_loop_exit_test folds away any entry guard regardless of
- *    for/while/do-while spelling; do-while matches Ghidra's own shape.
- *  - The declaration-order/dead-initial-`rp` and the `test` split (holding
- *    the bit-test result in its OWN pseudo instead of inline in the `if`)
- *    both came from decomp-permuter, verified afterward with
- *    `tools/matchdiff.py` (28->15 bytes) — a THIRD permuter round found a
- *    45-scoring "improvement" (making the loop bound test `test < 8`
- *    instead of `i < 8`) that is semantically WRONG (`test` holds
- *    `pad & ButtonAssign[i]`, not the counter) and was rejected despite the
- *    better score — permuter/autorules scores are a proxy, not proof;
- *    only `tools/matchdiff.py`'s raw byte diff and a manual read of what
- *    changed are.
- *
- * The dead initializer is the defined `rp = ButtonAssign`, not the former
- * `&ButtonAssign[row]` with uninitialized `row`; it preserves the exact pseudo
- * creation effect without evaluating an indeterminate array subscript.
- *
- * RTL escalation: `rp` must stay a NAMED pointer rather than writing
- * `ButtonAssign[row]` inline in EACH arm. With two inline occurrences,
- * `.loop`'s combine_givs sums their benefits (`giv at 58 combined with giv
- * at 59`, `giv at 45 combined with 59`, `giv at 44 combined with 59` — 4
- * records from the 2 arms) and crosses the strength-reduction threshold,
- * turning `row` itself into an incrementing BYTE POINTER (biv 83
- * eliminated) — a different, 1-instruction-LONGER shape (116 vs 112 bytes)
- * that the target does not have. With exactly one textual `ButtonAssign[i]`
- * reference (`i`'s own address calc), the same dump shows `giv of insn 34
- * not worth while, 0 vs 22` — below threshold, `i` stays a plain SI
- * counter, matching target. The named-pointer form is therefore not cosmetic:
- * it keeps `row` a counter even though the pointer assignment is duplicated.
- *
- * In the pre-branch draft, `.greg` showed `rp` hard-conflicting with hard
- * `$v0`; its 6 refs / 4 live insns made it the first allocno, so it took
- * `$a1` and shifted `acc`, `i`, and the table base through `$a2/$a3/$t0`.
- * With one pointer definition inside each arm, `.lreg` has two mutually
- * exclusive post-branch definitions. The merged pointer pseudo can take
- * `$v0`, leaving `acc=$a1`, `i=$a2`, and the table base `$a3`; `.dbr` then
- * moves one identical `addu $v0,$v1,$a3` into the condition branch's delay
- * slot and removes the other copy. This changes allocation-time liveness,
- * not final instruction count or loop strength reduction.
+ * Matching constraints:
+ *  - pad is the signed-16 test source; acc is a separate u16 accumulator and
+ *    is cast back through s16 for the function's wide return.
+ *  - The clear mask is a raw u8 table load complemented after integer
+ *    promotion, producing nor/and rather than a narrowed immediate mask.
+ *  - i and row are distinct loop-carried counters. The do/while starts at
+ *    i == 0 and advances both until i == 8.
+ *  - Keep test as an explicit pseudo. It is a pad-bit result, so using it as
+ *    the loop bound would be semantically wrong even if a diff score improved.
+ *  - rp is a named pointer with a defined dead initializer, then an assignment
+ *    at the start of each branch. The mutually exclusive definitions let it
+ *    take $v0; delay-slot reorg merges the identical address calculation into
+ *    the condition branch's delay slot. Defining it once before the branch
+ *    overlaps the condition and cascades the remaining allocations.
+ *  - Do not inline ButtonAssign[row] in both arms. Two textual indexed uses
+ *    cross loop.c's strength-reduction threshold and turn row into a byte
+ *    pointer, making the function one instruction longer. The named pointer
+ *    keeps row as the target's integer counter.
  */
-
 extern u8 ButtonAssign[32];
 /* s16 here vs main.c's u16 is byte-required: this TU's read is a
  * signed lh (measured — the u16 form flips it to lhu). */

@@ -2,113 +2,37 @@
 #include "main.exe.h"
 
 /*
- * PClseek (0x80060224) — PC-file lseek stub (part of the PCopen/PCclose/
- * PClseek/PCcreat/PCinit/PCread/PCwrite host-file-I/O family; "Possible
- * LSEEK.OBJ/PClseek" per Ghidra, i.e. a PsyQ CRT library object). It shifts
- * its 3 args up one register slot (fd:$a0->$a1, offset:$a1->$a2, mode:$a2->
- * $a3) and executes a raw `break 0x0,0x107` (MIPS trap/syscall exception) —
- * the PS1 BIOS's host-link mechanism for a real lseek() when running under a
- * dev kit. Ghidra models the two BIOS outputs as bare incoming registers
- * `in_v0`/`in_v1` (error code / result): `if (in_v0 != 0) in_v1 = -1; return
- * in_v1;`.
+ * HANDWRITTEN: PClseek (0x80060224, 36 bytes) is the PsyQ host-file lseek
+ * stub; the guarded reference reconstruction below is byte-exact.
+ * It shifts fd, offset, and mode from $a0-$a2 to the handler's private
+ * $a1-$a3 convention, executes host-link trap 0x107, and returns the $v1
+ * result or -1 when $v0 reports an error. The demo body is also identical.
  *
- * STATUS: the guarded reference reconstruction is byte-exact (0/36).  Fresh
- * comparison shows that the demo body at 0x80051494 is also all 36 bytes
- * identical to retail, with no PSX.SYM C translation-unit or line records.
- * This is a stable HANDWRITTEN-ASSEMBLY library object, not a C function stuck
- * in an allocator local minimum.  Three independent tells agree:
+ * This is proven handwritten assembly, not a C allocator near miss:
+ *  - trap 0x107 is unique in the image and is not one of cc1's break patterns;
+ *  - shifting all arguments up one register has no C calling-convention cause;
+ *  - the trap returns independent status and result values in $v0 and $v1;
+ *  - the original-object label LSEEK_OBJ_1C survives in the symbol table.
+ * There are no PSX.SYM C translation-unit or line records. Under
+ * docs/gte-policy.md the canonical asm may be counted done once the owner adds
+ * it to config/handwritten-asm.txt; this file does not make that policy change.
+ * It is SDK code above the 0x80060000 game-code boundary in either case.
  *
- *   1. `break 0, 263` (0x107) is the ONLY two-operand break in the entire
- *      image. The compiler's own trap codes appear in bulk — `break 7`
- *      (divide-by-zero) 139 times, `break 6` (overflow) 131 times — because
- *      cc1 emits them from mips.md. 263 belongs to no cc1 pattern: it is the
- *      host-link trap code the dev kit's handler dispatches on. A compiler
- *      does not emit a code it does not own.
- *   2. The args are shifted UP one register (fd:$a0->$a1, offset:$a1->$a2,
- *      mode:$a2->$a3) so the trap handler can read them from $a1-$a3. No C
- *      calling convention produces that; it only makes sense hand-written
- *      against a handler's private ABI.
- *   3. `$v1` is read as a SECOND return value alongside `$v0` (error code /
- *      result), which the MIPS C ABI has no way to express — and the target's
- *      own branch label is `LSEEK_OBJ_1C`, i.e. the original object's label
- *      survived into the image.
- *
- * Under docs/gte-policy.md's owner-approved rule (proven handwritten =>
- * the asm is canonical => counted done), this belongs in
- * config/handwritten-asm.txt alongside the GTE family. It is NOT listed there
- * yet: membership is attributed to an explicit owner decision, so the addition
- * remains flagged for ratification rather than taken unilaterally.  The exact
- * guarded reconstruction below records the private trap ABI without changing
- * that project classification.
- *
- * (Note this is SDK code — 0x80060224 is above the 0x80060000 game boundary —
- * so it does not affect the game-code scoreboard either way.)
- *
- * The former pure-C investigation, kept for the record:
- *
- * 1. `break 0x0,0x107` has NO C representation at all — the only way to
- *    emit it is inline asm with register-pinned variables (confirmed
- *    working below: `register int x __asm__("$5") = fd;` etc., feeding a
- *    `break` instruction via extended asm).  It is retained only inside this
- *    guarded reference for an original already proven to be assembly.
- * 2. Tool finding (reusable): maspsx's `break` handling
- *    (`maspsx/__init__.py`, `elif op == "break"`) expects the SINGLE-value
- *    form (`break 0x107`) and itself splits it into the two 10-bit fields —
- *    NOT the two-operand disassembly form (`break 0, 263`) Ghidra/objdump
- *    print; the latter makes maspsx raise `invalid literal for int() with
- *    base 0: '0,'`.
- * 3. Before the handwritten control tail was retained, the C draft had a
- *    stubborn 7-byte register-materialization-timing residual.  The target
- *    computes the result into $v0 EARLY (a `move v0,v1` in the `beqz`'s
- *    delay slot, so
- *    both the success path (v0=v1) and the error path (v0=-1) leave the
- *    answer in $v0 well before the epilogue, which is then a bare `nop`),
- *    whereas cc1 here keeps the value in the trap's own $v1 output
- *    throughout (a zero-cost coalesce — "result = r_v1" is free once r_v1
- *    is pinned to $3) and only inserts the ABI-mandated $v1->$v0 move at the
- *    true `return` (the LAST possible point, not the first). Tried: a
- *    shared `result` local (same outcome — coalesces with r_v1 regardless),
- *    two early returns (`if(err) return -1; return r_v1;` — fixes the
- *    v0/v1 choice but cc1 no longer cross-jumps the two returns into one
- *    epilogue, costing a whole extra `j ra` = wrong length), reusing r_v0
- *    itself as the accumulator (same extra-epilogue problem), and a ternary
- *    return (different wrong shape: routes through $a0 as scratch instead).
- *    This is a genuine sub-C-level control-flow boundary, not a source-shaping
- *    or register-allocation problem.
- * RE-VERIFIED (a later session, RTL-dump-backed): re-derived the mechanism
- * independently via tools/rtldump.py --draft on the `.i.greg`/`.i.jump`
- * dumps rather than trusting this header's prose. Confirmed: the shared-
- * `goto done; done: return ret;` shape allocates `ret` straight into hard
- * reg 3 (v1) — `.i.greg` shows "88 preferences: 3" / "88 in 3" — because
- * `ret = r_v1` is a free coalesce once r_v1 is pinned to $3; the single
- * ABI $v1->$v0 copy then lands at the merge block (`.i.greg` insn 41),
- * exactly the observed 7-byte residual. Tried BOTH orderings of two literal
- * `return` statements (`if(err) return -1; return ok;` AND the branch-sense-
- * flipped `if(ok) return ok; return -1;`, matching the target's `beqz`
- * sense) — `.i.jump` shows both give each arm its OWN independent v0
- * materialization (the desired shape, `insn 35: v0=v1` / `insn 28: v0=-1`)
- * but ALSO an unconditional `jump_insn` from the fallthrough arm to the
- * merge label (block layout always places the branch-target arm textually
- * AFTER the fallthrough arm, so the fallthrough needs an explicit jump over
- * it) — confirmed via matchdiff: "LENGTH MISMATCH — 40 bytes" both times,
- * not just "differs". This cc1 does not perform the target's layout (placing
- * the taken-arm's one-instruction body into the branch's own delay slot to
- * avoid needing a jump at all) from any two-return C shape tried.  Four
- * independent shapes converged on the same two local optima
- * (7-off/right-length or 4-over/wrong-length).
- * tools/permute.py was attempted as the final bounded step per protocol but
- * could not be completed cleanly in this sandbox (harness auto-backgrounds
- * bash calls exceeding ~2 minutes regardless of an inner `timeout`, so the
- * "foreground, bounded" invocation kept detaching); killed after several
- * minutes of real permuter activity with no zero found.
- *
- * The exact #else reconstruction keeps the trap, branch, success-result copy
- * in its delay slot, and error `-1` as one coherent handwritten unit; cc1 emits
- * only the ordinary final `jr ra`/`nop`.  The default build retains the
- * byte-identical two-piece INCLUDE_ASM body.  LSEEK_OBJ_1C is this function's
- * own epilogue, not a separate routine; splat carved it separately only because
- * the original object label survived in symbols.main.exe.txt.
+ * Reconstruction constraints:
+ *  - maspsx source must use the one-value spelling "break 0x107"; the
+ *    disassembler's "break 0, 263" spelling is not accepted.
+ *  - The trap, status branch, $v1-to-$v0 copy in the branch delay slot, and
+ *    error -1 are one handwritten unit. cc1 supplies only the final return.
+ *  - Pure C cannot express the trap ABI. Even with pinned-register inline asm,
+ *    a shared result coalesces with $v1 and moves to $v0 only at the epilogue.
+ *    Two direct returns instead produce independent materializations but add
+ *    an unwanted jump (40 bytes). Neither spelling can put the success copy
+ *    in the target branch's delay slot while retaining the 36-byte layout.
+ *  - The default build therefore keeps the exact two-piece INCLUDE_ASM body.
+ *    LSEEK_OBJ_1C is PClseek's epilogue; it was split only because the original
+ *    object label survived.
  */
+
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PClseek", PClseek);
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/PClseek", LSEEK_OBJ_1C);
