@@ -51,7 +51,7 @@
  *    as the other twins.
  *  - aowner/atype and x/z are real temps, same shape as the other twins (no `y`
  *    temp here: end.vy is never read). The block-scoped
- *    `koro` is PSX.SYM's second `param`.
+ *    `param` is PSX.SYM's second `param`.
  *  - `item->param.ninken.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as the other twins.
  */
@@ -89,16 +89,18 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
     {
-        param_korogari *koro; /* second pointer pseudo, byte-required (writing through the full member path re-colors the stores) */
+        param_korogari *param; /* shadows the outer `param`, as PSX.SYM has it;
+                                * byte-required -- writing through the full
+                                * member path re-colors the stores */
 
-        koro = &item->param.ninken.koro;
+        param = &item->param.ninken.koro;
         x = p->end.vx;
         z = p->end.vz;
-        koro->vx = x;
-        koro->vy = -250;
-        koro->vz = z;
+        param->vx = x;
+        param->vy = -250;
+        param->vz = z;
         item->param.ninken.koro.hint = 0;
-        koro->status = KORO_NORMAL;
+        param->status = KORO_NORMAL;
     }
     param->slave = 0;
     param->count = 15;

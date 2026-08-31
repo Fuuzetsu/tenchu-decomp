@@ -51,7 +51,7 @@
  *    shadow is the second `param` recorded by PSX.SYM.
  *  - `item->param.dokudango.koro.hint = 0;` uses the direct union path (not
  *    `param`) for this one store, same as ReqItemDrop/ReqItemJirai.
- *  - PSX.SYM supplies the koro/eater/org_think/count nesting and names. The
+ *  - PSX.SYM supplies the param/eater/org_think/count nesting and names. The
  *    retail executable accesses count as a halfword, widened from the demo's
  *    byte, so the retail declaration retains that one version difference.
  */
@@ -90,17 +90,19 @@ int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
     {
-        param_korogari *koro; /* second pointer pseudo, byte-required (writing through the full member path re-colors the stores) */
+        param_korogari *param; /* shadows the outer `param`, as PSX.SYM has it;
+                                * byte-required -- writing through the full
+                                * member path re-colors the stores */
 
-        koro = &item->param.dokudango.koro;
+        param = &item->param.dokudango.koro;
         x = p->end.vx;
         y = p->end.vy;
         z = p->end.vz;
-        koro->vx = x;
-        koro->vy = y;
-        koro->vz = z;
+        param->vx = x;
+        param->vy = y;
+        param->vz = z;
         item->param.dokudango.koro.hint = 0;
-        koro->status = KORO_NORMAL;
+        param->status = KORO_NORMAL;
     }
     param->count = 10;
     param->eater = 0;

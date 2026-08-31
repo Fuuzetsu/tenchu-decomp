@@ -114,17 +114,19 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
     item->collision.size = 0;
     item->model = (ModelType *)ItemImage[item->type];
     {
-        param_korogari *koro; /* second pointer pseudo, byte-required (writing through the full member path re-colors the stores) */
+        param_korogari *param; /* shadows the outer `param`, as PSX.SYM has it;
+                                * byte-required -- writing through the full
+                                * member path re-colors the stores */
 
-        koro = &item->param.ningyo.koro;
+        param = &item->param.ningyo.koro;
         x = p->end.vx;
         y = p->end.vy;
         z = p->end.vz;
-        koro->vx = x;
-        koro->vy = y;
-        koro->vz = z;
+        param->vx = x;
+        param->vy = y;
+        param->vz = z;
         item->param.ningyo.koro.hint = 0;
-        koro->status = KORO_NORMAL;
+        param->status = KORO_NORMAL;
     }
     param->count = NINGYO_DURATION;
     item->locate->rotate.vx = 0;
