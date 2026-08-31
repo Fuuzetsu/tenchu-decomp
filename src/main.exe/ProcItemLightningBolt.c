@@ -70,6 +70,14 @@ extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
 
 void ProcItemLightningBolt(TItem *item)
 {
+    /* The bolt re-aims and re-strikes every third frame: STRIKE moves the
+     * hit volume onto a fresh target, WAIT counts down to the next one. */
+    enum
+    {
+        LIGHTNING_MODE_START = 0,
+        LIGHTNING_MODE_STRIKE = 1,
+        LIGHTNING_MODE_WAIT = 2
+    };
     param_lightningbolt *param;
     VECTOR target;
     u8 cnt;
@@ -78,12 +86,12 @@ void ProcItemLightningBolt(TItem *item)
     param = &item->param.lightningbolt;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = LIGHTNING_MODE_START;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case LIGHTNING_MODE_START:
         param->count = 15;
         item->mode++;
         if (item->owner == CamState.Owner)
@@ -92,7 +100,7 @@ void ProcItemLightningBolt(TItem *item)
         }
         break;
 
-    case 1:
+    case LIGHTNING_MODE_STRIKE:
         SearchItemTarget2(item->owner, &item->param.lightningbolt.rot,
                           &param->start, &target);
         item->locate->locate.coord.t[0] = target.vx;
@@ -104,10 +112,10 @@ void ProcItemLightningBolt(TItem *item)
         item->mode++;
         break;
 
-    case 2:
+    case LIGHTNING_MODE_WAIT:
         if (GameClock == (GameClock / 3) * 3)
         {
-            item->mode = 1;
+            item->mode = LIGHTNING_MODE_STRIKE;
         }
         break;
     }
