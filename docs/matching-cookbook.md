@@ -1948,6 +1948,19 @@ irreducible nest: DrawConstruction's 3.
   the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
   a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
   bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **Run `tools/symnote.py --params` after any humanising round.** A
+  PARAMETER name in PSX.SYM is the most certain evidence the symbol table
+  offers — it is structurally unambiguous — whereas a repeated local
+  record can be the demo's own different function. It caught a real error
+  in a landed round: PutLifeBar's parameters had been renamed away from
+  the recorded x/y/n on the strength of a second x/y/n record that turned
+  out to be the demo's POLY_F4 life-bar renderer, and could not have been
+  a shadow anyway (the inner three are initialised FROM the parameters,
+  and the code after the block still needs them unmodified). When the two
+  halves of the evidence disagree, the parameter record wins. It also
+  reports genuine divergences — UpdateTexScroll's demo parameter is a
+  `TexScroll *` because retail turned it into an effect-slot proc — so
+  say so at the site rather than "fixing" it.
 - **A suffixed local alone in a nested block is usually a shadow we
   renamed.** When an inner scope genuinely needs its own variable, our
   instinct has been to invent a distinct name for clarity — `scan_i`,
