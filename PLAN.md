@@ -970,6 +970,39 @@ reader hunts later named ATTR_SEARCH/FLOAT/NOFLOOR/LEDGE statically;
 what genuinely needs data or runtime is only map bit 8's floor-material
 identity, and 0x200/0x2000 are reader-less set-only bits).
 
+## Numeric state machines — the standing queue (2026-09-01)
+
+Rounds 39/40 settled that a `switch` on a mode field with bare numeric
+cases is worth naming even when sibling files all write bare modes:
+`rand() % 360` is self-evident and `case 2:` is not, and Dokudango's
+ROLL/SEARCH/EAT/POISON came straight off its own case bodies. The
+siblings are the queue, not the argument against.
+
+Find them with: a `switch` whose cases are ALL numeric literals, 3+ of
+them. Remaining, roughly in order of how opaque they are:
+
+- `update_card_screen_` (21/22/22/11 cases) and `update_card_message_`
+  (17/20/19) — the memory-card protocol, with deliberately spaced values
+  (10, 20, 30, 37, 38, 40, 43, 50, 53, 92). The biggest opaque blocks in
+  the tree and the ones a reader can least guess at.
+- `AVCameraControl` (9, `CameraPanMode`), `debug_menu_stage_option` (7),
+  `AVCameraSetup` (6, `event->id`), `briefing_screen_` (4, `sequence`).
+- The effect emitters, which are a CROSS-FILE straggler rather than a
+  fresh naming job: `SetGore` already names `GORE_MODE_AIRBORNE` while
+  `DrawGore` switches on bare 3/2/1 for the same field. Same split for
+  `DrawBlood`/`DrawSplash`/`DrawExplosion`. Name the Set* side and the
+  Draw* side together, from one enum.
+- Remaining ProcItem modes: Gosin, Gun, Kaengeki, LightningBolt,
+  Shinsoku. Kawarimi/Nemuri/Dokudango are done; Henshin/Jirai in flight.
+- `PutMap` (`PutMapMode`), `StageEndScreen` (`dispatch`),
+  `LoadConstruction` (`wlddt[i].mode`, cases 0/5/2), `draw_fade_`,
+  `InitFileSystem`, `FileRead`, `EndDrawing`.
+
+Two rules that come with this work (both in the cookbook): name the
+states from what the case bodies DO, and sweep the whole function so
+nothing tests by name and assigns by number — including ordering
+comparisons like `mode < DOKUDANGO_MODE_EAT`, not just `case` labels.
+
 ## Round 2 of humanising — real source shape, not names (2026-08-31)
 
 The 2026-08-27 loop closed on NAMES and artifacts. This round is about
