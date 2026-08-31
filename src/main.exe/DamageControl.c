@@ -177,7 +177,7 @@ void DamageControl(void)
             p.vx = dtL->vx;
             p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
-            SetImpact(&p, FIXED_SCALE(6), 2);
+            SetImpact(&p, 6 * FIXED_ONE, 2);
             if (StagePlayer == enemy)
             {
                 PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);
@@ -560,7 +560,7 @@ resolve_hit:
                         s16 r;
 
                         r = rand() % 360;
-                        set_impact_ex_(blood_pos, 0, FIXED_SCALE(2), FIXED_SCALE(6), RGB24(220, 220, 220), 0, r, 6, 9, 1);
+                        set_impact_ex_(blood_pos, 0, 2 * FIXED_ONE, 6 * FIXED_ONE, RGB24(220, 220, 220), 0, r, 6, 9, 1);
                     }
                     if ((rand() & 1) != 0)
                     {
@@ -748,7 +748,7 @@ resolve_hit:
             p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
             SetBlood(&p, 5, 120);
-            SetImpact(&p, FIXED_SCALE(6), 2);
+            SetImpact(&p, 6 * FIXED_ONE, 2);
             {
                 Humanoid *who;
 

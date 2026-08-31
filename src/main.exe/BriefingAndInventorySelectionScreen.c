@@ -339,7 +339,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
         }
 
-        PutItemCursor(SHOP_ITEM_DEFAULTS[cursor].x, SHOP_ITEM_DEFAULTS[cursor].y, FIXED_ONE, SPRITE_ROTATION(-3));
+        PutItemCursor(SHOP_ITEM_DEFAULTS[cursor].x, SHOP_ITEM_DEFAULTS[cursor].y, FIXED_ONE, -3 * FIXED_ONE);
         {
             int ddx, ddy, hx, hy;
             int k;

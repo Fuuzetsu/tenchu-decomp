@@ -117,7 +117,7 @@ void ProcItemLaunch(TItem *item)
         cid = GetConflictResult(item->locate, -1);
     if (cid != -1 && is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, FIXED_SCALE(4), 2);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE, 2);
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
         goto dispose;
     }

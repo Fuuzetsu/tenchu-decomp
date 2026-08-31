@@ -174,7 +174,7 @@ void ProcItemArrow(TItem *item)
                     }
                     model = *models;
                     SetImpact(GetAbsolutePosition(model, 0, 0, 0),
-                              FIXED_SCALE(6), 2);
+                              6 * FIXED_ONE, 2);
                     SoundEx(GetAbsolutePosition(model, 0, 0, 0), SE_PROJECTILE_HIT);
                     ArrangeLocalMatrix(model,
                                        &item->locate->locate.coord);

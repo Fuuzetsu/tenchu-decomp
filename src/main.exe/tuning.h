@@ -17,8 +17,6 @@
 #define FIXED_QUARTER 0x0400
 #define FIXED_HALF 0x0800
 #define FIXED_ONE 0x1000
-#define FIXED_SCALE(n) ((n) * FIXED_ONE)
-#define SPRITE_ROTATION(degrees) ((degrees) * FIXED_ONE)
 
 /* Packed 0xRRGGBB effect colours. Use RGB24 for one-off palette shades. */
 #define RGB24(r, g, b) (((r) << 16) | ((g) << 8) | (b))

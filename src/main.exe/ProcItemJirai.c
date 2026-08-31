@@ -244,7 +244,7 @@ void ProcItemJirai(TItem *item)
                         scratch.frame.random_pos.vz = rand() % 200 - 100;
                     } while (0);
                     scratch.frame.pos = scratch.frame.random_pos;
-                    SetFrame(&scratch.frame.pos, FIXED_SCALE(3),
+                    SetFrame(&scratch.frame.pos, 3 * FIXED_ONE,
                              rand() % 60 + 60,
                              (GsCOORDINATE2 *)frame_model);
                 }

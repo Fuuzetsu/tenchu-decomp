@@ -366,7 +366,7 @@ void ProcItemFire(TItem *item)
                 scratch.frame.random_pos.vy = rand() % 200 - 100;
                 scratch.frame.random_pos.vz = rand() % 200 - 100;
                 scratch.frame.pos = scratch.frame.random_pos;
-                SetFrame(&scratch.frame.pos, FIXED_SCALE(3), 120,
+                SetFrame(&scratch.frame.pos, 3 * FIXED_ONE, 120,
                          (GsCOORDINATE2 *)frame_model);
             }
         }

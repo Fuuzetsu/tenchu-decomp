@@ -96,6 +96,6 @@ normal:
         pos.vy += 2000;
         SetSmoke(&pos, &dir, 1, 1);
         pos.vy -= 2000;
-        SetSplash(&pos, FIXED_SCALE(4), FIXED_SCALE(2), 10);
+        SetSplash(&pos, 4 * FIXED_ONE, 2 * FIXED_ONE, 10);
     }
 }

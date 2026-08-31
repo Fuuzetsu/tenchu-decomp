@@ -239,7 +239,7 @@ void ProcItemShinsoku(TItem *item)
             scratch.query.pos =
                 *(VECTOR *)item->owner->model->locate.coord.t;
             scratch.query.pos.vy -= 300;
-            set_impact_ex_(&scratch.query.pos, 0, FIXED_SCALE(2), FIXED_SCALE(5),
+            set_impact_ex_(&scratch.query.pos, 0, 2 * FIXED_ONE, 5 * FIXED_ONE,
                            COLOR_GRAY, 0, 0, -30, 0x10, 3);
         }
         if (CamState.Owner == item->owner)

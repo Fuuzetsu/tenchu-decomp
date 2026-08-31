@@ -124,7 +124,7 @@ void PutItemList(void)
             {
                 GsSPRITE *spr;
 
-                PutItemCursorInline(x, ItemY - 8, FIXED_ONE, SPRITE_ROTATION(-6)); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
+                PutItemCursorInline(x, ItemY - 8, FIXED_ONE, -6 * FIXED_ONE); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
 
                 SelectedItem = i;
                 spr = &ItemImage[i]->sprite;

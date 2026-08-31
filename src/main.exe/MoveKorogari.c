@@ -112,7 +112,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                  * took the splash direction it still loads here. */
                 vec = svec_y_n20[0];
                 SetSplash((VECTOR *)item->locate->locate.coord.t,
-                          FIXED_SCALE(2), FIXED_SCALE(2), 4);
+                          2 * FIXED_ONE, 2 * FIXED_ONE, 4);
                 param->status = KORO_WATER;
             }
             param->vy = -param->vy / 8;

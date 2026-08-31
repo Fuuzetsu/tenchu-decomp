@@ -93,7 +93,7 @@ void ProcItemGun(TItem *item)
     case 0:
         vec = svec_z_n250[0];
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
-        SetImpact((VECTOR *)item->locate->locate.coord.t, FIXED_SCALE(2), 0);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, 2 * FIXED_ONE, 0);
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, COLOR_GRAY_DARK);
         item->mode++;
         return;
@@ -123,13 +123,13 @@ void ProcItemGun(TItem *item)
             RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
             if (IsHuman != 0)
             {
-                SetImpact(&target, FIXED_SCALE(6), 0);
+                SetImpact(&target, 6 * FIXED_ONE, 0);
                 SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_RED);
                 SoundEx(&target, SE_GUN_HIT_FLESH);
             }
             else
             {
-                SetImpact(&target, FIXED_SCALE(4), 0);
+                SetImpact(&target, 4 * FIXED_ONE, 0);
                 SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_YELLOW);
                 SoundEx(&target, SE_GUN_HIT_SOLID);
             }
