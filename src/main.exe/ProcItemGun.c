@@ -76,6 +76,12 @@ extern SVECTOR svec_z_150[];
 
 void ProcItemGun(TItem *item)
 {
+    enum
+    {
+        GUN_MODE_FLASH = 0,
+        GUN_MODE_FIRE = 1,
+        GUN_MODE_FINISH = 2
+    };
     param_gun *param;
     SVECTOR vec;
     VECTOR target;
@@ -83,12 +89,12 @@ void ProcItemGun(TItem *item)
     param = &item->param.gun;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = GUN_MODE_FLASH;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case GUN_MODE_FLASH:
         vec = svec_z_n250[0];
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
         SetImpact((VECTOR *)item->locate->locate.coord.t, 2 * FIXED_ONE, 0);
@@ -96,7 +102,7 @@ void ProcItemGun(TItem *item)
         item->mode++;
         return;
 
-    case 1:
+    case GUN_MODE_FIRE:
     {
         s32 rx;
         s32 ry;
@@ -136,13 +142,13 @@ void ProcItemGun(TItem *item)
         item->mode++;
         return;
 
-    case 2:
+    case GUN_MODE_FINISH:
         if (item->proc == 0)
             return;
         item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != GUN_MODE_FLASH)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }

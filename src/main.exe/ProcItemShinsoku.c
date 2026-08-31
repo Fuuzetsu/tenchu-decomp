@@ -90,6 +90,12 @@ typedef union
 
 void ProcItemShinsoku(TItem *item)
 {
+    enum
+    {
+        SHINSOKU_MODE_START = 0,
+        SHINSOKU_MODE_WAIT = 1,
+        SHINSOKU_MODE_ACTIVE = 2
+    };
     param_shinsoku *param;
     VECTOR pos;
     ProcItemShinsokuScratch scratch;
@@ -97,19 +103,19 @@ void ProcItemShinsoku(TItem *item)
     param = &item->param.shinsoku;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = SHINSOKU_MODE_START;
         return;
     }
 
     switch (item->mode)
     {
-    case 0:
+    case SHINSOKU_MODE_START:
         SetNowMotion(item->owner, MOT_ITEM_SHINSOKU, 1);
         Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 
-    case 1:
+    case SHINSOKU_MODE_WAIT:
     {
         MotionManager *motion;
 
@@ -149,7 +155,7 @@ void ProcItemShinsoku(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != SHINSOKU_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -172,7 +178,7 @@ void ProcItemShinsoku(TItem *item)
         return;
     }
 
-    case 2:
+    case SHINSOKU_MODE_ACTIVE:
     {
         Humanoid *human;
         ModelArchiveType *model;
@@ -190,7 +196,7 @@ void ProcItemShinsoku(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != SHINSOKU_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
