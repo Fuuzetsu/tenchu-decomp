@@ -846,7 +846,14 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   past stolen delay-slot instructions. Note the if/else-if spelling of
   the same dispatch is NOT equivalent (64/82 lines on
   camera_terrain_pitch_), nor is caching the tested value in a local:
-  it is specifically `switch`.
+  it is specifically `switch` — Codex reached the same conclusion
+  independently the same day on EndDrawing, ComputeAreaLevel and
+  draw_card_help_, adding two refinements: the LEXICAL position of
+  `default` inside the switch decides whether a fallthrough path needs
+  an extra jump (draw_card_help_ needs `default` FIRST; moving it last
+  costs 17 lines), and if/else-if fails specifically because it
+  interleaves the first body between the two tests where expand_case
+  emits both tests first (ComputeAreaLevel, 21 lines).
   Scaling rules from round 8 (71 gotos + 16 labels across nine files):
   normalize a local return ladder into ONE ordered if/else join BEFORE
   testing direct returns (AttackLong measures 71 lines in the
