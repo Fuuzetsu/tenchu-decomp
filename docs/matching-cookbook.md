@@ -2129,6 +2129,17 @@ irreducible nest: DrawConstruction's 3.
   rather than naming it after the first one**: ActATTACK's cases each
   turned out to be one WEAPON, and every attack id the switch ignores is
   shared across several weapons, which is the whole selector.
+- **Depth records are an indicator, never an instruction (owner
+  directive).** A recorded nested scope is excellent evidence of the
+  original structure WHERE OUR CODE DOES NOT YET LOOK HUMAN — that is
+  what it is for, and it should not be discarded. But adding braces to a
+  block that already reads well, purely because the symbol table nests
+  it, makes the code worse for no gain: it does not help the match, and
+  it does not help a reader. **Prefer the cleaner, more human spelling
+  over the one that merely mirrors a depth.** A nesting we cannot explain
+  is more likely to be an artefact of inlining or a macro in the original
+  than a scope worth rebuilding — so ask what the nesting is FOR before
+  copying it.
 - **A repeated nested block whose names are a CALLEE's parameters is that
   callee inlined in the demo — not a scope to recover.** With the depth
   column in place it is tempting to chase every recorded nested local we
