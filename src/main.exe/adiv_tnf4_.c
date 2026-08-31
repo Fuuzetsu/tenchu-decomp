@@ -60,6 +60,18 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     SVECTOR *v1;
     u_long *vp;
 
+    /* Every access below is a BYTE offset into the ADIV_WORK scratch
+     * (tmdfast.h), which is this function's real map: `v[4]` at 0x80 on a
+     * 0x18 stride puts the four root vertices at 0x80, 0x98, 0xb0 and
+     * 0xc8, each an x/y/z triple two bytes apart. Half of these used to be
+     * spelled `work + N` on the u_long* — the same addresses in word
+     * units, which hid that sequence. Member stores through the struct
+     * itself do NOT match (they un-pin the interleaved volatile parameter
+     * reads; see tmdfast.h's note and cookbook 3.13), so consistent byte
+     * offsets against a documented layout is as close as this gets.
+     * The read side keeps Sony's `u_long vertop` convention from the
+     * GsTMDfast* siblings it is called beside, so a source vertex is
+     * index * 8 off that base. */
     work = wp;
     hwd = HWD0;
     init = 4;
@@ -67,7 +79,7 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     frame = work + 0x38; /* frame[0] */
     vp = frame;
     vwd = VWD0;
-    *(short *)(work + 0xd) = (short)(hwd / 2);       /* adivw */
+    *(short *)((int)work + 0x34) = (short)(hwd / 2);       /* adivw */
     *(short *)((int)work + 0x36) = (short)(vwd / 2); /* adivh */
     o = ot;
     t1 = shift;
@@ -91,31 +103,31 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
         primitive = (TMD_P_TNF4 *)primtop;
         do
         {
-            *(short *)(work + 0x20) = *(u_short *)(primitive->v0 * 8 + vertop);
+            *(short *)((int)work + 0x80) = *(u_short *)(primitive->v0 * 8 + vertop);
             *(short *)((int)work + 0x82) = *(u_short *)(primitive->v0 * 8 + vertop + 2);
-            *(short *)(work + 0x21) = *(u_short *)(primitive->v0 * 8 + vertop + 4);
-            *(short *)(work + 0x26) = *(u_short *)(primitive->v1 * 8 + vertop);
+            *(short *)((int)work + 0x84) = *(u_short *)(primitive->v0 * 8 + vertop + 4);
+            *(short *)((int)work + 0x98) = *(u_short *)(primitive->v1 * 8 + vertop);
             *(short *)((int)work + 0x9a) = *(u_short *)(primitive->v1 * 8 + vertop + 2);
-            *(short *)(work + 0x27) = *(u_short *)(primitive->v1 * 8 + vertop + 4);
-            *(short *)(work + 0x2c) = *(u_short *)(primitive->v2 * 8 + vertop);
+            *(short *)((int)work + 0x9c) = *(u_short *)(primitive->v1 * 8 + vertop + 4);
+            *(short *)((int)work + 0xb0) = *(u_short *)(primitive->v2 * 8 + vertop);
             *(short *)((int)work + 0xb2) = *(u_short *)(primitive->v2 * 8 + vertop + 2);
-            *(short *)(work + 0x2d) = *(u_short *)(primitive->v2 * 8 + vertop + 4);
-            *(short *)(work + 0x32) = *(u_short *)(primitive->v3 * 8 + vertop);
+            *(short *)((int)work + 0xb4) = *(u_short *)(primitive->v2 * 8 + vertop + 4);
+            *(short *)((int)work + 0xc8) = *(u_short *)(primitive->v3 * 8 + vertop);
             *(short *)((int)work + 0xca) = *(u_short *)(primitive->v3 * 8 + vertop + 2);
-            *(short *)(work + 0x33) = *(u_short *)(primitive->v3 * 8 + vertop + 4);
+            *(short *)((int)work + 0xcc) = *(u_short *)(primitive->v3 * 8 + vertop + 4);
             *vp = (u_long)v0;
             vp[1] = (u_long)v1;
             vp[2] = (u_long)v2;
             vp[3] = (u_long)v3;
             gte_ldv3(v0, v1, v2);
             gte_rtpt();
-            *(short *)(work + 0x25) = *(u16 *)&primitive->tu0;
-            *(short *)(work + 0x2b) = *(u16 *)&primitive->tu1;
+            *(short *)((int)work + 0x94) = *(u16 *)&primitive->tu0;
+            *(short *)((int)work + 0xac) = *(u16 *)&primitive->tu1;
             t2 = (u_long)(work + 0x23);
             gte_stsxy3((u_long *)t2, work + 0x29, work + 0x2f);
             gte_nclip();
-            *(short *)(work + 0x31) = *(u16 *)&primitive->tu2;
-            *(short *)(work + 0x37) = *(u16 *)&primitive->tu3;
+            *(short *)((int)work + 0xc4) = *(u16 *)&primitive->tu2;
+            *(short *)((int)work + 0xdc) = *(u16 *)&primitive->tu3;
             gte_stopz(work + 6); /* zmax */
             if (0 < (int)work[6])
             {
