@@ -97,23 +97,18 @@ void DrawBlood(TEffectSlot *ef)
     GsSPRITE *spr;
     GsSPRITE *sprt;
     DrawBloodScratch scratch;
-    u8 index;
     s32 color_signed;
 
     blood = &ef->param.blood;
-    index = blood->sprite;
-    spr = &sprBlood[index];
-    sprt = &sprBloodStay[index];
+    spr = &sprBlood[blood->sprite];
+    sprt = &sprBloodStay[blood->sprite];
 
     switch (blood->mode)
     {
     case 3:
     {
         s16 fade;
-        s32 color_shifted;
         s16 sc;
-        s16 screen_x;
-        s16 screen_y;
         s32 scale;
         long rotate;
         long y;
@@ -135,8 +130,7 @@ void DrawBlood(TEffectSlot *ef)
         y = blood->py + blood->vy;
         blood->py = y;
         rotate = blood->rotate;
-        color_shifted = (u32)blood->brightness << 16;
-        color_signed = color_shifted >> 16;
+        color_signed = (s32)((u32)blood->brightness << 16) >> 16;
         GetScreenPosition(blood->px, y, blood->pz, &scratch.scr);
         otz = scratch.scr.vz;
         if (otz < 0x25)
@@ -150,12 +144,8 @@ void DrawBlood(TEffectSlot *ef)
         sprt->scalex = sc;
         spr->rotate = rotate;
         sprt->rotate = rotate;
-        screen_x = scratch.scr.vx;
-        spr->x = screen_x;
-        sprt->x = screen_x;
-        screen_y = scratch.scr.vy;
-        spr->y = screen_y;
-        sprt->y = screen_y;
+        sprt->x = spr->x = scratch.scr.vx;
+        sprt->y = spr->y = scratch.scr.vy;
         spr->r = (u8)color_signed;
         spr->g = (u8)color_signed;
         spr->b = (u8)color_signed;
@@ -190,19 +180,15 @@ void DrawBlood(TEffectSlot *ef)
 
     case 1:
     {
-        s32 scale_rnd;
-        s32 time_rnd;
         u16 oldtime;
 
-        scale_rnd = rand();
-        blood->scale += scale_rnd % 0x1000;
+        blood->scale += rand() % 0x1000;
         oldtime = blood->time;
         blood->time = oldtime - 1;
         if ((s16)oldtime <= 0)
         {
             blood->mode++;
-            time_rnd = rand();
-            blood->time = time_rnd % 90;
+            blood->time = rand() % 90;
         }
         break;
     }
@@ -218,13 +204,10 @@ void DrawBlood(TEffectSlot *ef)
         long rety;
         AreaNodeType *area;
         u16 oldtime;
-        s32 vy_rnd;
         s32 scale_rnd;
-        s32 time_rnd;
         s32 bleed_x;
         s32 bleed_y;
         s32 bleed_z;
-        s32 bleed_time;
         long base_x;
         long base_y;
         long base_z;
@@ -270,8 +253,7 @@ void DrawBlood(TEffectSlot *ef)
             }
             else
             {
-                vy_rnd = rand();
-                blood->vy = vy_rnd % 8 + 8;
+                blood->vy = rand() % 8 + 8;
                 blood->rotate = 0;
                 scale_rnd = rand();
                 blood->sprite += 2;
@@ -279,8 +261,7 @@ void DrawBlood(TEffectSlot *ef)
                 blood->scale = scale_rnd % 0x2ab + 0x555;
             }
             blood->mode = 1;
-            time_rnd = rand();
-            blood->time = time_rnd % 10;
+            blood->time = rand() % 10;
             SoundEx((VECTOR *)&blood->px, SE_BLOOD_SPLATTER);
         }
         else
@@ -311,8 +292,8 @@ void DrawBlood(TEffectSlot *ef)
             ((SVECTOR *)&scratch.temp)->vy = blood->vy / 2;
             ((SVECTOR *)&scratch.temp)->vz = blood->vz / 2;
             scratch.scr = *(SVECTOR *)&scratch.temp;
-            bleed_time = rand();
-            SetBleed(&scratch.pos, &scratch.scr, bleed_time % 10 + 10, RGB24(127, 16, 23));
+            SetBleed(&scratch.pos, &scratch.scr, rand() % 10 + 10,
+                     RGB24(127, 16, 23));
         }
         break;
     }

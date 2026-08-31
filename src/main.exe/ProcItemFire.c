@@ -129,17 +129,14 @@ void ProcItemFire(TItem *item)
     };
     Sprite3D *model;
     param_smoke *param;
-    u8 ff;
     s32 count;
     s32 mode;
-    s32 one;
     s32 cid;
     ProcItemFireScratch scratch;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    ff = ITEM_MODE_DISPOSE;
-    if (item->mode == ff)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -150,7 +147,7 @@ void ProcItemFire(TItem *item)
     {
         if (item->proc != 0)
         {
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)
@@ -197,7 +194,6 @@ void ProcItemFire(TItem *item)
     count = param->count - 1;
     param->count = count;
     mode = item->mode;
-    one = 1;
     switch (mode)
     {
     case 0:
@@ -260,7 +256,7 @@ void ProcItemFire(TItem *item)
                 n = InsertConflict(item->locate);
                 size = 500;
                 collision_mode = 8;
-                SET_ITEM_COLLISION(n, size, (void *)one, collision_mode);
+                SET_ITEM_COLLISION(n, size, (void *)1, collision_mode);
             }
 
             if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
@@ -318,7 +314,7 @@ void ProcItemFire(TItem *item)
         /* This arm runs with mode == 1, and retail reuses that register as
          * the owner tag (CONFLICT_OWNER_ITEM == 1), the size pad, and the
          * collision mode below -- the same one-register trick as the
-         * file's other box (`one`) and ProcItemArrow's. Separate named
+         * file's other box and ProcItemArrow's. Separate named
          * constants load fresh immediates and do not match. */
         ConflictObject[n].common = (void *)(s32)mode;
         ConflictObject[n].size.pad = mode;

@@ -96,15 +96,11 @@ static inline long SubFlyJitter(long mid, long half, long range)
 void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
 {
     long len;
-    long v3;
     long v8;
     long midx;
-    long midy;
     long midz;
     long current_z;
     long x_product;
-    long y_pair;
-    long y_range;
     struct tag_fly *fly;
 
     fly = &pfly->p.fly;
@@ -151,12 +147,9 @@ skip_default:
     {
         len = midx - yw;
     }
-    y_pair = fly->sy + fly->vy;
-    midy = y_pair / 2;
-    v3 = yh / 2;
-    y_range = yh - v3;
     fly->rx = len;
-    len = SubFlyJitter(midy, v3, y_range);
+    len = SubFlyJitter((fly->sy + fly->vy) / 2, yh / 2,
+                       yh - yh / 2);
     midz = (fly->sz + fly->vz) / 2;
     v8 = yw << 1;
     fly->ry = len;

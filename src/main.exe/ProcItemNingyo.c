@@ -66,9 +66,7 @@ extern short DrawModel(ModelType *objp);
 
 /* MATCH (retail): the pure-C body has the exact 0x68 frame, 564 instructions,
  * exact 36/12/33/1 branch/jump/call/return inventory, and target
- * item/param/sentinel homes s3/s4/s5.  The short-lived loaded_model alias is
- * intentional: its single-set load receives scheduler promotion, then copy
- * coalescing erases the assignment into the destructively reused model and
+ * item/param/sentinel homes s3/s4/s5.  The drop path's direct model load
  * preserves the target owner/type/model load order in s2/s1/s0.
  *
  * Clearing the short-lived launch pointer after memset breaks the stack-
@@ -160,14 +158,12 @@ void ProcItemNingyo(TItem *item)
             {
                 Humanoid *owner;
                 s32 type;
-                ModelType *loaded_model;
                 ModelType *model;
                 PARAM_ITEM_LAUNCH *launchp;
 
                 owner = item->owner;
                 type = item->type;
-                loaded_model = item->locate;
-                model = loaded_model;
+                model = item->locate;
                 launchp = &scratch.drop.launch;
                 memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
                 launchp = 0;
@@ -363,7 +359,6 @@ void ProcItemNingyo(TItem *item)
                     s32 vz;
                     s32 vx;
                     s32 shifted_vx;
-                    u8 hp;
 
                     memset(&scratch.vectors.pos, 0, sizeof(VECTOR));
                     scratch.vectors.pos.vx = conflict->position.vx;
@@ -381,7 +376,6 @@ void ProcItemNingyo(TItem *item)
                     {
                         vz += 15;
                     }
-                    hp = param->hp;
                     param->koro.vx = shifted_vx;
                     param->koro.vy = -R;
                     param->koro.vz = vz >> 4;

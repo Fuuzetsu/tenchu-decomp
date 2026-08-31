@@ -54,16 +54,14 @@
  *  - The dead `mode_index = 0` assignment is a zero-code CSE eviction.  It
  *    forces expand_case to emit a fresh mode `lbu`; otherwise the entry
  *    guard's load is reused and the function is one instruction short.
- *  - `ff` is an s32 caller-saved value in a1.  It survives only the no-call
- *    mode-2 path; call-crossing mode-0 disposal prefixes rematerialize
- *    ITEM_MODE_DISPOSE (0xff)
- *    before all copies merge at the common indirect-call tail.
+ *  - Direct ITEM_MODE_DISPOSE operands still share the target's caller-saved
+ *    value on the no-call mode-2 path; call-crossing disposal prefixes
+ *    rematerialize it before the common indirect-call tail.
  *  - The payload is the `else` of the conflict-id test and uses inverse
  *    mode/kind guards, so a non-humanoid hit and both zero cases fall into
- *    the later aiming block without labels. `water` is deliberately s16: autorules
- *    found that narrowing this comparison-only constant colors the payload
- *    byte into v1 and `1` into v0, while still allowing the `li` to fill the
- *    payload-zero branch's delay slot.  s32 swaps those two registers.
+ *    the later aiming block without labels. Direct status tests let CSE keep
+ *    the payload byte in v1 and `1` in v0 while still allowing the `li` to
+ *    fill the payload-zero branch's delay slot.
  *  - `clock` prevents the halfword-load optimization on GameClock.  The
  *    original reads the declared long with `lw`, shifts it, then narrows at
  *    the model rotation store.
@@ -84,7 +82,6 @@ void ProcItemArrow(TItem *item)
     ModelType *model;
     param_arrow *param;
     void (*ppu)(TItem *);
-    s32 ff;
     u8 mode_index;
     VECTOR v1;
     VECTOR v2;
@@ -93,9 +90,8 @@ void ProcItemArrow(TItem *item)
 
     model = item->model;
     param = &item->param.arrow;
-    ff = ITEM_MODE_DISPOSE;
     mode_index = item->mode;
-    if (mode_index == ff)
+    if (mode_index == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -108,7 +104,6 @@ void ProcItemArrow(TItem *item)
     {
         u8 count;
         s32 cid;
-        s32 one;
 
         v1.vx = item->locate->locate.coord.t[0];
         v1.vy = item->locate->locate.coord.t[1];
@@ -116,16 +111,13 @@ void ProcItemArrow(TItem *item)
         MoveFly(item, &param->fly);
         count = param->count - 1;
         param->count = count;
-        one = 1;
         if (count == 0)
         {
             s32 n;
-            s32 size;
 
             DeleteConflict(item->locate);
             n = InsertConflict(item->locate);
-            size = 300;
-            SET_ITEM_COLLISION(n, size, (void *)one, one);
+            SET_ITEM_COLLISION(n, 300, (void *)1, 1);
         }
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
@@ -193,16 +185,11 @@ void ProcItemArrow(TItem *item)
         }
         else
         {
-            s16 water;
-            u8 kind;
-
             if (param->fly.mode != 0)
             {
-                water = KORO_WATER;
-                kind = param->fly.p.koro.status;
-                if (kind != KORO_NORMAL)
+                if (param->fly.p.koro.status != KORO_NORMAL)
                 {
-                    if (kind == water)
+                    if (param->fly.p.koro.status == KORO_WATER)
                     {
                         ppu = item->proc;
                         if (ppu == 0)
@@ -276,7 +263,7 @@ void ProcItemArrow(TItem *item)
             {
                 return;
             }
-            item->mode = ff;
+            item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
             if (item->mode != 0)

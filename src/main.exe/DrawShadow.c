@@ -82,7 +82,6 @@ void DrawShadow(Humanoid *human)
     s32 flag;
     VECTOR *position;
     s32 height;
-    u16 attribute;
 
     height = -human->model->rotate.pad;
     position = GetAbsolutePosition(human->model->object[MODEL_PART_WAIST], 0, 0, 0);
@@ -92,14 +91,9 @@ void DrawShadow(Humanoid *human)
         human->map.attrib |= MAP_WOOD; /* airborne overload */
     }
     position->vy = human->map.level;
-    attribute = human->map.attrib;
-
-    if (attribute & MAP_WOOD)
+    if (human->map.attrib & MAP_WOOD)
     {
-        s32 vector_xy;
-
-        vector_xy = *(s32 *)&human->vector;
-        if ((vector_xy != 0 || human->motion->mid == MOT_STATE_LAND ||
+        if ((*(s32 *)&human->vector != 0 || human->motion->mid == MOT_STATE_LAND ||
              human->motion->mid == MOT_ATTACK_DIVE_LAND) &&
             human->map.height == 0 && (GameClock & 1) != 0)
         {
@@ -167,7 +161,7 @@ void DrawShadow(Humanoid *human)
             effect->proc = (void (*)())DrawSplash;
         }
     }
-    else if (attribute & MAP_DAMAGE)
+    else if (human->map.attrib & MAP_DAMAGE)
     {
         if (human->map.height == 0)
         {
@@ -183,16 +177,12 @@ void DrawShadow(Humanoid *human)
     }
     else
     {
-        u8 angle;
-        s32 depth;
-
         ShadowMdl->locate.coord.t[0] = position->vx;
         ShadowMdl->locate.coord.t[1] = position->vy;
         ShadowMdl->locate.coord.t[2] = position->vz;
 
         scl.vx = scl.vy = scl.vz = height * 4 - (human->map.height >> 1);
-        angle = human->map.angleH;
-        if (angle != 0)
+        if (human->map.angleH != 0)
         {
             ShadowMdl->rotate.vx = 0x100;
             ShadowMdl->rotate.vy = RefrectVector[human->map.angleH];
@@ -210,9 +200,8 @@ void DrawShadow(Humanoid *human)
         ShadowMdl->locate.flg = 0;
         GsGetLs(&ShadowMdl->locate, &mat);
         GsSetLsMatrix(&mat);
-        depth = RotTransPers(&UnitVector, (s32 *)&scr, &p, &flag);
-        scr.vz = depth;
-        if ((s16)depth >> 2 < DEPTH_LIMIT)
+        scr.vz = RotTransPers(&UnitVector, (s32 *)&scr, &p, &flag);
+        if (scr.vz >> 2 < DEPTH_LIMIT)
         {
             GsSortObject4(&ShadowMdl->object, OTablePt, 2,
                           (u_long *)TENCHU_SCRATCHPAD_ADDRESS);

@@ -190,16 +190,13 @@ void StateTransition(Humanoid *human)
     }
 
     {
-        s16 active_item;
-
-        active_item = StagePlayer->itmctl;
-        if (active_item == ITEM_HENSHIN || active_item == ITEM_MANEBUE)
+        if (StagePlayer->itmctl == ITEM_HENSHIN ||
+            StagePlayer->itmctl == ITEM_MANEBUE)
         {
-            u16 kind;
-
-            kind = Me_THINK_C->type & PAGE_MASK;
-            if (kind != PAGE_BOSS && kind != PAGE_BEAST &&
-                (active_item != ITEM_MANEBUE || (Attrib & 3) != PHASE_ALERT))
+            if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS &&
+                (Me_THINK_C->type & PAGE_MASK) != PAGE_BEAST &&
+                (StagePlayer->itmctl != ITEM_MANEBUE ||
+                 (Attrib & 3) != PHASE_ALERT))
             {
                 if (EmergencyNotice != 0)
                 {
@@ -404,9 +401,6 @@ void StateTransition(Humanoid *human)
         {
             Humanoid *me;
             s32 dy;
-            s32 random;
-            s32 me_y;
-            s32 target_y;
 
             if (StagePlayer->motion->mid == MOT_DAMAGE_DOWNED)
             {
@@ -414,9 +408,7 @@ void StateTransition(Humanoid *human)
             }
 
             me = Me_THINK_C;
-            target_y = me->target->locate.coord.t[1];
-            me_y = me->locate->vy;
-            dy = target_y - me_y;
+            dy = me->target->locate.coord.t[1] - me->locate->vy;
             dy = dy >= 0 ? dy : -dy;
             if (dy < 2000)
             {
@@ -432,8 +424,7 @@ void StateTransition(Humanoid *human)
             goto attack_checked;
 
         random_attack:
-            random = rand();
-            if (random % 4 - 2 >= (s32)gNannido)
+            if (rand() % 4 - 2 >= (s32)gNannido)
             {
                 pad = 0;
             }
@@ -443,13 +434,11 @@ void StateTransition(Humanoid *human)
         if (SR == SR_GONE)
         {
             Humanoid *me;
-            s32 target_x;
             s32 target_z;
 
             me = Me_THINK_C;
-            target_x = me->target->locate.coord.t[0];
             Attrib = atr0 | ATTR_SEARCH | PHASE_INVESTIGATE;
-            me->chase[HUMANOID_CHASE_X] = target_x;
+            me->chase[HUMANOID_CHASE_X] = me->target->locate.coord.t[0];
             target_z = me->target->locate.coord.t[2];
             me->actscnt = 1;
             me->chase[HUMANOID_CHASE_Z] = target_z;
@@ -587,7 +576,6 @@ void StateTransition(Humanoid *human)
                 {
                     s32 level;
                     s32 next_level;
-                    s32 abs_next;
 
                     GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
                                  (s16)(Me_THINK_C->width * 5), 0);
@@ -607,8 +595,7 @@ void StateTransition(Humanoid *human)
                                                      AREA_LEVEL_REUSE_CACHED);
                     if (level == Me_THINK_C->map.level)
                     {
-                        abs_next = next_level >= 0 ? next_level : -next_level;
-                        if (abs_next < 500)
+                        if ((next_level >= 0 ? next_level : -next_level) < 500)
                         {
                             pad = PADLup | PADRdown;
                             goto tail;

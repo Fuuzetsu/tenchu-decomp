@@ -54,10 +54,8 @@ extern void DrawBleed(TEffectSlot *ef);
  * overlap, keeping the target's 0x60-byte frame. sprBloodStay is the original
  * name of the second blood-sprite bank; retail expands both demo singletons
  * to four sprites. Naming it separately is load-bearing because the target
- * materializes both bank bases independently. `node_y` and
- * `level` must remain separate around ComputeAreaLevel so the flat and sloped
- * paths cross-jump through the target multiply tail.  Likewise, the named
- * bleed_x/y/z values prevent reassociation of `(position - 60) + rand()%120`,
+ * materializes both bank bases independently. The named bleed_x/y/z values
+ * prevent reassociation of `(position - 60) + rand()%120`,
  * and the full-width `green` local preserves the target's li 0x7f10 before a
  * byte store.
  */
@@ -71,12 +69,10 @@ void DrawGore(TEffectSlot *ef)
     GsSPRITE *spr;
     GsSPRITE *spr2;
     DrawGoreScratch scratch;
-    u32 index;
 
     param = &ef->param.blood;
-    index = param->sprite;
-    spr = &sprBlood[index];
-    spr2 = &sprBloodStay[index];
+    spr = &sprBlood[param->sprite];
+    spr2 = &sprBloodStay[param->sprite];
     switch (param->mode)
     {
     case 3:
@@ -91,8 +87,6 @@ void DrawGore(TEffectSlot *ef)
         s32 rotate;
         s32 otz;
         s16 scale;
-        s16 screen_x;
-        s16 screen_y;
         s32 value;
         s32 priority;
 
@@ -126,12 +120,8 @@ void DrawGore(TEffectSlot *ef)
         spr2->scalex = scale;
         spr->rotate = rotate;
         spr2->rotate = rotate;
-        screen_x = scratch.screen.vx;
-        spr->x = screen_x;
-        spr2->x = screen_x;
-        screen_y = scratch.screen.vy;
-        spr->y = screen_y;
-        spr2->y = screen_y;
+        spr2->x = spr->x = scratch.screen.vx;
+        spr2->y = spr->y = scratch.screen.vy;
         half_brightness = brightness / 2;
         spr->r = (u8)brightness;
         spr->g = (u8)brightness;
@@ -188,7 +178,6 @@ void DrawGore(TEffectSlot *ef)
         s32 y10;
         s32 z10;
         s32 level;
-        s32 node_y;
         AreaNodeType *node;
         int r;
         int random_x;
@@ -217,9 +206,7 @@ void DrawGore(TEffectSlot *ef)
         z10 = z / 10;
         param->vy += 10;
         node = param->hint;
-        /* The in-condition node_y store is byte-required (a hoisted read
-         * changes the short-circuit shape; measured). */
-        if (node == 0 || y10 < (node_y = node->y) - 200 || node_y < y10 ||
+        if (node == 0 || y10 < node->y - 200 || node->y < y10 ||
             x10 < node->x1 || z10 < node->z1 || node->x2 < x10 ||
             node->z2 < z10)
         {
@@ -239,7 +226,7 @@ void DrawGore(TEffectSlot *ef)
         }
         else
         {
-            level = node_y * 10;
+            level = node->y * 10;
         }
         if (param->py >= level)
         {
