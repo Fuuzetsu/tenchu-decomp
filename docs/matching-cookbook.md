@@ -813,6 +813,33 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   human; converting a matched while(1)+break to the assignment-in-condition
   form is free.
 
+- **Humanising gotos: try ACYCLIC guard inversion before any goto->loop
+  conversion** (round-7 doctrine, 2026-08-31, 10 gotos + 10 labels removed
+  across four files). Converting a goto loop into `while`/`for`/`do` adds
+  NOTE_INSN_LOOP_BEG/END and re-weights every ref in the body (measured:
+  PlayMusicFormID 43 lines under all five spellings, GetAreaMapLevel
+  216/196) — but the same labels often come off with no loop at all:
+  * a `goto` into the statement right after an `else` usually removes by
+    closing the preceding block and falling through;
+  * a two-arm ladder becomes an ordinary diamond — NEGATE the condition
+    when needed so the physical arm order does not move;
+  * a bypass over a region becomes an enclosing `if (!cond) { region }`;
+  * an early exit is safer as an INVERSE OUTER GUARD (`if (x != 1) { ...
+    } return 1;`) than as an inline `if (x == 1) return 1;` — the inline
+    form's join CODE_LABEL ends cse's block and costs a redundant copy
+    (DrawModelArchive, measured);
+  * a distant shared tail of ONE clean action plus `return` can just be
+    duplicated: 2.8.1 cross-jumps it back into one block (ActATTACK's
+    `unmask`, DamageControl's `alerted`).
+  Gates that still refuse: the reject/sentinel block's TEXTUAL position
+  controls reorg (DrawSprite's flatter spelling = 14 lines), a label can
+  be a cold-block/CSE boundary (DamageControl's stealth band = 502), a
+  ladder can encode a deliberately REPEATED test whose flow-reference
+  topology the factored form destroys (DamageControl's scaling ladder =
+  183/203), and cross-jump equality alone does not imply byte identity —
+  deleting a join can expose different delay-slot candidates
+  (ActATTACK's `dispatch` = 21).
+
 ### 3.4 Expressions, widths, arithmetic
 
 Mechanised spellings live in the index (`type-width`, `param-width`,
