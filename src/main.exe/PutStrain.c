@@ -167,7 +167,7 @@ void PutStrain(s32 x, s32 y)
         spr->b = shade;
         spr->g = shade;
         spr->r = shade;
-        scale = (s16)((delta << 0xb) / powrange) + 0x800;
+        scale = (s16)((delta << 0xb) / powrange) + FIXED_HALF;
         spr->scalex = scale;
         spr->scaley = scale;
         GsSortSprite(spr, OTablePt, 0);

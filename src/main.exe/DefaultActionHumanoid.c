@@ -296,7 +296,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 angle_abs = (i >= 0) ? i : -i;
                 if (angle_abs >= 2000)
                 {
-                    i = (i > 0) ? i - 0x1000 : i + 0x1000;
+                    i = (i > 0) ? i - ANGLE_FULL : i + ANGLE_FULL;
                 }
                 angle_abs = (i >= 0) ? i : -i;
                 if (angle_abs < 1800 || human != StagePlayer || map->height != 0)

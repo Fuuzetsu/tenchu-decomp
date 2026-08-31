@@ -116,8 +116,8 @@ s16 UpdateMotion(MotionManager *mmp, s16 mid)
         for (j = 0; j < 3; j++)
         {
             t = xyz[j];
-            if (((t < 0) ? -t : t) > 0x800)
-                xyz[j] = (xyz[j] < 0) ? (t += 0x1000) : (t -= 0x1000);
+            if (((t < 0) ? -t : t) > ANGLE_HALF)
+                xyz[j] = (xyz[j] < 0) ? (t += ANGLE_FULL) : (t -= ANGLE_FULL);
             xyz[j] = xyz[j] % ANGLE_FULL;
         }
     }

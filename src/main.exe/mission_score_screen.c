@@ -509,7 +509,7 @@ void mission_score_screen(void)
             if (medalBrightness < 0)
             {
                 medalDraw = medal;
-                medalBrightness += 0xFFF;
+                medalBrightness += FIXED_ONE - 1;
             }
             else
             {
@@ -578,7 +578,7 @@ void mission_score_screen(void)
                 rowBrightness = rsin((GameClock << 12) / MEDAL_PULSE_PERIOD) * ROW_PULSE_AMPLITUDE;
                 if (rowBrightness < 0)
                 {
-                    rowBrightness += 0xFFF;
+                    rowBrightness += FIXED_ONE - 1;
                 }
                 rowBrightness = (rowBrightness >> 12) + 100;
             }

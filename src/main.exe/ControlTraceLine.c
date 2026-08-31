@@ -78,13 +78,13 @@ short ControlTraceLine(Humanoid *human)
          * mismatches; measured). */
         t = ang - roty;
         diff = t;
-        if (diff > 0x800)
+        if (diff > ANGLE_HALF)
         {
-            t = 0x1000 - t;
+            t = ANGLE_FULL - t;
         }
-        else if (diff <= -0x800)
+        else if (diff <= -ANGLE_HALF)
         {
-            t += 0x1000;
+            t += ANGLE_FULL;
         }
         d32 = t;
         degree = d32;

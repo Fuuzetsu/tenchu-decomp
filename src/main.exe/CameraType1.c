@@ -295,7 +295,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         alternate = CamPosKnockbackAlt;
 
         if (MakeCameraPosition(&pos, &pl->model->rotate,
-                               &scratch.camera.r1, vDif) <= 0x800)
+                               &scratch.camera.r1, vDif) <= ANGLE_HALF)
         {
             MakeCameraPosition(&pos, &pl->model->rotate,
                                &alternate.r1, vDif);

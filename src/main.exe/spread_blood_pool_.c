@@ -52,9 +52,9 @@ void spread_blood_pool_(Humanoid *human)
 
     timer = human->chase[0] + 0x88;
     human->chase[0] = timer;
-    if (timer > 0x1000)
+    if (timer > FIXED_ONE)
     {
-        human->chase[0] = 0x1000;
+        human->chase[0] = FIXED_ONE;
     }
 
     position = GetAbsolutePosition(human->model->object[MODEL_PART_WAIST], 0, 0, 0);

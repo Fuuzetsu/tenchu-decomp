@@ -125,7 +125,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
     found:
         smoke = &ef->param.smoke;
         r = rand();
-        smoke->scale = r % 0x2000 + 0x1000;
+        smoke->scale = r % (2 * FIXED_ONE) + FIXED_ONE;
         smoke->rotate = (rand() % 360) * 4096;
         smoke->pos.vx = pos->vx;
         smoke->pos.vy = pos->vy;

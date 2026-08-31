@@ -39,8 +39,8 @@
  * a narrow-typed temp).
  *
  * The tail bias block is the plain
- * `if (deg2 > 0x800) deg2 = 0x1000 - deg2; else if (deg2 <= -0x800)
- * deg2 += 0x1000;` — the load-bearing spelling is the combined
+ * `if (deg2 > ANGLE_HALF) deg2 = ANGLE_FULL - deg2; else if (deg2 <= -ANGLE_HALF)
+ * deg2 += ANGLE_FULL;` — the load-bearing spelling is the combined
  * `0x1000 - deg2` subtraction in the first arm (a `deg2 = -deg2;` plus a
  * shared add emits negu+addiu where the target has one li+subu at
  * 0x80029808-0x80029810).
@@ -60,13 +60,13 @@ long GetTargetDistance(Humanoid *human, short *deg)
     angle = ratan2(-dx, -dz);
     diff = angle - vy;
     deg2 = (s16)diff;
-    if (deg2 > 0x800)
+    if (deg2 > ANGLE_HALF)
     {
-        deg2 = 0x1000 - deg2;
+        deg2 = ANGLE_FULL - deg2;
     }
-    else if (deg2 <= -0x800)
+    else if (deg2 <= -ANGLE_HALF)
     {
-        deg2 += 0x1000;
+        deg2 += ANGLE_FULL;
     }
     *deg = deg2;
     return SquareRoot0(dx * dx + dz * dz);

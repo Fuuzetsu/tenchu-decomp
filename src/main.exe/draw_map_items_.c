@@ -51,13 +51,13 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
     draw_x = (x / divisor) * cosine + (z / divisor) * sine;
     if (draw_x < 0)
     {
-        draw_x += 0xFFF;
+        draw_x += FIXED_ONE - 1;
     }
     first_draw_arg_x = (draw_x >> 12) + area[2];
     draw_y = (x / divisor) * sine - (z / divisor) * cosine;
     if (draw_y < 0)
     {
-        draw_y += 0xFFF;
+        draw_y += FIXED_ONE - 1;
     }
     DrawTargetS(first_draw_arg_x, (draw_y >> 12) + area[3], 0, RGB24(200, 20, 20));
 
@@ -75,14 +75,14 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
                      (items[i].locate->locate.coord.t[2] / divisor) * sine;
             if (draw_x < 0)
             {
-                draw_x += 0xFFF;
+                draw_x += FIXED_ONE - 1;
             }
             draw_y = (items[i].locate->locate.coord.t[0] / divisor) * sine -
                      (items[i].locate->locate.coord.t[2] / divisor) * cosine;
             loop_draw_arg_x = (draw_x >> 12) + area[2];
             if (draw_y < 0)
             {
-                draw_y += 0xFFF;
+                draw_y += FIXED_ONE - 1;
             }
             DrawTargetS(loop_draw_arg_x, (draw_y >> 12) + area[3], 0, RGB24(20, 20, 200));
         }

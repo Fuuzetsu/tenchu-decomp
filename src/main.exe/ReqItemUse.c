@@ -569,6 +569,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     found_kaginawa:
         if (it == 0)
             return 0;
+        /* Its two siblings pass the proc straight to SETUP_POOL_ITEM;
+         * this one goes through `y` because `y` is the function-scope
+         * scratch the rope case above also uses as a height, and sharing
+         * that one pseudo is what matches. Passing ProcKaginawa directly
+         * costs 8 lines. */
         y = (s32)ProcKaginawa;
         SETUP_POOL_ITEM((void (*)(TItem *))y, 0);
         it->owner->item[ITEM_N] = 1;

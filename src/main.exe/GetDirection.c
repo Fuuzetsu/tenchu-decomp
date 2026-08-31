@@ -53,13 +53,13 @@ s16 GetDirection(s32 dx, s32 dz, s32 roty)
     diff = ratan2(-dx, -dz) - roty;
     sdiff = diff;
     result = diff;
-    if (sdiff > 0x800)
+    if (sdiff > ANGLE_HALF)
     {
-        result = 0x1000 - diff;
+        result = ANGLE_FULL - diff;
     }
-    else if (sdiff <= -0x800)
+    else if (sdiff <= -ANGLE_HALF)
     {
-        result = diff + 0x1000;
+        result = diff + ANGLE_FULL;
     }
     return result;
 }

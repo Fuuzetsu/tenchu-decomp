@@ -22,7 +22,7 @@ void gte_rotate_z_matrix(MATRIX *m, int angle)
         rotation.m[1][2] = 0;
         rotation.m[2][0] = 0;
         rotation.m[2][1] = 0;
-        rotation.m[2][2] = 0x1000;
+        rotation.m[2][2] = FIXED_ONE;
         rotation.t[0] = 0;
         rotation.t[1] = 0;
         rotation.t[2] = 0;

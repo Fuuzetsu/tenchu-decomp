@@ -101,7 +101,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
     long nn;
     long y2;
     short mode16 = mode;
-    long f8;
+    long first_hit;
     long sy;
     long ret;
     short qx;
@@ -153,7 +153,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             if (index->index != 0)
             {
                 p = &index->index;
-                f8 = mode16 & AREA_LEVEL_FIRST_HIT;
+                first_hit = mode16 & AREA_LEVEL_FIRST_HIT;
             loop:
                 if (yy == (u32)LEVEL_NONE)
                 {
@@ -182,7 +182,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                             {
                                 FieldIndex = index;
                                 FieldArea = node;
-                                if (f8)
+                                if (first_hit)
                                 {
                                     if (node->division == -1)
                                         yy = node->y;
