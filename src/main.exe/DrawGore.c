@@ -81,43 +81,31 @@ void DrawGore(TEffectSlot *ef)
     {
     case 3:
     {
-        u16 fade;
         s32 brightness;
-        s32 half_brightness;
-        s32 x;
-        s32 y;
-        s32 z;
         s32 size;
         s32 rotate;
-        s32 otz;
         s16 scale;
         s32 value;
         s32 priority;
 
-        fade = param->brightness - 5;
-        param->brightness = fade;
-        if ((s16)fade <= 0)
+        param->brightness -= 5;
+        if ((s16)param->brightness <= 0)
         {
             param->brightness = 0;
             ef->proc = 0;
         }
 
         spr->attribute = SPR_TRANS_ADD;
-        x = param->px;
-        y = param->py + param->vy;
-        z = param->pz;
+        param->py += param->vy;
         size = param->scale;
-        param->py = y;
         rotate = param->rotate;
-        fade = param->brightness;
-        brightness = (s16)fade;
-        GetScreenPosition(x, y, z, &scratch.screen);
-        otz = scratch.screen.vz;
-        if (otz < 0x25)
+        brightness = (s16)param->brightness;
+        GetScreenPosition(param->px, param->py, param->pz, &scratch.screen);
+        if (scratch.screen.vz < 0x25)
         {
             return;
         }
-        scale = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
+        scale = (s16)((size * PROJECTION_DISTANCE) / scratch.screen.vz) + 1;
         spr->scaley = scale;
         spr->scalex = scale;
         spr2->scaley = scale;
@@ -126,13 +114,12 @@ void DrawGore(TEffectSlot *ef)
         spr2->rotate = rotate;
         spr2->x = spr->x = scratch.screen.vx;
         spr2->y = spr->y = scratch.screen.vy;
-        half_brightness = brightness / 2;
         spr->r = (u8)brightness;
         spr->g = (u8)brightness;
         spr->b = (u8)brightness;
-        spr2->r = (u8)half_brightness;
-        spr2->g = (u8)half_brightness;
-        spr2->b = (u8)half_brightness;
+        spr2->r = (u8)(brightness / 2);
+        spr2->g = (u8)(brightness / 2);
+        spr2->b = (u8)(brightness / 2);
 
         value = (s16)(u16)scratch.screen.vz >> 2;
         CLAMP_SORT_DEPTH(priority, value);
@@ -146,11 +133,7 @@ void DrawGore(TEffectSlot *ef)
 
     case 2:
     {
-        u16 count;
-
-        count = param->time;
-        param->time = count - 1;
-        if ((s16)count <= 0)
+        if ((s16)param->time-- <= 0)
         {
             param->time = 0x80;
             param->mode++;
@@ -160,12 +143,8 @@ void DrawGore(TEffectSlot *ef)
 
     case 1:
     {
-        u16 count;
-
         param->scale += rand() % 0x1000;
-        count = param->time;
-        param->time = count - 1;
-        if ((s16)count <= 0)
+        if ((s16)param->time-- <= 0)
         {
             param->mode++;
             param->time = rand() % 90;
@@ -190,7 +169,6 @@ void DrawGore(TEffectSlot *ef)
         s32 bleed_x;
         s32 bleed_y;
         s32 bleed_z;
-        u16 count;
         SVECTOR *velocity;
         long color;
         long green;
@@ -254,9 +232,7 @@ void DrawGore(TEffectSlot *ef)
         }
         else
         {
-            count = param->time;
-            param->time = count - 1;
-            if ((s16)count <= 0)
+            if ((s16)param->time-- <= 0)
             {
                 ef->proc = 0;
             }
