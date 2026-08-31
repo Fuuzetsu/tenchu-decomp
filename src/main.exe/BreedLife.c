@@ -135,10 +135,11 @@
  *    (the m2c/Ghidra call-arg-undercount family) — the raw `.s` sets up
  *    a3=z and a stack mode=1 that are never otherwise touched, so the real
  *    call is `GetAreaMapLevel(area, x, y, z, 1)`.
- *  - The type-range dispatch is the goto ladder as written: the raw `.s`
- *    tests `type < ANI` FIRST and branches to the low-type block on true,
- *    matching this polarity directly (no De Morgan inversion needed here,
- *    unlike several other guard-clause functions in this TU family).
+ *  - The type-range dispatch keeps its low block in place with an inverse
+ *    `type >= ANI` guard. The low block similarly guards the two rejection
+ *    tests with `type < HANBE`; direct one-line returns then cross-jump to
+ *    the shared epilogue. The remaining `done`/`high_type` edges preserve
+ *    the required low-before-high physical block order.
  */
 
 extern int sprintf(char *buf, char *fmt, ...);
@@ -221,26 +222,26 @@ type_found:
     {
         human->item[ITEM_KUSURI] = 1;
     }
-    if (type < ANI)
-        goto low_type;
-    if (type >= ARROW)
-        goto done;
-    if (type < S1)
-        goto done;
-    goto high_type;
+    if (type >= ANI)
+    {
+        if (type >= ARROW)
+            return human;
+        if (type < S1)
+            goto done;
+        goto high_type;
+    }
 
-low_type:
-    if (type >= HANBE)
-        goto equip;
-    if (type >= RIKIMARU_1)
-        goto done;
-    if (type < 0)
-        goto done;
-equip:
+    if (type < HANBE)
+    {
+        if (type >= RIKIMARU_1)
+            return human;
+        if (type < 0)
+            return human;
+    }
     human->attribute = human->attribute | PHASE_ALERT;
     EquipWeapon(human, 1);
     SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
-    goto done;
+    return human;
 high_type:
     human->attribute = human->attribute | ATTR_FLOAT;
 done:

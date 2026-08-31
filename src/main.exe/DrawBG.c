@@ -37,9 +37,9 @@
  *    shared-variable form puts the `ret=0` default BEFORE the condition
  *    test, so its pseudo is simultaneously live with the test's own v0 temp
  *    (regalloc.py showed an explicit conflict edge to hard reg v0) and gets
- *    evicted to v1 + a trailing `move v0,v1` at the return. Two early
- *    returns (`if (cond) {...; return 1;} return 0;`) let cc1 target v0
- *    directly for each constant with no competing live temp — 0 bytes.
+ *    evicted to v1 + a trailing `move v0,v1` at the return. The inverse
+ *    disabled-bit guard followed by the draw and `return 1` lets cc1 target
+ *    v0 directly for each constant with no competing live temp — 0 bytes.
  *    (This is the opposite failure mode from InsertConflict's shared-`ret`
  *    fix: there splitting early returns avoided a copy-PREFERENCE toward a
  *    callee-saved reg; here the shared variable caused a hard CONFLICT with
@@ -54,10 +54,10 @@ extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 
 short DrawBG(BackGround *bg)
 {
-    if ((bg->attribute & 1) == 0)
+    if ((bg->attribute & 1) != 0)
     {
-        GsSortFixBg16(bg, bg->work, OTablePt, bg->sz);
-        return 1;
+        return 0;
     }
-    return 0;
+    GsSortFixBg16(bg, bg->work, OTablePt, bg->sz);
+    return 1;
 }

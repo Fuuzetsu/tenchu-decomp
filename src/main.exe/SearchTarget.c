@@ -102,18 +102,14 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
     raw_degree = ratan2(-vect.vx, -vect.vz) - roty;
     signed_degree = raw_degree;
     result_degree = raw_degree;
-    if (signed_degree <= 0x800)
+    if (signed_degree > 0x800)
     {
-        goto degree_nested;
+        result_degree = 0x1000 - raw_degree;
     }
-    result_degree = 0x1000 - raw_degree;
-    goto degree_done;
-degree_nested:
-    if (signed_degree <= -0x800)
+    else if (signed_degree <= -0x800)
     {
         result_degree = raw_degree + 0x1000;
     }
-degree_done:
     *degree = result_degree;
 
     if (((GameClock + human->model->object[0]->id) & 0x1f) != 0)
@@ -130,12 +126,9 @@ degree_done:
         {
             goto passage_failure;
         }
-        if (vect.vy < -3000)
+        if (vect.vy < -3000 && *distance < 4000)
         {
-            if (*distance < 4000)
-            {
-                return SR_GONE;
-            }
+            return SR_GONE;
         }
     }
 
@@ -237,4 +230,3 @@ degree_done:
     }
     return SR_UNSEEN;
 }
-

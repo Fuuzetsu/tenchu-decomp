@@ -47,6 +47,9 @@
  *    one function-wide local instead survives into the tail and adds reloads.
  *  - The final `human` copy gives both target stores one shared base pseudo,
  *    while keeping the GetNearestHumanoid result directly in $v0.
+ *  - The chase arm and ordinary motion chooser form a structured `else`.
+ *    Repeating the one-line `motMODE = 1` tail in the down, squat, and
+ *    ordinary arms lets jump2 rebuild the target's one shared store.
  */
 
 extern Humanoid *Me_MOTION_C;
@@ -176,6 +179,7 @@ void AttackControl(void)
             return;
         }
         motID = MOT_ATTACK_BACK;
+        motMODE = 1;
     }
     else if (motID == MOT_SQUAT)
     {
@@ -184,6 +188,7 @@ void AttackControl(void)
             return;
         }
         motID = MOT_ATTACK_CROUCH;
+        motMODE = 1;
     }
     else if (motID == MOT_CHASE_DASH_FWD)
     {
@@ -198,27 +203,28 @@ void AttackControl(void)
             motID = MOT_ATTACK_LUNGE;
             motMODE = 1;
         }
-        goto update_target;
-    }
-    else if (MOTION_PAD_BITS & PADLup)
-    {
-        motID = MOT_ATTACK;
-    }
-    else if (MOTION_PAD_BITS & PADLright)
-    {
-        motID = MOT_ATTACK_RIGHT1;
-    }
-    else if (MOTION_PAD_BITS & PADLleft)
-    {
-        motID = MOT_ATTACK_LEFT1;
     }
     else
     {
-        motID = MOT_ATTACK;
+        if (MOTION_PAD_BITS & PADLup)
+        {
+            motID = MOT_ATTACK;
+        }
+        else if (MOTION_PAD_BITS & PADLright)
+        {
+            motID = MOT_ATTACK_RIGHT1;
+        }
+        else if (MOTION_PAD_BITS & PADLleft)
+        {
+            motID = MOT_ATTACK_LEFT1;
+        }
+        else
+        {
+            motID = MOT_ATTACK;
+        }
+        motMODE = 1;
     }
-    motMODE = 1;
 
-update_target:
     if (Me_MOTION_C == StagePlayer)
     {
         Humanoid *enemy;

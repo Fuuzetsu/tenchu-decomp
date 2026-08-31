@@ -44,18 +44,10 @@
  *     and unclamped values — plain if/else, no eager-store-then-override
  *     idiom needed (each arm's stored VALUE differs, so cc1 has nothing to
  *     cross-jump-merge).
- *  2. An explicit `if (cond) goto L;` ladder over `sk` (captured from
- *     SkipFrame before any case body can clear the global) for exactly
- *     {0,1,2}, no default: `if (sk==1) goto case1; if (sk<2) { if (sk==0)
- *     goto case0; goto join; } if (sk==2) goto case2; goto join;` — tests
- *     fire 1, <2, ==0 (nested), ==2 while the case BODIES sit in memory in
- *     plain 0,1,2 source order (this is what m2c's own reconstruction
- *     rendered as a `switch`, and a genuine `switch` statement over the
- *     same 3 values compiles to byte-IDENTICAL code here — verified by
- *     swapping the two forms with no diff — so either spelling works; the
- *     ladder is kept for its self-documenting test/body-order split).
- *     Two values with NO matching case (sk<0 or sk>2) fall straight to the
- *     join with no code, exactly the no-default semantics.
+ *  2. A genuine `switch` over the captured `sk` value for exactly {0,1,2},
+ *     with no default. expand_case emits the target's 1, <2, ==0 (nested),
+ *     ==2 test order while retaining the case bodies in plain 0,1,2 source
+ *     order. Values outside that set reach the shared tail unchanged.
  *     - case 0: if the frame is overrunning its budget
  *       (`VSync(1) > ((sync - (sync<<4))<<4) - 0xa`), start skipping
  *       (`SkipFrame=1`) and return immediately — this return, not a
@@ -89,7 +81,7 @@
  *       dp` intermediate (rather than assigning `DrawingPage` directly)
  *       is THE lever that keeps `sk`'s own register alive here: cc1's cse
  *       (record_jump_equiv in cse.c) recognizes "sk == 1" from the
- *       dominating `if (sk==1) goto case1;` test and, when `sk` is `s32`
+ *       dominating case dispatch and, when `sk` is `s32`
  *       (matching the SImode the comparison itself is done in), directly
  *       SUBSTITUTES the constant 1 for `sk` at this later use (`li
  *       $v0,1`) instead of reusing the live register — one instruction
@@ -150,39 +142,30 @@ void EndDrawing(short sync)
     }
 
     sk = SkipFrame;
-    if (sk == 1)
-        goto case1;
-    if (sk < 2)
+    switch (sk)
     {
-        if (sk == 0)
-            goto case0;
-        goto join;
-    }
-    if (sk == 2)
-        goto case2;
-    goto join;
-
-case0:
+    case 0:
     if (VSync(1) > ((sync - (sync << 4)) << 4) - 0xA)
     {
         SkipFrame = 1;
         return;
     }
-    goto join;
+    break;
 
-case1:
+    case 1:
     t = sync;
     sync = t << 1;
     SkipFrame = 0;
     dp = sk - (u16)DrawingPage;
     DrawingPage = dp;
     OTablePt = &OTable[DrawingPage];
-    goto join;
+    break;
 
-case2:
+    case 2:
     SkipFrame = 0;
+    break;
+    }
 
-join:
     OTablePt->org[0x7FE] = OTablePt->org[DEPTH_LIMIT];
 
     if (sync <= 0)

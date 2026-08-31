@@ -51,9 +51,9 @@
  * `if (range) { if (life>0) return; }` (that shape falls through to the
  * shared `Event[n]=0;` clear whenever `range` is false, clearing state
  * the target actually PRESERVES): the raw asm's range test branches
- * STRAIGHT to the epilogue on failure, bypassing the clear entirely. It's
- * TWO independent early returns: `if (!range) return; if (life>0)
- * return;` — a real behavioral difference from the nested-if reading, not
+ * STRAIGHT to the epilogue on failure, bypassing the clear entirely. One
+ * short-circuit return condition (`!range || life > 0`) emits those same
+ * two independent machine guards — a real behavioral difference from the nested-if reading, not
  * just a scheduling artifact (verified: the nested-if draft clears
  * `Event[n]` on out-of-range `id`, the target does not).
  * `h->motion->loop` is item.h's `MotionManager.loop` @0x4 (a different
@@ -107,18 +107,14 @@ void UpdateEvent(short n, short id)
             {
                 eTarget[n] = GetHumanoid(ev->target);
             }
-            if (eTarget[n] != 0)
+            if (eTarget[n] != 0 &&
+                !(eTarget[n]->status == STAT_DEAD &&
+                  eTarget[n]->motion->loop == -1))
             {
-                if (!(eTarget[n]->status == STAT_DEAD && eTarget[n]->motion->loop == -1))
+                if ((u16)(id - 2) >= 2 ||
+                    (*(Humanoid *volatile *)&eTarget[n])->life > 0)
                 {
-                    if ((u16)(id - 2) >= 2)
-                    {
-                        return;
-                    }
-                    if ((*(Humanoid *volatile *)&eTarget[n])->life > 0)
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
             Event[n] = 0;

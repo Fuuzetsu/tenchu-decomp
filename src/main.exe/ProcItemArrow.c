@@ -56,8 +56,9 @@
  *    mode-2 path; call-crossing mode-0 disposal prefixes rematerialize
  *    ITEM_MODE_DISPOSE (0xff)
  *    before all copies merge at the common indirect-call tail.
- *  - The payload guard is explicit control flow so both zero tests target
- *    the later aiming block.  `water` is deliberately s16: autorules
+ *  - The payload is the `else` of the conflict-id test and uses inverse
+ *    mode/kind guards, so a non-humanoid hit and both zero cases fall into
+ *    the later aiming block without labels. `water` is deliberately s16: autorules
  *    found that narrowing this comparison-only constant colors the payload
  *    byte into v1 and `1` into v0, while still allowing the `li` to fill the
  *    payload-zero branch's delay slot.  s32 swaps those two registers.
@@ -187,55 +188,48 @@ void ProcItemArrow(TItem *item)
                     break;
                 }
             }
-            else
-            {
-                goto aim;
-            }
         }
-
+        else
         {
             s16 water;
             u8 kind;
 
-            if (param->fly.mode == 0)
+            if (param->fly.mode != 0)
             {
-                goto aim;
-            }
-            water = KORO_WATER;
-            kind = param->fly.p.koro.status;
-            if (kind == KORO_NORMAL)
-            {
-                goto aim;
-            }
-            if (kind == water)
-            {
-                ppu = item->proc;
-                if (ppu == 0)
+                water = KORO_WATER;
+                kind = param->fly.p.koro.status;
+                if (kind != KORO_NORMAL)
                 {
+                    if (kind == water)
+                    {
+                        ppu = item->proc;
+                        if (ppu == 0)
+                        {
+                            return;
+                        }
+                        item->mode = ITEM_MODE_DISPOSE;
+                        item->proc(item);
+                        DeleteConflict(item->locate);
+                        if (item->mode != 0)
+                        {
+                            AdtMessageBox(msg_item_dispose_fail, item->type,
+                                          (u32)item->mode);
+                        }
+                        item->owner = 0;
+                        item->proc = 0;
+                        return;
+                    }
+                    SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
+                    SetBleeds((VECTOR *)item->locate->locate.coord.t,
+                              0, 25, 30, 30, 0xffff00);
+                    param->count = 30;
+                    item->mode++;
+                    DeleteConflict(item->locate);
                     return;
                 }
-                item->mode = ITEM_MODE_DISPOSE;
-                item->proc(item);
-                DeleteConflict(item->locate);
-                if (item->mode != 0)
-                {
-                    AdtMessageBox(msg_item_dispose_fail, item->type,
-                                  (u32)item->mode);
-                }
-                item->owner = 0;
-                item->proc = 0;
-                return;
             }
-            SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
-            SetBleeds((VECTOR *)item->locate->locate.coord.t,
-                      0, 25, 30, 30, 0xffff00);
-            param->count = 30;
-            item->mode++;
-            DeleteConflict(item->locate);
-            return;
         }
 
-    aim:
         v2.vx = item->locate->locate.coord.t[0];
         v2.vy = item->locate->locate.coord.t[1];
         v2.vz = item->locate->locate.coord.t[2];
@@ -302,4 +296,3 @@ void ProcItemArrow(TItem *item)
     model->locate = item->locate->locate;
     DrawModel(model);
 }
-

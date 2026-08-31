@@ -47,23 +47,15 @@
  *    `dz`/`dx` (the plain truncated diffs) are each read a SECOND time later
  *    (in the slope_x/slope_z slope multiply), so cc1 must keep the
  *    unshifted value alive in its own register instead of folding it away.
- *  - **Two guard-goto ladder, THEN a modify-shared-variable-and-fall-through
- *    tail**, not two independent `return EXPR;` guards: `if (attr==0x4000)
- *    goto slope_x; if (attr==0x8000) goto slope_z; goto tail; slope_x:
- *    yy = yy + slope; goto tail; slope_z: yy = yy + slope; tail: return
- *    yy;` reproduces the target's SINGLE shared return tail (cross-jump
- *    merges the two case bodies' truncate-and-return code with the default's
- *    only when every path funnels through one `return yy;` — three separate
- *    `return` statements each compiled their OWN full tail instead, 10+
- *    bytes over target).
- *  - **The `return LEVEL_NONE;` guard must be a `goto ret_min;` to a label at
- *    the very END of the function, past the main tail** — inline as
- *    `if (cond) return 0x80000000;` right at the test floats the constant's
- *    `lui` into the guard branch's delay slot (6-byte tie: a stray `lui`
- *    appears at the guard and a `nop` appears where the target has the `lui`,
- *    at the real ret_min site). Matches the general "labeled return body
- *    pins a duplicated return constant" rule, here for a guard clause rather
- *    than a loop.
+ *  - The two slope cases must be a genuine `switch`, not an `if/else if`:
+ *    expand_case emits both tests before the case bodies and keeps one shared
+ *    `return yy;`. The structured conditional interleaves tests and bodies
+ *    and measures 21 diff lines.
+ *  - Guard the whole valid-cell region with `division & mask` and leave
+ *    `return LEVEL_NONE;` textually last. This retains the target's late
+ *    constant materialization without the old `ret_min` label. An immediate
+ *    early return at the original zero test instead floats the `lui` into
+ *    the branch delay slot.
  */
 
 long ComputeAreaLevel(AreaNodeType *node, long x, long z)
@@ -79,26 +71,20 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
     xspan = (u16)node->x2 - (u16)node->x1 + 1;
 
     mask = 1 << (((dz << 2) / zspan) * 4 + ((dx << 2) / xspan));
-    if (((u16)node->division & mask) == 0)
-        goto ret_min;
+    if (((u16)node->division & mask) != 0)
+    {
+        yy = node->y;
 
-    yy = node->y;
-
-    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_X)
-        goto slope_x;
-    if ((node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z)) == MAP_SLOPE_Z)
-        goto slope_z;
-    goto tail;
-
-slope_x:
-    yy = yy + dx * node->dy / xspan;
-    goto tail;
-slope_z:
-    yy = yy + dz * node->dy / zspan;
-
-tail:
-    return yy;
-
-ret_min:
+        switch (node->attribute & (MAP_SLOPE_X | MAP_SLOPE_Z))
+        {
+        case MAP_SLOPE_X:
+            yy = yy + dx * node->dy / xspan;
+            break;
+        case MAP_SLOPE_Z:
+            yy = yy + dz * node->dy / zspan;
+            break;
+        }
+        return yy;
+    }
     return LEVEL_NONE;
 }

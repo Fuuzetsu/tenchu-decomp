@@ -35,6 +35,9 @@
  * The status-7 path deliberately has its own literal return.  GCC merges its
  * short-return conversion with the final return, but the extra control-flow
  * boundary keeps that conversion above the epilogue restores, as in retail.
+ * The ordinary action choice is one distance-ordered `if/else if` ladder.
+ * Its final dash test is positive so the dash block remains textually before
+ * the `ItemUse` alternative, matching retail's cold-block order.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -101,19 +104,23 @@ s16 Think3attack(void)
                 if (rand() % (EngageLevel + 1) != 0)
                 {
                     pad |= PADRleft;
-                    goto action_ready;
                 }
-                pad = PADRleft | PADRright;
-                goto action_ready;
+                else
+                {
+                    pad = PADRleft | PADRright;
+                }
             }
-            pad |= PADRleft;
-            goto action_ready;
+            else
+            {
+                pad |= PADRleft;
+            }
         }
-        pad |= PADLdown;
-        goto action_ready;
+        else
+        {
+            pad |= PADLdown;
+        }
     }
-
-    if (Distance < atkd[idx])
+    else if (Distance < atkd[idx])
     {
         if (idx == WPATK_CLASS_RANGED)
         {
@@ -121,69 +128,47 @@ s16 Think3attack(void)
             {
                 pad = PADRleft;
             }
-            goto action_ready;
         }
-
-        if (__builtin_abs(Degree) < 100)
+        else if (__builtin_abs(Degree) < 100 &&
+                 atkd[idx] - 1000 < Distance)
         {
-            if (atkd[idx] - 1000 < Distance)
-            {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
-                goto action_ready;
-            }
+            pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
         }
-
-        if (Me_THINK_C->motion->count == 0)
+        else if (Me_THINK_C->motion->count == 0 &&
+                 __builtin_abs(Degree) < 1200)
         {
-            if (__builtin_abs(Degree) < 1200)
-            {
-                pad |= PADRleft;
-                goto action_ready;
-            }
+            pad |= PADRleft;
         }
-
-        if (rng + 500 < Distance)
+        else if (rng + 500 < Distance)
         {
             pad |= PADLup;
         }
-        goto action_ready;
     }
-
-    if (Me_THINK_C->status != STAT_ENGAGE)
+    else if (Me_THINK_C->status == STAT_ENGAGE)
     {
-        goto action_ready;
-    }
-
-    if (StagePlayer->status == STAT_SYURI)
-    {
-        s32 command;
-        s32 random;
-
-        random = rand();
-        command = CMD_DASH_RIGHT;
-        if ((random & 1) != 0)
+        if (StagePlayer->status == STAT_SYURI)
         {
-            command = CMD_DASH_LEFT;
+            s32 command;
+            s32 random;
+
+            random = rand();
+            command = CMD_DASH_RIGHT;
+            if ((random & 1) != 0)
+            {
+                command = CMD_DASH_LEFT;
+            }
+            pad = SetCommand(&Me_THINK_C->pad, command);
         }
-        pad = SetCommand(&Me_THINK_C->pad, command);
-        goto action_ready;
+        else if (Me_THINK_C->motion->count == 0 && rand() % 3 == 0)
+        {
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
+        }
+        else
+        {
+            ItemUse();
+        }
     }
 
-    if (Me_THINK_C->motion->count != 0)
-    {
-        goto use_item;
-    }
-    if (rand() % 3 != 0)
-    {
-        goto use_item;
-    }
-    pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
-    goto action_ready;
-
-use_item:
-    ItemUse();
-
-action_ready:
     if (Me_THINK_C->motion->count == 0 &&
         rand() % 30 == 0 &&
         Me_THINK_C->status == STAT_ENGAGE)

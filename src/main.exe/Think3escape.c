@@ -49,18 +49,15 @@ s16 Think3escape(void)
     {
         result = -0x8000;
     }
-    else
+    else if (Degree < 0)
     {
-        if (Degree < 0)
+        if (result != 0)
         {
-            if (result != 0)
-            {
-                result = PADLright;
-            }
-            else
-            {
-                result = PADLright;
-            }
+            result = PADLright;
+        }
+        else
+        {
+            result = PADLright;
         }
     }
     degree = Degree;
