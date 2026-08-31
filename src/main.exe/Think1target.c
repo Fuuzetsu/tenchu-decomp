@@ -57,7 +57,7 @@ s16 Think1target(void)
     {
 
         pad = 0;
-        if ((Me_THINK_C->actcnt & 0x7f) == 0)
+        if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
         {
             pad = PADLleft;
             if (Me_THINK_C->actflg != 0)
@@ -141,7 +141,7 @@ s16 Think1target(void)
         {
 
                 pad = 0;
-            if ((Me_THINK_C->actcnt & 0x7f) == 0)
+            if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
             {
                 pad = PADLleft;
                 if (Me_THINK_C->actflg != 0)

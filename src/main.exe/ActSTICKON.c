@@ -113,10 +113,10 @@ void ActSTICKON(void)
             }
 
             raw_y = (u16)dtR->vy;
-            wall_y = raw_y & 0xC00;
-            if (raw_y & 0x200)
+            wall_y = raw_y & ANGLE_QUADRANT_MASK;
+            if (raw_y & ANGLE_HALF_QUADRANT)
             {
-                wall_y += 0x400;
+                wall_y += ANGLE_QUADRANT;
             }
             reflected_raw = (u16)RefrectVector[map->vector] - wall_y;
             /* t re-registers wall_y for the divide below:

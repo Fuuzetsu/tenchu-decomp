@@ -152,10 +152,10 @@ short HangCheck(void)
     oy = y;
     if (ry & 0xFF)
     {
-        yc = ry & 0xC00;
-        if (ry & 0x200)
+        yc = ry & ANGLE_QUADRANT_MASK;
+        if (ry & ANGLE_HALF_QUADRANT)
         {
-            yc += 0x400;
+            yc += ANGLE_QUADRANT;
         }
         ry = yc;
     }

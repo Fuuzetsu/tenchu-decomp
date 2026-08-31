@@ -111,6 +111,22 @@ extern short dtPAD;
 extern short motID;
 extern short motMODE;
 
+/* Facing angles are 12 bits: a full turn is 0x1000, so a quadrant is
+ * ANGLE_QUADRANT and half of one is ANGLE_HALF_QUADRANT. Snapping a
+ * facing to the nearest quadrant is the same three lines in ActKAGI,
+ * HangCheck and ActSTICKON -- mask to ANGLE_QUADRANT_MASK, then add a
+ * quadrant when the half bit is set:
+ *
+ *     q = angle & ANGLE_QUADRANT_MASK;
+ *     if (angle & ANGLE_HALF_QUADRANT)
+ *         q += ANGLE_QUADRANT;
+ *
+ * (0x1000 also spells FIXED_ONE in tuning.h; same value, unrelated
+ * meaning -- these names are for angles.) */
+#define ANGLE_QUADRANT 0x400
+#define ANGLE_QUADRANT_MASK 0xc00
+#define ANGLE_HALF_QUADRANT 0x200
+
 /* Request a motion: the pair every Act* state writes to hand a new motion
  * to the shared updater. Macro is reconstruction shorthand (it expands to
  * the identical two statements), but the original almost certainly had a

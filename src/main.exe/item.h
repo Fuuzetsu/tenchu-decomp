@@ -111,6 +111,10 @@ extern ThinkFunc Think3Func[10];
 extern ThinkFunc Think4Func[6];
 extern ThinkFunc AttackFunc[4];
 
+/* Think1watch/Think1target act on the ticks where actcnt's low bits are
+ * clear, so the character looks around once per this many idle ticks. */
+#define THINK_IDLE_PERIOD 0x80
+
 #define THINK1_WATCH 4     /* 1B-WATCH */
 #define THINK2_CONTACT 4   /* 2B-CONTACT */
 #define THINK3_ATK_CHASE 4 /* 3B-ATK-CHASE */
@@ -192,6 +196,12 @@ typedef struct Humanoid
                                  the blood-pool timer and death spot */
     u8 actmode;               /* 0x88 */
     u8 actflg;                /* 0x89 */
+    /* Free-running idle counter for the Think1* wander states. It only
+     * advances while the character is NOT acting: the act phase is the
+     * ticks where the low bits are clear (0 and 0x80), during which the
+     * counter holds while actscnt runs out, then one increment releases
+     * it to count through the idle stretch again. So the mask below sets
+     * how long the character waits between look-arounds. */
     u8 actcnt;                /* 0x8A */
     u8 actscnt;               /* 0x8B */
     s16 warid;                /* 0x8C */

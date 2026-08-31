@@ -246,11 +246,11 @@ void ActKAGI(void)
             rotation = dtR;
             old_ry = rotation->vy;
             sum = old_ry + root->rotate.vy;
-            quantized = sum & 0xc00;
+            quantized = sum & ANGLE_QUADRANT_MASK;
             rotation->vy = sum;
-            if (sum & 0x200)
+            if (sum & ANGLE_HALF_QUADRANT)
             {
-                quantized += 0x400;
+                quantized += ANGLE_QUADRANT;
             }
             rotation->vy = quantized;
             /* The vy = sum store above is dead (quantized overwrites it)

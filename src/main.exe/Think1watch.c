@@ -47,7 +47,7 @@ s16 Think1watch(void)
     s16 pad;
 
     pad = 0;
-    if ((Me_THINK_C->actcnt & 0x7F) == 0)
+    if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
     {
         /* PADLleft as a negative constant: fits addiu (same lever as
          * SuccessionAttack's documented spellings). */
