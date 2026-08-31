@@ -899,6 +899,17 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   never a recovered local, and update any matching note that quotes the
   old name in the same commit.
 
+- **Longhand arithmetic is usually free; struct assignment is not**
+  (2026-08-31 sweeps). `X = X + n;` -> `X += n;` converted in 69 of 89
+  files (200+ sites) and every `+= 1` -> `++` converted — but 20 files
+  KEPT the longhand because cc1 schedules the recomputed operand
+  differently there (ProcItemDokudango, DrawConstruction, IsVisible,
+  GetScreenPosition(S), DrawTargetS...), so measure per file with a
+  per-site fallback rather than sed-ing the tree. By contrast,
+  collapsing a field-by-field `dst.vx/vy/vz = src.vx/vy/vz` into a
+  struct assignment is byte-visible everywhere it was tried (14-89
+  lines): the block move is a different copy sequence, so those triples
+  are authentic source, not decompiler residue.
 - **Offset casts are not one category — judge them by REPRESENTATION**
   (round 14, 2026-08-31). Six rules, each measured: (1) recover a field
   when an authoritative type exists and the access denotes one member;
