@@ -241,7 +241,7 @@ void ProcItemNinken(TItem *item)
         SetSmoke(&scratch.spawn.pos, &scratch.spawn.work.vec, 10, 6);
         SoundEx(&scratch.spawn.pos, SE_SMOKE_PUFF);
         param->slave = NINKEN_CHARACTER_PTR;
-        NINKEN_CHARACTER_PTR->status = 0;
+        NINKEN_CHARACTER_PTR->status = STAT_NORMAL;
         slave = param->slave;
         slave->life = slave->lifemax;
         param->slave->model->locate.coord.t[0] = scratch.spawn.pos.vx;

@@ -16,7 +16,7 @@
 
 /*
  * Think1ninja (0x8002c238, 0x164 bytes) — think-handler for a ninja-type
- * enemy: does nothing while jumping (character_status == 9); otherwise runs
+ * enemy: does nothing while jumping (status STAT_JUMP); otherwise runs
  * an actscnt-gated (every 31st call, matching Think1watch's/Think1trace's
  * old-actscnt idiom) random-action roll (Think1random) that, specifically
  * while the current motion is 0x200/0 (mid==0x200 && count==0, read as ONE
