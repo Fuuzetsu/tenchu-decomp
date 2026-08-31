@@ -55,21 +55,16 @@ s16 Think1target(void)
 
     if (Me_THINK_C->target == NULL)
     {
-        u8 actcnt;
-        u8 old_actscnt;
 
-        actcnt = Me_THINK_C->actcnt;
         pad = 0;
-        if ((actcnt & 0x7f) == 0)
+        if ((Me_THINK_C->actcnt & 0x7f) == 0)
         {
             pad = PADLleft;
             if (Me_THINK_C->actflg != 0)
             {
                 pad = PADLright;
             }
-            old_actscnt = Me_THINK_C->actscnt;
-            Me_THINK_C->actscnt = old_actscnt + 1;
-            if (old_actscnt > 10)
+            if (Me_THINK_C->actscnt++ > 10)
             {
                 Me_THINK_C->actflg = rand() & 1;
                 Me_THINK_C->actscnt = 0;
@@ -144,21 +139,16 @@ s16 Think1target(void)
             return turn_towards_player_(vx, vz);
         }
         {
-            u8 actcnt;
-            u8 old_actscnt;
 
-            actcnt = Me_THINK_C->actcnt;
-            pad = 0;
-            if ((actcnt & 0x7f) == 0)
+                pad = 0;
+            if ((Me_THINK_C->actcnt & 0x7f) == 0)
             {
                 pad = PADLleft;
                 if (Me_THINK_C->actflg != 0)
                 {
                     pad = PADLright;
                 }
-                old_actscnt = Me_THINK_C->actscnt;
-                Me_THINK_C->actscnt = old_actscnt + 1;
-                if (old_actscnt > 10)
+                if (Me_THINK_C->actscnt++ > 10)
                 {
                     Me_THINK_C->actflg = rand() & 1;
                     Me_THINK_C->actscnt = 0;

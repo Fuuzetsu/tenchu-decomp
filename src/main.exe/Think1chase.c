@@ -24,12 +24,12 @@
 
 /*
  * Think1chase (0x8002c39c, 0x178 bytes) — think-handler, same "think" TU as
- * Think1random.c/Think1sleep.c. On the first tick of a new cycle (actcnt
+ * Think1random.c/Think1sleep.c. On the first tick of a new cycle (++Me_THINK_C->actcnt
  * rolls to 1), picks the chase target: the nearest other Humanoid within
  * 5000 units if one exists, else the same random-offset-from-spawn roll as
  * Think1random. On later ticks, steers towards the chase target via
  * turn_towards_player_; when it returns 0 (facing the target already),
- * resets actcnt to 0 and forces the result to 0x80 instead.
+ * resets ++Me_THINK_C->actcnt to 0 and forces the result to 0x80 instead.
  *
  * GetNearestHumanoid uses the shared `Humanoid *` view, matching this TU's
  * `Me_THINK_C` and the character APIs in humanoid.h.
@@ -52,13 +52,9 @@
  */
 s16 Think1chase(void)
 {
-    u8 actcnt;
     s32 result;
-
-    actcnt = Me_THINK_C->actcnt + 1;
-    Me_THINK_C->actcnt = actcnt;
     result = 0;
-    if (actcnt == 1)
+    if (++Me_THINK_C->actcnt == 1)
     {
         Humanoid *enemy;
 

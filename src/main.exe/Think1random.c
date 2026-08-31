@@ -38,13 +38,9 @@
 
 s16 Think1random(void)
 {
-    u8 actcnt;
     s32 result;
-
-    actcnt = Me_THINK_C->actcnt + 1;
-    Me_THINK_C->actcnt = actcnt;
     result = 0;
-    if (actcnt == 1)
+    if (++Me_THINK_C->actcnt == 1)
     {
         Me_THINK_C->chase[HUMANOID_CHASE_X] = Me_THINK_C->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
         Me_THINK_C->chase[HUMANOID_CHASE_Z] = Me_THINK_C->point[HUMANOID_HOME_Z] + rand() % 10000 - 5000;
