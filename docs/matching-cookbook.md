@@ -849,6 +849,16 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   files or is an obvious knob, and to leave one-off frame counts inline;
   respect that instead of promoting every literal you touch.
 
+- **Classify a numeric switch as a PHASE or a TAG before naming it.** The
+  two want different vocabulary — phases are STARTED/WAITING/DONE and
+  transition into each other, tags are parallel alternatives that never do.
+  Non-contiguous case values prove a tag (LoadConstruction's 0/5/2 are
+  stage-data record kinds: area map, texture, model). But a contiguous
+  range proves NOTHING: AVCameraControl's CameraPanMode runs 0..8 with no
+  gaps and is still a tag — nine parallel camera behaviours. The real tell
+  is whether one case transitions into another (`mode++`, `mode = OTHER`);
+  if nothing ever moves between them, it is a tag however tidy the values.
+
 - **A name has to beat the number, and the siblings decide.** Before naming
   a literal, look at how sibling files spell the same value. `rand() % 360`
   is written plainly in four files and needs no `DEGREES_PER_TURN` — the
