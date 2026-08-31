@@ -221,7 +221,7 @@ void ProcItemJirai(TItem *item)
                 while (1)
                 {
                     ModelType **objects;
-                    ModelType *frame_model;
+                    ModelType *model;
 
                     if (i >= 10)
                     {
@@ -232,7 +232,7 @@ void ProcItemJirai(TItem *item)
                     {
                         objects += rand() % human->model->n;
                     }
-                    frame_model = *objects;
+                    model = *objects;
                     memset(&scratch.frame.random_pos, 0, sizeof(VECTOR));
                     i++;
                     do
@@ -244,7 +244,7 @@ void ProcItemJirai(TItem *item)
                     scratch.frame.pos = scratch.frame.random_pos;
                     SetFrame(&scratch.frame.pos, 3 * FIXED_ONE,
                              rand() % 60 + 60,
-                             (GsCOORDINATE2 *)frame_model);
+                             (GsCOORDINATE2 *)model);
                 }
             }
         }

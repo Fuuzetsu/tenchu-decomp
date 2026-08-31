@@ -350,20 +350,20 @@ void ProcItemFire(TItem *item)
             if (is_humanoid_on_stage_(human) != 0)
             {
                 ModelType **objects;
-                ModelType *frame_model;
+                ModelType *model;
                 objects = human->model->object;
                 if (human->model->n > 0)
                 {
                     objects += rand() % human->model->n;
                 }
-                frame_model = *objects;
+                model = *objects;
                 memset(&scratch.frame.random_pos, 0, sizeof(VECTOR));
                 scratch.frame.random_pos.vx = rand() % 200 - 100;
                 scratch.frame.random_pos.vy = rand() % 200 - 100;
                 scratch.frame.random_pos.vz = rand() % 200 - 100;
                 scratch.frame.pos = scratch.frame.random_pos;
                 SetFrame(&scratch.frame.pos, 3 * FIXED_ONE, 120,
-                         (GsCOORDINATE2 *)frame_model);
+                         (GsCOORDINATE2 *)model);
             }
         }
         return;

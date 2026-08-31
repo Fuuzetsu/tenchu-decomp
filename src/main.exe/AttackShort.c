@@ -34,7 +34,7 @@
  * and SetCommand choices from distance, facing, and EngageLevel rolls.
  *
  * Matching notes:
- *  - The full-width `status_raw` producer is narrowed through `status_pad`,
+ *  - The full-width `status_raw` producer is narrowed through `pad`,
  *    followed by an empty one-shot loop and identical full-width assignments.
  *    This zero-code boundary preserves the explicit zero-return island while
  *    making both result copies plain `move v0,s0` instructions.
@@ -71,24 +71,24 @@ short AttackShort(void)
     if (Me_THINK_C->status == STAT_ATTACK)
     {
         Humanoid *status_human;
-        s16 status_pad;
+        s16 pad;
         s32 status_raw;
         s32 status_degree;
 
         status_human = Me_THINK_C;
         status_raw = 0;
-        status_pad = status_raw;
+        pad = status_raw;
         /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
         } while (0);
         if (Degree != 0)
         {
-            status_raw = (s32)status_pad;
+            status_raw = (s32)pad;
         }
         else
         {
-            status_raw = (s32)status_pad;
+            status_raw = (s32)pad;
         }
         if (status_human->motion->count ==
             BattleDB[status_human->warid].contfrm)
