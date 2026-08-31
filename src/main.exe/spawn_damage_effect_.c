@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 #include "effect.h"
@@ -134,7 +136,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
 
         SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
                      &work.blood.scratch.direction,
-                     100, 10, 30, 0x64643C);
-        SoundEx((VECTOR *)human->model->locate.coord.t, 0x39);
+                     100, 10, 30, RGB24(100, 100, 60));
+        SoundEx((VECTOR *)human->model->locate.coord.t, SE_LIGHTNING);
     }
 }

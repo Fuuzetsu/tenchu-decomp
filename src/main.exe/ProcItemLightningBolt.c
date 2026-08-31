@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /*
@@ -86,7 +88,7 @@ void ProcItemLightningBolt(TItem *item)
         item->mode++;
         if (item->owner == CamState.Owner)
         {
-            SoundEx((VECTOR *)0, 0x39);
+            SoundEx((VECTOR *)0, SE_LIGHTNING);
         }
         break;
 
@@ -113,8 +115,8 @@ void ProcItemLightningBolt(TItem *item)
                  100, 100, 200);
     if ((GameClock & 3) == 0)
     {
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 200, 20, 10, 20, 0xFFFF78);
-        SetImpact(&param->start, 0x4000, 1);
+        SetBleeds((VECTOR *)item->locate->locate.coord.t, 200, 20, 10, 20, RGB24(255, 255, 120));
+        SetImpact(&param->start, FIXED_SCALE(4), 1);
     }
     cnt = param->count;
     param->count = cnt + 0xff;

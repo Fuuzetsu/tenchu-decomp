@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /*
@@ -115,8 +117,8 @@ void ProcItemLaunch(TItem *item)
         cid = GetConflictResult(item->locate, -1);
     if (cid != -1 && is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 0x4000, 2);
-        SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, FIXED_SCALE(4), 2);
+        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
         goto dispose;
     }
     if (param->fly.mode == 0)
@@ -124,8 +126,8 @@ void ProcItemLaunch(TItem *item)
     switch (param->fly.p.koro.status)
     {
     case KORO_WALL:
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, 0xffff00);
-        SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
+        SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, COLOR_YELLOW);
+        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
         reset_alert_duration();
         return;
 

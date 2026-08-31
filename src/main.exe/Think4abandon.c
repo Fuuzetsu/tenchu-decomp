@@ -142,7 +142,7 @@ s16 Think4abandon(void)
          * idle — ActSTATE) with the give-up voice line. */
         Attrib = cleared;
         SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
-        Sound(Me_THINK_C, 0xE);
+        Sound(Me_THINK_C, CHAR_VOICE_REACTION);
         return 0;
 
     sr_glimpse:

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -57,7 +58,7 @@ void ProcItemManebue(TItem *item)
     case 0:
         EmergencyNotice = 0;
         item->owner->itmctl = item->type;
-        SoundEx(0, 0x43);
+        SoundEx(0, SE_LURE_FLUTE);
         param->count = MANEBUE_DURATION;
         item->mode++;
         return;

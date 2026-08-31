@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 #include "sound.h"
@@ -113,7 +114,7 @@ short SwimCheck(void)
         if (Me_MOTION_C == StagePlayer)
         {
             SetCameraMode(CMODE_SWIM);
-            PadShockAR(0, 0xff, 10, 0);
+            PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
         }
         ActionHalt = 0;
         set_model_hide_(Me_MOTION_C, 1);

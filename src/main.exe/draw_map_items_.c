@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -58,7 +59,7 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
     {
         draw_y += 0xFFF;
     }
-    DrawTargetS(first_draw_arg_x, (draw_y >> 12) + area[3], 0, 0xC81414);
+    DrawTargetS(first_draw_arg_x, (draw_y >> 12) + area[3], 0, RGB24(200, 20, 20));
 
     i = 0;
     while (1)
@@ -83,7 +84,7 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
             {
                 draw_y += 0xFFF;
             }
-            DrawTargetS(loop_draw_arg_x, (draw_y >> 12) + area[3], 0, 0x1414C8);
+            DrawTargetS(loop_draw_arg_x, (draw_y >> 12) + area[3], 0, RGB24(20, 20, 200));
         }
 
         i++;

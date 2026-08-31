@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
@@ -184,6 +185,6 @@ found:
     {
         return -1;
     }
-    PadShockAR(0, 0x7F, 0, 30);
+    PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
     return -1;
 }

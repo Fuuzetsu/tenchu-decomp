@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
@@ -107,7 +108,7 @@ void ActJUMP(void)
             dtM->count >>= 2;
             if (Me_MOTION_C == StagePlayer)
             {
-                PadShockAR(0, 0xff, 10, 0);
+                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
             }
             return;
         }

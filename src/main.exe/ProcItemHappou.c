@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /*
@@ -116,8 +118,8 @@ void ProcItemHappou(TItem *item)
     {
         if (mode == 1 && param->fly.p.koro.status != KORO_NORMAL)
         {
-            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, 0xffff00);
-            SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
+            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, COLOR_YELLOW);
+            SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
             if (item->proc != 0)
             {
                 DISPOSE_ITEM(item);
@@ -130,8 +132,8 @@ void ProcItemHappou(TItem *item)
         i = GetConflictResult(item->locate, -1);
     if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 0x4000, 2);
-        SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, FIXED_SCALE(4), 2);
+        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
         DeleteConflict(item->locate);
     }
 }

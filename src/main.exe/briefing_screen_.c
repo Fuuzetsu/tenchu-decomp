@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libcd.h>
@@ -137,7 +138,7 @@ void briefing_screen_(void)
                 PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20] =
                     PSTATE->saveItem[i];
             }
-            FadeOutDirect(0x20, 2, 8, 8, 8);
+            FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
             clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xff;
             GameRetry &= 0xfe;

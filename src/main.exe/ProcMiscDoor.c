@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "misc.h"
 #include "item.h"
@@ -146,7 +147,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
                 param->dr = dir;
                 m->mode++;
                 if (param->r == 0)
-                    SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
+                    SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);
             }
         }
         break;

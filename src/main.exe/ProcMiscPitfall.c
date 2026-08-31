@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -132,7 +133,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                         if (conflict[r].common != CONFLICT_OWNER_DOOR)
                         {
                             m->mode++;
-                            SoundEx((VECTOR *)param->locate->locate.coord.t, 0x40);
+                            SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);
                         }
                     }
                 }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "sound.h"
 
@@ -131,7 +132,7 @@ void ProcItemGosin(TItem *item)
         if (mot->loop == 0)
             return;
         NowReturnNormal(item->owner);
-        SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, 0xB48C1E);
+        SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, RGB24(180, 140, 30));
         item->owner->itmctl = item->type;
         item->param.gosin.count = GOSIN_DURATION;
         item->mode++;
@@ -163,7 +164,7 @@ void ProcItemGosin(TItem *item)
             return;
         scratch.v = vec_y_n1200_z_400;
         set_impact_ex_(&scratch.v, &item->owner->model->locate,
-                       0x1000, 0x6000, 0x808080, 0,
+                       FIXED_ONE, FIXED_SCALE(6), COLOR_GRAY, 0,
                        (s16)(rand() % 360), 2, 120, 4);
         return;
     }

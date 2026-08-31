@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "sound.h"
 #define DeleteConflict DeleteConflict_prototype
 #include "main.exe.h"
@@ -22,7 +23,7 @@
             weapon[2] = weapon[0];                                            \
             weapon[0] = weapon[3];                                            \
             weapon[3] = 0;                                                    \
-            Sound(Me_MOTION_C, 1);                                            \
+            Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);                                            \
         }                                                                     \
     }                                                                         \
     else if ((dtM->count == (stow_frame)) && (weapon[2] != 0))                \
@@ -30,7 +31,7 @@
         weapon[3] = weapon[0];                                                \
         weapon[0] = weapon[2];                                                \
         weapon[2] = 0;                                                        \
-        Sound(Me_MOTION_C, 0);                                                \
+        Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);                                                \
     }
 
 /* End-of-attack weapon cleanup: drop the striking-limb conflict boxes
@@ -212,13 +213,13 @@ void ActATTACK(void)
             attack_id = GetAttackDBID(Me_MOTION_C, motID);
             human = Me_MOTION_C;
             human->warid = attack_id;
-            sound_id = 11;
+            sound_id = CHAR_VOICE_TAUNT;
             if (motID != MOT_ATTACK_TAUNT)
             {
-                sound_id = 10;
+                sound_id = CHAR_VOICE_ACTION_B;
                 if (motID & 1)
                 {
-                    sound_id = 9;
+                    sound_id = CHAR_VOICE_ACTION_A;
                 }
             }
             Sound(human, sound_id);
@@ -276,7 +277,7 @@ dispatch:
             {
                 pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd], 0, 100, -100);
                 bow_shoot_logic(ITEM_GUN, pos);
-                Sound(Me_MOTION_C, 2);
+                Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             }
             break;
         }
@@ -288,7 +289,7 @@ dispatch:
             {
                 pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xd], 0, 700, -100);
                 bow_shoot_logic(ITEM_GUN, pos);
-                Sound(Me_MOTION_C, 2);
+                Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             }
             break;
         }
@@ -586,7 +587,7 @@ dispatch:
         {
             motID = MOT_ATTACK_DIVE_LAND;
             motMODE = 0;
-            Sound(Me_MOTION_C, 0x1a);
+            Sound(Me_MOTION_C, SE_LAND_HEAVY);
             spawn_smoke_burst_(dtL, 300, 0xc, 10);
         }
         if ((dtM->count == 0) && (dtM->loop == 1))
@@ -817,10 +818,10 @@ dispatch:
                 ConflictObject[n].size.vx = conflict_size;
                 ConflictObject[n].common = (void *)owner;
             }
-            Sound(Me_MOTION_C, 2);
+            Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             if (Me_MOTION_C == StagePlayer)
             {
-                PadShockAR(0, 0xff, 5, 0);
+                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_FAST, RUMBLE_RELEASE_NONE);
             }
         }
         else if (dtM->count == battle->atke)

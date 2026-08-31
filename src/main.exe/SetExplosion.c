@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 
@@ -109,5 +110,5 @@ found:
     param->mode = 0;
     param->vec.vz = vz;
     ef->proc = (void (*)())DrawExplosion;
-    SetBleeds(pos, 200, 150, 20, 30, 0xFFFF00);
+    SetBleeds(pos, 200, 150, 20, 30, COLOR_YELLOW);
 }

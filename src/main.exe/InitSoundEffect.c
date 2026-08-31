@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -40,7 +41,7 @@ void InitSoundEffect(void)
     SsInit();
     SsSetTickMode(1);
     SsStart();
-    SsSetMVol(0x7F, 0x7F);
+    SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
     if (gSound != 0)
     {
         SsSetStereo();

@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
@@ -89,7 +91,7 @@ void ActKAGI(void)
             item.start.vz = dtL->vz;
             item.end = item.start;
             ReqItemUse(&item);
-            Sound(Me_MOTION_C, 0x1e);
+            Sound(Me_MOTION_C, SE_THROW_WEAPON);
         }
         else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
@@ -127,7 +129,7 @@ void ActKAGI(void)
             {
                 ry = GetDirection(v.vx, v.vz, dtR->vy);
                 dtR->vy += ry;
-                Sound(Me_MOTION_C, 0x1f);
+                Sound(Me_MOTION_C, SE_WEAPON_RECOVER);
             }
         }
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
@@ -205,9 +207,9 @@ void ActKAGI(void)
         motMODE = 1;
         if (attrib & MAP_WATER)
         {
-            Sound(human, 0x15);
+            Sound(human, SE_WATER_MOVE);
         }
-        Sound(Me_MOTION_C, 0x18);
+        Sound(Me_MOTION_C, SE_GRAPPLE_PULL);
         break;
     }
 
@@ -304,7 +306,7 @@ void ActKAGI(void)
         dtV->vy = v.vy;
         dtV->vz = v.vz;
         SetWire(GetAbsolutePosition(Me_MOTION_C->model->object[14], 0, 0, 0),
-                &CamState.TargetVector, 0, 0x1000);
+                &CamState.TargetVector, 0, FIXED_ONE);
         break;
     }
 }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 
@@ -95,7 +96,7 @@ void DrawSplash(TEffectSlot *ef)
                     VECTOR pos = {param->px, param->py, param->pz};
                     SVECTOR direction = svec_y_n20_2[0];
 
-                    SetBleedsDir(&pos, &direction, 100, 6, 30, 0x9098A0);
+                    SetBleedsDir(&pos, &direction, 100, 6, 30, RGB24(144, 152, 160));
                 }
                 /* fall through */
             case 1:

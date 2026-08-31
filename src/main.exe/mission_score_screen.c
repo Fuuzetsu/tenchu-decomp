@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "score.h"
 #include "misc.h"
@@ -966,7 +967,7 @@ void mission_score_screen(void)
         }
     }
 
-    FadeOutDirect(0x20, 2, 8, 8, 8);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     /* Allocation carrier: keep the persistent-state role ahead of goNext. */
     /* allocation staging: folded after flow -- not recovered arithmetic */

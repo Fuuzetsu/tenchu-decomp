@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -150,10 +152,10 @@ void ActDAMAGE(void)
     case MOT_DAMAGE_SLAM_FORE:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x1d);
+            Sound(Me_MOTION_C, SE_BODY_SLAM);
             spawn_smoke_burst_(dtL, 500, 30, 30);
             if (StagePlayer == Me_MOTION_C)
-                PadShockAR(0, 0xff, 0, 30);
+                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -248,7 +250,7 @@ void ActDAMAGE(void)
                 weapon[2] = weapon[0];
                 weapon[0] = weapon[3];
                 weapon[3] = NULL;
-                Sound(Me_MOTION_C, 1);
+                Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);
             }
         }
         break;

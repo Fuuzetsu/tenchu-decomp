@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "sound.h"
 
@@ -105,7 +106,7 @@ void PauseProc(void)
     if (((pad & PADstart) && !(SystemFlag & SYSFLAG_PAUSE)) || get_pad_active_(0) == 0)
     {
         SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~SYSFLAG_DEBUG_SELECT;
-        SoundEx((VECTOR *)0, 9);
+        SoundEx((VECTOR *)0, SE_PAUSE_ENTER);
         VSync(0x14);
     }
     if (!(SystemFlag & SYSFLAG_PAUSE))
@@ -147,7 +148,7 @@ void PauseProc(void)
         if (com == CHEAT_DEBUG_MENU)
         {
             SystemFlag = SystemFlag | SYSFLAG_DEBUGMODE;
-            SoundEx((VECTOR *)0, 10);
+            SoundEx((VECTOR *)0, SE_MENU_CONFIRM);
             break;
         }
         if (opad & PADstart)
@@ -158,7 +159,7 @@ void PauseProc(void)
                     break;
                 VSync(2);
             }
-            SoundEx((VECTOR *)0, 10);
+            SoundEx((VECTOR *)0, SE_MENU_CONFIRM);
             SystemFlag = SystemFlag & ~SYSFLAG_PAUSE;
             break;
         }
@@ -185,5 +186,5 @@ void PauseProc(void)
         VSync(2);
         cnt++;
     }
-    SsSetMVol(0x7f, 0x7f);
+    SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
 }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "appear.h"
 
@@ -80,7 +81,7 @@ void leLayoutEnemy(int mode)
             pos.vy = target->model->locate.coord.t[1] - 1200;
             pos.vz = target->model->locate.coord.t[2];
             tmp = pos;
-            SetBleeds(&tmp, 600, 20, 10, 10, 0xFFFF00);
+            SetBleeds(&tmp, 600, 20, 10, 10, COLOR_YELLOW);
         }
         t = target->trace;
         if (t != 0)
@@ -145,7 +146,7 @@ void leLayoutEnemy(int mode)
                 pos.vy = human->model->locate.coord.t[1] - 1200;
                 pos.vz = human->model->locate.coord.t[2];
                 tmp = pos;
-                SetBleeds(&tmp, 400, 0, 20, 15, 0xFFFFFF);
+                SetBleeds(&tmp, 400, 0, 20, 15, COLOR_WHITE);
             }
         }
         i++;

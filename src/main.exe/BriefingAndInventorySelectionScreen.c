@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "images.h"
 #include "padcmd.h"
@@ -169,7 +170,7 @@ void BriefingAndInventorySelectionScreen(void)
         briefing_screen_();
     }
     bounce = 0;
-    scale = 0x1000;
+    scale = FIXED_ONE;
     buf = FileRead(ITEM_SEL_SPRITE_PTRS[q->language]);
     bg = load_background_(buf);
     vfree(buf);
@@ -299,7 +300,7 @@ void BriefingAndInventorySelectionScreen(void)
                     }
                     ps->selItem[ITEM_ARMOUR] = 0xFF;
                     (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
-                    SoundEx(0, 8);
+                    SoundEx(0, SE_MENU_APPLY);
                 }
             }
             break;
@@ -309,7 +310,7 @@ void BriefingAndInventorySelectionScreen(void)
                 (&ps->gItem[0])[j7 + (CHOSEN_CHARACTER << 5)] =
                     (&ps->saveItem[0])[j7];
             }
-            FadeOutDirect(0x20, 2, 8, 8, 8);
+            FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
             clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xFF;
             GameRetry = GameRetry & 0xFE;
@@ -334,11 +335,11 @@ void BriefingAndInventorySelectionScreen(void)
                 {
                     PutNumber(x + 0x1A, y + 8, c);
                 }
-                PutItemIcon(n, x, y, 0x1000);
+                PutItemIcon(n, x, y, FIXED_ONE);
             }
         }
 
-        PutItemCursor(SHOP_ITEM_DEFAULTS[cursor].x, SHOP_ITEM_DEFAULTS[cursor].y, 0x1000, -0x3000);
+        PutItemCursor(SHOP_ITEM_DEFAULTS[cursor].x, SHOP_ITEM_DEFAULTS[cursor].y, FIXED_ONE, SPRITE_ROTATION(-3));
         {
             int ddx, ddy, hx, hy;
             int k;
@@ -420,7 +421,7 @@ void BriefingAndInventorySelectionScreen(void)
                                 taken++;
                                 (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
                             }
-                            SoundEx(0, 0xD);
+                            SoundEx(0, SE_ITEM_TRANSFER);
                         }
                         else
                         {
@@ -462,12 +463,12 @@ void BriefingAndInventorySelectionScreen(void)
                         }
                     }
                     taken--;
-                    SoundEx(0, 0x1F);
+                    SoundEx(0, SE_WEAPON_RECOVER);
                 }
             }
             help = -1;
         }
-        if ((s16)scale < 0x1000)
+        if ((s16)scale < FIXED_ONE)
         {
             scale += 0xC0;
         }
@@ -517,7 +518,7 @@ void BriefingAndInventorySelectionScreen(void)
             do
             {
             } while (0);
-            if ((s16)t < 0x1000)
+            if ((s16)t < FIXED_ONE)
             {
                 bounce ^= 1;
             }
@@ -530,7 +531,7 @@ void BriefingAndInventorySelectionScreen(void)
             do
             {
             } while (0);
-            if ((s16)t < 0x1000)
+            if ((s16)t < FIXED_ONE)
             {
                 bounce = 0;
             }
@@ -547,7 +548,7 @@ void BriefingAndInventorySelectionScreen(void)
                 {
                     PutNumber(0xA6 - shown * 0x19, 0x62, c);
                 }
-                PutItemIcon(y, (s16)(0x8C - shown * 0x19), 0x5A, 0x1000);
+                PutItemIcon(y, (s16)(0x8C - shown * 0x19), 0x5A, FIXED_ONE);
                 shown++;
             }
         }
@@ -601,7 +602,7 @@ void BriefingAndInventorySelectionScreen(void)
     } while (1);
 
 quit:
-    FadeOutDirect(0x20, 2, 8, 8, 8);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     if (PSTATE->selItem[ITEM_MANEBUE] != 0)
     {

@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /*
@@ -91,8 +93,8 @@ void ProcItemGun(TItem *item)
     case 0:
         vec = svec_z_n250[0];
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 0x2000, 0);
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, 0x7F7F7F);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, FIXED_SCALE(2), 0);
+        SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, COLOR_GRAY_DARK);
         item->mode++;
         return;
 
@@ -121,15 +123,15 @@ void ProcItemGun(TItem *item)
             RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
             if (IsHuman != 0)
             {
-                SetImpact(&target, 0x6000, 0);
-                SetBleedsDir(&target, &vec, 100, 15, 10, 0xFF0000);
-                SoundEx(&target, 0x34);
+                SetImpact(&target, FIXED_SCALE(6), 0);
+                SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_RED);
+                SoundEx(&target, SE_GUN_HIT_FLESH);
             }
             else
             {
-                SetImpact(&target, 0x4000, 0);
-                SetBleedsDir(&target, &vec, 100, 15, 10, 0xFFFF00);
-                SoundEx(&target, 0x35);
+                SetImpact(&target, FIXED_SCALE(4), 0);
+                SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_YELLOW);
+                SoundEx(&target, SE_GUN_HIT_SOLID);
             }
         }
     }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
 #include "images.h"
@@ -259,7 +260,7 @@ found:
     volume = gSELevel;
     if (volume >= 0x7f)
         volume = 0x7f;
-    SsSetMVol(0x7f, 0x7f);
+    SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
     set_cda_volume_(volume, volume);
 
     {

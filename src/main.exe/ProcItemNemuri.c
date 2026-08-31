@@ -91,7 +91,7 @@ void ProcItemNemuri(TItem *item)
     {
     case 0:
         SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
-        SoundEx((VECTOR *)item->owner->model->locate.coord.t, 0x26);
+        SoundEx((VECTOR *)item->owner->model->locate.coord.t, SE_SLEEP_DART_THROW);
         item->mode++;
         return;
 

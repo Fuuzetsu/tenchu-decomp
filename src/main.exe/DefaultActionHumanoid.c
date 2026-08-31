@@ -171,7 +171,7 @@ short DefaultActionHumanoid(Humanoid *human)
             {
                 if (human == StagePlayer)
                 {
-                    Sound(human, 0x49);
+                    Sound(human, SE_FATAL_FALL);
                     SetCameraMode(CMODE_FALL);
                 }
                 else

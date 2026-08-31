@@ -60,10 +60,10 @@ void ActCHASE(void)
         {
             short sound;
 
-            sound = 0x12;
+            sound = SE_RUN_STEP;
             if (Me_MOTION_C->map.attrib & MAP_WOOD)
             {
-                sound = 0x14;
+                sound = SE_RUN_STEP_WOOD;
             }
             Sound(Me_MOTION_C, sound);
         }
@@ -231,7 +231,7 @@ void ActCHASE(void)
     {
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x13);
+            Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
         }
         if (dtM->count < 7)
         {

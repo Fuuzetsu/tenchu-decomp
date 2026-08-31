@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "effect.h"
 #include "misc.h"
@@ -61,7 +63,7 @@ do_draw:
         pos.vy = m->y;
         pos.vz = m->z;
         bleed_pos = pos;
-        SetBleedsDir(&bleed_pos, direction, 100, 10, 30, 0x64643C);
+        SetBleedsDir(&bleed_pos, direction, 100, 10, 30, RGB24(100, 100, 60));
     }
 
     if (GameClock % 79 == 0)
@@ -71,6 +73,6 @@ do_draw:
         raw_pos.vy = m->y;
         raw_pos.vz = m->z;
         pos = raw_pos;
-        SoundEx(&pos, 0x47);
+        SoundEx(&pos, SE_BONFIRE);
     }
 }

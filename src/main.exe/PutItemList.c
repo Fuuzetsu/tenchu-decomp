@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -123,14 +124,14 @@ void PutItemList(void)
             {
                 GsSPRITE *spr;
 
-                PutItemCursorInline(x, ItemY - 8, 0x1000, -6 * 4096); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
+                PutItemCursorInline(x, ItemY - 8, FIXED_ONE, SPRITE_ROTATION(-6)); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
 
                 SelectedItem = i;
                 spr = &ItemImage[i]->sprite;
                 spr->x = x;
                 spr->y = ItemY - 8;
-                spr->scalex = 0x1000;
-                spr->scaley = 0x1000;
+                spr->scalex = FIXED_ONE;
+                spr->scaley = FIXED_ONE;
                 GsSortSprite(spr, OTablePt, 0);
             }
             else

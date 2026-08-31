@@ -91,7 +91,7 @@ void JumpControl(void)
             {
                 Sound(Me_MOTION_C, SE_JUMP_IMPACT);
             }
-            Sound(Me_MOTION_C, 0x17);
+            Sound(Me_MOTION_C, SE_JUMP_MOVE);
         }
     }
     else

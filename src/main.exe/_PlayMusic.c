@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
 #include "images.h"
@@ -142,7 +143,7 @@ void _PlayMusic(int MusicNo, int mode)
     {
         music = &MusicTable[MusicNo];
         sprintf((char *)fname, fmt_xa_path, music->file);
-        SsSetMVol(0x7F, 0x7F);
+        SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
         set_cda_volume_(gSoundLevel, gSoundLevel);
 
         min = music->min;

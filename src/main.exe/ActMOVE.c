@@ -120,7 +120,7 @@ void ActMOVE(void)
     case MOT_MOVE_DASH_LEFT:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x13);
+            Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {

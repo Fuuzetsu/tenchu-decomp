@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -78,7 +80,7 @@ void WeaponHitWeapon(ModelType *hand)
                 pv.vx = rand() % 100 - 50;
                 pv.vy = rand() % 100 - 50;
                 pv.vz = rand() % 100 - 50;
-                SetBleed(p, &pv, rand() % 20 + 20, 0x7FFF);
+                SetBleed(p, &pv, rand() % 20 + 20, RGB24(0, 127, 255));
             }
 
             hand->attribute = hand->attribute & ~MODEL_ATTR_COLLIDE;
@@ -87,10 +89,10 @@ void WeaponHitWeapon(ModelType *hand)
              * the parry-stun length is read from whichever row shares
              * the slot number, not from either fighter's attack. */
             dtM->loop = BattleDB[id].power / -3 - 1;
-            Sound(Me_MOTION_C, 0x36);
+            Sound(Me_MOTION_C, SE_WEAPON_CLASH);
             if (StagePlayer == Me_MOTION_C)
             {
-                PadShockAR(0, 0xFF, 10, 0);
+                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
             }
             break;
         } while (1);

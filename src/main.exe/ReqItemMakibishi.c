@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -117,6 +118,6 @@ int ReqItemMakibishi(PARAM_ITEM_DROP *p)
     param->koro.vz = z;
     item->param.drop.koro.hint = 0;
     param->koro.status = KORO_NORMAL;
-    SoundEx(pos, 0x22);
+    SoundEx(pos, SE_CALTROP_THROW);
     return 1;
 }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -111,7 +112,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                  * took the splash direction it still loads here. */
                 vec = svec_y_n20[0];
                 SetSplash((VECTOR *)item->locate->locate.coord.t,
-                          0x2000, 0x2000, 4);
+                          FIXED_SCALE(2), FIXED_SCALE(2), 4);
                 param->status = KORO_WATER;
             }
             param->vy = -param->vy / 8;

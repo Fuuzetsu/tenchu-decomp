@@ -209,7 +209,7 @@ void ActSQUAT(void)
     case MOT_SQUAT_BACKFLIP:
         if (dtM->count == (dtM->motion->time >> 1))
         {
-            Sound(Me_MOTION_C, 0x13);
+            Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
             CamState.snap_pending = 1;
         }
         if (dtM->count == 0 && dtM->loop != 0)
@@ -222,7 +222,7 @@ void ActSQUAT(void)
     default:
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0x13);
+            Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
             return;
         }
         if (dtM->count == 0 && dtM->loop != 0)

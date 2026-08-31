@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 #include "images.h"
@@ -311,7 +312,7 @@ void DrawBlood(TEffectSlot *ef)
             ((SVECTOR *)&scratch.temp)->vz = blood->vz / 2;
             scratch.scr = *(SVECTOR *)&scratch.temp;
             bleed_time = rand();
-            SetBleed(&scratch.pos, &scratch.scr, bleed_time % 10 + 10, 0x7f1017);
+            SetBleed(&scratch.pos, &scratch.scr, bleed_time % 10 + 10, RGB24(127, 16, 23));
         }
         break;
     }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -116,7 +117,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     UpdateCoordinate(item->locate);
     item->collision.size = 0;
     item->model = ArrowModel;
-    SetupFly(&param->fly, pos, &target, 0, 0x800, 300);
+    SetupFly(&param->fly, pos, &target, 0, FIXED_HALF, 300);
     param->count = 5;
     return 1;
 }

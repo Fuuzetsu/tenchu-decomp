@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -172,8 +174,8 @@ void ProcItemArrow(TItem *item)
                     }
                     model = *models;
                     SetImpact(GetAbsolutePosition(model, 0, 0, 0),
-                              0x6000, 2);
-                    SoundEx(GetAbsolutePosition(model, 0, 0, 0), 0x30);
+                              FIXED_SCALE(6), 2);
+                    SoundEx(GetAbsolutePosition(model, 0, 0, 0), SE_PROJECTILE_HIT);
                     ArrangeLocalMatrix(model,
                                        &item->locate->locate.coord);
                     item->locate->locate.flg = 0;
@@ -219,9 +221,9 @@ void ProcItemArrow(TItem *item)
                         item->proc = 0;
                         return;
                     }
-                    SoundEx((VECTOR *)item->locate->locate.coord.t, 0x31);
+                    SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
                     SetBleeds((VECTOR *)item->locate->locate.coord.t,
-                              0, 25, 30, 30, 0xffff00);
+                              0, 25, 30, 30, COLOR_YELLOW);
                     param->count = 30;
                     item->mode++;
                     DeleteConflict(item->locate);

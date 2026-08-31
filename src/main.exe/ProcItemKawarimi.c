@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 
 /*
@@ -113,7 +114,7 @@ void ProcItemKawarimi(TItem *item)
             scratch.work.vectors.velocity.vy = rand() % 10 - 30;
             scratch.work.vectors.vec = scratch.work.vectors.velocity;
             SetBleed(&scratch.pos, &scratch.work.vectors.vec,
-                     rand() % 16 + 15, 0x64C8DC);
+                     rand() % 16 + 15, RGB24(100, 200, 220));
             i++;
         }
         {

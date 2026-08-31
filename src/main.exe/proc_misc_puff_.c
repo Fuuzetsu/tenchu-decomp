@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "misc.h"
 
@@ -95,6 +96,6 @@ normal:
         pos.vy += 2000;
         SetSmoke(&pos, &dir, 1, 1);
         pos.vy -= 2000;
-        SetSplash(&pos, 0x4000, 0x2000, 10);
+        SetSplash(&pos, FIXED_SCALE(4), FIXED_SCALE(2), 10);
     }
 }

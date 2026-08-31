@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -120,7 +121,7 @@ void AttackBowControl(s16 n)
     count = dtM->count;
     if (count == 1)
     {
-        Sound(Me_MOTION_C, 2);
+        Sound(Me_MOTION_C, CHAR_SE_ATTACK);
     }
     else
     {
@@ -139,6 +140,6 @@ void AttackBowControl(s16 n)
     {
         pos = GetAbsolutePosition(Me_MOTION_C->model->object[0xD], 0, 0, 0);
         bow_shoot_logic(ITEM_ARROW, pos);
-        Sound(Me_MOTION_C, 3);
+        Sound(Me_MOTION_C, CHAR_SE_ATTACK_ALT);
     }
 }

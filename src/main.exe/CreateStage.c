@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "images.h"
 #include "appear.h"
@@ -106,7 +107,7 @@ void CreateStage(int StageNo, int CharType)
         return;
     }
 
-    SetDepthQ(-0x7EF4, 0x2F282E0);
+    SetDepthQ(FOG_DQA, FOG_DQB);
     DepthPoint = DEPTH_LIMIT;
 
     while (1)

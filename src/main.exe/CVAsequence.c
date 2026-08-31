@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -128,7 +129,7 @@ run_sequence:
         ActionHalt = 1;
     MotionUpdateMode = 1;
     StagePlayer->target = 0;
-    PadShockAR(0, 0, 0, 0);
+    PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     PadShock(0, 0, 0);
     PadProc();
 
@@ -172,7 +173,7 @@ run_sequence:
     if (sound > 0)
         VSync(60);
     CdaStop();
-    PadShockAR(0, 0, 0, 0);
+    PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     PadShock(0, 0, 0);
     PadProc();
     PadProc();

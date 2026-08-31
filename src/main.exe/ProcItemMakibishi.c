@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /*
@@ -127,8 +129,8 @@ void ProcItemMakibishi(TItem *item)
             i = GetConflictResult(item->locate, -1);
         if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
-            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, 0x7f0000);
-            SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
+            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, RGB24(127, 0, 0));
+            SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
             ppu = item->proc;
             if (ppu == 0)
                 return;

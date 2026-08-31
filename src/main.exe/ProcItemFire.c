@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 #include "sound.h"
@@ -190,7 +191,7 @@ void ProcItemFire(TItem *item)
         scratch.particle.pos = scratch.particle.work.random_pos;
         *vec = svec_y_n30[0];
         position = &scratch.particle.pos;
-        SetBleed(position, vec, rand() % 20, 0xffff00);
+        SetBleed(position, vec, rand() % 20, COLOR_YELLOW);
     }
 
     count = param->count - 1;
@@ -365,7 +366,7 @@ void ProcItemFire(TItem *item)
                 scratch.frame.random_pos.vy = rand() % 200 - 100;
                 scratch.frame.random_pos.vz = rand() % 200 - 100;
                 scratch.frame.pos = scratch.frame.random_pos;
-                SetFrame(&scratch.frame.pos, 0x3000, 120,
+                SetFrame(&scratch.frame.pos, FIXED_SCALE(3), 120,
                          (GsCOORDINATE2 *)frame_model);
             }
         }

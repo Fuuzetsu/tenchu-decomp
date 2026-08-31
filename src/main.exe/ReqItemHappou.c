@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 #include "afterimage.h"
@@ -188,7 +189,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         rot.vy += (r % (R * 2) - R);
         en = &p->end;
         SearchItemTarget2(p->user, &rot, pos, en);
-        SetupFly(&param->fly, pos, en, 0x1000, 0x400, 400);
+        SetupFly(&param->fly, pos, en, FIXED_ONE, FIXED_QUARTER, 400);
         i++;
         ai = SetupAfterimage(item->locate, 10);
         param->effect = ai;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 #include "item.h"
@@ -112,7 +113,7 @@ void PutMap(void)
         ply->ply.r0 = 0;
         ply->ply.g0 = 0;
         ply->ply.b0 = 0;
-        SoundEx((VECTOR *)0, 0x27);
+        SoundEx((VECTOR *)0, SE_MAP_OPEN);
         break;
     case 1:
         MapImage.r = 0x3C;

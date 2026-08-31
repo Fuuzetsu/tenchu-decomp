@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "appear.h"
 #include "item.h"
@@ -170,6 +171,6 @@ void AddEnemy(void)
         spot.vy = human->model->locate.coord.t[1] - 1200;
         spot.vz = human->model->locate.coord.t[2];
         pos = spot;
-        SetBleeds(&pos, 400, 0, 50, 30, 0xffffff);
+        SetBleeds(&pos, 400, 0, 50, 30, COLOR_WHITE);
     }
 }

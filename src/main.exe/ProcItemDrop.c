@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -175,7 +176,7 @@ void ProcItemDrop(TItem *item)
         param->count = cnt;
         if (cnt == 10)
         {
-            SoundEx(item->owner->locate, 0xd);
+            SoundEx(item->owner->locate, SE_ITEM_TRANSFER);
             count = item->owner->item[item->type];
             if (count != ITEM_INFINITE)
             {

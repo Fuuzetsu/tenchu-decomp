@@ -77,7 +77,7 @@ void ActACTION(void)
         }
         if (dtM->count == 1)
         {
-            Sound(Me_MOTION_C, 0xf);
+            Sound(Me_MOTION_C, CHAR_VOICE_IDLE);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -153,7 +153,7 @@ void ActACTION(void)
                 weapon[2] = human->weapon[0];
                 human->weapon[0] = weapon[3];
                 weapon[3] = 0;
-                Sound(human, 1);
+                Sound(human, CHAR_SE_WEAPON_CHANGE_B);
             }
         }
         {

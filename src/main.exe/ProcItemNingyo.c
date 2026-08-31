@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 #include "sound.h"
@@ -336,7 +337,7 @@ void ProcItemNingyo(TItem *item)
                 if (param->hp == 0)
                 {
                     SetBleeds((VECTOR *)item->locate->locate.coord.t,
-                              0, 30, 30, 30, 0xffff00);
+                              0, 30, 30, 30, COLOR_YELLOW);
                     SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
                     if (item->proc != 0)
                     {
@@ -387,7 +388,7 @@ void ProcItemNingyo(TItem *item)
                     param->koro.hint = 0;
                     param->koro.status = KORO_NORMAL;
                     param->hp--;
-                    SoundEx((VECTOR *)item->locate->locate.coord.t, 0x30);
+                    SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
                 }
             }
             else if (collision_mode != 8)

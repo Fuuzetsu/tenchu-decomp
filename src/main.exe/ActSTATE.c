@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "appear.h"
 #include "item.h"
@@ -143,7 +144,7 @@ void ActSTATE(void)
         }
         if (dtM->count == dtM->motion->time / 2)
         {
-            Sound(Me_MOTION_C, 0);
+            Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);
             EquipWeapon(Me_MOTION_C, 1);
             return;
         }
@@ -228,7 +229,7 @@ void ActSTATE(void)
         }
         if (dtM->count == dtM->motion->time / 2)
         {
-            Sound(Me_MOTION_C, 1);
+            Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);
             EquipWeapon(Me_MOTION_C, 0);
             return;
         }
@@ -276,7 +277,7 @@ void ActSTATE(void)
                         motID = 0;
                         motMODE = 1;
                     }
-                    Sound(Me_MOTION_C, 0x19);
+                    Sound(Me_MOTION_C, SE_LAND_LIGHT);
                     return;
                 }
                 if (dtM->count > -0x15)
@@ -325,7 +326,7 @@ void ActSTATE(void)
     case MOT_STATE_LAND_HEAVY:
         if (dtM->count == 1 && Me_MOTION_C == StagePlayer)
         {
-            PadShockAR(0, 0xff, 10, 0);
+            PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
             SetCameraMode(CMODE_NORMAL);
         }
         if (dtM->count < 5 && (dtPAD & PADRright) != 0 &&
@@ -342,11 +343,11 @@ void ActSTATE(void)
             Humanoid *human;
             short sound;
 
-            sound = 0x1a;
+            sound = SE_LAND_HEAVY;
             human = Me_MOTION_C;
             if (motID == MOT_STATE_LAND)
             {
-                sound = 0x19;
+                sound = SE_LAND_LIGHT;
             }
             Sound(human, sound);
             spawn_smoke_burst_(dtL, 300, 0xc, 10);
@@ -354,11 +355,11 @@ void ActSTATE(void)
             {
                 if (motID == MOT_STATE_LAND_HEAVY)
                 {
-                    PadShockAR(0, 0xff, 0, 30);
+                    PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
                 }
                 else
                 {
-                    PadShockAR(0, 0xff, 5, 0);
+                    PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_FAST, RUMBLE_RELEASE_NONE);
                 }
             }
         }
@@ -427,7 +428,7 @@ void ActSTATE(void)
         SetNowMotion(Me_MOTION_C, motID, motMODE);
         motMODE = -1;
     motion_ready:
-        Sound(Me_MOTION_C, 0x13);
+        Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
         return;
 
     case MOT_STATE_PICKUP:

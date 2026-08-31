@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "humanoid.h"
 #include "item.h"
@@ -254,7 +255,7 @@ s16 CVAupdate(void)
                     anim_base[i].motid = value;
 
                     if (human->type == S2 && CVAnow->x == MOT_DEAD)
-                        SoundEx(0, 0x41);
+                        SoundEx(0, SE_CUTSCENE_DEATH);
                 }
                 break;
 

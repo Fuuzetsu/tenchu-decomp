@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 
 /*
@@ -58,7 +59,7 @@ void return_to_menu_(void)
         PSTATE->gItem[idx + PSTATE->CharType * 0x20] = PSTATE->saveItem[idx];
         i++;
     } while ((s16)i < 0x14);
-    FadeOutDirect(0x20, 2, 8, 8, 8);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     PSTATE->layout = 0xff;
     PSTATE->GameRetry = PSTATE->GameRetry & 0xfe;

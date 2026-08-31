@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -118,7 +119,7 @@ void PutStrain(s32 x, s32 y)
             ratio = 0;
             if (GameClock == (GameClock / speed) * speed)
             {
-                SoundEx(0, 0xe);
+                SoundEx(0, SE_WARNING_BEEP);
             }
         }
         else

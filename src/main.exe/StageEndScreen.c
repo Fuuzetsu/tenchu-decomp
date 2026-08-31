@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "score.h"
 #include "appear.h"
@@ -206,8 +207,8 @@ void StageEndScreen(void)
     selection = 0;
     ui.old_pad = 0;
     SetupAppearance(0, -1);
-    PadShockAR(0, 0, 0, 0);
-    FadeOutDirect(0x20, 2, 8, 8, 8);
+    PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
 
     item_index = 0;
@@ -507,7 +508,7 @@ void StageEndScreen(void)
     }
 
     award_stage_items_(PSTATE, &current);
-    FadeOutDirect(0x20, 2, 8, 8, 8);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
 
     if (PSTATE->StageNoMAX[PSTATE->CharType] <

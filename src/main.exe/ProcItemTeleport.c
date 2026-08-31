@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 
 /*
@@ -77,7 +78,7 @@ void ProcItemTeleport(TItem *item)
         CamState.Owner->model->locate.coord.t[0] = CamState.TargetVector.vx;
         CamState.Owner->model->locate.coord.t[1] = CamState.TargetVector.vy;
         CamState.Owner->model->locate.coord.t[2] = CamState.TargetVector.vz;
-        SetBleeds(&CamState.TargetVector, 1000, 20, 50, 60, 0xffffff);
+        SetBleeds(&CamState.TargetVector, 1000, 20, 50, 60, COLOR_WHITE);
     }
     SetCameraMode(CMODE_NORMAL);
     ppu = item->proc;

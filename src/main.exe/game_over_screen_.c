@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "appear.h"
 #include <psxsdk/libgpu.h>
@@ -17,7 +18,7 @@
             color = increment;                                                \
         }                                                                     \
         spr.r = spr.g = spr.b = color;                                        \
-        GsSortSprite(&spr, OTablePt, 0x50);                                   \
+        GsSortSprite(&spr, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);                                   \
     }
 
 /* Pull line N from the fade archive and centre it as an additive
@@ -132,7 +133,7 @@ void game_over_screen_(void)
     old_pad = 0;
     clear_b = 0;
     SetupAppearance(0, -1);
-    PadShockAR(0, 0, 0, 0);
+    PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
 
     i = 0;
     persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
@@ -144,7 +145,7 @@ void game_over_screen_(void)
         i++;
     } while (i < 0x14);
 
-    FadeOutDirect(0x20, 2, 8, 8, 8);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     clear_rect.x = 0;
     clear_rect.y = 0;
@@ -259,11 +260,11 @@ void game_over_screen_(void)
                     0x80;
                 archive_line_3.r = archive_line_3.g = archive_line_3.b =
                     0x80;
-                GsSortSprite(&gov_title, OTablePt, 0xa);
-                GsSortSprite(&archive_line_1, OTablePt, 0x50);
-                GsSortSprite(&archive_line_2, OTablePt, 0x50);
-                GsSortSprite(&archive_line_3, OTablePt, 0x50);
-                GsSortSprite(&gov_prompt, OTablePt, 0x50);
+                GsSortSprite(&gov_title, OTablePt, GAME_OVER_TITLE_OT_PRIORITY);
+                GsSortSprite(&archive_line_1, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
+                GsSortSprite(&archive_line_2, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
+                GsSortSprite(&archive_line_3, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
+                GsSortSprite(&gov_prompt, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
                 break;
             }
 
@@ -275,11 +276,11 @@ void game_over_screen_(void)
                     title_brightness = 0x80;
                 }
                 gov_title.r = gov_title.g = gov_title.b = title_brightness;
-                GsSortSprite(&gov_title, OTablePt, 0xa);
+                GsSortSprite(&gov_title, OTablePt, GAME_OVER_TITLE_OT_PRIORITY);
             }
-            FADE_IN_LINE(archive_line_1, 0x119)
-            FADE_IN_LINE(archive_line_2, 0x15f)
-            FADE_IN_LINE(archive_line_3, 0x1a5)
+            FADE_IN_LINE(archive_line_1, GAME_OVER_LINE_1_FADE_FRAME)
+            FADE_IN_LINE(archive_line_2, GAME_OVER_LINE_2_FADE_FRAME)
+            FADE_IN_LINE(archive_line_3, GAME_OVER_LINE_3_FADE_FRAME)
             if (GameClock < 0x23b)
             {
                 break;
@@ -291,12 +292,12 @@ void game_over_screen_(void)
             pad = GetRealPad(0);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
-            GsSortSprite(&gov_title, OTablePt, 0xa);
-            GsSortSprite(&archive_line_1, OTablePt, 0x50);
-            GsSortSprite(&archive_line_2, OTablePt, 0x50);
-            GsSortSprite(&archive_line_3, OTablePt, 0x50);
+            GsSortSprite(&gov_title, OTablePt, GAME_OVER_TITLE_OT_PRIORITY);
+            GsSortSprite(&archive_line_1, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
+            GsSortSprite(&archive_line_2, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
+            GsSortSprite(&archive_line_3, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
         sort_prompt_and_handle_input:
-            GsSortSprite(&gov_prompt, OTablePt, 0x50);
+            GsSortSprite(&gov_prompt, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
             if ((new_press & PADRright) != 0)
             {
                 state = 4;

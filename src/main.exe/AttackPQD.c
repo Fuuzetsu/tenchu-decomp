@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -101,7 +102,7 @@ void AttackPQD(s16 sfrm, s16 efrm)
     {
         if (weapons[3] == 0)
             return;
-        seid = 1;
+        seid = CHAR_SE_WEAPON_CHANGE_B;
         held = (weapons[2] = human->weapon[0]);
         stowed = weapons[3];
         human->weapon[0] = stowed;
@@ -113,7 +114,7 @@ void AttackPQD(s16 sfrm, s16 efrm)
             return;
         if (weapons[2] == 0)
             return;
-        seid = 0;
+        seid = CHAR_SE_WEAPON_CHANGE_A;
         held = human->weapon[0];
         weapons[3] = held;
         human->weapon[0] = weapons[2];

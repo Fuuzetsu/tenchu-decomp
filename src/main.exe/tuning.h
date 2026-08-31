@@ -13,6 +13,21 @@
 #define SCREEN_W 320
 #define SCREEN_H 240
 
+/* PSX 12.12 fixed-point values used by sprite/effect scales and angles. */
+#define FIXED_QUARTER 0x0400
+#define FIXED_HALF 0x0800
+#define FIXED_ONE 0x1000
+#define FIXED_SCALE(n) ((n) * FIXED_ONE)
+#define SPRITE_ROTATION(degrees) ((degrees) * FIXED_ONE)
+
+/* Packed 0xRRGGBB effect colours. Use RGB24 for one-off palette shades. */
+#define RGB24(r, g, b) (((r) << 16) | ((g) << 8) | (b))
+#define COLOR_WHITE RGB24(255, 255, 255)
+#define COLOR_YELLOW RGB24(255, 255, 0)
+#define COLOR_RED RGB24(255, 0, 0)
+#define COLOR_GRAY RGB24(128, 128, 128)
+#define COLOR_GRAY_DARK RGB24(127, 127, 127)
+
 /* Effects closer than this screen depth are not drawn (near-plane cull
  * shared by the sprite-effect emitters). */
 #define NEAR_DEPTH 36
@@ -91,6 +106,31 @@
 /* Timers, in frames. */
 #define GAME_OVER_TIMEOUT 2700 /* game-over screen auto-advance (45 s) */
 
+/* Shared full-screen fade and game-over stagger. */
+#define SCREEN_FADE_FRAMES 0x20
+#define SCREEN_FADE_MODE 2
+#define SCREEN_FADE_LEVEL 8
+#define GAME_OVER_LINE_1_FADE_FRAME 0x119
+#define GAME_OVER_LINE_2_FADE_FRAME 0x15F
+#define GAME_OVER_LINE_3_FADE_FRAME 0x1A5
+#define GAME_OVER_TITLE_OT_PRIORITY 0x0A
+#define GAME_OVER_TEXT_OT_PRIORITY 0x50
+
+/* PadShockAR envelope values. */
+#define RUMBLE_POWER_OFF 0
+#define RUMBLE_POWER_HALF 0x7F
+#define RUMBLE_POWER_MAX 0xFF
+#define RUMBLE_ATTACK_NONE 0
+#define RUMBLE_ATTACK_FAST 5
+#define RUMBLE_ATTACK_NORMAL 10
+#define RUMBLE_RELEASE_NONE 0
+#define RUMBLE_RELEASE_SHORT 10
+#define RUMBLE_RELEASE_MEDIUM 20
+#define RUMBLE_RELEASE_LONG 30
+
+/* SPU master-volume ceiling used when restoring music/voice. */
+#define MASTER_VOLUME_MAX 0x7F
+
 /* Screen projection distance (GsSetProjection): apparent sprite size is
  * size * PROJECTION_DISTANCE / depth in every sprite-effect renderer. */
 #define PROJECTION_DISTANCE 300
@@ -102,6 +142,8 @@
 /* Models closer than this screen depth draw from the plain renderer
  * bank; farther ones use the fog bank (DrawModel/DrawClip). */
 #define FOG_DEPTH 300
+#define FOG_DQA (-0x7EF4) /* GTE depth-cue slope */
+#define FOG_DQB 0x2F282E0 /* GTE depth-cue offset */
 
 /* Free-look camera (CameraDirection). */
 #define CAMERA_LOOK_LIMIT_X 0x38E /* ~80 degrees up/down */

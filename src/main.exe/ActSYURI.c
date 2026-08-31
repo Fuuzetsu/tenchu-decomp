@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -93,13 +94,13 @@ void ActSYURI(void)
             item.start.vz = p->vz;
             item.end = item.start;
             ReqItemUse(&item);
-            Sound(Me_MOTION_C, 0x1E);
+            Sound(Me_MOTION_C, SE_THROW_WEAPON);
         }
         else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
             motID = MOT_SYURI_RECOVER;
             motMODE = 1;
-            Sound(Me_MOTION_C, 0x1F);
+            Sound(Me_MOTION_C, SE_WEAPON_RECOVER);
         }
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
         {

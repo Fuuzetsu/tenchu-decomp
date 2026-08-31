@@ -68,7 +68,7 @@ void CheckCheatCodes(s16 *rec, int n)
 
     if (memcmp(rec, CheatSeq, n << 1) == 0)
     {
-        SoundEx(0, 10);
+        SoundEx(0, SE_MENU_CONFIRM);
         __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
         sel = AdtSelect(str_select_item, menu.ItemName, 0);
@@ -84,6 +84,6 @@ void CheckCheatCodes(s16 *rec, int n)
             return;
         }
         SystemFlag |= SYSFLAG_DEBUGMODE;
-        SoundEx(0, 10);
+        SoundEx(0, SE_MENU_CONFIRM);
     }
 }

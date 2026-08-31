@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 
@@ -111,7 +112,7 @@ void ProcItemNapalm(TItem *item)
         model->sprite.g = model->sprite.r;
         model->sprite.b = model->sprite.r;
         model->sprite.rotate = (rand() % 360) << 12;
-        model->scale = (ex << 12) / 50 + 0x1000;
+        model->scale = (ex << 12) / 50 + FIXED_ONE;
 
         sprNapalm2->sprite.r = (ff - model->sprite.r) / 3;
         sprNapalm2->sprite.g = sprNapalm2->sprite.r;
@@ -166,7 +167,7 @@ void ProcItemNapalm(TItem *item)
                 random_pos.vy = rand() % 200 - 100;
                 random_pos.vz = rand() % 200 - 100;
                 pos = random_pos;
-                SetFrame(&pos, 0x3000, 60,
+                SetFrame(&pos, FIXED_SCALE(3), 60,
                          (GsCOORDINATE2 *)frame_model);
             }
         }

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include <psxsdk/libgs.h>
 #include "game_types.h"
 #include "humanoid.h"
@@ -55,7 +56,7 @@ s16 think_alarm_reaction_(void)
             s32 nextState;
 
             RESET_ALERT_DURATION(alertTime);
-            Sound(Me_THINK_C, 0xE);
+            Sound(Me_THINK_C, CHAR_VOICE_REACTION);
 
             switch (gNannido)
             {
@@ -218,10 +219,10 @@ s16 think_alarm_reaction_(void)
             Me_THINK_C->actcnt = 1;
 
             randomValue = rand();
-            soundId = 10;
+            soundId = CHAR_VOICE_ACTION_B;
             if (randomValue & 1)
             {
-                soundId = 9;
+                soundId = CHAR_VOICE_ACTION_A;
             }
             Sound(Me_THINK_C, soundId);
 
@@ -254,10 +255,10 @@ s16 think_alarm_reaction_(void)
             human->chase[1] = Me_THINK_C->chase[1] +
                               (rand() % 5 - 2) * 500;
             randomValue = rand();
-            soundId = 10;
+            soundId = CHAR_VOICE_ACTION_B;
             if (randomValue & 1)
             {
-                soundId = 9;
+                soundId = CHAR_VOICE_ACTION_A;
             }
             Sound(human, soundId);
             StageEnemies++;

@@ -1,4 +1,5 @@
 #include "common.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "images.h"
 
@@ -63,7 +64,7 @@ s32 draw_card_help_(s32 page, s32 pad)
         McardPageNow = page;
         McardAnswered = 0;
         McardPageText = McardHelp + n;
-        SoundEx(0, 0x1f);
+        SoundEx(0, SE_WEAPON_RECOVER);
     }
 
     GsSortSprite(&McardSprite->sprite, OTablePt, 0);
@@ -146,7 +147,7 @@ s32 draw_card_help_(s32 page, s32 pad)
             case PADLleft:
                 if (McardStateFlag != 1)
                 {
-                    SoundEx(0, 0x30);
+                    SoundEx(0, SE_PROJECTILE_HIT);
                     McardStateFlag = 1;
                 }
                 break;
@@ -154,7 +155,7 @@ s32 draw_card_help_(s32 page, s32 pad)
             case PADLright:
                 if (McardStateFlag != 0)
                 {
-                    SoundEx(0, 0x30);
+                    SoundEx(0, SE_PROJECTILE_HIT);
                     McardStateFlag = 0;
                 }
                 break;
@@ -172,7 +173,7 @@ s32 draw_card_help_(s32 page, s32 pad)
     }
 
 accept:
-    SoundEx(0, 0x30);
+    SoundEx(0, SE_PROJECTILE_HIT);
     n = 1;
     goto done;
 
@@ -183,7 +184,7 @@ check_cancel:
     }
 
 cancel:
-    SoundEx(0, 0x31);
+    SoundEx(0, SE_PROJECTILE_IMPACT);
     n = 2;
 
 done:

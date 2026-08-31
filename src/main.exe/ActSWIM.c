@@ -56,7 +56,7 @@ void ActSWIM(void)
         if ((dtPAD & (PADLleft | PADLright)) != 0)
         {
             if (dtM->count == 1)
-                Sound(Me_MOTION_C, 0x15);
+                Sound(Me_MOTION_C, SE_WATER_MOVE);
             {
                 int current;
                 int result;
@@ -95,7 +95,7 @@ void ActSWIM(void)
 
     case MOT_SWIM_STROKE:
         if (dtM->count == 1)
-            Sound(Me_MOTION_C, 0x15);
+            Sound(Me_MOTION_C, SE_WATER_MOVE);
         if (MOTION_PAD_BITS & PADLup)
         {
             Humanoid *human;
@@ -193,7 +193,7 @@ void ActSWIM(void)
                 *attribute = attr;
             }
             *(u16 *)&model->object[0]->attribute &= ~MODEL_ATTR_HIDDEN;
-            Sound(Me_MOTION_C, 0x15);
+            Sound(Me_MOTION_C, SE_WATER_MOVE);
             return;
         }
         if (dtM->count == 0 && dtM->loop != 0)

@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 #include "item.h"
 #include "effect.h"
@@ -40,14 +42,14 @@ void DrawFlyWire(TEffectSlot *ef)
         s32 sum;
 
         time = param->time;
-        sum = (u16)param->count + 0x1000 / time;
+        sum = (u16)param->count + FIXED_ONE / time;
         param->count = sum;
-        if ((s16)sum > 0x1000)
+        if ((s16)sum > FIXED_ONE)
         {
             param->count = 0;
             param->mode++;
-            SetBleeds(&param->end, 0, 50, 10, 30, 0xFFFF00);
-            Sound(CamState.Owner, 0x31);
+            SetBleeds(&param->end, 0, 50, 10, 30, COLOR_YELLOW);
+            Sound(CamState.Owner, SE_PROJECTILE_IMPACT);
         }
         else
         {
@@ -71,7 +73,7 @@ void DrawFlyWire(TEffectSlot *ef)
         count = param->count;
         tmp.vz = ((param->center.vz * (m - count)) + (param->NCenter.vz * count)) / m;
         pos = tmp;
-        SetWire(&param->start, &param->end, &pos, 0x1000);
+        SetWire(&param->start, &param->end, &pos, FIXED_ONE);
         if (param->count >= m)
         {
             ef->proc = 0;

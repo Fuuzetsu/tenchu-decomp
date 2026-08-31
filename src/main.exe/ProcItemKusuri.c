@@ -1,4 +1,6 @@
 #include "common.h"
+#include "tuning.h"
+#include "sound.h"
 #include "main.exe.h"
 
 /*
@@ -214,10 +216,10 @@ void ProcItemKusuri(TItem *item)
             scratch.bleed.build.velocity.vec =
                 scratch.bleed.build.velocity.vec_build;
             SetBleed(&scratch.bleed.pos, &scratch.bleed.build.velocity.vec,
-                     rand() % 0x10 + 0xf, 0xffff7e);
+                     rand() % 0x10 + 0xf, RGB24(255, 255, 126));
             i++;
         }
-        SoundEx(item->owner->locate, 0x24);
+        SoundEx(item->owner->locate, SE_MEDICINE);
         ppu = item->proc;
         if (ppu == 0)
             return;

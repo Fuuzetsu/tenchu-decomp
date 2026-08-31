@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
 #include "item.h"
@@ -150,9 +151,9 @@ void ActDEAD(void)
         motMODE = 1;
         if (dtM->count >= 10)
             return;
-        PadShockAR(0, 0xff, 10, 10);
+        PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);
         Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
-        Sound(StagePlayer, 5);
+        Sound(StagePlayer, CHAR_SE_SPECIAL);
         return;
     }
 
@@ -231,7 +232,7 @@ event_ready:
         Sound(Me_MOTION_C, pp[i].argument);
         break;
     case DEADEV_RUMBLE:
-        PadShockAR(0, 0xff, pp[i].argument, pp[i].packed);
+        PadShockAR(0, RUMBLE_POWER_MAX, pp[i].argument, pp[i].packed);
         break;
     case DEADEV_BLOOD:
     case DEADEV_END:
@@ -254,7 +255,7 @@ ordinary_dead:
     {
         if (dtM->count == 5 && DeadHumanoid == Me_MOTION_C)
         {
-            Sound(DeadHumanoid, 0x38);
+            Sound(DeadHumanoid, SE_DEATH);
             DeadHumanoid = 0;
         }
         blood = 1;

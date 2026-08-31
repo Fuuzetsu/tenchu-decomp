@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
@@ -84,17 +85,17 @@ void InitGraphicsSystem(void)
     GsInitCoordinate2((GsCOORDINATE2 *)0, &World.locate);
     UpdateCoordinate(&World);
     DrawTMDmode = TMD_BANK_PLAIN;
-    SetDepthQ(-0x7ef4, 0x2f282e0);
+    SetDepthQ(FOG_DQA, FOG_DQB);
     DepthPoint = DEPTH_LIMIT;
     SlightPoint = 150;
-    Fog.dqa = -0x7ef4;
-    Fog.dqb = 0x2f282e0;
+    Fog.dqa = FOG_DQA;
+    Fog.dqb = FOG_DQB;
     Fog.bfc = 0;
     Fog.gfc = 0;
     Fog.rfc = 0;
     GsSetFogParam(&Fog);
     GsSetLightMode(0);
-    GsSetAmbient(0x800, 0x800, 0x800);
+    GsSetAmbient(FIXED_HALF, FIXED_HALF, FIXED_HALF);
     GsSetProjection(PROJECTION_DISTANCE);
     ViewInfo.vpx = 0;
     ViewInfo.vpy = 0;

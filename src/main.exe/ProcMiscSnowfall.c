@@ -1,4 +1,5 @@
 #include "common.h"
+#include "tuning.h"
 #include "main.exe.h"
 #include "misc.h"
 #include "effect.h"
@@ -112,6 +113,6 @@ do_tick:
         posRaw.vy = ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN);
         posRaw.vz = ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE);
         pos = posRaw;
-        SetSnow(&pos, &vel, 0x1000, 0);
+        SetSnow(&pos, &vel, FIXED_ONE, 0);
     }
 }
