@@ -316,7 +316,7 @@ void mission_score_screen(void)
 
         StartDrawing();
         DrawBG(tail.background);
-        draw_time_(&number, stats.clock, 0x46, -0x61, 1);
+        draw_time_(&number, stats.clock, 70, -97, 1);
 
         do
         {

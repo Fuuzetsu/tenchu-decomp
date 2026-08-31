@@ -365,7 +365,7 @@ void StageEndScreen(void)
 
                 StartDrawing();
                 DrawBG(ui.background);
-                draw_time_(&digit, stats.clock, 0x61, -0x5d, 0);
+                draw_time_(&digit, stats.clock, 97, -93, 0);
                 DRAW_SCORE_NUMBER(stats.criticals, s32, 0, 10, top_y);
                 {
                     s32 dividend;

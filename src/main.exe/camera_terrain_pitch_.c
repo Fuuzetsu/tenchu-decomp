@@ -96,7 +96,7 @@ s32 camera_terrain_pitch_(Humanoid *human)
     if (delta <= -700)
         return 0;
 
-    angle = ratan2(delta, 0x100);
+    angle = ratan2(delta, 256);
     if (angle > ROTMAX)
         angle = ROTMAX;
     else if (angle < -ROTMAX)

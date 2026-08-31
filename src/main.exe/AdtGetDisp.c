@@ -41,9 +41,10 @@ void AdtGetDisp(TAdtDisp *disp)
     PutDrawEnv(&de);
     PutDispEnv(&di);
     FntLoad(AdtFnt.tx, AdtFnt.ty);
-    FntOpen(0x20, 0x20, 0x100, 0xb0, 0, 0x200);
+    FntOpen(32, 32, 256, 176, 0, 512);
     setPolyF4(&disp->bg);
-    setXY4(&disp->bg, 0x20, 0x20, 0x120, 0x20,
-           0x20, 0xD0, 0x120, 0xD0);
-    setRGB0(&disp->bg, 1, 1, 0x64);
+    /* The panel behind the debug font: a 32,32 - 288,208 screen quad. */
+    setXY4(&disp->bg, 32, 32, 288, 32,
+           32, 208, 288, 208);
+    setRGB0(&disp->bg, 1, 1, 100);
 }
