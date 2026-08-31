@@ -212,11 +212,16 @@ struct AreaNodeType
  *                        (sound 0x14) on it. DrawShadow overloads the same
  *                        bit on the humanoid's map COPY as an airborne
  *                        marker (level above the model → no ground shadow)
- * Bits 1/2 are the two base ground materials in the ACM data (bit 1
- * dominant everywhere, bit 2 clustered in the caves — no code reader
- * found), 2-as-map->attrib also drives the buoyancy clamp, and 0x2000
- * (on most floor nodes, co-occurring with the slope bits) gates a
- * GetAreaMapLevel path — both left unnamed. */
+ * 0x0001 and MAP_BUOYANT are the two base ground materials in the ACM
+ * data — 0x0001 dominant everywhere with no code reader found, 0x0002
+ * clustered in the caves, which is consistent with its one reader: it
+ * drives DefaultActionHumanoid's clamp (kill upward velocity, force
+ * height 1), and a bit that did that everywhere would forbid jumping.
+ * Still unnamed: 0x2000, on most floor nodes and co-occurring with the
+ * slope bits, gating a GetAreaMapLevel path with no other reader.
+ * MAP_MATERIAL_MASK is the low block DefaultActionHumanoid wipes when a
+ * character comes to rest on top of a conflict object. */
+#define MAP_MATERIAL_MASK 0x007f
 /* CGetLevel/GetAreaMapLevel/ComputeAreaLevel return this when the probe
  * point is outside the area map ("no floor here"). */
 #define LEVEL_NONE ((s32)0x80000000)

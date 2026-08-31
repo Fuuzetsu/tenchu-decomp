@@ -410,7 +410,7 @@ short DefaultActionHumanoid(Humanoid *human)
                         locate->vy = top;
                         map->height = 0;
                         /* Standing on the object: wipe the ground-material bits. */
-                        map->attrib &= 0xff80;
+                        map->attrib &= ~MAP_MATERIAL_MASK;
                         human->attribute &= ~(ATTR_PUSH | ATTR_FALL);
                     }
                     else
