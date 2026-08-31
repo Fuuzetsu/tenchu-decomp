@@ -60,7 +60,9 @@ s32 InitPersistentState(void)
     u8 fill;
     u8 *stockp;
 
-    if ((pg->CharType & 0xfe) != 0 || pg->StageNo > 10)
+    /* CharType is 0 or 1 (Rikimaru/Ayame), so any higher bit means the
+     * saved slot is corrupt. */
+    if ((pg->CharType & ~1) != 0 || pg->StageNo > 10)
     {
         memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
                TENCHU_PERSISTENT_STATE_SIZE);

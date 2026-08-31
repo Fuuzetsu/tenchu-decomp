@@ -16,7 +16,12 @@ extern unsigned char gSound;
 extern unsigned char gSoundLevel;
 extern unsigned char gSELevel;
 extern unsigned char gfMemory;
-/* Direct global view of TLinkInfo.GameRetry at persistent-state offset 0x48. */
+/* Direct global view of TLinkInfo.GameRetry at persistent-state offset 0x48.
+ * Bit 0 says the player is replaying this stage rather than reaching it
+ * fresh: StageEndScreen's retry arm and the game-over screen set it, the
+ * briefing and stage-end paths clear it, and the briefing cinematic is
+ * skipped while it is up. No other bit of the byte is used. */
+#define GAME_RETRY_REPLAY 1
 extern unsigned char GameRetry;
 extern TSystemFlag SystemFlag;
 /* Retail's mid=-1 sentinel is entry 104; the demo table had 78 entries. */

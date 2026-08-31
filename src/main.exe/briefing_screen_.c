@@ -141,7 +141,7 @@ void briefing_screen_(void)
             FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
             clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xff;
-            GameRetry &= 0xfe;
+            GameRetry &= (u8)~GAME_RETRY_REPLAY;
             exec_process_(PROCESS_MENU);
         }
 

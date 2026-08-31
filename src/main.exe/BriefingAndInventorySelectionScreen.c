@@ -165,7 +165,7 @@ void BriefingAndInventorySelectionScreen(void)
         q->selItem[1] = 5;
         return;
     }
-    if ((q->GameRetry & 1) == 0)
+    if ((q->GameRetry & GAME_RETRY_REPLAY) == 0)
     {
         briefing_screen_();
     }
@@ -313,7 +313,7 @@ void BriefingAndInventorySelectionScreen(void)
             FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
             clear_screen_();
             STAGE_LAYOUT_NUMBER = 0xFF;
-            GameRetry = GameRetry & 0xFE;
+            GameRetry = GameRetry & (u8)~GAME_RETRY_REPLAY;
             exec_process_(PROCESS_MENU);
             break;
         }

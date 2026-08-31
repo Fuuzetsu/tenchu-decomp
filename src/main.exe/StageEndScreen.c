@@ -562,7 +562,7 @@ void StageEndScreen(void)
     switch (dispatch)
     {
     case 0:
-        PSTATE->GameRetry &= 0xfe;
+        PSTATE->GameRetry &= (u8)~GAME_RETRY_REPLAY;
         if (PSTATE->StageNo == 7)
         {
             exec_process_(PROCESS_ENDING);
@@ -612,7 +612,7 @@ void StageEndScreen(void)
         }
         break;
     case 1:
-        PSTATE->GameRetry |= 1;
+        PSTATE->GameRetry |= GAME_RETRY_REPLAY;
         break;
     case 2:
         STAGE_LAYOUT_NUMBER = 0xff;

@@ -50,9 +50,9 @@ s16 ThinkBasicHuman1(void)
     }
     if (pad & PADR1)
     {
-        /* 0xfff7 = all pad bits except PADR1; the 16-bit spelling keeps
-         * the andi (~PADR1 widens to a 32-bit mask; measured). */
-        pad = (pad & 0xfff7) | PADRright;
+        /* The cast is what keeps the andi: a bare ~PADR1 widens to a
+         * 32-bit mask and stops matching. */
+        pad = (pad & (u16)~PADR1) | PADRright;
     }
     return pad;
 }

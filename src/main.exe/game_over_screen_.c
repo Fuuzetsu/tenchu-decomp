@@ -312,7 +312,7 @@ void game_over_screen_(void)
             shade += 4;
             if (shade >= 0x80)
             {
-                GameRetry |= 1;
+                GameRetry |= GAME_RETRY_REPLAY;
                 vfree(fade_archive);
                 vfree(gov_archive);
                 vfree(fade_sprite);
