@@ -111,7 +111,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  *    Ghidra's own `uVar3 = *pbVar5;` re-read-after-advance shape), while
  *    the INTRO/TORA loop peeks the NEXT record's id through a SEPARATE
  *    pointer before actually advancing the cursor (`entry = voice; if
- *    (match) goto found; entry = voice + 1; voice++; } while (entry->no
+ *    (match) break; entry = voice + 1; voice++; } while (entry->no
  *    != 0xff);` — Ghidra literally renders this as two assignments,
  *    `pbVar6 = pbVar5 + 6; pbVar5 = pbVar5 + 6;`, that a naive reading
  *    would collapse into one).
@@ -162,6 +162,9 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  * exactly that dependency boundary. This was verified pass-by-pass in `.cse`,
  * `.sched`, `.lreg`, and `.greg`; removing only the boundary preserves length
  * and the saved homes but exchanges the four v0/v1 operands at 0x8004f024-30.
+ * Both primary-table hit edges can be ordinary loop `break`s. The fallback
+ * hit assigns `match` at its actual search site and retains the jump over the
+ * miss reset; jump2 recreates the target's small out-of-line hit block.
  */
 void PlayVoice(int id)
 {
@@ -220,16 +223,14 @@ void PlayVoice(int id)
                 voice_id = cursor->no;
                 match = voice;
                 if (id == voice_id)
-                    goto found;
+                    break;
                 next = cursor + 1;
                 voice = next;
             } while (next->no != 0xff);
-            match = 0;
+            if (id != voice_id)
+                match = 0;
         }
         goto found;
-    fallback_hit:
-        match = cursor;
-        goto found2;
     }
     else
     {
@@ -271,7 +272,7 @@ void PlayVoice(int id)
                 }
                 voice_id = cursor->no;
                 if (id == voice_id)
-                    goto found;
+                    break;
                 cursor++;
                 voice_id = cursor->no;
                 match = 0;
@@ -291,7 +292,8 @@ found:
                 voice_id = cursor->no;
                 if (id == voice_id)
                 {
-                    goto fallback_hit;
+                    match = cursor;
+                    goto found2;
                 }
                 cursor++;
             } while (cursor->no != fallback_end);

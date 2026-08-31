@@ -37,15 +37,10 @@
  *    reload) — a plain repeated `event->id` dereference CSEs to one load
  *    within the function's single extended basic block, no named local
  *    needed (matches PSX.SYM listing no such local).
- *  - **Dispatch body order differs from test order**: the tests fire
- *    4, <5, ==5 but the target lays the bodies out <5(orbit), 4, 5 in
- *    memory (the orbit body ends with an explicit jump to the shared
- *    tail; the `==4` body also jumps; the `==5` body is textually LAST
- *    and falls through with no trailing jump). A plain if/else-if always
- *    inlines each body right after its own test, giving the wrong layout
- *    — this needs the cookbook's `if (cond) goto L;` ladder, with the
- *    goto LABELS placed in the target's memory order while the tests stay
- *    in their own (different) order.
+ *  - Dispatch body order differs from test order: the tests fire 4, <5,
+ *    ==5 while bodies remain orbit, 4, 5. A real switch over cases 0..5 is
+ *    the exact source lever: expand_case emits that test order and preserves
+ *    the lexical body order without explicit labels.
  *  - The orbit branch's angle (`(u16)rotate->vy + mode*0x400`, explicitly
  *    unsigned per Ghidra's own `(ushort)` cast — SVECTOR.vy is otherwise
  *    signed) is computed ONCE into a shared `s32` temp, stored to
@@ -73,49 +68,38 @@ void AVCameraSetup(void)
     s32 ry;
 
     event = CVAnow;
-    if (event->id == 4)
+    switch (event->id)
     {
-        goto case4;
-    }
-    if (event->id < 5)
-    {
-        goto case_orbit;
-    }
-    if (event->id == 5)
-    {
-        goto case5;
-    }
-    goto tail;
-
-case_orbit:
-    if (event->id >= 0)
-    {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
         ry = (u16)CameraTarget->rotate->vy + (event->id << 10);
         vect.pad = (s16)ry;
         GetMoveSpeed(&vect, (s16)ry, (event->p != 0) ? event->p : 3000, 0);
         ViewInfo.vpx = CameraTarget->locate->vx + vect.vx;
         ViewInfo.vpy = (CameraTarget->locate->vy - CameraTarget->height) + 300;
         ViewInfo.vpz = CameraTarget->locate->vz + vect.vz;
+        break;
+
+    case 4:
+        ViewInfo.vpx = event->x * 100;
+        ViewInfo.vpy = event->y * 100;
+        ViewInfo.vpz = event->z * 100;
+        break;
+
+    case 5:
+        human = GetHumanoid(event->p);
+        if (human == 0)
+        {
+            return;
+        }
+        ViewInfo.vpx = human->locate->vx;
+        ViewInfo.vpy = (human->locate->vy - human->height) + 300;
+        ViewInfo.vpz = human->locate->vz;
+        CameraTarget = human;
+        break;
     }
-    goto tail;
 
-case4:
-    ViewInfo.vpx = event->x * 100;
-    ViewInfo.vpy = event->y * 100;
-    ViewInfo.vpz = event->z * 100;
-    goto tail;
-
-case5:
-    human = GetHumanoid(event->p);
-    if (human == 0)
-    {
-        return;
-    }
-    ViewInfo.vpx = human->locate->vx;
-    ViewInfo.vpy = (human->locate->vy - human->height) + 300;
-    ViewInfo.vpz = human->locate->vz;
-    CameraTarget = human;
-
-tail:
     GsSetRefView2(&ViewInfo);
 }

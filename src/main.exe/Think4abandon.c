@@ -55,12 +55,10 @@
  *    branches AWAY to the complex (BIG) body while the trivial (SMALL) body
  *    falls through, so the source has the arms the opposite way from
  *    Ghidra's literal polarity.
- *  - The final SR dispatch (1 / <2 / ==2 / else) is a genuine test-order-
- *    vs-body-order split: tests run 1, <2, ==2, fall-through-else, but
- *    bodies are laid out low-range first, ==2 second, ==1 LAST (right
- *    before the shared `return 0`, needing no trailing jump) — an explicit
- *    `if (cond) goto label;` ladder with labels in the target's own body
- *    order reproduces this (nested if/else-if does not).
+ *  - The final SR dispatch remains a test-order-vs-body-order split. An
+ *    inverse `SR >= 2` guard lets the low-range body fall through in place;
+ *    the glimpse and seen edges remain explicit because their bodies must
+ *    stay after that low block. A full switch changes the test order.
  *  - `something_about_current_animation` (game_types.h, offset 0x5C) is
  *    the same struct as item.h's `MotionManager` under this TU's own
  *    (weaker) name — `frames_since_animation_start`@0x2 is `count`.
@@ -124,17 +122,15 @@ s16 Think4abandon(void)
             {
                 goto sr_seen;
             }
-            if (SR < 2)
+            if (SR >= 2)
             {
-                goto sr_lost;
+                if (SR == SR_GLIMPSE)
+                {
+                    goto sr_glimpse;
+                }
+                return 0;
             }
-            if (SR == SR_GLIMPSE)
-            {
-                goto sr_glimpse;
-            }
-            return 0;
 
-        sr_lost:
             if (SR >= SR_NONE)
             {
                 return 0;

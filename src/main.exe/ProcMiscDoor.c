@@ -30,8 +30,9 @@
 
 /*
  * Matching notes:
- *  - The message tests follow their physical target order; the labels keep the
- *    create/destroy/pause/resume bodies readable without changing that CFG.
+ *  - The message dispatch is a real switch. expand_case emits the target's
+ *    destroy/create/pause/resume test order while the bodies remain in their
+ *    readable create/destroy/pause/resume/control order.
  *  - An unsigned self-identity after the angle calculation gives `t` the
  *    original allocation priority, allowing `t`, `wrap`, and `dir` to reuse
  *    $v0 at their non-overlapping lifetimes without a zero-trip loop.
@@ -50,17 +51,9 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     TDoor *param;
 
     param = &m->param.door;
-    if (msg == MM_DESTROY)
-        goto do_destroy;
-    if (msg == MM_CREATE)
-        goto do_create;
-    if (msg == MM_PAUSE)
-        goto do_pause;
-    if (msg == MM_RESUME)
-        goto do_resume;
-    goto do_control;
-
-do_create:
+    switch (msg)
+    {
+    case MM_CREATE:
 {
     s32 type;
     s32 t;
@@ -86,16 +79,16 @@ do_create:
     return;
 }
 
-do_destroy:
+    case MM_DESTROY:
     DeleteConflict(param->locate);
     DisposeModel(param->locate);
     return;
 
-do_pause:
+    case MM_PAUSE:
     DeleteConflict(param->locate);
     return;
 
-do_resume:
+    case MM_RESUME:
 {
     s32 cid;
     s32 t;
@@ -117,7 +110,7 @@ do_resume:
     return;
 }
 
-do_control:
+    default:
 {
     s32 w;
     ModelType *model;
@@ -211,4 +204,5 @@ do_control:
         DrawModel(model);
     }
 }
+    }
 }

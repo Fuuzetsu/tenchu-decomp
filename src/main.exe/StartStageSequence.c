@@ -47,16 +47,16 @@
  * StartStageSequence (0x8004d970) installs the stage-specific characters,
  * reorders HumanGroup by character class, counts enemies/citizens/bosses,
  * applies the stage-specific score exclusions, and resets the event and
- * score clocks.  init_stats is an internal label at the reset tail,
- * not a second function.
+ * score clocks.
  *
  * Matching notes:
  *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
  *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
- *  - The chrid translation is written as two explicit gotos so the -1 arm
- *    stays inline and the -2 arm is laid out later. The named `stg_think`
- *    pointer keeps the compiler's derived think-field base live; the volatile
- *    row view prevents CSE with the preceding signed chrid load.
+ *  - The chrid translation is a two-case switch. expand_case keeps the -1
+ *    arm inline and lays the -2 arm out later while emitting the target's
+ *    -2/-1 test order. The named `stg_think` pointer keeps the compiler's
+ *    derived think-field base live; the volatile row view prevents CSE with
+ *    the preceding signed chrid load.
  *  - `y` deliberately carries each x/z product to both destination stores;
  *    repeating the multiplication expression makes GCC recompute it.  The
  *    StagePlayer model is likewise fetched before the attribute/life stores
@@ -68,6 +68,9 @@
  *    path; the equivalent all-while spelling is two instructions short.
  *  - StageEvent/StagePlayer and the score counters are gp-relative in this
  *    translation unit; maspsxflags.py records that per-function list.
+ *  - The stage exclusions are another sparse switch: FREE_PRINCESS performs
+ *    its first decrement and conditionally falls through to the shared
+ *    stage-2/3 decrement body.
  */
 extern s32 StageTime;
 extern s32 AttackActionCount;
@@ -104,33 +107,28 @@ void StartStageSequence(void)
             tp = ((volatile StageCharType *)((u8 *)stg_think -
                                              StageCharThinkOffset))
                      ->chrid;
-            if (chrid == -2)
+            switch (chrid)
             {
-                goto chrid_minus_two;
-            }
-            if (chrid != -1)
-            {
-                goto chrid_ready;
-            }
-            /* chrid -1: the partner ninja — whichever of the pair the
-             * player did not pick. */
-            tp = RIKIMARU_1;
-            if (StagePlayer->type == RIKIMARU_0)
-            {
-                tp = AYAME_1;
-            }
-            goto chrid_ready;
+            case -1:
+                /* The partner ninja — whichever of the pair the player did
+                 * not pick. */
+                tp = RIKIMARU_1;
+                if (StagePlayer->type == RIKIMARU_0)
+                {
+                    tp = AYAME_1;
+                }
+                break;
 
-        chrid_minus_two:
-            /* chrid -2: the player-specific story NPC — Rikimaru's
-             * stages place the lord, Ayame's the princess. */
-            tp = HIME;
-            if (StagePlayer->type == RIKIMARU_0)
-            {
-                tp = TONO;
+            case -2:
+                /* The player-specific story NPC — Rikimaru's stages place
+                 * the lord, Ayame's the princess. */
+                tp = HIME;
+                if (StagePlayer->type == RIKIMARU_0)
+                {
+                    tp = TONO;
+                }
+                break;
             }
-
-        chrid_ready:
 
             i = 0;
             while (i < Humans)
@@ -230,15 +228,15 @@ void StartStageSequence(void)
         human = HumanGroup[i];
         if (human->lifemax < 0)
         {
-            goto next_human;
+            continue;
         }
         if (human == StagePlayer)
         {
-            goto next_human;
+            continue;
         }
         if (human->type == NINKEN)
         {
-            goto next_human;
+            continue;
         }
         kind = (u16)human->type & PAGE_MASK;
         if (kind == PAGE_BOSS)
@@ -248,32 +246,26 @@ void StartStageSequence(void)
         else if (kind == PAGE_CIVILIAN)
         {
             StageCitizens++;
-            goto next_human;
+            continue;
         }
         StageEnemies++;
-    next_human:;
     }
 
-    if (StageID >= 2)
+    switch (StageID)
     {
-        if (StageID >= 4)
-        {
-            if (StageID != STAGE_FREE_PRINCESS)
-            {
-                goto init_stats;
-            }
-            StageBosses--;
-            StageEnemies--;
-            if (StagePlayer->type == AYAME_0)
-            {
-                goto init_stats;
-            }
-        }
+    case STAGE_FREE_PRINCESS:
         StageBosses--;
         StageEnemies--;
+        if (StagePlayer->type == AYAME_0)
+            break;
+        /* fallthrough */
+    case 2:
+    case 3:
+        StageBosses--;
+        StageEnemies--;
+        break;
     }
 
-init_stats:
     GameClock = 0;
     StageTime = 0;
     ActionHalt = 0;

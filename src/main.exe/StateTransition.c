@@ -70,6 +70,10 @@
  *    case-0 call carries the already-loaded life value in $a0; the callee takes
  *    no arguments, but preserving that harmless call-site value keeps jump.c
  *    from cross-jumping the call itself with the other alert arms.
+ *  - The case-2 hold path can `break` normally; cse threads its known-nonzero
+ *    value into the shared hint body. At the obstacle tail, an inverse guard
+ *    removes the periodic label while the one-line obstacle action is safely
+ *    duplicated to delete its acyclic label.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -471,7 +475,7 @@ void StateTransition(Humanoid *human)
             }
             break;
         }
-        goto update_hint;
+        break;
     }
 
     case 3:
@@ -504,7 +508,6 @@ void StateTransition(Humanoid *human)
     }
     if (Me_THINK_C->pad_hold != 0)
     {
-    update_hint:
         pad = Me_THINK_C->pad_hold >> 16;
         {
             s32 count;
@@ -567,54 +570,52 @@ void StateTransition(Humanoid *human)
         {
             pad &= (PADLleft | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
         }
-        else if (Me_THINK_C->motion->count == 0)
-        {
-            s32 abs_degree;
-
-            abs_degree = Degree;
-            if (abs_degree < 0)
-            {
-                abs_degree = -abs_degree;
-            }
-            if (abs_degree < 500 &&
-                (Me_THINK_C->think[0] == Think1ninja ||
-                 ((Me_THINK_C->type & PAGE_MASK) == PAGE_NINJA && gNannido != DIFFICULTY_EASY)))
-            {
-                s32 level;
-                s32 next_level;
-                s32 abs_next;
-
-                GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
-                             (s16)(Me_THINK_C->width * 5), 0);
-                level = GetAreaMapLevel(GlobalAreaMap,
-                                        Me_THINK_C->locate->vx,
-                                        Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                        Me_THINK_C->locate->vz, 25);
-                next_level = GetAreaMapLevel(GlobalAreaMap,
-                                             Me_THINK_C->locate->vx + vect.vx,
-                                             Me_THINK_C->locate->vy - EYE_HEIGHT,
-                                             Me_THINK_C->locate->vz + vect.vz,
-                                             0x1a);
-                if (level == Me_THINK_C->map.level)
-                {
-                    abs_next = next_level >= 0 ? next_level : -next_level;
-                    if (abs_next < 500)
-                    {
-                        goto set_obstacle_pad;
-                    }
-                }
-                if (next_level > 6100)
-                {
-                set_obstacle_pad:
-                    pad = PADLup | PADRdown;
-                }
-                goto tail;
-            }
-            goto periodic_check;
-        }
         else
         {
-        periodic_check:
+            if (Me_THINK_C->motion->count == 0)
+            {
+                s32 abs_degree;
+
+                abs_degree = Degree;
+                if (abs_degree < 0)
+                {
+                    abs_degree = -abs_degree;
+                }
+                if (abs_degree < 500 &&
+                    (Me_THINK_C->think[0] == Think1ninja ||
+                     ((Me_THINK_C->type & PAGE_MASK) == PAGE_NINJA && gNannido != DIFFICULTY_EASY)))
+                {
+                    s32 level;
+                    s32 next_level;
+                    s32 abs_next;
+
+                    GetMoveSpeed(&vect, Me_THINK_C->rotate->vy,
+                                 (s16)(Me_THINK_C->width * 5), 0);
+                    level = GetAreaMapLevel(GlobalAreaMap,
+                                            Me_THINK_C->locate->vx,
+                                            Me_THINK_C->locate->vy - EYE_HEIGHT,
+                                            Me_THINK_C->locate->vz, 25);
+                    next_level = GetAreaMapLevel(GlobalAreaMap,
+                                                 Me_THINK_C->locate->vx + vect.vx,
+                                                 Me_THINK_C->locate->vy - EYE_HEIGHT,
+                                                 Me_THINK_C->locate->vz + vect.vz,
+                                                 0x1a);
+                    if (level == Me_THINK_C->map.level)
+                    {
+                        abs_next = next_level >= 0 ? next_level : -next_level;
+                        if (abs_next < 500)
+                        {
+                            pad = PADLup | PADRdown;
+                            goto tail;
+                        }
+                    }
+                    if (next_level > 6100)
+                    {
+                        pad = PADLup | PADRdown;
+                    }
+                    goto tail;
+                }
+            }
             if (GameClock % 90 == 0 &&
                 (((u16)Me_THINK_C->map.attrib & MAP_DAMAGE) ||
                  ((pad & PADLup) && ProbeLevelLow <= 2200 &&

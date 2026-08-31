@@ -15,6 +15,9 @@
  * renderer's offset, narrow sprite coordinate, and signed brightness coordinate
  * as distinct human values gives cc1 the target t0 reload and in-place s0
  * narrowing without an allocation fence.
+ * The brightness corridor uses inverse guards for its normal and within
+ * ranges, plus one local right/center diamond; the zero and twin store islands
+ * remain in their original textual slots.
  *
  * The superseded round-by-round investigation log for this function lives
  * in docs/matching-archive.md.
@@ -204,43 +207,35 @@ void briefing_screen_(void)
                     {
                         goto brightness_zero;
                     }
-                    if (renderer_x >= -120)
+                    if (renderer_x < -120)
                     {
-                        goto brightness_normal;
+                        left_brightness = renderer_x + 0xa0;
+                        scaled_left_brightness = left_brightness;
+                        scaled_left_brightness <<= 1;
+                        scaled_left_brightness += left_brightness;
+                        brightness = scaled_left_brightness;
+                        goto brightness_left_store;
                     }
-                    left_brightness = renderer_x + 0xa0;
-                    scaled_left_brightness = left_brightness;
-                    scaled_left_brightness <<= 1;
-                    scaled_left_brightness += left_brightness;
-                    brightness = scaled_left_brightness;
-                    goto brightness_left_store;
-
-                brightness_normal:
-                    if (renderer_x <= 0xa0)
+                    if (renderer_x > 0xa0)
                     {
-                        goto brightness_within;
+                    brightness_zero:
+                        sprite.r = 0;
+                        sprite.g = 0;
+                        sprite.b = 0;
+                        goto brightness_done;
                     }
-
-                brightness_zero:
-                    sprite.r = 0;
-                    sprite.g = 0;
-                    sprite.b = 0;
-                    goto brightness_done;
-
-                brightness_within:
-                    if (renderer_x < 0x79)
+                    if (renderer_x >= 0x79)
                     {
-                        goto brightness_center;
+                        right_brightness = 0xa0 - renderer_x;
+                        scaled_right_brightness = right_brightness;
+                        scaled_right_brightness <<= 1;
+                        scaled_right_brightness += right_brightness;
+                        brightness = scaled_right_brightness;
                     }
-                    right_brightness = 0xa0 - renderer_x;
-                    scaled_right_brightness = right_brightness;
-                    scaled_right_brightness <<= 1;
-                    scaled_right_brightness += right_brightness;
-                    brightness = scaled_right_brightness;
-                    goto brightness_right_store;
-
-                brightness_center:
-                    brightness = 0x80;
+                    else
+                    {
+                        brightness = 0x80;
+                    }
                     goto brightness_right_store;
 
                 /* Twin store bodies: byte-required (one merged label loses

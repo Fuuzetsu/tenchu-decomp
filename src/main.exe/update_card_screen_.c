@@ -86,16 +86,17 @@ s32 update_card_screen_(s32 pad)
         break;
     case 43:
         value = check_card_file_(McardFile);
-        if (value == 0)
-            goto probe_missing;
-        if (value == 5)
-            goto probe_present;
-        goto clear_state;
-    probe_missing:
+        switch (value)
+        {
+        default:
+            goto clear_state;
+        case 0:
         McardState = 60;
         break;
-    probe_present:
+        case 5:
         McardState = 50;
+        break;
+        }
         break;
     case 50:
         McardPage = 7;

@@ -73,12 +73,12 @@ static inline void free_block(void *pt, u32 cmask)
     {
     search:
         n2 = prev->next;
-        if (n2 == header)
-            goto found;
-        prev = n2;
-        if (prev != 0)
-            goto search;
-    found:
+        if (n2 != header)
+        {
+            prev = n2;
+            if (prev != 0)
+                goto search;
+        }
         if (prev != 0)
         {
             s = prev->size;
@@ -133,6 +133,9 @@ static inline void free_block(void *pt, u32 cmask)
  *    target addiu-before-addu tree (24 to 16 bytes); reusing `prev` after the
  *    call for `vh.next` closes the final $a0->$a3 tail (16 to 12 bytes).
  *  - Both coalescing sums are vfree.c's proven `A + (B + 2)` spelling.
+ *  - Each free-list search keeps only its label backedge. Inverting the
+ *    found test lets success fall into coalescing and removes the acyclic
+ *    `found` edge without adding LOOP notes.
  *  - **`size = (header->size & cmask) << 2` is what closed the last 12 bytes**
  *    (a saved-register swap: complement mask $s6->$s5, byte size $s5->$s6).
  *    The `and` is NOT in the target and is not meant to be: `<< 2` discards
@@ -195,12 +198,12 @@ void *vmemoryGC(void *pt)
         {
         search:
             n2 = prev->next;
-            if (n2 == header)
-                goto found;
-            prev = n2;
-            if (prev != 0)
-                goto search;
-        found:
+            if (n2 != header)
+            {
+                prev = n2;
+                if (prev != 0)
+                    goto search;
+            }
             if (prev != 0)
             {
                 sz = prev->size;
