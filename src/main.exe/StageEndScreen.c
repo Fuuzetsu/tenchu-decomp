@@ -188,6 +188,13 @@ void StageEndScreen(void)
     GsSPRITE *icon;
     u_long *tim;
     u_long *rank_archive;
+    enum
+    {
+        /* What the player picked on the stage-end screen. */
+        STAGE_END_ADVANCE = 0, /* next stage, or the ending after the last */
+        STAGE_END_REPLAY = 1,  /* raise GAME_RETRY_REPLAY and run it again */
+        STAGE_END_QUIT = 2     /* back to the main menu */
+    };
     s16 selection;
     s32 dispatch;
     s32 pulse;
@@ -204,7 +211,7 @@ void StageEndScreen(void)
     u32 base_u;
     s32 negative;
 
-    selection = 0;
+    selection = STAGE_END_ADVANCE;
     ui.old_pad = 0;
     SetupAppearance(0, -1);
     PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
@@ -342,25 +349,25 @@ void StageEndScreen(void)
                 ui.old_pad = pad;
                 if ((pressed & PADRright) != 0)
                 {
-                    selection = 0;
+                    selection = STAGE_END_ADVANCE;
                     break;
                 }
                 if ((pressed & PADRdown) != 0)
                 {
                     /* Twin-arm fence in switch clothing: both arms set
-                     * selection = 2; collapsing it is measured off. */
+                     * selection = STAGE_END_QUIT; collapsing it is measured off. */
                     switch (!!pad)
                     {
-                    case 0:
-                        selection = 2;
+                    case STAGE_END_ADVANCE:
+                        selection = STAGE_END_QUIT;
                         break;
                     default:
-                        selection = 2;
+                        selection = STAGE_END_QUIT;
                         break;
                     }
                     break;
                 }
-                selection = 1;
+                selection = STAGE_END_REPLAY;
                 if ((pressed & PADstart) != 0)
                 {
                     break;
@@ -614,10 +621,10 @@ void StageEndScreen(void)
             }
         }
         break;
-    case 1:
+    case STAGE_END_REPLAY:
         PSTATE->GameRetry |= GAME_RETRY_REPLAY;
         break;
-    case 2:
+    case STAGE_END_QUIT:
         STAGE_LAYOUT_NUMBER = 0xff;
         exec_process_(PROCESS_MENU);
         break;
