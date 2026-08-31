@@ -74,6 +74,16 @@ void briefing_screen_(void)
     s16 fade;
     s16 counter;
     s32 fade_now;
+    enum
+    {
+        /* Wait for the fade in, start the stage's narration track, wait
+         * for the CD to actually begin, hold for the scripted length,
+         * then scroll the briefing text. */
+        BRIEFING_START_MUSIC = 0,
+        BRIEFING_WAIT_AUDIO = 1,
+        BRIEFING_HOLD = 2,
+        BRIEFING_SCROLL_TEXT = 3
+    };
     s16 sequence;
     s32 fade_step;
     s32 adjusted;
@@ -90,7 +100,7 @@ void briefing_screen_(void)
 
     file = PathFileRead((u8 *)path_demo,
                         BriefingAssets[PSTATE->language][PSTATE->StageNo].background);
-    sequence = 0;
+    sequence = BRIEFING_START_MUSIC;
     fade = 0xfe;
     scroll = -0xa000;
     old_pad = 0;
@@ -154,7 +164,7 @@ void briefing_screen_(void)
         StartDrawing();
         switch (sequence)
         {
-        case 0:
+        case BRIEFING_START_MUSIC:
             if (fade_now == 0)
             {
                 s16 music;
@@ -167,26 +177,26 @@ void briefing_screen_(void)
                     music++;
                 }
                 _PlayMusic(music, CDA_ONCE);
-                sequence = 1;
+                sequence = BRIEFING_WAIT_AUDIO;
             }
             break;
 
-        case 1:
+        case BRIEFING_WAIT_AUDIO:
             if (CdaGetCurrentLength() > 0)
             {
-                sequence = 2;
+                sequence = BRIEFING_HOLD;
                 counter = 0;
             }
             break;
 
-        case 2:
+        case BRIEFING_HOLD:
             if (BriefingLimit[PSTATE->language][PSTATE->StageNo] < counter++)
             {
-                sequence = 3;
+                sequence = BRIEFING_SCROLL_TEXT;
             }
             break;
 
-        case 3:
+        case BRIEFING_SCROLL_TEXT:
             counter = strip_width - 4;
             if (counter >= 0)
             {
