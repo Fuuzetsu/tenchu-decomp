@@ -1362,6 +1362,10 @@ enum TItemType
  * gItem row are all this wide. */
 #define SAVE_ITEM_SLOTS 0x20
 
+/* Rows in SHOP_ITEM_DEFAULTS: the briefing screen and clamp_shop_stock_
+ * both walk the whole table. */
+#define N_SHOP_ITEMS 0x13
+
 #define ITEM_LOCKED 0xFE
 #define ITEM_INFINITE 0xFF
 

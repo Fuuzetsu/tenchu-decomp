@@ -167,7 +167,7 @@ void BriefingAndInventorySelectionScreen(void)
     }
     q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     uid = StageConfig[q->StageNo].uid;
-    q->selItem[0] = 0xFF;
+    q->selItem[0] = ITEM_INFINITE;
     if (uid == 0)
     {
         q->selItem[1] = 5;
@@ -207,7 +207,7 @@ void BriefingAndInventorySelectionScreen(void)
     {
         TLinkInfo *cq =
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-        for (ci = 0; ci < 0x13; ci++)
+        for (ci = 0; ci < N_SHOP_ITEMS; ci++)
         {
             u8 c = cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex];
             s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
@@ -270,7 +270,7 @@ void BriefingAndInventorySelectionScreen(void)
             {
                 TLinkInfo *cq =
                     (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-                for (ci = 0; ci < 0x13; ci++)
+                for (ci = 0; ci < N_SHOP_ITEMS; ci++)
                 {
                     u8 c = cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex];
                     s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
@@ -304,7 +304,7 @@ void BriefingAndInventorySelectionScreen(void)
                         selected_kinds++;
                         taken++;
                     }
-                    ps->selItem[ITEM_ARMOUR] = 0xFF;
+                    ps->selItem[ITEM_ARMOUR] = ITEM_INFINITE;
                     (&ps->gItem[0][ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
                     SoundEx(0, SE_MENU_APPLY);
                 }
@@ -329,7 +329,7 @@ void BriefingAndInventorySelectionScreen(void)
         }
         StartDrawing();
         DrawBG(bg);
-        for (j = 0; j < 0x13; j++)
+        for (j = 0; j < N_SHOP_ITEMS; j++)
         {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
             u8 c = (&ps->gItem[0][0])[n + (ps->CharType << 5)];
@@ -383,7 +383,7 @@ void BriefingAndInventorySelectionScreen(void)
                 int bi = cursor;
                 int tx = SHOP_ITEM_DEFAULTS[bi].x + ddx;
                 int ty = SHOP_ITEM_DEFAULTS[bi].y + ddy;
-                for (si = 0; si < 0x13; si++)
+                for (si = 0; si < N_SHOP_ITEMS; si++)
                 {
                     int ex = SHOP_ITEM_DEFAULTS[si].x - tx;
                     int ey = SHOP_ITEM_DEFAULTS[si].y - ty;
@@ -612,7 +612,7 @@ quit:
     clear_screen_();
     if (PSTATE->selItem[ITEM_MANEBUE] != 0)
     {
-        PSTATE->selItem[ITEM_MANEBUE] = 0xFF;
+        PSTATE->selItem[ITEM_MANEBUE] = ITEM_INFINITE;
     }
     for (j = 0; j < 9; j++)
     {
