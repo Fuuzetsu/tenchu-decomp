@@ -28,8 +28,8 @@
  *    the LAST copy (case 1's), leaving case 0 as `j` + the sb in its delay
  *    slot. Writing one shared after-switch `mode++` instead puts the tail
  *    after case 2 (wrong layout).
- *  - Case 1's counter is `u8 cnt = param->count + 1; param->count = cnt;
- *    if (cnt < 0x1f) return;` — the u8 local re-narrowed after arithmetic
+ *  - Case 1's counter is `u8 frame_count = param->count + 1;` followed by
+ *    the store and threshold test — the u8 local re-narrowed after arithmetic
  *    gives the defensive andi 0xff + sltiu.
  *  - Case 2's dispose checks `if (item->proc == 0)` INLINE (allocates $v0
  *    for both the test and the jalr; Kusuri's named `ppu` temp allocates
@@ -56,77 +56,84 @@
 #include "item.h"
 
 /* The particle loop reuses one 0x20-byte slot. PSX.SYM names its output
- * views `pos` and `vec`; the inner union records how the temporary VECTOR is
- * overwritten by the output velocity and its SVECTOR build area. */
+ * views `pos` and `vec`; the inner union records how the temporary position
+ * is overwritten by the output velocity and its build area. */
 typedef struct
 {
-    VECTOR pos;
+    VECTOR position;
     union
     {
-        VECTOR position;
+        VECTOR position_build;
         struct
         {
-            SVECTOR vec;
             SVECTOR velocity;
+            SVECTOR velocity_build;
         } vectors;
     } work;
 } ProcItemKawarimiScratch;
 
 void ProcItemKawarimi(TItem *item)
 {
+    enum
+    {
+        KAWARIMI_MODE_START = 0,
+        KAWARIMI_MODE_BLEED = 1,
+        KAWARIMI_MODE_FINISH = 2,
+        KAWARIMI_BLEED_FRAMES = 0x1f
+    };
     param_drop *param;
-    s32 i;
+    s32 particle_index;
     ProcItemKawarimiScratch scratch;
 
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = KAWARIMI_MODE_START;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case KAWARIMI_MODE_START:
         param->count = 0;
         item->mode++;
         return;
 
-    case 1:
-        i = 0;
+    case KAWARIMI_MODE_BLEED:
+        particle_index = 0;
         while (1)
         {
-            if (i >= 0x14)
+            if (particle_index >= 0x14)
                 break;
-            memset(&scratch.work.position, 0, sizeof(VECTOR));
-            scratch.work.position.vx =
+            memset(&scratch.work.position_build, 0, sizeof(VECTOR));
+            scratch.work.position_build.vx =
                 item->owner->model->locate.coord.t[0] +
                 (rand() % 1000 - 500);
-            scratch.work.position.vy =
+            scratch.work.position_build.vy =
                 item->owner->model->locate.coord.t[1] +
                 (rand() % 1000 - 1200);
-            scratch.work.position.vz =
+            scratch.work.position_build.vz =
                 item->owner->model->locate.coord.t[2] +
                 (rand() % 1000 - 500);
-            scratch.pos = scratch.work.position;
-            memset(&scratch.work.vectors.velocity, 0, sizeof(SVECTOR));
-            scratch.work.vectors.velocity.vy = rand() % 10 - 30;
-            scratch.work.vectors.vec = scratch.work.vectors.velocity;
-            SetBleed(&scratch.pos, &scratch.work.vectors.vec,
+            scratch.position = scratch.work.position_build;
+            memset(&scratch.work.vectors.velocity_build, 0, sizeof(SVECTOR));
+            scratch.work.vectors.velocity_build.vy = rand() % 10 - 30;
+            scratch.work.vectors.velocity = scratch.work.vectors.velocity_build;
+            SetBleed(&scratch.position, &scratch.work.vectors.velocity,
                      rand() % 16 + 15, RGB24(100, 200, 220));
-            i++;
+            particle_index++;
         }
         {
-            u8 cnt;
+            u8 frame_count;
 
-            cnt = param->count + 1;
-            param->count = cnt;
-            if (cnt < 0x1f)
+            frame_count = param->count + 1;
+            param->count = frame_count;
+            if (frame_count < KAWARIMI_BLEED_FRAMES)
                 return;
         }
         item->mode++;
         return;
 
-    case 2:
+    case KAWARIMI_MODE_FINISH:
         if (item->proc == 0)
             return;
         item->mode = ITEM_MODE_DISPOSE;

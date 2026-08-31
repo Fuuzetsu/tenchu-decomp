@@ -24,8 +24,8 @@
 /*
  * SetupThinkFunction (0x8002f73c, 0xb8 bytes) — installs Humanoid's four
  * PSX.SYM-recovered think callbacks from lookup tables keyed off nibbles of
- * `type`, then sets or clears attribute bit 4 depending on whether `type` is
- * one of three "default" sentinels (0, 0x1111, 0x2222).
+ * `type`, then sets or clears ATTR_CUSTOMAI depending on whether `type` is one
+ * of three "default" sentinels (0, 0x1111, 0x2222).
  *
  * Matching constraints:
  *  - The four selectors are ordinary `(type >> 4/8/12) & 0xF` reads and the
@@ -53,10 +53,10 @@ void SetupThinkFunction(Humanoid *human, TThinkType type)
     if (type == THINK_MIX_NONE || type == THINK_MIX_PLAYER ||
         type == THINK_MIX_PAD2)
     {
-        human->attribute &= ~4;
+        human->attribute &= ~ATTR_CUSTOMAI;
     }
     else
     {
-        human->attribute |= 4;
+        human->attribute |= ATTR_CUSTOMAI;
     }
 }
