@@ -134,6 +134,15 @@
  *    accesses nevertheless use the recovered WorldType.top field.
  */
 
+/* WorldDataType.mode says which kind of record this row is, not a phase:
+ * the values are the stage-data file's own tags and are not contiguous. */
+enum
+{
+    WLD_RECORD_AREAMAP = 0, /* .acm collision/height map */
+    WLD_RECORD_OBJECT = 2,  /* a placed model, or a clone of an earlier one */
+    WLD_RECORD_TIM = 5      /* a texture to upload and free */
+};
+
 typedef struct WorldDataType
 {
     s16 mode;
@@ -231,7 +240,7 @@ short LoadConstruction(u_long *data)
     {
         do
         {
-            if (((WorldDataType *)data)[i].mode == 2)
+            if (((WorldDataType *)data)[i].mode == WLD_RECORD_OBJECT)
                 nModel++;
             i++;
         } while (i < n);
@@ -290,7 +299,7 @@ short LoadConstruction(u_long *data)
                 break;
             switch (wlddt[i].mode)
             {
-            case 0:
+            case WLD_RECORD_AREAMAP:
                 sprintf((char *)name, fmt_acm, wlddt[i].real.common.name);
                 DisposeAreaMap(GlobalAreaMap);
                 GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
@@ -301,12 +310,12 @@ short LoadConstruction(u_long *data)
                 }
                 break;
 
-            case 5:
+            case WLD_RECORD_TIM:
                 sprintf((char *)name, fmt_tim, wlddt[i].real.common.name);
                 LoadTIMAndFree(PathFileRead((u8 *)path_image, name));
                 break;
 
-            case 2:
+            case WLD_RECORD_OBJECT:
                 if (wlddt[i].real.common.name[0] != 0)
                 {
                     model = ObjectArc->object[ObjectID];
