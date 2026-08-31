@@ -57,7 +57,11 @@ extern void DrawBleed(TEffectSlot *ef);
  * materializes both bank bases independently. The named bleed_x/y/z values
  * prevent reassociation of `(position - 60) + rand()%120`,
  * and the full-width `green` local preserves the target's li 0x7f10 before a
- * byte store.
+ * byte store. The pool's iteration count is PSX.SYM's `i`; the scan's
+ * existing `slot` also carries the found/fallback result, so a second
+ * `found` alias is unnecessary. Likewise, the temporary velocity aggregate
+ * can feed the retained `velocity` destination directly without a pointer
+ * carrier.
  */
 void DrawGore(TEffectSlot *ef)
 {
@@ -187,15 +191,13 @@ void DrawGore(TEffectSlot *ef)
         s32 bleed_y;
         s32 bleed_z;
         u16 count;
-        SVECTOR *temporary;
         SVECTOR *velocity;
         long color;
         long green;
         int cursor;
-        int searched;
+        int i;
         TEffectSlot *slot;
         TEffectSlot *base;
-        TEffectSlot *found;
         BleedType *bleed;
 
         x = param->px;
@@ -271,19 +273,18 @@ void DrawGore(TEffectSlot *ef)
         bleed_z = param->pz - R;
         scratch.bleed.temporary.position.vz = bleed_z + random_z % (R * 2);
         scratch.bleed.position = scratch.bleed.temporary.position;
-        temporary = &scratch.bleed.temporary.velocity;
         memset(&scratch.bleed.temporary.velocity, 0, sizeof(SVECTOR));
         velocity = &scratch.bleed.velocity;
         color = 0x7f1017;
         scratch.bleed.temporary.velocity.vx = param->vx / 2;
         scratch.bleed.temporary.velocity.vy = param->vy / 2;
         scratch.bleed.temporary.velocity.vz = param->vz / 2;
-        *velocity = *temporary;
+        *velocity = scratch.bleed.temporary.velocity;
 
         base = EffectSlot;
         cursor = EFFECT_CURSOR_;
         slot = base + cursor;
-        searched = 0;
+        i = 0;
         do
         {
             cursor++;
@@ -293,7 +294,7 @@ void DrawGore(TEffectSlot *ef)
                 slot = base;
                 cursor = 0;
             }
-            searched++;
+            i++;
             if (slot->proc == 0)
             {
                 EFFECT_CURSOR_ = cursor + 1;
@@ -302,22 +303,21 @@ void DrawGore(TEffectSlot *ef)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                found = slot;
                 goto bleed_found;
             }
-        } while (searched < N_EFFECT_SLOTS);
-        found = &dmy;
+        } while (i < N_EFFECT_SLOTS);
+        slot = &dmy;
         bleed = &dmy.param.bleed;
     bleed_found:
-        found->param.bleed.pos = scratch.bleed.position;
-        found->param.bleed.vec = *velocity;
+        slot->param.bleed.pos = scratch.bleed.position;
+        slot->param.bleed.vec = *velocity;
         bleed->time = 7;
         bleed->r = 0x7f;
         green = 0x7f10;
         bleed->g = green;
         bleed->b = color;
         bleed->mode = 0;
-        found->proc = (void (*)())DrawBleed;
+        slot->proc = (void (*)())DrawBleed;
         break;
     }
     }

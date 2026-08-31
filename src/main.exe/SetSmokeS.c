@@ -21,9 +21,9 @@
 /*
  * MATCHED.
  *  - Retail narrowed the demo build's `int time` parameter to `unsigned short`:
- *    the target loads stack+16 with `lhu`. A separate signed `t = (short)time`
- *    keeps the raw value for the byte store while reproducing the target's
- *    signed guarded remainder and two-instruction sign extension.
+ *    the target loads stack+16 with `lhu`. Direct `(short)time` casts at the
+ *    division and remainder consumers reproduce the target's signed guarded
+ *    remainder and two-instruction sign extension without a staging local.
  *  - `m = smoke->time - 1` must remain its own statement, as in SetSmoke.
  *    Inlining it lets fold reassociate the subtraction into `sum + 1`, moving
  *    the addiu to the wrong side of the final expression.
@@ -41,7 +41,6 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     TEffectSlot *ef;
     SmokeType *smoke;
     int r;
-    int t;
     int m;
 
     count = 0;
@@ -72,8 +71,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     ef = &dmy;
 found:
     smoke = &ef->param.smoke;
-    r = rand();
-    smoke->scale = r % 0x2000 + 0x1000;
+    smoke->scale = rand() % 0x2000 + 0x1000;
     smoke->rotate = (rand() % 360) * 0x1000;
     smoke->pos.vx = pos->vx;
     smoke->pos.vy = pos->vy;
@@ -83,9 +81,8 @@ found:
     smoke->vec.vz = vz;
     smoke->time = time;
     r = rand();
-    t = (short)time;
     smoke->sprite = 0;
     m = smoke->time - 1;
-    smoke->evtime = m - (t / 2 + r % t);
+    smoke->evtime = m - ((short)time / 2 + r % (short)time);
     ef->proc = (void (*)())DrawSmoke;
 }

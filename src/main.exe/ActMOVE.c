@@ -34,10 +34,7 @@ extern void JumpControl(void);
 
 void ActMOVE(void)
 {
-    short mid;
-
-    mid = dtM->mid;
-    switch (mid)
+    switch (dtM->mid)
     {
     case MOT_MOVE:
         if (dtM->count == 1 ||
@@ -70,7 +67,6 @@ void ActMOVE(void)
         {
             int current;
             int result;
-            MotionDataType *motion;
             SVECTOR *rotation;
 
             rotation = dtR;
@@ -80,8 +76,9 @@ void ActMOVE(void)
             else
                 result = current - Me_MOTION_C->turn;
             rotation->vy = result;
-            motion = Me_MOTION_C->motion->motion;
-            MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
+            MoveHumanoid(Me_MOTION_C,
+                         Me_MOTION_C->motion->motion->orderspd,
+                         Me_MOTION_C->motion->motion->sidespd);
         }
         break;
 
@@ -97,7 +94,6 @@ void ActMOVE(void)
         {
             int current;
             int result;
-            MotionDataType *motion;
             SVECTOR *rotation;
 
             rotation = dtR;
@@ -107,8 +103,9 @@ void ActMOVE(void)
             else
                 result = current - Me_MOTION_C->turn;
             rotation->vy = result;
-            motion = Me_MOTION_C->motion->motion;
-            MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
+            MoveHumanoid(Me_MOTION_C,
+                         Me_MOTION_C->motion->motion->orderspd,
+                         Me_MOTION_C->motion->motion->sidespd);
         }
         break;
 
@@ -130,15 +127,12 @@ void ActMOVE(void)
         break;
     }
     {
-        u16 trig;
-
-        trig = Me_MOTION_C->pad.trig;
-        if (trig & PADRdown)
+        if (Me_MOTION_C->pad.trig & PADRdown)
         {
             JumpControl();
             return;
         }
-        if (trig & PADRup)
+        if (Me_MOTION_C->pad.trig & PADRup)
         {
             switch (SelectedItem)
             {
@@ -182,7 +176,7 @@ void ActMOVE(void)
             SET_MOTION(MOT_SQUAT, 1);
             return;
         }
-        if (trig & PADRleft)
+        if (Me_MOTION_C->pad.trig & PADRleft)
         {
             SET_MOTION(MOT_STATE_DRAW, 1);
         }

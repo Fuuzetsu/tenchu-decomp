@@ -59,14 +59,10 @@ void ActCHASE(void)
                                          correction is in the bytes here,
                                          unlike ActSQUAT's site; measured */)
         {
-            short sound;
-
-            sound = SE_RUN_STEP;
-            if (Me_MOTION_C->map.attrib & MAP_WOOD)
-            {
-                sound = SE_RUN_STEP_WOOD;
-            }
-            Sound(Me_MOTION_C, sound);
+            Sound(Me_MOTION_C,
+                  (Me_MOTION_C->map.attrib & MAP_WOOD)
+                      ? SE_RUN_STEP_WOOD
+                      : SE_RUN_STEP);
         }
 
         if (dtPAD & PADLup)
@@ -125,7 +121,6 @@ void ActCHASE(void)
             {
                 int current;
                 int result;
-                MotionDataType *motion;
                 SVECTOR *rotation;
 
                 /* Staged read-modify-write (rotation/current/result):
@@ -142,8 +137,9 @@ void ActCHASE(void)
                     result = current - turn;
                 }
                 rotation->vy = result;
-                motion = Me_MOTION_C->motion->motion;
-                MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
+                MoveHumanoid(Me_MOTION_C,
+                             Me_MOTION_C->motion->motion->orderspd,
+                             Me_MOTION_C->motion->motion->sidespd);
                 break;
             }
 
@@ -180,7 +176,6 @@ void ActCHASE(void)
         {
             int current;
             int result;
-            MotionDataType *motion;
             SVECTOR *rotation;
 
             rotation = dtR;
@@ -194,8 +189,9 @@ void ActCHASE(void)
                 result = current - turn * 4;
             }
             rotation->vy = result;
-            motion = Me_MOTION_C->motion->motion;
-            MoveHumanoid(Me_MOTION_C, motion->orderspd, motion->sidespd);
+            MoveHumanoid(Me_MOTION_C,
+                         Me_MOTION_C->motion->motion->orderspd,
+                         Me_MOTION_C->motion->motion->sidespd);
         }
 
         if ((dtPAD & PADRright) == 0)

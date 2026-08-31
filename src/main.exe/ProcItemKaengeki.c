@@ -39,9 +39,8 @@
  *
  * Matching notes:
  *  - `request`, `rx`, and `ry` are one contiguous sp+0x10..0x3f working
- *    window. The request union restores PSX.SYM's separate block-local `p`
- *    and `rp` names: mode 1 uses `p` for the dropped item, while mode 2
- *    reuses the same 0x28-byte slot as the firing request `rp` and uses the
+ *    window. The request union gives the shared 0x28-byte slot PSX.SYM's `p`
+ *    view in mode 1 and `rp` view in mode 2; the latter also uses the
  *    trailing two words as camera rotation outputs.
  *  - `mode_index = 0` is a zero-byte CSE eviction.  Naming the entry mode
  *    load and dead-overwriting that local before the switch makes
@@ -55,9 +54,9 @@
  *  - The completed request assigns user before type.  This prevents the
  *    type's `li 22` from filling the steering guard's delay slot and yields
  *    the target load/li/store ordering at the request head.
- *  - The steering writes use direct compound expressions through
- *    `human->model`.  That lets CSE overwrite the dead human pointer with the
- *    model in v1; a named model assignment instead colors the model into a0.
+ *  - The steering writes use direct compound expressions through the owning
+ *    `item->owner->model` path. A named model assignment instead colors the
+ *    model into a0.
  *  - The staged vector statements are intentional: copy rotated end to
  *    start, scale start by 12, add the saved origin, double end, then add
  *    start.  They reproduce both rounds of stack stores in the target.
@@ -102,13 +101,11 @@ void ProcItemKaengeki(TItem *item)
         human = item->owner;
         if (ActionHalt == 0 && human->life > 0)
         {
-            MotionDataType *motion;
-
             dispose_weapon_data_of_char_(human, 3);
             UpdateMotion(human->motion, MOT_ITEM_KAENGEKI);
             human->status = STAT_ITEM;
-            motion = human->motion->motion;
-            MoveHumanoid(human, motion->orderspd, motion->sidespd);
+            MoveHumanoid(human, human->motion->motion->orderspd,
+                         human->motion->motion->sidespd);
         }
         Sound(item->owner, SE_ITEM_USE);
         item->mode++;
@@ -117,10 +114,8 @@ void ProcItemKaengeki(TItem *item)
 
     case 1:
     {
-        MotionManager *motion;
-
-        motion = item->owner->motion;
-        if (motion->count == 0 && motion->loop != 0)
+        if (item->owner->motion->count == 0 &&
+            item->owner->motion->loop != 0)
         {
             SoundEx((VECTOR *)item->owner->model->locate.coord.t, SE_FIRE);
             item->mode++;
@@ -160,9 +155,6 @@ void ProcItemKaengeki(TItem *item)
 
     case 2:
     {
-        Humanoid *human;
-        u16 buttons;
-        u8 count;
         ModelArchiveType *model;
         s32 rz;
 
@@ -170,22 +162,18 @@ void ProcItemKaengeki(TItem *item)
         {
             goto dispose;
         }
-        count = param->count - 1;
-        param->count = count;
-        if (count == 0)
+        if (--param->count == 0)
         {
             goto dispose;
         }
 
-        human = item->owner;
-        buttons = human->pad.data;
-        if ((buttons & PADLright) != 0)
+        if ((item->owner->pad.data & PADLright) != 0)
         {
-            human->model->rotate.vy += 0x20;
+            item->owner->model->rotate.vy += 0x20;
         }
-        else if ((buttons & PADLleft) != 0)
+        else if ((item->owner->pad.data & PADLleft) != 0)
         {
-            human->model->rotate.vy -= 0x20;
+            item->owner->model->rotate.vy -= 0x20;
         }
 
         request.rp.user = item->owner;

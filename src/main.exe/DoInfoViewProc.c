@@ -49,21 +49,22 @@
  *  - The debug-menu case bodies are STATIC INLINE HELPERS — see the comment
  *    at the helpers below; this is what makes the menu-buffer addresses
  *    rematerialize per call and the buffers overlap (temp-slot reuse).
- *  - The outer dispatch is a real switch on `sel` used ONLY for dispatch
- *    (caller-saved $v1). Case 2/1's AdtSelect results go to a separate
- *    variable (the helpers' `n`, $s0): reusing the switch variable across
- *    the case-body calls promotes it to a callee-saved reg (one extra
- *    prologue save, +1 shift everywhere).
+ *  - The outer dispatch switches directly on AdtSelect's return value.
+ *    Case 2/1's AdtSelect results still go to a separate variable (the
+ *    helpers' `n`, $s0): carrying one result variable across the case-body
+ *    calls promotes it to a callee-saved reg (one extra prologue save,
+ *    +1 shift everywhere).
  *  - ItemLayoutMenu's inner dispatch is a nested 2-case switch: expand_case
  *    lays out tests-then-bodies (beqz / li 1 / beq / j end) where an
  *    if/else-if chain would put the first body on the fallthrough path and
  *    let cse reuse the compare's constant 1 for the AdtSelect mode arg
  *    (target rematerializes `li a2,1` in the branch-taken block).
- *  - The item-cycle loops are `i = CURR; cur = i; do { i--; wrap; } while
- *    (item[i] == 0 && i != cur);` — reorg steals the top-of-loop decrement
- *    into the conditional backjump's delay slot, retargets the branch past
- *    it, and compensates (+1) on the fallthrough exit. Loading into `i`
- *    first and copying to `cur` puts the lh in i's register (move a0,v1).
+ *  - Each item-cycle arm has PSX.SYM's block-local `c`: `i = CURR; c = i;
+ *    do { i--; wrap; } while (item[i] == 0 && i != c);`. Reorg steals the
+ *    top-of-loop decrement into the conditional backjump's delay slot,
+ *    retargets the branch past it, and compensates (+1) on the fallthrough
+ *    exit. Loading into `i` first and copying to `c` puts the lh in i's
+ *    register (move a0,v1).
  *  - gp smalls of this TU: fInitialize,
  *    ItemCursor, PutMapMode (Build.hs maspsxGpExterns +
  *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/str_opt are other
@@ -174,10 +175,8 @@ void DoInfoViewProc(void)
         HIDDEN_EFFECT = 0x63
     };
     u16 pad;
-    u16 trig;
-    s32 sel;
+    long trig;
     s32 i;
-    s32 cur;
     TAdtSelect Option[11];
 
     pad = CamState.Owner->pad.data;
@@ -191,8 +190,7 @@ void DoInfoViewProc(void)
         __builtin_memcpy(Option, DEBUG_MENU_MAIN_SCREEN_OPTIONS,
                          sizeof(Option));
         VISIBLE_ENEMIES_ = 0;
-        sel = AdtSelect(str_select_option, Option, 0);
-        switch (sel)
+        switch (AdtSelect(str_select_option, Option, 0))
         {
         case ENEMY:
             LayoutEnemyOption();
@@ -222,25 +220,29 @@ void DoInfoViewProc(void)
     {
         if ((trig & PADR2) != 0)
         {
+            s32 c;
+
             i = ItemCursor;
-            cur = i;
+            c = i;
             do
             {
                 i--;
                 if (i < 0)
                     i = ITEM_N;
-            } while (CamState.Owner->item[i] == 0 && i != cur);
+            } while (CamState.Owner->item[i] == 0 && i != c);
         }
         else if ((trig & PADL2) != 0)
         {
+            s32 c;
+
             i = ItemCursor;
-            cur = i;
+            c = i;
             do
             {
                 i++;
                 if (i > ITEM_N)
                     i = 0;
-            } while (CamState.Owner->item[i] == 0 && i != cur);
+            } while (CamState.Owner->item[i] == 0 && i != c);
         }
         else
         {

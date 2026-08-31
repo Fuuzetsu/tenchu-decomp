@@ -84,8 +84,6 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
     TexScroll *tscr;
     s16 scrollX;
     short scrollY;
-    short px;
-    short py;
     short j;
     short i;
 
@@ -121,7 +119,6 @@ loop:
 found:
 {
     u32 scrollYShifted;
-    s32 signedScrollY;
     int sx;
     short mask;
 
@@ -133,12 +130,8 @@ found:
     tscr->sx = scrollX;
     tscr->sy = scrollY;
 
-    px = img->px;
-    tscr->x = px;
-    tscr->image.x = px;
-    py = img->py;
-    tscr->y = py;
-    tscr->image.y = py;
+    tscr->image.x = tscr->x = img->px;
+    tscr->image.y = tscr->y = img->py;
     tscr->image.w = img->pw;
     tscr->image.h = img->ph;
     sx = scrollX;
@@ -152,9 +145,8 @@ found:
             mask = 0xF;
             if ((mask >> (j * 2 + i)) & 1)
             {
-                signedScrollY = (s32)scrollYShifted >> 16;
                 MoveImage(&tscr->image, sx + img->pw * i,
-                          signedScrollY + img->ph * j);
+                          ((s32)scrollYShifted >> 16) + img->ph * j);
             }
         }
         j++;

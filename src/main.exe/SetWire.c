@@ -60,6 +60,12 @@
  * x/y/z parameters and the debug-proven SVECTOR * output together in that
  * helper preserves the target's scheduling and register lifetimes.  It also
  * removes the former loop-store scramble and the claimed 80-byte floor.
+ * The distance block uses PSX.SYM's `v1`/`v2` pointer identities, which
+ * share $s3/$s2 with the `start`/`end` parameters exactly as aliases
+ * would. In the interpolation block PSX.SYM records `t`, `Q` and `R` and
+ * NOT the two Bezier coefficients, so those are spelled at their uses --
+ * three times each, which is the cost of following the symbol list here
+ * rather than a claim that they were single-use.
  */
 
 extern MATRIX GsWSMATRIX;
@@ -123,12 +129,16 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     line.b = 0x38;
 
     {
+        VECTOR *v1;
+        VECTOR *v2;
         long dx, dy, dz;
         int big;
 
-        dx = start->vx - end->vx;
-        dy = start->vy - end->vy;
-        dz = start->vz - end->vz;
+        v1 = start;
+        v2 = end;
+        dx = v1->vx - v2->vx;
+        dy = v1->vy - v2->vy;
+        dz = v1->vz - v2->vz;
         big = 0;
         if (abs(dx) > ONE || abs(dy) > ONE || abs(dz) > ONE)
         {
@@ -165,7 +175,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     while (1)
     {
         long t, Q, R;
-        long one_value, A, B;
+        long one_value;
 
         if (i >= ecount)
         {
@@ -178,11 +188,12 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         t = one_value - i * ONE / lcount;
         Q = t * 2;
         R = t * t / ONE;
-        A = one_value - Q + R;
-        B = Q - R * 2;
-        x = (A * end->vx + B * center->vx + R * start->vx) / ONE;
-        y = (A * end->vy + B * center->vy + R * start->vy) / ONE;
-        z = (A * end->vz + B * center->vz + R * start->vz) / ONE;
+        x = ((one_value - Q + R) * end->vx +
+             (Q - R * 2) * center->vx + R * start->vx) / ONE;
+        y = ((one_value - Q + R) * end->vy +
+             (Q - R * 2) * center->vy + R * start->vy) / ONE;
+        z = ((one_value - Q + R) * end->vz +
+             (Q - R * 2) * center->vz + R * start->vz) / ONE;
 
         GetWireScreenPosition(x, y, z, &scr);
 

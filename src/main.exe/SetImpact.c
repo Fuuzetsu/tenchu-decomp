@@ -36,13 +36,13 @@
  *    real loop doesn't risk loop.c hoisting its address either — the
  *    hoisting hazard that forced SetFrame/SetSplash/SetBleed's goto shape
  *    doesn't apply once `ef = &dmy;` moves outside the loop body.
- *  - rand()'s result (`spd`), and the two packed colour constants
+ *  - The randomized speed (`spd`) and the two packed colour constants
  *    `start_color`/`end_color`
  *    (0x808080 each), are all named locals assigned BEFORE the loop and
  *    held live across the whole search (no calls run inside it) — not
  *    literals at their point of use. All three floated only after the
- *    magic-multiply div-by-90 sequence for `spd` was written FIRST in
- *    source (immediately after `r = rand();`), then the two colours;
+ *    magic-multiply div-by-90 expression for `spd` was written FIRST in
+ *    source, then the two colours;
  *    the compiler's scheduler places their independent lui/ori pairs
  *    ahead of the still-latency-bound `mult`/`mfhi` chain regardless, so
  *    getting the register (t1/t2/t3) assignment right needed this order,
@@ -56,7 +56,6 @@ extern void DrawImpact(TEffectSlot *ef);
 
 void SetImpact(VECTOR *pos, short size, short type)
 {
-    int r;
     short spd;
     long start_color;
     long end_color;
@@ -68,8 +67,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     ImpactType *param;
     long pz;
 
-    r = rand();
-    spd = r % 90 + 90;
+    spd = rand() % 90 + 90;
     start_color = 0x808080;
     end_color = 0x808080;
     count = 0;

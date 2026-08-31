@@ -107,7 +107,6 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
     short lr;
     short lg;
     short lb;
-    VECTOR *svp;
     long distance;
     long lcount;
     int i;
@@ -177,12 +176,11 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
 
                 if ((rand() & 2) == 0)
                 {
-                    svp = &sv;
-                    memset(svp, 0, sizeof(VECTOR));
+                    memset(&sv, 0, sizeof(VECTOR));
                     sv.vx = x;
                     sv.vy = y;
                     sv.vz = z;
-                    SetLightningI(svp, end, next_gen, lr, lg, lb);
+                    SetLightningI(&sv, end, next_gen, lr, lg, lb);
                 }
 
                 GetLightningScreenPosition(x, y, z, &scr);
