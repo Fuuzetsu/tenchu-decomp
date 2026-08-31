@@ -5,6 +5,21 @@
  * dispatch table — 0 selects the plain (tnf) bank, TMD_BANK_FOG the
  * depth-queued gradation (tng) bank the draw family switches to for
  * far objects (sz >= 300). */
+/* A TMD primitive's mode byte (packet offset 3), as the decoders test it
+ * after masking off ABE with & 0xfd. The varying bits are TEXTURED 0x04,
+ * QUAD 0x08 and GOURAUD 0x10 over a common 0x21; the resulting eight
+ * values are exactly the draw* / fast_tn?? family this file dispatches
+ * to, which is what confirms the decode -- 0x3d reaches fast_tng4_,
+ * 0x2d fast_tnf4_, 0x25 fast_tnf3_, 0x35 fast_tng3_. */
+#define TMD_PRIM_F3 0x21  /* flat, triangle */
+#define TMD_PRIM_FT3 0x25 /* flat, triangle, textured */
+#define TMD_PRIM_F4 0x29  /* flat, quad */
+#define TMD_PRIM_FT4 0x2d /* flat, quad, textured */
+#define TMD_PRIM_G3 0x31  /* gouraud, triangle */
+#define TMD_PRIM_GT3 0x35 /* gouraud, triangle, textured */
+#define TMD_PRIM_G4 0x39  /* gouraud, quad */
+#define TMD_PRIM_GT4 0x3d /* gouraud, quad, textured */
+
 #define TMD_BANK_PLAIN 0
 #define TMD_BANK_FOG 0x20
 

@@ -179,6 +179,12 @@ void ActENGAGE(void)
         SET_MOTION(MOT_STATE_SHEATHE, 1);
         return;
 
+    /* A hole in the MOT_ enum, between MOT_ENGAGE_STANCE 0x501 and MOT_ENGAGE_SHEATHE 0x503. It is not in MOTcommon and
+
+     * nothing in main.exe plays it, so it arrives from a character's own
+
+     * mtbl and its meaning is not recoverable here -- hence the digit. */
+
     case 0x502:
         if (dtM->count != 0)
             return;

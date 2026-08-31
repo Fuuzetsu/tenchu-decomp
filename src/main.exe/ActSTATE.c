@@ -398,6 +398,9 @@ void ActSTATE(void)
         return;
 
     default:
+    /* A hole in the MOT_ enum, between MOT_STATE_CLIMB 0x801 and MOT_STATE_FALL 0x803. It is not in MOTcommon and
+     * nothing in main.exe plays it, so it arrives from a character's own
+     * mtbl and its meaning is not recoverable here -- hence the digit. */
     case 0x802:
         return;
     }

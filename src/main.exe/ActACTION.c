@@ -189,6 +189,9 @@ void ActACTION(void)
         break;
 
     case MOT_ACTION_GESTURE:
+    /* A hole in the MOT_ enum, between MOT_ACTION_GESTURE 0x102 and MOT_ACTION_FIDGET_A 0x104. It is not in MOTcommon and
+     * nothing in main.exe plays it, so it arrives from a character's own
+     * mtbl and its meaning is not recoverable here -- hence the digit. */
     case 0x103:
     default:
         if (dtM->count != 0)

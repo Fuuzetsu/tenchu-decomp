@@ -53,7 +53,7 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
     {
         switch (*(u_char *)((int)prim + 3) & 0xfd)
         {
-        case 0x3d:
+        case TMD_PRIM_GT4:
             GsOUT_PACKET_P = adiv_tng4_(prim, vertop, GsOUT_PACKET_P,
                                         *prim, shift, ot,
                                         work);
@@ -61,14 +61,14 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
             step = *prim * 0xb;
             step <<= 2;
             break;
-        case 0x2d:
+        case TMD_PRIM_FT4:
             GsOUT_PACKET_P = adiv_tnf4_(prim, vertop, GsOUT_PACKET_P,
                                         *prim, shift, ot,
                                         work);
             n -= *prim;
             step = *prim << 5;
             break;
-        case 0x25:
+        case TMD_PRIM_FT3:
             GsOUT_PACKET_P = GsTMDfastTNF3(prim, vertop, GsOUT_PACKET_P,
                                            *prim, shift, ot,
                                            work);
@@ -81,7 +81,7 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
             step = count * 7;
             step <<= 2;
             break;
-        case 0x35:
+        case TMD_PRIM_GT3:
             GsOUT_PACKET_P = GsTMDfastTNG3(prim, vertop, GsOUT_PACKET_P,
                                            *prim, shift, ot,
                                            work);

@@ -70,36 +70,36 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     {
         switch (*(u_char *)((int)prim + 3) & 0xfd)
         {
-        case 0x3d:
+        case TMD_PRIM_GT4:
             GsOUT_PACKET_P = fast_tng4_(prim, vertop, GsOUT_PACKET_P, *prim, work);
             n -= *prim;
             prim = (u_short *)((int)prim + *prim * 0x2c);
             continue;
-        case 0x2d:
+        case TMD_PRIM_FT4:
             GsOUT_PACKET_P = fast_tnf4_(prim, vertop, GsOUT_PACKET_P, *prim, work);
             n -= *prim;
             prim = (u_short *)((int)prim + (*prim << 5));
             continue;
-        case 0x25:
+        case TMD_PRIM_FT3:
             GsOUT_PACKET_P = fast_tnf3_(prim, vertop, GsOUT_PACKET_P, *prim, work);
             n -= *prim;
             prim = (u_short *)((int)prim + *prim * 0x1c);
             continue;
-        case 0x35:
+        case TMD_PRIM_GT3:
             GsOUT_PACKET_P = fast_tng3_(prim, vertop, GsOUT_PACKET_P, *prim, work);
             n -= *prim;
             prim = (u_short *)((int)prim + *prim * 0x24);
             continue;
-        case 0x39:
+        case TMD_PRIM_G4:
             n -= *prim;
             prim = (u_short *)((int)prim + *prim * 0x1c);
             continue;
-        case 0x31:
+        case TMD_PRIM_G3:
             n -= *prim;
             prim = (u_short *)((int)prim + *prim * 0x18);
             continue;
-        case 0x21:
-        case 0x29:
+        case TMD_PRIM_F3:
+        case TMD_PRIM_F4:
             n -= *prim;
             prim = (u_short *)((int)prim + (*prim << 4));
             continue;
