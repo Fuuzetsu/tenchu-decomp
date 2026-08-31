@@ -108,15 +108,17 @@ void SetCameraMode(TCameraMode mode)
     SVECTOR *rot;
     TCameraPos *camera;
     VECTOR *pv;
-    s32 n;
     s32 i;
     s32 hitf;
 
     switch (mode)
     {
     case CMODE_CRITICAL_HIT:
-        n = rand();
-        CamState.OldMode = n % (MaxCriticalValiation + 1);
+        /* The eight other carriers in this arm are all load-bearing;
+         * removing one each costs cs 5, hitf 12, tbl 21, pv 32, fp 62,
+         * camera 70, pos+rot 110, and the whole plain graph 94. Only
+         * `n` was staging, and it is gone. */
+        CamState.OldMode = rand() % (MaxCriticalValiation + 1);
         i = 0;
         cs = &CamState;
         tbl = CamPosCriticalHit;
