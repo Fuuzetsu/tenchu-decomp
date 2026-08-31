@@ -2142,6 +2142,17 @@ irreducible nest: DrawConstruction's 3.
   and register-allocation barriers with some other origin. Leave them,
   and keep the per-site measurement rather than inventing a story that
   reads better.
+- **Local COUNT is a proxy, not the goal (owner directive).** PSX.SYM
+  shows the original had far fewer locals than we do, so removing
+  invented ones is the campaign's main lever — which makes it easy to
+  start optimising the count itself. Do not. A removal that produces
+  `if ((s16)param->time-- <= 0)` is worse C than the three lines it
+  replaced, even though it is exact and drops a declaration. Check what
+  the removal COSTS at the call site: a side effect moved into a
+  condition, a repeated load, an added cast, raw hex where a name was.
+  If the spelling that survives is one a person would not write, keep the
+  local and record why. (DrawGore's three countdown carriers were removed
+  on this reasoning and then restored.)
 - **Depth records are an indicator, never an instruction (owner
   directive).** A recorded nested scope is excellent evidence of the
   original structure WHERE OUR CODE DOES NOT YET LOOK HUMAN — that is

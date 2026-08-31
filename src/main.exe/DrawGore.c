@@ -133,7 +133,11 @@ void DrawGore(TEffectSlot *ef)
 
     case 2:
     {
-        if ((s16)param->time-- <= 0)
+        u16 count;
+
+        count = param->time;
+        param->time = count - 1;
+        if ((s16)count <= 0)
         {
             param->time = 0x80;
             param->mode++;
@@ -143,8 +147,12 @@ void DrawGore(TEffectSlot *ef)
 
     case 1:
     {
-        param->scale += rand() % 0x1000;
-        if ((s16)param->time-- <= 0)
+        u16 count;
+
+    param->scale += rand() % 0x1000;
+        count = param->time;
+        param->time = count - 1;
+        if ((s16)count <= 0)
         {
             param->mode++;
             param->time = rand() % 90;
@@ -232,7 +240,11 @@ void DrawGore(TEffectSlot *ef)
         }
         else
         {
-            if ((s16)param->time-- <= 0)
+            u16 count;
+
+            count = param->time;
+            param->time = count - 1;
+            if ((s16)count <= 0)
             {
                 ef->proc = 0;
             }
