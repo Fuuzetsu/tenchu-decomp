@@ -46,7 +46,7 @@ void debug_output_edit_camera_settings(s16 pad)
 
     if (DEBUG_PAD_PRESS_ & PADL1)
     {
-        DEBUG_CAMERA_INDEX_ += 1;
+        DEBUG_CAMERA_INDEX_++;
         if (DEBUG_CAMERA_INDEX_ >= 4)
         {
             DEBUG_CAMERA_INDEX_ = 0;

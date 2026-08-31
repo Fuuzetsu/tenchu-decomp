@@ -123,7 +123,7 @@ s16 Think1trace(void)
     }
     else
     {
-        Me_THINK_C->actcnt += 1;
+        Me_THINK_C->actcnt++;
         if (ATTRIB_BITS & ATTR_TRACE)
         {
             result = ControlTraceLine(Me_THINK_C);

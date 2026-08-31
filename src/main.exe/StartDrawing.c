@@ -69,5 +69,5 @@ void StartDrawing(void)
     OTablePt = &OTable[DrawingPage];
     GsClearOt(0, 0, OTablePt);
 
-    GameClock += 1;
+    GameClock++;
 }

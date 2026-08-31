@@ -78,7 +78,7 @@ s16 Think1target(void)
         }
         else
         {
-            Me_THINK_C->actcnt += 1;
+            Me_THINK_C->actcnt++;
         }
         return pad;
     }
@@ -167,7 +167,7 @@ s16 Think1target(void)
             }
             else
             {
-                Me_THINK_C->actcnt += 1;
+                Me_THINK_C->actcnt++;
             }
             return pad;
         }

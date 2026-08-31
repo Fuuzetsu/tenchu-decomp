@@ -54,12 +54,12 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
                 {
                     state->gItem[i + state->CharType * 0x20] += 2;
                 }
-                state->gItem[i + state->CharType * 0x20] += 1;
+                state->gItem[i + state->CharType * 0x20]++;
                 remaining--;
             }
             else if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
-                state->gItem[i + state->CharType * 0x20] += 1;
+                state->gItem[i + state->CharType * 0x20]++;
                 remaining--;
             }
         }
@@ -73,14 +73,14 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             {
                 state->gItem[i + state->CharType * 0x20] += 2;
             }
-            state->gItem[i + state->CharType * 0x20] += 1;
+            state->gItem[i + state->CharType * 0x20]++;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
             if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
-                state->gItem[i + state->CharType * 0x20] += 1;
+                state->gItem[i + state->CharType * 0x20]++;
             }
             i++;
         }
@@ -94,14 +94,14 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             {
                 state->gItem[i + state->CharType * 0x20] += 2;
             }
-            state->gItem[i + state->CharType * 0x20] += 1;
+            state->gItem[i + state->CharType * 0x20]++;
             i++;
         } while (i < 9);
         while (i < 0x14)
         {
             if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
-                state->gItem[i + state->CharType * 0x20] += 1;
+                state->gItem[i + state->CharType * 0x20]++;
             }
             i++;
         }
@@ -116,12 +116,12 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
                 {
                     state->gItem[i + state->CharType * 0x20] += 2;
                 }
-                state->gItem[i + state->CharType * 0x20] += 1;
+                state->gItem[i + state->CharType * 0x20]++;
                 remaining--;
             }
             else if (state->gItem[i + state->CharType * 0x20] != ITEM_LOCKED)
             {
-                state->gItem[i + state->CharType * 0x20] += 1;
+                state->gItem[i + state->CharType * 0x20]++;
                 remaining--;
             }
         } while (remaining != 0);

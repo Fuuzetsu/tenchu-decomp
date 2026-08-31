@@ -86,13 +86,13 @@ void DrawBleed(TEffectSlot *ef)
             param->pos.vx += param->vec.vx;
             param->pos.vy += param->vec.vy;
             param->pos.vz += param->vec.vz;
-            param->vec.vy += 1;
+            param->vec.vy++;
         }
     }
     x = param->pos.vx;
     y = *(s32 *)&param->pos.vy;
     z = *(s32 *)&param->pos.vz;
-    param->time -= 1;
+    param->time--;
 
     *(s32 *)TENCHU_SCRATCHPAD(0x14) = 0;
     *(s32 *)TENCHU_SCRATCHPAD(0x18) = 0;
