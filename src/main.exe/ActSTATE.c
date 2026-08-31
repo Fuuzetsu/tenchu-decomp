@@ -257,63 +257,61 @@ void ActSTATE(void)
             Humanoid *human;
 
             human = Me_MOTION_C;
-            if ((human->attribute & ATTR_NOFLOOR) == 0 && human->map.height > 0)
+            if ((human->attribute & ATTR_NOFLOOR) != 0 || human->map.height <= 0)
             {
-                goto grounded_fall;
-            }
-            if (dtM->count < -0x28)
-            {
-                if (human == StagePlayer)
+                if (dtM->count < -0x28)
                 {
-                    SetCameraMode(CMODE_NORMAL);
+                    if (human == StagePlayer)
+                    {
+                        SetCameraMode(CMODE_NORMAL);
+                    }
+                    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                    {
+                        motID = MOT_ENGAGE_STANCE;
+                        motMODE = 1;
+                    }
+                    else
+                    {
+                        motID = 0;
+                        motMODE = 1;
+                    }
+                    Sound(Me_MOTION_C, 0x19);
+                    return;
                 }
-                if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                if (dtM->count > -0x15)
                 {
-                    motID = MOT_ENGAGE_STANCE;
-                    motMODE = 1;
+                    if ((human->type & PAGE_MASK) != PAGE_GUARD)
+                    {
+                        motID = MOT_STATE_LAND_HEAVY;
+                        motMODE = 0;
+                        return;
+                    }
                 }
                 else
                 {
-                    motID = 0;
-                    motMODE = 1;
+                    motID = MOT_STATE_LAND;
+                    motMODE = 0;
+                    return;
                 }
-                Sound(Me_MOTION_C, 0x19);
+
+                {
+                    Humanoid *fall_human;
+
+                    motMODE = 0;
+                    motID = (rand() & 1) ? MOT_DAMAGE_SLAM_BACK : MOT_DAMAGE_SLAM_FORE;
+                    fall_human = Me_MOTION_C;
+                    fall_human->life -= 10;
+                    if (fall_human->life < 0)
+                    {
+                        fall_human->life = 0;
+                    }
+                    Sound(Me_MOTION_C, 8);
+                    ReqLifeBar(Me_MOTION_C);
+                }
                 return;
             }
-            if (dtM->count > -0x15)
-            {
-                if ((human->type & PAGE_MASK) == PAGE_GUARD)
-                {
-                    goto random_fall;
-                }
-                motID = MOT_STATE_LAND_HEAVY;
-            }
-            else
-            {
-                motID = MOT_STATE_LAND;
-            }
-            motMODE = 0;
-            return;
-
-        random_fall:
-            {
-                Humanoid *fall_human;
-
-                motMODE = 0;
-                motID = (rand() & 1) ? MOT_DAMAGE_SLAM_BACK : MOT_DAMAGE_SLAM_FORE;
-                fall_human = Me_MOTION_C;
-                fall_human->life -= 10;
-                if (fall_human->life < 0)
-                {
-                    fall_human->life = 0;
-                }
-                Sound(Me_MOTION_C, 8);
-                ReqLifeBar(Me_MOTION_C);
-            }
-            return;
         }
 
-    grounded_fall:
         if (dtM->count > -0x2e)
         {
             return;

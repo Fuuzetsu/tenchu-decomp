@@ -43,11 +43,10 @@
  *    introduces one extra load.
  *  - The separate SImode result carrier keeps the three status-7 edges joined
  *    at one shared sign-extension tail without narrowing either copy.
- *  - The `goto return_pad` ladder is byte-required, not scaffold: spelling
- *    every site as `return pad;` (letting cross-jump re-merge the tails)
- *    was measured 12 bytes SHORT with ~29 scattered scheduling diffs —
- *    each goto must stay a plain `j` to one tail, and the label's single
- *    basic block anchors the delay-slot fills around it.
+ *  - Local return ladders can be collapsed to ordered if/else chains, but the
+ *    remaining `goto return_pad` edges are byte-required. Replacing even the
+ *    first surviving edge with `return pad;` differs by 24 lines; the shared
+ *    label still anchors the surrounding delay-slot fills.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -189,7 +188,8 @@ short AttackShort(void)
                     pad = PADLleft;
                 }
                 pad |= PADRleft;
-                goto activate_and_return;
+                Me_THINK_C->actmode = 1;
+                goto return_pad;
             }
         }
 
@@ -210,13 +210,10 @@ short AttackShort(void)
                 pad = PADLup | PADRdown;
             }
         }
-        if ((ATTRIB_BITS & ATTR_HIT) == 0)
+        if ((ATTRIB_BITS & ATTR_HIT) != 0)
         {
-            goto return_pad;
+            Me_THINK_C->actmode = 1;
         }
-
-    activate_and_return:
-        Me_THINK_C->actmode = 1;
         goto return_pad;
     }
 
@@ -226,32 +223,30 @@ short AttackShort(void)
         s32 degree;
 
         pad = Me_THINK_C->pad.data;
-        if (Distance >= 1500)
+        if (Distance < 1500)
         {
-            goto return_pad;
-        }
-        raw_degree = Degree;
-        degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-        if (degree < 1000)
-        {
-            pad = PADLdown;
-            goto return_pad;
-        }
-        if (degree > 1500)
-        {
-            if (Distance < 1000)
+            raw_degree = Degree;
+            degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            if (degree < 1000)
             {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
-                goto return_pad;
+                pad = PADLdown;
             }
-            pad = PADLup;
-            goto return_pad;
+            else if (degree > 1500)
+            {
+                if (Distance < 1000)
+                {
+                    pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
+                }
+                else
+                {
+                    pad = PADLup;
+                }
+            }
+            else if (rand() % 30 == 0)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
+            }
         }
-        if (rand() % 30 != 0)
-        {
-            goto return_pad;
-        }
-        pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
         goto return_pad;
     }
 
@@ -321,25 +316,25 @@ short AttackShort(void)
 
         if (Distance > 3000)
         {
-            if (degree >= 200 || Distance <= 3500)
+            if (degree < 200 && Distance > 3500)
             {
-                goto press_up;
+                if ((rand() & 1) != 0)
+                {
+                    pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
+                }
+                else if ((rand() & 1) != 0)
+                {
+                    pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
+                }
+                else
+                {
+                    ItemUse();
+                }
             }
-            if ((rand() & 1) != 0)
+            else
             {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
-                goto return_pad;
+                pad |= PADLup;
             }
-            if ((rand() & 1) != 0)
-            {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
-                goto return_pad;
-            }
-            ItemUse();
-            goto return_pad;
-
-        press_up:
-            pad |= PADLup;
             goto return_pad;
         }
 
@@ -348,41 +343,41 @@ short AttackShort(void)
             if (raw_degree > 300)
             {
                 pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
-                goto return_pad;
             }
-            if (raw_degree < -300)
+            else if (raw_degree < -300)
             {
                 pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
-                goto return_pad;
             }
-            if (Distance >= 1000)
+            else if (Distance >= 1000)
             {
                 pad |= PADRleft;
-                goto return_pad;
             }
-            pad = PADRleft | PADRright;
-            if ((rand() & 1) != 0)
+            else
             {
-                pad = PADLdown | PADRdown;
+                pad = PADRleft | PADRright;
+                if ((rand() & 1) != 0)
+                {
+                    pad = PADLdown | PADRdown;
+                }
             }
             goto return_pad;
         }
 
-        if ((rand() & 1) == 0)
+        if ((rand() & 1) != 0)
         {
-            goto return_pad;
+            if (Degree > 100)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
+            }
+            else if (Degree < -100)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
+            }
+            else
+            {
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_BACKWARD);
+            }
         }
-        if (Degree > 100)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
-            goto return_pad;
-        }
-        if (Degree < -100)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
-            goto return_pad;
-        }
-        pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_BACKWARD);
     }
 
 return_pad:

@@ -96,17 +96,12 @@ void ActDEAD(void)
     if ((*model->object)->id < 0 && dtM->loop < 0)
         return;
 
-    if (dtM->count == 0)
+    if (dtM->count != 0 || dtM->loop != 0)
     {
-        if (dtM->loop != 0)
+        if (dtM->count == 0)
         {
             dtM->loop = -1;
-            goto check_motion_end;
         }
-    }
-    else
-    {
-    check_motion_end:
         if (dtM->loop < 0 && dtV->vy == 0)
         {
             MotionManager *motion;

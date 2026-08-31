@@ -134,158 +134,142 @@ void ActivateHumans(void)
             return;
         }
         human = HumanGroup[(s16)i];
-        if (human == target)
+        if (human != target)
         {
-            goto next_human;
-        }
-
-        distance = GetVectorDistance(human->locate, &vc);
-        if (distance > DEACTIVATE_RADIUS)
-        {
-            goto set_inactive;
-        }
-        if (((u16)human->type & PAGE_MASK) == PAGE_BOSS)
-        {
-            goto set_active;
-        }
-        if (human->type == NINKEN || human->life < 0)
-        {
-            active = 1;
-            goto active_done;
-        }
-        if (GameClock == 30 || StageID == STAGE_CURE_PRINCESS)
-        {
-            goto set_active;
-        }
-        if (VISIBLE_ENEMIES_ < ThinkBudget)
-        {
-            active = 1;
-            if (ThinkCount < ThinkBudget)
+            distance = GetVectorDistance(human->locate, &vc);
+            if (distance > DEACTIVATE_RADIUS)
             {
+                active = 0;
                 goto active_done;
             }
-            visible = distance < activate_distance;
-            goto visible_done;
-        }
-        if (distance < activate_distance)
-        {
-            goto near_human;
-        }
-
-    set_inactive:
-        active = 0;
-        goto active_done;
-
-    near_human:
-        if (((u16)human->attribute & ATTR_SUSPEND) == 0 &&
-            ThinkCount < ThinkBudget)
-        {
-            goto set_active;
-        }
-        goto search_visible;
-
-    set_active:
-        active = 1;
-        goto active_done;
-
-    search_visible:
-        j = 0;
-        while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
-        {
-            if (VISIBLE_ENEMIES_ <= j)
+            if (((u16)human->type & PAGE_MASK) == PAGE_BOSS)
             {
-                break;
+                active = 1;
+                goto active_done;
             }
-            j++;
-        }
-        visible = j != VISIBLE_ENEMIES_;
-
-    visible_done:
-        active = visible;
-    active_done:
-        /* The guarded copy keeps `final` in its own register: the bytes
-         * hold a `move` before the test, and all three simplifications
-         * (plain assignment, dead store alone, arms alone) lose it
-         * together -- measured 2026-08-31. */
-        if (human)
-        {
-            final = 0;
-            final = active;
-        }
-        else
-        {
-            final = active;
-        }
-        if (final)
-        {
-            if (((u16)human->attribute & ATTR_SUSPEND) == 0)
+            if (human->type == NINKEN || human->life < 0)
             {
-                ThinkCount++;
-                goto next_human;
+                active = 1;
+                goto active_done;
             }
-            if (StageID != STAGE_CURE_PRINCESS && human->life >= 0 && GameClock != 30 &&
-                (ThinkCount >= ThinkBudget || distance <= ACTIVATE_RADIUS))
+            if (GameClock == 30 || StageID == STAGE_CURE_PRINCESS)
             {
-                goto next_human;
+                active = 1;
+                goto active_done;
             }
-            human->attribute = (u16)human->attribute & ~ATTR_SUSPEND;
-            ThinkCount++;
-            model = *human->model->object;
-            model->attribute |= MODEL_ATTR_COLLIDE;
-            goto next_human;
-        }
-
-        if (((u16)human->attribute & ATTR_SUSPEND) != 0 || human->type == ON)
-        {
-            goto next_human;
-        }
-        if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2 /* stages 6-7; the && spelling double-reads the global and ripples allocation */) ||
-            human->type == GOO)
-        {
-            j = 0;
-            while (StageChar[j].stage != -1)
+            if (VISIBLE_ENEMIES_ < ThinkBudget)
             {
-                if (StageChar[j].stage == StageID + 1 &&
-                    StageChar[j].chrid == human->type)
+                active = 1;
+                if (ThinkCount < ThinkBudget)
                 {
-                    human->model->locate.coord.t[0] = StageChar[j].position.vx * 1000;
-                    human->model->locate.coord.t[1] = StageChar[j].position.vy * 1000;
-                    human->model->locate.coord.t[2] = StageChar[j].position.vz * 1000;
+                    goto active_done;
+                }
+                visible = distance < activate_distance;
+                goto visible_done;
+            }
+            if (distance >= activate_distance)
+            {
+                active = 0;
+                goto active_done;
+            }
+            if (((u16)human->attribute & ATTR_SUSPEND) == 0 &&
+                ThinkCount < ThinkBudget)
+            {
+                active = 1;
+                goto active_done;
+            }
+            j = 0;
+            while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
+            {
+                if (VISIBLE_ENEMIES_ <= j)
+                {
+                    break;
                 }
                 j++;
             }
-            if (human->type == GOO && human->life == 0)
+            visible = j != VISIBLE_ENEMIES_;
+
+        visible_done:
+            active = visible;
+        active_done:
+            /* The guarded copy keeps `final` in its own register: the bytes
+             * hold a `move` before the test, and all three simplifications
+             * (plain assignment, dead store alone, arms alone) lose it
+             * together -- measured 2026-08-31. */
+            if (human)
             {
-                human->life = 1;
+                final = 0;
+                final = active;
             }
-        }
-        else if (human->status != STAT_DEAD && ((u16)human->attribute & ATTR_FLOAT) == 0)
-        {
-            /* Built in work, then copied whole: byte-required (filling
-             * query directly drops the struct copy; measured). */
-            memset(&work, 0, sizeof(work));
-            work.vx = human->point[0];
-            work.vy = human->locate->vy - 1500;
-            work.vz = human->point[1];
-            query = work;
-            if (GetVectorDistance(&query, &vc) > DEACTIVATE_RADIUS)
+            else
             {
-                level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
-                                        query.vz, 1);
-                if (level != LEVEL_NONE)
+                final = active;
+            }
+            if (final)
+            {
+                if (((u16)human->attribute & ATTR_SUSPEND) == 0)
                 {
-                    human->model->locate.coord.t[0] = query.vx;
-                    human->model->locate.coord.t[1] = level;
-                    human->model->locate.coord.t[2] = query.vz;
+                    ThinkCount++;
+                }
+                else if (StageID == STAGE_CURE_PRINCESS || human->life < 0 || GameClock == 30 ||
+                         (ThinkCount < ThinkBudget && distance > ACTIVATE_RADIUS))
+                {
+                    human->attribute = (u16)human->attribute & ~ATTR_SUSPEND;
+                    ThinkCount++;
+                    model = *human->model->object;
+                    model->attribute |= MODEL_ATTR_COLLIDE;
                 }
             }
+            else if (((u16)human->attribute & ATTR_SUSPEND) == 0 && human->type != ON)
+            {
+                if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2 /* stages 6-7; the && spelling double-reads the global and ripples allocation */) ||
+                    human->type == GOO)
+                {
+                    j = 0;
+                    while (StageChar[j].stage != -1)
+                    {
+                        if (StageChar[j].stage == StageID + 1 &&
+                            StageChar[j].chrid == human->type)
+                        {
+                            human->model->locate.coord.t[0] = StageChar[j].position.vx * 1000;
+                            human->model->locate.coord.t[1] = StageChar[j].position.vy * 1000;
+                            human->model->locate.coord.t[2] = StageChar[j].position.vz * 1000;
+                        }
+                        j++;
+                    }
+                    if (human->type == GOO && human->life == 0)
+                    {
+                        human->life = 1;
+                    }
+                }
+                else if (human->status != STAT_DEAD && ((u16)human->attribute & ATTR_FLOAT) == 0)
+                {
+                    /* Built in work, then copied whole: byte-required (filling
+                     * query directly drops the struct copy; measured). */
+                    memset(&work, 0, sizeof(work));
+                    work.vx = human->point[0];
+                    work.vy = human->locate->vy - 1500;
+                    work.vz = human->point[1];
+                    query = work;
+                    if (GetVectorDistance(&query, &vc) > DEACTIVATE_RADIUS)
+                    {
+                        level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
+                                                query.vz, 1);
+                        if (level != LEVEL_NONE)
+                        {
+                            human->model->locate.coord.t[0] = query.vx;
+                            human->model->locate.coord.t[1] = level;
+                            human->model->locate.coord.t[2] = query.vz;
+                        }
+                    }
+                }
+
+                human->attribute = (u16)human->attribute | ATTR_SUSPEND;
+                model = *human->model->object;
+                model->attribute &= ~MODEL_ATTR_COLLIDE;
+            }
         }
 
-        human->attribute = (u16)human->attribute | ATTR_SUSPEND;
-        model = *human->model->object;
-        model->attribute &= ~MODEL_ATTR_COLLIDE;
-
-    next_human:
         do
         {
             i++;

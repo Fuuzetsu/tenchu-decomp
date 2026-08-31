@@ -129,12 +129,9 @@ void HumanActionControl(Humanoid *human)
         {
             HangCheck();
         }
-        else
+        else if ((*(u16 *)&Me_MOTION_C->map.attrib & MAP_WATER) != 0)
         {
-            if ((*(u16 *)&Me_MOTION_C->map.attrib & MAP_WATER) != 0)
-            {
-                SwimCheck();
-            }
+            SwimCheck();
         }
     }
     if ((MOTION_PAD_BITS & PADL1) != 0)

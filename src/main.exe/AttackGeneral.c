@@ -41,11 +41,10 @@
  *  - Spell the time guard `GameClock > AttackActionCount`: comparison
  *    operand evaluation order puts the absolute GameClock load before the
  *    gp-relative action-count load, as in the target.
- *  - The cold close-range `% 4` switch needs an explicit default return.
- *    Otherwise its fallthrough becomes another predecessor of the normal
- *    range label, so CSE cannot carry the pre-switch Distance value and
- *    reloads it.  Explicit close/normal/near labels preserve the target's
- *    cold-block placement and shared SetCommand tail without any assembly.
+ *  - The cold close-range `% 4` switch needs an explicit default exit.
+ *    Its cases may use `break` when an enclosing `else` keeps the ordinary
+ *    range arm separate; omitting the default adds another predecessor and
+ *    makes CSE reload the pre-switch Distance value.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -138,25 +137,19 @@ short AttackGeneral(void)
         {
             Me_THINK_C->actmode = 1;
         }
-        if (Distance <= 5000)
+        if (Distance > 5000)
         {
-            goto return_pad;
+            deg = Degree;
+            if (deg < 0)
+            {
+                deg = -deg;
+            }
+            if (deg < 100 && rand() % 5 == 0)
+            {
+                pad = PADLup | PADRdown;
+            }
         }
-        deg = Degree;
-        if (deg < 0)
-        {
-            deg = -deg;
-        }
-        if (deg >= 100)
-        {
-            goto return_pad;
-        }
-        if (rand() % 5 != 0)
-        {
-            goto return_pad;
-        }
-        pad = PADLup | PADRdown;
-        goto return_pad;
+        return pad;
     }
 
     if ((Me_THINK_C->motion->count & 0xf) != 0)
@@ -165,25 +158,22 @@ short AttackGeneral(void)
         s32 deg;
 
         pad = Me_THINK_C->pad.data;
-        if (Distance >= 2000)
+        if (Distance < 2000)
         {
-            goto return_pad;
+            d = Degree;
+            /* The lone ternary abs (vs this file's five if-negate abs) is
+             * measured byte-required. */
+            deg = (d >= 0) ? d : -d;
+            if (deg < 1000)
+            {
+                pad = PADLdown;
+            }
+            else if (deg > 1500)
+            {
+                pad = PADLup;
+            }
         }
-        d = Degree;
-        /* The lone ternary abs (vs this file's five if-negate abs) is
-         * measured byte-required. */
-        deg = (d >= 0) ? d : -d;
-        if (deg < 1000)
-        {
-            pad = PADLdown;
-            goto return_pad;
-        }
-        if (deg <= 1500)
-        {
-            goto return_pad;
-        }
-        pad = PADLup;
-        goto return_pad;
+        return pad;
     }
 
     if (Distance > 5000)
@@ -262,68 +252,68 @@ short AttackGeneral(void)
                 {
                 case 0:
                     pad = PADLdown | PADRdown;
-                    goto return_pad;
+                    break;
                 case 1:
                     pad = PADRleft | PADRright;
-                    goto return_pad;
+                    break;
                 case 2:
                     pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_BACKWARD);
-                    goto return_pad;
+                    break;
                 case 3:
                     pad |= PADRleft;
-                    goto return_pad;
+                    break;
                 default:
-                    goto return_pad;
+                    break;
                 }
             }
-            pad |= PADLdown;
-            goto return_pad;
+            else
+            {
+                pad |= PADLdown;
+            }
+            return pad;
         }
 
         if (Distance > 3000)
         {
             pad |= PADLup;
-            if (Distance <= 4000)
+            if (Distance > 4000)
             {
-                goto return_pad;
+                if ((rand() & 1) != 0)
+                {
+                    pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
+                }
+                else
+                {
+                    degree = Degree;
+                    if (degree < 0)
+                    {
+                        degree = -degree;
+                    }
+                    if (degree < 500)
+                    {
+                        pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
+                    }
+                    else
+                    {
+                        ItemUse();
+                    }
+                }
             }
-            if ((rand() & 1) != 0)
-            {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
-                goto return_pad;
-            }
-
-            degree = Degree;
-            if (degree < 0)
-            {
-                degree = -degree;
-            }
-            if (degree < 500)
-            {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
-                goto return_pad;
-            }
-            ItemUse();
-            goto return_pad;
+            return pad;
         }
 
-        if ((rand() & 1) == 0)
+        if ((rand() & 1) != 0)
         {
-            goto return_pad;
+            if (Degree > 100)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
+            }
+            else if (Degree < -100)
+            {
+                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
+            }
         }
-        if (Degree > 100)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
-            goto return_pad;
-        }
-        if (Degree < -100)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
-            goto return_pad;
-        }
-        goto return_pad;
     }
 
-return_pad:
     return pad;
 }

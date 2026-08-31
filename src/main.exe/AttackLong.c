@@ -132,16 +132,14 @@ short AttackLong(void)
         {
             Me_THINK_C->actmode = 1;
         }
-        if (Me_THINK_C->motion->count != 0)
+        if (Me_THINK_C->motion->count == 0)
         {
-            goto return_pad;
+            if (rand() % 5 == 0)
+            {
+                pad = PADLup | PADRdown;
+            }
         }
-        if (rand() % 5 != 0)
-        {
-            goto return_pad;
-        }
-        pad = PADLup | PADRdown;
-        goto return_pad;
+        return pad;
     }
 
     if ((Me_THINK_C->motion->count & 0xf) != 0)
@@ -149,23 +147,20 @@ short AttackLong(void)
         s32 deg;
 
         pad = Me_THINK_C->pad.data;
-        if (Distance >= 3000)
+        if (Distance < 3000)
         {
-            goto return_pad;
+            ad = Degree;
+            deg = (ad >= 0) ? ad : -ad;
+            if (deg < 500)
+            {
+                pad = PADLdown;
+            }
+            else if (deg > 1500)
+            {
+                pad = PADLup;
+            }
         }
-        ad = Degree;
-        deg = (ad >= 0) ? ad : -ad;
-        if (deg < 500)
-        {
-            pad = PADLdown;
-            goto return_pad;
-        }
-        if (deg <= 1500)
-        {
-            goto return_pad;
-        }
-        pad = PADLup;
-        goto return_pad;
+        return pad;
     }
 
     if (Distance > 5000)
@@ -227,52 +222,44 @@ short AttackLong(void)
                 pad = PADLleft | PADRleft;
             }
         }
-        goto return_pad;
+        return pad;
     }
 
     if (Distance <= 4000)
     {
-        goto return_pad;
+        return pad;
     }
 
     if (degree < 50)
     {
         pad = SetCommand(&Me_THINK_C->pad, CMD_LUNGE);
-        goto return_pad;
     }
-    else
+    else if (Me_THINK_C->motion->count != 0)
     {
-        if (Me_THINK_C->motion->count != 0)
-        {
-            pad |= PADLup;
-            goto return_pad;
-        }
-        if (ad > 50)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
-            goto return_pad;
-        }
-        if (ad < -50)
-        {
-            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
-            goto return_pad;
-        }
+        pad |= PADLup;
+    }
+    else if (ad > 50)
+    {
+        pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_RIGHT);
+    }
+    else if (ad < -50)
+    {
+        pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_LEFT);
+    }
+    else if ((rand() & 1) != 0)
+    {
         if ((rand() & 1) != 0)
         {
-            if ((rand() & 1) != 0)
-            {
-                pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
-                goto return_pad;
-            }
-            pad = PADRleft | PADRdown;
+            pad = SetCommand(&Me_THINK_C->pad, CMD_DASH_FORWARD);
         }
         else
         {
-            ItemUse();
+            pad = PADRleft | PADRdown;
         }
-        goto return_pad;
     }
-
-return_pad:
+    else
+    {
+        ItemUse();
+    }
     return pad;
 }

@@ -129,15 +129,16 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         }
         AreaMapLastY = y2;
 
-        if (index == (NodeIndexType *)area)
-            goto walked;
-    down:
-        if (y2 >= index->y)
-            goto walked;
-        index--;
         if (index != (NodeIndexType *)area)
-            goto down;
-    walked:
+        {
+        down:
+            if (y2 < index->y)
+            {
+                index--;
+                if (index != (NodeIndexType *)area)
+                    goto down;
+            }
+        }
         if (index->index != 0)
         {
         up:
@@ -152,67 +153,67 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                 p = &index->index;
                 f8 = mode16 & 8;
             loop:
-                if (yy != (u32)LEVEL_NONE)
-                    goto calc;
-                if (((short *)p)[2] <= x && x <= ((short *)p)[4] && ((short *)p)[3] <= z && z <= ((short *)p)[5])
+                if (yy == (u32)LEVEL_NONE)
                 {
-                    nn = ((short *)p)[-1];
-                    list = (AreaNodeType *)*p;
-                    n = 0;
-                    if (nn < 0)
+                    if (((short *)p)[2] <= x && x <= ((short *)p)[4] && ((short *)p)[3] <= z && z <= ((short *)p)[5])
                     {
-                        qx = (x - ((short *)p)[2]) * 4 / (((short *)p)[4] - ((short *)p)[2]);
-                        qz = (z - ((short *)p)[3]) * 4 / (((short *)p)[5] - ((short *)p)[3]);
-                        n = ((IndexArrayType *)list)->array[qz][qx];
-                        if (n == -1)
-                            goto next;
-                        list = (AreaNodeType *)((IndexArrayType *)list)->index;
-                        nn = -nn;
-                    }
-                    if (n < nn)
-                    {
-                        node = (AreaNodeType *)((n << 4) + (long)list);
-                    inner:
-                        if (z < node->z1)
-                            goto next;
-                        if (node->x1 <= x && x <= node->x2 && z <= node->z2)
+                        nn = ((short *)p)[-1];
+                        list = (AreaNodeType *)*p;
+                        n = 0;
+                        if (nn < 0)
                         {
-                            FieldIndex = index;
-                            FieldArea = node;
-                            if (f8)
-                            {
-                                if (node->division == -1)
-                                    yy = node->y;
-                                else
-                                    yy = ComputeAreaLevel(node, x, z);
-                                FieldAttrib = FieldArea->attribute;
+                            qx = (x - ((short *)p)[2]) * 4 / (((short *)p)[4] - ((short *)p)[2]);
+                            qz = (z - ((short *)p)[3]) * 4 / (((short *)p)[5] - ((short *)p)[3]);
+                            n = ((IndexArrayType *)list)->array[qz][qx];
+                            if (n == -1)
                                 goto next;
-                            }
-                            sy = ComputeAreaLevel(node, x, z);
-                            if ((yy == (u32)LEVEL_NONE || sy < yy) && y2 <= sy)
-                            {
-                                FieldAttrib = FieldArea->attribute;
-                                yy = sy;
-                                if (FieldAttrib & 0x2000)
-                                    goto next;
-                            }
+                            list = (AreaNodeType *)((IndexArrayType *)list)->index;
+                            nn = -nn;
                         }
-                        n++;
-                        node++;
                         if (n < nn)
-                            goto inner;
+                        {
+                            node = (AreaNodeType *)((n << 4) + (long)list);
+                        inner:
+                            if (z < node->z1)
+                                goto next;
+                            if (node->x1 <= x && x <= node->x2 && z <= node->z2)
+                            {
+                                FieldIndex = index;
+                                FieldArea = node;
+                                if (f8)
+                                {
+                                    if (node->division == -1)
+                                        yy = node->y;
+                                    else
+                                        yy = ComputeAreaLevel(node, x, z);
+                                    FieldAttrib = FieldArea->attribute;
+                                    goto next;
+                                }
+                                sy = ComputeAreaLevel(node, x, z);
+                                if ((yy == (u32)LEVEL_NONE || sy < yy) && y2 <= sy)
+                                {
+                                    FieldAttrib = FieldArea->attribute;
+                                    yy = sy;
+                                    if (FieldAttrib & 0x2000)
+                                        goto next;
+                                }
+                            }
+                            n++;
+                            node++;
+                            if (n < nn)
+                                goto inner;
+                        }
                     }
+                next:
+                    p += 4;
+                    index++;
+                    if (*p != 0)
+                        goto loop;
                 }
-            next:
-                p += 4;
-                index++;
-                if (*p != 0)
-                    goto loop;
             }
         }
         if (yy == (u32)LEVEL_NONE)
             goto ret_min;
-    calc:
         if (FieldAttrib & 2)
             goto ret_min;
         yy = yy * 10;

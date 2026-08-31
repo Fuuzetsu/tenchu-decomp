@@ -101,26 +101,19 @@ s32 StageSequence(void)
         {
             return 0;
         }
-        if (Event[0] != 0)
+        if (Event[0] == 0 && Event[1] == 0)
         {
-            goto active_events;
+            if (StagePlayer->motion->loop != 0)
+            {
+                StageTime++;
+            }
+            result = 0;
+            if (StageTime >= 0)
+            {
+                result = -1;
+            }
+            return result;
         }
-        if (Event[1] != 0)
-        {
-            goto active_events;
-        }
-        if (StagePlayer->motion->loop != 0)
-        {
-            StageTime++;
-        }
-        result = 0;
-        if (StageTime >= 0)
-        {
-            result = -1;
-        }
-        return result;
-
-    active_events:
         /* Boot the stage's two root sequences (ids 2 and 3) — the master
          * scripts that keep running even through player death. */
         UpdateEvent(0, 2);
@@ -273,14 +266,15 @@ s32 StageSequence(void)
         {
             gc = GameClock;
             flag = 0;
-            if ((u8)(ev->id - 2) < 2 || StagePlayer->life != 0)
+            if ((u8)(ev->id - 2) >= 2 && StagePlayer->life == 0)
             {
-                /* Movie id 0xff means "no movie": fire the event
-                 * directly without a CVA sequence. */
-                if (ev->event == 0xff)
-                {
-                    goto run_event;
-                }
+                Event[i] = 0;
+                continue;
+            }
+            /* Movie id 0xff means "no movie": fire the event
+             * directly without a CVA sequence. */
+            if (ev->event != 0xff)
+            {
                 sid = ev->event;
                 if (sid == 0 && StageID == STAGE_CURE_PRINCESS)
                 {
@@ -290,15 +284,12 @@ s32 StageSequence(void)
                                             (s16)StageID);
                     sid = 5 - (u16)score->grade;
                 }
-                if (CVAsequence((s16)sid) != 0)
+                if (CVAsequence((s16)sid) == 0)
                 {
-                    goto run_event;
+                    Event[i] = 0;
+                    continue;
                 }
             }
-            Event[i] = 0;
-            continue;
-
-        run_event:
             /* Rikimaru watching Hikone's life hit zero reroutes the
              * follow-up to event 100 (his version of the finale). */
             if (StagePlayer->type == 0 && ev->mode == EVTRIG_LIFE &&
