@@ -576,6 +576,21 @@ ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
   from stdin...` at 0% CPU forever if it inherits an idle one. Redirect
   it (`< /dev/null`). A resumed session does not do this, which is why it
   only shows up the first time you have to bootstrap.
+* **Have it write the report INCREMENTALLY.** Three of rounds 19-22 died
+  mid-flight on API capacity. Round 22 died after 416k tokens with ten
+  finished candidates and no report, so the reasoning had to be
+  reconstructed from the diffs — which is doable (the byte gate still
+  holds, and PSX.SYM still arbitrates) but it is slow and it caught a
+  claim that was simply wrong. Ask for each file's section appended as it
+  is finished, and each candidate written as soon as it gates, rather
+  than a batch at the end.
+* **Cite the sibling that has the evidence when the target does not.**
+  Round 22 dropped a staging local in ActMOVE, which has no PSX.SYM
+  record at all, leaving the change looking like preference. It was
+  right, but only because DefaultActionHumanoid HAS a record, that record
+  lacks the same local, and it already spells the call the new way. That
+  citation is what turns a preference into an argument, and it is cheap
+  to ask for.
 * **Let it pick the dimension once it knows the tree.** Rounds 12-13 were
   Codex's own choice (header contracts), and it independently reached the
   same conclusion this session had about the biggest remaining anomaly.
