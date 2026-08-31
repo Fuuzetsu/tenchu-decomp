@@ -25,6 +25,10 @@ decisions behind the toolchain. It's the reference companion to the terse
   work**: the cc1 2.8.1 source idioms that byte-match (dispatch, loops, fold
   reassociation, stack buffers, regalloc steering), the `tools/matchdiff.py`
   iteration loop, and pointers to the worked examples.
+- `tools/verbosity.py` — ranks functions by how much longer our C is than
+  the original source was, using PSX.SYM's demo line spans scaled by the
+  demo-to-retail size growth. The tree's median is 1.16x; a 3x outlier is
+  usually copy-paste where the original had a macro or loop.
 - [matching-archive.md](matching-archive.md) — the raw per-function
   investigation logs that the sources themselves labelled superseded, moved
   out verbatim so the files read like source and the measurements stay
