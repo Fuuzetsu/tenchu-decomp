@@ -20,7 +20,7 @@
  *    to point at the LAST field it touches (`maxStock`, +8), so the accesses
  *    come out as `-4(a2)`/`0(a2)` off a base biased by 8.
  *  - `mx` must be an `int` temp, or the `u8 < u8` compare narrows to `sltu`.
- *  - Leave `ps->gItem[n]` INLINE in both operands of the `&&` (cc1 CSEs the
+ *  - Leave `ps->gItem[ps->CharType][SHOP_ITEM_DEFAULTS[i].itemIndex]` INLINE in both operands of the `&&` (cc1 CSEs the
  *    address) and declare `mx` before it. Hoisting the load into a `cur` temp
  *    instead swaps $v1/$a1 between the address and `mx` — a 5-byte register tie
  *    that autorules/regalloc could not name and only the permuter cracked.
@@ -34,12 +34,11 @@ void clamp_shop_stock_(TLinkInfo *ps)
 
     for (i = 0; i < 0x13; i++)
     {
-        int n = SHOP_ITEM_DEFAULTS[i].itemIndex + ps->CharType * 0x20;
         int mx = SHOP_ITEM_DEFAULTS[i].maxStock;
 
-        if (ps->gItem[n] != 0xFE && mx < ps->gItem[n])
+        if (ps->gItem[ps->CharType][SHOP_ITEM_DEFAULTS[i].itemIndex] != 0xFE && mx < ps->gItem[ps->CharType][SHOP_ITEM_DEFAULTS[i].itemIndex])
         {
-            ps->gItem[n] = mx;
+            ps->gItem[ps->CharType][SHOP_ITEM_DEFAULTS[i].itemIndex] = mx;
         }
     }
 }

@@ -87,15 +87,15 @@ s32 InitPersistentState(void)
             i--;
             stockp--;
         } while (i >= 0);
-        ps->gItem[0] = 0xff;
-        ps->gItem[1] = 6;
-        ps->gItem[2] = 6;
-        ps->gItem[3] = 2;
-        ps->gItem[4] = 1;
-        ps->gItem[5] = 1;
-        ps->gItem[7] = 3;
-        ps->gItem[8] = 5;
-        __builtin_memcpy(&ps->gItem[sizeof(ps->gItem) / 2], &ps->gItem[0],
+        ps->gItem[0][0] = 0xff;
+        ps->gItem[0][1] = 6;
+        ps->gItem[0][2] = 6;
+        ps->gItem[0][3] = 2;
+        ps->gItem[0][4] = 1;
+        ps->gItem[0][5] = 1;
+        ps->gItem[0][7] = 3;
+        ps->gItem[0][8] = 5;
+        __builtin_memcpy(&ps->gItem[1][0], &ps->gItem[0][0],
                          sizeof(ps->gItem) / 2);
         ps->selItem[1] = 10;
         ps->selItem[0] = 0xff;

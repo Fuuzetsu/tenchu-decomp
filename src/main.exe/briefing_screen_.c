@@ -135,7 +135,7 @@ void briefing_screen_(void)
         {
             for (i = 0; i < 0x14; i++)
             {
-                PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20] =
+                PSTATE->gItem[CHOSEN_CHARACTER][i] =
                     PSTATE->saveItem[i];
             }
             FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);

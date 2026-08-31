@@ -8,7 +8,7 @@
  * see backup_shop_stock_.c for the `#define PSTATE` convention and the proven
  * saveItem@0x27/gItem@0x40C/CharType@0x4 offsets). This is backup_shop_stock_'s mirror
  * image: restores this character's shop stock row FROM the loadout backup
- * (`PSTATE->gItem[i + PSTATE->CharType*0x20] = PSTATE->saveItem[i];`), then fades
+ * (`PSTATE->gItem[PSTATE->CharType][i] = PSTATE->saveItem[i];`), then fades
  * out, tears down (clear_screen_), resets the stage layout number to 0xFF
  * and clears PersistentState's retry/continue flag (GameRetry &= ~1), then
  * calls exec_process_(PROCESS_MENU) (a cleanup/teardown helper
@@ -56,7 +56,7 @@ void return_to_menu_(void)
         s16 idx;
 
         idx = (s16)i;
-        PSTATE->gItem[idx + PSTATE->CharType * 0x20] = PSTATE->saveItem[idx];
+        PSTATE->gItem[PSTATE->CharType][idx] = PSTATE->saveItem[idx];
         i++;
     } while ((s16)i < 0x14);
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);

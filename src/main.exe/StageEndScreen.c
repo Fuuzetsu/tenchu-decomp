@@ -522,19 +522,19 @@ void StageEndScreen(void)
     {
         if (CamState.Owner->item[item_index] == ITEM_INFINITE)
         {
-            PSTATE->gItem[item_index + (PSTATE->CharType << 5)] = ITEM_INFINITE;
+            PSTATE->gItem[PSTATE->CharType][item_index] = ITEM_INFINITE;
         }
         else if (CamState.Owner->item[item_index] != 0)
         {
-            if (PSTATE->gItem[item_index + (PSTATE->CharType << 5)] == ITEM_LOCKED)
+            if (PSTATE->gItem[PSTATE->CharType][item_index] == ITEM_LOCKED)
             {
-                PSTATE->gItem[item_index + (PSTATE->CharType << 5)] += 2;
+                PSTATE->gItem[PSTATE->CharType][item_index] += 2;
             }
-            PSTATE->gItem[item_index + (PSTATE->CharType << 5)] +=
+            PSTATE->gItem[PSTATE->CharType][item_index] +=
                 CamState.Owner->item[item_index];
-            if (PSTATE->gItem[item_index + (PSTATE->CharType << 5)] >= 100)
+            if (PSTATE->gItem[PSTATE->CharType][item_index] >= 100)
             {
-                PSTATE->gItem[item_index + (PSTATE->CharType << 5)] = 99;
+                PSTATE->gItem[PSTATE->CharType][item_index] = 99;
             }
         }
         PSTATE->selItem[item_index] = 0;
@@ -544,7 +544,7 @@ void StageEndScreen(void)
     i = 0;
     do
     {
-        PSTATE->saveItem[i] = PSTATE->gItem[i + (CHOSEN_CHARACTER << 5)];
+        PSTATE->saveItem[i] = PSTATE->gItem[CHOSEN_CHARACTER][i];
         i++;
     } while (i < 0x14);
 

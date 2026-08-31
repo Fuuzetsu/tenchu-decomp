@@ -23,7 +23,7 @@
  * Matching constraints:
  *  - Keep GetRealPad's recovered full-word `long` return type. A u16 return
  *    moves the cheat-command sign extension ahead of the new-press chain.
- *  - The entry clamp must re-read `mx < cq->gItem[n]`; the similar case-1
+ *  - The entry clamp must re-read `mx < cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex]`; the similar case-1
  *    clamp must retain `mx < c`. CSE makes the former byte-neutral while its
  *    preference set fixes the store-address register.
  *  - In case 0x1f, keep both eligibility tests as ordinary short-circuit
@@ -155,7 +155,7 @@ void BriefingAndInventorySelectionScreen(void)
 
     for (i = 0; i < 0x14; i++)
     {
-        PSTATE->saveItem[i] = PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20];
+        PSTATE->saveItem[i] = PSTATE->gItem[CHOSEN_CHARACTER][i];
     }
     for (j = 0; j < 0x14; j++)
     {
@@ -205,12 +205,11 @@ void BriefingAndInventorySelectionScreen(void)
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         for (ci = 0; ci < 0x13; ci++)
         {
-            int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
-            u8 c = cq->gItem[n];
+            u8 c = cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex];
             s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
-            if (c != ITEM_LOCKED && mx < cq->gItem[n])
+            if (c != ITEM_LOCKED && mx < cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex])
             {
-                cq->gItem[n] = mx;
+                cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex] = mx;
             }
         }
     }
@@ -244,24 +243,24 @@ void BriefingAndInventorySelectionScreen(void)
             for (j = 1; j < 9; j++)
             {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] == ITEM_LOCKED)
+                if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
                 {
-                    (&ps->gItem[0])[n] = 1;
+                    (&ps->gItem[0][0])[n] = 1;
                 }
                 else
                 {
                     /* The (&arr[0])[i] decay spelling here and below is the
                      * measured addu operand-order lever (plain arr[i]
                      * flips it; same class as PlayMusicFormID). */
-                    (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
+                    (&ps->gItem[0][0])[n] = (&ps->gItem[0][0])[n] + 1;
                 }
             }
             for (j = 9; j < 0x14; j++)
             {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] != ITEM_LOCKED)
+                if ((&ps->gItem[0][0])[n] != ITEM_LOCKED)
                 {
-                    (&ps->gItem[0])[n] = (&ps->gItem[0])[n] + 1;
+                    (&ps->gItem[0][0])[n] = (&ps->gItem[0][0])[n] + 1;
                 }
             }
             {
@@ -269,12 +268,11 @@ void BriefingAndInventorySelectionScreen(void)
                     (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
                 for (ci = 0; ci < 0x13; ci++)
                 {
-                    int n = SHOP_ITEM_DEFAULTS[ci].itemIndex + CHOSEN_CHARACTER * 0x20;
-                    u8 c = cq->gItem[n];
+                    u8 c = cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex];
                     s32 mx = SHOP_ITEM_DEFAULTS[ci].maxStock;
                     if (c != ITEM_LOCKED && mx < c)
                     {
-                        cq->gItem[n] = mx;
+                        cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex] = mx;
                     }
                 }
             }
@@ -283,9 +281,9 @@ void BriefingAndInventorySelectionScreen(void)
             for (j = 9; j < 0x14; j++)
             {
                 int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0])[n] == ITEM_LOCKED)
+                if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
                 {
-                    (&ps->gItem[0])[n] = 1;
+                    (&ps->gItem[0][0])[n] = 1;
                 }
             }
             break;
@@ -294,7 +292,7 @@ void BriefingAndInventorySelectionScreen(void)
             {
                 u8 already = ps->selItem[ITEM_ARMOUR];
                 if ((already != 0 ||
-                     (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] == 1) &&
+                     (&ps->gItem[0][ITEM_ARMOUR])[ps->CharType * 0x20] == 1) &&
                     (s16)selected_kinds < MAX_SELECTED_ITEMS)
                 {
                     if (already == 0)
@@ -303,7 +301,7 @@ void BriefingAndInventorySelectionScreen(void)
                         taken++;
                     }
                     ps->selItem[ITEM_ARMOUR] = 0xFF;
-                    (&ps->gItem[ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
+                    (&ps->gItem[0][ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
                     SoundEx(0, SE_MENU_APPLY);
                 }
             }
@@ -311,7 +309,7 @@ void BriefingAndInventorySelectionScreen(void)
         case CHEAT_QUIT - 1:
             for (j7 = 0; j7 < 0x14; j7++)
             {
-                (&ps->gItem[0])[j7 + (CHOSEN_CHARACTER << 5)] =
+                (&ps->gItem[0][0])[j7 + (CHOSEN_CHARACTER << 5)] =
                     (&ps->saveItem[0])[j7];
             }
             FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
@@ -330,7 +328,7 @@ void BriefingAndInventorySelectionScreen(void)
         for (j = 0; j < 0x13; j++)
         {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
-            u8 c = (&ps->gItem[0])[n + (ps->CharType << 5)];
+            u8 c = (&ps->gItem[0][0])[n + (ps->CharType << 5)];
             if (c != ITEM_LOCKED)
             {
                 x = SHOP_ITEM_DEFAULTS[j].x;
@@ -407,8 +405,8 @@ void BriefingAndInventorySelectionScreen(void)
             {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                 scale = 0x200;
-                if ((&ps->gItem[0])[idx + (ps->CharType << 5)] != 0 &&
-                    (&ps->gItem[0])[idx + (ps->CharType << 5)] != ITEM_LOCKED)
+                if ((&ps->gItem[0][0])[idx + (ps->CharType << 5)] != 0 &&
+                    (&ps->gItem[0][0])[idx + (ps->CharType << 5)] != ITEM_LOCKED)
                 {
                     if ((s16)taken < cap)
                     {
@@ -423,7 +421,7 @@ void BriefingAndInventorySelectionScreen(void)
                             {
                                 (&ps->selItem[0])[idx] = cnt + 1;
                                 taken++;
-                                (&ps->gItem[0])[idx + (ps->CharType << 5)]--;
+                                (&ps->gItem[0][0])[idx + (ps->CharType << 5)]--;
                             }
                             SoundEx(0, SE_ITEM_TRANSFER);
                         }
@@ -454,13 +452,13 @@ void BriefingAndInventorySelectionScreen(void)
                     if (c == 0xFF)
                     {
                         (&ps->selItem[0])[idx] = 0;
-                        (&ps->gItem[0])[idx + (ps->CharType << 5)] = 1;
+                        (&ps->gItem[0][0])[idx + (ps->CharType << 5)] = 1;
                         selected_kinds--;
                     }
                     else
                     {
                         (&ps->selItem[0])[idx] = c - 1;
-                        (&ps->gItem[0])[idx + (ps->CharType << 5)]++;
+                        (&ps->gItem[0][0])[idx + (ps->CharType << 5)]++;
                         if ((&ps->selItem[0])[idx] == 0)
                         {
                             selected_kinds--;
@@ -477,7 +475,7 @@ void BriefingAndInventorySelectionScreen(void)
             scale += 0xC0;
         }
         if (help == -1 &&
-            (&ps->gItem[0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex +
+            (&ps->gItem[0][0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex +
                             (ps->CharType << 5)] != ITEM_LOCKED)
         {
             help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
@@ -614,10 +612,9 @@ quit:
     }
     for (j = 0; j < 9; j++)
     {
-        int n = j + PSTATE->CharType * 0x20;
-        if (PSTATE->gItem[n] == 0)
+        if (PSTATE->gItem[PSTATE->CharType][j] == 0)
         {
-            PSTATE->gItem[n] = ITEM_LOCKED;
+            PSTATE->gItem[PSTATE->CharType][j] = ITEM_LOCKED;
         }
     }
     vfree(harc);

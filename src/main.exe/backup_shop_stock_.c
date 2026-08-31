@@ -5,7 +5,7 @@
  * backup_shop_stock_ (0x800566c0, 0x3c bytes) — backs up this run's per-character
  * shop stock row into the loadout backup: same statement
  * BriefingAndInventorySelectionScreen uses inline
- * (`PSTATE->saveItem[i] = PSTATE->gItem[i + CHOSEN_CHARACTER * 0x20];`),
+ * (`PSTATE->saveItem[i] = PSTATE->gItem[CHOSEN_CHARACTER][i];`),
  * here standalone in its own function. Proven struct: game_types.h
  * TLinkInfo (saveItem@0x27, gItem@0x40C, CharType/CHOSEN_CHARACTER@0x4).
  *
@@ -26,6 +26,6 @@ void backup_shop_stock_(void)
 
     for (i = 0; i < 0x14; i++)
     {
-        PSTATE->saveItem[i] = PSTATE->gItem[i + PSTATE->CharType * 0x20];
+        PSTATE->saveItem[i] = PSTATE->gItem[PSTATE->CharType][i];
     }
 }

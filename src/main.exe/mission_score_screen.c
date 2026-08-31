@@ -617,11 +617,11 @@ void mission_score_screen(void)
 
         stageItem = StageItem[state->StageNo];
         brightness = stageItem;
-        if (state->gItem[brightness + (state->CharType << 5)] == ITEM_LOCKED)
+        if (state->gItem[state->CharType][brightness] == ITEM_LOCKED)
         {
             /* += 3 on a 0xFE ITEM_LOCKED slot wraps the u8 to 1: the
              * unlock hands the player a single item. */
-            state->gItem[brightness + (state->CharType << 5)] += 3;
+            state->gItem[state->CharType][brightness] += 3;
         }
         stageItem = StageItem[state->StageNo];
         if (state->saveItem[stageItem] == ITEM_LOCKED)
