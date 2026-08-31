@@ -970,6 +970,51 @@ reader hunts later named ATTR_SEARCH/FLOAT/NOFLOOR/LEDGE statically;
 what genuinely needs data or runtime is only map bit 8's floor-material
 identity, and 0x200/0x2000 are reader-less set-only bits).
 
+## Round 2 of humanising — real source shape, not names (2026-08-31)
+
+The 2026-08-27 loop closed on NAMES and artifacts. This round is about
+SHAPE, driven by two new sources of evidence, and it is where the active
+work is. `./Build check` still gates every commit.
+
+**`tools/symtypes.py --locals`** diffs each function's declaration block
+against the locals PSX.SYM recorded for the original; ~280 functions
+differ. A local we invented is the usual reason a natural spelling will
+not compile to the right bytes, so this is the queue. Worked examples:
+`SetBlood`'s ugly `(TEffectSlot *)(idx * sizeof(...) + (int)base)` exists
+only because we added a `base` local the original never had;
+`SetupImageToPoly{FT4,GT4}` recovered the original's `tx`/`ty`/`th`, one
+of which is a single variable advanced in place where we had two.
+Bare, the tool audits GLOBAL declarations the same way. Method that
+works: try the WHOLE plain graph first, then bisect — partial edits
+misclassify an invented local as required, which is how several of the
+"byte-required" notes we have since disproved were created.
+
+**`tools/gamedata.py`** reads the retail data tables that carry a
+`char *name` beside an id, so constants can take the game's own name:
+`HumanData` (characters), `WeaponModel` (weapons — retail runs
+0x04..0x37 and our `weapon_kind` enum already matches it exactly, which
+made the parallel `WEP_*` defines the guess and they are gone),
+`ThinkDB` (AI think types, whose names encode their own table and
+index). `--whatis <value>` searches every table at once.
+
+Landed so far: Codex round 20 (37 invented locals across eight files),
+ActATTACK's attack switch named as the weapon dispatch it is, 65
+pointer-punned reads that were doing nothing, the adiv scratch offsets
+spelled in one unit.
+
+Two compiler facts found this round, both in the cookbook:
+  - cc1 2.8.1 gives every sibling block's stack object its OWN slot and
+    never overlaps by lifetime, so a nested block scope is free for a
+    register value and costs full frame space for a stack object. Frame
+    size (`subu $sp,$sp,N`) is the cheap discriminator.
+  - `(x + x) - x` is the ONLY C-level way to spend one extra reference
+    for flow.c to count; `x|x`, `x&x`, `x^0`, `x*1` and `x+0` all fold
+    before the count.
+
+Settle an addu-order or spelling question in a six-line scratch file with
+the build's cc1 flags, not inside the function — two runs of that
+replaced a long-standing "irreplaceable" note with the real rule.
+
 ## Current resume point (2026-07-20)
 
 The game-code matching queue is empty. Live output is 537/555 game functions in
