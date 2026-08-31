@@ -571,6 +571,11 @@ ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
   candidate files were unmodified baselines that all gated
   `ASM-IDENTICAL` (they differed from the tree by one trailing newline).
   A green gate on a file the other side never edited is not a result.
+  One more gotcha when starting fresh: `codex exec` with the prompt as an
+  argument still opens stdin and will sit at `Reading additional input
+  from stdin...` at 0% CPU forever if it inherits an idle one. Redirect
+  it (`< /dev/null`). A resumed session does not do this, which is why it
+  only shows up the first time you have to bootstrap.
 * **Let it pick the dimension once it knows the tree.** Rounds 12-13 were
   Codex's own choice (header contracts), and it independently reached the
   same conclusion this session had about the biggest remaining anomaly.
