@@ -125,37 +125,31 @@ void DrawFrame(TEffectSlot *ef)
     idx = param->count % MaxFrames;
     spr = &sprFrame[idx];
 
-    if (param->mode == 0)
+    switch (param->mode)
     {
-        goto mode0;
+    case 0:
+        spr->b = 0x80;
+        spr->g = 0x80;
+        spr->r = 0x80;
+        param->count--;
+        if (param->count <= 0)
+        {
+            param->count = 0x80;
+            param->mode++;
+        }
+        break;
+    case 1:
+        rgb = *(u8 *)&param->count;
+        spr->b = rgb;
+        spr->g = rgb;
+        spr->r = rgb;
+        param->count = param->count - 29;
+        if (param->count <= 0)
+        {
+            ef->proc = 0;
+        }
+        break;
     }
-    if (param->mode == 1)
-    {
-        goto mode1;
-    }
-    goto draw;
-mode0:
-    spr->b = 0x80;
-    spr->g = 0x80;
-    spr->r = 0x80;
-    param->count--;
-    if (param->count <= 0)
-    {
-        param->count = 0x80;
-        param->mode++;
-    }
-    goto draw;
-mode1:
-    rgb = *(u8 *)&param->count;
-    spr->b = rgb;
-    spr->g = rgb;
-    spr->r = rgb;
-    param->count = param->count - 29;
-    if (param->count <= 0)
-    {
-        ef->proc = 0;
-    }
-draw:
     px = param->px;
     py = param->py;
     pz = param->pz;

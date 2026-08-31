@@ -51,22 +51,18 @@ int cd_seek(FILE *f, int offset, TSeekMode whence)
         puts(msg_cd_seek_invalid_handle);
         return -1;
     }
-    if (whence == CDSEEK_CUR)
-        goto do_cur;
-    if (whence == CDSEEK_SET)
-        goto do_set;
-    if (whence == CDSEEK_END)
-        goto do_end;
-    goto merge;
-do_set:
-    pos = offset;
-    goto merge;
-do_end:
-    pos = f->finfo.size + offset;
-    goto merge;
-do_cur:
-    pos = f->pos + offset;
-merge:
+    switch (whence)
+    {
+    case CDSEEK_SET:
+        pos = offset;
+        break;
+    case CDSEEK_END:
+        pos = f->finfo.size + offset;
+        break;
+    case CDSEEK_CUR:
+        pos = f->pos + offset;
+        break;
+    }
     size = f->finfo.size;
     if (size < pos)
     {

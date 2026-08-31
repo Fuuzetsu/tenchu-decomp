@@ -63,59 +63,64 @@ static void MoveFly(TItem *item, param_fly *param)
     ModelType *model;
     param_korogari *pk;
 
-    if (param->mode == 0)
-        goto fly;
-    if (param->mode == 1)
-        goto korogari;
-    return;
-
-fly:
-    t = param->p.fly.count;
-    k = one;
-    q = k - (t << 12) / param->p.fly.count2;
-    q2 = q * q;
-    d2 = q * 2;
-    if (q2 < 0)
-        q2 += 0xfff;
-    q2 = q2 >> 12;
-    nv = q2;
-    w9 = k - d2 + nv;
-    w8 = d2 + nv * -2;
-    x = w9 * param->p.fly.sx + w8 * param->p.fly.rx + nv * param->p.fly.vx;
-    if (x < 0)
-        x += 0xfff;
-    xs = x >> 12;
-    y = w9 * param->p.fly.sy + w8 * param->p.fly.ry + q2 * param->p.fly.vy;
-    if (y < 0)
-        y += 0xfff;
-    ys = y >> 12;
-    z = w9 * param->p.fly.sz + w8 * param->p.fly.rz + nv * param->p.fly.vz;
-    if (z < 0)
-        z += 0xfff;
-    zs = z >> 12;
-    if (t == 0)
+    switch (param->mode)
     {
-        model = item->locate;
-        ax = model->locate.coord.t[0];
-        ay = model->locate.coord.t[1];
-        az = model->locate.coord.t[2];
-        pk = &param->p.koro;
-        pk->hint = 0;
-        pk->status = KORO_NORMAL;
-        param->mode = 1;
-        pk->vx = xs - ax;
-        pk->vy = ys - ay;
-        pk->vz = zs - az;
-    }
-    else
+    case 0:
     {
-        param->p.fly.count--;
+        t = param->p.fly.count;
+        k = one;
+        q = k - (t << 12) / param->p.fly.count2;
+        q2 = q * q;
+        d2 = q * 2;
+        if (q2 < 0)
+            q2 += 0xfff;
+        q2 = q2 >> 12;
+        nv = q2;
+        w9 = k - d2 + nv;
+        w8 = d2 + nv * -2;
+        x = w9 * param->p.fly.sx + w8 * param->p.fly.rx + nv * param->p.fly.vx;
+        if (x < 0)
+            x += 0xfff;
+        xs = x >> 12;
+        y = w9 * param->p.fly.sy + w8 * param->p.fly.ry + q2 * param->p.fly.vy;
+        if (y < 0)
+            y += 0xfff;
+        ys = y >> 12;
+        z = w9 * param->p.fly.sz + w8 * param->p.fly.rz + nv * param->p.fly.vz;
+        if (z < 0)
+            z += 0xfff;
+        zs = z >> 12;
+        if (t == 0)
+    {
+            model = item->locate;
+            ax = model->locate.coord.t[0];
+            ay = model->locate.coord.t[1];
+            az = model->locate.coord.t[2];
+            pk = &param->p.koro;
+            pk->hint = 0;
+            pk->status = KORO_NORMAL;
+            param->mode = 1;
+            pk->vx = xs - ax;
+            pk->vy = ys - ay;
+            pk->vz = zs - az;
     }
-    item->locate->locate.coord.t[0] = xs;
-    item->locate->locate.coord.t[1] = ys;
-    item->locate->locate.coord.t[2] = zs;
-    return;
+        else
+    {
+            param->p.fly.count--;
+    }
+        item->locate->locate.coord.t[0] = xs;
+        item->locate->locate.coord.t[1] = ys;
+        item->locate->locate.coord.t[2] = zs;
+        return;
 
-korogari:
-    MoveKorogari(item, &param->p.koro);
+        break;
+    }
+    case 1:
+    {
+
+        MoveKorogari(item, &param->p.koro);
+        break;
+    }
+    }
+
 }
