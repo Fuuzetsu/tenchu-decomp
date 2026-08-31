@@ -1948,6 +1948,20 @@ irreducible nest: DrawConstruction's 3.
   the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
   a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
   bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **`*(u16 *)&x` on a field that is ALREADY 16 bits is noise; delete it.**
+  The reinterpret only means something when it changes the access: it is
+  load-bearing when it narrows a wider field (`GsDOBJ2.attribute` and
+  `GsIMAGE.pmode` are `u_long`, so the cast is a halfword read or
+  read-modify-write of the low half) or when it reads ADJACENT fields as
+  one unit (`primitive->tu0` picks up `tu` and `tv`; DrawShadow's
+  `*(s32 *)&human->vector` covers vx AND vy, which is a "moving or
+  falling" test rather than the x-only test it looks like). On a plain
+  `short` it changes nothing: `*(u16 *)&dtPAD & 0x40`, `(u16)dtPAD &
+  0x40` and `dtPAD & 0x40` all compile to the same `lhu`+`andi`. A
+  gated tree sweep removed 65 of 84 such casts; the 19 that stayed are
+  all one of the two real cases. **When a punned read survives, say at
+  the site which of the two it is** — the reader cannot tell a
+  meaningful reinterpret from leftover decompiler noise by looking.
 - **cc1 2.8.1 gives every sibling block's stack object its OWN slot — it
   never overlaps them by lifetime.** Three mutually exclusive `case`
   blocks each declaring one 32-byte local produce a 120-byte frame; one

@@ -193,7 +193,7 @@ draw_done:
 
     /* The u16 view makes this an lhu (a plain read is lw): byte-required
      * (verified against the .s). */
-    DrawModeSave[VISIBLE_ENEMIES_] = *(u16 *)&DrawTMDmode;
+    DrawModeSave[VISIBLE_ENEMIES_] = DrawTMDmode;
     VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
     VISIBLE_ENEMIES_++;
     if (ActionHalt != 0 || human->life <= 0)

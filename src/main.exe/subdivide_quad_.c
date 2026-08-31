@@ -161,66 +161,66 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     {
         if (fp->vp[0]->sxy.vx > fp->vp[1]->sxy.vx)
         {
-            *(u16 *)&work->maxx = *(u16 *)&fp->vp[0]->sxy.vx;
-            *(u16 *)&work->minx = *(u16 *)&fp->vp[1]->sxy.vx;
+            work->maxx = fp->vp[0]->sxy.vx;
+            work->minx = fp->vp[1]->sxy.vx;
         }
         else
         {
-            *(u16 *)&work->maxx = *(u16 *)&fp->vp[1]->sxy.vx;
-            *(u16 *)&work->minx = *(u16 *)&fp->vp[0]->sxy.vx;
+            work->maxx = fp->vp[1]->sxy.vx;
+            work->minx = fp->vp[0]->sxy.vx;
         }
         s = fp->vp[2]->sxy.vx;
-        u = *(u16 *)&fp->vp[2]->sxy.vx;
+        u = fp->vp[2]->sxy.vx;
         if (s < work->minx)
         {
-            *(u16 *)&work->minx = u;
+            work->minx = u;
         }
         else if (work->maxx < s)
         {
-            *(u16 *)&work->maxx = u;
+            work->maxx = u;
         }
         s = fp->vp[3]->sxy.vx;
-        u = *(u16 *)&fp->vp[3]->sxy.vx;
+        u = fp->vp[3]->sxy.vx;
         if (s < work->minx)
         {
-            *(u16 *)&work->minx = u;
+            work->minx = u;
         }
         else if (work->maxx < s)
         {
-            *(u16 *)&work->maxx = u;
+            work->maxx = u;
         }
         if ((-(int)work->adivw <= (int)work->maxx) &&
             ((int)work->minx <= (int)work->adivw))
         {
             if (fp->vp[0]->sxy.vy > fp->vp[1]->sxy.vy)
             {
-                *(u16 *)&work->maxy = *(u16 *)&fp->vp[0]->sxy.vy;
-                *(u16 *)&work->miny = *(u16 *)&fp->vp[1]->sxy.vy;
+                work->maxy = fp->vp[0]->sxy.vy;
+                work->miny = fp->vp[1]->sxy.vy;
             }
             else
             {
-                *(u16 *)&work->maxy = *(u16 *)&fp->vp[1]->sxy.vy;
-                *(u16 *)&work->miny = *(u16 *)&fp->vp[0]->sxy.vy;
+                work->maxy = fp->vp[1]->sxy.vy;
+                work->miny = fp->vp[0]->sxy.vy;
             }
             s = fp->vp[2]->sxy.vy;
-            u = *(u16 *)&fp->vp[2]->sxy.vy;
+            u = fp->vp[2]->sxy.vy;
             if (s < work->miny)
             {
-                *(u16 *)&work->miny = u;
+                work->miny = u;
             }
             else if (work->maxy < s)
             {
-                *(u16 *)&work->maxy = u;
+                work->maxy = u;
             }
             s = fp->vp[3]->sxy.vy;
-            u = *(u16 *)&fp->vp[3]->sxy.vy;
+            u = fp->vp[3]->sxy.vy;
             if (s < work->miny)
             {
-                *(u16 *)&work->miny = u;
+                work->miny = u;
             }
             else if (work->maxy < s)
             {
-                *(u16 *)&work->maxy = u;
+                work->maxy = u;
             }
             if ((-(int)work->adivw <= (int)work->maxy) &&
                 ((int)work->miny <= (int)work->adivw))

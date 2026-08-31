@@ -43,7 +43,7 @@
  * re-typing the memory operand itself does. But the TWO spellings that do
  * that are NOT interchangeable, and picking the wrong one costs 11 bytes:
  *
- *   - `*(u16 *)&field` is an INDIRECT_REF: it clears the RTL memory
+ *   - `field` is an INDIRECT_REF: it clears the RTL memory
  *     operand's MEM_IN_STRUCT_P (`/s`) marker.
  *   - `((View *)p)->field` stays a COMPONENT_REF: it KEEPS `/s`.
  *
@@ -52,7 +52,7 @@
  * varying address and the STORE is a non-struct fixed address. All five
  * d-global stores are non-struct fixed-address (`sw v0,%gp_rel(dtV)`), so a
  * `/s` load never pins them, but a cast load does. `mid` is read BEFORE the
- * `dtV` store, so spelling it `*(u16 *)&motion->mid` hands insn `sw dtV` a
+ * `dtV` store, so spelling it `motion->mid` hands insn `sw dtV` a
  * REG_DEP_ANTI on the mid load, which (a) forbids the store from issuing
  * above it and (b) raises the store's sched priority from 3 to 4, tying it
  * with the `andi` — and sched.c's equal-priority `potential_hazard` tiebreak
@@ -72,7 +72,7 @@
  * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - MOT_HANG)`
  * in ActHANG.c). Reading through this view is what gives MOTION.C's `lhu`
  * while keeping the access a COMPONENT_REF — see the note above; the
- * `*(u16 *)&motion->mid` cast spelling costs 11 bytes. */
+ * `motion->mid` cast spelling costs 11 bytes. */
 typedef struct
 {
     u16 mid; /* 0x0 */
@@ -129,7 +129,7 @@ void HumanActionControl(Humanoid *human)
         {
             HangCheck();
         }
-        else if ((*(u16 *)&Me_MOTION_C->map.attrib & MAP_WATER) != 0)
+        else if ((Me_MOTION_C->map.attrib & MAP_WATER) != 0)
         {
             SwimCheck();
         }

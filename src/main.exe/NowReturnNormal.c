@@ -45,8 +45,8 @@ short NowReturnNormal(Humanoid *human)
     Me_MOTION_C = human;
     ReturnNormal();
     h = Me_MOTION_C;
-    mid = *(u16 *)&motID;
-    move = *(u16 *)&motMODE;
+    mid = motID;
+    move = motMODE;
     if (h->status == STAT_DEAD && h->motion->loop == -1)
     {
         return 0;

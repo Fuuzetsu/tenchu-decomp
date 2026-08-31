@@ -114,7 +114,7 @@ void ActKAGI(void)
                 {
                     SetCameraMode(CMODE_NORMAL);
                 }
-                if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+                if (Me_MOTION_C->attribute & ATTR_ALERT)
                 {
                     SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 }
@@ -137,7 +137,7 @@ void ActKAGI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
             }
@@ -147,7 +147,7 @@ void ActKAGI(void)
             }
         }
 
-        if ((*(u16 *)&Me_MOTION_C->map.attrib & MAP_WATER) &&
+        if ((Me_MOTION_C->map.attrib & MAP_WATER) &&
             ((motID >> 8) != STAT_KAGI))
         {
             ModelArchiveType *model;
@@ -164,7 +164,7 @@ void ActKAGI(void)
             i = 7;
             while (i <= ry)
             {
-                *(u16 *)&model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
+                model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
             }
             *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
             SET_MOTION(MOT_SWIM, 1);
@@ -198,7 +198,7 @@ void ActKAGI(void)
         human = Me_MOTION_C;
         motID = MOT_KAGI_PULL;
         mmp->mask = -2;
-        attrib = *(u16 *)&human->map.attrib;
+        attrib = human->map.attrib;
         motMODE = 1;
         if (attrib & MAP_WATER)
         {
@@ -222,7 +222,7 @@ void ActKAGI(void)
         if (__builtin_abs(v.vx) < 400 && __builtin_abs(v.vy) < 400 &&
             __builtin_abs(v.vz) < 400)
         {
-            *(u16 *)&Me_MOTION_C->attribute |= ATTR_WALL;
+            Me_MOTION_C->attribute |= ATTR_WALL;
         }
 
         {

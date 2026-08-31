@@ -35,7 +35,7 @@
  *
  * The second pass follows LoadOrnamentArchive's proven parent-search shape.
  * Giving its parent pointer a separate `super` identity lets it die in a3 at
- * GsInitCoordinate2 while `objp` remains in s0. The `*(u16 *)&mad->n`
+ * GsInitCoordinate2 while `objp` remains in s0. The `mad->n`
  * memory view and signed `mad->n` field have the same verified 0x64 address
  * but distinct C identities, preserving the target's adjacent lhu/lh loads
  * instead of cc1 folding them together. `limit` then keeps j in v1 through
@@ -121,7 +121,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     mad->locate.flg = 0;
     mad->id = -1;
     mad->attribute = 0;
-    count = *(u16 *)&mad->n;
+    count = mad->n;
     if (mad->n > 0)
     {
         do
@@ -150,7 +150,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             RotMatrixYXZ(&objp->rotate, &objp->locate.coord);
             i++;
             objp->locate.flg = 0;
-            count = *(u16 *)&mad->n;
+            count = mad->n;
         } while (i < mad->n);
     }
     mad->rotate.pad = (short)mad->object[0]->locate.coord.t[1];

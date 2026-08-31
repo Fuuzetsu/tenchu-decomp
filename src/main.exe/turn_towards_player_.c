@@ -24,7 +24,7 @@
  * 0x2000/0x8000 "turn right/left") truncated to s16 on return.
  *
  * Attrib and Degree keep their recovered signed object types.  This function's
- * `lhu` flag reads use the shared `(*(u16 *)&Attrib)` view, while the raw-angle path
+ * `lhu` flag reads use the shared `Attrib` view, while the raw-angle path
  * below takes a localized unsigned view of Degree.
  *
  * Matching notes (all byte-proven):
@@ -86,7 +86,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     }
     else
     {
-        dir = *(u16 *)&Degree;
+        dir = Degree;
     }
     turn = Me_THINK_C->turn;
     if (turn < (s16)dir)
@@ -106,9 +106,9 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     {
         result |= PADLup;
     }
-    if (!((*(u16 *)&Attrib) & 3))
+    if (!(Attrib & 3))
     {
-        if ((*(u16 *)&Attrib) & ATTR_WALL)
+        if (Attrib & ATTR_WALL)
         {
             s32 cached;
 

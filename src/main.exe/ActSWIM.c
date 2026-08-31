@@ -63,7 +63,7 @@ void ActSWIM(void)
 
                 rotation = dtR;
                 current = rotation->vy;
-                if ((*(u16 *)&dtPAD) & PADLright)
+                if (dtPAD & PADLright)
                     result = current + Me_MOTION_C->turn;
                 else
                     result = current - Me_MOTION_C->turn;
@@ -71,11 +71,11 @@ void ActSWIM(void)
             }
             break;
         }
-        if (((*(u16 *)&dtPAD) & (PADLdown | PADLup)) == 0)
+        if ((dtPAD & (PADLdown | PADLup)) == 0)
             break;
         SET_MOTION(MOT_SWIM_STROKE, 0);
         speed = SWIM_SPEED;
-        if ((*(u16 *)&dtPAD) & PADLup)
+        if (dtPAD & PADLup)
         {
             MoveHumanoid(Me_MOTION_C, speed, 0);
             break;
@@ -94,7 +94,7 @@ void ActSWIM(void)
     case MOT_SWIM_STROKE:
         if (dtM->count == 1)
             Sound(Me_MOTION_C, SE_WATER_MOVE);
-        if ((*(u16 *)&dtPAD) & PADLup)
+        if (dtPAD & PADLup)
         {
             Humanoid *human;
 
@@ -111,7 +111,7 @@ void ActSWIM(void)
 
                 rotation = dtR;
                 current = rotation->vy;
-                if ((*(u16 *)&dtPAD) & PADLright)
+                if (dtPAD & PADLright)
                     result = current + Me_MOTION_C->turn;
                 else
                     result = current - Me_MOTION_C->turn;
@@ -122,7 +122,7 @@ void ActSWIM(void)
             MoveHumanoid(human, speed, 0);
             break;
         }
-        else if ((*(u16 *)&dtPAD) & PADLdown)
+        else if (dtPAD & PADLdown)
         {
             if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
             {
@@ -145,7 +145,7 @@ void ActSWIM(void)
 
                 rotation = dtR;
                 current = rotation->vy;
-                if ((*(u16 *)&dtPAD) & PADLright)
+                if (dtPAD & PADLright)
                     result = current - Me_MOTION_C->turn;
                 else
                     result = current + Me_MOTION_C->turn;
@@ -196,7 +196,7 @@ void ActSWIM(void)
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);
-            if (*(u16 *)&Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 return;

@@ -98,8 +98,8 @@ void proc_misc_sound_(TMisc *m, TMiscMessage msg)
     return;
 
 reset:
-    tmp.min = *(u16 *)&m->param.init.b;
-    tmp.max = *(u16 *)&m->param.init.c;
+    tmp.min = m->param.init.b;
+    tmp.max = m->param.init.c;
     tmp.sndIdx = *(u8 *)&m->param.init.a;
     tmp.next = GameClock;
     *sched = tmp;

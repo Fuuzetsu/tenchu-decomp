@@ -53,7 +53,7 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  *  - `character_status` is read SIGNED (`lh`) at this one call site even
  *    though game_types.h proves the field itself `u16` (needed elsewhere
  *    to avoid a bad sign-extend) — reached via an offset-cast read,
- *    `*(s16 *)&Me_THINK_C->status`, matching the cookbook's
+ *    `Me_THINK_C->status`, matching the cookbook's
  *    "reach a divergent-width access via an offset cast off the same
  *    proven pointer" rule, rather than retyping the shared struct field.
  *  - The AttackFunc dispatch (SHORT body, one call + return) must be the
@@ -77,7 +77,7 @@ s16 Think3hitaway(void)
     {
         SR = SR_NONE;
     }
-    if (*(s16 *)&Me_THINK_C->status == STAT_ATTACK)
+    if (Me_THINK_C->status == STAT_ATTACK)
     {
         Me_THINK_C->actflg = 0;
         Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;

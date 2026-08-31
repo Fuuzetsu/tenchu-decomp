@@ -132,7 +132,7 @@ void ActDEAD(void)
             if (human != StagePlayer)
             {
                 DeleteConflict(*model->object);
-                if ((*(u16 *)&Me_MOTION_C->type & PAGE_MASK) != PAGE_BOSS)
+                if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BOSS)
                     TurnAroundAllItems(Me_MOTION_C);
             }
             if (dtM->mid < MOT_DEAD_STEALTH_BACK)
@@ -240,8 +240,8 @@ event_ready:
         u16 packed;
 
         ReqLifeBar(Me_MOTION_C);
-        blood = *(u16 *)&pp[i].argument;
-        packed = *(u16 *)&pp[i].packed;
+        blood = pp[i].argument;
+        packed = pp[i].packed;
         bldo = packed >> 8;
         blds = packed & 0xff;
         break;
@@ -251,7 +251,7 @@ event_ready:
 }
 
 ordinary_dead:
-    if ((*(u16 *)&Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST)
+    if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST)
     {
         if (dtM->count == 5 && DeadHumanoid == Me_MOTION_C)
         {
@@ -264,7 +264,7 @@ ordinary_dead:
     }
 
 blood_effect:
-    if ((*(u16 *)&dtM->count & 4) && blood != -1)
+    if ((dtM->count & 4) && blood != -1)
     {
         scratch.dead.position = svec_y_n200_z_n240[0];
         memset(&scratch.dead.vector, 0, sizeof(scratch.dead.vector));
