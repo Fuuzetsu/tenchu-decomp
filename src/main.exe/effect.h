@@ -159,6 +159,15 @@ struct FrameType /* size 24 */
     u8 mode;              /* +0x14 */
 };
 
+/* ExplosionType.mode: the flash frame and the fireball both grow, on two
+ * different sprites; the last phase shrinks and alpha-fades out. */
+enum
+{
+    EXPLOSION_MODE_FLASH = 0,
+    EXPLOSION_MODE_EXPAND = 1,
+    EXPLOSION_MODE_FADE = 2
+};
+
 struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
                         aliases the same struct twice); DrawHinoko.c's own
                         param view, offsets proven from its raw .s (a

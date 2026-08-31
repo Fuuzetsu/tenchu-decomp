@@ -94,7 +94,7 @@ void DrawExplosion(TEffectSlot *ef)
     alfa = 0x80;
     switch (param->mode)
     {
-    case 0:
+    case EXPLOSION_MODE_FLASH:
         if (param->time == 0)
         {
             param->time = 3;
@@ -103,24 +103,24 @@ void DrawExplosion(TEffectSlot *ef)
         else
         {
             param->scale += 0x2000;
-            param->rotate += 100 * 4096; /* 100 deg/frame */
+            param->rotate += 100 * FIXED_ONE; /* 100 deg/frame */
         }
         spr = sprBomb[0];
         break;
-    case 1:
+    case EXPLOSION_MODE_EXPAND:
         if (param->time == 0)
         {
             param->time = fo;
             param->mode++;
         }
         param->scale += 0x2000;
-        param->rotate += 100 * 4096; /* 100 deg/frame */
+        param->rotate += 100 * FIXED_ONE; /* 100 deg/frame */
         spr = sprBomb[1];
         break;
-    case 2:
+    case EXPLOSION_MODE_FADE:
         alfa = (u8)((param->time << 7) / fo);
         param->scale -= 0x333;
-        param->rotate += 90 * 4096; /* 90 deg/frame */
+        param->rotate += 90 * FIXED_ONE; /* 90 deg/frame */
         if (param->time == 0)
         {
             ef->proc = 0;
