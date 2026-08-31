@@ -1948,6 +1948,23 @@ irreducible nest: DrawConstruction's 3.
   the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
   a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
   bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **cc1 2.8.1 gives every sibling block's stack object its OWN slot — it
+  never overlaps them by lifetime.** Three mutually exclusive `case`
+  blocks each declaring one 32-byte local produce a 120-byte frame; one
+  shared local at function scope produces 56. So a nested block scope is
+  free for a value that lives in a REGISTER and costs full frame space
+  for anything on the stack, and when the target's frame is too small to
+  hold every arm's object separately, the original must have shared one
+  object or spelled a union. This is also why PSX.SYM's repeated local
+  names come with DISTINCT stack offsets (CameraType1's eight
+  `campos`/`ref` pairs at sp+56, 72, 88 ...): that is the original build
+  paying exactly this cost, and it is direct evidence the original source
+  really did declare them per block. Use the frame size as the
+  discriminator before rewriting anything — CameraType1's union survived
+  three attempts (per-case locals +304 lines; plain function-scope
+  locals +408 and a 168-byte frame against retail's 152; dropping the
+  `init` VECTOR reaches 152 exactly but loses the copy the target
+  actually performs, +288).
 - **Before inventing a name for a constant, look for one in the retail
   DATA.** Several of the game's own tables carry a `char *name` beside the
   id they describe, because the engine builds file paths and debug-menu

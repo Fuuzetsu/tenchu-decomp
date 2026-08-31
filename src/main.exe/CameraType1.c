@@ -53,6 +53,21 @@
  * camera presets exactly as the original 0x98-byte frame does. The stick-left
  * preset starts after the probe pair; the knockback arm holds a second
  * preset separately because both are live across the first camera call.
+ *
+ * The union looks invented and is not; three ways of removing it were
+ * measured (cc1 gives every sibling block its own stack slot and never
+ * overlaps by lifetime — see the cookbook):
+ *   - a `TCameraPos campos;` inside each preset arm: +304 lines, because
+ *     each arm then owns a separate 32-byte slot;
+ *   - plain function-scope `init`/`vecl`/`vecr`/`campos`: +408, and the
+ *     frame grows to 168 against retail's 152 — exactly the 16 bytes that
+ *     `init` stops sharing;
+ *   - dropping `init` and building `pos` in place: the frame lands on 152
+ *     exactly, but +288, because retail really does keep both objects and
+ *     copy sp+40 to sp+24 between them.
+ * PSX.SYM's local list is not a target here: it describes the demo's
+ * pre-preset-table shape, with eight 8-byte `campos`/`ref` pairs built
+ * inline, where retail copies whole 32-byte TCameraPos presets.
  */
 
 #include "item.h"
