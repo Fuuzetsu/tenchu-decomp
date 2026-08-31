@@ -72,22 +72,28 @@ extern VECTOR vec_y_n1200_z_400; /* {0,-1200,400} */
 
 void ProcItemGosin(TItem *item)
 {
+    enum
+    {
+        GOSIN_MODE_START = 0,
+        GOSIN_MODE_WAIT = 1,
+        GOSIN_MODE_ACTIVE = 2
+    };
     ProcItemGosinScratch scratch;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->owner->itmctl = 0;
-        item->mode = 0;
+        item->mode = GOSIN_MODE_START;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case GOSIN_MODE_START:
         SetNowMotion(item->owner, MOT_ITEM_KAENGEKI, 1);
         Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 
-    case 1:
+    case GOSIN_MODE_WAIT:
     {
         MotionManager *mot;
 
@@ -116,7 +122,7 @@ void ProcItemGosin(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != GOSIN_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -136,7 +142,7 @@ void ProcItemGosin(TItem *item)
         return;
     }
 
-    case 2:
+    case GOSIN_MODE_ACTIVE:
     {
         s16 c;
 
@@ -149,7 +155,7 @@ void ProcItemGosin(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != GOSIN_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }

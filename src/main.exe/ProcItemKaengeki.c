@@ -66,6 +66,12 @@ extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ProcItemKaengeki(TItem *item)
 {
+    enum
+    {
+        KAENGEKI_MODE_START = 0,
+        KAENGEKI_MODE_WAIT = 1,
+        KAENGEKI_MODE_FIRE = 2
+    };
     param_kaengeki *param;
     union
     {
@@ -87,14 +93,14 @@ void ProcItemKaengeki(TItem *item)
         {
             NowReturnNormal(item->owner);
         }
-        item->mode = 0;
+        item->mode = KAENGEKI_MODE_START;
         return;
     }
 
-    mode_index = 0;
+    mode_index = KAENGEKI_MODE_START;
     switch (item->mode)
     {
-    case 0:
+    case KAENGEKI_MODE_START:
     {
         Humanoid *human;
 
@@ -112,7 +118,7 @@ void ProcItemKaengeki(TItem *item)
         return;
     }
 
-    case 1:
+    case KAENGEKI_MODE_WAIT:
     {
         if (item->owner->motion->count == 0 &&
             item->owner->motion->loop != 0)
@@ -153,7 +159,7 @@ void ProcItemKaengeki(TItem *item)
         }
     }
 
-    case 2:
+    case KAENGEKI_MODE_FIRE:
     {
         ModelArchiveType *model;
         s32 rz;
@@ -222,7 +228,7 @@ void ProcItemKaengeki(TItem *item)
         item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != KAENGEKI_MODE_START)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
