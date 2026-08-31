@@ -739,6 +739,27 @@ derivation story dropped). SCOPE LIMIT confirmed from commit
 commit RESTORED pre-existing summaries - so the ~520 long-standing
 `Name (0xADDR) — prose` headers stay untouched.
 
+CONTROL-FLOW CAMPAIGN (2026-08-31, rounds 7-10 with Codex + parallel
+solo work): ~215 gotos and ~90 labels removed across ~35 files, every
+one byte-identical. Tree gotos 800 -> 587. The productive routes, all
+now cookbook doctrine: ACYCLIC guard inversion (a goto into the
+statement after an else, a two-arm diamond with the condition negated
+to preserve physical arm order, an enclosing if over a bypassed
+region, an inverse OUTER guard instead of an inline early return, and
+one-line tail duplication that cross-jump re-merges), and THE SWITCH
+LEVER — a goto ladder testing one value against constants is usually
+an ordinary switch. The switch lever converted twelve ladders between
+us and FALSIFIED SIX in-file notes asserting a ladder was required
+(spare_item_slot_, ProcItemManebue — which also deleted a helper
+local — StartStageSequence, AVCameraSetup, ProcMiscDoor, plus
+cd_seek/DrawFrame/MoveFly/camera_terrain_pitch_ which had no note).
+Refinements: `default`'s lexical position decides whether a
+fallthrough needs an extra jump; if/else-if is NOT equivalent because
+expand_case emits both tests before either body; and case order can be
+written to preserve the target's physical body order (though
+ActNORMAL's 1,2,3,0,4 ladder still resists at 67 lines, and
+Think4abandon's at 18 — the lever is not automatic).
+
 CONTROL-FLOW FINDING (2026-08-31): goto-shaped loops in this codebase
 are usually byte-load-bearing. Converting them to real loop syntax
 adds NOTE_INSN_LOOP_BEG/END, which multiplies flow.c's loop_depth ref
