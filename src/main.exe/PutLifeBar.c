@@ -33,7 +33,7 @@
 /*
  * STATUS: MATCHING — pure C, all 540 bytes / 135 instructions exact.
  *
- * PutLifeBar (0x8004ab38, 0x21C bytes) — draws one life-bar "style" (style
+ * PutLifeBar (0x8004ab38, 0x21C bytes) — draws one n-bar "style" (style
  * 0 for the player's own bar via DoInfoViewProc, style 1 for an enemy's via
  * PutLifeBarS/ReqLifeBar): a right-to-left digit strip (identical idiom to
  * the MATCHED PutNumber.c, same TU) showing `n`, then two GsSPRITE draws —
@@ -85,7 +85,7 @@
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
 
-void PutLifeBar(s32 bar_x, s32 bar_y, s32 life, s32 mx, s32 style)
+void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
 {
     GsSPRITE *img;
     GsSPRITE *ou;
@@ -97,46 +97,54 @@ void PutLifeBar(s32 bar_x, s32 bar_y, s32 life, s32 mx, s32 style)
     s32 u;
 
     {
-        s32 x;
-        s32 y;
-        s32 n;
+        /* The digit renderer's own copies. PSX.SYM names the PARAMETERS
+         * x, y and n, which is certain evidence and is used above; it
+         * also lists x/y/n a second time, but that is the demo's
+         * different life-bar function (it renders through a POLY_F4
+         * retail does not have) and cannot be a shadow here anyway --
+         * these three are initialised FROM the parameters, and the
+         * frame/fill half below still needs them unmodified. So the
+         * inner names are ours. */
+        s32 px;
+        s32 py;
+        s32 count;
 
-        n = life;
+        count = n;
         NumberImage.w = (dx = LifeBarStyle[style].dx,
                          dy = LifeBarStyle[style].dy, 4);
         img = &NumberImage;
         u = img->u;
-        x = bar_x + dx;
-        y = bar_y + dy;
-        img->x = x;
-        img->y = y;
+        px = x + dx;
+        py = y + dy;
+        img->x = px;
+        img->y = py;
 
         {
             s32 q;
 
         loop:
-            q = n / 10;
-            img->u = u + (n % 10) * 4;
+            q = count / 10;
+            img->u = u + (count % 10) * 4;
             GsSortSprite(img, OTablePt, 0);
             img->x -= 6;
-            n = q;
+            count = q;
         }
-        if (n != 0)
+        if (count != 0)
             goto loop;
     }
     img->u = u;
 
     ou = &LifeBarStyle[style].frame;
-    ou->x = bar_x;
-    ou->y = bar_y;
+    ou->x = x;
+    ou->y = y;
     GsSortSprite(ou, OTablePt, 1);
 
-    q = LifeBarStyle[style].scale * life / mx;
+    q = LifeBarStyle[style].scale * n / mx;
     ou = &LifeBarStyle[style].fill;
     oldh = ou->h;
     ou->h = LifeBarStyle[style].base + q;
 
-    if (mx / 4 < life)
+    if (mx / 4 < n)
         color = 0x80;
     else
     {
@@ -157,8 +165,8 @@ void PutLifeBar(s32 bar_x, s32 bar_y, s32 life, s32 mx, s32 style)
         ou->r = color;
     }
 
-    ou->x = bar_x;
-    ou->y = bar_y;
+    ou->x = x;
+    ou->y = y;
     GsSortSprite(ou, OTablePt, 0);
     ou->h = oldh;
 }

@@ -52,6 +52,12 @@
  *    TU (DrawHinoko.c).
  */
 
+/* PSX.SYM's parameter here is `struct TexScroll *tscr`, and that is a
+ * genuine demo/retail divergence rather than a name we got wrong:
+ * retail installs this as an effect-slot proc (`ef->proc =
+ * UpdateTexScroll`), so it must take the slot and derive the
+ * TexScroll from it. `tools/symnote.py --params` will keep
+ * reporting the difference. */
 void UpdateTexScroll(TEffectSlot *ef)
 {
     TexScroll *tscr;
