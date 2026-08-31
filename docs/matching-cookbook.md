@@ -899,6 +899,28 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   never a recovered local, and update any matching note that quotes the
   old name in the same commit.
 
+- **Offset casts are not one category — judge them by REPRESENTATION**
+  (round 14, 2026-08-31). Six rules, each measured: (1) recover a field
+  when an authoritative type exists and the access denotes one member;
+  (2) recover the UNIT when the arithmetic is really in elements or
+  allocator words (SetupThinkFunction's `>> 20 & 0xf` instead of
+  `>> 18 & 0x3c`; vrealloc's word-counted header, left-associated — the
+  `(u32 *)(vhp + 1) + size` spelling costs 10 lines); (3) KEEP a word-
+  stream view where one assignment deliberately transfers a packed
+  packet word (subdivide_quad_ keeps `packet_words[n]` for colour/XY/UV
+  while length/code/clut/tpage become POLY fields); (4) KEEP a byte view
+  when the value is a byte offset into a serialized or mixed-format blob
+  (CVAupdate's script ids, SetupSE's VAB header — and do NOT invent a
+  partial struct to silence the scanner where no authoritative layout
+  exists); (5) evaluation and operand ORDER are part of the byte
+  contract — a typed POINTER can be safe where a typed SUBSCRIPT is not
+  (AttackBowControl's `BowTimingEntry *p` works, `BowTiming[n]` does not,
+  because the subscript materializes the base before the index shift);
+  (6) never add a one-use alias merely to satisfy a scanner. The ADIV
+  pair shows the boundary can run THROUGH a function: packet metadata and
+  the output cursor type cleanly, while the timing-sensitive workspace
+  does not (25/26 lines), because typed stores weaken 2.8's alias
+  dependencies and reschedule volatile parameter reads.
 - **Header hygiene: write a CONTRACT, not a lab notebook** (rounds 12-13,
   2026-08-31; 1,320 preamble lines removed across 15 files with zero code
   tokens changed). A matched function's preamble should answer, in order:
