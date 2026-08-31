@@ -17,10 +17,12 @@
  * allocates both loads to v1; making either initializer use a fresh temporary
  * changes the local-allocation quantities and the instruction schedule.
  *
- * The decimal rendering sites remain expanded because their ordinary
- * per-site block structure and local divisor temporaries determine loop-depth
- * weighting and rematerialization.  MissionScoreSpriteStorage likewise
- * expresses the contiguous result/rank/character stack-bank layout directly.
+ * The decimal rendering arithmetic is shared again without erasing its
+ * allocation donors.  Eight ordinary sites use DRAW_SCORE_NUMBER; the
+ * enemy-minus-bosses and row-ordinal sites retain their distinct setup and
+ * call only DRAW_SCORE_DIGITS.  Their enclosing do/block shapes remain
+ * load-bearing.  MissionScoreSpriteStorage likewise expresses the contiguous
+ * result/rank/character stack-bank layout directly.
  * The dead rowScore declaration is also load-bearing: deleting its lexical
  * block lets GCC retain the 0x80010000 row base in s2 and makes the function
  * one instruction short, instead of rematerializing the base like retail.
@@ -73,12 +75,92 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
     InitSprite(image, sprite);
 }
 
-/* Round-10: every function-like draw macro (DRAW_SCORE_NUMBER family,
- * DRAW_SCORE_COLON, SCORE_SPRITE_AT) is EXPANDED to its literal per-site
- * text, verified byte-identical (same cpp token stream, same .o sha256).
- * cpp expands textually, so this is the same program cc1 always saw --
- * but each of the ~13 draw/colon/bank sites is now INDEPENDENTLY tunable,
- * which a shared macro spelling forbade.  */
+#define DRAW_SCORE_DIGITS(sprite_, value_, negative_)                  \
+    {                                                                 \
+        do                                                            \
+        {                                                             \
+            dividend = (s16)value_;                                   \
+            quotient = dividend / 10;                                 \
+            remainder = dividend % 10;                                \
+            baseU = sprite_->u;                                        \
+            sprite_->u = baseU + (s16)remainder * sprite_->w;          \
+            GsSortSprite(sprite_, OTablePt, 0);                        \
+            sprite_->x -= 12;                                          \
+            value_ = quotient;                                         \
+            quotient <<= 16;                                           \
+            sprite_->u = baseU;                                        \
+        } while (quotient != 0);                                      \
+        if (negative_ != 0)                                           \
+        {                                                             \
+            u32 signBaseU;                                             \
+            s32 minusGlyph;                                            \
+                                                                      \
+            minusGlyph = 10;                                           \
+            signBaseU = sprite_->u;                                    \
+            sprite_->u = signBaseU + sprite_->w * minusGlyph;          \
+            GsSortSprite(sprite_, OTablePt, 0);                        \
+            sprite_->u = signBaseU;                                    \
+        }                                                             \
+    }
+
+#define DRAW_SCORE_COLON(sprite_)                         \
+    {                                                     \
+        u8 oldU;                                          \
+        s32 colonDigit;                                   \
+                                                          \
+        number.x = 0x1F;                                  \
+        oldU = sprite_->u;                                 \
+        colonDigit = 12;                                  \
+        sprite_->u = oldU + sprite_->w * colonDigit;       \
+        GsSortSprite(sprite_, OTablePt, 0);                \
+        sprite_->u = oldU;                                 \
+    }
+
+#define DRAW_SCORE_NUMBER(sprite_, value_, type_, clear_first_, x_, y_) \
+    {                                                               \
+        s32 dividend;                                               \
+        s32 remainder;                                              \
+        s32 quotient;                                               \
+        u32 value;                                                  \
+        s16 signedValue;                                            \
+        s32 drawY;                                                  \
+                                                                    \
+        value = value_;                                             \
+        signedValue = type_ value;                                  \
+        drawY = y_;                                                 \
+        sprite_->x = x_;                                            \
+        sprite_->y = drawY;                                         \
+        if (clear_first_)                                           \
+        {                                                           \
+            negative = 0;                                           \
+            if (signedValue < 0)                                    \
+            {                                                       \
+                value = -signedValue;                               \
+                negative = 1;                                       \
+            }                                                       \
+        }                                                           \
+        else if (signedValue < 0)                                   \
+        {                                                           \
+            value = -signedValue;                                   \
+            negative = 1;                                           \
+        }                                                           \
+        else                                                        \
+        {                                                           \
+            negative = 0;                                           \
+        }                                                           \
+        DRAW_SCORE_DIGITS(sprite_, value, negative);                 \
+    }
+
+#define SCORE_SPRITE_AT(bank_, index_)                               \
+    ((GsSPRITE *)((u8 *)(bank_) + (index_) * sizeof(GsSPRITE)))
+
+/* Round-18 re-collapse: all ten signed-digit tails share DRAW_SCORE_DIGITS,
+ * and the eight ordinary sites also share DRAW_SCORE_NUMBER.  The derived
+ * enemy count and row ordinal keep their distinct setup; passing the enemy
+ * subtraction directly moved 233 assembly lines.  The enclosing do carriers
+ * are also deliberate: removing one moves 54-63 lines.  Colon rendering and
+ * the four sprite-bank address expressions are shared separately so their
+ * differing post-colon assignments and surrounding allocation stay visible. */
 
 /* The persistent high-score block, addressed by CONSTANT rather than through a
  * pointer local.  This is not cosmetic: with a pointer variable the address is
@@ -177,12 +259,8 @@ void mission_score_screen(void)
         initSprite->attribute = attribute;
         initSprite->mx = width >> 1;
         initSprite->my = initSprite->h >> 1;
-        ((GsSPRITE *)((u8 *)(rankSprites) +
-                      (i) * sizeof(GsSPRITE)))
-            ->mx = 0;
-        ((GsSPRITE *)((u8 *)(rankSprites) +
-                      (i) * sizeof(GsSPRITE)))
-            ->my = 0;
+        SCORE_SPRITE_AT(rankSprites, i)->mx = 0;
+        SCORE_SPRITE_AT(rankSprites, i)->my = 0;
         LoadTIM(tim);
     }
         i++;
@@ -219,12 +297,8 @@ void mission_score_screen(void)
         initSprite->b = characterColour;
         initSprite->mx = width >> 1;
         initSprite->my = height >> 1;
-        ((GsSPRITE *)((u8 *)(characterSprites) +
-                      (i) * sizeof(GsSPRITE)))
-            ->mx = 0;
-        ((GsSPRITE *)((u8 *)(characterSprites) +
-                      (i) * sizeof(GsSPRITE)))
-            ->my = 0;
+        SCORE_SPRITE_AT(characterSprites, i)->mx = 0;
+        SCORE_SPRITE_AT(characterSprites, i)->my = 0;
         LoadTIM(tim);
     }
         i++;
@@ -323,54 +397,8 @@ void mission_score_screen(void)
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                drawY = -0x47;
-                drawnSprite->x = 0x16;
-                value = stats.criticals;
-                signedValue = (s32)value;
-                drawnSprite->y = drawY;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                else
-                {
-                    negative = 0;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u =
-                        baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            }
+            DRAW_SCORE_NUMBER(drawnSprite, stats.criticals, (s32), 0, 0x16,
+                              -0x47);
         } while (0);
         {
             s32 drawX;
@@ -380,15 +408,7 @@ void mission_score_screen(void)
 
             do
             {
-                u8 oldU;
-                s32 colonDigit;
-
-                number.x = 0x1F;
-                oldU = numberSprite->u;
-                colonDigit = 12;
-                numberSprite->u = oldU + numberSprite->w * colonDigit;
-                GsSortSprite(numberSprite, OTablePt, 0);
-                numberSprite->u = oldU;
+                DRAW_SCORE_COLON(numberSprite);
                 drawX = 0x2F;
             } while (0);
             do
@@ -418,244 +438,39 @@ void mission_score_screen(void)
                 {
                     negative = 0;
                 }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u =
-                        baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
+                DRAW_SCORE_DIGITS(drawnSprite, value, negative);
             } while (0);
         }
         sprite = &number;
-        {
-            s32 dividend;
-            s32 remainder;
-            s32 quotient;
-            u32 value;
-            s32 drawY;
-
-            value = result.criticalScore;
-            drawY = -0x47;
-            sprite->x = resultX;
-            sprite->y = drawY;
-            if ((s16)value < 0)
-            {
-                value = -(s16)value;
-                negative = 1;
-            }
-            else
-            {
-                negative = 0;
-            }
-            do
-            {
-                dividend = (s16)value;
-                quotient = dividend / 10;
-                remainder = dividend % 10;
-                baseU = sprite->u;
-                sprite->u = baseU + (s16)remainder * sprite->w;
-                GsSortSprite(sprite, OTablePt, 0);
-                sprite->x -= 12;
-                value = quotient;
-                quotient <<= 16;
-                sprite->u = baseU;
-            } while (quotient != 0);
-            if (negative != 0)
-            {
-                u32 signBaseU;
-                s32 minusGlyph;
-
-                minusGlyph = 10;
-                signBaseU = sprite->u;
-                sprite->u = signBaseU + sprite->w * minusGlyph;
-                GsSortSprite(sprite, OTablePt, 0);
-                sprite->u = signBaseU;
-            }
-        }
+        DRAW_SCORE_NUMBER(sprite, result.criticalScore, (s16), 0, resultX,
+                          -0x47);
 
         do
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                value = stats.murders;
-
-                signedValue = (s32)value;
-                drawY = -0x35;
-                drawnSprite->x = 0x16;
-                drawnSprite->y = drawY;
-                negative = 0;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            }
+            DRAW_SCORE_NUMBER(drawnSprite, stats.murders, (s32), 1, 0x16,
+                              -0x35);
         } while (0);
         {
             GsSPRITE *numberSprite;
             GsSPRITE *drawnSprite;
 
             numberSprite = &number;
-            {
-                u8 oldU;
-                s32 colonDigit;
-
-                number.x = 0x1F;
-                oldU = numberSprite->u;
-                colonDigit = 12;
-                numberSprite->u = oldU + numberSprite->w * colonDigit;
-                GsSortSprite(numberSprite, OTablePt, 0);
-                numberSprite->u = oldU;
-                drawnSprite = numberSprite;
-            }
+            DRAW_SCORE_COLON(numberSprite);
+            drawnSprite = numberSprite;
             do
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                value = stats.stageEnemies;
-
-                signedValue = (s32)value;
-                drawY = -0x35;
-                drawnSprite->x = 0x2F;
-                drawnSprite->y = drawY;
-                negative = 0;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            } while (0);
+                DRAW_SCORE_NUMBER(drawnSprite, stats.stageEnemies, (s32), 1,
+                                  0x2F, -0x35)
+            while (0);
         }
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                value = result.murderScore;
-
-                signedValue = (s16)value;
-                drawY = -0x35;
-                drawnSprite->x = resultX;
-                drawnSprite->y = drawY;
-                negative = 0;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            }
+            DRAW_SCORE_NUMBER(drawnSprite, result.murderScore, (s16), 1, resultX,
+                              -0x35);
         }
 
         do
@@ -663,101 +478,15 @@ void mission_score_screen(void)
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                value = stats.findEnemies;
-
-                signedValue = (s32)value;
-                drawY = -0x24;
-                drawnSprite->x = 0x23;
-                drawnSprite->y = drawY;
-                negative = 0;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            }
+            DRAW_SCORE_NUMBER(drawnSprite, stats.findEnemies, (s32), 1, 0x23,
+                              -0x24);
         } while (0);
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                value = (u16)result.spottedScore;
-
-                signedValue = (s16)value;
-                drawY = -0x24;
-                drawnSprite->x = resultX;
-                drawnSprite->y = drawY;
-                negative = 0;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            }
+            DRAW_SCORE_NUMBER(drawnSprite, (u16)result.spottedScore, (s16), 1,
+                              resultX, -0x24);
         }
 
         do
@@ -765,51 +494,8 @@ void mission_score_screen(void)
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
-            {
-                s32 dividend;
-                s32 remainder;
-                s32 quotient;
-                u32 value;
-                s16 signedValue;
-                s32 drawY;
-
-                value = (u16)result.score;
-
-                signedValue = (s16)value;
-                drawY = -0x12;
-                drawnSprite->x = resultX;
-                drawnSprite->y = drawY;
-                negative = 0;
-                if (signedValue < 0)
-                {
-                    value = -signedValue;
-                    negative = 1;
-                }
-                do
-                {
-                    dividend = (s16)value;
-                    quotient = dividend / 10;
-                    remainder = dividend % 10;
-                    baseU = drawnSprite->u;
-                    drawnSprite->u = baseU + (s16)remainder * drawnSprite->w;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->x -= 12;
-                    value = quotient;
-                    quotient <<= 16;
-                    drawnSprite->u = baseU;
-                } while (quotient != 0);
-                if (negative != 0)
-                {
-                    u32 signBaseU;
-                    s32 minusGlyph;
-
-                    minusGlyph = 10;
-                    signBaseU = drawnSprite->u;
-                    drawnSprite->u = signBaseU + drawnSprite->w * minusGlyph;
-                    GsSortSprite(drawnSprite, OTablePt, 0);
-                    drawnSprite->u = signBaseU;
-                }
-            }
+            DRAW_SCORE_NUMBER(drawnSprite, (u16)result.score, (s16), 1, resultX,
+                              -0x12);
         } while (0);
 
         if (result.grade == RANK_GRAND_MASTER)
@@ -870,30 +556,7 @@ void mission_score_screen(void)
             {
                 rowNegative = 0;
             }
-            do
-            {
-                dividend = (s16)value;
-                quotient = dividend / 10;
-                remainder = dividend % 10;
-                baseU = rowSprite->u;
-                rowSprite->u = baseU + (s16)remainder * rowSprite->w;
-                GsSortSprite(rowSprite, OTablePt, 0);
-                rowSprite->x -= 12;
-                value = quotient;
-                quotient <<= 16;
-                rowSprite->u = baseU;
-            } while (quotient != 0);
-            if (rowNegative != 0)
-            {
-                u32 signBaseU;
-                s32 minusGlyph;
-
-                minusGlyph = 10;
-                signBaseU = rowSprite->u;
-                rowSprite->u = signBaseU + rowSprite->w * minusGlyph;
-                GsSortSprite(rowSprite, OTablePt, 0);
-                rowSprite->u = signBaseU;
-            }
+            DRAW_SCORE_DIGITS(rowSprite, value, rowNegative);
             draw_time_(&number, SCORE_STATE->t_time[i],
                        0x79, i * 0x16 + 0x18, 1);
             {
@@ -989,6 +652,10 @@ void mission_score_screen(void)
         exec_process_(PROCESS_MENU);
     }
 }
+#undef SCORE_SPRITE_AT
+#undef DRAW_SCORE_NUMBER
+#undef DRAW_SCORE_COLON
+#undef DRAW_SCORE_DIGITS
 #undef result
 #undef rankSprites
 #undef characterSprites
