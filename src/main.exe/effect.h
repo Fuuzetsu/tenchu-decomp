@@ -233,6 +233,15 @@ struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
  * and end_time, advances mode through fade-in/hold/fade-out, and submits a
  * screen-sized POLY_XF4 at `OTablePt->org + priority`. This is effect state,
  * not PSX.SYM's standalone POLY_XF4 drawing helper. */
+/* FadeType.mode: ramp the colour up over `duration`, hold it, then ramp
+ * it back down and release the slot. */
+enum
+{
+    FADE_MODE_IN = 0,
+    FADE_MODE_HOLD = 1,
+    FADE_MODE_OUT = 2
+};
+
 struct FadeType /* size 20 */
 {
     u8 r;            /* +0x00 */

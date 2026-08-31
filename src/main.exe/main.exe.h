@@ -166,6 +166,16 @@ extern short SelectedItem;
 extern TCdaStatus CdaStatus;
 /* INFOVIEW.C's shared UI and layout-editor state. */
 extern short ItemCursor;
+/* PutMapMode: DoInfoViewProc arms the overlay by resetting it to OPEN;
+ * PutMap plays the open sound and slides the map in from the right, then
+ * parks in SHOWN until the view is closed again. */
+enum
+{
+    PUTMAP_OPEN = 0,
+    PUTMAP_SLIDE_IN = 1,
+    PUTMAP_SHOWN = 2
+};
+
 extern unsigned char PutMapMode;
 extern int CurrentEnemyID; /* enemy[] index latched by leFindEnemy */
 extern GsSPRITE CursorImage;

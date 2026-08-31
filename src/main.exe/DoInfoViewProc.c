@@ -267,6 +267,6 @@ nosel:
     }
     else
     {
-        PutMapMode = 0;
+        PutMapMode = PUTMAP_OPEN;
     }
 }

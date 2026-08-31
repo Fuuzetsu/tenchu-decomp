@@ -106,16 +106,16 @@ void PutMap(void)
 
     switch (PutMapMode)
     {
-    case 0:
+    case PUTMAP_OPEN:
         MapSlideX = 160;
         MapSlideY = 0;
-        PutMapMode = 1;
+        PutMapMode = PUTMAP_SLIDE_IN;
         ply->ply.r0 = 0;
         ply->ply.g0 = 0;
         ply->ply.b0 = 0;
         SoundEx((VECTOR *)0, SE_MAP_OPEN);
         break;
-    case 1:
+    case PUTMAP_SLIDE_IN:
         MapImage.r = 0x3C;
         MapImage.g = 0x3C;
         MapImage.b = 0x3C;
@@ -136,7 +136,7 @@ void PutMap(void)
             PutMapMode++;
         }
         break;
-    case 2:
+    case PUTMAP_SHOWN:
         MapSlideX = 0;
         MapSlideY = 0;
         ply->ply.r0 = rgb;

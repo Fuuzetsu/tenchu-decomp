@@ -55,7 +55,7 @@ void draw_fade_(TEffectSlot *ef)
     duration = fade->end_time - fade->start_time;
     switch (mode)
     {
-    case 0:
+    case FADE_MODE_IN:
         r = (elapsed * fade->r) / duration;
         g = (elapsed * fade->g) / duration;
         b = (elapsed * fade->b) / duration;
@@ -68,7 +68,7 @@ void draw_fade_(TEffectSlot *ef)
             fade->end_time += 3;
         }
         break;
-    case 1:
+    case FADE_MODE_HOLD:
         local.ply.r0 = fade->r;
         local.ply.g0 = fade->g;
         local.ply.b0 = fade->b;
@@ -78,7 +78,7 @@ void draw_fade_(TEffectSlot *ef)
             fade->end_time += 0x28;
         }
         break;
-    case 2:
+    case FADE_MODE_OUT:
         if ((u32)GameClock >= (u32)fade->end_time)
         {
             ef->proc = 0;
