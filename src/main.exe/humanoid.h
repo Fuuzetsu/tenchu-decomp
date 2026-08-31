@@ -78,11 +78,12 @@
  *                  angles (MapVector.angleL/angleH nonzero — the data the
  *                  swim/rope handlers steer along); +ATTR_LEDGE when that
  *                  wall is low (height < -450). Set-only in retail.
- * Still unnamed: 0x0200, the buoyant-surface mirror — set by
- * DefaultActionHumanoid whenever map->attrib bit 2 is up (the clamp that
- * floors vy at 0 and forces height 1), and read only inside compound
- * masks (ActJUMP's ATTR_NOFLOOR|0x200 dive check, ActKAGI's
- * any-contact mask). */
+ *   ATTR_BUOYANT   0x0200 — standing on a surface that holds you up:
+ *                  DefaultActionHumanoid mirrors MAP_BUOYANT into it and
+ *                  in the same breath floors vy at 0 and forces height 1.
+ *                  Read only inside compound masks — ActJUMP's dive check
+ *                  and ActKAGI's any-contact mask. The name is a
+ *                  description of that clamp, not a recovered symbol. */
 #define ATTR_PHASE 0x0003
 #define ATTR_CUSTOMAI 0x0004 /* invented name; "non-template AI", see above */
 #define PHASE_CALM 0
@@ -95,6 +96,7 @@
 #define ATTR_ALERT 0x0040
 #define ATTR_SUSPEND 0x0080
 #define ATTR_FALL 0x0100
+#define ATTR_BUOYANT 0x0200
 #define ATTR_NOFLOOR 0x0800
 #define ATTR_LEDGE 0x1000
 #define ATTR_WALLANGLE 0x2000

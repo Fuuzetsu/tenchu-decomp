@@ -221,6 +221,7 @@ struct AreaNodeType
  * point is outside the area map ("no floor here"). */
 #define LEVEL_NONE ((s32)0x80000000)
 
+#define MAP_BUOYANT 0x0002 /* the surface holds you up: see ATTR_BUOYANT */
 #define MAP_WATER 0x0004
 #define MAP_DAMAGE 0x0100
 #define MAP_WOOD 0x0008

@@ -148,9 +148,9 @@ short DefaultActionHumanoid(Humanoid *human)
              map->vector, map->angleH, map->angleL, map->attrib));
     }
 
-    if (map->attrib & 2)
+    if (map->attrib & MAP_BUOYANT)
     {
-        human->attribute |= 0x200;
+        human->attribute |= ATTR_BUOYANT;
         if (vector->vy < 0)
         {
             vector->vy = 0;

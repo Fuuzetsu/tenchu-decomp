@@ -238,7 +238,7 @@ void ActKAGI(void)
 
             human = Me_MOTION_C;
             if ((human->attribute &
-                 (ATTR_PUSH | ATTR_HIT | ATTR_NOFLOOR | ATTR_WALL | 0x200)) == 0)
+                 (ATTR_PUSH | ATTR_HIT | ATTR_NOFLOOR | ATTR_WALL | ATTR_BUOYANT)) == 0)
             {
                 goto make_wire;
             }
