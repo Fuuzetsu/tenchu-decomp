@@ -101,7 +101,6 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
     SVECTOR v;
     SVECTOR t;
     int grange2;
-    int srange2;
     long b;
     int g;
     int z2, z3;
@@ -111,7 +110,6 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
 
     g = grange;
     grange2 = g * 2;
-    srange2 = srange * 2;
     z2 = 0;
     z3 = 0;
     do
@@ -150,25 +148,25 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
         }
         npos = *(VECTOR *)&v;
         memset(&t, 0, sizeof(SVECTOR));
-        if (srange2 > 0)
+        if (srange * 2 > 0)
         {
-            t.vx = rand() % srange2 - srange;
+            t.vx = rand() % (srange * 2) - srange;
         }
         else
         {
             t.vx = -srange;
         }
-        if (srange2 > 0)
+        if (srange * 2 > 0)
         {
-            t.vy = rand() % srange2 - srange;
+            t.vy = rand() % (srange * 2) - srange;
         }
         else
         {
             t.vy = z2 - srange;
         }
-        if (srange2 > 0)
+        if (srange * 2 > 0)
         {
-            t.vz = rand() % srange2 - srange;
+            t.vz = rand() % (srange * 2) - srange;
         }
         else
         {

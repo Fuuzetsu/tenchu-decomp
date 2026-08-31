@@ -57,8 +57,9 @@
  * The digit loop is a hand-rolled goto (not do/while): the /10 magic
  * constant re-materializes EVERY iteration in the target instead of being
  * hoisted to a preheader, same as PutNumber's proven rule (a real do-while
- * would get it hoisted by loop.c). `n` divides into `t`/`q` exactly like
- * PutNumber's `cols`/`q` — the remainder for NumberImage.u is `t - q*10`,
+ * would get it hoisted by loop.c). The digit block's shadowed `n` divides
+ * into `q` exactly like PutNumber's `cols`/`q` — the remainder for
+ * NumberImage.u is `n - q*10`,
  * not Ghidra's `(char)` casts (the store to a `u8` field truncates either
  * way, so no cast is needed for the byte-truncating store to match).
  *
@@ -84,11 +85,10 @@
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
 
-void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
+void PutLifeBar(s32 bar_x, s32 bar_y, s32 life, s32 mx, s32 style)
 {
     GsSPRITE *img;
     GsSPRITE *ou;
-    s32 t;
     s32 q;
     s16 oldh;
     s32 color;
@@ -96,39 +96,47 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
     s32 dy;
     s32 u;
 
-    t = n;
-    NumberImage.w = (dx = LifeBarStyle[style].dx,
-                     dy = LifeBarStyle[style].dy, 4);
-    img = &NumberImage;
-    u = img->u;
-    img->x = x + dx;
-    img->y = y + dy;
-
     {
-        s32 q;
+        s32 x;
+        s32 y;
+        s32 n;
 
-    loop:
-        q = t / 10;
-        img->u = u + (t % 10) * 4;
-        GsSortSprite(img, OTablePt, 0);
-        img->x -= 6;
-        t = q;
+        n = life;
+        NumberImage.w = (dx = LifeBarStyle[style].dx,
+                         dy = LifeBarStyle[style].dy, 4);
+        img = &NumberImage;
+        u = img->u;
+        x = bar_x + dx;
+        y = bar_y + dy;
+        img->x = x;
+        img->y = y;
+
+        {
+            s32 q;
+
+        loop:
+            q = n / 10;
+            img->u = u + (n % 10) * 4;
+            GsSortSprite(img, OTablePt, 0);
+            img->x -= 6;
+            n = q;
+        }
+        if (n != 0)
+            goto loop;
     }
-    if (t != 0)
-        goto loop;
     img->u = u;
 
     ou = &LifeBarStyle[style].frame;
-    ou->x = x;
-    ou->y = y;
+    ou->x = bar_x;
+    ou->y = bar_y;
     GsSortSprite(ou, OTablePt, 1);
 
-    q = LifeBarStyle[style].scale * n / mx;
+    q = LifeBarStyle[style].scale * life / mx;
     ou = &LifeBarStyle[style].fill;
     oldh = ou->h;
     ou->h = LifeBarStyle[style].base + q;
 
-    if (mx / 4 < n)
+    if (mx / 4 < life)
         color = 0x80;
     else
     {
@@ -149,8 +157,8 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
         ou->r = color;
     }
 
-    ou->x = x;
-    ou->y = y;
+    ou->x = bar_x;
+    ou->y = bar_y;
     GsSortSprite(ou, OTablePt, 0);
     ou->h = oldh;
 }

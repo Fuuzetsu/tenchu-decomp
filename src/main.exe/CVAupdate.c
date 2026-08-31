@@ -49,16 +49,18 @@
  *     making the constant GLOBAL, so local-alloc gave block-local `human->status`
  *     $v0 and global-alloc took $v1 — the inverse of the target. Inlining the
  *     literal keeps the constant local to the else-block.
- *   - `delta`: `if (delta < 0) delta = -delta;` tied each load into its dying
- *     base's quantity; `__builtin_abs` expands via abssi2 and unties them.
+ *   - A staged manual absolute value ties each load into its dying base's
+ *     quantity; the direct `__builtin_abs` test expands via abssi2 and unties
+ *     them.
  *   - `anim`: ONE cursor across case 2 and case 3 is one pseudo, hence one hard
  *     register everywhere ($a0). Case 2's preheader overlaps `human->motion` in
  *     $v1 and so must take $a0, and that choice was being carried into case 3,
  *     where the target uses $v1. Case 3 needs its OWN cursor (`slot`).
  *
  * PSX.SYM's three-locals record (vect, human, i) was the through-line: `y` and
- * `active_status` were draft-invented locals the original did not have, while
- * `delta` and `anim` needed respelling (abs; a split cursor), not removal.
+ * `active_status` were draft-invented locals the original did not have.
+ * `delta` disappears into the direct absolute-value test, while the shared
+ * `anim` cursor still needs splitting by case.
  */
 
 extern s16 CVAflag; /* set by CVA camera/telop commands */
@@ -83,17 +85,12 @@ s16 CVAupdate(void)
     HumanAnimType *anim_base;
     HumanAnimType *slot;
     ModelArchiveType *model;
-    CVAType *event;
     CVAType *cursor;
     VECTOR vect;
-    long level;
-    long delta;
-    long position;
     s32 i;
     s32 invalid;
     s32 pan_value;
     u32 packed;
-    s16 value;
     u8 ch;
 
     cursor = CVAnow;
@@ -158,22 +155,20 @@ s16 CVAupdate(void)
 
                 if (CVAnow->p != invalid)
                 {
-                    position = CVAnow->x * 1000;
-                    human->point[HUMANOID_HOME_X] = position;
-                    human->locate->vx = position;
-                    position = CVAnow->z * 1000;
-                    human->point[HUMANOID_HOME_Z] = position;
-                    human->locate->vz = position;
+                    human->locate->vx = human->point[HUMANOID_HOME_X] =
+                        CVAnow->x * 1000;
+                    human->locate->vz = human->point[HUMANOID_HOME_Z] =
+                        CVAnow->z * 1000;
                     i = CVAnow->y * 1000;
-                    level = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,
-                                            i - 1000, human->locate->vz, 0);
-                    human->locate->vy = level;
+                    human->locate->vy = GetAreaMapLevel(
+                        GlobalAreaMap, human->locate->vx, i - 1000,
+                        human->locate->vz, 0);
                     if (i < human->locate->vy || human->locate->vy == (long)0x80000000)
                         human->locate->vy = i;
                     human->rotate->vy = CVAnow->p;
                     UpdateCoordinate((ModelType *)human->model);
-                    delta = __builtin_abs(human->locate->vy - StagePlayer->locate->vy);
-                    if (delta > 20000)
+                    if (__builtin_abs(human->locate->vy -
+                                      StagePlayer->locate->vy) > 20000)
                         human->attribute |= ATTR_SUSPEND;
                 }
                 break;
@@ -245,14 +240,10 @@ s16 CVAupdate(void)
                     human->motion->count--;
                     anim_base[i].human = human;
 
-                    value = CVAnow->y;
-                    if (value < 1)
-                        value = 0x7FFF;
-                    anim_base[i].loop = value;
-                    value = CVAnow->z;
-                    if (value == 0)
-                        value = MOT_ENGAGE_STANCE;
-                    anim_base[i].motid = value;
+                    anim_base[i].loop = CVAnow->y < 1 ? 0x7fff : CVAnow->y;
+                    anim_base[i].motid = CVAnow->z == 0
+                                             ? MOT_ENGAGE_STANCE
+                                             : CVAnow->z;
 
                     if (human->type == S2 && CVAnow->x == MOT_DEAD)
                         SoundEx(0, SE_CUTSCENE_DEATH);
@@ -293,18 +284,17 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_EFFECT:
-                event = CVAnow;
-                vect.vx = event->x * 10;
-                vect.vy = event->y * 10;
-                vect.vz = event->z * 10;
-                switch (event->id)
+                vect.vx = CVAnow->x * 10;
+                vect.vy = CVAnow->y * 10;
+                vect.vz = CVAnow->z * 10;
+                switch (CVAnow->id)
                 {
                 case 1:
-                    SetBlood(&vect, event->p, 30);
+                    SetBlood(&vect, CVAnow->p, 30);
                     break;
                 case 3:
-                    set_fade_((u8)event->x, (u8)event->y,
-                              (u8)event->z, event->p);
+                    set_fade_((u8)CVAnow->x, (u8)CVAnow->y,
+                              (u8)CVAnow->z, CVAnow->p);
                     break;
                 }
                 break;

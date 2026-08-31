@@ -49,12 +49,12 @@
  *    the `.s` shows the `bgez`/`+7`/`sra ,3` round-toward-zero sequence.
  *    `time / 8` is spelled out at all three sites (cse1 folds them into the
  *    one `sra`); a named `half` temp also matches but is not needed.
- *  - `rand() % (g * 2)` needs maspsx `--expand-div` for this file (division
+ *  - `rand() % (grange * 2)` needs maspsx `--expand-div` for this file (division
  *    by a variable) — already in Build.hs/permute.py.
  *
- *  - THE KEY, and why this sat parked at 13/19 bytes: `g * 2` MUST be spelled
- *    inline at its three loop-body sites rather than hoisted into a
- *    `grange2 = g * 2;` temp before the loop. Not for the multiply itself —
+ *  - THE KEY, and why this sat parked at 13/19 bytes: `grange * 2` MUST be
+ *    spelled inline at its three loop-body sites rather than hoisted into a
+ *    named `grange2` temp before the loop. Not for the multiply itself —
  *    cse/loop still hoist it back out to the single `sll s2,s3,0x1` in the
  *    prologue — but purely for its effect on loop.c's INSN COUNT.
  *
@@ -74,7 +74,7 @@
  *    t1, not v0), address not hoisted above the byte stores, and the proc
  *    store not sinking into the delay slot.
  *
- *    Inlining `g * 2` at 3 sites lifts the loop to 117 real insns, 116 >= 117
+ *    Inlining `grange * 2` at 3 sites lifts the loop to 117 real insns, 116 >= 117
  *    is false, loop.c leaves the address in the tail block as ordinary insns,
  *    and sched1 then schedules them into the target's exact order. The margin
  *    is TWO insns: 115 still hoists, 117 does not. Verified against the
@@ -92,11 +92,8 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
     SVECTOR v;
     SVECTOR t;
     long b;
-    int g;
-    int rem;
     int btime;
 
-    g = grange;
     do
     {
         if (n <= 0)
@@ -105,31 +102,34 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         }
         memset(&v, 0, sizeof(VECTOR));
         b = pos->vx;
-        if (g * 2 > 0)
+        if (grange * 2 > 0)
         {
-            ((VECTOR *)&v)->vx = b + (rand() % (g * 2) - g);
+            ((VECTOR *)&v)->vx =
+                b + (rand() % (grange * 2) - grange);
         }
         else
         {
-            ((VECTOR *)&v)->vx = b - g;
+            ((VECTOR *)&v)->vx = b - grange;
         }
         b = pos->vy;
-        if (g * 2 > 0)
+        if (grange * 2 > 0)
         {
-            ((VECTOR *)&v)->vy = b + (rand() % (g * 2) - g);
+            ((VECTOR *)&v)->vy =
+                b + (rand() % (grange * 2) - grange);
         }
         else
         {
-            ((VECTOR *)&v)->vy = b - g;
+            ((VECTOR *)&v)->vy = b - grange;
         }
         b = pos->vz;
-        if (g * 2 > 0)
+        if (grange * 2 > 0)
         {
-            ((VECTOR *)&v)->vz = b + (rand() % (g * 2) - g);
+            ((VECTOR *)&v)->vz =
+                b + (rand() % (grange * 2) - grange);
         }
         else
         {
-            ((VECTOR *)&v)->vz = b - g;
+            ((VECTOR *)&v)->vz = b - grange;
         }
         npos = *(VECTOR *)&v;
         memset(&t, 0, sizeof(SVECTOR));
@@ -138,10 +138,9 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         t.vz = vec->vz;
         v = t;
 
-        rem = time - time / 8;
-        if (rem > 0)
+        if (time - time / 8 > 0)
         {
-            btime = rand() % rem + time / 8;
+            btime = rand() % (time - time / 8) + time / 8;
         }
         else
         {

@@ -47,8 +47,6 @@ void DrawImpact(TEffectSlot *ef)
     s32 end;
     s32 end_raw;
     s32 size;
-    s32 z;
-    s16 scale;
     s32 priority;
     s32 work;
 
@@ -122,12 +120,10 @@ void DrawImpact(TEffectSlot *ef)
         GetScreenPosition(end, start2, inverse, &scr);
     }
 
-    z = scr.vz;
-    if (z > NEAR_DEPTH)
+    if (scr.vz > NEAR_DEPTH)
     {
-        scale = (s16)((size * PROJECTION_DISTANCE) / z) + 1;
-        spr->scaley = scale;
-        spr->scalex = scale;
+        spr->scalex = spr->scaley =
+            (s16)((size * PROJECTION_DISTANCE) / scr.vz) + 1;
         spr->x = scr.vx;
         spr->y = scr.vy;
 

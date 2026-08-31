@@ -30,14 +30,14 @@
  *    inner pixel counter, bitmap[v][15 - u] is one ternary assignment, and
  *    font selection is ordinary if/else control flow. Synthetic one-shot
  *    fences, carrier variables, and loop-weighting nests are not required.
- *  - Write v = 0 before fill_white = 0x7fff. The independent zero
- *    initialization then fills the font guard's delay slot and preserves the
+ *  - Write v = 0 before entering the fill loop. The independent zero
+ *    initialization fills the font guard's delay slot and preserves the
  *    target allocation.
  *  - Keep the byte swap in two statements: bits = raw_bits >> 8 followed by
  *    bits |= raw_bits << 8. A fused expression reverses the operand emission
  *    order even though loop.c still hoists it.
- *  - fill_white is a real local shared by the bitmap assignment. Replacing it
- *    with literal 0x7fff grows the function to 1084 bytes.
+ *  - The fill constant may remain literal in the bitmap assignment; CSE
+ *    retains the target's single 0x7fff value.
  *
  * The rounds 1–4 allocation floor was a property of the scaffolded draft, not
  * the recovered decomposition. Its superseded autopsy remains in
@@ -58,25 +58,20 @@ void SetupTelop(u8 *telop, short line)
     s16 *font;
     s16 bits;
     u16 raw_bits;
-    s16 north;
-    s16 fill_white;
     s16 outline_white;
-    s32 scaled_y;
     s32 line_y;
     s32 signed_v;
     s32 final_v;
-    s32 final_v2;
 
     TelopP.u1 = 0;
     TelopP.u0 = 0;
     if ((*telop & 0x80) != 0 && (telop[2] & 0x80) != 0)
     {
-        scaled_y = line * 16;
         rect.x = 0x300;
-        rect.y = 0x1f0 - scaled_y;
+        rect.y = 0x1f0 - line * 16;
         rect.w = 0x100;
         rect.h = 0xf;
-        line_y = scaled_y;
+        line_y = line * 16;
         ClearImage(&rect, 0, 0, 0);
         DrawSync(0);
         rect.w = 0x10;
@@ -109,7 +104,6 @@ void SetupTelop(u8 *telop, short line)
             if (font != (s16 *)-1)
             {
                 v = 0;
-                fill_white = 0x7fff;
                 do
                 {
                     raw_bits = font[v];
@@ -118,7 +112,7 @@ void SetupTelop(u8 *telop, short line)
                     u = 0;
                     do
                     {
-                        bitmap[v][15 - u] = ((bits >> u) & 1) ? fill_white : 0;
+                        bitmap[v][15 - u] = ((bits >> u) & 1) ? 0x7fff : 0;
                         u++;
                     } while (u < 16);
                     v++;
@@ -131,11 +125,10 @@ void SetupTelop(u8 *telop, short line)
                 {
                     if (bitmap[v][u] == 0)
                     {
-                        north = bitmap[v - 1][u];
-                        if ((north == outline_white && bitmap[v][u - 1] == outline_white) ||
+                        if ((bitmap[v - 1][u] == outline_white && bitmap[v][u - 1] == outline_white) ||
                             (bitmap[v][u - 1] == outline_white && bitmap[v + 1][u] == outline_white) ||
                             (bitmap[v + 1][u] == outline_white && bitmap[v][u + 1] == outline_white) ||
-                            (bitmap[v][u + 1] == outline_white && north == outline_white))
+                            (bitmap[v][u + 1] == outline_white && bitmap[v - 1][u] == outline_white))
                         {
                             bitmap[v][u] = 0x1ce7;
                         }
@@ -167,7 +160,6 @@ void SetupTelop(u8 *telop, short line)
 
         memset(&TelopP, 0xff, sizeof(TelopP));
         final_v = SCREEN_H - line_y;
-        final_v2 = (u8)rect.h + final_v;
         u = (u16)rect.x - 0x301;
         setlen(&TelopP, 9);
         TelopP.code = 0x2c;
@@ -177,8 +169,8 @@ void SetupTelop(u8 *telop, short line)
         TelopP.v0 = final_v;
         TelopP.u3 = u;
         TelopP.u1 = u;
-        TelopP.v3 = final_v2;
-        TelopP.v2 = final_v2;
+        TelopP.v3 = (u8)rect.h + final_v;
+        TelopP.v2 = (u8)rect.h + final_v;
         TelopP.tpage = GetTPage(2, 0, 0x300,
                                 0x1f0 - (s16)line_y);
     }

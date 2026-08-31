@@ -32,10 +32,9 @@
  * assigned `rand() & 1`), matching Ghidra's own Humanoid struct in
  * reference/ghidra_types.h (its actmode/actflg/actcnt/actscnt run).
  *
- * `actcnt` is a real local: the else branch's `actcnt + 1` store reuses the
- * SAME register the entry test read (no reload of the global in between).
- * `old_actscnt` mirrors Think1trace's idiom: `actscnt + 1` stores back
- * unconditionally before the `> 10` test reads the OLD value. `rand()` takes
+ * The direct actcnt field test and the actscnt post-increment retain the
+ * target's byte loads and old-value comparison without staging locals.
+ * `rand()` takes
  * no argument — the asm's $a0 still holds Me_THINK_C (unclobbered since
  * entry) at the call site, which m2c mis-renders as an argument (the
  * cookbook's m2c-over-counts-call-args tell); every other proven call site
@@ -45,24 +44,19 @@ extern int rand(void);
 
 s16 Think1watch(void)
 {
-    u8 actcnt;
-    u8 old_actscnt;
-    s16 result;
+    s16 pad;
 
-    actcnt = Me_THINK_C->actcnt;
-    result = 0;
-    if ((actcnt & 0x7F) == 0)
+    pad = 0;
+    if ((Me_THINK_C->actcnt & 0x7F) == 0)
     {
         /* PADLleft as a negative constant: fits addiu (same lever as
          * SuccessionAttack's documented spellings). */
-        result = -0x8000;
+        pad = -0x8000;
         if (Me_THINK_C->actflg != 0)
         {
-            result = PADLright;
+            pad = PADLright;
         }
-        old_actscnt = Me_THINK_C->actscnt;
-        Me_THINK_C->actscnt = old_actscnt + 1;
-        if (old_actscnt > 10)
+        if (Me_THINK_C->actscnt++ > 10)
         {
             Me_THINK_C->actflg = rand() & 1;
             Me_THINK_C->actscnt = 0;
@@ -73,5 +67,5 @@ s16 Think1watch(void)
     {
         Me_THINK_C->actcnt++;
     }
-    return result;
+    return pad;
 }

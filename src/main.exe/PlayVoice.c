@@ -122,7 +122,6 @@ void PlayVoice(int id)
     TVoiceTable *match;
     TVoiceTable *cursor;
     TVoiceTable *next;
-    u8 voice_id;
     int end_marker;
     TVoiceTable *fallback;
     int fallback_end;
@@ -168,14 +167,13 @@ void PlayVoice(int id)
                 {
                     voice = next;
                 }
-                voice_id = cursor->no;
                 match = voice;
-                if (id == voice_id)
+                if (id == cursor->no)
                     break;
                 next = cursor + 1;
                 voice = next;
             } while (next->no != 0xff);
-            if (id != voice_id)
+            if (id != cursor->no)
                 match = 0;
         }
         goto found;
@@ -218,13 +216,11 @@ void PlayVoice(int id)
                         cursor = next;
                     }
                 }
-                voice_id = cursor->no;
-                if (id == voice_id)
+                if (id == cursor->no)
                     break;
                 cursor++;
-                voice_id = cursor->no;
                 match = 0;
-            } while (voice_id != end_marker);
+            } while (cursor->no != end_marker);
         }
     }
 found:
@@ -237,8 +233,7 @@ found:
             cursor = fallback;
             do
             {
-                voice_id = cursor->no;
-                if (id == voice_id)
+                if (id == cursor->no)
                 {
                     match = cursor;
                     goto found2;

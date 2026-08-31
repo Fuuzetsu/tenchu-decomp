@@ -88,7 +88,6 @@ void ActivateHumans(void)
     s32 n;
     s32 level;
     s16 j;
-    ModelType *model;
 
     target = CamState.Owner;
     vc = *target->locate;
@@ -216,8 +215,7 @@ void ActivateHumans(void)
                 {
                     human->attribute = (u16)human->attribute & ~ATTR_SUSPEND;
                     ThinkCount++;
-                    model = *human->model->object;
-                    model->attribute |= MODEL_ATTR_COLLIDE;
+                    (*human->model->object)->attribute |= MODEL_ATTR_COLLIDE;
                 }
             }
             else if (((u16)human->attribute & ATTR_SUSPEND) == 0 && human->type != ON)
@@ -265,8 +263,7 @@ void ActivateHumans(void)
                 }
 
                 human->attribute = (u16)human->attribute | ATTR_SUSPEND;
-                model = *human->model->object;
-                model->attribute &= ~MODEL_ATTR_COLLIDE;
+                (*human->model->object)->attribute &= ~MODEL_ATTR_COLLIDE;
             }
         }
 

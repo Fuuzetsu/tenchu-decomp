@@ -90,8 +90,6 @@ void CreateStage(int StageNo, int CharType)
     CreateStageTitleScratch scratch;
     TStageConfig *base;
     TStageConfig *stage;
-    short mode;
-    short stageNo;
     u_long *dat;
     GsIMAGE *image;
     BackGround *bg;
@@ -119,13 +117,11 @@ void CreateStage(int StageNo, int CharType)
         KillHumanoid(target);
     }
 
-    mode = (short)CharType;
     base = StageConfig;
     stage = &base[StageNo];
-    stageNo = (short)(StageNo + 1);
     ImagePath = (u8 *)stage->path;
     StageID = StageNo;
-    SetupSoundEffect(mode, stageNo);
+    SetupSoundEffect(CharType, StageNo + 1);
     DoBriefingAndInventorySelection();
 
     __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
@@ -147,13 +143,13 @@ void CreateStage(int StageNo, int CharType)
     EndDrawing(0);
     DisposeBG(bg);
 
-    SetupAppearance(mode, stageNo);
+    SetupAppearance(CharType, StageNo + 1);
     LoadConstruction(PathFileRead(ImagePath, (u8 *)path_stage_con));
     initialise_font();
     InitializeImage();
     ResetInfoview(StageNo);
 
-    human = BreedLife(mode, 0, 0, 0, 0);
+    human = BreedLife(CharType, 0, 0, 0, 0);
     SetupThinkFunction(human, THINK_MIX_PLAYER);
     human->model->locate.coord.t[0] = stage->px;
     human->model->locate.coord.t[1] = stage->py;
