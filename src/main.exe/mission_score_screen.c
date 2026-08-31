@@ -5,6 +5,10 @@
 #include "misc.h"
 #include "images.h"
 
+#define SCORE_ROW_SPACING 0x16
+#define N_STAGE_RANKS (RANK_GRAND_MASTER + 1)
+#define N_HIGH_SCORES 5
+
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
  *
@@ -38,7 +42,7 @@ typedef struct
 {
     ScoreResult result;
     u32 rankReserved;
-    GsSPRITE rankSprites[5];
+    GsSPRITE rankSprites[N_STAGE_RANKS];
     u32 characterReserved;
     GsSPRITE characterSprites[2];
 } MissionScoreSpriteStorage;
@@ -264,7 +268,7 @@ void mission_score_screen(void)
         LoadTIM(tim);
     }
         i++;
-        if (i < 5)
+        if (i < N_STAGE_RANKS)
             goto score_rank_sprite_init_loop;
     }
 
@@ -278,13 +282,13 @@ void mission_score_screen(void)
         u32 width;
         u32 height;
 
-        tim = get_tim_from_archive(archive, i + 5);
+        tim = get_tim_from_archive(archive, i + N_STAGE_RANKS);
         initSprite = (GsSPRITE *)((u8 *)&storage +
                                   i * sizeof(GsSPRITE));
         initSprite = (GsSPRITE *)((u8 *)initSprite +
                                   sizeof(ScoreResult) +
                                   2 * sizeof(u32) +
-                                  5 * sizeof(GsSPRITE));
+                                  N_STAGE_RANKS * sizeof(GsSPRITE));
         InitScoreSprite(tim, &image, initSprite);
         /* Retail keeps this dead attribute load (value overwritten
          * before any use) — a leftover of the rank-loop copy. */
@@ -312,7 +316,7 @@ void mission_score_screen(void)
     vfree(tim);
 
     {
-        for (i = 0; i < 5; i++)
+        for (i = 0; i < N_HIGH_SCORES; i++)
         {
             if (SCORE_STATE->t_time[i] == 0)
             {
@@ -325,7 +329,7 @@ void mission_score_screen(void)
 
     insertedRank = -1;
     {
-        for (i = 0; i < 5; i++)
+        for (i = 0; i < N_HIGH_SCORES; i++)
         {
             if (SCORE_STATE->t_dani[i] < result.grade)
             {
@@ -346,8 +350,8 @@ void mission_score_screen(void)
 
         if (found >= 0)
         {
-            i = 4;
-            if (found < 4)
+            i = N_HIGH_SCORES - 1;
+            if (found < N_HIGH_SCORES - 1)
             {
                 do
                 {
@@ -543,7 +547,7 @@ void mission_score_screen(void)
 
             signedValue = i + 1;
             value = signedValue;
-            drawY = (i * 0x16 + 0x18);
+            drawY = (i * SCORE_ROW_SPACING + 0x18);
             rowSprite->x = -0x8F;
             rowSprite->y = drawY;
             widenedValue = signedValue;
@@ -558,7 +562,7 @@ void mission_score_screen(void)
             }
             DRAW_SCORE_DIGITS(rowSprite, value, rowNegative);
             draw_time_(&number, SCORE_STATE->t_time[i],
-                       0x79, i * 0x16 + 0x18, 1);
+                       0x79, i * SCORE_ROW_SPACING + 0x18, 1);
             {
                 /* Dead local retained by the row-rendering template. */
                 s32 rowScore;
@@ -572,7 +576,7 @@ void mission_score_screen(void)
                 sprite = &characterSpriteBase[rowState->t_char[i]];
             }
             sprite->x = -0x79;
-            sprite->y = i * 0x16 + 0x16;
+            sprite->y = i * SCORE_ROW_SPACING + SCORE_ROW_SPACING;
             if (i == insertedRank)
             {
                 rowBrightness = rsin((GameClock << 12) / MEDAL_PULSE_PERIOD) * ROW_PULSE_AMPLITUDE;
@@ -599,7 +603,7 @@ void mission_score_screen(void)
                 rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;
                 rankSprite->scalex = rankSprite->scaley = 0xB33;
                 rankSprite->x = -0x2F;
-                rankSprite->y = i * 0x16 + 0x16;
+                rankSprite->y = i * SCORE_ROW_SPACING + SCORE_ROW_SPACING;
                 GsSortSprite(rankSprite, OTablePt, 1);
             }
             i++;

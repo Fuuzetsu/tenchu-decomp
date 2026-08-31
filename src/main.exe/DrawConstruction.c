@@ -6,6 +6,12 @@
 #include "tmdfast.h"
 
 #define N_DRAW_BUCKETS 153
+#define N_DRAW_SLOTS 100
+#define WORLD_MAP_AXIS_SIZE 8
+#define WORLD_MAP_AXIS_MASK (WORLD_MAP_AXIS_SIZE - 1)
+#define CONSTRUCTION_CELL_CENTER_OFFSET (CONSTRUCTION_CELL / 2)
+#define CONSTRUCTION_SCAN_RADIUS_XZ 2
+#define CONSTRUCTION_SCAN_RADIUS_Y 1
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -81,7 +87,7 @@ void DrawConstruction(void)
     int ndl;
     int ndt;
     ObjectSlotType *DrawList[N_DRAW_BUCKETS];
-    ObjectSlotType Slot[100];
+    ObjectSlotType Slot[N_DRAW_SLOTS];
     ObjectSlotManager SlotMan;
     int sx;
     int sy;
@@ -127,13 +133,13 @@ have_z:
 
     ndl = 0;
     ndt = 0;
-    sx = nx - 2;
-    sy = ny - 1;
-    sz = nz - 2;
-    ex = nx + 2;
-    ey = ny + 1;
-    ez = nz + 2;
-    SlotMan.max = 100;
+    sx = nx - CONSTRUCTION_SCAN_RADIUS_XZ;
+    sy = ny - CONSTRUCTION_SCAN_RADIUS_Y;
+    sz = nz - CONSTRUCTION_SCAN_RADIUS_XZ;
+    ex = nx + CONSTRUCTION_SCAN_RADIUS_XZ;
+    ey = ny + CONSTRUCTION_SCAN_RADIUS_Y;
+    ez = nz + CONSTRUCTION_SCAN_RADIUS_XZ;
+    SlotMan.max = N_DRAW_SLOTS;
     SlotMan.slot = Slot;
     SlotMan.n = 0;
 
@@ -144,7 +150,7 @@ have_z:
     *(GsRVIEW2 *)TENCHU_SCRATCHPAD(0x38) = ViewInfo;
 
     {
-    WorldType(*world_base)[8][8];
+    WorldType(*world_base)[WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE];
     int cell_x;
     int cell_y;
     int cell_z;
@@ -162,9 +168,9 @@ scan_y:
     if (ey < k)
         goto next_x;
     cell_y = k;
-    world_y_offset = (cell_y & 7) << 5;
+    world_y_offset = (cell_y & WORLD_MAP_AXIS_MASK) << 5;
     world_base = WorldMap;
-    world_x_offset = (cell_x & 7) << 8;
+    world_x_offset = (cell_x & WORLD_MAP_AXIS_MASK) << 8;
     l = sz;
 scan_z:
     if (ez < l)
@@ -174,14 +180,14 @@ scan_z:
     {
         do
         {
-            visible = IsVisible(cell_x * CONSTRUCTION_CELL + 8000,
-                                cell_y * CONSTRUCTION_CELL + 8000,
-                                cell_z * CONSTRUCTION_CELL + 8000, 0x2BC1);
+            visible = IsVisible(cell_x * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
+                                cell_y * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
+                                cell_z * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET, 0x2BC1);
         } while (0);
     } while (0);
     if (visible)
     {
-        cur = ((WorldType *)(((cell_z & 7) << 2) +
+        cur = ((WorldType *)(((cell_z & WORLD_MAP_AXIS_MASK) << 2) +
                              world_y_offset + world_x_offset +
                              (u32)world_base))
                   ->top;
