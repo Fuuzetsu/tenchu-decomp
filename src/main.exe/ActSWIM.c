@@ -57,6 +57,13 @@ void ActSWIM(void)
             if (dtM->count == 1)
                 Sound(Me_MOTION_C, SE_WATER_MOVE);
             {
+                /* This reads as `dtR->vy += Me_MOTION_C->turn;` and is not:
+                 * retail splits the load, the add and the store across three
+                 * names and all three are needed. Measured on the middle of
+                 * the three identical copies -- the plain compound
+                 * assignment costs 18 lines, dropping only `rotation` 15,
+                 * dropping only current/result 13; collapsing all three
+                 * copies at once costs 226. */
                 int current;
                 int result;
                 SVECTOR *rotation;
