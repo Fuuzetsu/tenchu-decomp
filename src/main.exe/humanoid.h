@@ -124,20 +124,24 @@ extern short motMODE;
 /* Attack-animation ids, for the one switch that keys on them (ActATTACK).
  *
  * `GetMotionID(dtM, MOT_ATTACK)` returns the `id` of the mid == MOT_ATTACK
- * row of the ATTACKING CHARACTER's own registration table, HumanData[].mtbl.
- * So the value identifies a character, not a state, and each case below is
- * that character's swing: the names are the game's own, read from
- * HumanData[].name (retail data at 0x80088a8c) by walking each row's mtbl to
- * its MOT_ATTACK entry.  Ids are global rather than per-character because
- * SearchMotion resolves them against three shared pools (common, player,
- * stage), which is how eight different enemies share 0xaa. */
-#define ATTACK_MOTID_KERAI 0xaa /* + ROUNIN ROUBAN ASIGARU SISI MANJI5 TENGU KABANE */
-#define ATTACK_MOTID_ECHIGOYA 0xab
-#define ATTACK_MOTID_PIRATEA 0xac
-#define ATTACK_MOTID_MEIOU 0xe9
-#define ATTACK_MOTID_HANBE 0xf1  /* + TUZI */
-#define ATTACK_MOTID_MANJI 0xf5  /* + both MOURYO rows */
-#define ATTACK_MOTID_KATAOKA 0x1a4
+ * row of the ATTACKING CHARACTER's own registration table, HumanData[].mtbl,
+ * and SearchMotion resolves ids against three shared pools (common, player,
+ * stage) rather than per-character archives — so the id space is global and
+ * characters that swing the same way share one id.
+ *
+ * Walking every HumanData row's mtbl to its MOT_ATTACK entry (retail data at
+ * 0x80088a8c) shows what these seven ids have in common: each is used by
+ * characters carrying exactly ONE weapon kind, while every id the switch
+ * ignores is shared across several. That is the selector — the special-case
+ * effect belongs to the weapon, so the names are its `character_weapon_kind`
+ * spelling, with the carriers listed from HumanData[].name. */
+#define ATTACK_MOTID_YUMI 0xaa /* KERAI ROUNIN ROUBAN ASIGARU SISI MANJI5 TENGU KABANE */
+#define ATTACK_MOTID_GUN 0xab      /* ECHIGOYA */
+#define ATTACK_MOTID_TEPPO 0xac    /* PIRATEA */
+#define ATTACK_MOTID_SEVEN 0xe9    /* MEIOU */
+#define ATTACK_MOTID_KATANAL 0xf1  /* HANBE, TUZI */
+#define ATTACK_MOTID_MANJI 0xf5    /* MANJI and both MOURYO rows — no weapon */
+#define ATTACK_MOTID_KATAYUMI 0x1a4 /* KATAOKA */
 
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);

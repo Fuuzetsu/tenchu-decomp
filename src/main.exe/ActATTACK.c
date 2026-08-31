@@ -302,7 +302,7 @@ dispatch:
         t = GetMotionID(dtM, MOT_ATTACK);
         switch (t)
         {
-        case ATTACK_MOTID_HANBE:
+        case ATTACK_MOTID_KATANAL:
         {
             OrnamentType **weapon;
 
@@ -310,14 +310,14 @@ dispatch:
             SWAP_TWIN_BLADE(42, 6);
             break;
         }
-        case ATTACK_MOTID_ECHIGOYA:
+        case ATTACK_MOTID_GUN:
         {
             VECTOR *pos;
 
             FIRE_GUN_AT_FRAME(20, 100);
             break;
         }
-        case ATTACK_MOTID_PIRATEA:
+        case ATTACK_MOTID_TEPPO:
         {
             VECTOR *pos;
 
@@ -360,11 +360,11 @@ dispatch:
             }
             break;
         }
-        case ATTACK_MOTID_MEIOU:
+        case ATTACK_MOTID_SEVEN:
             launch_lightning_bolt_(13);
             break;
-        case ATTACK_MOTID_KERAI:
-        case ATTACK_MOTID_KATAOKA:
+        case ATTACK_MOTID_YUMI:
+        case ATTACK_MOTID_KATAYUMI:
             AttackBowControl(0);
             break;
         }
