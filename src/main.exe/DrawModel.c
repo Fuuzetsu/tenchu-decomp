@@ -34,13 +34,12 @@
  * not.
  *
  * Matching notes:
- *  - Ghidra's decompile needed 3 gotos for an irreducible CFG — the SOURCE
- *    really is goto-shaped, not just a decompiler artifact: reject_check
- *    (retest attribute&0x10 after either skipping or passing the
- *    +-0xf0/+-0xb4 box check), unit_vector (the shared UnitVector
- *    RotTransPers call, reached both when attribute&2 is set AND as a
- *    fallthrough), ret (the shared tail: draw if the running OTZ/sentinel
- *    isn't -1).
+ *  - Two of the three joins Ghidra needed are ordinary structure: the
+ *    far-depth retest is reached by falling out of the screen-cull block
+ *    (an if/else, no label), and the UnitVector projection is the
+ *    fallthrough after it (2026-08-31, byte-identical - the same recipe
+ *    as DrawModelArchive/DrawSprite/DrawClip). `ret` stays: it is the
+ *    shared tail that draws when the running OTZ/sentinel isn't -1.
  *  - Ghidra's `iVar3` conflates TWO independent asm registers under one
  *    name: `$v1` (the OTZ from the first RotTransPers, cached and reused
  *    unchanged through the attribute&4 and attribute&0x10 tests, then
@@ -65,52 +64,51 @@
  *    compiles a `nor+sltu` boolean materialize that the target doesn't
  *    have (DrawBG's identical "two early returns, no computed boolean"
  *    lever).
- *  - `reject_check` is reached from THREE edges (attribute&8==0 skip, the
- *    box check passing cleanly, and the box check's own "iv<0xb5"
- *    loop-back). The target lays the box-check body out FIRST — `if
- *    ((atr & MODEL_ATTR_CULL_SCREEN) != 0) { <box check> } reject_check: ...` — so its OWN
- *    attribute&8==0 case is the negated guard's forward branch straight
- *    into reject_check's test, and the box check's clean pass-through is
- *    a plain fallthrough into the SAME test, both feeding one physical
- *    `andi s0,0x10` + `slti`. Writing it the other way around (Ghidra's
- *    literal `if (atr&8==0) { reject_check: ... } <box check>`, i.e.
- *    reject_check FIRST) makes cc1 place the box check's `goto
- *    reject_check;` as a BACKWARD jump reusing the SAME physical test —
- *    which is length-correct on its own, but see the next point.
+ *  - The far-depth test is reached from THREE edges (attribute&8 skip,
+ *    the box check passing cleanly, and its iv<0xb5 pass). The target
+ *    lays the box-check body out FIRST, so the attribute&8==0 case is a
+ *    forward branch into that test and the clean pass-through falls into
+ *    the SAME test, both feeding one physical `andi s0,0x10` + `slti`.
+ *    Writing it the other way around (the far-depth test first) makes
+ *    cc1 reuse the same physical test through a BACKWARD jump - length
+ *    correct on its own, but see the next point. The block's TEXTUAL
+ *    position is load-bearing either way: a flatter spelling that moves
+ *    the direct reject next to the X test costs bytes through reorg
+ *    (measured on the sibling DrawSprite).
  *  - Length-only bug hiding downstream: Ghidra's decompile reads the box
- *    check's OWN "goto unit_vector;" tail (reached when either box-check
+ *    check's OWN "skip to the projection" tail (reached when either box-check
  *    threshold fails, i.e. iv>=0xf1 or iv>=0xb5) as skipping straight to
- *    `unit_vector`. It doesn't — the target sends BOTH box-check failures
+ *    the UnitVector projection. It doesn't — the target sends BOTH box-check failures
  *    to the REJECT tail (`sz = -1; goto ret;`) directly, never touching
- *    unit_vector at all. Decompiling the shared `goto unit_vector;" at
+ *    the UnitVector projection at all. Decompiling the shared `goto` to the projection at
  *    face value costs nothing in count (still compiles) but is
  *    semantically wrong AND — because it changes which two rejects turn
  *    out byte-identical to each other — it changes which cross-jump merge
  *    cc1 finds, which is what actually broke the LENGTH (4 extra
  *    instructions with the wrong tail).
  *  - The two-arm `if (sz < 300) DrawTMDmode = TMD_BANK_PLAIN; else DrawTMDmode = TMD_BANK_FOG;`
- *    inside unit_vector must be written negated — `if (sz >= FOG_DEPTH)
+ *    inside the UnitVector projection must be written negated — `if (sz >= FOG_DEPTH)
  *    DrawTMDmode = TMD_BANK_FOG; else DrawTMDmode = TMD_BANK_PLAIN;` — to match which arm ends
  *    up adjacent to the shared reject/ret tail (worth 4 of the 8
  *    residual bytes on its own; the cookbook's "if(cond)A;else B" A/B
  *    labels are NOT swap-invariant once a shared tail sits past the
  *    if/else — only ONE spelling reaches it for free).
  *  - The other 4 bytes: `sz = -1;` for the "attribute&4 set, sz==0"
- *    reject and for the unit_vector "sz>=0x4e3" reject must NOT be one
+ *    reject and for the the UnitVector projection "sz>=0x4e3" reject must NOT be one
  *    shared trailing statement (`... } sz = -1; ret: ...`, reached by
  *    falling out of the whole if/else) — cc1's cross-jump then merges
  *    them into a stub sitting wherever the EARLIER of the two textually
- *    is (right after `reject_check`, before `unit_vector`'s own body),
+ *    is (right after the far-depth test, before the UnitVector projection's own body),
  *    which is length-correct but shifts branch targets throughout the
  *    tail. The fix: give the merge point its own real label (`reject:`)
  *    placed exactly where the target's copy physically lives — inside
- *    unit_vector's own `if (sz > DEPTH_LIMIT)` guard — and have every OTHER
+ *    the UnitVector projection's own `if (sz > DEPTH_LIMIT)` guard — and have every OTHER
  *    "unconditional sz=-1" site (attribute&4 reject, both box-check
  *    failures) `goto reject;` into it instead of duplicating `sz = -1;
  *    goto ret;` at each site. A named goto TARGET pins cross-jump's
  *    choice of primary copy; an implicit shared-fallthrough or a
  *    site-local duplicate both leave that choice to cc1, and it doesn't
- *    reliably pick the textually-later occurrence. `reject_check`'s OWN
+ *    reliably pick the textually-later occurrence. the far-depth test's OWN
  *    reject (the attribute&0x10 test) stays a literal, separate `sz =
  *    -1; goto ret;` — the target compiles that one as a direct branch
  *    with `sz=-1` in its OWN delay slot, never touching the shared
