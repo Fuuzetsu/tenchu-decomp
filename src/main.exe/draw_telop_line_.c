@@ -1,16 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct POLY_FT4 TelopP;
- *     extern struct GsOT *OTablePt;
- * END PSX.SYM */
-
 /*
  * draw_telop_line_ (0x800570b8, 0x160 bytes) — the telop (on-screen caption)
  * text-line renderer, called by DrawTelop (matched, same TU) with

@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct ITEM__210fake HensinT[9];
- * END PSX.SYM */
-
 /*
  * get_henshin_type_ (0x8004a598, 0x34 bytes) — 2-column byte-table lookup:
  * row = idx, column = (chr == 1). No direct (jal) callers found

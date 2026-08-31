@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct GsOT *OTablePt;
- * END PSX.SYM */
-
 /*
  * draw_digits_ (0x8005679c, 0x11c bytes) — draws a decimal number as a
  * strip of digit sprites off ONE shared GsSPRITE glyph-atlas sprite

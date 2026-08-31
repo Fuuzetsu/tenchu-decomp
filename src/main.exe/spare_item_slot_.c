@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
- * END PSX.SYM */
-
 /*
  * spare_item_slot_ (0x8004a368, 0x80 bytes) — get/set accessor over the LAST
  * slot of Humanoid's per-item-kind count array (item[ITEM_N] — the same

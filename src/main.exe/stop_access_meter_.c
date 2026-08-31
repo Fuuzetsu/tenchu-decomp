@@ -2,16 +2,6 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern int AccessPower;
- *     extern struct POLY_GT4 AccessImage;
- * END PSX.SYM */
-
 /*
  * stop_access_meter_ (0x80018f00, 0x110 bytes) — FILEIO.C's "stop the access
  * indicator" routine: disarms the vsync draw callback (`VSyncCallback(0)`,

@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include <psxsdk/libsnd.h>
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCdaStatus CdaStatus;
- * END PSX.SYM */
-
 /*
  * apply_cda_attr_ (0x8004fc08, 0x68 bytes) — CD-audio serial-attribute setter:
  * re-asserts SsSetSerialAttr(0,0,1) either way, then feeds SsSetSerialVol

@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "memcard.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern unsigned char *TENCHU_ID;
- * END PSX.SYM */
-
 /*
  * check_card_file_ (0x80056e30, 0x94 bytes) — MEMCARD.C family: primes the card
  * system with the standard ChkCard.c/LoadCard.c/DeleteCard.c boilerplate

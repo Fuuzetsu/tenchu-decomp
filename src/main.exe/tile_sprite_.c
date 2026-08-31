@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "images.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct GsOT *OTablePt;
- * END PSX.SYM */
-
 /*
  * tile_sprite_ (0x80056910, 0x12c bytes) — tiles a Sprite3D's embedded
  * GsSPRITE over a fixed on-screen rectangle. Its blend mode comes from

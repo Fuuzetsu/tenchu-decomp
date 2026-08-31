@@ -3,16 +3,6 @@
 #include <psxsdk/libgpu.h>
 #include "effect.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern long GameClock;
- *     extern struct GsOT *OTablePt;
- * END PSX.SYM */
-
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 

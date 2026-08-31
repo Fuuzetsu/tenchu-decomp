@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
- * END PSX.SYM */
-
 /*
  * apply_purchases_ (0x800565f0, 0x4c bytes) — copies this run's selected
  * per-item purchase counts onto the current character's carried-item

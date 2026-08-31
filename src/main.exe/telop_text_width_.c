@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct POLY_FT4 TelopP;
- * END PSX.SYM */
-
 /*
  * telop_text_width_ (0x800576e8, 0xa4 bytes) — computes the on-screen pixel
  * width of a SJIS string for the telop (on-screen caption/subtitle, per

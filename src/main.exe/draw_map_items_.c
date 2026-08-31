@@ -2,19 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
- *     extern struct tag_TItem items[30];
- *
- * PSX.SYM suggests this may be `RequestItem` (LOW confidence, ITEM.C) — NOT
- * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
- * END PSX.SYM */
-
 /*
  * Draws the current map target and each live goshikimai owned by the camera
  * owner after rotating and scaling their X/Z coordinates through `area`.

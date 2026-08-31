@@ -2,16 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct tag_EffectSlot EffectSlot[200];
- *     extern long GameClock;
- * END PSX.SYM */
-
 /*
  * set_fade_ (0x80038fdc, 0xc0 bytes) — EFFECT.C effect-pool allocator:
  * same EffectSlot[200] round-robin search as SetSplash/SetFrame/SetBleed

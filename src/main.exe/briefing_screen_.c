@@ -4,17 +4,6 @@
 #include <psxsdk/libcd.h>
 #include "images.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct GsOT *OTablePt;
- *     extern struct TCdaStatus CdaStatus;
- *     extern short SkipFrame;
- * END PSX.SYM */
-
 /* STATUS: MATCHED — exact 1448-byte / 362-instruction pure C.
  * There are no allocator-only no-op loop fences: the
  * normal fade update and guarded strip loop recover the target frame naturally.

@@ -1,16 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern unsigned long *GlobalAreaMap;
- *     extern short RefrectMove[16][2];
- * END PSX.SYM */
-
 /*
  * push_from_walls_ (0x80030644, 0x128 bytes) — nudges a position's x/z (a VECTOR,
  * only vx/vz are touched, vy is left alone) away from an area-map wall: it

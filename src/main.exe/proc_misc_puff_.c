@@ -2,15 +2,6 @@
 #include "main.exe.h"
 #include "misc.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern long GameClock;
- * END PSX.SYM */
-
 /*
  * proc_misc_puff_ (0x8004d6d4, 0x1A0 bytes) — periodic smoke/splash-puff think
  * function (message-style `(m, msg)`, no direct `jal` callers found —

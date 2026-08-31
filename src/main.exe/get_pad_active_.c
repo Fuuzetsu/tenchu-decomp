@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TPadPort PadPort[2][4];
- * END PSX.SYM */
-
 /*
  * get_pad_active_ (0x8001b174) — reads the selected controller record's
  * `active` byte (TPadPort offset 6).  The pad API encodes a

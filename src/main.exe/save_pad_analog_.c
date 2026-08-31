@@ -1,15 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TPadPort PadPort[2][4];
- * END PSX.SYM */
-
 /*
  * save_pad_analog_ (0x8001b2b8, 0x3c bytes) — called only from LoadExecEx: mirrors
  * byte 7 of PadPort[0][0] into bit0 of the persistent-state byte at 0x80010047.

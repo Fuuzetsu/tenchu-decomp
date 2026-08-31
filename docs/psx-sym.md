@@ -140,6 +140,24 @@ regenerated in place and idempotent. **434 of 557 files carry one**; the other 1
 functions PSX.SYM never described. Comments change no bytes, so `./Build check` is the
 gate.
 
+### Reading a stamped block
+
+Everything in a stamped block is the **demo build's** record, and the retail
+bytes win wherever they disagree. Until 2026-08-31 each block repeated this
+caveat verbatim — 5,261 duplicated comment lines across 354 files — so it now
+lives here once, and the generator emits a pointer instead:
+
+* **Locals are evidence, not a spec.** The demo's local COUNT and TYPES are
+  high-value codegen evidence, but an earlier-build helper or API change can
+  replace either. Retail access widths and the callee ABI win.
+* **A repeated name is a nested-block scope**, not a duplicate.
+* **A ZERO-locals record is unverified**, not a claim that the function has
+  none: `vfree` lists zero locals yet its byte-matched source needs seven.
+* **The frame size and saved-reg mask are the DEMO's.** Retail often needs
+  FEWER callee-saved registers (measured: `Think1random` exact; `Think1chase`'s
+  `0x800f0000` = s0-s3+ra vs retail's s0,s1,ra). Treat them as an upper bound
+  and a hint at how many values stay live, never as a spec. The asm wins.
+
 Global ownership is extent-based, not "nearest typed name". The generated globals
 header records each original object's byte size (with a bare pointer forced to the
 stored four-byte pointer size, not COFF's referent size). `symnote.py` attributes an
