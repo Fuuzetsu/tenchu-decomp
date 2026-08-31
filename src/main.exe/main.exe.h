@@ -76,6 +76,10 @@ extern TCameraStatus CamState;
 extern TCameraPos CamPosCriticalHit[4];
 extern TCameraPos CamPos;
 extern TCameraPos CamPosDefault;
+/* A DR_TPAGE-style mode word: GP0 command 0xE1 (draw mode) with dithering
+ * on. Callers OR the semi-transparency mode into bits 5-6. */
+#define GPU_DRAWMODE_DITHER 0xE1000200
+
 extern GsRVIEW2 ViewInfo;
 
 /* Every routine that projects a single world point borrows the same corner of

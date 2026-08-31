@@ -55,6 +55,9 @@ void MoveHumanoid(Humanoid *human, short ordr, short side)
     {
         s = -rsin(human->rotate->vy);
         c = -rcos(human->rotate->vy);
+        /* Sign-extend a signed byte, but only when nothing is set above
+         * it -- a plain (s8) cast would also fold 0x180 and costs 96
+         * lines. Callers pass wider values, so the guard is the point. */
         if ((io & 0xff80) == 0x80)
         {
             o = ordr - 0x100;

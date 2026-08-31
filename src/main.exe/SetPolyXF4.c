@@ -30,5 +30,5 @@ void SetPolyXF4(POLY_XF4 *ply, short attrib)
     setlen(&ply->ply, 5);
     setcode(&ply->ply, 0x2A);
     setlen(&ply->tpage, 1);
-    ply->tpage.code[0] = ((attrib & 3) << 5) | 0xE1000200;
+    ply->tpage.code[0] = ((attrib & 3) << 5) | GPU_DRAWMODE_DITHER;
 }
