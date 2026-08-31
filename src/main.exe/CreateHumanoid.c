@@ -122,7 +122,8 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     human->model = LoadModelArchive(mad, &World);
     human->locate = (VECTOR *)human->model->locate.coord.t;
     human->rotate = &human->model->rotate;
-    human->model->attribute = 0x1c;
+    human->model->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
+                              MODEL_ATTR_CULL_FAR;
     SetupThinkFunction(human, THINK_MIX_NONE);
     SetupCharacterParameter(type, human);
     hh = human->height;

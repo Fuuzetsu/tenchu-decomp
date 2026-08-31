@@ -107,7 +107,8 @@ loop1:
     image = GetImage(i + 0x14);
     item = (*slot = SetupSprite(0, image));
     item->scale = scale1;
-    (*slot)->attribute = 0x1C;
+    (*slot)->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
+                         MODEL_ATTR_CULL_FAR;
     slot++;
     if (++i < 0x14)
         goto loop1;
