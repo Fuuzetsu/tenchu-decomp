@@ -72,7 +72,6 @@ extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 void DrawConstruction(void)
 {
     short j;
-    WorldType(*world_base)[8][8];
     short k;
     short l;
     unsigned long plimit;
@@ -91,37 +90,39 @@ void DrawConstruction(void)
     int ey;
     int ez;
     ObjectSlotType *cur;
-    int cell_x;
-    int cell_y;
-    int cell_z;
-    int world_y_offset;
-    int world_x_offset;
-    int visible;
-    ObjectSlotType **slot;
-    OrnamentType *model;
-    GsOT ot;
-    PACKET *packet_base;
 
     if (SkipFrame == 1)
         return;
 
-    if (ViewInfo.vpx >= 0)
-        nx = ViewInfo.vpx / 16000;
-    else
-        nx = ViewInfo.vpx / 16000 - 1;
-    if (ViewInfo.vpy >= 0)
-        ny = ViewInfo.vpy / 16000;
-    else
-        ny = ViewInfo.vpy / 16000 - 1;
-    if (ViewInfo.vpz < 0)
-        goto negative_z;
-    nz = ViewInfo.vpz / 16000;
-    goto have_z;
+    {
+        long a = ViewInfo.vpx;
+
+        if (a >= 0)
+            nx = a / 16000;
+        else
+            nx = a / 16000 - 1;
+    }
+    {
+        long a = ViewInfo.vpy;
+
+        if (a >= 0)
+            ny = a / 16000;
+        else
+            ny = a / 16000 - 1;
+    }
+    {
+        long a = ViewInfo.vpz;
+
+        if (a < 0)
+            goto negative_z;
+        nz = a / 16000;
+        goto have_z;
 overload:
-    FntPrint(msg_overload);
-    goto draw_done;
+        FntPrint(msg_overload);
+        goto draw_done;
 negative_z:
-    nz = ViewInfo.vpz / 16000 - 1;
+        nz = a / 16000 - 1;
+    }
 have_z:
 
     ndl = 0;
@@ -141,6 +142,15 @@ have_z:
 
     SetRotMatrix(&GsWSMATRIX);
     *(GsRVIEW2 *)TENCHU_SCRATCHPAD(0x38) = ViewInfo;
+
+    {
+    WorldType(*world_base)[8][8];
+    int cell_x;
+    int cell_y;
+    int cell_z;
+    int world_y_offset;
+    int world_x_offset;
+    int visible;
 
     j = sx;
 scan_x:
@@ -184,6 +194,8 @@ scan_z:
         {
             int bucket;
             int signed_size;
+            ObjectSlotType **slot;
+            OrnamentType *model;
 
             /* The remaining do/while (0) layers are allocation weight for
              * three DISTINCT races (measured 2026-08-31): the IsVisible pair
@@ -239,8 +251,12 @@ next_y:
 next_x:
     j++;
     goto scan_x;
-scan_done:
+    }
+    {
+    GsOT ot;
+    PACKET *packet_base;
 
+scan_done:
     packet_base = GsGetWorkBase();
     DrawTMDmode = TMD_BANK_FOG;
     ot = *OTablePt;
@@ -292,5 +308,6 @@ draw_done:
         FntPrint(fmt_objs_d, ndl, ndt);
         FntPrint(str_newline_2);
         FntPrint(fmt_pk_size, GsGetWorkBase() - packet_base);
+    }
     }
 }
