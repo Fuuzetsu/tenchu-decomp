@@ -189,8 +189,12 @@ void ProcItemNingyo(TItem *item)
         }
 
     dispose:
-        /* Allocation carrier for the former two-level dispose region. */
-        /* allocation staging: folded after flow -- not recovered arithmetic */
+        /* One extra reference to `item`, folded away after flow.c has
+         * already counted it -- allocation staging, not arithmetic. A
+         * second copy of this used to sit before InsertConflict below;
+         * the two were interchangeable and only one is needed. Simpler
+         * identities do not work: x|x, x&x, x^0, x*1 and x+0 all fold
+         * before the count. */
         item = (TItem *)(((u32)item + (u32)item) - (u32)item);
         if (item->proc == 0)
         {
@@ -240,9 +244,6 @@ void ProcItemNingyo(TItem *item)
         }
 
         DeleteConflict(item->locate);
-        /* Allocation carrier for the former InsertConflict wrapper. */
-        /* allocation staging: folded after flow -- not recovered arithmetic */
-        item = (TItem *)(((u32)item + (u32)item) - (u32)item);
         n = InsertConflict(item->locate);
         conflicts = ConflictObject;
         conflict = conflicts + n;

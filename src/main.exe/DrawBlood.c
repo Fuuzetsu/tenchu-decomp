@@ -130,7 +130,7 @@ void DrawBlood(TEffectSlot *ef)
         y = blood->py + blood->vy;
         blood->py = y;
         rotate = blood->rotate;
-        color_signed = (s32)((u32)blood->brightness << 16) >> 16;
+        color_signed = (s16)blood->brightness;
         GetScreenPosition(blood->px, y, blood->pz, &scratch.scr);
         otz = scratch.scr.vz;
         if (otz < 0x25)
