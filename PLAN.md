@@ -970,48 +970,38 @@ reader hunts later named ATTR_SEARCH/FLOAT/NOFLOOR/LEDGE statically;
 what genuinely needs data or runtime is only map bit 8's floor-material
 identity, and 0x200/0x2000 are reader-less set-only bits).
 
-## Numeric state machines — the standing queue (2026-09-01)
+## Numeric state machines — CLEARED (2026-09-01)
 
-Rounds 39/40 settled that a `switch` on a mode field with bare numeric
-cases is worth naming even when sibling files all write bare modes:
-`rand() % 360` is self-evident and `case 2:` is not, and Dokudango's
-ROLL/SEARCH/EAT/POISON came straight off its own case bodies. The
-siblings are the queue, not the argument against.
+Every `switch` in a matched file whose cases were all numeric literals now
+names its states. The detector that found the queue -- 3+ cases, all
+numeric -- reports zero remaining.
 
-Classify each one PHASE or TAG before naming: phases transition into
-each other, tags are parallel alternatives that never do. Non-contiguous
-values prove a tag; a contiguous range proves nothing either way
-(CameraPanMode runs 0..8 and is nine parallel behaviours).
+What the campaign established, all of it in the cookbook:
 
-Find them with: a `switch` whose cases are ALL numeric literals, 3+ of
-them.
+- Classify PHASE or TAG first. Phases transition into each other, tags are
+  parallel alternatives. Non-contiguous values prove a tag
+  (LoadConstruction's 0/5/2 are stage-data record kinds); a contiguous
+  range proves nothing (CameraPanMode runs 0..8 and is nine parallel
+  behaviours). The tell is whether any case moves to another.
+- Name states from what the case bodies DO, and prefer shipped evidence
+  over reading: the card screen's states came from its text assets, and
+  the debug menu's rows from DEBUG_MENU_STAGE_OPTIONS, now readable as
+  `tools/gamedata.py DebugStageMenu`. Any AdtSelect menu can be decoded
+  the same way -- the rows are {char *name; u_long value}.
+- Leave what you cannot prove. The card library's result codes stay
+  numeric because no cross-API status enum exists anywhere; a wrong name
+  is worse than a digit.
+- Put the enum where the thing lives, not where the switch is: in
+  effect.h beside the struct, so the Set* and Draw* halves share it, or
+  next to the extern for a global. That is what catches the writers in
+  other files.
+- Then sweep the function so nothing tests by name and assigns by number,
+  including ordering comparisons, and re-read the comments, which go
+  stale the moment a value is named.
 
-CLEARED so far: the memory-card protocol (round 42, with the card-library
-result codes deliberately left numeric), the cutscene camera pair (round
-43), the effect emitters gore/blood/splash/explosion — a cross-file job,
-since the enum belongs in effect.h where both the Set* and Draw* halves
-see it — plus LoadConstruction's record tags, PutMapMode, draw_fade_,
-FileRead/InitFileSystem's shared file source, SkipFrame, the briefing
-screen's four phases, and ProcItem Kawarimi/Nemuri/Dokudango/Henshin/
-Jirai.
-
-Remaining:
-
-- `update_card_screen_` (21/22/22/11 cases) and `update_card_message_`
-  (17/20/19) — the memory-card protocol, with deliberately spaced values
-  (10, 20, 30, 37, 38, 40, 43, 50, 53, 92). The biggest opaque blocks in
-  the tree and the ones a reader can least guess at.
-- `debug_menu_stage_option` (7 rows). A TAG: the rows come from the
-  DEBUG_MENU_STAGE_OPTIONS data table, so name them from its label
-  strings the way round 42 used the card screen's text assets, not from
-  the case bodies alone.
-- ProcItem Gun, LightningBolt, Shinsoku (Gosin/Kaengeki in flight).
-- `StageEndScreen`'s `dispatch`.
-
-Two rules that come with this work (both in the cookbook): name the
-states from what the case bodies DO, and sweep the whole function so
-nothing tests by name and assigns by number — including ordering
-comparisons like `mode < DOKUDANGO_MODE_EAT`, not just `case` labels.
+Naming the STATES is worth it; naming the TRANSITIONS is not -- replacing
+`mode++` with explicit targets costs lines because the increment is what
+the compiler was given (measured twice).
 
 ## Round 2 of humanising — real source shape, not names (2026-08-31)
 
