@@ -57,6 +57,8 @@ static void MoveFly(TItem *item, param_fly *param)
 {
     enum
     {
+        FLY_MODE_ARC = 0,
+        FLY_MODE_ROLL = 1,
         one = 4096
     };
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;
@@ -67,7 +69,7 @@ static void MoveFly(TItem *item, param_fly *param)
 
     switch (param->mode)
     {
-    case 0:
+    case FLY_MODE_ARC:
     {
         t = param->p.fly.count;
         k = one;
@@ -98,7 +100,7 @@ static void MoveFly(TItem *item, param_fly *param)
             pk = &param->p.koro;
             pk->hint = 0;
             pk->status = KORO_NORMAL;
-            param->mode = 1;
+            param->mode = FLY_MODE_ROLL;
             setVector(pk, xs - ax, ys - ay, zs - az);
     }
         else
@@ -112,7 +114,7 @@ static void MoveFly(TItem *item, param_fly *param)
 
         break;
     }
-    case 1:
+    case FLY_MODE_ROLL:
     {
 
         MoveKorogari(item, &param->p.koro);

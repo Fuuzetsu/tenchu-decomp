@@ -22,7 +22,8 @@
  *    other than 0/1 fall out of the switch with nothing after it (straight
  *    to the epilogue, mode untouched) — a real function-level fallthrough,
  *    not a case.
- *  - `item->mode = 0; return;` is written OUT TWICE — once as the entry `ITEM_MODE_DISPOSE`
+ *  - `item->mode = GOSHIKIMAI_MODE_START; return;` is written OUT TWICE —
+ *    once as the entry `ITEM_MODE_DISPOSE`
  *    guard, once at the end of case 1 (when `mid != 0xf03`) — not shared via
  *    a goto/post-switch tail. GCC's cross-jump pass merges the two
  *    identical copies from the `sb`/`j` backwards (the cookbook's "shared
@@ -63,6 +64,11 @@
 
 void ProcItemGoshikimai(TItem *item)
 {
+    enum
+    {
+        GOSHIKIMAI_MODE_START = 0,
+        GOSHIKIMAI_MODE_THROW = 1
+    };
     param_goshikimai *param;
     Humanoid *human;
     MotionDataType *md;
@@ -72,12 +78,12 @@ void ProcItemGoshikimai(TItem *item)
     param = &item->param.goshikimai;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = GOSHIKIMAI_MODE_START;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case GOSHIKIMAI_MODE_START:
         human = item->owner;
         if (ActionHalt == 0 && human->life > 0)
         {
@@ -90,11 +96,11 @@ void ProcItemGoshikimai(TItem *item)
         item->mode++;
         return;
 
-    case 1:
+    case GOSHIKIMAI_MODE_THROW:
         mot = item->owner->motion;
         if (mot->mid != MOT_ITEM_PLANT)
         {
-            item->mode = 0;
+            item->mode = GOSHIKIMAI_MODE_START;
             return;
         }
         if (mot->count != 15)
@@ -113,7 +119,7 @@ void ProcItemGoshikimai(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != GOSHIKIMAI_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }

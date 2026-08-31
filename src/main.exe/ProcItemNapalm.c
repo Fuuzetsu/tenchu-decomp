@@ -69,6 +69,9 @@ void ProcItemNapalm(TItem *item)
 {
     enum
     {
+        NAPALM_MODE_START = 0,
+        NAPALM_MODE_EXPAND = 1,
+        NAPALM_MODE_FINISH = 2,
         MaxCount = 20
     };
     Sprite3D *model;
@@ -82,18 +85,18 @@ void ProcItemNapalm(TItem *item)
     param = &item->param.napalm;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = NAPALM_MODE_START;
         return;
     }
 
     switch (item->mode)
     {
-    case 0:
+    case NAPALM_MODE_START:
         param->count = 0;
         item->mode++;
         return;
 
-    case 1:
+    case NAPALM_MODE_EXPAND:
     {
         u8 t;
 
@@ -187,7 +190,7 @@ void ProcItemNapalm(TItem *item)
         break;
     }
 
-    case 2:
+    case NAPALM_MODE_FINISH:
         proc = item->proc;
         if (proc == 0)
         {
@@ -196,7 +199,7 @@ void ProcItemNapalm(TItem *item)
         item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != NAPALM_MODE_START)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }

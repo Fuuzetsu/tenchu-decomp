@@ -49,10 +49,10 @@
  *  - `idx = param->count % MaxFrames;` is plain C `%` by the constant 4 — cc1's
  *    own round-toward-zero remainder expansion (bgez-guarded `+3`, `sra 2`,
  *    `sll 2`, `subu`) is automatic, no manual shift/mask needed.
- *  - The mode dispatch is a plain `if (mode==0) {...} else if (mode==1)
- *    {...}` — both bodies converge on the draw code below (no `else`
- *    tail), matching the target's goto-ladder-to-a-shared-continuation
- *    shape (`beqz mode,body0; beq mode,1,body1; j draw;`).
+ *  - The mode dispatch is a plain `switch`: both cases converge on the draw
+ *    code below, and the two-case expansion produces the target's
+ *    goto-ladder-to-a-shared-continuation shape (`beqz mode,body0; beq
+ *    mode,1,body1; j draw;`).
  *  - Mode 1's RGB fill reads the LOW BYTE of `count` directly —
  *    `*(u8 *)&param->count` (a `lbu` at count's own address, the low byte
  *    of the little-endian s16) — not a distinct union member; m2c's raw
@@ -109,6 +109,11 @@
 
 void DrawFrame(TEffectSlot *ef)
 {
+    enum
+    {
+        FRAME_MODE_FLASH = 0,
+        FRAME_MODE_FADE = 1
+    };
     FrameType *param = &ef->param.frame;
     GsSPRITE *spr;
     SVECTOR scr;
@@ -127,7 +132,7 @@ void DrawFrame(TEffectSlot *ef)
 
     switch (param->mode)
     {
-    case 0:
+    case FRAME_MODE_FLASH:
         spr->b = 0x80;
         spr->g = 0x80;
         spr->r = 0x80;
@@ -138,7 +143,7 @@ void DrawFrame(TEffectSlot *ef)
             param->mode++;
         }
         break;
-    case 1:
+    case FRAME_MODE_FADE:
         rgb = *(u8 *)&param->count;
         spr->b = rgb;
         spr->g = rgb;

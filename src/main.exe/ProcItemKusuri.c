@@ -73,6 +73,12 @@
 
 void ProcItemKusuri(TItem *item)
 {
+    enum
+    {
+        KUSURI_MODE_START = 0,
+        KUSURI_MODE_DRINK = 1,
+        KUSURI_MODE_HEAL = 2
+    };
     Sprite3D *model;
     void (*ppu)(TItem *);
     s32 i;
@@ -97,12 +103,12 @@ void ProcItemKusuri(TItem *item)
     model = (Sprite3D *)item->model;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = KUSURI_MODE_START;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case KUSURI_MODE_START:
     {
         Humanoid *human;
 
@@ -133,7 +139,7 @@ void ProcItemKusuri(TItem *item)
         item->mode++;
         return;
 
-    case 1:
+    case KUSURI_MODE_DRINK:
     {
         MotionManager *mot;
 
@@ -164,7 +170,7 @@ void ProcItemKusuri(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != KUSURI_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -178,7 +184,7 @@ void ProcItemKusuri(TItem *item)
             cnt = mot->count;
             if (cnt == 0x37)
             {
-                item->mode = 2;
+                item->mode = KUSURI_MODE_HEAL;
                 return;
             }
             if (cnt < 4)
@@ -191,7 +197,7 @@ void ProcItemKusuri(TItem *item)
         DrawSprite(model);
         return;
 
-    case 2:
+    case KUSURI_MODE_HEAL:
     {
         i = 0;
         item->owner->life = item->owner->lifemax;

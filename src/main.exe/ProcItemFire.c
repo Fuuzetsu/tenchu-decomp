@@ -125,6 +125,9 @@ void ProcItemFire(TItem *item)
 {
     enum
     {
+        FIRE_MODE_FUSE = 0,
+        FIRE_MODE_EXPLODE = 1,
+        FIRE_MODE_BLAST = 2,
         nr = 25
     };
     Sprite3D *model;
@@ -138,7 +141,7 @@ void ProcItemFire(TItem *item)
     param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = FIRE_MODE_FUSE;
         return;
     }
 
@@ -150,7 +153,7 @@ void ProcItemFire(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != FIRE_MODE_FUSE)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -196,7 +199,7 @@ void ProcItemFire(TItem *item)
     mode = item->mode;
     switch (mode)
     {
-    case 0:
+    case FIRE_MODE_FUSE:
         if ((u8)count == 0)
         {
             if (rand() % 10 < 2)
@@ -216,7 +219,7 @@ void ProcItemFire(TItem *item)
                     item->mode = ITEM_MODE_DISPOSE;
                     item->proc(item);
                     DeleteConflict(item->locate);
-                    if (item->mode != 0)
+                    if (item->mode != FIRE_MODE_FUSE)
                     {
                         AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
@@ -281,7 +284,7 @@ void ProcItemFire(TItem *item)
         item->mode++;
         return;
 
-    case 1:
+    case FIRE_MODE_EXPLODE:
     {
         s32 n;
 
@@ -311,10 +314,10 @@ void ProcItemFire(TItem *item)
         ConflictObject[n].size.vz = 1500;
         ConflictObject[n].size.vy = 1500;
         ConflictObject[n].size.vx = 1500;
-        /* This arm runs with mode == 1, and retail reuses that register as
-         * the owner tag (CONFLICT_OWNER_ITEM == 1), the size pad, and the
-         * collision mode below -- the same one-register trick as the
-         * file's other box and ProcItemArrow's. Separate named
+        /* This arm runs with mode == FIRE_MODE_EXPLODE. Retail reuses that
+         * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the size
+         * pad, and the collision mode below -- the same one-register trick
+         * as the file's other box and ProcItemArrow's. Separate named
          * constants load fresh immediates and do not match. */
         ConflictObject[n].common = (void *)(s32)mode;
         ConflictObject[n].size.pad = mode;
@@ -328,7 +331,7 @@ void ProcItemFire(TItem *item)
         return;
     }
 
-    case 2:
+    case FIRE_MODE_BLAST:
         if ((u8)count == 0 && item->proc != 0)
         {
             DISPOSE_ITEM(item);

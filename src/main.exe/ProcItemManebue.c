@@ -44,18 +44,23 @@
 
 void ProcItemManebue(TItem *item)
 {
+    enum
+    {
+        MANEBUE_MODE_PLAY = 0,
+        MANEBUE_MODE_WAIT = 1
+    };
     param_drop *param;
     u8 count;
 
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = MANEBUE_MODE_PLAY;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case MANEBUE_MODE_PLAY:
         EmergencyNotice = 0;
         item->owner->itmctl = item->type;
         SoundEx(0, SE_LURE_FLUTE);
@@ -63,7 +68,7 @@ void ProcItemManebue(TItem *item)
         item->mode++;
         return;
         break;
-    case 1:
+    case MANEBUE_MODE_WAIT:
         count = param->count - 1;
         param->count = count;
         if (count == 0)

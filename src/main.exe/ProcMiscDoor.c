@@ -49,6 +49,11 @@ extern short DrawModel(ModelType *objp);
 
 void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 {
+    enum
+    {
+        DOOR_MODE_IDLE = 0,
+        DOOR_MODE_OPENING = 1
+    };
     TDoor *param;
 
     param = &m->param.door;
@@ -66,7 +71,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         AdtMessageBox(fmt_unknown_door_type, type);
         type = 0;
     }
-    m->mode = 0;
+    m->mode = DOOR_MODE_IDLE;
     param->r = 0;
     param->type = type;
     param->locate = LoadModel(0);
@@ -118,7 +123,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 
     switch (m->mode)
     {
-    case 0:
+    case DOOR_MODE_IDLE:
         if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
         {
             s32 cid;
@@ -152,7 +157,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         }
         break;
 
-    case 1:
+    case DOOR_MODE_OPENING:
     {
         s32 r;
 
@@ -162,7 +167,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         if (r < 960)
             param->r += param->dr;
         else
-            m->mode = 0;
+            m->mode = DOOR_MODE_IDLE;
     }
     break;
     }

@@ -46,9 +46,14 @@ extern char fmt_not_support_yet[]; /* not support yet %d */
 
 s32 spare_item_slot_(s32 mode, Humanoid *human)
 {
+    enum
+    {
+        SPARE_ITEM_SLOT_CLEAR = 0,
+        SPARE_ITEM_SLOT_QUERY = 1
+    };
     switch (mode)
     {
-    case 0:
+    case SPARE_ITEM_SLOT_CLEAR:
     {
         Humanoid *p = human;
         if (p == 0)
@@ -56,7 +61,7 @@ s32 spare_item_slot_(s32 mode, Humanoid *human)
         p->item[ITEM_N] = 0;
         break;
     }
-    case 1:
+    case SPARE_ITEM_SLOT_QUERY:
         if (human == 0)
             human = CamState.Owner;
         return human->item[ITEM_N] == 1;

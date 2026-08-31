@@ -66,6 +66,12 @@ extern void TurnAroundAllItems(Humanoid *human);
 
 void ProcItemNinken(TItem *item)
 {
+    enum
+    {
+        NINKEN_MODE_ROLL = 0,
+        NINKEN_MODE_SPAWN = 1,
+        NINKEN_MODE_ACTIVE = 2
+    };
     param_ninken *param;
     s32 water;
     ProcItemNinkenScratch scratch;
@@ -85,14 +91,14 @@ void ProcItemNinken(TItem *item)
             param->slave->model->locate.coord.t[2] = NINKEN_PARK_POS;
             UpdateCoordinate((ModelType *)param->slave->model);
         }
-        item->mode = 0;
+        item->mode = NINKEN_MODE_ROLL;
         return;
     }
 
     water = KORO_WATER;
     switch (item->mode)
     {
-    case 0:
+    case NINKEN_MODE_ROLL:
     {
         u8 status;
 
@@ -110,7 +116,7 @@ void ProcItemNinken(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != NINKEN_MODE_ROLL)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -138,7 +144,7 @@ void ProcItemNinken(TItem *item)
                 item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
-                if (item->mode != 0)
+                if (item->mode != NINKEN_MODE_ROLL)
                 {
                     AdtMessageBox(msg_item_dispose_fail, item->type,
                                   (u32)item->mode);
@@ -183,7 +189,7 @@ void ProcItemNinken(TItem *item)
         }
     }
 
-    case 1:
+    case NINKEN_MODE_SPAWN:
     {
         s32 create;
         s32 valid;
@@ -266,7 +272,7 @@ void ProcItemNinken(TItem *item)
         return;
     }
 
-    case 2:
+    case NINKEN_MODE_ACTIVE:
     {
         u16 count;
         Humanoid *slave;
@@ -278,7 +284,7 @@ void ProcItemNinken(TItem *item)
                 item->mode = ITEM_MODE_DISPOSE;
                 item->proc(item);
                 DeleteConflict(item->locate);
-                if (item->mode != 0)
+                if (item->mode != NINKEN_MODE_ROLL)
                 {
                     AdtMessageBox(msg_item_dispose_fail, item->type,
                                   (u32)item->mode);
@@ -323,7 +329,7 @@ void ProcItemNinken(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != NINKEN_MODE_ROLL)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }

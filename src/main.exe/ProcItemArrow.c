@@ -51,8 +51,9 @@
  *  - `v1`, `v2`, `rx`, and `ry` use the stack slots recovered by PSX.SYM.
  *    GetVectorRotation writes the two full-word outputs at sp+0x88/sp+0x8c;
  *    their later stores to SVECTOR members naturally use only the low halves.
- *  - The dead `mode_index = 0` assignment is a zero-code CSE eviction.  It
- *    forces expand_case to emit a fresh mode `lbu`; otherwise the entry
+ *  - The dead `mode_index = ARROW_MODE_FLY` assignment is a zero-code CSE
+ *    eviction. It forces expand_case to emit a fresh mode `lbu`; otherwise
+ *    the entry
  *    guard's load is reused and the function is one instruction short.
  *  - Direct ITEM_MODE_DISPOSE operands still share the target's caller-saved
  *    value on the no-call mode-2 path; call-crossing disposal prefixes
@@ -79,6 +80,17 @@ extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
 
 void ProcItemArrow(TItem *item)
 {
+    enum
+    {
+        ARROW_MODE_FLY = 0,
+        ARROW_MODE_WAIT = 1,
+        ARROW_MODE_BLINK = 2
+    };
+    enum
+    {
+        FLY_MODE_ARC = 0,
+        FLY_MODE_ROLL = 1
+    };
     ModelType *model;
     param_arrow *param;
     void (*ppu)(TItem *);
@@ -93,14 +105,14 @@ void ProcItemArrow(TItem *item)
     mode_index = item->mode;
     if (mode_index == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = ARROW_MODE_FLY;
         return;
     }
 
-    mode_index = 0;
+    mode_index = ARROW_MODE_FLY;
     switch (item->mode)
     {
-    case 0:
+    case ARROW_MODE_FLY:
     {
         u8 count;
         s32 cid;
@@ -145,7 +157,7 @@ void ProcItemArrow(TItem *item)
                     item->mode = ITEM_MODE_DISPOSE;
                     item->proc(item);
                     DeleteConflict(item->locate);
-                    if (item->mode != 0)
+                    if (item->mode != ARROW_MODE_FLY)
                     {
                         AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
@@ -185,7 +197,7 @@ void ProcItemArrow(TItem *item)
         }
         else
         {
-            if (param->fly.mode != 0)
+            if (param->fly.mode != FLY_MODE_ARC)
             {
                 if (param->fly.p.koro.status != KORO_NORMAL)
                 {
@@ -199,7 +211,7 @@ void ProcItemArrow(TItem *item)
                         item->mode = ITEM_MODE_DISPOSE;
                         item->proc(item);
                         DeleteConflict(item->locate);
-                        if (item->mode != 0)
+                        if (item->mode != ARROW_MODE_FLY)
                         {
                             AdtMessageBox(msg_item_dispose_fail, item->type,
                                           (u32)item->mode);
@@ -235,7 +247,7 @@ void ProcItemArrow(TItem *item)
         break;
     }
 
-    case 1:
+    case ARROW_MODE_WAIT:
     {
         u8 count;
 
@@ -250,7 +262,7 @@ void ProcItemArrow(TItem *item)
         break;
     }
 
-    case 2:
+    case ARROW_MODE_BLINK:
     {
         u8 count;
 
@@ -266,7 +278,7 @@ void ProcItemArrow(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != ARROW_MODE_FLY)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }

@@ -100,6 +100,11 @@ extern void MoveKorogari(TItem *item, param_korogari *pp);
 
 void ProcItemSmoke(TItem *item)
 {
+    enum
+    {
+        SMOKE_MODE_FUSE = 0,
+        SMOKE_MODE_ACTIVE = 1
+    };
     Sprite3D *model;
     param_smoke *param;
     ProcItemSmokeScratch scratch;
@@ -108,7 +113,7 @@ void ProcItemSmoke(TItem *item)
     param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = SMOKE_MODE_FUSE;
         return;
     }
     MoveKorogari(item, &param->koro);
@@ -119,7 +124,7 @@ void ProcItemSmoke(TItem *item)
         item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != SMOKE_MODE_FUSE)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
@@ -133,7 +138,7 @@ void ProcItemSmoke(TItem *item)
     param->count--;
     switch (item->mode)
     {
-    case 0:
+    case SMOKE_MODE_FUSE:
         if (param->count != 0)
             return;
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
@@ -141,7 +146,7 @@ void ProcItemSmoke(TItem *item)
         item->mode++;
         return;
 
-    case 1:
+    case SMOKE_MODE_ACTIVE:
         if (param->count == 0)
         {
             if (item->proc == 0)

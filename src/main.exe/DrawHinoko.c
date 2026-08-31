@@ -63,14 +63,14 @@ void DrawHinoko(TEffectSlot *ef)
     alfa = 0x80;
     switch (param->mode)
     {
-    case 0:
+    case EXPLOSION_MODE_FLASH:
         if (param->time == 0)
         {
-            param->mode = 1;
+            param->mode = EXPLOSION_MODE_EXPAND;
             param->time = fo;
         }
         break;
-    case 1:
+    case EXPLOSION_MODE_EXPAND:
         alfa = (u8)((param->time * 0x80) / fo);
         if (param->time == 0)
         {

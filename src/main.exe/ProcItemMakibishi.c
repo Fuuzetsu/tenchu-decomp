@@ -73,6 +73,11 @@ extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemMakibishi(TItem *item)
 {
+    enum
+    {
+        MAKIBISHI_MODE_ROLL = 0,
+        MAKIBISHI_MODE_ARMED = 1
+    };
     Sprite3D *model;
     param_drop *param;
     void (*ppu)(TItem *);
@@ -84,12 +89,12 @@ void ProcItemMakibishi(TItem *item)
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = MAKIBISHI_MODE_ROLL;
         return;
     }
     switch (item->mode)
     {
-    case 0:
+    case MAKIBISHI_MODE_ROLL:
         MoveKorogari(item, &param->koro);
         st = param->koro.status;
         switch (st)
@@ -108,7 +113,7 @@ void ProcItemMakibishi(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != MAKIBISHI_MODE_ROLL)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -118,7 +123,7 @@ void ProcItemMakibishi(TItem *item)
         }
         break;
 
-    case 1:
+    case MAKIBISHI_MODE_ARMED:
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             i = -1;
         else

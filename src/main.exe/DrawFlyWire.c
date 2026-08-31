@@ -28,6 +28,8 @@ void DrawFlyWire(TEffectSlot *ef)
 {
     enum
     {
+        FLYWIRE_MODE_EXTEND = 0,
+        FLYWIRE_MODE_STRAIGHTEN = 1,
         m = 5
     };
     FlyWireType *param;
@@ -36,7 +38,7 @@ void DrawFlyWire(TEffectSlot *ef)
     param = &ef->param.flywire;
     switch (param->mode)
     {
-    case 0:
+    case FLYWIRE_MODE_EXTEND:
     {
         s16 time;
         s32 sum;
@@ -57,7 +59,7 @@ void DrawFlyWire(TEffectSlot *ef)
         }
         return;
     }
-    case 1:
+    case FLYWIRE_MODE_STRAIGHTEN:
     {
         VECTOR tmp;
         s16 count;

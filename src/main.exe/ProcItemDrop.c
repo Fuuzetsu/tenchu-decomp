@@ -83,6 +83,12 @@ extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemDrop(TItem *item)
 {
+    enum
+    {
+        DROP_MODE_ROLL = 0,
+        DROP_MODE_WAIT = 1,
+        DROP_MODE_TRANSFER = 2
+    };
     Sprite3D *model;
     param_drop *param;
     void (*ppu)(TItem *);
@@ -101,14 +107,14 @@ void ProcItemDrop(TItem *item)
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = DROP_MODE_ROLL;
         return;
     }
     model->locate = item->locate->locate;
     DrawSprite(model);
     switch (item->mode)
     {
-    case 0:
+    case DROP_MODE_ROLL:
         MoveKorogari(item, &param->koro);
         switch (param->koro.status)
         {
@@ -129,7 +135,7 @@ void ProcItemDrop(TItem *item)
         }
         return;
 
-    case 1:
+    case DROP_MODE_WAIT:
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             i = -1;
         else
@@ -156,7 +162,7 @@ void ProcItemDrop(TItem *item)
         param->count = 0;
         return;
 
-    case 2:
+    case DROP_MODE_TRANSFER:
         if (item->owner->motion->mid != MOT_STATE_PICKUP)
         {
             x = rand();
@@ -170,7 +176,7 @@ void ProcItemDrop(TItem *item)
             param->koro.hint = 0;
             param->koro.status = KORO_NORMAL;
             param->koro.vz = z - 100;
-            item->mode = 0;
+            item->mode = DROP_MODE_ROLL;
         }
         cnt = param->count + 1;
         param->count = cnt;
