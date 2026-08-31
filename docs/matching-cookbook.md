@@ -755,9 +755,12 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   statements — sequencing is identical, so always test the structured form.
   While there, test collapsing single-consumer register puns outright:
   ActATTACK's `shifted_mid = (u32)(u16)mid << 16` + two shift-extracts
-  reduced to plain `mid` / `mid >> 8` with zero byte churn. Only puns whose
-  ONE sll feeds TWO different extractions (ActSTICKON pad>>16 with >>28&1;
-  CVAupdate x-slot >>16 with >>24) are byte-required — annotate those.
+  reduced to plain `mid` / `mid >> 8` with zero byte churn. Even a pun whose
+  ONE sll feeds TWO different extractions is graph-dependent: CVAupdate's
+  x-slot carrier disappeared exactly as plain `x` / `x >> 8` only after its
+  three animation scans changed from walking pointers to `CVAhuman[i]`.
+  Retain such a carrier only where the complete surrounding graph still
+  measures it byte-required (ActSTICKON's pad>>16 with >>28&1).
 - **Fallback placement selects the shape for pool scans**: a give-up
   `return &dmy;` INSIDE the loop body is an invariant `la` that loop.c hoists —
   no spelling suppresses it; hand-roll the loop (SetFrame/SetSplash/SetBleed).

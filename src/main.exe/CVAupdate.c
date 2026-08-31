@@ -36,31 +36,27 @@
  *
  * Byte-matching. Jump-table function (switch on the event kind).
  *
- * Four register-allocation ties were closed; each
- * one is a cc1-2.8.1 mechanism worth knowing (see the commits for the RTL/pinned
- * -source evidence):
+ * Four source-shape constraints remain; each is a cc1-2.8.1 mechanism worth
+ * knowing (see the commits for the RTL/pinned-source evidence):
  *   - `y = CVAnow->y * 1000`: a dedicated `y` local made the last shift write a
  *     BLOCK-LOCAL temp whose copy to `y` sched1 sank past the GetAreaMapLevel
  *     call, so local-alloc's combine_regs tied the whole x1000 chain into one
  *     call-crossing quantity and forced it callee-saved. combine_regs refuses to
  *     tie into a pseudo that is not block-local, so reusing the long-lived `i`
  *     (PSX.SYM: `long i` in $s0, provably dead here) keeps the chain in $v0.
- *   - `active_status = 0x11`: an explicit local spanned the enclosing `if`,
- *     making the constant GLOBAL, so local-alloc gave block-local `human->status`
- *     $v0 and global-alloc took $v1 — the inverse of the target. Inlining the
- *     literal keeps the constant local to the else-block.
- *   - A staged manual absolute value ties each load into its dying base's
- *     quantity; the direct `__builtin_abs` test expands via abssi2 and unties
- *     them.
- *   - `anim`: ONE cursor across case 2 and case 3 is one pseudo, hence one hard
- *     register everywhere ($a0). Case 2's preheader overlaps `human->motion` in
- *     $v1 and so must take $a0, and that choice was being carried into case 3,
- *     where the target uses $v1. Case 3 needs its OWN cursor (`slot`).
+ *   - `cursor` keeps the command walk in one identity; reading `CVAnow`
+ *     directly changes 10 canonical lines.
+ *   - `model` keeps the object-loop base live; following `human->model`
+ *     directly changes 14 canonical lines.
+ *   - `pan_value` stages the default/override before the one CameraSpeed
+ *     store; the direct ternary changes 15 canonical lines.
  *
- * PSX.SYM's three-locals record (vect, human, i) was the through-line: `y` and
- * `active_status` were draft-invented locals the original did not have.
- * `delta` disappears into the direct absolute-value test, while the shared
- * `anim` cursor still needs splitting by case.
+ * PSX.SYM's three-locals record (vect, human, i) remains the through-line.
+ * The complete indexed animation graph removes `anim_base`, `anim`, and
+ * `slot`; on that graph the `packed` and `ch` carriers and the register-held
+ * `invalid` constant also disappear exactly. Their earlier isolated failures
+ * were allocation effects of the pointer-cursor graph, not source
+ * requirements.
  */
 
 extern s16 CVAflag; /* set by CVA camera/telop commands */
@@ -81,27 +77,15 @@ extern void SetupTelop(u8 *telop, s16 line);
 s16 CVAupdate(void)
 {
     Humanoid *human;
-    HumanAnimType *anim;
-    HumanAnimType *anim_base;
-    HumanAnimType *slot;
     ModelArchiveType *model;
     CVAType *cursor;
     VECTOR vect;
     s32 i;
-    s32 invalid;
     s32 pan_value;
-    u32 packed;
-    u8 ch;
 
     cursor = CVAnow;
     if (cursor->mode != CVA_CMD_WAIT)
     {
-        /* Register-held -1 (SetWire's one_value class): byte-required
-         * (inlining the literal reorders the entry constants; measured). */
-        invalid = -1;
-        /* The array-base alias is byte-required (indexing CVAhuman directly
-         * recolors the base register; measured). */
-        anim_base = CVAhuman;
         do
         {
             switch (cursor->mode)
@@ -109,7 +93,7 @@ s16 CVAupdate(void)
             case CVA_CMD_SEQUENCE:
                 /* A chained header mid-stream: p re-selects the CD
                  * track, and -1 silences it. */
-                if (CVAnow->p == invalid)
+                if (CVAnow->p == -1)
                     CdaStop();
                 break;
 
@@ -121,15 +105,13 @@ s16 CVAupdate(void)
 
                 human->attribute &= ~ATTR_SUSPEND;
                 human->motion->mask = 0x7FFF;
-                anim = anim_base;
                 while (1)
                 {
-                    if (anim->human == 0)
+                    if (CVAhuman[i].human == 0)
                         break;
                     i++;
                     if (i >= 5)
                         break;
-                    anim++;
                 }
                 if (i == 5)
                     SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
@@ -147,13 +129,13 @@ s16 CVAupdate(void)
                     } while (i < model->n);
                 }
 
-                if (StagePlayer != human && human->life == invalid)
+                if (StagePlayer != human && human->life == -1)
                 {
                     human->attribute |= ATTR_CUSTOMAI;
                     human->life = human->lifemax;
                 }
 
-                if (CVAnow->p != invalid)
+                if (CVAnow->p != -1)
                 {
                     human->locate->vx = human->point[HUMANOID_HOME_X] =
                         CVAnow->x * 1000;
@@ -178,23 +160,21 @@ s16 CVAupdate(void)
                 if (human == 0)
                     return 0;
 
-                /* For ACTOR commands the x slot packs two bytes: the low
-                 * byte rides >>16 into the life/invalid test, the high byte
-                 * (>>24) is the think index below. One sll serves both
-                 * extractions -- separate (s8)/(s16) spellings do not match. */
-                packed = (u32)(u16)CVAnow->x << 16;
-                if ((s32)packed >> 16 == invalid)
+                /* For ACTOR commands the signed x slot packs two bytes.  The
+                 * direct invalid test and arithmetic >>8 still share the
+                 * target's one shift after the animation scans are indexed. */
+                if (CVAnow->x == -1)
                 {
-                    human->life = invalid;
+                    human->life = -1;
                     human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
-                    human->motion->mid = invalid;
+                    human->motion->mid = -1;
                     SetNowMotion(human, 0, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
                 }
                 else
                 {
-                    i = (s32)packed >> 24;
+                    i = CVAnow->x >> 8;
                     if (human->status == STAT_DEAD && (u32)(i - (MOT_DAMAGE >> 8)) > 1)
                         return 0;
                     if (human->life > 0)
@@ -207,41 +187,37 @@ s16 CVAupdate(void)
                     }
                     i = 0;
 
-                    slot = anim_base;
                     while (1)
                     {
-                        if (slot->human == human)
+                        if (CVAhuman[i].human == human)
                             break;
                         i++;
                         if (i >= 5)
                             break;
-                        slot++;
                     }
                     if (i == 5)
                     {
                         i = 0;
-                        slot = anim_base;
                         while (1)
                         {
-                            if (slot->human == 0)
+                            if (CVAhuman[i].human == 0)
                                 break;
                             i++;
                             if (i >= 5)
                                 break;
-                            slot++;
                         }
                         if (i == 5)
                             return 0;
                     }
 
-                    human->motion->mid = invalid;
+                    human->motion->mid = -1;
                     SetNowMotion(human, CVAnow->x, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
-                    anim_base[i].human = human;
+                    CVAhuman[i].human = human;
 
-                    anim_base[i].loop = CVAnow->y < 1 ? 0x7fff : CVAnow->y;
-                    anim_base[i].motid = CVAnow->z == 0
+                    CVAhuman[i].loop = CVAnow->y < 1 ? 0x7fff : CVAnow->y;
+                    CVAhuman[i].motid = CVAnow->z == 0
                                              ? MOT_ENGAGE_STANCE
                                              : CVAnow->z;
 
@@ -300,7 +276,7 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_TELOP:
-                if (CVAnow->id != invalid)
+                if (CVAnow->id != -1)
                 {
                     SetupTelop((u8 *)strcpy((char *)TelopText,
                                             (char *)CVAdata + CVAnow->id),
@@ -309,11 +285,10 @@ s16 CVAupdate(void)
                     if (StageID != STAGE_FREE_PRINCESS || CHOSEN_CHARACTER != 0)
                         break;
 
-                    ch = TelopText[0];
-                    if ((ctype_tab[ch] & 4) == 0)
+                    if ((ctype_tab[TelopText[0]] & 4) == 0)
                         break;
 
-                    i = ch - '0';
+                    i = TelopText[0] - '0';
                     if (i == 0)
                     {
                         do
