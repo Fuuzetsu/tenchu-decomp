@@ -140,7 +140,10 @@ enum
 {
     WLD_RECORD_AREAMAP = 0, /* .acm collision/height map */
     WLD_RECORD_OBJECT = 2,  /* a placed model, or a clone of an earlier one */
-    WLD_RECORD_TIM = 5      /* a texture to upload and free */
+    WLD_RECORD_ENEMY = 3,   /* BreedLife a character at the row's transform */
+    WLD_RECORD_ITEM = 4,    /* ReqItemStay a pickup at the row's position */
+    WLD_RECORD_TIM = 5,     /* a texture to upload and free */
+    WLD_RECORD_EFFECT = 11  /* AddMisc, with the row's three extra params */
 };
 
 typedef struct WorldDataType
@@ -351,20 +354,20 @@ short LoadConstruction(u_long *data)
                 slotman->n++;
                 break;
 
-            case 3:
+            case WLD_RECORD_ENEMY:
                 BreedLife(wlddt[i].nid, wlddt[i].real.common.x,
                           wlddt[i].real.common.y, wlddt[i].real.common.z,
                           wlddt[i].real.common.r);
                 break;
 
-            case 11:
+            case WLD_RECORD_EFFECT:
                 AddMisc(wlddt[i].real.effect.type, wlddt[i].real.effect.x,
                         wlddt[i].real.effect.y, wlddt[i].real.effect.z,
                         wlddt[i].real.effect.a, wlddt[i].real.effect.b,
                         wlddt[i].real.effect.c);
                 break;
 
-            case 4:
+            case WLD_RECORD_ITEM:
                 memset(&tmp, 0, sizeof(tmp));
                 tmp.type = wlddt[i].nid;
                 tmp.locate.vx = wlddt[i].real.common.x;
