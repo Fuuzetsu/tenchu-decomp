@@ -214,7 +214,8 @@ void ActivateHumans(void)
             }
             else if (((u16)human->attribute & ATTR_SUSPEND) == 0 && human->type != ON)
             {
-                if ((human->type == NINJA_0 && (u32)(StageID - 6) < 2 /* stages 6-7; the && spelling double-reads the global and ripples allocation */) ||
+                if ((human->type == NINJA_0 && (u32)(StageID - STAGE_MANJI_CULT) <=
+                      STAGE_PIRATES - STAGE_MANJI_CULT /* the && spelling double-reads the global and ripples allocation */) ||
                     human->type == GOO)
                 {
                     j = 0;

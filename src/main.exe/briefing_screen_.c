@@ -161,7 +161,8 @@ void briefing_screen_(void)
 
                 music = BriefingAssets[PSTATE->language][PSTATE->StageNo].music;
                 if (PSTATE->CharType == AYAME_0 && PSTATE->language == LANG_JAPANESE &&
-                    (u32)(PSTATE->StageNo - 6) < 2 /* stages 6-7; the && spelling double-reads the field */)
+                    (u32)(PSTATE->StageNo - STAGE_MANJI_CULT) <=
+                        STAGE_PIRATES - STAGE_MANJI_CULT /* the && spelling double-reads the field */)
                 {
                     music++;
                 }

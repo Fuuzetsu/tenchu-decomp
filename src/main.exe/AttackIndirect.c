@@ -135,7 +135,7 @@ short AttackIndirect(void)
         }
 
         pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
-        if ((u32)(Distance - 1000) > 2000)
+        if ((u32)(Distance - 1000) > 3000 - 1000)
         {
             pad |= PADLdown;
         }
