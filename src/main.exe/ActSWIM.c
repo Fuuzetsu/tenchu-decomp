@@ -40,11 +40,18 @@ extern short SwimCheck(void);
 
 void ActSWIM(void)
 {
-    short mid;
-    int speed;
+    enum
+    {
+        FIRST_SWIM_HIDDEN_PART = 7,
+        LAST_SWIM_HIDDEN_PART = 12,
+        SWIM_EXIT_MOVE_FRAME = 40,
+        SWIM_EXIT_SPEED = 100
+    };
+    short current_motion;
+    int movement_speed;
 
-    mid = dtM->mid;
-    switch (mid)
+    current_motion = dtM->mid;
+    switch (current_motion)
     {
     case MOT_SWIM:
         if (SwimCheck() == 0)
@@ -58,43 +65,43 @@ void ActSWIM(void)
                 Sound(Me_MOTION_C, SE_WATER_MOVE);
             {
                 /* This reads as `dtR->vy += Me_MOTION_C->turn;` and is not:
-                 * retail splits the load, the add and the store across three
-                 * names and all three are needed. Measured on the middle of
-                 * the three identical copies -- the plain compound
-                 * assignment costs 18 lines, dropping only `rotation` 15,
-                 * dropping only current/result 13; collapsing all three
-                 * copies at once costs 226. */
-                int current;
-                int result;
-                SVECTOR *rotation;
+                 * retail splits the load, add and store across a current yaw,
+                 * turned yaw and rotation pointer, and all three are needed.
+                 * Measured on the middle of the three copies -- the plain
+                 * compound assignment costs 18 lines, dropping only the
+                 * pointer 15, dropping only the yaw pair 13; collapsing all
+                 * three copies at once costs 226. */
+                int idle_yaw;
+                int turned_yaw;
+                SVECTOR *idle_rotation;
 
-                rotation = dtR;
-                current = rotation->vy;
+                idle_rotation = dtR;
+                idle_yaw = idle_rotation->vy;
                 if (dtPAD & PADLright)
-                    result = current + Me_MOTION_C->turn;
+                    turned_yaw = idle_yaw + Me_MOTION_C->turn;
                 else
-                    result = current - Me_MOTION_C->turn;
-                rotation->vy = result;
+                    turned_yaw = idle_yaw - Me_MOTION_C->turn;
+                idle_rotation->vy = turned_yaw;
             }
             break;
         }
         if ((dtPAD & (PADLdown | PADLup)) == 0)
             break;
         SET_MOTION(MOT_SWIM_STROKE, 0);
-        speed = SWIM_SPEED;
+        movement_speed = SWIM_SPEED;
         if (dtPAD & PADLup)
         {
-            MoveHumanoid(Me_MOTION_C, speed, 0);
+            MoveHumanoid(Me_MOTION_C, movement_speed, 0);
             break;
         }
         {
-            Humanoid *human;
+            Humanoid *backward_swimmer;
 
-            speed = -SWIM_SPEED;
-            human = Me_MOTION_C;
-            if (human->map.angleH != 0)
+            movement_speed = -SWIM_SPEED;
+            backward_swimmer = Me_MOTION_C;
+            if (backward_swimmer->map.angleH != 0)
                 break;
-            MoveHumanoid(human, speed, 0);
+            MoveHumanoid(backward_swimmer, movement_speed, 0);
             break;
         }
 
@@ -103,7 +110,7 @@ void ActSWIM(void)
             Sound(Me_MOTION_C, SE_WATER_MOVE);
         if (dtPAD & PADLup)
         {
-            Humanoid *human;
+            Humanoid *forward_swimmer;
 
             if (SwimCheck() == 0)
             {
@@ -112,60 +119,60 @@ void ActSWIM(void)
             }
             if ((dtPAD & (PADLleft | PADLright)) != 0)
             {
-                int current;
-                int result;
-                SVECTOR *rotation;
+                int stroke_yaw;
+                int turned_yaw;
+                SVECTOR *stroke_rotation;
 
-                rotation = dtR;
-                current = rotation->vy;
+                stroke_rotation = dtR;
+                stroke_yaw = stroke_rotation->vy;
                 if (dtPAD & PADLright)
-                    result = current + Me_MOTION_C->turn;
+                    turned_yaw = stroke_yaw + Me_MOTION_C->turn;
                 else
-                    result = current - Me_MOTION_C->turn;
-                rotation->vy = result;
+                    turned_yaw = stroke_yaw - Me_MOTION_C->turn;
+                stroke_rotation->vy = turned_yaw;
             }
-            speed = SWIM_SPEED;
-            human = Me_MOTION_C;
-            MoveHumanoid(human, speed, 0);
+            movement_speed = SWIM_SPEED;
+            forward_swimmer = Me_MOTION_C;
+            MoveHumanoid(forward_swimmer, movement_speed, 0);
             break;
         }
         else if (dtPAD & PADLdown)
         {
             if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
             {
-                SVECTOR *velocity;
-                VECTOR *locate;
+                SVECTOR *blocked_velocity;
+                VECTOR *position;
 
-                velocity = dtV;
-                locate = dtL;
-                locate->vx -= velocity->vx;
-                locate->vz -= velocity->vz;
-                velocity->vz = 0;
-                velocity->vx = 0;
+                blocked_velocity = dtV;
+                position = dtL;
+                position->vx -= blocked_velocity->vx;
+                position->vz -= blocked_velocity->vz;
+                blocked_velocity->vz = 0;
+                blocked_velocity->vx = 0;
                 break;
             }
             if ((dtPAD & (PADLleft | PADLright)) != 0)
             {
-                int current;
-                int result;
-                SVECTOR *rotation;
+                int reverse_yaw;
+                int turned_yaw;
+                SVECTOR *reverse_rotation;
 
-                rotation = dtR;
-                current = rotation->vy;
+                reverse_rotation = dtR;
+                reverse_yaw = reverse_rotation->vy;
                 if (dtPAD & PADLright)
-                    result = current - Me_MOTION_C->turn;
+                    turned_yaw = reverse_yaw - Me_MOTION_C->turn;
                 else
-                    result = current + Me_MOTION_C->turn;
-                rotation->vy = result;
+                    turned_yaw = reverse_yaw + Me_MOTION_C->turn;
+                reverse_rotation->vy = turned_yaw;
             }
-            speed = -SWIM_SPEED;
+            movement_speed = -SWIM_SPEED;
         }
         else
         {
             goto set_swim_idle;
         }
 
-        MoveHumanoid(Me_MOTION_C, speed, 0);
+        MoveHumanoid(Me_MOTION_C, movement_speed, 0);
         break;
 
     set_swim_idle:
@@ -175,27 +182,29 @@ void ActSWIM(void)
     case MOT_SWIM_EXIT:
         if (dtM->count == 1)
         {
-            ModelArchiveType *model;
-            s16 last;
-            s16 i;
+            ModelArchiveType *exit_model;
+            s16 last_exit_part;
+            s16 exit_part;
 
-            model = Me_MOTION_C->model;
-            if (model->n > 12)
-                last = 12;
+            exit_model = Me_MOTION_C->model;
+            if (exit_model->n > LAST_SWIM_HIDDEN_PART)
+                last_exit_part = LAST_SWIM_HIDDEN_PART;
             else
-                last = model->n - 1;
-            i = 7;
-            while (i <= last)
+                last_exit_part = exit_model->n - 1;
+            exit_part = FIRST_SWIM_HIDDEN_PART;
+            while (exit_part <= last_exit_part)
             {
-                u16 *attribute;
-                int attr;
+                u16 *part_attribute;
+                int visible_attribute;
 
-                attribute = (u16 *)&model->object[i++]->attribute;
-                attr = *attribute;
-                attr = attr & ~MODEL_ATTR_HIDDEN;
-                *attribute = attr;
+                part_attribute =
+                    (u16 *)&exit_model->object[exit_part++]->attribute;
+                visible_attribute = *part_attribute;
+                visible_attribute = visible_attribute & ~MODEL_ATTR_HIDDEN;
+                *part_attribute = visible_attribute;
             }
-            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+            *(u16 *)&exit_model->object[MODEL_PART_WAIST]->attribute &=
+                ~MODEL_ATTR_HIDDEN;
             Sound(Me_MOTION_C, SE_WATER_MOVE);
             return;
         }
@@ -208,12 +217,12 @@ void ActSWIM(void)
                 SET_MOTION(MOT_ENGAGE_STANCE, 1);
                 return;
             }
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, 1);
             return;
         }
-        if (dtM->count <= 40)
+        if (dtM->count <= SWIM_EXIT_MOVE_FRAME)
             return;
-        MoveHumanoid(Me_MOTION_C, 100, 0);
+        MoveHumanoid(Me_MOTION_C, SWIM_EXIT_SPEED, 0);
         return;
 
     default:
@@ -221,39 +230,41 @@ void ActSWIM(void)
     }
 
 {
-    Humanoid *human;
+    Humanoid *item_user;
 
-    human = Me_MOTION_C;
-    if ((human->pad.trig & PADRup) == 0)
+    item_user = Me_MOTION_C;
+    if ((item_user->pad.trig & PADRup) == 0)
         return;
-    /* SelectedItem is 0 past this guard, so every arm of the switch below
-     * except ITEM_KAGINAWA (= 0) is dead — retail's own code, kept as-is. */
-    if (SelectedItem != 0)
+    /* Every arm of the switch below except ITEM_KAGINAWA is dead past this
+     * guard — retail's own code, kept as-is. */
+    if (SelectedItem != ITEM_KAGINAWA)
         return;
     dtM->mask = MOTION_MASK_NOROOT;
 
     {
-        ModelArchiveType *model;
-        s16 last;
-        s16 i;
+        ModelArchiveType *item_model;
+        s16 last_item_part;
+        s16 item_part;
 
-        model = human->model;
-        if (model->n > 12)
-            last = 12;
+        item_model = item_user->model;
+        if (item_model->n > LAST_SWIM_HIDDEN_PART)
+            last_item_part = LAST_SWIM_HIDDEN_PART;
         else
-            last = model->n - 1;
-        i = 7;
-        while (i <= last)
+            last_item_part = item_model->n - 1;
+        item_part = FIRST_SWIM_HIDDEN_PART;
+        while (item_part <= last_item_part)
         {
-            u16 *attribute;
-            int attr;
+            u16 *part_attribute;
+            int visible_attribute;
 
-            attribute = (u16 *)&model->object[i++]->attribute;
-            attr = *attribute;
-            attr = attr & ~MODEL_ATTR_HIDDEN;
-            *attribute = attr;
+            part_attribute =
+                (u16 *)&item_model->object[item_part++]->attribute;
+            visible_attribute = *part_attribute;
+            visible_attribute = visible_attribute & ~MODEL_ATTR_HIDDEN;
+            *part_attribute = visible_attribute;
         }
-        *(u16 *)&model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+        *(u16 *)&item_model->object[MODEL_PART_WAIST]->attribute &=
+            ~MODEL_ATTR_HIDDEN;
     }
 
     switch (SelectedItem)
