@@ -156,6 +156,7 @@ extern struct POLY_F4 TelopbgP;  /* 0x800c2c90, size 0x18, static in CHRANIM.C *
 extern struct ModelType World;  /* 0x80097fa0, size 0x74 */
 extern struct Humanoid *HumanGroup[32];  /* 0x800be7b8, size 0x80 */
 extern struct GsOT OTable[2];  /* 0x80098018, size 0x28 */
+extern unsigned char Packet[2][65536];  /* 0x80098040, size 0x20000 */
 extern struct TPadPort PadPort[2][4];  /* 0x800be6d0, size 0x60 */
 extern struct HumanAnimType CVAhuman[5];  /* 0x800c2cc8, size 0x28 */
 extern struct GsFOGPARAM Fog;  /* 0x800b8070, size 0xc */

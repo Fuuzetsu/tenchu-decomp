@@ -216,15 +216,17 @@ def main() -> None:
                 "# either, so retail access widths and callee ABI win.\n"
                 "# C_AUTO offsets are frame-pointer relative ($fp == $sp), so the real\n"
                 "# slot is sp + fsize + offset; we print the resolved sp+N.\n"
-                "# A name repeated inside one function is a distinct nested-block scope.\n"
-                "#function\tfile\tkind\tstorage\ttype\tname\n")
+                "# A name repeated inside one function is a distinct nested-block scope;\n"
+                "# depth is the lexical block nesting from the 0x90/0x92 records\n"
+                "# (1 = the function body), which is how you tell those apart.\n"
+                "#function\tfile\tkind\tstorage\ttype\tname\tdepth\n")
         nloc = 0
         for fn in sorted(sf.funcs, key=lambda x: (x.file, x.line)):
             src = fn.file.split(chr(92))[-1]
             for a in fn.args:
                 where = REG[a.offset] if a.cls == P.C_REGPARM and a.offset < 32 else f"stack+{a.offset}"
                 f.write(f"{fn.name}\t{src}\tparam\t{where}\t"
-                        f"{declare(a, '', tagmap).strip()}\t{a.name}\n")
+                        f"{declare(a, '', tagmap).strip()}\t{a.name}\t{a.depth}\n")
                 nloc += 1
             for v in fn.lvars:
                 if v.cls == P.C_REG:
@@ -233,7 +235,7 @@ def main() -> None:
                     raw = v.offset - (1 << 32) if v.offset >= (1 << 31) else v.offset
                     where = f"sp+{fn.fsize + raw}"
                 f.write(f"{fn.name}\t{src}\t{'reg' if v.cls == P.C_REG else 'stack'}\t{where}\t"
-                        f"{declare(v, '', tagmap).strip()}\t{v.name}\n")
+                        f"{declare(v, '', tagmap).strip()}\t{v.name}\t{v.depth}\n")
                 nloc += 1
     print(f"wrote psxsym-locals.tsv ({nloc} params+locals across "
           f"{sum(1 for f in sf.funcs if f.args or f.lvars)} functions)")

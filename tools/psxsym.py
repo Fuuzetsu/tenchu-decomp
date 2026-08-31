@@ -80,6 +80,7 @@ class Def:
     type: int
     size: int
     name: str
+    depth: int = 0            # lexical block nesting inside the function
     dims: list[int] = field(default_factory=list)
     tag: str = ""
     file: str = ""
@@ -130,6 +131,7 @@ class SymFile:
         p = 8
         cur_file = ""
         cur_func: Func | None = None
+        depth = 0
         n = len(d)
         while p < n:
             off = struct.unpack_from("<I", d, p)[0]
@@ -168,15 +170,22 @@ class SymFile:
                     cur_func.end_line = struct.unpack_from("<I", d, q)[0]
                     cur_func.end_addr = off
                     cur_func = None
+                    depth = 0
                 p = q + 4
             elif tag in (0x90, 0x92):             # block start / end: u32 line
+                # The block records carry the lexical nesting the flat name
+                # list loses: two locals of the same name at different depths
+                # are separate scopes, not one variable seen twice.
+                depth += 1 if tag == 0x90 else -1
+                if depth < 0:
+                    depth = 0
                 p = q + 4
             elif tag == 0x94:                    # def
                 cls, ty = struct.unpack_from("<HH", d, q)
                 size = struct.unpack_from("<I", d, q + 4)[0]
                 nl = d[q + 8]
                 nm = d[q + 9:q + 9 + nl].decode("ascii", "replace")
-                dd = Def(off, cls, ty, size, nm, file=cur_file)
+                dd = Def(off, cls, ty, size, nm, depth=depth, file=cur_file)
                 self.defs.append(dd)
                 if cur_func is not None and cls in (C_ARG, C_REGPARM):
                     cur_func.args.append(dd)
@@ -192,7 +201,7 @@ class SymFile:
                 r += 4 * ndim
                 tl = d[r]; tg = d[r + 1:r + 1 + tl].decode("ascii", "replace"); r += 1 + tl
                 nl = d[r]; nm = d[r + 1:r + 1 + nl].decode("ascii", "replace"); r += 1 + nl
-                dd = Def(off, cls, ty, size, nm, dims, tg, cur_file)
+                dd = Def(off, cls, ty, size, nm, depth, dims, tg, cur_file)
                 self.defs.append(dd)
                 if cur_func is not None and cls in (C_ARG, C_REGPARM):
                     cur_func.args.append(dd)

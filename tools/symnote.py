@@ -62,8 +62,10 @@ def load():
             if line.startswith("#"):
                 continue
             c = line.rstrip("\n").split("\t")
-            if len(c) == 6:
-                locals_.setdefault(c[0], []).append(c[2:])
+            if len(c) >= 6:
+                # columns after `name` (depth) are extra context, not part
+                # of the stamped block
+                locals_.setdefault(c[0], []).append(c[2:6])
     p = "reference/psxsym-candidates.tsv"
     if os.path.exists(p):
         for line in open(p):

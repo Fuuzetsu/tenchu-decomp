@@ -564,3 +564,22 @@ PSX.SYM typed AND our decomp already names, so it is sparse, and most
 gaps contain unlisted symbols. Applied blindly it implies 991 `MOTcommon`
 rows against an actual 41-row sentinel-terminated table. It bounds an
 extent only when you can show nothing else lives in the gap.
+
+## Lexical nesting: read the 0x90/0x92 block records
+
+`psxsym-locals.tsv` has a `depth` column (1 = the function body). It comes
+from the block start/end records the parser used to skip, and it is what
+turns a repeated name from an ambiguity into evidence: `DrawConstruction`
+records `long a` three times AT DEPTH 2, so those are three sibling blocks
+each staging one camera axis, not one variable seen three times.
+`SearchTarget`'s `dx`/`dz` are depth 2 and its `degree` depth 3.
+
+Use it before proposing a scope. A depth-1 name is an ordinary function
+local; a repeated name at depth > 1 is a real nested block worth trying
+(free for register values, full frame cost for stack objects — see the
+cookbook). `tools/symtypes.py --locals` prints `@depth N` for anything
+deeper than the body.
+
+Regenerating the reference with `tools/symdump.py --out reference` also
+recovered a global the previous dump had missed (`Packet[2][65536]`),
+which is why EndDrawing and StartDrawing gained a line.

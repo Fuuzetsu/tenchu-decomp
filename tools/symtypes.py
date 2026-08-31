@@ -152,7 +152,10 @@ def locals_audit(only: str | None):
         f = line.split("\t")
         if len(f) < 6:
             continue
-        theirs.setdefault(f[0], []).append((f[2], f[4], f[5]))
+        # column 6 is the lexical block depth (1 = the function body);
+        # it is what distinguishes a repeated name's separate scopes
+        depth = f[6] if len(f) > 6 else ""
+        theirs.setdefault(f[0], []).append((f[2], f[4], f[5], depth))
 
     rows = []
     for func, recs in theirs.items():
@@ -165,16 +168,23 @@ def locals_audit(only: str | None):
         if ours is None:
             continue
         # Parameters are declared in the signature, not the body.
-        want = [n for k, _, n in recs if k != "param"]
+        want = [n for k, _, n, _d in recs if k != "param"]
         wantset, ourset = set(want), set(ours)
         extra = [n for n in ours if n not in wantset]
         missing = [n for n in want if n not in ourset]
         if not extra and not missing:
             continue
         rows.append((len(extra), func, ours, want, extra, missing,
-                     {n: t for k, t, n in recs}))
+                     {n: (t, d) for k, t, n, d in recs}))
     rows.sort(reverse=True)
     return rows
+
+
+def fmt_missing(rec, name):
+    if not rec:
+        return f"? {name}"
+    t, d = rec
+    return f"{t} {name}" + (f" @depth {d}" if d and d != "1" else "")
 
 
 def main() -> None:
@@ -198,7 +208,7 @@ def main() -> None:
                 print(f"    not in PSX.SYM: {', '.join(extra)}")
             if missing:
                 print("    PSX.SYM had:    " +
-                      ", ".join(f"{types.get(n, '?')} {n}" for n in missing))
+                      ", ".join(fmt_missing(types.get(n), n) for n in missing))
         return
 
     theirs = parse(REF)

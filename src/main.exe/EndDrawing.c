@@ -16,6 +16,7 @@
  * Globals it touches, as the original declared them:
  *     extern long GameClock;
  *     extern short SkipFrame;
+ *     extern unsigned char Packet[2][65536];
  *     extern short DrawingPage;
  *     extern struct GsOT OTable[2];
  *     extern struct GsOT *OTablePt;
