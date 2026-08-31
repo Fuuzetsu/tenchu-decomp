@@ -29,9 +29,10 @@
  * the runtime byte `param->p.fly.count2` (ASPSX break 7 / break 6 guards).
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The mode dispatch is the two-independent-goto shape: `if (mode==0) goto
- *    fly; if (mode==1) goto korogari; return;` — both bodies are forward-jump
- *    targets, the do-nothing default falls through.
+ *  - The mode dispatch is a plain `switch (param->mode)` with cases 0 and 1
+ *    and no default (measured byte-identical 2026-08-31, replacing an
+ *    equivalent two-goto ladder): both bodies are forward-jump targets and
+ *    the do-nothing default falls through.
  *  - A named runtime copy of `one` shares the constant across `q = k - …`
  *    and `w9 = k - d2 + …` (one `li` reused as a subtract base), matching the
  *    target's a3; two inline `0x1000` literals compile a fold-reassociated
