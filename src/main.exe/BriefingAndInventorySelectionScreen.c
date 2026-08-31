@@ -40,9 +40,13 @@
  *  - Keep the grid's multi-definition `int c = (u8)var`, the shown loop's
  *    `(s16)j` path through grid y, and the digit loop's int `d`/`quo` with
  *    its loop-carried copy at the bottom.
- *  - Spell all seven item indices as `[idx + (ps->CharType << 5)]` and keep
+ *  - Spell all seven item indices as the flat byte-walk
+ *    `(&ps->gItem[0][0])[idx + (ps->CharType << 5)]` and keep
  *    the grid traversal as a real for loop; both shapes affect expansion and
  *    delay-slot duplication.
+ *    Still true now that gItem is properly `[2][0x20]`: the natural
+ *    `ps->gItem[ps->CharType][idx]` costs 12 lines at these seven
+ *    sites, so the flat walk is the shape, not the type.
  *  - Preserve the two `dsp->u` memory rereads. They seed the required s1/s2
  *    register assignment; caching either value changes the allocation.
  */
