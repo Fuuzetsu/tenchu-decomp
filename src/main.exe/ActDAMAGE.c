@@ -34,8 +34,13 @@
  *  - Cases 0 and 1 repeat the signed-short model-part loop and the SetBlood
  *    tail.  jump2 merges only the latter onto case 1, leaving the shared
  *    continuation physically between the later case bodies as in retail.
- *  - The fatal path's block-local human/player/velocity aliases preload the
- *    three pointers after PlayMotion without extending one across a call.
+ *  - The deceleration `velocity`/`value` pair is the one working graph
+ *    that must stay: spelling the fields directly costs 14 lines and
+ *    dropping only `velocity` costs 29. Without `value` the two axes
+ *    emit separate signed lh tests and unsigned lhu read-modify-writes,
+ *    where the target shares one sign-extended load. The fatal path's
+ *    former human/player/velocity aliases, `weapon_kind`, and the final
+ *    human/attribute pair were NOT load-bearing and are gone.
  *  - `done` is a short, not enum bool.  Its HImode lifetime produces the
  *    target's v0/s0 join copies and prevents Sound's literal 1 from reusing
  *    s0.  The weapon-kind reject assigns it on both paths; jump/reorg then
@@ -167,25 +172,18 @@ void ActDAMAGE(void)
     case MOT_DAMAGE_DOWNED:
         if (Me_MOTION_C->life == 0)
         {
-            Humanoid *human;
-            Humanoid *player;
-            SVECTOR *velocity;
-
             dtM->loop = 0;
             dtM->count = 0;
             PlayMotion(dtM, 1);
-            human = Me_MOTION_C;
-            player = StagePlayer;
             dtM->loop = -2;
-            human->status = STAT_DEAD;
-            velocity = dtV;
-            human->attribute &= ~ATTR_SEARCH;
-            velocity->vz = 0;
-            velocity->vy = 0;
-            velocity->vx = 0;
-            if (human == player)
+            Me_MOTION_C->status = STAT_DEAD;
+            Me_MOTION_C->attribute &= ~ATTR_SEARCH;
+            dtV->vz = 0;
+            dtV->vy = 0;
+            dtV->vx = 0;
+            if (Me_MOTION_C == StagePlayer)
                 return;
-            DeleteConflict(human->model->object[MODEL_PART_WAIST]);
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WAIST]);
             TurnAroundAllItems(Me_MOTION_C);
             return;
         }
@@ -231,10 +229,7 @@ void ActDAMAGE(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             OrnamentType **weapon;
-            short weapon_kind;
-
-            weapon_kind = Me_MOTION_C->wpatk;
-            if (weapon_kind != KATANAL)
+            if (Me_MOTION_C->wpatk != KATANAL)
             {
                 done = true;
                 break;
@@ -254,18 +249,12 @@ void ActDAMAGE(void)
     }
     if (done)
     {
-        register Humanoid *human;
-
-        human = Me_MOTION_C;
-        if (human->attribute & ATTR_ALERT)
+        if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            u16 attribute;
-
             motID = MOT_ENGAGE_STANCE;
-            attribute = human->attribute;
             motMODE = 1;
-            attribute = (attribute & (u16)~ATTR_PHASE) | PHASE_ALERT;
-            human->attribute = attribute;
+            Me_MOTION_C->attribute =
+                (Me_MOTION_C->attribute & (u16)~ATTR_PHASE) | PHASE_ALERT;
         }
         else
         {
