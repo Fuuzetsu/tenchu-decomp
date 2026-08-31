@@ -1982,7 +1982,14 @@ irreducible nest: DrawConstruction's 3.
   power of two is automatic codegen, not a hand-written idiom"), and sat
   there un-generalised while the same expansion stayed transcribed in
   eight other files. When a per-file note states a fact about the
-  COMPILER rather than about that function, it belongs here. **Test each site alone AND in combination** --
+  COMPILER rather than about that function, it belongs here.
+  The sibling facts, lifted from the same sweep so the asm shapes are
+  recognisable on sight: a signed `%` by a constant power of two is a
+  four-instruction srl+addu+sra+sll dance (Think3callaid's `rand() % 2`),
+  and division by a VARIABLE carries an automatic zero/overflow guard
+  (ComputeAreaLevel). Both are codegen for the plain operator — the tree
+  has no transcribed instances of either left, which is why they are here
+  as recognition aids rather than as a queue. **Test each site alone AND in combination** --
   MoveFly's three fold together, but an early wrong-target rewrite made
   them look like they conflicted.
 - **The EffectSlot pool scan's `idx`/`slot` lockstep is byte-required.**
