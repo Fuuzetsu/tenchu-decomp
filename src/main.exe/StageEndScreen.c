@@ -472,8 +472,11 @@ void StageEndScreen(void)
                 do
                 {
                 } while (0);
-                /* Biased-shift /4096: byte-required (plain division
-                 * mismatches; measured). */
+                /* cc1's signed /4096 expansion, byte-required HERE (plain
+                 * division is 7 lines) even though the identical sequence
+                 * for the grade icon below folds to `pulse / 0x1000`
+                 * cleanly. The difference is this one's neighbouring
+                 * one-shot fence, not liveness. */
                 if (pulse < 0)
                 {
                     pulse += 0xfff;
@@ -490,11 +493,7 @@ void StageEndScreen(void)
                     icon->scalex = 0x1000;
                     icon->scaley = 0x1000;
                     pulse = rcos((GameClock << 12) / 90) * 0x50;
-                    if (pulse < 0)
-                    {
-                        pulse += 0xfff;
-                    }
-                    icon->r = icon->g = icon->b = (pulse >> 12) + 0x7f;
+                    icon->r = icon->g = icon->b = (pulse / 0x1000) + 0x7f;
                     GsSortSprite(icon, OTablePt, 1);
                 }
 

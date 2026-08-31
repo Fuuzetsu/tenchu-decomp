@@ -1969,10 +1969,14 @@ irreducible nest: DrawConstruction's 3.
   to find more; note the shift may be spelled `>> 12` or `>> 0xc`, and
   the divided result often lands in a DIFFERENT variable, so the staging
   collapses too (`xs = x >> 12` becomes `xs = <expr> / 0x1000`).
-  It does not always fold: two siblings in the very same functions
-  refuse, and the reason both times is that the guarded value stays live
-  afterwards (AddItem2's `sx` 64 lines, MoveFly's `q2` 9 lines,
-  PutStrain's `delta` 6). **Test each site alone AND in combination** --
+  It does not always fold, and a swept tree gives roughly a 40% hit rate
+  (6 of 15 gated). The usual reason for a refusal is that the guarded
+  value stays live or is reused afterwards — AddItem2's `sx` (64 lines),
+  MoveFly's `q2` (9), PutStrain's `delta` (6), DrawImpact's `start`
+  (reassigned three more times). But not always: StageEndScreen has the
+  SAME sequence twice on the same variable, and only the second folds;
+  the first sits next to a one-shot fence. Check liveness first, then
+  stop — do not assume a sibling's verdict transfers. **Test each site alone AND in combination** --
   MoveFly's three fold together, but an early wrong-target rewrite made
   them look like they conflicted.
 - **The EffectSlot pool scan's `idx`/`slot` lockstep is byte-required.**
