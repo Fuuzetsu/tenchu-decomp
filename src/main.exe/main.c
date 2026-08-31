@@ -92,7 +92,7 @@ int main(void)
     AdtPadRead = GetRealPad;
     ResetCallback();
     InitPadControl();
-    InitFileSystem(2);
+    InitFileSystem(READ_SOURCE_CDROM);
     CdaStatus.flag = CDA_FLAG_ACTIVE;
     SystemFlag = 0;
     InitGraphicsSystem();

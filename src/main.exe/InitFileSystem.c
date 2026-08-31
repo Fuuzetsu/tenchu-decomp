@@ -76,10 +76,10 @@ void InitFileSystem(int mode)
     TotalIO = 0;
     switch (mode)
     {
-    case 0:
+    case READ_SOURCE_DEVPC:
         PCinit();
         break;
-    case 1:
+    case READ_SOURCE_MEMORY:
         PCinit();
         if (strncmp((char *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
                     (char *)str_acqurememorydisk,
@@ -100,7 +100,7 @@ void InitFileSystem(int mode)
         }
         MDfat = (MemoryDiskType *)TENCHU_PC_MEMORY_PAYLOAD_ADDRESS;
         break;
-    case 2:
+    case READ_SOURCE_CDROM:
         CdInit();
         cd_init();
         AfsOpenVolume(&systemAFS, path_tenchu_data);
