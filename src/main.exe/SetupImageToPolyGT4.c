@@ -28,23 +28,25 @@
  * written 0x7F instead of FT4's three. Layout below is PSX.SYM's own POLY_GT4
  * (reference/psxsym-types.h), which confirms every offset in the .s.
  *
- * PSX.SYM's local list for this function (tx/ty/th) is from the DEMO build —
- * retail's version was rewritten to match FT4's shape, so the FT4 locals are
- * what reproduce the bytes here.
+ * PSX.SYM's local list for this function is `tx`, `ty` and `th`, and all
+ * three reproduce the bytes: `ty` in particular is ONE variable advanced in
+ * place across the four v stores, which is how the target uses the register.
+ * Retail does need more than the demo's three (the four grouped field reads
+ * and `tx2` are load-bearing — see FT4's header for the measurements), but
+ * the earlier note here claiming the demo names were unusable was wrong.
  */
 
 void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
 {
     s32 tp;
     s32 sh;
-    s32 w;
-    u32 u0Val;
-    u16 u1Val;
-    u8 v2Val;
+    s32 tw;
+    u32 tx;
+    u16 tx2;
     s32 px;
-    u8 pyByte;
+    u8 ty;
     u32 pw;
-    u32 ph;
+    u32 th;
 
     SetPolyGT4(ply);
     tp = *(u16 *)&image->pmode & 3;
@@ -52,9 +54,9 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     ply->clut = GetClut(image->cx, image->cy);
     sh = 2 - tp;
     px = image->px;
-    pyByte = (u8)image->py;
+    ty = (u8)image->py;
     pw = image->pw;
-    ph = image->ph;
+    th = image->ph;
     ply->r0 = 0x7F;
     ply->g0 = 0x7F;
     ply->b0 = 0x7F;
@@ -71,26 +73,26 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     ply->y0 = y;
     ply->y1 = y;
     ply->x2 = x;
-    u0Val = (px << sh) & ((1 << (8 - tp)) - 1);
-    w = pw << sh;
-    x += w;
-    y += ph;
+    tx = (px << sh) & ((1 << (8 - tp)) - 1);
+    tw = pw << sh;
+    x += tw;
+    y += th;
     /* One-shot fence: byte-required (collapse measured; see cookbook). */
     do
     {
     } while (0);
-    u1Val = u0Val + w;
-    ply->v0 = pyByte;
-    ply->v1 = pyByte;
-    v2Val = pyByte + ph;
+    tx2 = tx + tw;
+    ply->v0 = ty;
+    ply->v1 = ty;
+    ty += th;
     ply->x1 = x;
     ply->y2 = y;
     ply->x3 = x;
     ply->y3 = y;
-    ply->u0 = u0Val;
-    ply->u1 = u1Val;
-    ply->u2 = u0Val;
-    ply->v2 = v2Val;
-    ply->u3 = u1Val;
-    ply->v3 = v2Val;
+    ply->u0 = tx;
+    ply->u1 = tx2;
+    ply->u2 = tx;
+    ply->v2 = ty;
+    ply->u3 = tx2;
+    ply->v3 = ty;
 }

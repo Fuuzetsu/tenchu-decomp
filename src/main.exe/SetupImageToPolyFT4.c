@@ -43,35 +43,44 @@
  *  - `image->py`'s BYTE-narrowed read ((u8) cast, `lbu`) is a distinct
  *    load from the earlier full `lh` read for the GetTPage argument —
  *    different machine modes don't CSE (DeleteConflict's ConflictObjects).
- *  - u0/u1 byte values are each stored to TWO fields (u0Val to u0 and u2;
- *    u1Val to u1 and u3) and the py-derived byte to v0/v1 then v2Val to
- *    v2/v3 — named locals for exactly the values reused across those
- *    non-adjacent stores, matching Ghidra's own bVar4/uVar6/uVar8 temps.
- *  - `u0Val`/`u1Val` must stay UNCAST/WIDE (u32/u16, no `(u8)` truncation
- *    on the assignment): an explicit `(u8)` on `u0Val`'s assignment forces
- *    a redundant `andi 0xff` when it's later added into `u1Val`, which the
+ *  - u0/u1 byte values are each stored to TWO fields (tx to u0 and u2;
+ *    tx2 to u1 and u3) — named locals for exactly the values reused
+ *    across those non-adjacent stores.
+ *  - `ty` spans all four v stores: the target reuses one register ($7 in
+ *    FT4) for the py-derived byte at v0/v1 and then for `ty + th` at
+ *    v2/v3, so this is ONE source variable advanced in place, not two.
+ *    Splitting it (we had `pyByte` and `v2Val`) is equally exact but
+ *    invents a local; PSX.SYM records `tx`, `ty` and `th` and no others,
+ *    which is where these three names come from.
+ *  - `tx`/`tx2` must stay UNCAST/WIDE (u32/u16, no `(u8)` truncation
+ *    on the assignment): an explicit `(u8)` on `tx`'s assignment forces
+ *    a redundant `andi 0xff` when it's later added into `tx2`, which the
  *    target doesn't have (the `& mask` already leaves it byte-range; a
  *    second narrowing cast makes cc1 re-mask on reuse instead of trusting
  *    the first AND).
- *  - The empty `do { } while (0);` right after the `y += ph;` update is a
+ *  - The empty `do { } while (0);` right after the `y += th;` update is a
  *    load-bearing REGALLOC LEVER (found by tools/permute.py, ~4600 iters,
- *    score 0): with no barrier, cc1's scheduler hoists `u1Val = u0Val +
- *    w;` to float BEFORE the `x`/`y` updates (same instructions, wrong
+ *    score 0): with no barrier, cc1's scheduler hoists `tx2 = tx + tw;`
+ *    to float BEFORE the `x`/`y` updates (same instructions, wrong
  *    order); the loop-note barrier pins it after, matching the target.
+ *  - `tx2` must stay a named local even though `ply->u1 = tx + tw;`
+ *    twice would read better: inlined, the add sinks one slot past the
+ *    v0 store (1 instruction out of place). Folding `px` into `tx` or
+ *    `pw` into `tw` costs 32 lines — the four grouped field reads above
+ *    are the reason.
  */
 
 void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
 {
     s32 tp;
     s32 sh;
-    s32 w;
-    u32 u0Val;
-    u16 u1Val;
-    u8 v2Val;
+    s32 tw;
+    u32 tx;
+    u16 tx2;
     s32 px;
-    u8 pyByte;
+    u8 ty;
     u32 pw;
-    u32 ph;
+    u32 th;
 
     SetPolyFT4(ply);
     tp = *(u16 *)&image->pmode & 3;
@@ -79,9 +88,9 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     ply->clut = GetClut(image->cx, image->cy);
     sh = 2 - tp;
     px = image->px;
-    pyByte = (u8)image->py;
+    ty = (u8)image->py;
     pw = image->pw;
-    ph = image->ph;
+    th = image->ph;
     ply->r0 = 0x7F;
     ply->g0 = 0x7F;
     ply->b0 = 0x7F;
@@ -89,26 +98,26 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     ply->y0 = y;
     ply->y1 = y;
     ply->x2 = x;
-    u0Val = (px << sh) & ((1 << (8 - tp)) - 1);
-    w = pw << sh;
-    x += w;
-    y += ph;
+    tx = (px << sh) & ((1 << (8 - tp)) - 1);
+    tw = pw << sh;
+    x += tw;
+    y += th;
     /* Empty one-shot: a zero-code scheduling barrier (fence class; see cookbook). */
     do
     {
     } while (0);
-    u1Val = u0Val + w;
-    ply->v0 = pyByte;
-    ply->v1 = pyByte;
-    v2Val = pyByte + ph;
+    tx2 = tx + tw;
+    ply->v0 = ty;
+    ply->v1 = ty;
+    ty += th;
     ply->x1 = x;
     ply->y2 = y;
     ply->x3 = x;
     ply->y3 = y;
-    ply->u0 = u0Val;
-    ply->u1 = u1Val;
-    ply->u2 = u0Val;
-    ply->v2 = v2Val;
-    ply->u3 = u1Val;
-    ply->v3 = v2Val;
+    ply->u0 = tx;
+    ply->u1 = tx2;
+    ply->u2 = tx;
+    ply->v2 = ty;
+    ply->u3 = tx2;
+    ply->v3 = ty;
 }
