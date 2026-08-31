@@ -130,15 +130,12 @@ void PutItemList(void)
 
             if (ItemCursor == i)
             {
-                s32 ItemID;
                 GsSPRITE *spr;
 
                 PutItemCursorInline(x, ItemY - 8, 0x1000, -6 * 4096); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
 
-                ItemID = i * sizeof(ItemImage[0]);
-                ItemID = *(s32 *)((u8 *)ItemImage + ItemID);
                 SelectedItem = i;
-                spr = &((Sprite3D *)ItemID)->sprite;
+                spr = &ItemImage[i]->sprite;
                 spr->x = x;
                 spr->y = ItemY - 8;
                 spr->scalex = 0x1000;
@@ -147,12 +144,9 @@ void PutItemList(void)
             }
             else
             {
-                s32 ItemID;
                 GsSPRITE *spr;
 
-                ItemID = i * sizeof(ItemImage[0]);
-                ItemID = *(s32 *)((u8 *)ItemImage + ItemID);
-                spr = &((Sprite3D *)ItemID)->sprite;
+                spr = &ItemImage[i]->sprite;
                 spr->x = x;
                 spr->y = ItemY - 8;
                 spr->scalex = 0xAAA;
