@@ -266,6 +266,8 @@ short LoadConstruction(u_long *data)
             for (i = 0; i < slotman->n; i++)
             {
                 disposeModel = slotman->slot[i].model;
+                /* Only dispose a slot that holds a real cached-RAM
+                 * (KSEG0, 0x80xxxxxx) pointer; the others carry sentinels. */
                 if (((u32)disposeModel & 0xFF000000) == 0x80000000)
                     DisposeOrnament(disposeModel);
             }

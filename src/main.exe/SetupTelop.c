@@ -67,6 +67,9 @@ void SetupTelop(u8 *telop, short line)
 
     TelopP.u1 = 0;
     TelopP.u0 = 0;
+    /* Both the first and the third byte have their high bit set, so the
+     * line is Shift-JIS double-byte text rather than ASCII, and needs the
+     * kanji glyph path below instead of the font sprites. */
     if ((*telop & 0x80) != 0 && (telop[2] & 0x80) != 0)
     {
         setRECT(&rect, 0x300, 0x1f0 - line * 16, 0x100, 0xf);
