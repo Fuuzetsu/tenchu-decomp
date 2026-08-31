@@ -32,6 +32,6 @@ void save_pad_analog_(void)
     }
     else
     {
-        ps->analog_pad_present &= 0xfe;
+        ps->analog_pad_present &= ~1;
     }
 }

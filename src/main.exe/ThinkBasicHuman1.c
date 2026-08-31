@@ -46,7 +46,10 @@ s16 ThinkBasicHuman1(void)
     if ((Me_THINK_C->map.attrib & MAP_DEATH) &&
         (Me_THINK_C->status == STAT_JUMP || Me_THINK_C->status == STAT_ATTACK))
     {
-        pad &= 0xfff;
+        /* Standing on a death tile mid-jump or mid-swing: drop every
+         * direction, keep the buttons. The cast is what keeps the andi,
+         * same as the ~PADR1 note below. */
+        pad &= (u16)~(PADLup | PADLdown | PADLleft | PADLright);
     }
     if (pad & PADR1)
     {
