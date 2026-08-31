@@ -34,8 +34,8 @@
 
 /*
  * The Henshin (disguise) item processor: snapshots the player's model into
- * HenshinSnapshot, swaps in the disguise character for HenshinCount (600)
- * frames with a smoke puff at both ends, ticks the countdown each frame,
+ * HenshinSnapshot, swaps in the disguise character for the HenshinCount
+ * countdown with a smoke puff at both ends, ticks the countdown each frame,
  * and restores the original model when the timer runs out, damage breaks
  * the disguise, or the item is disposed (HenshinItem marks the active
  * instance).
@@ -44,8 +44,8 @@
 
 typedef union
 {
-    PARAM_ITEM_LAUNCH p;
-    SVECTOR sv;
+    PARAM_ITEM_LAUNCH drop_request;
+    SVECTOR smoke_velocity;
 } ProcItemHenshinScratch;
 
 /*
@@ -64,15 +64,16 @@ typedef union
  *  - HenshinItem and HenshinCount use volatile views only to preserve the
  *    original observable load/store sequence.  In particular, the restore
  *    path stores the current-disguise pointer before reloading item->owner,
- *    and mode 2 finishes its mode/count stores before loading owner/type.
+ *    and HENSHIN_MODE_TRANSFORM finishes its mode/count stores before loading
+ *    owner/type.
  *    The old disguise pointer is copied once before its null/proc checks so
  *    volatility does not introduce redundant global reloads.
  *  - `scratch` is the exact sp+0x10..0x37 lifetime overlay: PSX.SYM records
- *    PARAM_ITEM_LAUNCH `p` on the interrupted-motion path and SVECTOR `sv` on
- *    the smoke paths.
- *  - Case 0 deliberately does not assign HenshinItem.  It jumps directly to
- *    the shared mode increment; only the completed mode-1 path installs the
- *    current item after disposing any prior disguise.
+ *    a PARAM_ITEM_LAUNCH `drop_request` on the interrupted-motion path and
+ *    an SVECTOR `smoke_velocity` on the smoke paths.
+ *  - HENSHIN_MODE_START deliberately does not assign HenshinItem. It jumps
+ *    directly to the shared mode increment; only the completed wait path
+ *    installs the current item after disposing any prior disguise.
  */
 extern TItem *volatile HenshinItem;
 extern volatile u16 HenshinCount;
@@ -80,36 +81,45 @@ extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 void ProcItemHenshin(TItem *item)
 {
+    enum
+    {
+        HENSHIN_MODE_START = 0,
+        HENSHIN_MODE_WAIT = 1,
+        HENSHIN_MODE_TRANSFORM = 2,
+        HENSHIN_MODE_ACTIVE = 3,
+        HENSHIN_DURATION = 600
+    };
     Humanoid *human;
-    ModelArchiveType *mad;
+    ModelArchiveType *archive;
     ProcItemHenshinScratch scratch;
 
     human = item->owner;
-    mad = human->model;
+    archive = human->model;
 
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         if (item == HenshinItem)
         {
-            s32 i;
-            HenshinModelSnapshot *saved;
+            s32 part_index;
+            HenshinModelSnapshot *snapshot;
 
-            i = 0;
-            saved = &Item_save;
-            mad->rotate.pad = (s16)saved->waist;
-            if (mad->n > 0)
+            part_index = 0;
+            snapshot = &Item_save;
+            archive->rotate.pad = (s16)snapshot->waist;
+            if (archive->n > 0)
             {
                 do
                 {
-                    mad->object[i]->object.tmd = saved->p[i].tmd;
-                    mad->object[i]->locate.coord.t[0] =
-                        saved->p[i].x;
-                    mad->object[i]->locate.coord.t[1] =
-                        saved->p[i].y;
-                    mad->object[i]->locate.coord.t[2] =
-                        saved->p[i].z;
-                    i++;
-                } while (i < mad->n);
+                    archive->object[part_index]->object.tmd =
+                        snapshot->p[part_index].tmd;
+                    archive->object[part_index]->locate.coord.t[0] =
+                        snapshot->p[part_index].x;
+                    archive->object[part_index]->locate.coord.t[1] =
+                        snapshot->p[part_index].y;
+                    archive->object[part_index]->locate.coord.t[2] =
+                        snapshot->p[part_index].z;
+                    part_index++;
+                } while (part_index < archive->n);
             }
             if (item->owner->status == STAT_SQUAT)
             {
@@ -118,42 +128,42 @@ void ProcItemHenshin(TItem *item)
             HenshinItem = 0;
             ((volatile TItem *)item)->owner->itmctl = 0;
         }
-        item->mode = 0;
+        item->mode = HENSHIN_MODE_START;
         return;
     }
 
     switch (item->mode)
     {
-    case 0:
+    case HENSHIN_MODE_START:
         SetNowMotion(human, MOT_ITEM_KAENGEKI, 1);
         Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 
-    case 1:
+    case HENSHIN_MODE_WAIT:
     {
         MotionManager *motion;
 
         motion = human->motion;
         if (motion->mid != MOT_ITEM_KAENGEKI)
         {
-            VECTOR *pos;
+            VECTOR *drop_position;
             Humanoid *drop_owner;
             s32 itemID;
 
-            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
+            drop_position = GetAbsolutePosition(item->locate, 0, 0, 0);
             drop_owner = item->owner;
             itemID = item->type;
-            memset(&scratch.p, 0, sizeof(PARAM_ITEM_LAUNCH));
-            scratch.p.type = itemID;
-            scratch.p.user = drop_owner;
-            scratch.p.start.vx = pos->vx;
-            scratch.p.start.vy = pos->vy;
-            scratch.p.start.vz = pos->vz;
-            scratch.p.end.vx = rand() % 200 - 100;
-            scratch.p.end.vy = rand() % 100 - 200;
-            scratch.p.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&scratch.p);
+            memset(&scratch.drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
+            scratch.drop_request.type = itemID;
+            scratch.drop_request.user = drop_owner;
+            scratch.drop_request.start.vx = drop_position->vx;
+            scratch.drop_request.start.vy = drop_position->vy;
+            scratch.drop_request.start.vz = drop_position->vz;
+            scratch.drop_request.end.vx = rand() % 200 - 100;
+            scratch.drop_request.end.vy = rand() % 100 - 200;
+            scratch.drop_request.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&scratch.drop_request);
             if (item->proc == 0)
             {
                 return;
@@ -161,7 +171,7 @@ void ProcItemHenshin(TItem *item)
             item->mode = ITEM_MODE_DISPOSE;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != HENSHIN_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
@@ -179,23 +189,26 @@ void ProcItemHenshin(TItem *item)
         }
 
         NowReturnNormal(human);
-        scratch.sv = svec_y_n50[0];
-        SetSmoke((VECTOR *)mad->locate.coord.t, &scratch.sv, 10, 6);
+        scratch.smoke_velocity = svec_y_n50[0];
+        SetSmoke((VECTOR *)archive->locate.coord.t,
+                 &scratch.smoke_velocity, 10, 6);
         {
-            TItem *old;
+            TItem *previous_disguise;
 
-            old = HenshinItem;
-            if (old != 0 && old->proc != 0)
+            previous_disguise = HenshinItem;
+            if (previous_disguise != 0 && previous_disguise->proc != 0)
             {
-                old->mode = ITEM_MODE_DISPOSE;
-                old->proc(old);
-                DeleteConflict(old->locate);
-                if (old->mode != 0)
+                previous_disguise->mode = ITEM_MODE_DISPOSE;
+                previous_disguise->proc(previous_disguise);
+                DeleteConflict(previous_disguise->locate);
+                if (previous_disguise->mode != HENSHIN_MODE_START)
                 {
-                    AdtMessageBox(msg_item_dispose_fail, old->type, (u32)old->mode);
+                    AdtMessageBox(msg_item_dispose_fail,
+                                  previous_disguise->type,
+                                  (u32)previous_disguise->mode);
                 }
-                old->owner = 0;
-                old->proc = 0;
+                previous_disguise->owner = 0;
+                previous_disguise->proc = 0;
             }
         }
         HenshinItem = item;
@@ -203,48 +216,51 @@ void ProcItemHenshin(TItem *item)
         return;
     }
 
-    case 2:
+    case HENSHIN_MODE_TRANSFORM:
     {
-        s32 i;
-        HenshinModelSnapshot *saved;
-        volatile TItem *vitem;
-        Humanoid *mode_owner;
+        s32 part_index;
+        HenshinModelSnapshot *snapshot;
+        volatile TItem *volatile_item;
+        Humanoid *disguise_owner;
         u16 itemID;
 
-        i = 0;
-        saved = &HenshinSnapshot;
-        mad->rotate.pad = (s16)saved->waist;
-        if (mad->n > 0)
+        part_index = 0;
+        snapshot = &HenshinSnapshot;
+        archive->rotate.pad = (s16)snapshot->waist;
+        if (archive->n > 0)
         {
             do
             {
-                mad->object[i]->object.tmd = saved->p[i].tmd;
-                mad->object[i]->locate.coord.t[0] =
-                    saved->p[i].x;
-                mad->object[i]->locate.coord.t[1] =
-                    saved->p[i].y;
-                mad->object[i]->locate.coord.t[2] =
-                    saved->p[i].z;
-                i++;
-            } while (i < mad->n);
+                archive->object[part_index]->object.tmd =
+                    snapshot->p[part_index].tmd;
+                archive->object[part_index]->locate.coord.t[0] =
+                    snapshot->p[part_index].x;
+                archive->object[part_index]->locate.coord.t[1] =
+                    snapshot->p[part_index].y;
+                archive->object[part_index]->locate.coord.t[2] =
+                    snapshot->p[part_index].z;
+                part_index++;
+            } while (part_index < archive->n);
         }
-        vitem = item;
-        vitem->mode++;
-        HenshinCount = 600;
-        mode_owner = vitem->owner;
-        itemID = *(volatile u16 *)&vitem->type;
-        EmergencyNotice = -600;
-        mode_owner->itmctl = itemID;
+        volatile_item = item;
+        volatile_item->mode++;
+        HenshinCount = HENSHIN_DURATION;
+        disguise_owner = volatile_item->owner;
+        /* TItemType is a 32-bit enum; retail deliberately reads its low
+         * half. */
+        itemID = *(volatile u16 *)&volatile_item->type;
+        EmergencyNotice = -HENSHIN_DURATION;
+        disguise_owner->itmctl = itemID;
         return;
     }
 
-    case 3:
+    case HENSHIN_MODE_ACTIVE:
     {
-        u16 count;
+        u16 remaining_count;
 
-        count = HenshinCount - 1;
-        HenshinCount = count;
-        if ((s32)(count << 16) > 0 &&
+        remaining_count = HenshinCount - 1;
+        HenshinCount = remaining_count;
+        if ((s16)remaining_count > 0 &&
             item->owner->itmctl == item->type &&
             item->owner->status != STAT_DAMAGE &&
             item->owner->status != STAT_DEAD)
@@ -259,8 +275,9 @@ void ProcItemHenshin(TItem *item)
                 return;
             }
         }
-        scratch.sv = svec_y_n50[0];
-        SetSmoke((VECTOR *)mad->locate.coord.t, &scratch.sv, 10, 6);
+        scratch.smoke_velocity = svec_y_n50[0];
+        SetSmoke((VECTOR *)archive->locate.coord.t,
+                 &scratch.smoke_velocity, 10, 6);
         if (item->proc == 0)
         {
             return;
@@ -268,7 +285,7 @@ void ProcItemHenshin(TItem *item)
         item->mode = ITEM_MODE_DISPOSE;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != HENSHIN_MODE_START)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }

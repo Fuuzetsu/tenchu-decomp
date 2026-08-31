@@ -8,14 +8,14 @@ typedef union
 {
     struct
     {
-        SVECTOR vec;
-        VECTOR pos;
-        VECTOR pos_buf;
+        SVECTOR velocity;
+        VECTOR position;
+        VECTOR position_build;
     } explosion;
     struct
     {
-        VECTOR pos;
-        VECTOR random_pos;
+        VECTOR position;
+        VECTOR random_position_build;
     } frame;
 } ProcItemJiraiScratch;
 
@@ -67,41 +67,54 @@ extern void reset_alert_duration(void);
  *    share ProcItemJiraiScratch.  This reproduces the target's exact
  *    sp+0x18..sp+0x3f working window and 0x60-byte frame.
  *  - `call_item` makes both disposal predecessors materialize the indirect
- *    call argument before entering their shared tail; calling `proc(item)`
- *    instead fills the jalr delay slot and removes 1 of those moves.
- *  - The zero-trip wrapper around `i = 0` keeps initialization after the
- *    character-state call, where it fills the following branch delay slot.
- *    That loop note initially gave `i` the allocator's preferred saved
- *    register, so the second zero-trip wrapper weights the three `% 200`
- *    expressions more heavily.  The generated division constant then takes
- *    $s1 and leaves the target $s3 for `i`, without emitting extra code.
+ *    call argument before entering their shared tail; calling
+ *    `item_proc(item)` instead fills the jalr delay slot and removes one of
+ *    those moves.
+ *  - The zero-trip wrapper around `frame_index = 0` keeps initialization
+ *    after the character-state call, where it fills the following branch
+ *    delay slot. That loop note initially gave `frame_index` the allocator's
+ *    preferred saved register, so the second zero-trip wrapper weights the
+ *    three `% 200` expressions more heavily. The generated division constant
+ *    then takes $s1 and leaves the target $s3 for `frame_index`, without
+ *    emitting extra code.
  *  - This function needs maspsx `--expand-div` for the dynamic model-count
  *    remainder guard; Build.hs and permute.py carry the mirrored flag.
  */
 
 void ProcItemJirai(TItem *item)
 {
-    Sprite3D *model;
+    enum
+    {
+        JIRAI_MODE_PLACE = 0,
+        JIRAI_MODE_ARMED = 1,
+        JIRAI_MODE_EXPLODE = 2,
+        JIRAI_MODE_BLAST = 3,
+        NO_CONFLICT = -1,
+        JIRAI_BLAST_COUNTDOWN_START = 3,
+        JIRAI_FRAME_EFFECT_COUNT = 10,
+        JIRAI_COUNTDOWN_END = 0xff
+    };
+    Sprite3D *sprite;
     param_smoke *param;
-    void (*proc)(TItem *);
+    void (*item_proc)(TItem *);
     TItem *call_item;
     ProcItemJiraiScratch scratch;
 
-    model = (Sprite3D *)item->model;
+    sprite = (Sprite3D *)item->model;
     param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = JIRAI_MODE_PLACE;
         return;
     }
 
     switch (item->mode)
     {
-    case 0:
+    case JIRAI_MODE_PLACE:
     {
-        s32 size;
-        s32 collision_mode;
-        s32 n;
+        s32 trigger_size;
+        s32 conflict_class;
+        s32 new_conflict_id;
 
         item->locate->locate.coord.t[1] =
             GetAreaMapLevel(GlobalAreaMap,
@@ -112,15 +125,15 @@ void ProcItemJirai(TItem *item)
         if (item->locate->locate.coord.t[1] == LEVEL_NONE ||
             ((u16)FieldArea->attribute & MAP_WATER) != 0)
         {
-            u8 count;
+            u8 item_count;
 
-            count = item->owner->item[item->type];
-            if (count != ITEM_INFINITE)
+            item_count = item->owner->item[item->type];
+            if (item_count != ITEM_INFINITE)
             {
-                item->owner->item[item->type] = count + 1;
+                item->owner->item[item->type] = item_count + 1;
             }
-            proc = item->proc;
-            if (proc == 0)
+            item_proc = item->proc;
+            if (item_proc == 0)
             {
                 return;
             }
@@ -130,140 +143,153 @@ void ProcItemJirai(TItem *item)
         }
 
         DeleteConflict(item->locate);
-        n = InsertConflict(item->locate);
-        size = 500;
-        collision_mode = CONFLICT_SOFT;
-        SET_ITEM_COLLISION(n, size, CONFLICT_OWNER_ITEM, collision_mode);
+        new_conflict_id = InsertConflict(item->locate);
+        trigger_size = 500;
+        conflict_class = CONFLICT_SOFT;
+        SET_ITEM_COLLISION(new_conflict_id, trigger_size,
+                           CONFLICT_OWNER_ITEM, conflict_class);
         item->mode++;
         break;
     }
 
-    case 1:
+    case JIRAI_MODE_ARMED:
     {
-        s32 cid;
+        s32 conflict_id;
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            cid = -1;
+            conflict_id = NO_CONFLICT;
         }
         else
         {
-            cid = GetConflictResult(item->locate, -1);
+            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
         }
-        if (cid != -1 &&
+        if (conflict_id != NO_CONFLICT &&
             is_humanoid_on_stage_(
-                (Humanoid *)ConflictObject[cid].common) != 0)
+                (Humanoid *)ConflictObject[conflict_id].common) != 0)
         {
-            s32 n;
-            s32 size;
+            s32 new_conflict_id;
+            s32 blast_size;
 
             DeleteConflict(item->locate);
-            n = InsertConflict(item->locate);
-            size = 1500;
-            SET_ITEM_COLLISION(n, size, (void *)1, 1);
-            item->mode += 1;
+            new_conflict_id = InsertConflict(item->locate);
+            blast_size = 1500;
+            SET_ITEM_COLLISION(new_conflict_id, blast_size,
+                               CONFLICT_OWNER_ITEM, CONFLICT_HIT);
+            item->mode++;
         }
         break;
     }
 
-    case 2:
-        scratch.explosion.vec = svec_y_n25[0];
-        memset(&scratch.explosion.pos_buf, 0, sizeof(VECTOR));
-        scratch.explosion.pos_buf.vx = item->locate->locate.coord.t[0];
-        scratch.explosion.pos_buf.vy = item->locate->locate.coord.t[1];
-        scratch.explosion.pos_buf.vz = item->locate->locate.coord.t[2];
-        scratch.explosion.pos = scratch.explosion.pos_buf;
-        SetExplosion(&scratch.explosion.pos, &scratch.explosion.vec);
-        scratch.explosion.vec.vx = 75;
-        scratch.explosion.vec.vy = 200;
-        scratch.explosion.vec.vz = 75;
-        SetHinoko(&scratch.explosion.pos, &scratch.explosion.vec, 10);
-        scratch.explosion.vec.vx = 0;
-        scratch.explosion.vec.vy = -400;
-        scratch.explosion.vec.vz = 0;
-        SetSmoke(&scratch.explosion.pos, &scratch.explosion.vec, 20, 6);
-        SoundEx(&scratch.explosion.pos, SE_EXPLOSION);
+    case JIRAI_MODE_EXPLODE:
+        scratch.explosion.velocity = svec_y_n25[0];
+        memset(&scratch.explosion.position_build, 0, sizeof(VECTOR));
+        scratch.explosion.position_build.vx =
+            item->locate->locate.coord.t[0];
+        scratch.explosion.position_build.vy =
+            item->locate->locate.coord.t[1];
+        scratch.explosion.position_build.vz =
+            item->locate->locate.coord.t[2];
+        scratch.explosion.position = scratch.explosion.position_build;
+        SetExplosion(&scratch.explosion.position,
+                     &scratch.explosion.velocity);
+        scratch.explosion.velocity.vx = 75;
+        scratch.explosion.velocity.vy = 200;
+        scratch.explosion.velocity.vz = 75;
+        SetHinoko(&scratch.explosion.position,
+                  &scratch.explosion.velocity, 10);
+        scratch.explosion.velocity.vx = 0;
+        scratch.explosion.velocity.vy = -400;
+        scratch.explosion.velocity.vz = 0;
+        SetSmoke(&scratch.explosion.position,
+                 &scratch.explosion.velocity, 20, 6);
+        SoundEx(&scratch.explosion.position, SE_EXPLOSION);
         item->mode++;
-        param->count = 3;
+        param->count = JIRAI_BLAST_COUNTDOWN_START;
         reset_alert_duration();
         break;
 
-    case 3:
+    case JIRAI_MODE_BLAST:
     {
-        s32 cid;
-        s32 count;
+        s32 conflict_id;
+        s32 blast_countdown;
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            cid = -1;
+            conflict_id = NO_CONFLICT;
         }
         else
         {
-            cid = GetConflictResult(item->locate, -1);
+            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
         }
-        if (cid != -1)
+        if (conflict_id != NO_CONFLICT)
         {
-            Humanoid *human;
-            s32 i;
-            s32 present;
+            Humanoid *hit_human;
+            s32 frame_index;
+            s32 human_present;
 
-            human = (Humanoid *)ConflictObject[cid].common;
-            present = is_humanoid_on_stage_(human);
+            hit_human = (Humanoid *)ConflictObject[conflict_id].common;
+            human_present = is_humanoid_on_stage_(hit_human);
             /* empty 1-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
             } while (0);
-            i = 0;
-            if (present != 0)
+            frame_index = 0;
+            if (human_present != 0)
             {
                 while (1)
                 {
-                    ModelType **objects;
+                    ModelType **model_objects;
                     ModelType *model;
 
-                    if (i >= 10)
+                    if (frame_index >= JIRAI_FRAME_EFFECT_COUNT)
                     {
                         break;
                     }
-                    objects = human->model->object;
-                    if (human->model->n > 0)
+                    model_objects = hit_human->model->object;
+                    if (hit_human->model->n > 0)
                     {
-                        objects += rand() % human->model->n;
+                        model_objects += rand() % hit_human->model->n;
                     }
-                    model = *objects;
-                    memset(&scratch.frame.random_pos, 0, sizeof(VECTOR));
-                    i++;
+                    model = *model_objects;
+                    memset(&scratch.frame.random_position_build, 0,
+                           sizeof(VECTOR));
+                    frame_index++;
                     do
                     {
-                        scratch.frame.random_pos.vx = rand() % 200 - 100;
-                        scratch.frame.random_pos.vy = rand() % 200 - 100;
-                        scratch.frame.random_pos.vz = rand() % 200 - 100;
+                        scratch.frame.random_position_build.vx =
+                            rand() % 200 - 100;
+                        scratch.frame.random_position_build.vy =
+                            rand() % 200 - 100;
+                        scratch.frame.random_position_build.vz =
+                            rand() % 200 - 100;
                     } while (0);
-                    scratch.frame.pos = scratch.frame.random_pos;
-                    SetFrame(&scratch.frame.pos, 3 * FIXED_ONE,
+                    scratch.frame.position =
+                        scratch.frame.random_position_build;
+                    SetFrame(&scratch.frame.position, 3 * FIXED_ONE,
                              rand() % 60 + 60,
                              (GsCOORDINATE2 *)model);
                 }
             }
         }
 
-        count = param->count - 1;
-        param->count = count;
-        if ((u8)count != 0xff)
+        blast_countdown = param->count - 1;
+        param->count = blast_countdown;
+        if ((u8)blast_countdown != JIRAI_COUNTDOWN_END)
         {
             return;
         }
-        proc = item->proc;
-        if (proc == 0)
+        item_proc = item->proc;
+        if (item_proc == 0)
         {
             return;
         }
         call_item = item;
         item->mode = ITEM_MODE_DISPOSE;
     dispose:
-        proc(call_item);
+        item_proc(call_item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != JIRAI_MODE_PLACE)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
@@ -274,6 +300,6 @@ void ProcItemJirai(TItem *item)
     }
 
     UpdateCoordinate(item->locate);
-    model->locate = item->locate->locate;
-    DrawSprite(model);
+    sprite->locate = item->locate->locate;
+    DrawSprite(sprite);
 }
