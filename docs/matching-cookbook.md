@@ -1509,6 +1509,11 @@ NON-LOCAL). A
 fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
 `weapon++`). The mechanisms:
 
+- **Fence removals CASCADE — and so does control-flow restructuring**:
+  after any goto/structure round, RE-RUN the fence audit on the files you
+  touched. ActivateHumans' last weight fence (around `i++`) became
+  removable only after its goto ladder was flattened (2026-08-31), which
+  left that function both fence-free and goto-light.
 - **Fence removals CASCADE — iterate the audit to fixpoint**: every landed
   fence change shifts the priority races its neighbors were balancing, so
   a fence that measured load-bearing can measure stale one commit later
