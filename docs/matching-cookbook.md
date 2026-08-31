@@ -1948,6 +1948,22 @@ irreducible nest: DrawConstruction's 3.
   the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
   a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
   bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **Read `symtypes.py --locals` in BOTH directions, and treat a positive
+  symbol as a proposal rather than a spec.** The removal half (names
+  PSX.SYM never recorded) is the obvious one. The other half — a name the
+  original had and we do not — is worth chasing only when a retail
+  operation naturally owns that name AND that lifetime: `PutLifeBar`'s
+  digit loop took the demo's `x`/`y`/`n` in a nested block exactly, and
+  grew eight lines doing it, which is the right trade. But
+  `CreateStage`'s `ply_title1`/`ply_title2`/`pBuf` describe the demo's
+  title-card pipeline and `Think1watch`'s `xx`/`zz`/`vx`/`vz`/`deg`
+  belong to movement logic retail does not have; adopting those would
+  transplant demo behaviour, not recover source. **A positive symbol is
+  not permission to invent a retail operation.** Note also that the
+  evidence often validates what is already there rather than asking for a
+  change — `PlayVoice`, `SetBleeds` and `SetBleedsDir` already contained
+  the nested `pos`/`time`/`min`/`sec` scopes their repeated demo names
+  describe.
 - **The `(x + x) - x` identity is the ONLY C-level way to spend one extra
   reference.** It exists to bump `REG_N_REFS` in flow.c and is folded away
   afterwards, so it costs no instruction and changes only allocation. Every
