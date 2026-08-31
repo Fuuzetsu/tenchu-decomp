@@ -85,13 +85,11 @@ void ProcItemJirai(TItem *item)
     param_smoke *param;
     void (*proc)(TItem *);
     TItem *call_item;
-    u8 dispose;
     ProcItemJiraiScratch scratch;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
-    dispose = ITEM_MODE_DISPOSE;
-    if (item->mode == dispose)
+    if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = 0;
         return;
@@ -127,7 +125,7 @@ void ProcItemJirai(TItem *item)
                 return;
             }
             call_item = item;
-            item->mode = dispose;
+            item->mode = ITEM_MODE_DISPOSE;
             goto dispose;
         }
 
