@@ -150,6 +150,27 @@ stays NON_MATCHING (StateTransition is the worked correction).
 
 ## §1 Evidence first — the original source's own facts
 
+**There are exactly two measures of a humanising change (owner
+directive):**
+
+1. **Does the function still match?** Hard requirement, no exceptions.
+2. **Does it read more like something a person would write?**
+
+That is the whole scoring function. Everything else in this document —
+PSX.SYM's local lists, the block-nesting depths, declaration counts,
+line counts, verbosity ratios — is a **hint about what the human version
+might have looked like**, and none of it is a target. We are not trying
+to reproduce the original source: that is impossible, and chasing it
+costs real readability for a resemblance we cannot verify. Guess well
+from the evidence, then judge the result on how it reads.
+
+Concretely, this means a change is NOT an improvement merely because it
+removes a local, matches a recorded name, or mirrors a recorded scope.
+If the spelling that survives is one nobody would write — a side effect
+inside a condition, a repeated load, an added cast, raw hex replacing a
+name — keep what you had and record the measurement. Two such trades
+have already been reverted on this rule.
+
 Look up what the authors wrote before drafting anything.
 
 - **A `%hi(SYMBOL)` / `%lo(SYMBOL)` label in the TARGET's disassembly is NOT evidence
@@ -2142,10 +2163,10 @@ irreducible nest: DrawConstruction's 3.
   and register-allocation barriers with some other origin. Leave them,
   and keep the per-site measurement rather than inventing a story that
   reads better.
-- **Local COUNT is a proxy, not the goal (owner directive).** PSX.SYM
-  shows the original had far fewer locals than we do, so removing
-  invented ones is the campaign's main lever — which makes it easy to
-  start optimising the count itself. Do not. A removal that produces
+- **Local COUNT is a proxy, not the goal** (see the two measures at the
+  head of §1). PSX.SYM shows the original had far fewer locals than we
+  do, so removing invented ones is the campaign's main lever — which
+  makes it easy to start optimising the count itself. Do not. A removal that produces
   `if ((s16)param->time-- <= 0)` is worse C than the three lines it
   replaced, even though it is exact and drops a declaration. Check what
   the removal COSTS at the call site: a side effect moved into a
@@ -2153,8 +2174,8 @@ irreducible nest: DrawConstruction's 3.
   If the spelling that survives is one a person would not write, keep the
   local and record why. (DrawGore's three countdown carriers were removed
   on this reasoning and then restored.)
-- **Depth records are an indicator, never an instruction (owner
-  directive).** A recorded nested scope is excellent evidence of the
+- **Depth records are an indicator, never an instruction** (see the two
+  measures at the head of §1).** A recorded nested scope is excellent evidence of the
   original structure WHERE OUR CODE DOES NOT YET LOOK HUMAN — that is
   what it is for, and it should not be discarded. But adding braces to a
   block that already reads well, purely because the symbol table nests
