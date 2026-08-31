@@ -31,7 +31,7 @@
  * its status-reset tail with the mode-1 range check.
  *
  * The final cross-jump requires two source-level CdControlF(0x11, NULL)
- * calls in the `com == 0x11` if/else. CSE and the first jump pass retain both
+ * calls in the `com == CdlGetlocP` if/else. CSE and the first jump pass retain both
  * calls and therefore both a0/a1 materializations. Late delay-branch cleanup
  * merges only the calls, leaving the target's explicit jump and repeated
  * argument setup. This is the same zero-code identical-call barrier used by
@@ -70,7 +70,7 @@ void cbCheckCD(void)
     s32 ret;
     s32 com;
 
-    if (cs->command == 0x1B)
+    if (cs->command == CdlReadS)
     {
         CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
         if ((cs->flag & CDA_FLAG_ACTIVE) &&
@@ -94,13 +94,13 @@ void cbCheckCD(void)
     com = CdLastCom();
     switch (ret)
     {
-    case 5:
-        cs->command = 0x1B;
+    case CdlDiskError:
+        cs->command = CdlReadS;
         cs->CheckCount = 0;
         cs->status = 0;
         return;
-    case 2:
-        if (com == 9)
+    case CdlComplete:
+        if (com == CdlPause)
         {
             return;
         }
@@ -112,7 +112,7 @@ void cbCheckCD(void)
             {
                 if (cs->mode == CDA_REPEAT)
                 {
-                    cs->command = 0x1B;
+                    cs->command = CdlReadS;
                     cs->CheckCount = 0;
                     cs->status = 0;
                     return;

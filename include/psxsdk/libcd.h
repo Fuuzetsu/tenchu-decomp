@@ -30,6 +30,14 @@
 #define CdlModeSpeed 0x80
 
 /* Official libcd.h drive-status bits (CdlSTAT). */
+/* Interrupt results handed to a CdReadyCallback/CdSyncCallback. */
+#define CdlNoIntr 0x00
+#define CdlDataReady 0x01
+#define CdlComplete 0x02
+#define CdlAcknowledge 0x03
+#define CdlDataEnd 0x04
+#define CdlDiskError 0x05
+
 #define CdlStatError 0x01
 #define CdlStatStandby 0x02
 #define CdlStatSeekError 0x04

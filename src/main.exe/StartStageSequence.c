@@ -259,8 +259,8 @@ void StartStageSequence(void)
         if (StagePlayer->type == AYAME_0)
             break;
         /* fallthrough */
-    case 2:
-    case 3:
+    case STAGE_SECRET_MESSAGE:
+    case STAGE_CAPTIVE_NINJA:
         StageBosses--;
         StageEnemies--;
         break;
