@@ -594,6 +594,14 @@ ROUND<N>.md ]; do sleep 20; done`) notifies you when it finishes.
   Retrying immediately does not help when the whole model is saturated --
   space the retries and do your own work in between, since the loop is
   meant to run in parallel anyway.
+* **While a round is IN FLIGHT, the candidate file may be a probe, not a
+  winner.** Harvesting early is usually safe and has rescued several
+  killed rounds — but check the report's own table before landing. Round
+  36's `r36_DrawGore.c` gated 64 lines off mid-round, and 64 is exactly
+  the row its report marks `reject`: the file was the failing probe, not
+  the retained result. The tell is simple — if the candidate does not
+  gate exact, do not assume baseline drift, look for that number in the
+  table.
 * **Cite the sibling that has the evidence when the target does not.**
   Round 22 dropped a staging local in ActMOVE, which has no PSX.SYM
   record at all, leaving the change looking like preference. It was
