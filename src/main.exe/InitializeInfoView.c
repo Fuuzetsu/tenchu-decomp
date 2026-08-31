@@ -84,7 +84,10 @@ void InitializeInfoView(void)
     GsIMAGE *image;
     Sprite3D *item;
     Sprite3D **slot;
-    Sprite3D **base2;
+    Sprite3D **base2; /* not a redundant alias: `slot = ItemImage + i;`
+                       * directly costs 2 lines. Loop 2's scale2/attr2
+                       * and loop 1's scale1 are load-bearing too (20,
+                       * 25 and 29 lines cumulatively) -- see above. */
     GsSPRITE *sprite;
     int i;
     s32 scale1;
