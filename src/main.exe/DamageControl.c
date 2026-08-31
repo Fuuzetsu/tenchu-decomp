@@ -68,92 +68,57 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  * END PSX.SYM */
 
 /*
- * DamageControl (0x8001d6bc) — resolves item and humanoid collisions into
- * damage, knockback, animation, blood, score, and player-feedback effects.
+ * Byte-required spellings in this function (each measured; the
+ * round-by-round derivation that found them is not repeated here).
  *
- * STATUS: MATCH — 5812 bytes / 1453 instructions, byte-exact including the
- * compiled switch's own .rodata jump table (was 1320 -> 112 across the first
- * Fable escalation, 112 -> 90 -> 6 -> 0 in the continuation; the first pass
- * re-derived the source decomposition from the target RTL shapes and landed
- * the s16 hp life-decrement tie; the continuation recovered the id/t/deg
- * identity and the assigned-abs knockback shape, see below).  Fence-free.
+ * Structure
+ *  - NO cached pointer locals. Every region re-loads Me_MOTION_C /
+ *    StagePlayer / dtR / dtV; the per-region CSE temps then land in
+ *    $a0/$v1 as retail has them. Function-spanning caches were what made
+ *    earlier drafts look like they had unreachable "hard conflicts".
+ *  - The 0x602 engage block is a plain nested if with an else arm, not a
+ *    guard fence: `if (rand() % (EngageLevel + 1) == 0) { type checks;
+ *    if (rand() & 1) motID = 0x602; } else { motID = 0x602; }`. Cross-jump
+ *    plus eager delay fill produce the shared `sh motID` tail with a
+ *    per-predecessor `li 0x602` in the delay slots. ITEM_NAPALM is likewise
+ *    a plain `if ((rand() & 1) == 0) motID = 0x1003; else motID = 0x1001;`
+ *    (no staging temp), and ITEM_MAKIBISHI stores motID/motMODE directly.
+ *  - Both ReqLifeBar sites are if/else (`who = enemy` in the taken arm,
+ *    else `who = Me_MOTION_C`), so `who` coalesces with the Me load in $a0
+ *    and the else arm compiles to nothing.
+ *  - The passage halving is a real `while` loop. Its loop notes weight the
+ *    body's `t <<= 1` refs (p84 14 -> 16 refs, priority 2413 -> 3678),
+ *    which is what orders t > deg > enemy = $s0/$s2/$s3.
+ *  - The exit block loads dtV INSIDE the mid == 0x300/0x302 arm.
  *
- * What this session PROVED (the prior "below the C level / HARD-CONFLICT"
- * verdict was an artifact of the old decomposition, not a cc1 limit):
- *  - The dominant $a1->$a0 family was caused by the function-spanning cached
- *    pointer locals (pHVar14/pHVar17/pSVar1).  The original uses NO caches:
- *    each region loads Me_MOTION_C / StagePlayer / dtR / dtV fresh, and cc1's
- *    per-region CSE temps then land in $a0/$v1 exactly like retail.  Killing
- *    the caches dissolved every "hard conflict" rtlguide reported.
- *  - The do-while(0)+goto guard scaffolding around the 0x602 engage block is
- *    not original.  The real shape is a plain nested if with an else arm
- *    (`if (rand() % (EngageLevel+1) == 0) { type checks; if (rand()&1)
- *    motID=0x602; } else { motID=0x602; }`); cc1's cross-jump + eager delay
- *    fill reproduce the shared `sh motID` tail with per-predecessor `li 0x602`
- *    delay slots automatically.  Same for ITEM_NAPALM: a plain
- *    `if ((rand()&1)==0) motID=0x1003; else motID=0x1001;` (no next_mot temp,
- *    no fence) and ITEM_MAKIBISHI storing motID/motMODE directly; the shared
- *    store is cross-jumped, giving `j DC08 / li v0,0x100A` for that case.
- *  - `-(x/3) - 1` must be spelled `x / -3 - 1`: cc1 folds -x-1 into nor, but a
- *    NEGATIVE divisor makes expmed emit the reversed magic-division subtract
- *    (subu sign,hi) with a plain addiu -1 — the retail shape at both sites.
- *  - `dmg <<= 1` under enemy->itmctl==ITEM_GOSIN is
- *    `(u32)(dmg << 0x10) >> 0xf`
- *    (sll 16 / srl 15).  The old `(dmg<<16); dmg>>=0xf` truncated to zero via
- *    the short lvalue (real behavior bug, compiled to `move s1,zero`).
- *  - The armour block computes deg BEFORE the knockback: `deg=dmg>>3;
- *    clamp; clamp; t=dmg*5/2+0x50;` — no cached `(u16)dmg<<16`
- *    temp; every read re-extends dmg so the sll is shared/rematerialized.
- *  - Both ReqLifeBar sites are if/else (`who=enemy` in the taken arm, else
- *    `who=Me_MOTION_C`), which lets who coalesce with the Me load in $a0 and
- *    compile the else arm to zero code.
- *  - GetAbsolutePosition's third arg is (short)-converted at the call site
- *    (sll/sra interleaved into the pointer chain); set_impact_ex_'s rot arg is
- *    an s16 param (sll/sra, not andi — prototype changed in this TU), and its
- *    `rand() % 360` is precomputed into a temp so the 0xB60B60B7 magic pair
- *    forms before the 0xDCDCDC pair.
- *  - The exit block loads dtV INSIDE the mid==0x300/0x302 arm; the pad.time
- *    identical-arm fence was scaffolding and is gone.
- *  - PSX.SYM roles that survive: dmg=$s1, enemy=$s3, did=$s4, id=$s5.
+ * Expressions
+ *  - `-(x / 3) - 1` must be spelled `x / -3 - 1`: a negative divisor makes
+ *    expmed emit the reversed magic-division subtract with a plain addiu -1.
+ *  - Under `enemy->itmctl == ITEM_GOSIN`, the doubling is
+ *    `(u32)(dmg << 0x10) >> 0xf` (sll 16 / srl 15). Spelling it through the
+ *    short lvalue truncates to zero -- a real behaviour bug, not a match.
+ *  - The armour block computes deg BEFORE the knockback
+ *    (`deg = dmg >> 3;` clamp; clamp; `t = dmg * 5 / 2 + 0x50;`) with no
+ *    cached `(u16)dmg << 16` temp, so every read re-extends dmg.
+ *  - The knockback absolute value is the assigned form
+ *    `ad = __builtin_abs(did);`. cc1's mips abssi2 is ONE insn whose
+ *    template hides the branch, so reorg never steals the `move s0,a1`
+ *    copy out of the lhu load-delay slot; the explicit `if (ad < 0)`
+ *    spelling exposes a real branch that always does steal it.
+ *  - The deg == 3 arm keeps the abs INSIDE the call's ternary argument:
+ *    `MoveHumanoid(Me, (0x400 < __builtin_abs((int)(short)did)) ? 0x46
+ *    : -0x46, 0)`. A move_speed variable costs +4 length.
  *
- * What the CONTINUATION proved (112 -> 90):
- *  - `id` is an INT loaded via `(u16)vector.pad` (lhu s5) with `(short)id`
- *    casts at every signed use (sll/sra 0x10).  The prior `s8 id` was
- *    BALLAST: its lbu/sll24 bytes were wrong, but the QI->HI conversion kept
- *    2 extra flow-time refs on t that held the deg/t allocation
- *    order.  With the correct width those refs belong to the switch-head
- *    extension TEMP (both sides read $s0=temp: `addu a1,s0` args), so the
- *    order had to come from somewhere real:
- *  - The passage halving loop is a REAL `while` loop, not the Ghidra
- *    if+goto.  cc1 duplicates the 3-way abs entry test at -O2 (identical
- *    bytes), and the NOTE_INSN_LOOP notes make flow2 count the body's
- *    `t <<= 1` refs at loop weight: p84 14->16 refs = priority
- *    2413->3678, restoring t > deg > enemy = s0/s2/s3 (dmg stays s1).
- *    19 single-register rows (incl. the %100 magic in s2 and the blood
- *    counter in s0) fell together.  regalloc.py's `--between 82 87 84`
- *    window plus the .flow dump's `Register N used M times` lines are the
- *    measurement loop for this class.
+ * Widths and calls
+ *  - `id` is an int loaded via `(u16)vector.pad` (lhu) with `(short)id`
+ *    casts at every signed use. An s8 id is wrong (lbu/sll24).
+ *  - GetAbsolutePosition's third argument is (short)-converted at the call
+ *    site; set_impact_ex_'s rot argument is an s16 parameter in this TU;
+ *    its `rand() % 360` is precomputed into a temp so the 0xB60B60B7 magic
+ *    pair forms before the 0xDCDCDC pair.
  *
- * What the 90 -> 0 step proved (the 0x8001e7d8-e858 knockback family):
- *  - The knockback abs is the ASSIGNED-abs statement
- *    `ad = __builtin_abs(did);` — cc1's mips abssi2 is ONE
- *    type-"multi" insn whose template emits `bgez %1,1f%# / subu %0,$0,%0 /
- *    1:` internally (same-register form; identical bytes to bgez/nop/negu).
- *    Because the branch lives INSIDE the template, reorg never sees an
- *    unfilled bgez: nothing can steal the `move s0,a1` t copy out of
- *    the lhu load-delay slot (the explicit `if (ad < 0) ad = -ad;` spelling
- *    exposes a real branch whose backward scan ALWAYS steals that copy —
- *    provably, from reorg.c's fill_simple_delay_slots), and the missing
- *    block boundary lets the whole surrounding schedule and allocation
- *    (dtR=$v1, vy=$v0, newvy=$a0 fresh) fall out with NO fence.  The
- *    unconditional dtR->vy store sits between the abs and the <0x400 test,
- *    where reorg lands it in the beqz delay.
- *  - The deg==3 arm is `MoveHumanoid(Me, (0x400 < __builtin_abs(
- *    (int)(short)did)) ? 0x46 : -0x46, 0)` — the abs INSIDE the call's
- *    ternary arg: a0=Me evaluates first (lw at the arm top, e830), the
- *    ±0x46 branches jump straight to the call point (no move_speed
- *    variable, no extra j/lw pair; the default-then-override spelling cost
- *    +4 length and 18 bytes).
+ * Fence-free. Matched: 5812 bytes / 1453 instructions, including the
+ * compiled switch's own .rodata jump table.
  */
 
 void DamageControl(void)
