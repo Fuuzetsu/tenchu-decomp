@@ -20,6 +20,16 @@ was found (2026-08-31); item.h already had TAKE_ITEM_SLOT() for it.
                                 source (or simply that the demo build's
                                 function was a different shape)
 
+Calibration (2026-08-31): after collapsing the real structural repeats -
+the ReqItem* pasted preamble and 183 two-line motion requests
+(SET_MOTION) - the Act* family still sits near 2.5x. That residual is
+STYLE, not structure: src/main.exe/.clang-format pins Allman braces and
+AllowShortIfStatementsOnASingleLine=false, so a dense original line like
+`if (pad & X) { SET_MOTION(A, 1); return; }` necessarily becomes three
+statement lines here. Do not chase the ratio below ~2.5x on state
+machines; look for repeated BLOCKS instead, which is what this tool is
+good for.
+
 Caveats: the demo span is an earlier build's, so treat a single outlier as
 a lead, not proof; functions absent from PSX.SYM are skipped.
 """
