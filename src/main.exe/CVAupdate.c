@@ -216,7 +216,7 @@ s16 CVAupdate(void)
                     human->motion->count--;
                     CVAhuman[i].human = human;
 
-                    CVAhuman[i].loop = CVAnow->y < 1 ? 0x7fff : CVAnow->y;
+                    CVAhuman[i].loop = CVAnow->y < 1 ? MOTION_LOOP_FOREVER : CVAnow->y;
                     CVAhuman[i].motid = CVAnow->z == 0
                                              ? MOT_ENGAGE_STANCE
                                              : CVAnow->z;

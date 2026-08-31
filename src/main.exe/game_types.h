@@ -433,6 +433,9 @@ struct SplineControlType
 
 /* MotionManager.mask selects which skeleton parts a motion drives. */
 #define MOTION_MASK_ALL 0x7FFF /* all 15 parts */
+/* MotionManager.loop counts repeats down; the CVA sequencer parks it at
+ * s16 max when a cutscene asks for an endless motion. */
+#define MOTION_LOOP_FOREVER 0x7FFF
 #define MOTION_MASK_NOROOT (-2) /* all but the root: pose without root motion */
 
 typedef struct MotionManager MotionManager;
