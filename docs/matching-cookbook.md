@@ -1936,6 +1936,34 @@ irreducible nest: DrawConstruction's 3.
   the base is freshly materialised (AddEnemy: −4 fresh vs +2 cached). A cached
   `rec = &map[j]` temp flips index-first back to base-first — keep repeated
   `map[j]` when the target is index-first (LoadAreaMap).
+- **Settle an addu-order question in a scratch file, not in the function.**
+  Six lines reproduce it: one struct, one `extern`, and the spellings as
+  separate functions compiled with the build's own cc1 flags. Then
+  `awk '/^v_/{n=$0} /addu|sll/{print n"  "$0}'` prints the whole matrix at
+  once. Two runs of that settled what a week of in-function probing had
+  left as "irreplaceable": the order tracks which pseudo `expand_binop`
+  can reuse as its accumulator, so **the same spelling flips order between
+  a pointer parameter and a pointer loaded from a global** — which is why
+  the rule above is per-SITE and cannot be made per-form. Add `-dr` and read
+  the `.rtl` dump to see why: `p[i]` emits a signed->sizetype copy insn plus
+  a `MULT` (carrying a `REG_EQUAL` note), while `(u8 *)p + (i << 3)` emits a
+  bare `PLUS`, and that extra pseudo is what moves the accumulator.
+- **An invented LOCAL is the usual reason a human spelling will not match.**
+  Before concluding that ugly address arithmetic is byte-required, run
+  `tools/symtypes.py --locals <Func>`: it diffs our declaration block against
+  the locals PSX.SYM recorded. 271 functions differ. `SetBlood` was the
+  worked example — its `slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) +
+  (int)base);` exists only because we introduced a `base` pointer local that
+  the original did not have, and the original's five locals contain no
+  `base`, `idx`, `count` or `ef` at all. The demo is not a retail spec, so
+  treat a difference as a lead; but a name like `u0Val`/`pyByte`/`half2`
+  that no original local matches is nearly always ours. **The repeated names
+  in PSX.SYM's list are nested block scopes** (`ActATTACK` records
+  `struct PARAM_ITEM_LAUNCH item` three times, `short i` five times) — the
+  original declared them inside the blocks that used them, which is both
+  more human and a different allocation than one flat declaration block.
+  `tools/symtypes.py` with no argument does the same audit for globals: an
+  array declared as a pointer forces byte-walk arithmetic at every use.
 - **Offset-0 alias vs enclosing member is a `%hi`-register lever**: the alias
   folds `%hi` into the destination; the member splits the base
   (CheckCheatCodes; `tools/symnear.py` names the enclosing candidates —

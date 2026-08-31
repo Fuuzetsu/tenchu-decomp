@@ -76,6 +76,11 @@ decisions behind the toolchain. It's the reference companion to the terse
   extract it (`tools/extract-demo.py`), parse it (`tools/psxsym.py`), dump it
   (`tools/symdump.py`) and recover retail names from it (`tools/symmatch.py`,
   `tools/xbuildnames.py`, `tools/callmatch.py` — always `--verify`).
+  `tools/symtypes.py` audits our declarations against the ones it recorded:
+  bare, the global type mismatches; `--locals`, the 271 functions whose local
+  set differs from the original's. A local we invented is the usual reason a
+  natural spelling will not compile to the right bytes — see the
+  "Array symbol vs pointer variable" rule in matching-cookbook.md.
 - [decomp-dev.md](decomp-dev.md) — progress reporting on **decomp.dev**: how it
   ingests (artifact-driven objdiff reports, never `decomp.yaml`), our build-free
   generator (`tools/objdiff-report.py` / `./Build report`) + `jp_report` CI
