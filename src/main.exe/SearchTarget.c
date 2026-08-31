@@ -72,9 +72,7 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
     s16 mode;
     s32 limit;
     s32 absolute;
-    s32 y;
     s32 base_y;
-    s32 own_height;
     s32 initial_delta_y;
     s32 delta_y;
     s32 full_height;
@@ -166,13 +164,15 @@ short SearchTarget(Humanoid *human, long *distance, short *degree)
         {
             limit = 300;
         }
-        y = position.vy;
-        own_height = human->height;
+        /* Run the sight ray from this character's eyes to the player's:
+         * lift the origin by 300 above the feet minus its own height, and
+         * shift the target vector to match. The delta staging is
+         * byte-required (spelling `vect.vy += human->height - 300;`
+         * directly costs 10 lines); the origin update is not, so it is
+         * written plainly. */
         initial_delta_y = vect.vy;
-        y += 300;
-        y -= own_height;
         delta_y = initial_delta_y - 300;
-        position.vy = y;
+        position.vy += 300 - human->height;
         base_y = delta_y + human->height;
         vect.vy = base_y;
         player_height = StagePlayer->height;
