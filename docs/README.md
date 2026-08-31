@@ -25,6 +25,10 @@ decisions behind the toolchain. It's the reference companion to the terse
   work**: the cc1 2.8.1 source idioms that byte-match (dispatch, loops, fold
   reassociation, stack buffers, regalloc steering), the `tools/matchdiff.py`
   iteration loop, and pointers to the worked examples.
+- [matching-archive.md](matching-archive.md) — the raw per-function
+  investigation logs that the sources themselves labelled superseded, moved
+  out verbatim so the files read like source and the measurements stay
+  findable. Reusable rules live in the cookbook, not here.
 - [gte-policy.md](gte-policy.md) — the restricted GTE inline-asm policy
   (adopted 2026-07-16): why COP2/GTE has no C spelling, the `src/main.exe/gte.h`
   macro layer, the whitelist (`config/gte-allowlist.txt`), enforcement, and the
