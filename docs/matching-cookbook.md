@@ -1961,6 +1961,20 @@ irreducible nest: DrawConstruction's 3.
   reports genuine divergences — UpdateTexScroll's demo parameter is a
   `TexScroll *` because retail turned it into an effect-slot proc — so
   say so at the site rather than "fixing" it.
+- **For a pure RENAME the byte gate is not a check.** Renaming a local
+  cannot change codegen, so `ASM-IDENTICAL` says only that you did not
+  collide with another name or create a semantic accident. It is silent
+  on whether the two names are the same variable. A 1:1 pairing
+  generator that ignored types produced four green candidates, and all
+  four were wrong: DrawSplash's `t` is a depth value, not the `VECTOR
+  pos` it was paired with; RestoreItemLayout's `tmp` is a
+  PARAM_ITEM_STAY, not a 200-byte filename buffer; and two `s32`
+  computations were offered a `short pad`. **Check the type and the role
+  before renaming, and treat the gate as protection against collisions
+  only.** The semantic accidents it DOES catch are worth knowing:
+  ProcItemDokudango's `restore` -> `param` turns `restore = param` into a
+  self-assignment of an uninitialised shadow, and that shows up as a
+  35-line diff.
 - **A suffixed local alone in a nested block is usually a shadow we
   renamed.** When an inner scope genuinely needs its own variable, our
   instinct has been to invent a distinct name for clarity — `scan_i`,
