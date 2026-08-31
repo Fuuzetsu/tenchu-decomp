@@ -722,6 +722,34 @@ StageEndScreen's +1/+2 pair, mission_score's row-sort empty), four
 taste-rejects where the fence beats any known cure (subdivide_quad_,
 AddMisc bottom, SetCameraMode first, StateTransition), honest empty
 barriers with the DBG reading, and seven multi-role identical-arms.
+COMMENT-MASS CAMPAIGN (2026-08-31): the tree carried 30,676 comment
+lines against 42,048 code lines (0.73). Three byte-neutral moves took
+it to ~25,900 (0.62): (1) six self-labelled superseded investigation
+logs (AdtSelect 345, briefing_screen_ 196, DrawImpact 187, SetupTelop
+261, adiv_tng4_ 147, DrawBleed 95) moved VERBATIM to
+docs/matching-archive.md, indexed in docs/README.md, with two-line
+pointers left behind; (2) tools/symnote.py stopped repeating its
+ten-line demo-locals caveat in every stamped block (5,261 duplicated
+lines) - it now lives once in docs/psx-sym.md "Reading a stamped
+block" and the generator emits a pointer (390 files regenerated,
+symnote --check clean); (3) DamageControl's 88-line session diary
+became a 53-line constraints list (every fact kept, only the
+derivation story dropped). SCOPE LIMIT confirmed from commit
+1612d927: the owner's behavior-gloss ban is on ADDING them - that
+commit RESTORED pre-existing summaries - so the ~520 long-standing
+`Name (0xADDR) — prose` headers stay untouched.
+
+CONTROL-FLOW FINDING (2026-08-31): goto-shaped loops in this codebase
+are usually byte-load-bearing. Converting them to real loop syntax
+adds NOTE_INSN_LOOP_BEG/END, which multiplies flow.c's loop_depth ref
+weighting for the whole body - the same mechanism the fence campaign
+exploited. Measured: PlayMusicFormID's 3-goto table search fails
+identically (43 lines) under all five natural spellings (while+break,
+hoisted increment, for, two do/while forms); GetAreaMapLevel's inner
+and outer hand-rotated loops fail at 216/196. Corollary worth
+remembering: a goto->loop conversion can REPLACE a weight fence,
+since the loop notes ARE the fence.
+
 Next humanising dimension queue (recon 2026-08-31): goto-density
 leaders for structured-control-flow attempts (measure per DAH's probe
 lesson - many gotos will be byte-forced or authentic; only land
