@@ -770,6 +770,25 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   is one above a round number, respell it; ~38 sites cleaned in one
   sweep (IsVisible, the Attack* degree windows, Think3chase bands).
 
+- **A run of same-value stores in DESCENDING field order is a chained
+  assignment.** `a = b = c = v` associates right-to-left, so cc1 stores the
+  LAST target first. Whenever consecutive lines write one value to sibling
+  fields in descending-offset order — `->vz/->vy/->vx = 0`, or a poly's
+  `b/g/r` — the human spelling is `p->vx = p->vy = p->vz = 0`, and it is
+  byte-identical while the forward-order run is not. Confirmed at four sites
+  (DrawAfterimage's four vertex colours, ActDAMAGE/DrawBlood/DrawGore's
+  velocity stops); DrawShadow's `scl.vx = scl.vy = scl.vz` was the same rule
+  found the hard way. Ascending runs are already natural — leave them.
+  Sweep: consecutive lines, same object, same RHS, descending sibling fields.
+
+- **Prefer Sony's own LIBGPU macros over hand-written field runs.** A 1997
+  PS1 team wrote `setRGB0(p, r, g, b)`, not three assignments; the macros are
+  comma expressions, so they emit the identical stores in the identical
+  order. `include/psxsdk/libgpu.h` is a reconstruction — if the macro a site
+  wants is missing (setRGB1/2/3 and setUV4 were), add it from the real SDK
+  rather than open-coding. SetupImageToPolyGT4's twelve neutral `0x7F` byte
+  stores became four `setRGB0..3` lines with zero byte churn.
+
 - **Decompiler comma chains flatten to nested ifs byte-identically**
   (ActATTACK): `if (A && (x = e, f(x), y != 0) && (g(), z))` is the same
   bytes as the structured nested-if spelling with the assignments as plain

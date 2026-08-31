@@ -166,21 +166,13 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         *(s32 *)&poly->x3 = *(s32 *)&poly->x2;
         *(s32 *)&poly->x0 = tmp1;
         tmp2 = afi->p2[i];
-        poly->b1 = tplv;
-        poly->g1 = tplv;
-        poly->r1 = tplv;
-        poly->b3 = tplv;
-        poly->g3 = tplv;
-        poly->r3 = tplv;
+        poly->r1 = poly->g1 = poly->b1 = tplv;
+        poly->r3 = poly->g3 = poly->b3 = tplv;
         *(s32 *)&poly->x2 = tmp2;
 
         tplv = ((afi->n - i) * 127) / afi->n;
-        poly->b0 = tplv;
-        poly->g0 = tplv;
-        poly->r0 = tplv;
-        poly->b2 = tplv;
-        poly->g2 = tplv;
-        poly->r2 = tplv;
+        poly->r0 = poly->g0 = poly->b0 = tplv;
+        poly->r2 = poly->g2 = poly->b2 = tplv;
 
         otz = afi->sz;
         otz = otz >> 2;

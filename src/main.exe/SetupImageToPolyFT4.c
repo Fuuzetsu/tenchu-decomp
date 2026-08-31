@@ -91,9 +91,7 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     ty = (u8)image->py;
     pw = image->pw;
     th = image->ph;
-    ply->r0 = 0x7F;
-    ply->g0 = 0x7F;
-    ply->b0 = 0x7F;
+    setRGB0(ply, 0x7F, 0x7F, 0x7F);
     ply->x0 = x;
     ply->y0 = y;
     ply->y1 = y;

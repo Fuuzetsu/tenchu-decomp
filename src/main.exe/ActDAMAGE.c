@@ -178,9 +178,7 @@ void ActDAMAGE(void)
             dtM->loop = -2;
             Me_MOTION_C->status = STAT_DEAD;
             Me_MOTION_C->attribute &= ~ATTR_SEARCH;
-            dtV->vz = 0;
-            dtV->vy = 0;
-            dtV->vx = 0;
+            dtV->vx = dtV->vy = dtV->vz = 0;
             if (Me_MOTION_C == StagePlayer)
                 return;
             DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WAIST]);

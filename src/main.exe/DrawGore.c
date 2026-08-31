@@ -220,9 +220,7 @@ void DrawGore(TEffectSlot *ef)
         }
         if (param->py >= level)
         {
-            param->vz = 0;
-            param->vy = 0;
-            param->vx = 0;
+            param->vx = param->vy = param->vz = 0;
             if (level != LEVEL_NONE)
             {
                 param->py = level;

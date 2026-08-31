@@ -242,9 +242,7 @@ void DrawBlood(TEffectSlot *ef)
 
         if (blood->py >= rety)
         {
-            blood->vz = 0;
-            blood->vy = 0;
-            blood->vx = 0;
+            blood->vx = blood->vy = blood->vz = 0;
             if (rety != LEVEL_NONE)
             {
                 blood->py = rety;
