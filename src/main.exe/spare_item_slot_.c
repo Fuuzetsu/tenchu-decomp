@@ -17,21 +17,20 @@
  *    the shared proven struct over Ghidra's invented field name.
  *  - `human->item[ITEM_N] == 1` is the standard MIPS no-`seq`-instruction
  *    equality idiom (`xori`, `sltiu`), not anything hand-shaped.
- *  - Explicit goto-ladder, NOT nested if/else (cookbook's "if (cond) goto L;
- *    ladder decouples test ORDER from body LAYOUT"): all 3 tests
- *    (`beqz`/`beq`/fallthrough) fire in source order (0, 1, default), but
- *    the DEFAULT case's actual `jal AdtMessageBox` sits physically AFTER
- *    both case bodies — only its dependency-free argument address
- *    (`lui`/`addiu` of fmt_not_support_yet) gets scheduled early, split across the
- *    preceding `beq`'s delay slot and the ladder's own unconditional
- *    `goto do_default`, which reorg retargets past both stolen
- *    instructions straight to the `jal` (same delay-slot-stealing
- *    mechanism as a shared-tail call, cookbook's "Shared tails" section).
- *    m2c's "irregular switch" rendering is its own recovery heuristic over
- *    this same goto shape, not evidence of a real `switch`.
- *  - `goto ret0;`/`ret0: return 0;` (not two separate `return 0;`) pins the
- *    shared zero-return tail deterministically — cross-jump merging two
- *    independent `return 0;` statements is not guaranteed (cookbook:
+ *  - It really is a `switch` (measured byte-identical 2026-08-31; the
+ *    earlier "explicit goto-ladder, NOT a switch" note here was wrong,
+ *    and m2c's "irregular switch" rendering was right). cc1 compiles
+ *    this three-way dispatch to tests in source order (0, 1, default)
+ *    while placing the default's `jal AdtMessageBox` physically AFTER
+ *    both case bodies; only the dependency-free argument address
+ *    (`lui`/`addiu` of fmt_not_support_yet) is scheduled early, split
+ *    across the preceding `beq`'s delay slot and the jump to the
+ *    default body, which reorg retargets past both stolen instructions
+ *    straight to the `jal`.
+ *  - The single trailing `return 0;` after the switch (not one per
+ *    falling case) pins the shared zero-return tail deterministically —
+ *    cross-jump merging two independent `return 0;` statements is not
+ *    guaranteed (cookbook:
  *    "Multiple return CONST; statements cross-jump unpredictably; a
  *    labeled return body pins them").
  *  - case0 needs a FRESH local (`Humanoid *p = human;`) rather than
@@ -47,28 +46,23 @@ extern char fmt_not_support_yet[]; /* not support yet %d */
 
 s32 spare_item_slot_(s32 mode, Humanoid *human)
 {
-    if (mode == 0)
-        goto case0;
-    if (mode == 1)
-        goto case1;
-    goto do_default;
-
-case0:
-{
-    Humanoid *p = human;
-    if (p == 0)
-        p = CamState.Owner;
-    p->item[ITEM_N] = 0;
-}
-    goto ret0;
-
-case1:
-    if (human == 0)
-        human = CamState.Owner;
-    return human->item[ITEM_N] == 1;
-
-do_default:
-    AdtMessageBox(fmt_not_support_yet, mode);
-ret0:
+    switch (mode)
+    {
+    case 0:
+    {
+        Humanoid *p = human;
+        if (p == 0)
+            p = CamState.Owner;
+        p->item[ITEM_N] = 0;
+        break;
+    }
+    case 1:
+        if (human == 0)
+            human = CamState.Owner;
+        return human->item[ITEM_N] == 1;
+    default:
+        AdtMessageBox(fmt_not_support_yet, mode);
+        break;
+    }
     return 0;
 }
