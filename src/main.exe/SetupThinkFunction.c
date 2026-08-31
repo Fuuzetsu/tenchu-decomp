@@ -28,40 +28,30 @@
  * one of three "default" sentinels (0, 0x1111, 0x2222).
  *
  * Matching constraints:
- *  - All four callbacks can use ordinary array indexing. For Think2Func and
- *    Think3Func, select the nibble before cc1's implicit pointer scaling:
- *    the staged `packed` value's `>> 20` / `>> 24` nibble reads (naming the
- *    stage is required: reading the nibbles straight off `type` costs 43
- *    lines, and the stage must be assigned AFTER the think[0] store).
- *    These compile identically to the older masked byte-offset casts.
- *  - Keep `table2` and `table3` as pointer locals assigned before their
- *    lookups. They make cc1 materialize each base ahead of the preceding
- *    table's load/store; indexing either extern directly changes scheduling.
- *  - Each shifted selector spells its own full-width `type << 16` compound.
- *    Sharing a narrowed `type` value merges the extensions and reorders the
- *    prologue.
- *  - The final sentinel check independently re-derives signed `type` through
- *    its shift pair rather than reusing another selector.
+ *  - The four selectors are ordinary `(type >> 4/8/12) & 0xF` reads and the
+ *    function needs NO locals at all — PSX.SYM records only the two
+ *    parameters. The target's single `sll 16` is not a source construct:
+ *    it is cc1's CSE of the signed-short promotion, which combine folds
+ *    together with the four-byte pointer scale into `sra 18`, `sra 22` and
+ *    `srl 28`, reusing `sra 16` for the sentinel compares.
+ *  - Restore the plain expression graph AT ONCE. Changing the nibble reads
+ *    while keeping staged or table-alias locals scores 43 diff lines, which
+ *    is what made an earlier draft believe the staging was required.
+ *  - Refuted 2026-08-31: bitfield unions and pointer overlays (12-48 lines;
+ *    an overlay forces an 8-byte frame and an `sh` spill the target does not
+ *    have), an `int` parameter (12), `unsigned short` (9), mask-then-shift
+ *    (20), destructive `type >>= 4` between stores (41); dropping the
+ *    high-nibble mask on think[3] costs 2. The demo (0x800276b4) and trial
+ *    (0x80032ebc) builds carry the same shift motif, so it predates retail.
  */
 void SetupThinkFunction(Humanoid *human, TThinkType type)
 {
-    s32 check;
-    s32 packed;
-    ThinkFunc *table2;
-    ThinkFunc *table3;
-
     human->think[0] = Think1Func[type & 0xF];
-    table2 = Think2Func;
-    /* One shared narrowing of the packed nibble field; each level then
-     * reads its nibble out of the staged value (bits 4-7, 8-11, 12-15). */
-    packed = (s32)type << 16;
-    human->think[1] = table2[(packed >> 20) & 0xF];
-    table3 = Think3Func;
-    human->think[2] = table3[(packed >> 24) & 0xF];
-    human->think[3] = Think4Func[(u32)packed >> 28];
-    check = packed >> 16;
-    if (check == THINK_MIX_NONE || check == THINK_MIX_PLAYER ||
-        check == THINK_MIX_PAD2)
+    human->think[1] = Think2Func[(type >> 4) & 0xF];
+    human->think[2] = Think3Func[(type >> 8) & 0xF];
+    human->think[3] = Think4Func[(type >> 12) & 0xF];
+    if (type == THINK_MIX_NONE || type == THINK_MIX_PLAYER ||
+        type == THINK_MIX_PAD2)
     {
         human->attribute &= ~4;
     }
