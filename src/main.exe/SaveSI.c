@@ -132,9 +132,10 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         s32 *cmdp;
         s32 *resultp;
 
-        hd->Magic[0] = 0x53;
-        hd->Magic[1] = 0x43;
-        hd->Type = 0x13;
+        /* The block header a PSX memory card expects. */
+        hd->Magic[0] = 'S';
+        hd->Magic[1] = 'C';
+        hd->Type = SAVE_ICON_3_FRAMES;
         hd->BlockEntry = 1;
         sprintf(hd->Title, fmt_save_title, StageID + 1, name);
 

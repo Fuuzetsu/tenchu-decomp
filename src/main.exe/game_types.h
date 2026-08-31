@@ -119,6 +119,10 @@ struct EXEC
 }; /* 0x3C */
 
 /* MEMCARD.C/INFOVIEW.C's PlayStation memory-card block header. */
+/* TCardHeader.Type: the icon display flag a PSX memory card expects --
+ * 0x11, 0x12 or 0x13 for a one-, two- or three-frame animated icon. */
+#define SAVE_ICON_3_FRAMES 0x13
+
 typedef struct TCardHeader TCardHeader;
 struct TCardHeader
 {

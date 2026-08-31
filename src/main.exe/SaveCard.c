@@ -62,9 +62,9 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 
     hd = (TCardHeader *)block;
 
-    hd->Magic[0] = 0x53;
-    hd->Magic[1] = 0x43;
-    hd->Type = 0x13;
+    hd->Magic[0] = 'S';
+    hd->Magic[1] = 'C';
+    hd->Type = SAVE_ICON_3_FRAMES;
     hd->BlockEntry = 1;
     memset(hd->Title, 0, sizeof(hd->Title));
     sprintf(hd->Title, str_sjis_title);
