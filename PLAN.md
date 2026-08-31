@@ -978,25 +978,35 @@ cases is worth naming even when sibling files all write bare modes:
 ROLL/SEARCH/EAT/POISON came straight off its own case bodies. The
 siblings are the queue, not the argument against.
 
+Classify each one PHASE or TAG before naming: phases transition into
+each other, tags are parallel alternatives that never do. Non-contiguous
+values prove a tag; a contiguous range proves nothing either way
+(CameraPanMode runs 0..8 and is nine parallel behaviours).
+
 Find them with: a `switch` whose cases are ALL numeric literals, 3+ of
-them. Remaining, roughly in order of how opaque they are:
+them.
+
+CLEARED so far: the memory-card protocol (round 42, with the card-library
+result codes deliberately left numeric), the cutscene camera pair (round
+43), the effect emitters gore/blood/splash/explosion — a cross-file job,
+since the enum belongs in effect.h where both the Set* and Draw* halves
+see it — plus LoadConstruction's record tags, PutMapMode, draw_fade_,
+FileRead/InitFileSystem's shared file source, SkipFrame, the briefing
+screen's four phases, and ProcItem Kawarimi/Nemuri/Dokudango/Henshin/
+Jirai.
+
+Remaining:
 
 - `update_card_screen_` (21/22/22/11 cases) and `update_card_message_`
   (17/20/19) — the memory-card protocol, with deliberately spaced values
   (10, 20, 30, 37, 38, 40, 43, 50, 53, 92). The biggest opaque blocks in
   the tree and the ones a reader can least guess at.
-- `AVCameraControl` (9, `CameraPanMode`), `debug_menu_stage_option` (7),
-  `AVCameraSetup` (6, `event->id`), `briefing_screen_` (4, `sequence`).
-- The effect emitters, which are a CROSS-FILE straggler rather than a
-  fresh naming job: `SetGore` already names `GORE_MODE_AIRBORNE` while
-  `DrawGore` switches on bare 3/2/1 for the same field. Same split for
-  `DrawBlood`/`DrawSplash`/`DrawExplosion`. Name the Set* side and the
-  Draw* side together, from one enum.
-- Remaining ProcItem modes: Gosin, Gun, Kaengeki, LightningBolt,
-  Shinsoku. Kawarimi/Nemuri/Dokudango are done; Henshin/Jirai in flight.
-- `PutMap` (`PutMapMode`), `StageEndScreen` (`dispatch`),
-  `LoadConstruction` (`wlddt[i].mode`, cases 0/5/2), `draw_fade_`,
-  `InitFileSystem`, `FileRead`, `EndDrawing`.
+- `debug_menu_stage_option` (7 rows). A TAG: the rows come from the
+  DEBUG_MENU_STAGE_OPTIONS data table, so name them from its label
+  strings the way round 42 used the card screen's text assets, not from
+  the case bodies alone.
+- ProcItem Gun, LightningBolt, Shinsoku (Gosin/Kaengeki in flight).
+- `StageEndScreen`'s `dispatch`.
 
 Two rules that come with this work (both in the cookbook): name the
 states from what the case bodies DO, and sweep the whole function so
