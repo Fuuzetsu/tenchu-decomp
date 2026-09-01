@@ -94,11 +94,11 @@ struct AFSIndexEntry
     u8 name[AFS_ELEMENT_NAME_SIZE]; /* 0x10 */
 }; /* 0x24 */
 
+#define AFS_READ_BE16(bytes)                                                \
+    (((u16)(bytes)[0] << 8) | (u16)(bytes)[1])
 #define AFS_READ_BE32(bytes)                                                \
     (((u32)(bytes)[0] << 24) | ((u32)(bytes)[1] << 16) |                   \
      ((u32)(bytes)[2] << 8) | (u32)(bytes)[3])
-#define AFS_INDEX_BYTE_OFFSET(member) \
-    ((u32)&((AFSIndexEntry *)0)->member)
 
 struct TFileHandle
 {

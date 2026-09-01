@@ -38,19 +38,6 @@ extern char msg_afsgetenty_no_memory[];    /* AfsGetEnty: memory not enough! */
 extern char msg_afsgetentry_no_memory[];   /* AfsGetEntry: memory not enough! */
 extern char msg_illigal_index[];
 
-/* Retail keeps this cursor one byte past the start of each wire record.
- * Derive its loads from AFSIndexEntry without changing that address graph. */
-#define AFS_CURSOR_BYTE(cursor, member, byte) \
-    ((cursor)[AFS_INDEX_BYTE_OFFSET(member) - 1 + (byte)])
-#define AFS_CURSOR_BE16(cursor, member)                                    \
-    (((u16)AFS_CURSOR_BYTE(cursor, member, 0) << 8) |                     \
-     (u16)AFS_CURSOR_BYTE(cursor, member, 1))
-#define AFS_CURSOR_BE32(cursor, member)                                    \
-    (((u32)AFS_CURSOR_BYTE(cursor, member, 0) << 24) |                    \
-     ((u32)AFS_CURSOR_BYTE(cursor, member, 1) << 16) |                    \
-     ((u32)AFS_CURSOR_BYTE(cursor, member, 2) << 8) |                     \
-     (u32)AFS_CURSOR_BYTE(cursor, member, 3))
-
 static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
 {
     *dst = ((u16)src[0] << 8) | next[0];
@@ -114,12 +101,18 @@ entry_ready:
                 element = elements;
                 packed = raw + 1;
             entry_loop:
-                element->flag = AFS_CURSOR_BE16(packed, flag);
-                element->pos = AFS_CURSOR_BE32(packed, position);
-                element->size = AFS_CURSOR_BE32(packed, size);
-                element->psize = AFS_CURSOR_BE32(packed, packed_size);
+                /* Retail carries this cursor one byte into the record;
+                 * step back only for the typed wire-format view. */
+                element->flag = AFS_READ_BE16(
+                    ((AFSIndexEntry *)(packed - 1))->flag);
+                element->pos = AFS_READ_BE32(
+                    ((AFSIndexEntry *)(packed - 1))->position);
+                element->size = AFS_READ_BE32(
+                    ((AFSIndexEntry *)(packed - 1))->size);
+                element->psize = AFS_READ_BE32(
+                    ((AFSIndexEntry *)(packed - 1))->packed_size);
                 strncpy((char *)element->name,
-                        (char *)buffer + AFS_INDEX_BYTE_OFFSET(name),
+                        (char *)((AFSIndexEntry *)buffer)->name,
                         sizeof(element->name) - 1);
                 element->name[sizeof(element->name) - 1] = 0;
                 AfsGetShort(&marker, buffer, packed);
@@ -144,7 +137,3 @@ entry_ready:
     vfree(raw);
     return 0;
 }
-
-#undef AFS_CURSOR_BYTE
-#undef AFS_CURSOR_BE16
-#undef AFS_CURSOR_BE32
