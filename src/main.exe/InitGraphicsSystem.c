@@ -50,7 +50,7 @@
  *    asm's `addiu $v0,$v0,0x2000` with no source-level arithmetic needed.
  */
 
-extern GsOT_TAG ZSortTable[2][2048];
+extern GsOT_TAG ZSortTable[N_DRAW_PAGES][N_OT_TAGS];
 extern s32 DepthPoint;
 extern s32 SlightPoint;
 
@@ -109,8 +109,8 @@ void InitGraphicsSystem(void)
     GsSetNearClip(0);
     AdtFntLoad(0x3c0, 0x100);
     AdtFntOpen(-(SCREEN_W / 2), -0x68, SCREEN_W, 0xd0, 0, 0x400);
-    OTable[1].length = 0xb;
-    OTable[0].length = 0xb;
+    OTable[1].length = OT_LENGTH;
+    OTable[0].length = OT_LENGTH;
     OTable[0].org = ZSortTable[0];
     OTable[1].org = ZSortTable[1];
     STARTING_RNG_SEED += VSync(-1);

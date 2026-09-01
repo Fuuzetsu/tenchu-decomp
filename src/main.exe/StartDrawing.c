@@ -19,10 +19,10 @@
 /*
  * StartDrawing (0x800181d4, 0x74 bytes) — per-frame draw-page flip: toggles
  * the double-buffer page index, points the GPU work/packet area at the new
- * page (GsSetWorkBase, page stride 0x10000), repoints the global sort table
- * pointer OTablePt at OTable[DrawingPage] and clears it (GsClearOt), then
- * bumps the frame counter GameClock. Called once per frame from the main
- * loop alongside the (unmatched) present/flip step.
+ * page (GsSetWorkBase, page stride PACKET_PAGE_SIZE), repoints the global
+ * sort table pointer OTablePt at OTable[DrawingPage] and clears it
+ * (GsClearOt), then bumps the frame counter GameClock. Called once per frame
+ * from the main loop alongside the (unmatched) present/flip step.
  *
  * DrawingPage/OTable/GameClock are Ghidra-recovered names (symbols.tsv);
  * Packet (the GPU work/packet buffer immediately following OTable's two
@@ -39,8 +39,9 @@
  *    reloads fresh with `lh` (DeleteConflict's ConflictObjects rule: two
  *    un-CSE'd loads of one signed-short global, one lhu one lh — give the
  *    narrowing use its own temp and let the index re-read the global).
- *  - `(newPage << 16) + (s32)Packet`: EXPAND_SUM special-cases a MULT
- *    sub-term (always expands first, any source order) but NOT a shift —
+ *  - `(newPage << PACKET_PAGE_SHIFT) + (s32)Packet`: EXPAND_SUM
+ *    special-cases a MULT sub-term (always expands first, any source order)
+ *    but NOT a shift —
  *    a shift preserves source order, so the shift is spelled first to land
  *    it as the addu's first source register, matching the target's
  *    `addu $a0,$v1(shift),$a0(addr)` (cookbook's fold/EXPAND_SUM section).
@@ -65,7 +66,7 @@ void StartDrawing(void)
 
     newPage = 1 - DrawingPage;
     DrawingPage = newPage;
-    GsSetWorkBase((void *)((newPage << 16) + (s32)Packet));
+    GsSetWorkBase((void *)((newPage << PACKET_PAGE_SHIFT) + (s32)Packet));
 
     OTablePt = &OTable[DrawingPage];
     GsClearOt(0, 0, OTablePt);

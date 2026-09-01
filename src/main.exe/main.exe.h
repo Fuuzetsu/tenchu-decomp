@@ -195,7 +195,13 @@ extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
 extern void PutItemIcon(int ItemID, short x, short y, short scale);
 extern void PutItemCursor(short x, short y, short size, int rotdif);
 extern GsOT *OTablePt;
-extern GsOT OTable[2];
+/* Double-buffered GPU ordering tables and 64 KiB packet arenas. */
+#define N_DRAW_PAGES 2
+#define OT_LENGTH 11
+#define N_OT_TAGS (1 << OT_LENGTH)
+#define PACKET_PAGE_SHIFT 16
+#define PACKET_PAGE_SIZE (1 << PACKET_PAGE_SHIFT)
+extern GsOT OTable[N_DRAW_PAGES];
 extern GsFOGPARAM Fog;
 extern short DrawingPage;
 /* Retail's draw-mode object is word-sized; one caller snapshots its low half. */
