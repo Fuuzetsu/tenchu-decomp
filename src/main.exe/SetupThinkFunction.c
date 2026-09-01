@@ -46,10 +46,10 @@
  */
 void SetupThinkFunction(Humanoid *human, TThinkType type)
 {
-    human->think[0] = Think1Func[type & 0xF];
-    human->think[1] = Think2Func[(type >> 4) & 0xF];
-    human->think[2] = Think3Func[(type >> 8) & 0xF];
-    human->think[3] = Think4Func[(type >> 12) & 0xF];
+    human->think[0] = Think1Func[THINK1_FROM_MIX(type)];
+    human->think[1] = Think2Func[THINK2_FROM_MIX(type)];
+    human->think[2] = Think3Func[THINK3_FROM_MIX(type)];
+    human->think[3] = Think4Func[THINK4_FROM_MIX(type)];
     if (type == THINK_MIX_NONE || type == THINK_MIX_PLAYER ||
         type == THINK_MIX_PAD2)
     {

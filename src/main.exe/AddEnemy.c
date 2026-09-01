@@ -50,14 +50,6 @@
  * around sprintf at sp+0x7e0/sp+0x7e4—no source-level spill model is needed.
  */
 
-typedef struct ThinkDBtype
-{
-    u8 *name;
-    TThinkType value;
-} ThinkDBtype;
-
-extern ThinkDBtype ThinkDB[20];
-
 extern char str_select_type[];          /* select type */
 extern char str_custom_think_setting[]; /* custom think setting */
 extern char fmt_pair[];                 /* %s %s */

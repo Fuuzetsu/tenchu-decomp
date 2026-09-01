@@ -303,8 +303,101 @@ struct IndexArrayType
 /* A bit for each horizontal direction sampled by GetAreaMapVector. */
 typedef u8 MapProbeMask;
 
-/* WORLD.C's packed four-stage think-function selector. */
+/* WORLD.C's packed four-stage think-function selector. Each nibble indexes
+ * one of the four Think*Func tables. */
 typedef short TThinkType;
+
+/* The first three entries are shared by all four dispatch tables. */
+enum think_basic_program
+{
+    THINK_BASIC_NONE = 0,
+    THINK_BASIC_PAD1 = 1,
+    THINK_BASIC_PAD2 = 2
+};
+
+/* Remaining entries in the individual dispatch tables. ThinkDB supplies
+ * the editor-facing names; the two non-editor entries retain their recovered
+ * function names. */
+enum think1_program
+{
+    THINK1_TRACE = 3,
+    THINK1_WATCH = 4,
+    THINK1_RANDOM = 5,
+    THINK1_NINJA = 6,
+    THINK1_SLEEP = 7,
+    THINK1_CHASE = 8,
+    THINK1_TARGET = 9,
+    N_THINK1_PROGRAMS = THINK1_TARGET + 1
+};
+
+enum think2_program
+{
+    THINK2_CONFIRM = 3,
+    THINK2_CONTACT = 4,
+    N_THINK2_PROGRAMS = THINK2_CONTACT + 1
+};
+
+enum think3_program
+{
+    THINK3_CALLAID = 3,
+    THINK3_ATK_CHASE = 4,
+    THINK3_ATK_POINT = 5,
+    THINK3_ESCAPE = 6,
+    THINK3_ATK_AREA = 7,
+    THINK3_ATK_HITAWAY = 8,
+    THINK3_FIRST_ATTACK = 9,
+    N_THINK3_PROGRAMS = THINK3_FIRST_ATTACK + 1
+};
+
+enum think4_program
+{
+    THINK4_ABANDON = 3,
+    THINK4_CONTACT = 4,
+    THINK4_CHASE = 5,
+    N_THINK4_PROGRAMS = THINK4_CHASE + 1
+};
+
+enum
+{
+    THINK_PROGRAM_BITS = 4,
+    THINK_PROGRAM_MASK = (1 << THINK_PROGRAM_BITS) - 1,
+    THINK2_PROGRAM_SHIFT = THINK_PROGRAM_BITS,
+    THINK3_PROGRAM_SHIFT = THINK_PROGRAM_BITS * 2,
+    THINK4_PROGRAM_SHIFT = THINK_PROGRAM_BITS * 3
+};
+
+#define THINK_MIX(think1, think2, think3, think4)                         \
+    ((think1) | ((think2) << THINK2_PROGRAM_SHIFT) |                      \
+     ((think3) << THINK3_PROGRAM_SHIFT) | ((think4) << THINK4_PROGRAM_SHIFT))
+
+#define THINK1_FROM_MIX(type) ((type) & THINK_PROGRAM_MASK)
+#define THINK2_FROM_MIX(type) \
+    (((type) >> THINK2_PROGRAM_SHIFT) & THINK_PROGRAM_MASK)
+#define THINK3_FROM_MIX(type) \
+    (((type) >> THINK3_PROGRAM_SHIFT) & THINK_PROGRAM_MASK)
+#define THINK4_FROM_MIX(type) \
+    (((type) >> THINK4_PROGRAM_SHIFT) & THINK_PROGRAM_MASK)
+
+#define THINK_MIX_NONE                                                    \
+    THINK_MIX(THINK_BASIC_NONE, THINK_BASIC_NONE, THINK_BASIC_NONE,        \
+              THINK_BASIC_NONE)
+#define THINK_MIX_PLAYER                                                  \
+    THINK_MIX(THINK_BASIC_PAD1, THINK_BASIC_PAD1, THINK_BASIC_PAD1,        \
+              THINK_BASIC_PAD1)
+#define THINK_MIX_PAD2                                                    \
+    THINK_MIX(THINK_BASIC_PAD2, THINK_BASIC_PAD2, THINK_BASIC_PAD2,        \
+              THINK_BASIC_PAD2)
+#define THINK_MIX_NINKEN                                                  \
+    THINK_MIX(THINK1_TARGET, THINK2_CONTACT, THINK3_ATK_CHASE,             \
+              THINK4_CHASE)
+
+/* THINK.C's editor database row, recovered from PSX.SYM. */
+typedef struct ThinkDBtype ThinkDBtype;
+struct ThinkDBtype
+{
+    u8 *name;
+    TThinkType value;
+};
 
 /* Character ids are stored as signed halfwords so tables can use -1 as
  * their end marker; enum character_kind below supplies the named values. */
@@ -1071,26 +1164,6 @@ struct WeaponModelType
 }; /* 0x0C */
 
 /* APPEAR.C's character database row. */
-/* SetupThinkFunction mixes — one Think-table index per nibble (think[0]
- * in the low nibble .. think[3] in the high). The debug enemy-editor's
- * ThinkDB (retail data @0x80089e40) names every program with the
- * game's own labels, and they line up exactly with the Think*Func
- * pointer tables:
- *   Think1: 1 PAD 1 (ThinkBasicHuman1), 2 PAD 2 (ThinkBasicHuman2),
- *           3 TRACE, 4 WATCH, 5 RANDOM, 6 NINJA, 7 SLEEP, 8 CHASE,
- *           9 (Think1target)
- *   Think2: 3 CONFIRM, 4 CONTACT
- *   Think3: 3 CALLAID, 4 ATK-CHASE, 5 ATK-POINT, 6 ESCAPE,
- *           7 ATK-AREA, 8 ATK-HITAWAY
- *   Think4: 3 ABANDON, 4 CONTACT, 5 CHASE
- * The spelled literals: none, the first-pad player mix ("PAD 1"), the
- * second-pad mix ("PAD 2"), and the summoned ninken's. Stage data
- * supplies the rest. */
-#define THINK_MIX_NONE 0
-#define THINK_MIX_PLAYER 0x1111
-#define THINK_MIX_PAD2 0x2222
-#define THINK_MIX_NINKEN 0x5449
-
 /* Weapon kinds (HumanDataType.wepid, copied into Humanoid.wpatk by
  * SetupWeapon). The high nibble is the RANGE CLASS the think layer
  * extracts with `wpatk >> 4` to pick the Attack* controller (0 short /
