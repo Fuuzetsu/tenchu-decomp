@@ -58,8 +58,35 @@ struct PadArrangeType
     s32 release; /* 0x0C */
 }; /* 0x10 */
 
-/* PADCMD.C's command-table word type, recovered from PSX.SYM. */
+/* PADCMD.C's command table. COMMAND is the recovered unsigned storage word;
+ * pad_command is the signed runtime id returned through dtCMD. Retail has
+ * thirteen sequences plus the null table terminator (the demo had fewer). */
 typedef unsigned short COMMAND;
+typedef s16 pad_command;
+
+enum pad_command_value
+{
+    CMD_NONE = 0,
+    CMD_DASH_FORWARD = 0x01,
+    CMD_DASH_BACKWARD = 0x02,
+    CMD_DASH_LEFT = 0x03,
+    CMD_DASH_RIGHT = 0x04,
+    CMD_ROLL_FORWARD = 0x11,
+    CMD_ROLL_BACKWARD = 0x12,
+    CMD_ROLL_LEFT = 0x13,
+    CMD_ROLL_RIGHT = 0x14,
+    CMD_LUNGE = 0x21,
+    CMD_LUNGE_BACK = 0x22,
+    CMD_FLIP = 0x31
+};
+
+enum
+{
+    PAD_COMMAND_END = 0xFFFF,
+    PAD_COMMAND_STREAM_LENGTH = 4,
+    N_PAD_COMMAND_SEQUENCES = 13,
+    N_PAD_COMMAND_TABLE_ENTRIES = N_PAD_COMMAND_SEQUENCES + 1
+};
 
 /* Command state embedded in each Humanoid. */
 typedef struct PADtype PADtype;
@@ -69,7 +96,7 @@ struct PADtype
     u16 sdata;     /* 0x02 */
     u16 trig;      /* 0x04 */
     s16 time;      /* 0x06 */
-    u16 stream[4]; /* 0x08 */
+    u16 stream[PAD_COMMAND_STREAM_LENGTH]; /* 0x08 */
 }; /* 0x10 */
 
 /* AdtSelect's menu row — the demo's own debug symbols supply this name and

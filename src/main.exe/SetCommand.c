@@ -41,9 +41,9 @@
  *    sign-extension RTL before the otherwise independent invariant constant,
  *    giving the scheduler the target order. A direct if or earlier one
  *    assignment reverses those independent invariant operations.
- *  - Argument counting is while (args[n] != 0xFFFF). Copying is an explicitly
- *    guarded do/while; spelling it as for/while adds jump.c's duplicated front
- *    test on top of the source guard.
+ *  - Argument counting is while (args[n] != PAD_COMMAND_END). Copying is an
+ *    explicitly guarded do/while; spelling it as for/while adds jump.c's
+ *    duplicated front test on top of the source guard.
  *  - one is an unconditional s32 assignment in the outer loop. Because every
  *    iteration reaches it, loop.c hoists one materialization, and the copy
  *    guard and pad->time store share that value. A literal uses slti; s16
@@ -51,7 +51,7 @@
  *  - The matched-entry do { ... } while (0) is intentional loop-depth
  *    weighting. Removing it changes the outer index and table-base allocation.
  */
-short SetCommand(PADtype *pad, short cmd)
+short SetCommand(PADtype *pad, pad_command cmd)
 {
     s16 i;
     COMMAND *entry;
@@ -76,7 +76,7 @@ short SetCommand(PADtype *pad, short cmd)
         {
             args = entry + 1;
             n = 0;
-            while (args[n] != 0xFFFF)
+            while (args[n] != PAD_COMMAND_END)
             {
                 n++;
             }

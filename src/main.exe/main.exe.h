@@ -52,7 +52,7 @@ extern void PadProc(void);
 extern void PadShockAR(int port, int pow, int attack, int release);
 extern long GetRealPad(int port);
 extern TPadPort PadPort[PAD_PORT_COUNT][PAD_SLOTS_PER_PORT];
-extern COMMAND *Command[12];
+extern COMMAND *Command[N_PAD_COMMAND_TABLE_ENTRIES];
 /* The two standard 34-byte PSY-Q pad receive buffers InitPAD registers. */
 extern unsigned char ComBuf[2][34];
 extern PadArrangeType PadArrange;
@@ -151,7 +151,7 @@ extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;
 extern SVECTOR *dtV;
-extern short dtCMD;
+extern pad_command dtCMD;
 extern short MotionUpdateMode;
 extern item_selection SelectedItem;
 extern TCdaStatus CdaStatus;

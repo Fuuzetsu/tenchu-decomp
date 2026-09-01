@@ -116,26 +116,26 @@ void ActNORMAL(void)
     }
 
     {
-        int command;
+        pad_command command;
 
         /* A hand goto ladder, not a switch: the bodies lay out 1,2,3,0,4
          * and the tests run 0, 2, <3, 3, 4. Re-measured 2026-08-31 with
          * the cases written in that physical order (the switch lever that
          * converted six other ladders that day): 67 diff lines. */
         command = dtCMD;
-        if (command == 0)
+        if (command == CMD_NONE)
             goto command_0;
-        if (command == 2)
+        if (command == CMD_DASH_BACKWARD)
             goto command_2;
-        if (command < 3)
+        if (command < CMD_DASH_LEFT)
         {
-            if (command == 1)
+            if (command == CMD_DASH_FORWARD)
                 goto command_1;
             return;
         }
-        if (command == 3)
+        if (command == CMD_DASH_LEFT)
             goto command_3;
-        if (command == 4)
+        if (command == CMD_DASH_RIGHT)
             goto command_4;
         return;
 

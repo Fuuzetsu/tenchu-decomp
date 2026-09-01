@@ -255,7 +255,7 @@ void ActSQUAT(void)
         }
     }
 
-    if (dtCMD != 0)
+    if (dtCMD != CMD_NONE)
     {
         switch (dtCMD)
         {

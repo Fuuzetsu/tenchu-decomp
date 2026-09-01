@@ -118,7 +118,7 @@ void StateTransition(Humanoid *human)
     s16 pad;
     s16 base_attrib;
     s32 saved_strain_ratio;
-    s16 dash_command;
+    pad_command dash_command;
     s32 player_distance;
     SVECTOR probe_offset;
 

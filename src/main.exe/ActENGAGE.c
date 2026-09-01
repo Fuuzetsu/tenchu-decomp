@@ -199,7 +199,7 @@ void ActENGAGE(void)
         SET_MOTION(0, 1);
         return;
     }
-    else if (dtCMD != 0)
+    else if (dtCMD != CMD_NONE)
     {
         switch (dtCMD)
         {

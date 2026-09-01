@@ -37,7 +37,8 @@
  *    jump.c elides the front test (i=0 provably true) and fuses the
  *    increment into the "go check the next entry" continuation, matching
  *    the asm computing `i+1` only as part of testing `Command[i+1]`.
- *  - Inner matching is a natural `for (j = 0; cmd[j] != 0xFFFF; j++)`.
+ *  - Inner matching is a natural
+ *    `for (j = 0; cmd[j] != PAD_COMMAND_END; j++)`.
  *    That source form makes cc1 keep the initial sentinel test in the loop
  *    preheader and materialize a separate 0xFFFF carrier for the backedge;
  *    the resulting live ranges place `cmd`, `i`, and `pad` in the registers
@@ -52,7 +53,7 @@
  *    at the return, not from a cached pointer.
  */
 
-short GetCommand(PADtype *pad)
+pad_command GetCommand(PADtype *pad)
 {
     COMMAND *cmd;
     short i;
@@ -61,24 +62,24 @@ short GetCommand(PADtype *pad)
     for (i = 0; Command[i] != 0; i++)
     {
         cmd = Command[i] + 1;
-        for (j = 0; cmd[j] != 0xFFFF; j++)
+        for (j = 0; cmd[j] != PAD_COMMAND_END; j++)
         {
             if (cmd[j] != pad->stream[j])
                 break;
         }
-        if (cmd[j] != 0xFFFF)
+        if (cmd[j] != PAD_COMMAND_END)
             continue;
 
-        j = 3;
+        j = PAD_COMMAND_STREAM_LENGTH - 1;
         do
         {
             pad->stream[j] = pad->stream[j - 1];
             j--;
         } while (j > 0);
         pad->stream[0] = 0;
-        /* (short *): the return is an lh where every table read above is
-     * lhu — byte-required (verified against the .s). */
-    return *(short *)Command[i];
+        /* (pad_command *): the return is an lh where every table read above
+         * is lhu — byte-required (verified against the .s). */
+        return *(pad_command *)Command[i];
     }
-    return 0;
+    return CMD_NONE;
 }

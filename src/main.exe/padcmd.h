@@ -10,27 +10,17 @@ enum
     N_BUTTON_ASSIGNMENTS = N_CONTROL_SCHEMES * BUTTONS_PER_CONTROL_SCHEME
 };
 
-/* Command[] tags for SetCommand — each entry streams a canned input
- * sequence into the pad (decoded from the retail table @ 0x8008686c):
+/* game_types.h's pad_command values tag Command[] rows for SetCommand. Each
+ * entry streams a canned input sequence into the pad (decoded from the retail
+ * table @ 0x8008686c):
  * the low nibble is the direction (1 up, 2 down, 3 left, 4 right), the
  * high nibble the move family. 0x0N double-taps the direction (dash),
  * 0x1N is direction+Circle,Circle,direction+Circle (crouch roll),
  * CMD_LUNGE is Up+Square,Up (the forward lunge attack). */
-#define CMD_DASH_FORWARD 0x01
-#define CMD_DASH_BACKWARD 0x02
-#define CMD_DASH_LEFT 0x03
-#define CMD_DASH_RIGHT 0x04
-#define CMD_ROLL_FORWARD 0x11
-#define CMD_ROLL_BACKWARD 0x12
-#define CMD_ROLL_LEFT 0x13
-#define CMD_ROLL_RIGHT 0x14
-#define CMD_LUNGE 0x21
 /* The remaining two command streams (each with two accepted input
  * variants in the retail table): the down-variant Square special that
  * plays attack motion 0x712, and the Cross flip that plays jump motion
  * 0x907 with a forward push. */
-#define CMD_LUNGE_BACK 0x22
-#define CMD_FLIP 0x31
 
 /* check_cheat_command_ results (the recognized input combos; retail
  * table @ 0x8008eddc). Consumers: the briefing/shop screen (item cap,
@@ -66,7 +56,7 @@ extern unsigned short PAD_HISTORY_[N_CHEAT_HISTORY_ENTRIES];
 
 extern void GetPadXY(short no, short *x, short *y);
 extern short GetPad(short no);
-extern short GetCommand(struct PADtype *pad);
-extern short SetCommand(struct PADtype *pad, short cmd);
+extern pad_command GetCommand(struct PADtype *pad);
+extern short SetCommand(struct PADtype *pad, pad_command cmd);
 
 #endif

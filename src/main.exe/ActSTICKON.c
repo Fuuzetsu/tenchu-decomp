@@ -163,7 +163,7 @@ void ActSTICKON(void)
             dtM->loop = MOTION_LOOP_DISABLED;
         }
 
-        if (dtCMD != 0)
+        if (dtCMD != CMD_NONE)
         {
             switch (dtCMD)
             {
@@ -312,7 +312,7 @@ void ActSTICKON(void)
     case MOT_STICKON_SLIDE_L:
     case MOT_STICKON_SLIDE_R:
     {
-        if (dtCMD != 0)
+        if (dtCMD != CMD_NONE)
         {
             switch (dtCMD)
             {
