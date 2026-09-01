@@ -123,7 +123,6 @@ void DrawFrame(TEffectSlot *ef)
     s16 sc;
     s32 t;
     s32 pri;
-    u8 rgb;
     s32 px, py, pz;
     GsCOORDINATE2 *hint;
     s32 size;
@@ -145,10 +144,7 @@ void DrawFrame(TEffectSlot *ef)
         }
         break;
     case FRAME_MODE_FADE:
-        rgb = *(u8 *)&param->count;
-        spr->b = rgb;
-        spr->g = rgb;
-        spr->r = rgb;
+        spr->r = spr->g = spr->b = *(u8 *)&param->count;
         param->count -= 29;
         if (param->count <= 0)
         {

@@ -59,9 +59,10 @@
  *    rendering (`*piVar4 + 0x68`, a fresh dereference of the slot address,
  *    distinct from `iVar3` which is `*piVar4`'s EARLIER read reused for
  *    the flag/fade tests). Reusing `e` here compiles one `lw` short.
- *  - The fade counter's new value is computed once (`c = e->sprite.b + 8;`)
- *    and stored to all three bytes from that one register — writing each
- *    store as `+8` inline would reload/recompute three times.
+ *  - The fade counter's new value is computed once by the chained
+ *    `r = g = b = b + 8` assignment and stored to all three bytes from that
+ *    one register. Writing each store as `+8` inline would reload/recompute
+ *    three times.
  */
 
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
@@ -80,7 +81,6 @@ short CVArun(void)
 {
     s16 i;
     Sprite3D *e;
-    u8 c;
     MotionManager *mmp;
     Humanoid *human;
     Humanoid *reload;
@@ -106,10 +106,8 @@ short CVArun(void)
             {
                 if ((s8)e->sprite.r >= 0)
                 {
-                    c = e->sprite.b + 8;
-                    e->sprite.b = c;
-                    e->sprite.g = c;
-                    e->sprite.r = c;
+                    e->sprite.r = e->sprite.g = e->sprite.b =
+                        e->sprite.b + 8;
                 }
                 GsSortSprite(&TANKA_SPRITES_[i]->sprite, OTablePt, 0);
             }

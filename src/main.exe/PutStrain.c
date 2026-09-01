@@ -98,7 +98,6 @@ void PutStrain(s32 x, s32 y)
     s32 delta;
     s32 s;
     u16 phase;
-    u8 shade;
     s16 scale;
 
     ratio = StrainRatio;
@@ -163,10 +162,8 @@ void PutStrain(s32 x, s32 y)
         spr->y = (s16)y;
         phase = StrainPhase + (s >> 5);
         StrainPhase = phase;
-        shade = rsin(phase) * 0x60 / FIXED_ONE + range / 2;
-        spr->b = shade;
-        spr->g = shade;
-        spr->r = shade;
+        spr->r = spr->g = spr->b =
+            rsin(phase) * 0x60 / FIXED_ONE + range / 2;
         scale = (s16)((delta << 0xb) / powrange) + FIXED_HALF;
         spr->scalex = scale;
         spr->scaley = scale;
