@@ -283,17 +283,29 @@ enum map_attribute_flag
     MAP_SLOPE_Z = 0x8000
 };
 
+typedef struct IndexArrayType IndexArrayType;
+
+/* ACM link words are relative byte offsets on disk. LoadAreaMap relocates
+ * them in place into either a node-list or subdivision-table pointer. */
+typedef union AreaMapReference AreaMapReference;
+union AreaMapReference
+{
+    long address;
+    AreaNodeType *nodes;
+    IndexArrayType *subdivision;
+}; /* 0x04 */
+
 /* CONFLICT.C's area-map row index. */
 typedef struct NodeIndexType NodeIndexType;
 struct NodeIndexType
 {
-    s16 y;     /* 0x00 */
-    s16 n;     /* 0x02 */
-    s32 index; /* 0x04 */
-    s16 x1;    /* 0x08 */
-    s16 z1;    /* 0x0A */
-    s16 x2;    /* 0x0C */
-    s16 z2;    /* 0x0E */
+    s16 y;                  /* 0x00 */
+    s16 n;                  /* 0x02 */
+    AreaMapReference index; /* 0x04 */
+    s16 x1;                 /* 0x08 */
+    s16 z1;                 /* 0x0A */
+    s16 x2;                 /* 0x0C */
+    s16 z2;                 /* 0x0E */
 }; /* 0x10 */
 
 /* GetAreaMapLevel's load-bearing cursor is based at NodeIndexType.index.
@@ -311,10 +323,9 @@ struct NodeIndexType
 /* CONFLICT.C's lookup table for a subdivided area-node list. The leading
  * word is an offset on disk and an AreaNodeType pointer after relocation. */
 #define AREA_INDEX_AXIS_SIZE 4
-typedef struct IndexArrayType IndexArrayType;
 struct IndexArrayType
 {
-    long index;                  /* 0x00 */
+    AreaMapReference index;      /* 0x00 */
     area_node_index array[AREA_INDEX_AXIS_SIZE][AREA_INDEX_AXIS_SIZE]; /* 0x04 */
 }; /* 0x24 */
 

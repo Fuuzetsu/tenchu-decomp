@@ -54,7 +54,7 @@
  *    boundary shape represented here by `mode` and `mode16`.
  *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
  *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
- *  - `row` is a `long *` cursor at &index->index; NODE_INDEX_ROW_FIELD
+ *  - `row` is a `long *` cursor at &index->index.address; NODE_INDEX_ROW_FIELD
  *    derives the surrounding halfword fields while retaining the cast-based
  *    address shape (the n load at -2($s2) proves it). The row rect tests
  *    re-read the same expressions in the division block so cse reuses the
@@ -143,18 +143,18 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                     goto down;
             }
         }
-        if (index->index != 0)
+        if (index->index.address != 0)
         {
         up:
             if (index->y < y2)
             {
                 index++;
-                if (index->index != 0)
+                if (index->index.address != 0)
                     goto up;
             }
-            if (index->index != 0)
+            if (index->index.address != 0)
             {
-                row = &index->index;
+                row = &index->index.address;
                 first_hit = mode16 & AREA_LEVEL_FIRST_HIT;
             loop:
                 if (yy == (u32)LEVEL_NONE)
@@ -180,7 +180,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                             n = ((IndexArrayType *)list)->array[qz][qx];
                             if (n == AREA_NODE_INDEX_NONE)
                                 goto next;
-                            list = (AreaNodeType *)((IndexArrayType *)list)->index;
+                            list = ((IndexArrayType *)list)->index.nodes;
                             nn = -nn;
                         }
                         if (n < nn)

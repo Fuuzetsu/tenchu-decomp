@@ -33,10 +33,10 @@
  *  - `adr` (the relocation base) and `map` (the walk cursor) are the SAME
  *    value but occupy TWO callee-saved registers ($s0/$s1) — an explicit
  *    source copy (`map = adr;`), not one variable: the two relocation-fixup
- *    additions (`map[j].index += ...`, the division's `*(long*)map[j].index
- *    += ...`) both add through `adr` ($s0), while the cursor arithmetic
- *    (`map[j]`, and the loop-continuation `map[j+1]`) goes through `map`
- *    ($s1) — confirmed by which register the asm's `addu` operands name at
+ *    additions (`map[j].index.address += ...` and the subdivision link's
+ *    matching update) both add through `adr` ($s0), while the cursor
+ *    arithmetic (`map[j]`, and the loop-continuation `map[j+1]`) goes through
+ *    `map` ($s1) — confirmed by which register the asm's `addu` operands name at
  *    each site. Repeating `map[j]` at each field access (no intermediate
  *    `rec` cursor pointer) matters too: assigning `&map[j]` to a named
  *    pointer temp first flips the `addu` operand order (base-first, the
@@ -54,11 +54,12 @@
  *    (GetAreaMapLevel reads the same field with `lh` for a real compare) —
  *    same-field, different-op, different-TU-use divergence per the cookbook.
  *  - Neither Ghidra nor m2c has this right: there is only ONE store to
- *    FieldArea, AFTER the whole if-block (not "= 0" before it, "= adr->index"
- *    inside it, as both renderings show) — a plain local (`idx0`) captures
- *    `adr->index` before the guard (that same read IS the guard test) and
- *    again after the loop (freshly relocated by then; iteration j=0 aliases
- *    `adr` itself, so the loop's own first pass rewrites `adr->index` in
+ *    FieldArea, AFTER the whole if-block (not "= 0" before it, "= first-row
+ *    link" inside it, as both renderings show) — a plain local (`idx0`)
+ *    captures the first row's `index.address` before the guard (that same
+ *    read IS the guard test) and again after the loop (freshly relocated by
+ *    then; iteration j=0 aliases
+ *    `adr` itself, so the loop's own first pass rewrites that link in
  *    place).
  *  - Getting the VALUE right wasn't enough to fix the final block's
  *    INSTRUCTION ORDER — `GlobalAreaMap`/`FieldIndex` (both plain `adr`,
@@ -68,9 +69,9 @@
  *    FieldIndex, FieldArea, return-move] no matter how the 4 statements were
  *    reordered in source (tried every permutation by hand — zero effect on
  *    the emitted order, so it isn't a source-order lever at all here).
- *    decomp-permuter found the actual fix: one MORE `idx0 = adr->index;`
- *    right before `FieldArea = (AreaNodeType *)idx0;` — textually a third,
- *    redundant read (CSE erases it as an instruction; the asm only ever has
+ *    decomp-permuter found the actual fix: one MORE read of the first row's
+ *    link right before `FieldArea = (AreaNodeType *)idx0;` — textually a
+ *    third, redundant read (CSE erases it as an instruction; the asm only ever has
  *    the same two physical `lw`s) that exists purely to re-timestamp idx0's
  *    pseudo late enough in cc1's bookkeeping to win the scheduling tie. Byte-
  *    neutral re-reads as permuter seed levers are a known lever (cookbook,
@@ -99,25 +100,25 @@ AreaMapType *LoadAreaMap(AreaMapType *adr)
         SystemOut(msg_no_area_data);
 
     j = 0;
-    idx0 = ((NodeIndexType *)adr)->index;
+    idx0 = ((NodeIndexType *)adr)->index.address;
     if (idx0 != 0)
     {
         do
         {
-            map[j].index += (long)adr;
+            map[j].index.address += (long)adr;
             map[j].y += 2;
             if (map[j].n < 0)
             {
-                ((IndexArrayType *)map[j].index)->index =
-                    ((IndexArrayType *)map[j].index)->index + (long)adr;
+                map[j].index.subdivision->index.address =
+                    map[j].index.subdivision->index.address + (long)adr;
             }
             j++;
-        } while (map[j].index != 0);
-        idx0 = ((NodeIndexType *)adr)->index;
+        } while (map[j].index.address != 0);
+        idx0 = ((NodeIndexType *)adr)->index.address;
     }
     GlobalAreaMap = adr;
     FieldIndex = (NodeIndexType *)adr;
-    idx0 = ((NodeIndexType *)adr)->index;
+    idx0 = ((NodeIndexType *)adr)->index.address;
     FieldArea = (AreaNodeType *)idx0;
     return adr;
 }
