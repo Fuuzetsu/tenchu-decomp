@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 #include "adt.h"
 #include "item.h"
 #include "padcmd.h"
@@ -57,7 +58,7 @@ extern u16 ControlScheme;
 extern char fmt_free_memory[];
 
 extern void ResetCallback(void);
-extern void InitFileSystem(s32 mode);
+extern void InitFileSystem(file_read_mode mode);
 extern void InitGraphicsSystem(void);
 extern void InitAccessInfo(void);
 extern void InitConflict(void);

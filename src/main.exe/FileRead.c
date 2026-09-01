@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -87,13 +88,13 @@ u_long *FileRead(u8 *filename)
     {
         VSyncCallback(0);
     }
-    if (ReadMode == -1)
+    if (ReadMode == READ_MODE_UNINITIALIZED)
     {
         TotalIO = 0;
-        ReadMode = 0;
+        ReadMode = READ_SOURCE_DEVPC;
         PCinit();
     }
-    switch (ReadMode & 3)
+    switch (ReadMode & READ_SOURCE_MASK)
     {
     case READ_SOURCE_DEVPC:
         ret = LoadFromDEVPC(filename);

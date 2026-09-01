@@ -243,17 +243,6 @@ extern char IMAGES_PREFIX_STR;
 extern unsigned long *MemoryLoadAddress;
 extern unsigned char *ImagePath;
 extern int AccessPower;
-/* ReadMode packs the file source into its low two bits, plus flags.
- * Bit 3 is set together with the memory source by InitFileSystem's
- * memory-disk handshake and only ever tested as part of that pair, so it
- * has no name here. */
-#define READ_SOURCE_MASK 3
-#define READ_SOURCE_DEVPC 0  /* files come over the PC link */
-#define READ_SOURCE_MEMORY 1 /* files come from the PC memory disk */
-#define READ_SOURCE_CDROM 2  /* files come from the disc's AFS archive */
-#define READ_MODE_TRACE 4    /* log every load through AdtMessageBox */
-
-extern int ReadMode;
 extern int TotalIO;
 extern POLY_GT4 AccessImage;
 

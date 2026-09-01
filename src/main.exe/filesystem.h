@@ -11,6 +11,27 @@ typedef struct TAFSFileHandle TAFSFileHandle;
 typedef struct TAFS TAFS;
 typedef struct MemoryDiskType MemoryDiskType;
 
+/* ReadMode combines the active backend in its low two bits with loader
+ * policy flags. */
+typedef s32 file_read_mode;
+enum file_read_mode
+{
+    READ_MODE_UNINITIALIZED = -1,
+    READ_SOURCE_DEVPC = 0,
+    READ_SOURCE_MEMORY = 1,
+    READ_SOURCE_CDROM = 2,
+    READ_SOURCE_MASK = 3,
+    READ_MODE_TRACE = 4,
+    READ_MODE_ACQUIRE_MEMORY_DISK = 8,
+    READ_MODE_MEMORY_DISK_MASK =
+        READ_SOURCE_MEMORY | READ_MODE_ACQUIRE_MEMORY_DISK
+};
+
+enum
+{
+    MEMORY_DISK_SCRATCH_SIZE = 0x8000
+};
+
 /* FILEIO's original seek-origin type from PSX.SYM. */
 typedef enum TSeekMode TSeekMode;
 enum TSeekMode
@@ -79,6 +100,7 @@ enum
 /* FILEIO.C-private originally; extern because that source is split here. */
 extern TAFS systemAFS;
 extern MemoryDiskType *MDfat;
+extern file_read_mode ReadMode;
 /* FILEIO.C's ten-slot CD handle pool, named by the demo symbol data. */
 extern FILE FileHandlePool[N_CD_FILE_HANDLES];
 

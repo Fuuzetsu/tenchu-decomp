@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -51,7 +52,7 @@
  * unconditionally overwritten on the other arm anyway).
  */
 extern int PCopen(char *name, int mode, int share);
-extern int PClseek(int fd, int offset, int whence);
+extern int PClseek(int fd, int offset, TSeekMode whence);
 extern int PCread(int fd, void *buf, int size);
 extern int PCclose(int fd);
 extern void *valloc(u32 size);
@@ -69,14 +70,14 @@ u_long *LoadFromDEVPC(u8 *filename)
     fd = PCopen((char *)filename, 0, 0);
     if (fd != -1)
     {
-        size = PClseek(fd, 0, 2);
+        size = PClseek(fd, 0, CDSEEK_END);
         if (size > 0)
         {
             if (ReadMode & READ_MODE_TRACE)
             {
                 AdtMessageBox(fmt_load_pc, TotalIO, filename);
             }
-            PClseek(fd, 0, 0);
+            PClseek(fd, 0, CDSEEK_SET);
             if (MemoryLoadAddress == 0)
             {
                 buff = (u_long *)valloc(size);

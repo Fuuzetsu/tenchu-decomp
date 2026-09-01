@@ -67,12 +67,12 @@ extern int AfsOpenVolume(TAFS *handle, char *path);
 extern u8 str_acqurememorydisk[16]; /* "ACQUREMEMORYDISK" */
 extern char path_tenchu_data[];     /* TENCHU\\DATA */
 
-void InitFileSystem(int mode)
+void InitFileSystem(file_read_mode mode)
 {
     u_long *saved_pool;
 
     ReadMode = mode;
-    mode = mode & 3;
+    mode = mode & READ_SOURCE_MASK;
     TotalIO = 0;
     switch (mode)
     {
@@ -88,14 +88,14 @@ void InitFileSystem(int mode)
             vinit(0, 0);
             __builtin_memcpy((void *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
                              str_acqurememorydisk, sizeof(str_acqurememorydisk));
-            ReadMode = ReadMode | 9;
+            ReadMode |= READ_MODE_MEMORY_DISK_MASK;
         }
-        if (ReadMode & 9)
+        if (ReadMode & READ_MODE_MEMORY_DISK_MASK)
         {
             saved_pool = virtual_memory_pool;
             vinit((void *)TENCHU_PC_MEMORY_POOL_ADDRESS,
                   TENCHU_PC_MEMORY_POOL_SIZE);
-            vcalloc(0x8000, 0);
+            vcalloc(MEMORY_DISK_SCRATCH_SIZE, 0);
             virtual_memory_pool = saved_pool;
         }
         MDfat = (MemoryDiskType *)TENCHU_PC_MEMORY_PAYLOAD_ADDRESS;
