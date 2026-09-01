@@ -31,7 +31,7 @@
  * GetAbsolutePosition.c/DrawOrnament.c (3DCTRL.C): DrawClip's full-bodied
  * twin — builds the model's local screen matrix (GsGetLs+GsSetLsMatrix,
  * DrawOrnament's pair) then runs the exact same visibility/clip gauntlet
- * as DrawClip (attribute&1/2/4/8/0x10, the UnitVector RotTransPers,
+ * as DrawClip (the MODEL_ATTR_CULL_* gauntlet, UnitVector RotTransPers,
  * DrawTMDmode), and on success actually calls DrawTMD; returns 1 drawn / 0
  * not.
  *
@@ -41,7 +41,8 @@
  *  - sz is PSX.SYM's one end-to-end value: first projection OTZ, -1 reject
  *    sentinel, and second projection OTZ. iv is the separate transient
  *    absolute box-coordinate value.
- *  - The attribute-0x10 test reads the old sz before assigning -1 and jumping.
+ *  - The MODEL_ATTR_CULL_FAR test reads the old sz before assigning -1 and
+ *    jumping.
  *    Ghidra's comma rendering reflects a delay-slot store, not source order.
  *  - Preserve two literal tail returns. return sz != -1 materializes an
  *    unwanted boolean.
@@ -53,7 +54,7 @@
  *    tail without a jump.
  *  - Pin the shared reject assignment with a real reject label inside the
  *    UnitVector depth guard. Attribute-4 and both box failures jump to it.
- *    The attribute-0x10 reject stays separate so its -1 assignment can occupy
+ *    The far-depth reject stays separate so its -1 assignment can occupy
  *    its own branch delay slot.
  */
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
@@ -85,14 +86,14 @@ short DrawModel(ModelType *objp)
                 {
                     iv = -iv;
                 }
-                if (iv < 0xf1)
+                if (iv <= MODEL_CULL_X_LIMIT)
                 {
                     iv = rxy[1];
                     if (iv < 0)
                     {
                         iv = -iv;
                     }
-                    if (iv >= 0xb5)
+                    if (iv > MODEL_CULL_Y_LIMIT)
                     {
                         goto reject;
                     }

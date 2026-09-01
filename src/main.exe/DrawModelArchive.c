@@ -34,10 +34,10 @@
  *
  * Same TU as DrawModel.c/DrawSprite.c (3DCTRL.C): the ModelArchiveType twin
  * of DrawModel's visibility gauntlet (same GsGetLs+GsSetLsMatrix /
- * attribute&1/2/4/8/0x10 clip test / UnitVector RotTransPers), gated by a
+ * MODEL_ATTR_CULL_* clip test / UnitVector RotTransPers), gated by a
  * SkipFrame early-out and a `gap<0` bypass, and instead of a single DrawTMD
- * call it walks `mad->object[0..n)` drawing each visible (attribute&1==0)
- * sub-model with `gap` as the DrawTMD mode.
+ * call it walks `mad->object[0..n)` drawing each non-hidden sub-model with
+ * `gap` as the DrawTMD mode.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `sz`/`result` follow DrawSprite's two-variable shape: `sz` ($v1) holds
@@ -53,7 +53,7 @@
  *    slot) plus one branch to a shared stub, but that is reorg's doing, not
  *    the source's: reorg steals reject's own `li v0,-1` into each eligible
  *    branch's delay slot and retargets the branch THROUGH reject's `j tail`
- *    to tail itself. The iv>=0xb5 site (0x8001775c) still points at the real
+ *    to tail itself. The Y-limit site (0x8001775c) still points at the real
  *    `reject:` only because its delay slot was already taken by
  *    `andi v0,s0,0x10`, so reorg had nothing to steal with. The five
  *    `li v0,-1` in the target are one real + four stolen copies.
@@ -123,14 +123,14 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
                     {
                         iv = -iv;
                     }
-                    if (iv < 0xf1)
+                    if (iv <= MODEL_CULL_X_LIMIT)
                     {
                         iv = rxy[1];
                         if (iv < 0)
                         {
                             iv = -iv;
                         }
-                        if (iv >= 0xb5)
+                        if (iv > MODEL_CULL_Y_LIMIT)
                             goto reject;
                     }
                     else
@@ -152,7 +152,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
                 result = -1;
                 goto tail;
             }
-            if (sz >= 300)
+            if (sz >= FOG_DEPTH)
                 DrawTMDmode = TMD_BANK_FOG;
             else
                 DrawTMDmode = TMD_BANK_PLAIN;

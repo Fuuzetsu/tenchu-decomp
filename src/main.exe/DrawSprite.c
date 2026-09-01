@@ -29,10 +29,11 @@
 /*
  * DrawSprite (0x80017be8, 0x1bc bytes) — same TU as DrawClip.c/DrawModel.c
  * (3DCTRL.C): the Sprite3D twin of DrawModel's visibility gauntlet (builds
- * the local screen matrix, then runs the IDENTICAL attribute&1/2/4/8/0x10
+ * the local screen matrix, then runs the identical MODEL_ATTR_CULL_*
  * clip test against `objp->clip`, then a UnitVector RotTransPers against
  * `xy = &sprt->sprite.x`), but instead of calling DrawTMD on success it
- * computes a distance-scaled sprite size (`(sprt->scale>>2)*300 / pri (= sz - 5)`) and
+ * computes a distance-scaled sprite size
+ * (`(sprt->scale >> 2) * PROJECTION_DISTANCE / pri`) and
  * calls GsSortSprite. `xy` is always the fixed non-null address
  * `&sprt->sprite.x` (never a caller-supplied nullable pointer like
  * DrawClip's `xy` parameter) — the `if (xy != 0) goto ret;` guard
@@ -47,7 +48,7 @@
  *  - THREE distinct `long` locals carry the OTZ/return story, NOT one `sz`
  *    doing everything (that one-variable form is 1 instruction too SHORT):
  *      * `sz` ($v1) — the OTZ from either RotTransPers, live only within the
- *        clip gauntlet (re-tested by attribute&4/&0x10 and the 0x4e2 cutoff).
+ *        clip gauntlet (re-tested by CULL_BEHIND/CULL_FAR and DEPTH_LIMIT).
  *      * `result` ($v0) — the "-1 = reject / else the accepted OTZ" value
  *        the tail divides. It is assigned ONLY on the branches that reach
  *        `ret:` (each reject does its own `result = -1; goto ret;`; each
@@ -67,18 +68,17 @@
  *      * DIRECT-to-ret rejects — a plain `if (cond) { result = -1; goto ret; }`
  *        whose test is a conditional branch: reorg branches straight to the
  *        `ret:` tail and drops `li $v0,-1` into the branch's OWN delay slot.
- *        The atr&4&&sz==0, iv>=0xf1, and far-depth (atr&0x10&&sz>0x4e2)
- *        rejects are these. The atr&4&&sz==0 one MUST be a standalone
- *        `if ((atr&4)!=0 && sz==0)` (NOT the `else` of the enclosing
- *        `if ((atr&4)==0 || sz!=0)` guard) — as an `else` body it is
+ *        The behind-camera, X-limit, and far-depth rejects are these. The
+ *        behind-camera one MUST be a standalone `if` (NOT the `else` of the
+ *        enclosing inverse guard) — as an `else` body it is
  *        textually identical to the shared reject block below and cc1's
  *        cross-jump MERGES it in, costing the direct-branch form (and with
  *        it the target's extra `andi $v0,s0,0x8` recompute that the
  *        clobbered-by-`li v0,-1` delay slot forces — that recompute is the
  *        very instruction the one-variable draft was missing).
  *      * The SHARED reject block (`reject: result = -1; goto ret;`) — reached
- *        by `goto reject` from the attribute&1 early-out and the iv>=0xb5 box
- *        fail, and as the FALL-THROUGH of the UnitVector `if (sz>=0x4e3)`.
+ *        by `goto reject` from the hidden early-out and the Y-limit failure,
+ *        and as the fallthrough of the UnitVector `if (sz > DEPTH_LIMIT)`.
  *        It lands physically inside that guard (the `reject:` label sits in
  *        that guard) and compiles to `j ret; li v0,-1`, exactly like the
  *        target's shared block whose two predecessors' branch delay slots are
@@ -139,14 +139,14 @@ short DrawSprite(Sprite3D *sprt)
             {
                 iv = -iv;
             }
-            if (iv < 0xf1)
+            if (iv <= MODEL_CULL_X_LIMIT)
             {
                 iv = rxy[1];
                 if (iv < 0)
                 {
                     iv = -iv;
                 }
-                if (iv >= 0xb5)
+                if (iv > MODEL_CULL_Y_LIMIT)
                     goto reject;
             }
             else

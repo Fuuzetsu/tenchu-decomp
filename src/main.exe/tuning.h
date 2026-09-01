@@ -12,6 +12,8 @@
 /* Display */
 #define SCREEN_W 320
 #define SCREEN_H 240
+#define MODEL_CULL_X_LIMIT 240
+#define MODEL_CULL_Y_LIMIT 180
 
 /* The whole of PSX video memory, as a framebuffer rectangle. */
 #define VRAM_W 1024

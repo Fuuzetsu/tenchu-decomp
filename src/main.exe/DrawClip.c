@@ -24,10 +24,9 @@
  * DrawClip (0x80018320, 296 bytes) — same TU as DrawModel.c/UpdateCoordinate.c/
  * GetAbsolutePosition.c (3DCTRL.C): a visibility/clip test twin of
  * DrawModel's body without the actual DrawTMD call. `objp->clip` is
- * RotTransPers'd into a stack `rxy` pair first (skipped when attribute&2),
- * gated by attribute&4 (reject a behind-camera OTZ==0) and attribute&8
- * (reject outside a +-0xf0/+-0xb4 screen-space box) and attribute&0x10
- * (reject beyond OTZ 0x4e2); then `xy` (the caller's own out-param, or
+ * RotTransPers'd into a stack `rxy` pair first (skipped with
+ * MODEL_ATTR_NOCULL), gated by the MODEL_ATTR_CULL_* flags and the shared
+ * screen/depth limits; then `xy` (the caller's own out-param, or
  * NULL) is RotTransPers'd against the fixed UnitVector, and DrawTMDmode is
  * set from the resulting OTZ exactly like DrawModel's tail — but DrawClip
  * returns the OTZ instead of drawing.
@@ -45,9 +44,9 @@
  *        rematerialises `li $v0,-1` per reject — the target's four
  *        `li v0,-1` + three `move v0,v1`.
  *      * The reject sites split into DIRECT (own branch to the epilogue,
- *        `li v0,-1` stolen into its delay slot: sz==0, iv>=0xf1,
- *        attr&0x10 && sz>0x4e2) and SHARED (`goto reject`, routed through
- *        the block's own `j ret`: the attr&1 early-out and the iv>=0xb5
+ *        `li v0,-1` stolen into its delay slot: sz==0, the X-limit failure,
+ *        and the far-depth failure) and SHARED (`goto reject`, routed through
+ *        the block's own `j ret`: the hidden early-out and the Y-limit
  *        box fail). We do not choose the split — reorg does — but the C
  *        controls what it CAN do: the two SHARED sites are exactly the two
  *        whose branch delay slot is ALREADY FULL (`move s1,a1` at
@@ -95,14 +94,14 @@ long DrawClip(ModelType *objp, long *xy)
             {
                 iv = -iv;
             }
-            if (iv < 0xf1)
+            if (iv <= MODEL_CULL_X_LIMIT)
             {
                 iv = rxy[1];
                 if (iv < 0)
                 {
                     iv = -iv;
                 }
-                if (iv >= 0xb5)
+                if (iv > MODEL_CULL_Y_LIMIT)
                 {
                     goto reject;
                 }
