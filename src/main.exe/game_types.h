@@ -854,6 +854,8 @@ enum TSystemFlag
  * with reference and position endpoint pairs; r1/r2/p1/p2 are the game's
  * OWN labels (the debug camera editor prints exactly these strings for
  * the four slots of the live CamPos block). */
+#define N_DEBUG_CAMERA_SLOTS 4
+
 typedef struct TCameraPos TCameraPos;
 struct TCameraPos
 {

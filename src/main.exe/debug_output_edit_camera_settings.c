@@ -29,8 +29,8 @@ extern u16 DEBUG_PAD_HELD_;
 extern u16 DEBUG_PAD_PRESS_;
 extern s16 DEBUG_CAMERA_INDEX_;
 extern TCameraPos *DEBUG_CAMERA_BASE_;
-extern SVECTOR *DEBUG_CAMERA_SLOTS_[4];
-extern char *DEBUG_CAMERA_LABELS_[4];
+extern SVECTOR *DEBUG_CAMERA_SLOTS_[N_DEBUG_CAMERA_SLOTS];
+extern char *DEBUG_CAMERA_LABELS_[N_DEBUG_CAMERA_SLOTS];
 extern char fmt_camera_edit[];
 
 void debug_output_edit_camera_settings(s16 pad)
@@ -51,7 +51,7 @@ void debug_output_edit_camera_settings(s16 pad)
     if (DEBUG_PAD_PRESS_ & PADL1)
     {
         DEBUG_CAMERA_INDEX_++;
-        if (DEBUG_CAMERA_INDEX_ >= 4)
+        if (DEBUG_CAMERA_INDEX_ >= N_DEBUG_CAMERA_SLOTS)
         {
             DEBUG_CAMERA_INDEX_ = 0;
         }
@@ -90,7 +90,7 @@ void debug_output_edit_camera_settings(s16 pad)
 
     i = 0;
     format = fmt_camera_edit;
-    for (; i < 4; i++)
+    for (; i < N_DEBUG_CAMERA_SLOTS; i++)
     {
         marker = ' ';
         if (DEBUG_CAMERA_INDEX_ == i)

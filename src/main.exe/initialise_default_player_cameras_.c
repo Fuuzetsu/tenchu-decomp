@@ -27,7 +27,7 @@
  *    three offsets are raw +8/+0x10/+0x18 additions, not a scaled index.
  */
 extern u8 *DEBUG_CAMERA_BASE_;
-extern void *DEBUG_CAMERA_SLOTS_[4]; /* SVECTOR *[] to its reader (debug_output_edit_camera_settings.c); anonymous here so the byte-stride pointers assign uncast */
+extern void *DEBUG_CAMERA_SLOTS_[N_DEBUG_CAMERA_SLOTS]; /* SVECTOR *[] to its reader (debug_output_edit_camera_settings.c); anonymous here so the byte-stride pointers assign uncast */
 
 void initialise_default_player_cameras_(void)
 {
