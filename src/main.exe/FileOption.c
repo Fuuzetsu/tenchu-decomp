@@ -142,17 +142,17 @@ void FileOption(void)
     __builtin_memcpy(SelectIO, DEBUG_MENU_SAVE_LOAD_CHOICES, sizeof(SelectIO));
     __builtin_memcpy(SelectSlot, DEBUG_MENU_FILE_LAYOUT_CHOICES, sizeof(SelectSlot));
     n = AdtSelect(str_file_option, ItemName, 0);
-    if (n == -1)
+    if (n == ADT_SELECT_CANCEL)
         return;
     switch (n)
     {
     case LOAD:
         TargetIO = AdtSelect(msg_load_ok, SelectIO, 3);
-        if (TargetIO == -1)
+        if (TargetIO == ADT_SELECT_CANCEL)
             return;
         fname = (u8 *)AdtSelect(msg_load_no, SelectSlot,
                                 FILE_SLOT_INITIAL_SELECTION);
-        if (fname == (u8 *)-1)
+        if (fname == (u8 *)ADT_SELECT_CANCEL)
             return;
         /* The caller-side mask is in the bytes (the callee masks again;
          * the SAVE twin passes TargetIO unmasked): retail's own. */
@@ -161,11 +161,11 @@ void FileOption(void)
         break;
     case SAVE:
         TargetIO = AdtSelect(msg_save_ok, SelectIO, 3);
-        if (TargetIO != -1)
+        if (TargetIO != ADT_SELECT_CANCEL)
         {
             fname = (u8 *)AdtSelect(msg_save_no, SelectSlot,
                                     FILE_SLOT_INITIAL_SELECTION);
-            if (fname != (u8 *)-1)
+            if (fname != (u8 *)ADT_SELECT_CANCEL)
             {
                 lePackEnemyLayout(Buf.bytes, ENESIZE);
                 PackItemLayout(Buf.bytes + ENESIZE, ITEMSIZE);

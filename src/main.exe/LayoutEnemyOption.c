@@ -50,8 +50,8 @@
  *    tablejump (sltiu 8 bounds + lw/jr); bodies laid out in source order
  *    0..7; case 7 falls into the shared exit.
  *  - Inner path submenu: `k = (s16)AdtSelect(...)` with int k extends ONCE
- *    at the assignment; `if (k != -1)` then a 3-case switch whose SOURCE
- *    order is ENEMY_PATH_ADD (1), ENEMY_PATH_RESET (2),
+ *    at the assignment; `if (k != ADT_SELECT_CANCEL)` then a 3-case switch
+ *    whose SOURCE order is ENEMY_PATH_ADD (1), ENEMY_PATH_RESET (2),
  *    ENEMY_PATH_SELECT (0) — recovered from the target's body layout (bodies
  *    are in source order; the balanced compare tree sorts by value
  *    regardless).
@@ -129,7 +129,7 @@ void LayoutEnemyOption(void)
                              DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS,
                              sizeof(ItemName));
             k = (s16)AdtSelect(str_path_layout_option, ItemName, 0);
-            if (k != -1)
+            if (k != ADT_SELECT_CANCEL)
             {
                 switch (k)
                 {
