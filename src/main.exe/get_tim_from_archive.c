@@ -30,7 +30,7 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
     s32 entry_offset;
 
     arc = (ArcFile *)archive;
-    if (arc->loaded == 0)
+    if (arc->loaded == ARC_ENTRIES_RELATIVE)
     {
         i = 0;
         if (arc->count > 0)
@@ -39,11 +39,11 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
             {
                 entry_offset =
                     arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
-                arc->entry[i].offset = (s32)arc + entry_offset;
+                arc->entry[i].data = (u_long *)((u8 *)arc + entry_offset);
                 i++;
             } while (i < arc->count);
         }
-        arc->loaded = 1;
+        arc->loaded = ARC_ENTRIES_ABSOLUTE;
     }
     if (idx < 0 || arc->count <= idx)
     {

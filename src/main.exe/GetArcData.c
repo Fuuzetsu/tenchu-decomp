@@ -63,7 +63,7 @@ u_long *GetArcData(int index)
         ArcData = (ArcFile *)FileRead(path_image_models_arc);
     }
     arc = ArcData;
-    if (arc->loaded == 0)
+    if (arc->loaded == ARC_ENTRIES_RELATIVE)
     {
         i = 0;
         if (arc->count > zero)
@@ -72,11 +72,11 @@ u_long *GetArcData(int index)
             {
                 entry_offset =
                     arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
-                arc->entry[i].offset = (s32)arc + entry_offset;
+                arc->entry[i].data = (u_long *)((u8 *)arc + entry_offset);
                 i++;
             } while (i < arc->count);
         }
-        arc->loaded = 1;
+        arc->loaded = ARC_ENTRIES_ABSOLUTE;
     }
     if (index < 0 || arc->count <= index)
     {

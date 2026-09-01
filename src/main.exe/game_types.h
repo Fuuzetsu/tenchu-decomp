@@ -278,12 +278,20 @@ union ArcEntry
     u_long *data; /* absolute resource pointer after relocation */
 }; /* 0x04 */
 
+/* ArcFile.loaded is the tag for every ArcEntry union in the archive. */
+typedef s16 arc_relocation_state;
+enum arc_relocation_state
+{
+    ARC_ENTRIES_RELATIVE = 0,
+    ARC_ENTRIES_ABSOLUTE = 1
+};
+
 /* IMAGES.C's relocatable offset-table archive header. */
 typedef struct ArcFile ArcFile;
 struct ArcFile
 {
     s16 count;         /* 0x00 */
-    s16 loaded;        /* 0x02 */
+    arc_relocation_state loaded; /* 0x02: selects ArcEntry.offset/data */
     ArcEntry entry[1]; /* 0x04 */
 }; /* 0x08 */
 
