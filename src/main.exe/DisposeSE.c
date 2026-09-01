@@ -23,7 +23,7 @@
  * (VABid@0 s16, program@2 s16 unused here, VABhead@4 pointer).
  */
 extern void SsUtAllKeyOff(s32 flag);
-extern void SsVabClose(s16 vabId);
+extern void SsVabClose(vab_id id);
 extern void vfree(void *p);
 
 void DisposeSE(SoundEffect *se)

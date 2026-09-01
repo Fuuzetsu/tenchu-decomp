@@ -1172,11 +1172,15 @@ struct TStageConfig
 }; /* 0x1C */
 
 /* AUDIO.C's loaded VAB handle. */
+typedef s16 vab_id;
+#define VAB_ID_AUTO (-1)
+#define VAB_ID_ERROR (-1)
+
 struct VabHdr;
 typedef struct SoundEffect SoundEffect;
 struct SoundEffect
 {
-    s16 VABid;              /* 0x00 */
+    vab_id VABid;           /* 0x00 */
     s16 program;            /* 0x02 */
     struct VabHdr *VABhead; /* 0x04 */
 }; /* 0x08 */

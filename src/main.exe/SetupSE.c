@@ -30,8 +30,8 @@
  *    clobbers the caller-saved copy, so cc1 re-reads it from memory —
  *    just write `se->VABid` again rather than caching it in a local.
  */
-extern short SsVabOpenHead(u8 *vab, short mode);
-extern void SsVabTransBody(u8 *body, short vabId);
+extern vab_id SsVabOpenHead(u8 *vab, vab_id requested_id);
+extern void SsVabTransBody(u8 *body, vab_id id);
 extern void SsVabTransCompleted(int flag);
 extern void *valloc(u32 size);
 extern void *vmemoryGC(void *p);
@@ -50,8 +50,8 @@ SoundEffect *SetupSE(u8 *vab)
         return 0;
     }
     se = (SoundEffect *)valloc(sizeof(SoundEffect));
-    se->VABid = SsVabOpenHead(vab, -1);
-    if (se->VABid == -1)
+    se->VABid = SsVabOpenHead(vab, VAB_ID_AUTO);
+    if (se->VABid == VAB_ID_ERROR)
     {
         SystemOut(msg_sound_setup_failure);
     }
