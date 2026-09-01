@@ -117,7 +117,7 @@ void ProcItemKusuri(TItem *item)
         {
             MotionDataType *md;
 
-            dispose_weapon_data_of_char_(human, 3);
+            dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
             UpdateMotion(human->motion, MOT_ITEM_DRINK);
             human->status = STAT_ITEM;
             md = human->motion->motion;

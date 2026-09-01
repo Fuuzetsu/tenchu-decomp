@@ -44,7 +44,6 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern void AttackCancelControl(short mode);
 
 short FallCheck(void)
 {
@@ -98,6 +97,6 @@ found:
     {
         dtM->count >>= 2;
     }
-    AttackCancelControl(3);
+    AttackCancelControl(ATTACK_CANCEL_ALL);
     return -1;
 }

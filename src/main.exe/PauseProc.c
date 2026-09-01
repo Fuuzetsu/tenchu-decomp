@@ -133,7 +133,8 @@ void PauseProc(void)
             if (CamState.Owner->status != STAT_DEAD)
             {
                 CamState.Owner->life = CamState.Owner->lifemax;
-                dispose_weapon_data_of_char_(CamState.Owner, 3);
+                dispose_weapon_data_of_char_(CamState.Owner,
+                                             ATTACK_CANCEL_ALL);
                 CamState.Owner->status = STAT_NORMAL;
                 ActionHalt = 0;
                 Sound(CamState.Owner, SE_ITEM_USE);

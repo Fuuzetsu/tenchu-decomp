@@ -43,7 +43,6 @@
  */
 extern void DisposeModelArchive(ModelArchiveType *mad);
 extern void DisposeMotionManager(MotionManager *mm);
-extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
 extern void vfree(void *p);
 
 void KillHumanoid(Humanoid *human)
@@ -56,7 +55,7 @@ void KillHumanoid(Humanoid *human)
         DisposeModelArchive(human->model);
         DisposeMotionManager(human->motion);
         DisposeWeapon(human);
-        dispose_weapon_data_of_char_(human, 3);
+        dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
         vfree(human);
         for (i = 0; i < Humans; i++)
         {

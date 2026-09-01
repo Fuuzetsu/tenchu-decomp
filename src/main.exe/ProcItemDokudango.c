@@ -305,7 +305,7 @@ void ProcItemDokudango(TItem *item)
             {
                 MotionDataType *motion_data;
 
-                dispose_weapon_data_of_char_(eater, 3);
+                dispose_weapon_data_of_char_(eater, ATTACK_CANCEL_ALL);
                 UpdateMotion(eater->motion, MOT_ITEM_DRINK);
                 eater->status = STAT_ITEM;
                 motion_data = eater->motion->motion;
@@ -451,7 +451,8 @@ void ProcItemDokudango(TItem *item)
                 {
                     MotionDataType *motion_data;
 
-                    dispose_weapon_data_of_char_(reaction_target, 3);
+                    dispose_weapon_data_of_char_(reaction_target,
+                                                 ATTACK_CANCEL_ALL);
                     UpdateMotion(reaction_target->motion, MOT_DAMAGE);
                     reaction_target->status = STAT_ITEM;
                     motion_data = reaction_target->motion->motion;
@@ -463,7 +464,8 @@ void ProcItemDokudango(TItem *item)
             {
                 MotionDataType *motion_data;
 
-                dispose_weapon_data_of_char_(reaction_target, 3);
+                dispose_weapon_data_of_char_(reaction_target,
+                                             ATTACK_CANCEL_ALL);
                 UpdateMotion(reaction_target->motion, MOT_DAMAGE_CHOKE);
                 reaction_target->status = STAT_ITEM;
                 motion_data = reaction_target->motion->motion;

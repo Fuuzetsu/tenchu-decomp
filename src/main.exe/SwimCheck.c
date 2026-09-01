@@ -40,7 +40,6 @@
  */
 extern Humanoid *Me_MOTION_C;
 
-extern void AttackCancelControl(short mode);
 extern void set_model_hide_(Humanoid *human, short hide);
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
@@ -109,7 +108,7 @@ short SwimCheck(void)
             i++;
         } while (i < 20);
 
-        AttackCancelControl(3);
+        AttackCancelControl(ATTACK_CANCEL_ALL);
         if (Me_MOTION_C == StagePlayer)
         {
             SetCameraMode(CMODE_SWIM);

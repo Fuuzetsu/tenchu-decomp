@@ -21,8 +21,8 @@
  * bit (0x40) and, on the transition, rotate the equipped-weapon slots
  * (item.h's proven `weapon[4]`) according to the weapon's kind (this
  * function proves the recovered `wpatk` field at retail offset 0x8E).
- * dispose_weapon_data_of_char_ is always called first with a
- * literal mode of 3.
+ * dispose_weapon_data_of_char_ is always called first with both attack
+ * cleanup flags.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `wp = human->weapon;` (a pointer to weapon[0]) is set up FIRST, before
@@ -67,7 +67,7 @@ void EquipWeapon(Humanoid *human, short mode)
     OrnamentType *d;
 
     wp = human->weapon;
-    dispose_weapon_data_of_char_(human, 3);
+    dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
     if (mode != WEAPON_SHEATHED)
     {
         if ((human->attribute & ATTR_ALERT) != 0)

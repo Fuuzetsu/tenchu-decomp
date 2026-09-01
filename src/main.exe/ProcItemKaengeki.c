@@ -107,7 +107,7 @@ void ProcItemKaengeki(TItem *item)
         human = item->owner;
         if (ActionHalt == 0 && human->life > 0)
         {
-            dispose_weapon_data_of_char_(human, 3);
+            dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
             UpdateMotion(human->motion, MOT_ITEM_KAENGEKI);
             human->status = STAT_ITEM;
             MoveHumanoid(human, human->motion->motion->orderspd,

@@ -22,11 +22,9 @@
  * lui/addiu address instead, which is both longer and the wrong instructions.
  */
 extern Humanoid *Me_MOTION_C;
-extern void AttackCancelControl(s16 mode);
-
-void dispose_weapon_data_of_char_(Humanoid *h, int a)
+void dispose_weapon_data_of_char_(Humanoid *h, int mode)
 {
     Me_MOTION_C = h;
     dtM = h->motion;
-    AttackCancelControl(a);
+    AttackCancelControl(mode);
 }

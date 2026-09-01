@@ -16,7 +16,6 @@ extern s16 damagemotion[N_DAMAGE_MOTIONS];
 
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
-extern void AttackCancelControl(s16 mode);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                            short start_size, short end_size,
@@ -278,7 +277,7 @@ void DamageControl(void)
         }
         SET_NOW_MOTION_UNLESS_CVA(goto attack_cancel);
     attack_cancel:
-        AttackCancelControl(3);
+        AttackCancelControl(ATTACK_CANCEL_ALL);
         return;
     }
     if (motID < MOT_ATTACK_STEALTH_BACK)
@@ -314,7 +313,7 @@ attack_break:
     return;
 resolve_hit:
     dtM->mask = MOTION_MASK_ALL;
-    AttackCancelControl(3);
+    AttackCancelControl(ATTACK_CANCEL_ALL);
     {
         Humanoid *conflict;
 

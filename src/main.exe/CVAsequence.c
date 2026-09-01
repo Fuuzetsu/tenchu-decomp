@@ -50,7 +50,6 @@ extern u8 TelopText[];
 extern s16 CVAflag; /* set by CVA camera/telop commands */
 
 extern void *memset(void *s, int c, u32 n);
-extern void dispose_weapon_data_of_char_(Humanoid *human, s32 mode);
 extern s16 CVAupdate(void);
 extern void PadShock(s32 port, s32 power, s32 time);
 extern void PadProc(void);
@@ -109,7 +108,7 @@ event_found:
             if (human->status != STAT_DEAD &&
                 (human->attribute & ATTR_SUSPEND) == 0)
             {
-                dispose_weapon_data_of_char_(human, 3);
+                dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
                 NowReturnNormal(*slot);
                 (*slot)->pad.data = 0;
             }

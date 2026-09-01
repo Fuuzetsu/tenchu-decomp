@@ -489,10 +489,15 @@ struct tag_TItem
     u8 mode; /* 0x54 */
 }; /* sizeof = 0x58 (items[] stride) */
 
-/* Sets the motion globals and forwards to AttackCancelControl, whose
- * mode is a bitmask: 1 = delete the weapon hitbox conflicts, 2 =
- * dispose the afterimage trail. Every retail caller passes 3. */
-extern void dispose_weapon_data_of_char_(Humanoid *h, int a);
+/* AttackCancelControl's independently selectable cleanup work. */
+#define ATTACK_CANCEL_CONFLICTS 1
+#define ATTACK_CANCEL_AFTERIMAGES 2
+#define ATTACK_CANCEL_ALL \
+    (ATTACK_CANCEL_CONFLICTS | ATTACK_CANCEL_AFTERIMAGES)
+
+extern void AttackCancelControl(s16 mode);
+/* Sets the motion globals and forwards to AttackCancelControl. */
+extern void dispose_weapon_data_of_char_(Humanoid *h, int mode);
 extern s16 UpdateMotion(MotionManager *m, short id);
 extern short DrawSprite(Sprite3D *sprt);
 extern VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);

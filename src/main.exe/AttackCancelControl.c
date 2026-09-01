@@ -20,9 +20,10 @@
 
 /*
  * AttackCancelControl (0x8002736c, 0x17c bytes) — on cancelling an attack
- * (mode bit 0), delete the conflict volume(s) of whichever weapon
- * ornament(s) the current `wpatk` implies are active, then (mode bit
- * 1) drop any live afterimages; always stores MOTION_MASK_ALL into `dtM->mask`.
+ * (ATTACK_CANCEL_CONFLICTS), delete the conflict volume(s) of whichever
+ * weapon ornament(s) the current `wpatk` implies are active, then
+ * (ATTACK_CANCEL_AFTERIMAGES) drop any live afterimages; always stores
+ * MOTION_MASK_ALL into `dtM->mask`.
  *
  * `wpatk` (item.h: s16 @0x8E) is read with the expected signed `lh`.
  *
@@ -54,7 +55,7 @@ void AttackCancelControl(s16 mode)
     s16 wk;
     ModelType *model;
 
-    if ((mode & 1) != 0)
+    if ((mode & ATTACK_CANCEL_CONFLICTS) != 0)
     {
         wk = Me_MOTION_C->wpatk;
         switch (wk)
@@ -76,7 +77,7 @@ void AttackCancelControl(s16 mode)
         DeleteConflict(model);
     }
 no_conflict:
-    if ((mode & 2) != 0)
+    if ((mode & ATTACK_CANCEL_AFTERIMAGES) != 0)
     {
         if (Me_MOTION_C->illusion[0] != 0)
         {
