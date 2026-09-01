@@ -253,12 +253,12 @@ void ProcItemFire(TItem *item)
             {
                 s32 conflict_id;
                 s32 size;
-                s32 collision_mode;
+                ConflictClass collision_mode;
 
                 DeleteConflict(item->locate);
                 conflict_id = InsertConflict(item->locate);
                 size = 500;
-                collision_mode = 8;
+                collision_mode = CONFLICT_SOFT;
                 SET_ITEM_COLLISION(conflict_id, size, (void *)1,
                                    collision_mode);
             }
@@ -277,7 +277,7 @@ void ProcItemFire(TItem *item)
             }
             if (is_humanoid_on_stage_(
                     (Humanoid *)ConflictObject[cid].common) == 0 &&
-                ConflictObject[cid].size.pad != 1)
+                ConflictObject[cid].size.pad != CONFLICT_HIT)
             {
                 return;
             }

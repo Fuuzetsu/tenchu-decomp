@@ -55,7 +55,7 @@ static void UpdateItemState(void)
     s32 i;
     s32 hit;
     s32 sz, ofsY;
-    s32 mode;
+    ConflictClass mode;
     s16 conflict_id;
 
     i = 0;

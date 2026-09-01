@@ -126,7 +126,7 @@ void ProcItemNemuri(TItem *item)
             {
                 VECTOR *pos;
                 s32 new_conflict_id;
-                s32 conflict_class;
+                ConflictClass conflict_class;
 
                 pos = GetAbsolutePosition(
                     item->owner->model->object[MODEL_PART_WEAPON_HAND_1],

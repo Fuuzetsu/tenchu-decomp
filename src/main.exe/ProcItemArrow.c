@@ -142,7 +142,7 @@ void ProcItemArrow(TItem *item)
             human = (Humanoid *)ConflictObject[cid].common;
             if (is_humanoid_on_stage_(human) != 0)
             {
-                if ((ConflictObject[cid].size.pad & 1) != 0)
+                if ((ConflictObject[cid].size.pad & CONFLICT_HIT) != 0)
                 {
                     ppu = item->proc;
                     if (ppu == 0)

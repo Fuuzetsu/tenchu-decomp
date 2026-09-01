@@ -458,7 +458,7 @@ struct tag_TItem
     ModelType *locate;     /* 0x10 */
     struct
     {
-        s32 mode;  /* 0x00 */
+        ConflictClass mode; /* 0x00 */
         s32 pause; /* 0x04 */
         s16 size;  /* 0x08 */
         s16 ofsY;  /* 0x0A */

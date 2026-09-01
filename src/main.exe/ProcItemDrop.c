@@ -58,7 +58,7 @@
  *    into the inner (status) tree's `case KORO_WATER` compare: one pseudo, live
  *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
  *    slot. Plain nested switches produce all of it — no source trick.
- *  - `collision_mode = 8` (int) feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
+ *  - `collision_mode = CONFLICT_SOFT` feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
  *    load-bearing: written as literals, pad's 8 becomes an HImode pseudo and
  *    a separate collision.mode literal becomes a second SImode pseudo (two
  *    `li`s, function one insn too long). cse can only reuse a WIDER-mode
@@ -96,7 +96,7 @@ void ProcItemDrop(TItem *item)
     MotionDataType *md;
     s32 i;
     s32 conflict_id;
-    s32 collision_mode;
+    ConflictClass collision_mode;
     s32 x;
     s32 y;
     s32 z;
@@ -128,7 +128,7 @@ void ProcItemDrop(TItem *item)
         case KORO_STAY:
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            collision_mode = 8;
+            collision_mode = CONFLICT_SOFT;
             SET_ITEM_COLLISION(conflict_id, 180, CONFLICT_OWNER_ITEM,
                                collision_mode);
             item->mode++;

@@ -255,7 +255,7 @@ void ProcItemNingyo(TItem *item)
         s32 new_conflict_id;
         s32 collision_size;
         s32 collision_offset_y;
-        s32 conflict_class;
+        ConflictClass conflict_class;
         ConflictObjectType *conflict_pool;
         ConflictObjectType *conflict;
 
@@ -361,7 +361,7 @@ void ProcItemNingyo(TItem *item)
         {
             ConflictObjectType *conflict;
             ConflictObjectType *conflict_pool;
-            s32 conflict_class;
+            ConflictClass conflict_class;
 
             conflict_pool = ConflictObject;
             conflict = &conflict_pool[conflict_id];

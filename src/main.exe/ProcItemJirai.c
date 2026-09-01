@@ -113,7 +113,7 @@ void ProcItemJirai(TItem *item)
     case JIRAI_MODE_PLACE:
     {
         s32 trigger_size;
-        s32 conflict_class;
+        ConflictClass conflict_class;
         s32 new_conflict_id;
 
         item->locate->locate.coord.t[1] =

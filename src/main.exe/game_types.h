@@ -563,11 +563,19 @@ struct BattleType
 #define CONFLICT_OWNER_ITEM ((void *)1)
 #define CONFLICT_OWNER_DOOR ((void *)2)
 
-#define CONFLICT_HIT 1
-#define CONFLICT_STAND 4
-#define CONFLICT_SOFT 8
-#define CONFLICT_CONSUMED 0x40
-#define CONFLICT_LIVE 0x80
+typedef enum conflict_class ConflictClass;
+enum conflict_class
+{
+    CONFLICT_HIT = 1,
+    CONFLICT_STAND = 4,
+    CONFLICT_SOFT = 8
+};
+
+enum conflict_result_flag
+{
+    CONFLICT_CONSUMED = 0x40,
+    CONFLICT_LIVE = 0x80
+};
 #define N_CONFLICT_OBJECTS 80
 
 typedef struct ConflictObjectType ConflictObjectType;
