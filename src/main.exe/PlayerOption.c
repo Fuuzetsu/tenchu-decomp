@@ -95,12 +95,10 @@ void PlayerOption(void)
         RESTART_EVENT = 2,
         RESURRECT = 3
     };
-    s32 n;
     TAdtSelect option[7];
 
     __builtin_memcpy(option, DEBUG_MENU_PLAYER_CHOICE_OPTIONS, sizeof(option));
-    n = AdtSelect(str_player_option, option, 0);
-    switch (n)
+    switch (AdtSelect(str_player_option, option, 0))
     {
     case RESET:
         CamState.Owner->model->locate.coord.t[0] = StageConfig[StageID].px;
