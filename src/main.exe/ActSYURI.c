@@ -81,7 +81,7 @@ void ActSYURI(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
         if (dtM->count == 1)
         {

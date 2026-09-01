@@ -48,7 +48,8 @@ short NowReturnNormal(Humanoid *human)
     current = Me_MOTION_C;
     next_motion = motID;
     apply_movement = motMODE;
-    if (current->status == STAT_DEAD && current->motion->loop == -1)
+    if (current->status == STAT_DEAD &&
+        current->motion->loop == MOTION_LOOP_DISABLED)
     {
         return 0;
     }

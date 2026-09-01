@@ -102,7 +102,7 @@ void ActDEAD(void)
     {
         if (dtM->count == 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
         if (dtM->loop < 0 && dtV->vy == 0)
         {
@@ -114,7 +114,7 @@ void ActDEAD(void)
             motion->count = motion->motion->time;
             motion->loop = 0;
             PlayMotion(motion, 1);
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
             if (motID != MOT_DEAD_DROWN)
             {
                 Me_MOTION_C->attribute &= ~ATTR_SEARCH;

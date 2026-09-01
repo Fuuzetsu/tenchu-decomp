@@ -18,7 +18,7 @@
 
 /*
  * SetNowMotion (0x80026f54) — start motion `mid` on a character, unless it's
- * already in the locked state 0x11 running a non-looping (loop == -1) motion.
+ * already dead and running a motion whose playback is disabled.
  * On a successful UpdateMotion, latch the motion's high byte as the new status
  * and (when `move`) apply the motion's default order/side speed via MoveHumanoid.
  *
@@ -27,7 +27,8 @@
  *    twice: `sra ,0x10` = (short)mid for the call arg, `sra ,0x18` =
  *    (char)(mid >> 8) for the status latch.
  *  - The guard is a real `||` with a comma: `status != 0x11 || (ret = 0,
- *    motion->loop != -1)` — ret is zeroed in the loop-test's branch delay slot.
+ *    motion->loop != MOTION_LOOP_DISABLED)` — ret is zeroed in the loop-test's
+ *    branch delay slot.
  *  - UpdateMotion returns s16 here (item.h): its result is `ret`, tested short.
  *  - The two speed arguments repeat `human->motion->motion` directly. cc1
  *    CSEs the chain to the retail pointer reuse without an invented `md`
@@ -35,7 +36,8 @@
  */
 short SetNowMotion(Humanoid *human, motion_id mid, short move)
 {
-    if (human->status == STAT_DEAD && human->motion->loop == -1)
+    if (human->status == STAT_DEAD &&
+        human->motion->loop == MOTION_LOOP_DISABLED)
     {
         return 0;
     }

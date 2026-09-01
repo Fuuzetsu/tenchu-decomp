@@ -91,7 +91,7 @@ void ActDAMAGE(void)
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
         else
         {
@@ -135,7 +135,7 @@ void ActDAMAGE(void)
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
         else
         {

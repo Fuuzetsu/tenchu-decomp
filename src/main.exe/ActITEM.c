@@ -81,7 +81,7 @@ void ActITEM(void)
             return;
         if (dtM->loop == 0)
             return;
-        dtM->loop = -1;
+        dtM->loop = MOTION_LOOP_DISABLED;
         return;
     }
 

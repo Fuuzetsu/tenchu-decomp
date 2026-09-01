@@ -45,7 +45,8 @@
  * `._0_1_`/`._1_1_` rendering is exactly this union read; write it as a
  * direct `*(s32 *)&StageEvent[i]` cast, matching the raw `lw`+`-1` compare.
  *
- * The status/motion guard (`if (h->status==0x11 && h->motion->loop==-1)
+ * The status/motion guard (`if (h->status==STAT_DEAD &&
+ * h->motion->loop==MOTION_LOOP_DISABLED)
  * goto clear;`) bypasses the `id`/`life` check entirely when true — but
  * the `id`/`life` check itself is NOT a single nested
  * `if (range) { if (life>0) return; }` (that shape falls through to the
@@ -110,7 +111,7 @@ void UpdateEvent(short n, short id)
             }
             if (eTarget[n] != 0 &&
                 !(eTarget[n]->status == STAT_DEAD &&
-                  eTarget[n]->motion->loop == -1))
+                  eTarget[n]->motion->loop == MOTION_LOOP_DISABLED))
             {
                 if ((u16)(id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS ||
                     (*(Humanoid *volatile *)&eTarget[n])->life > 0)

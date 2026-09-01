@@ -155,7 +155,8 @@ void AttackControl(void)
                         SET_MOTION(myid, 1);
                         enemy->locate->vz = dtL->vz;
                         enemy->life = 0;
-                        if ((enemy->status != STAT_DEAD || enemy->motion->loop != -1) &&
+                        if ((enemy->status != STAT_DEAD ||
+                             enemy->motion->loop != MOTION_LOOP_DISABLED) &&
                             UpdateMotion(enemy->motion, emid) != 0)
                         {
                             enemy->status = (s8)(emid >> 8);

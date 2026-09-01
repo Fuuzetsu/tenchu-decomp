@@ -84,7 +84,7 @@ void ActKAGI(void)
     case MOT_KAGI:
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
 
         if (dtM->count == 1)
@@ -189,11 +189,11 @@ void ActKAGI(void)
 
             p = GetAbsolutePosition(
                 Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1], 0, 0, 0);
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
             dtM->count = SetFlyWire(p, &CamState.TargetVector);
         }
         mmp = dtM;
-        if (mmp->loop != -1)
+        if (mmp->loop != MOTION_LOOP_DISABLED)
         {
             return;
         }

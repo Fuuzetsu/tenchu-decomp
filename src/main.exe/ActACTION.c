@@ -152,12 +152,12 @@ void ActACTION(void)
             {
                 dtM->count = dtM->motion->time - 1;
                 PlayMotion(dtM, 1);
-                dtM->loop = -1;
+                dtM->loop = MOTION_LOOP_DISABLED;
                 dtV->vz = 0;
                 dtV->vx = 0;
             }
         }
-        if (dtM->loop == -1 && dtPAD != 0)
+        if (dtM->loop == MOTION_LOOP_DISABLED && dtPAD != 0)
         {
             SET_MOTION(MOT_DAMAGE_GETUP, 1);
             if (MotionUpdateMode != 0)

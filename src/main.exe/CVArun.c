@@ -126,7 +126,7 @@ short CVArun(void)
             motid = CVAhuman[i].motid;
             if (motid == MOTION_ID_NONE)
             {
-                mmp->loop = -1;
+                mmp->loop = MOTION_LOOP_DISABLED;
                 /* The slot is reloaded for the stores (like the sprite
                  * pass above): byte-required (using human directly drops
                  * the second lw; measured). */

@@ -620,7 +620,7 @@ dispatch:
         }
         if ((dtM->count == 0) && (dtM->loop == 1))
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
         if (dtM->loop < 0)
         {
@@ -722,7 +722,8 @@ dispatch:
         saved_mid = motID;
         motion_flag = motMODE;
         human = Me_MOTION_C;
-        if (human->status != STAT_DEAD || human->motion->loop != -1)
+        if (human->status != STAT_DEAD ||
+            human->motion->loop != MOTION_LOOP_DISABLED)
         {
             if (UpdateMotion(human->motion, saved_mid) != 0)
             {

@@ -76,7 +76,7 @@ short SwimCheck(void)
             {
                 goto return_one;
             }
-            if (dtM->loop == -1)
+            if (dtM->loop == MOTION_LOOP_DISABLED)
             {
                 return 0;
             }

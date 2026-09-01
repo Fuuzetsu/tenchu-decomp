@@ -160,7 +160,7 @@ void ActSTICKON(void)
         }
         else if (dtM->loop > 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
 
         if (dtCMD != 0)
@@ -202,7 +202,7 @@ void ActSTICKON(void)
             }
         }
 
-        if (dtM->loop != -1)
+        if (dtM->loop != MOTION_LOOP_DISABLED)
         {
             break;
         }
@@ -421,7 +421,7 @@ void ActSTICKON(void)
                 dtL->vx -= dtV->vx;
                 dtL->vz -= dtV->vz;
                 UpdateMotion(dtM, MOT_STICKON);
-                dtM->loop = -1;
+                dtM->loop = MOTION_LOOP_DISABLED;
                 dtM->mask = MOTION_MASK_ALL;
             }
         }

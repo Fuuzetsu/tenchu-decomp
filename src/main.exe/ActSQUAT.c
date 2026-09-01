@@ -70,7 +70,7 @@ void ActSQUAT(void)
     case MOT_SQUAT:
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            dtM->loop = -1;
+            dtM->loop = MOTION_LOOP_DISABLED;
         }
         if (dtPAD & PADLup)
         {

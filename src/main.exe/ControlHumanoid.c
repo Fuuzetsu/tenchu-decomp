@@ -212,7 +212,7 @@ draw_done:
         {
             MotionElementType *rotation;
 
-            if (human->motion->loop != -1)
+            if (human->motion->loop != MOTION_LOOP_DISABLED)
             {
                 return;
             }

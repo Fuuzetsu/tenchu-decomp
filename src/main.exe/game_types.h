@@ -495,8 +495,11 @@ struct SplineControlType
 
 /* MotionManager.mask selects which skeleton parts a motion drives. */
 #define MOTION_MASK_ALL 0x7FFF /* all 15 parts */
-/* MotionManager.loop counts repeats down; the CVA sequencer parks it at
- * s16 max when a cutscene asks for an endless motion. */
+/* MotionManager.loop counts completed repeats. Negative values disable
+ * normal playback; handlers may decrement them further as post-motion timers.
+ * The CVA sequencer parks the counter at s16 max for an endless motion. */
+typedef s16 motion_loop_count;
+#define MOTION_LOOP_DISABLED (-1)
 #define MOTION_LOOP_FOREVER 0x7FFF
 #define MOTION_MASK_NOROOT (-2) /* all but the root: pose without root motion */
 
@@ -505,7 +508,7 @@ struct MotionManager
 {
     motion_id mid;              /* 0x00 */
     s16 count;                  /* 0x02 */
-    s16 loop;                   /* 0x04 */
+    motion_loop_count loop;     /* 0x04 */
     s16 n;                      /* 0x06 */
     s16 mask;                   /* 0x08 (per-bone animation mask: bit i
                                  * animates skeleton part i —
@@ -655,7 +658,7 @@ typedef struct HumanAnimType HumanAnimType;
 struct HumanAnimType
 {
     struct Humanoid *human; /* 0x00 */
-    s16 loop;               /* 0x04 */
+    motion_loop_count loop; /* 0x04 */
     motion_id motid;        /* 0x06 */
 }; /* 0x08 */
 
