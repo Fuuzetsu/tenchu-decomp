@@ -36,6 +36,19 @@ union ImpactColor
     } channel;
 };
 
+/* Retail's five impact sprites. The first three identities are corroborated
+ * by their TIM artwork and SetImpact callers; the last two are used only by
+ * their namesake item effects. */
+typedef u8 impact_sprite;
+enum impact_sprite
+{
+    IMPACT_SPRITE_GUN = 0,
+    IMPACT_SPRITE_FLASH = 1,
+    IMPACT_SPRITE_HIT = 2,
+    IMPACT_SPRITE_SHINSOKU = 3,
+    IMPACT_SPRITE_GOSIN = 4
+};
+
 /* EFFECT.C's original animated-frame sprite count. */
 enum
 {
@@ -55,7 +68,7 @@ struct ImpactType /* size 36 */
     s16 end_size;            /* +0x1A */
     s16 rotate;              /* +0x1C */
     s16 rotate_speed;        /* +0x1E */
-    u8 type;                 /* +0x20 */
+    impact_sprite type;      /* +0x20 */
     u8 count;                /* +0x21 */
     u8 time;                 /* +0x22 */
 };
@@ -338,7 +351,7 @@ extern GsSPRITE sprSplash;
 /* Retail replaces the demo's three Sprite3D pointers with five GsSPRITEs. */
 /* Impact-flash sprite count — official demo name (EFFECT.C's enum,
  * demo value 3); retail extends the family to 5. */
-#define MaxImpacts 5
+#define MaxImpacts (IMPACT_SPRITE_GOSIN + 1)
 extern GsSPRITE sprImpact[MaxImpacts];
 extern POLY_F4 plyBleed;
 /* Retail stores two smoke sprites before the next global. */

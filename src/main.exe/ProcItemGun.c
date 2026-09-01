@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /*
  * ProcItemGun (0x80046528) — the gun item processor. mode 0: muzzle flash —
@@ -98,7 +99,8 @@ void ProcItemGun(TItem *item)
     case GUN_MODE_FLASH:
         vec = svec_z_n250[0];
         RotateVectorS(&vec, item->owner.human->model->rotate.vx, item->owner.human->model->rotate.vy, 0);
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 2 * FIXED_ONE, 0);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, 2 * FIXED_ONE,
+                  IMPACT_SPRITE_GUN);
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, COLOR_GRAY_DARK);
         item->mode++;
         return;
@@ -129,13 +131,13 @@ void ProcItemGun(TItem *item)
             RotateVectorS(&vec, item->owner.human->model->rotate.vx, item->owner.human->model->rotate.vy, 0);
             if (IsHuman != 0)
             {
-                SetImpact(&target, 6 * FIXED_ONE, 0);
+                SetImpact(&target, 6 * FIXED_ONE, IMPACT_SPRITE_GUN);
                 SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_RED);
                 SoundEx(&target, SE_GUN_HIT_FLESH);
             }
             else
             {
-                SetImpact(&target, 4 * FIXED_ONE, 0);
+                SetImpact(&target, 4 * FIXED_ONE, IMPACT_SPRITE_GUN);
                 SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_YELLOW);
                 SoundEx(&target, SE_GUN_HIT_SOLID);
             }

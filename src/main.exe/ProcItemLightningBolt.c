@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /*
  * ProcItemLightningBolt (0x800460d0) — the lightning bolt item processor.
@@ -125,7 +126,7 @@ void ProcItemLightningBolt(TItem *item)
     if ((GameClock & 3) == 0)
     {
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 200, 20, 10, 20, RGB24(255, 255, 120));
-        SetImpact(&param->start, 4 * FIXED_ONE, 1);
+        SetImpact(&param->start, 4 * FIXED_ONE, IMPACT_SPRITE_FLASH);
     }
     cnt = param->count;
     param->count = cnt + 0xff;

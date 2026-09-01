@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /*
  * ProcItemLaunch (0x80047048) — the launched/thrown item processor (grenade
@@ -119,7 +120,8 @@ void ProcItemLaunch(TItem *item)
     if (cid != CONFLICT_NONE &&
         is_humanoid_on_stage_(ConflictObject[cid].common.human) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE, 2);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE,
+                  IMPACT_SPRITE_HIT);
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
         goto dispose;
     }

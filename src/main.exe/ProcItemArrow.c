@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -174,7 +175,7 @@ void ProcItemArrow(TItem *item)
                     }
                     model = *models;
                     SetImpact(GetAbsolutePosition(model, 0, 0, 0),
-                              6 * FIXED_ONE, 2);
+                              6 * FIXED_ONE, IMPACT_SPRITE_HIT);
                     SoundEx(GetAbsolutePosition(model, 0, 0, 0), SE_PROJECTILE_HIT);
                     ArrangeLocalMatrix(model,
                                        &item->locate->locate.coord);

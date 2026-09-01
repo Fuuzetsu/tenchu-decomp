@@ -3,6 +3,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "sound.h"
+#include "effect.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -244,7 +245,8 @@ void ProcItemShinsoku(TItem *item)
                 *(VECTOR *)item->owner.human->model->locate.coord.t;
             scratch.query.pos.vy -= 300;
             set_impact_ex_(&scratch.query.pos, 0, 2 * FIXED_ONE, 5 * FIXED_ONE,
-                           COLOR_GRAY, 0, 0, -30, 0x10, 3);
+                           COLOR_GRAY, 0, 0, -30, 0x10,
+                           IMPACT_SPRITE_SHINSOKU);
         }
         if (CamState.Owner == item->owner.human)
         {

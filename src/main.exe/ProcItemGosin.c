@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "main.exe.h"
 #include "sound.h"
+#include "effect.h"
 
 /*
  * ProcItemGosin (0x80041bf4) — the gosin (protection charm) item processor.
@@ -168,7 +169,7 @@ void ProcItemGosin(TItem *item)
         scratch.v = vec_y_n1200_z_400;
         set_impact_ex_(&scratch.v, &item->owner.human->model->locate,
                        FIXED_ONE, 6 * FIXED_ONE, COLOR_GRAY, 0,
-                       (s16)(rand() % 360), 2, 120, 4);
+                       (s16)(rand() % 360), 2, 120, IMPACT_SPRITE_GOSIN);
         return;
     }
     }

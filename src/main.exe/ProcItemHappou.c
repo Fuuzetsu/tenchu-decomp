@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "effect.h"
 
 /*
  * ProcItemHappou (0x8004488c) — the happou (fire cracker / bouncing bomb)
@@ -135,7 +136,8 @@ void ProcItemHappou(TItem *item)
     if (i != CONFLICT_NONE &&
         is_humanoid_on_stage_(ConflictObject[i].common.human) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE, 2);
+        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE,
+                  IMPACT_SPRITE_HIT);
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
         DeleteConflict(item->locate);
     }
