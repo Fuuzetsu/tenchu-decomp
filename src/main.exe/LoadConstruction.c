@@ -136,44 +136,98 @@
 
 /* WorldDataType.mode says which kind of record this row is, not a phase:
  * the values are the stage-data file's own tags and are not contiguous. */
-enum
+typedef s16 world_record_kind;
+enum world_record_kind
 {
     WLD_RECORD_AREAMAP = 0, /* .acm collision/height map */
     WLD_RECORD_OBJECT = 2,  /* a placed model, or a clone of an earlier one */
     WLD_RECORD_ENEMY = 3,   /* BreedLife a character at the row's transform */
     WLD_RECORD_ITEM = 4,    /* ReqItemStay a pickup at the row's position */
     WLD_RECORD_TIM = 5,     /* a texture to upload and free */
+    WLD_RECORD_TIM_PACK = 6, /* the authored "TIM" pack marker */
     WLD_RECORD_EFFECT = 11  /* AddMisc, with the row's three extra params */
 };
 
+enum
+{
+    WORLD_RESOURCE_NAME_SIZE = 12
+};
+
+typedef union WorldRecordId
+{
+    s16 raw;
+    s16 clone_source;
+    character_kind enemy;
+    s16 item;
+} WorldRecordId;
+
+typedef struct WorldTransform
+{
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 r;
+} WorldTransform;
+
+typedef struct WorldCommonPayload
+{
+    u8 name[WORLD_RESOURCE_NAME_SIZE];
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 r;
+} WorldCommonPayload;
+
+/* A named object is replaced in place by its loaded pointer. Empty names
+ * instead select an earlier row through WorldRecordId.clone_source. */
+typedef union WorldObjectSource
+{
+    u8 name[WORLD_RESOURCE_NAME_SIZE];
+    OrnamentType *model;
+} WorldObjectSource;
+
+typedef struct WorldObjectPayload
+{
+    WorldObjectSource source;
+    WorldTransform transform;
+} WorldObjectPayload;
+
+typedef struct WorldResourcePayload
+{
+    u8 name[WORLD_RESOURCE_NAME_SIZE];
+    s32 reserved[4];
+} WorldResourcePayload;
+
+typedef struct WorldPlacementPayload
+{
+    u8 reserved[WORLD_RESOURCE_NAME_SIZE];
+    WorldTransform transform;
+} WorldPlacementPayload;
+
+typedef struct WorldEffectPayload
+{
+    s32 type;
+    s32 x;
+    s32 y;
+    s32 z;
+    s32 a;
+    s32 b;
+    s32 c;
+} WorldEffectPayload;
+
 typedef struct WorldDataType
 {
-    s16 mode;
-    s16 nid;
+    world_record_kind mode;
+    WorldRecordId id;
     union
     {
-        struct
-        {
-            u8 name[12];
-            s32 x;
-            s32 y;
-            s32 z;
-            s32 r;
-        } common;
+        WorldCommonPayload common; /* PSX.SYM's original raw field view */
+        WorldObjectPayload object;
+        WorldResourcePayload resource;
+        WorldPlacementPayload placement;
         s32 pathxz[7];
         u8 data[28];
-        struct
-        {
-            s32 type;
-            s32 x;
-            s32 y;
-            s32 z;
-            s32 a;
-            s32 b;
-            s32 c;
-        } effect;
-        /* Retail replaces common.name with the loaded object at runtime. */
-        OrnamentType *model;
+        WorldEffectPayload effect;
     } real;
 } WorldDataType;
 
@@ -237,7 +291,7 @@ short LoadConstruction(u_long *data)
     memset(WorldMap, 0, sizeof(WorldMap));
 
     nModel = 0;
-    n = vsize(data) >> 5;
+    n = vsize(data) / sizeof(WorldDataType);
     i = nModel;
     if (n != 0)
     {
@@ -304,7 +358,8 @@ short LoadConstruction(u_long *data)
             switch (wlddt[i].mode)
             {
             case WLD_RECORD_AREAMAP:
-                sprintf((char *)name, fmt_acm, wlddt[i].real.common.name);
+                sprintf((char *)name, fmt_acm,
+                        wlddt[i].real.resource.name);
                 DisposeAreaMap(GlobalAreaMap);
                 GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
                 if (StageID == STAGE_CHECKPOINT)
@@ -315,29 +370,37 @@ short LoadConstruction(u_long *data)
                 break;
 
             case WLD_RECORD_TIM:
-                sprintf((char *)name, fmt_tim, wlddt[i].real.common.name);
+                sprintf((char *)name, fmt_tim,
+                        wlddt[i].real.resource.name);
                 LoadTIMAndFree(PathFileRead((u8 *)path_image, name));
                 break;
 
+            case WLD_RECORD_TIM_PACK:
+                break;
+
             case WLD_RECORD_OBJECT:
-                if (wlddt[i].real.common.name[0] != 0)
+                if (wlddt[i].real.object.source.name[0] != 0)
                 {
                     model = ObjectArc->object[ObjectID];
                     ObjectID++;
-                    wlddt[i].real.model = model;
+                    wlddt[i].real.object.source.model = model;
                 }
                 else
                     model = CreateCloneOrnament(
-                        wlddt[wlddt[i].nid].real.model);
+                        wlddt[wlddt[i].id.clone_source]
+                            .real.object.source.model);
 
-                model->locate.coord.t[0] = wlddt[i].real.common.x;
-                model->locate.coord.t[1] = wlddt[i].real.common.y;
-                model->locate.coord.t[2] = wlddt[i].real.common.z;
-                UpdateOrnament(model, wlddt[i].real.common.r);
+                model->locate.coord.t[0] =
+                    wlddt[i].real.object.transform.x;
+                model->locate.coord.t[1] =
+                    wlddt[i].real.object.transform.y;
+                model->locate.coord.t[2] =
+                    wlddt[i].real.object.transform.z;
+                UpdateOrnament(model, wlddt[i].real.object.transform.r);
 
-                WORLD_CELL(wlddt[i].real.common.x, x);
-                WORLD_CELL(wlddt[i].real.common.y, y);
-                WORLD_CELL(wlddt[i].real.common.z, z);
+                WORLD_CELL(wlddt[i].real.object.transform.x, x);
+                WORLD_CELL(wlddt[i].real.object.transform.y, y);
+                WORLD_CELL(wlddt[i].real.object.transform.z, z);
 
                 GetCenterAndSize(model->object.tmd, &center, &size);
                 nModel = (z << 2) + ((x << 8) + (y << 5));
@@ -356,9 +419,11 @@ short LoadConstruction(u_long *data)
                 break;
 
             case WLD_RECORD_ENEMY:
-                BreedLife(wlddt[i].nid, wlddt[i].real.common.x,
-                          wlddt[i].real.common.y, wlddt[i].real.common.z,
-                          wlddt[i].real.common.r);
+                BreedLife(wlddt[i].id.enemy,
+                          wlddt[i].real.placement.transform.x,
+                          wlddt[i].real.placement.transform.y,
+                          wlddt[i].real.placement.transform.z,
+                          wlddt[i].real.placement.transform.r);
                 break;
 
             case WLD_RECORD_EFFECT:
@@ -370,10 +435,10 @@ short LoadConstruction(u_long *data)
 
             case WLD_RECORD_ITEM:
                 memset(&tmp, 0, sizeof(tmp));
-                tmp.type = wlddt[i].nid;
-                tmp.locate.vx = wlddt[i].real.common.x;
-                tmp.locate.vy = wlddt[i].real.common.y;
-                tmp.locate.vz = wlddt[i].real.common.z;
+                tmp.type = wlddt[i].id.item;
+                tmp.locate.vx = wlddt[i].real.placement.transform.x;
+                tmp.locate.vy = wlddt[i].real.placement.transform.y;
+                tmp.locate.vz = wlddt[i].real.placement.transform.z;
                 param = tmp;
                 ReqItemStay(&param);
                 break;
