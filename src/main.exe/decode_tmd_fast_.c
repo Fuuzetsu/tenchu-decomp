@@ -57,18 +57,19 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     GsLIOFF = obj->attribute >> 6 & 1;
     attr = *(volatile u_long *)&obj->attribute;
     DivDepth = obj->attribute >> 9 & 7;
-    *(u_long *)(work + 0x88) = shift;
-    *(u_long *)(work + 0x90) = ot;
+    TMD_FAST_WORD(work, shift) = shift;
+    TMD_FAST_WORD(work, ot) = ot;
     GsTON = attr >> 0x1e & 1;
-    *(u_long *)(work + 0x94) = -SCREEN_W / 2; /* clipx0 */
-    *(u_long *)(work + 0x98) = SCREEN_W / 2;  /* clipx1 */
-    *(u_long *)(work + 0x9c) = -SCREEN_H / 2; /* clipy0 */
-    *(u_long *)(work + 0xa0) = SCREEN_H / 2;  /* clipy1 */
-    *(u_long *)(work + 0x84) = 0x4a98; /* farz */
-    *(u_long *)(work + 0x8c) = 15000;  /* fogz */
+    TMD_FAST_WORD(work, clipx0) = -SCREEN_W / 2;
+    TMD_FAST_WORD(work, clipx1) = SCREEN_W / 2;
+    TMD_FAST_WORD(work, clipy0) = -SCREEN_H / 2;
+    TMD_FAST_WORD(work, clipy1) = SCREEN_H / 2;
+    TMD_FAST_WORD(work, farz) = TMD_FAST_FAR_Z;
+    TMD_FAST_WORD(work, fogz) = TMD_FAST_FOG_Z;
     while (n != 0)
     {
-        switch (*(u_char *)((int)prim + 3) & 0xfd)
+        switch (*(u_char *)((int)prim + TMD_PRIMITIVE_MODE_BYTE) &
+                TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = fast_tng4_(prim, vertop, GsOUT_PACKET_P, *prim, work);

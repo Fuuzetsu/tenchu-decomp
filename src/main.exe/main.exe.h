@@ -195,7 +195,6 @@ extern GsOT OTable[N_DRAW_PAGES];
 extern GsFOGPARAM Fog;
 extern short DrawingPage;
 /* Retail's draw-mode object is word-sized; one caller snapshots its low half. */
-extern s32 DrawTMDmode;
 /* Retail's WEAPON_KIND_END row is entry 30; the demo table had 28. */
 extern WeaponType WeaponDB[31];
 /* Retail's WEAPON_KIND_END row is entry 47; the demo table had 41. */

@@ -51,7 +51,8 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
 
     while (n != 0)
     {
-        switch (*(u_char *)((int)prim + 3) & 0xfd)
+        switch (*(u_char *)((int)prim + TMD_PRIMITIVE_MODE_BYTE) &
+                TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = adiv_tng4_(prim, vertop, GsOUT_PACKET_P,

@@ -46,7 +46,7 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
     {
         flagAddr = (u_long *)&work->flag;
         codeAddr = &work->gt4.r0;
-        codeVal = 0x3C;
+        codeVal = GPU_POLY_GT4_CODE;
         sz0Ptr = (u_long *)&work->sz[0];
         record = (TMD_P_TNF4 *)primitive;
         do
@@ -67,7 +67,7 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
 
             gte_nclip();
             *(s32 *)&prim->r0 = *(s32 *)&record->r0;
-            codeAddr[3] = codeVal;
+            codeAddr[GPU_COLOR_CODE_BYTE] = codeVal;
             gte_stopz((u_long *)&work->opz);
             if (work->opz <= 0)
                 goto next;
@@ -242,10 +242,10 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
 
             otSlot = (u_long *)work->ot->org + (work->otz >> work->shift);
             prim->tag = *otSlot;
-            ((u_char *)prim)[3] = 0xC;
+            ((u_char *)prim)[GPU_PACKET_LENGTH_BYTE] = GPU_POLY_GT4_LENGTH;
             *(POLY_GT4 *)packet = *prim;
-            *otSlot = (u_long)packet & 0xFFFFFF;
-            packet += 0xD;
+            *otSlot = (u_long)packet & GPU_DMA_ADDRESS_MASK;
+            packet += GPU_POLY_GT4_WORDS;
 
         next:
             count--;

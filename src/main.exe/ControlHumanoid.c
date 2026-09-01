@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfast.h"
 #include "humanoid.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>

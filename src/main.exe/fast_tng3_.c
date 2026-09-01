@@ -115,7 +115,7 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
     if (count != 0)
     {
         codeAddr = &work->gt3.r0;
-        codeVal = 0x34;
+        codeVal = GPU_POLY_GT3_CODE;
         sz0Ptr = (u_long *)&work->sz[0];
         sz1Ptr = (u_long *)&work->sz[1];
         record = (TMD_P_TNG3 *)primitive;
@@ -132,7 +132,7 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
             *(s32 *)&prim->u1 = *(s32 *)&record->tu1;
             *(s32 *)&prim->u2 = *(s32 *)&record->tu2;
             *(s32 *)&prim->r0 = *(s32 *)&record->r0;
-            codeAddr[3] = codeVal;
+            codeAddr[GPU_COLOR_CODE_BYTE] = codeVal;
             gte_stflg((u_long *)&work->flag);
             if (work->flag < 0)
                 goto next;
@@ -262,10 +262,10 @@ u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet, int count,
 
             otSlot = (u_long *)work->ot->org + (work->otz >> work->shift);
             prim->tag = *otSlot;
-            ((u_char *)prim)[3] = 9;
+            ((u_char *)prim)[GPU_PACKET_LENGTH_BYTE] = GPU_POLY_GT3_LENGTH;
             *(POLY_GT3 *)packet = *prim;
-            *otSlot = (u_long)packet & 0xFFFFFF;
-            packet += 10;
+            *otSlot = (u_long)packet & GPU_DMA_ADDRESS_MASK;
+            packet += GPU_POLY_GT3_WORDS;
 
         next:
             count--;

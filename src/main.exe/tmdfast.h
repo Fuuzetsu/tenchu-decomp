@@ -11,17 +11,33 @@
  * values are exactly the draw* / fast_tn?? family this file dispatches
  * to, which is what confirms the decode -- 0x3d reaches fast_tng4_,
  * 0x2d fast_tnf4_, 0x25 fast_tnf3_, 0x35 fast_tng3_. */
-#define TMD_PRIM_F3 0x21  /* flat, triangle */
-#define TMD_PRIM_FT3 0x25 /* flat, triangle, textured */
-#define TMD_PRIM_F4 0x29  /* flat, quad */
-#define TMD_PRIM_FT4 0x2d /* flat, quad, textured */
-#define TMD_PRIM_G3 0x31  /* gouraud, triangle */
-#define TMD_PRIM_GT3 0x35 /* gouraud, triangle, textured */
-#define TMD_PRIM_G4 0x39  /* gouraud, quad */
-#define TMD_PRIM_GT4 0x3d /* gouraud, quad, textured */
+typedef u8 tmd_primitive_mode;
+enum tmd_primitive_mode
+{
+    TMD_PRIM_F3 = 0x21,  /* flat, triangle */
+    TMD_PRIM_FT3 = 0x25, /* flat, triangle, textured */
+    TMD_PRIM_F4 = 0x29,  /* flat, quad */
+    TMD_PRIM_FT4 = 0x2d, /* flat, quad, textured */
+    TMD_PRIM_G3 = 0x31,  /* gouraud, triangle */
+    TMD_PRIM_GT3 = 0x35, /* gouraud, triangle, textured */
+    TMD_PRIM_G4 = 0x39,  /* gouraud, quad */
+    TMD_PRIM_GT4 = 0x3d  /* gouraud, quad, textured */
+};
 
-#define TMD_BANK_PLAIN 0
-#define TMD_BANK_FOG 0x20
+typedef enum tmd_renderer_bank tmd_renderer_bank;
+enum tmd_renderer_bank
+{
+    TMD_BANK_PLAIN = 0,
+    TMD_BANK_FOG = 0x20
+};
+
+extern tmd_renderer_bank DrawTMDmode;
+
+enum
+{
+    TMD_PRIMITIVE_MODE_BYTE = 3,
+    TMD_PRIMITIVE_MODE_MASK = 0xfd
+};
 
 #include "common.h"
 #include <psxsdk/libgpu.h>
@@ -73,6 +89,18 @@ typedef struct
     long clipy0;   /* 0x9c */
     long clipy1;   /* 0xa0 */
 } TMD_FAST_WORK;
+
+/* decode_tmd_fast_ must retain an integer workspace parameter, but its
+ * scalar stores can still be derived from the typed context layout. */
+#define TMD_FAST_BYTE_OFFSET(member) ((u_long)&((TMD_FAST_WORK *)0)->member)
+#define TMD_FAST_WORD(work, member)                                        \
+    (*(u_long *)((int)(work) + TMD_FAST_BYTE_OFFSET(member)))
+
+enum
+{
+    TMD_FAST_FAR_Z = 0x4a98,
+    TMD_FAST_FOG_Z = 15000
+};
 
 /* The renderers take (primitive stream, vertex-array base, output packet
  * list, record count, work).  The dispatcher deliberately declares the
@@ -159,8 +187,17 @@ typedef struct
 
 enum
 {
+    GPU_POLY_GT3_CODE = 0x34,
     GPU_POLY_GT4_CODE = 0x3c,
-    GPU_POLY_GT4_LENGTH = sizeof(POLY_GT4) / sizeof(u_long) - 1
+    GPU_POLY_GT3_WORDS = sizeof(POLY_GT3) / sizeof(u_long),
+    GPU_POLY_GT4_WORDS = sizeof(POLY_GT4) / sizeof(u_long),
+    GPU_POLY_GT3_LENGTH = GPU_POLY_GT3_WORDS - 1,
+    GPU_POLY_GT4_LENGTH = GPU_POLY_GT4_WORDS - 1,
+    GPU_PACKET_LENGTH_BYTE = sizeof(u_long) - 1,
+    GPU_COLOR_CODE_BYTE = sizeof(CVECTOR) - 1,
+    GPU_DMA_ADDRESS_MASK = 0x00ffffff,
+    GPU_DMA_TAG_GT3 = GPU_POLY_GT3_LENGTH << 24,
+    GPU_DMA_TAG_GT4 = GPU_POLY_GT4_LENGTH << 24
 };
 
 #endif

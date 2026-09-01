@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "afterimage.h"
+#include "tmdfast.h"
 
 /*
  * draw_visible_characters_ (0x80029368, 0x104 bytes) — per

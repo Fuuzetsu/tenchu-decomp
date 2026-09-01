@@ -39,14 +39,14 @@
         pk[7] = *(u32 *)&(m)->col;                                            \
         ((POLY_GT3 *)pk)->clut = work->packet.clut;                           \
         tp = work->packet.tpage;                                              \
-        setlen(pk, 9);                                                        \
-        setcode(pk, 0x34);                                                    \
+        setlen(pk, GPU_POLY_GT3_LENGTH);                                      \
+        setcode(pk, GPU_POLY_GT3_CODE);                                       \
         ((POLY_GT3 *)pk)->tpage = tp;                                         \
         slot = (u32 *)(work->org + (work->zmax >> work->shift));              \
         work->otp = (u_long *)slot;                                           \
-        *pk = *slot & 0xffffff | 0x9000000;                                   \
-        *(u32 *)work->otp = (u32)pk & 0xffffff;                               \
-        work->out += 10;                                           \
+        *pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;                 \
+        *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;                   \
+        work->out += GPU_POLY_GT3_WORDS;                                      \
     }
 
 /*
@@ -257,9 +257,11 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     *(u_long *)work->out = proto->tag;
                     otp = (u32 *)(work->org + (work->zmax >> work->shift));
                     work->otp = (u_long *)otp;
-                    *(u32 *)work->out = *otp & 0xffffff | 0xc000000;
-                    *(u32 *)work->otp = (u32)work->out & 0xffffff;
-                    tail = (int)work->out + 0x34;
+                    *(u32 *)work->out =
+                        *otp & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT4;
+                    *(u32 *)work->otp =
+                        (u32)work->out & GPU_DMA_ADDRESS_MASK;
+                    tail = (int)work->out + sizeof(POLY_GT4);
                 }
                 else
                 {
@@ -386,14 +388,14 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         pk[7] = *(u32 *)&m31->col;
                         ((POLY_GT3 *)pk)->clut = work->packet.clut;
                         tp = work->packet.tpage;
-                        setlen(pk, 9);
-                        setcode(pk, 0x34);
+                        setlen(pk, GPU_POLY_GT3_LENGTH);
+                        setcode(pk, GPU_POLY_GT3_CODE);
                         ((POLY_GT3 *)pk)->tpage = tp;
                         slot = (u32 *)(work->org + (work->zmax >> work->shift));
                         work->otp = (u_long *)slot;
-                        *pk = *slot & 0xffffff | 0x9000000;
-                        *(u32 *)work->otp = (u32)pk & 0xffffff;
-                        tail = (int)(work->out + 10);
+                        *pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;
+                        *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;
+                        tail = (int)(work->out + GPU_POLY_GT3_WORDS);
                     }
                 }
                 work->out = (u_long *)tail;
