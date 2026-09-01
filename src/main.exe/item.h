@@ -162,7 +162,7 @@ extern struct
 typedef struct Humanoid
 {
     character_kind type;      /* 0x00 */
-    s16 status;               /* 0x02 */
+    character_status status;  /* 0x02 */
     s16 attribute; /* 0x04 (the ATTR_* bit word — see humanoid.h. The s16
                       declaration with per-site *(u16 *)& views is measured:
                       flipping the field to u16 changes the plain sites'

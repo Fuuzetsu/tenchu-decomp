@@ -1334,7 +1334,8 @@ enum character_page
  * STAT_STATE = ActSTATE's pick/drop/fall transitions, STAT_DAMAGE = the
  * recovery/stagger state, ...).  This retires the old descriptive guesses
  * (ATTACKING, PRESSED_AGAINST_WALL, ...), which matched these values 1:1. */
-typedef enum character_status character_status;
+/* Humanoid stores this domain in a signed halfword. */
+typedef s16 character_status;
 enum character_status
 {
     STAT_NORMAL = 0x00,
