@@ -188,7 +188,7 @@ void DoInfoViewProc(void)
     {
         InitializeInfoView();
     }
-    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(0) == (PADL2 | PADR2))
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) && (u16)GetPad(PAD_CONTROLLER_1) == (PADL2 | PADR2))
     {
         __builtin_memcpy(Option, DEBUG_MENU_MAIN_SCREEN_OPTIONS,
                          sizeof(Option));
@@ -263,7 +263,7 @@ nosel:
     PutLifeBar(-148, 105, CamState.Owner->life, CamState.Owner->lifemax, 0);
     PutLifeBarS();
     PutStrain(-134, 92);
-    if ((GetPad(0) & PADselect) &&
+    if ((GetPad(PAD_CONTROLLER_1) & PADselect) &&
         (SystemFlag & (SYSFLAG_DEBUGPRINT | SYSFLAG_PAUSE)) == 0)
     {
         PutMap();

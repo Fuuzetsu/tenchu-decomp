@@ -38,7 +38,7 @@ void Camera(void)
     GsRVIEW2 vDif;
     s16 pad_dat;
 
-    pad_dat = GetPad(0);
+    pad_dat = GetPad(PAD_CONTROLLER_1);
     /* The debug owner menu stores AdtSelect's return here — an odd value
      * (its -1 cancel sentinel) is not a real Humanoid. */
     if ((s32)CamState.Owner & 1)

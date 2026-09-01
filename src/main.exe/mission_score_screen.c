@@ -379,7 +379,7 @@ void mission_score_screen(void)
     {
         u16 pad;
 
-        pad = GetRealPad(0);
+        pad = GetRealPad(PAD_PORT_1);
         newPress = pad & (pad ^ tail.oldPad);
         tail.oldPad = pad;
         if (newPress & PADRright)

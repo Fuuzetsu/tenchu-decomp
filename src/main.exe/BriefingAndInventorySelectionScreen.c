@@ -223,7 +223,7 @@ void BriefingAndInventorySelectionScreen(void)
     {
         rand();
         newpress = pad.u;
-        pad.u = GetRealPad(0);
+        pad.u = GetRealPad(PAD_PORT_1);
         newpress = pad.u & (pad.u ^ newpress);
         id = check_cheat_command_(pad.s, newpress);
         /* The subtract-then-narrow is retail's own: addiu -1 then an

@@ -306,7 +306,7 @@ next_bucket:
     goto draw_bucket;
 
 draw_done:
-    if (GetPad(0) & PADselect)
+    if (GetPad(PAD_CONTROLLER_1) & PADselect)
     {
         FntPrint(str_map);
         FntPrint(fmt_objs_d, ndl, ndt);

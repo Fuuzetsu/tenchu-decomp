@@ -22,12 +22,99 @@
 // The offset-aligned field map is kept for reference:
 // reference/character_state-to-humanoid.tsv.)
 
-/* Pad ids encode the physical port in their high nibble and the multitap
- * slot in their low two bits. */
+/* libpad port ids encode the physical port in their high nibble and the
+ * multitap slot in their low two bits. */
 #define PAD_PORT_COUNT 2
 #define PAD_SLOTS_PER_PORT 4
 #define PAD_PORT_INDEX_SHIFT 4
 #define PAD_SLOT_INDEX_MASK (PAD_SLOTS_PER_PORT - 1)
+
+enum pad_controller_index
+{
+    PAD_CONTROLLER_1 = 0,
+    PAD_CONTROLLER_2 = 1
+};
+
+enum pad_port_id
+{
+    PAD_PORT_1 = 0x00,
+    PAD_PORT_2 = 0x10
+};
+
+/* PadInitDirect fills one 34-byte report per physical port.  A multitap
+ * report has a two-byte header followed by four eight-byte slot reports. */
+enum pad_report_format
+{
+    PAD_REPORT_STATUS = 0,
+    PAD_REPORT_ID = 1,
+    PAD_REPORT_BUTTON_HIGH = 2,
+    PAD_REPORT_BUTTON_LOW = 3,
+    PAD_REPORT_HEADER_SIZE = 2,
+    PAD_SLOT_REPORT_SIZE = 8,
+    PAD_REPORT_BUFFER_SIZE =
+        PAD_REPORT_HEADER_SIZE + PAD_SLOTS_PER_PORT * PAD_SLOT_REPORT_SIZE,
+    PAD_REPORT_TYPE_SHIFT = 4,
+    PAD_REPORT_STATUS_OK = 0
+};
+
+enum pad_report_type
+{
+    PAD_REPORT_TYPE_ANALOG = 7,
+    PAD_REPORT_TYPE_MULTITAP = 8
+};
+
+#define PAD_REPORT_TYPE(report) \
+    ((report)[PAD_REPORT_ID] >> PAD_REPORT_TYPE_SHIFT)
+
+/* Names from libpad's PadInfoMode and PadGetState contracts. */
+enum pad_info_mode
+{
+    PAD_INFO_CURRENT_ID = 1,
+    PAD_INFO_CURRENT_EXTENDED_ID = 2,
+    PAD_INFO_CURRENT_OFFSET = 3,
+    PAD_INFO_ID_TABLE = 4,
+    PAD_INFO_EXTENDED = 5
+};
+
+enum pad_connection_state
+{
+    PAD_STATE_DISCONNECTED = 0,
+    PAD_STATE_FIND_PAD = 1,
+    PAD_STATE_FIND_CTP1 = 2,
+    PAD_STATE_FIND_CTP2 = 3,
+    PAD_STATE_REQUEST_INFO = 4,
+    PAD_STATE_EXECUTE_COMMAND = 5,
+    PAD_STATE_STABLE = 6,
+    PAD_STATE_ERROR = 7
+};
+
+enum pad_main_mode
+{
+    PAD_MAIN_MODE_DIGITAL = 0,
+    PAD_MAIN_MODE_ANALOG = 1
+};
+
+enum pad_main_mode_lock
+{
+    PAD_MAIN_MODE_KEEP_LOCK = 0,
+    PAD_MAIN_MODE_UNLOCK = 2,
+    PAD_MAIN_MODE_LOCK = 3
+};
+
+enum pad_protocol_constant
+{
+    PAD_ACTUATOR_COUNT = 2,
+    PAD_DIGITAL_AXIS_MAGNITUDE = 45,
+    PAD_ANALOG_MODE_SWITCH_DELAY = 15
+};
+
+/* Button subsets shared by player and AI-pad code.  The signed spelling is
+ * intentional: a few original think handlers materialize 0xffffa000 rather
+ * than using an immediate AND with the equivalent unsigned 0xa000. */
+#define PAD_DIRECTION_BUTTONS \
+    (PADLleft | PADLdown | PADLright | PADLup)
+#define PAD_TURN_BUTTONS (PADLleft | PADLright)
+#define PAD_TURN_BUTTONS_SIGNED ((s16)PAD_TURN_BUTTONS)
 
 // One controller port's raw state — the official globals and PADCMD.C name
 // this TPadPort (reference/psxsym-globals.h: `struct TPadPort PadPort[2][4]`).
@@ -44,7 +131,7 @@ struct TPadPort
     u8 fAnalog;   /* 0x7 */
     u8 act1;      /* 0x8 */
     u8 act2;      /* 0x9 */
-    u8 actbuf[2]; /* 0xA */
+    u8 actbuf[PAD_ACTUATOR_COUNT]; /* 0xA */
     u8 Send;      /* 0xC */
 };
 

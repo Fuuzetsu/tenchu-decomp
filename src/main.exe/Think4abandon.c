@@ -38,9 +38,9 @@
  *    reproduces the target's `sltiu`; casting only the operand promotes
  *    back to a signed int subtraction and gives `slti` instead — same
  *    length, wrong instruction.
- *  - Both `if ((Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS) {...} return turn_towards_player_(...)&~0x5FFF;`
- *    and the sibling `if (EmergencyNotice!=0) {...} return turn_towards_player_(...)
- *    &~0x5FFF;` need their OWN independent `return` statement (not a shared
+ *  - Both the PAGE_BOSS branch's turn-only return and the sibling
+ *    EmergencyNotice branch's identical PAD_TURN_BUTTONS_SIGNED return need
+ *    their OWN independent `return` statement (not a shared
  *    `goto` to one trailing label). Two adjacent, textually-identical
  *    `return` statements let jump2's cross-jump merge them into ONE
  *    physical call site placed early (right after the kind==0x80 block);
@@ -97,7 +97,7 @@ s16 Think4abandon(void)
                 }
             }
         }
-        return (turn_towards_player_(0, 0) & ~0x5FFF);
+        return (turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED);
     }
     else if (EmergencyNotice != 0)
     {
@@ -105,13 +105,13 @@ s16 Think4abandon(void)
         {
             Attrib = cleared | PHASE_ALERT;
         }
-        return (turn_towards_player_(0, 0) & ~0x5FFF);
+        return (turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED);
     }
     else
     {
         if (Me_THINK_C->think[3] == Think4abandon)
         {
-            pad = (turn_towards_player_(0, 0) & ~0x5FFF);
+            pad = (turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED);
             if (pad != 0)
             {
                 return pad;

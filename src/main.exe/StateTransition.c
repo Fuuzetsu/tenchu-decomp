@@ -443,7 +443,7 @@ void StateTransition(Humanoid *human)
             }
 
         mask_attack:
-            pad &= (PADLleft | PADLdown | PADLright | PADLup);
+            pad &= PAD_DIRECTION_BUTTONS;
             goto attack_checked;
 
         random_attack:
@@ -581,12 +581,12 @@ void StateTransition(Humanoid *human)
         else if ((ProbeAttrib[FORWARD_PROBE] & (MAP_DEATH | MAP_WATER)) &&
                  (pad & PADLup))
         {
-            pad &= (PADLleft | PADLdown | PADLright | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
+            pad &= ~PADLup;
         }
         else if ((ProbeAttrib[BACKWARD_PROBE] & (MAP_DEATH | MAP_WATER)) &&
                  (pad & PADLdown))
         {
-            pad &= (PADLleft | PADLright | PADLup | PADstart | PADj | PADi | PADselect | PADRleft | PADRdown | PADRright | PADRup | PADR1 | PADL1 | PADR2 | PADL2);
+            pad &= ~PADLdown;
         }
         else
         {

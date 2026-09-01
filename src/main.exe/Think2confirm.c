@@ -14,18 +14,14 @@
  * Think1sleep.c/ThinkBasicHuman2.c (s16 return convention; shared
  * turn_towards_player_ extern from main.exe.h).
  *
- * The mask is semantically the same PADLleft|PADLright turn-only filter
- * as Think1sleep/AttackAnimal/StateTransition, but the SPELLING picks
- * the instruction shape (fits-andi lever): their positive 0xA000 literal
- * (now spelled with the PAD names) compiles to `andi`. Here the asm
- * instead materializes a full register constant (`addiu $v1,$zero,-0x6000`)
- * and does a register-register `and` — the target's literal does NOT fit
- * andi's unsigned-16-bit test, i.e. it's negative: `~0x5FFF` (bitwise NOT of
- * a positive 16-bit constant) is exactly -0x6000/0xFFFFA000, confirmed
- * against the encoded `addiu` immediate.
+ * The mask is semantically the PADLleft|PADLright turn-only filter used by
+ * Think1sleep/AttackAnimal/StateTransition, but signedness picks the
+ * instruction shape (fits-andi lever). Their unsigned 0xA000 value compiles
+ * to `andi`; PAD_TURN_BUTTONS_SIGNED instead materializes 0xFFFFA000 with
+ * `addiu` and uses a register-register `and`, matching this target.
  */
 
 s16 Think2confirm(void)
 {
-    return turn_towards_player_(0, 0) & ~0x5FFF;
+    return turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED;
 }

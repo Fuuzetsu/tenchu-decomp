@@ -52,7 +52,7 @@ void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif)
     s16 y;
 
     mad = pl->model;
-    GetPadXY(0, &x, &y);
+    GetPadXY(PAD_CONTROLLER_1, &x, &y);
     if (CamState.OldMode == CMODE_SIGHT)
     {
         x = x / 2;

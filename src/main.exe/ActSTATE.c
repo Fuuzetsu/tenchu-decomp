@@ -293,7 +293,7 @@ void ActSTATE(void)
     case MOT_STATE_LAND_HEAVY:
         if (dtM->count == 1 && Me_MOTION_C == StagePlayer)
         {
-            PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
+            PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
             SetCameraMode(CMODE_NORMAL);
         }
         if (dtM->count < 5 && (dtPAD & PADRright) != 0 &&
@@ -313,11 +313,13 @@ void ActSTATE(void)
             {
                 if (motID == MOT_STATE_LAND_HEAVY)
                 {
-                    PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
+                    PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
+                               RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
                 }
                 else
                 {
-                    PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_FAST, RUMBLE_RELEASE_NONE);
+                    PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
+                               RUMBLE_ATTACK_FAST, RUMBLE_RELEASE_NONE);
                 }
             }
         }

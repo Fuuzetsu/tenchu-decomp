@@ -18,8 +18,8 @@
  * libraries: MemCardInit/MemCardStart, zero the shared ComBuf[2][34] comm
  * scratch and the PadPort[2][4] state table, PadInitDirect over the two
  * 34-byte ComBuf rows, PadStartCom, then — only when the persistent-state
- * `analog_pad_present` bit (byte 0x47; see save_pad_analog_.c) is set — burn 15
- * VSyncs and force PadSetMainMode(0,1,0) (digital mode) once.
+ * `analog_pad_present` bit (byte 0x47; see save_pad_analog_.c) is set — wait
+ * 15 VSyncs and request analog mode once.
  *
  * The raw `.s` disproves Ghidra's own `ComBuf[0x11]` second PadInitDirect
  * argument (an out-of-bounds outer-dimension index into `[2][34]`): the
@@ -52,12 +52,13 @@ void InitPadControl(void)
     if ((((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->analog_pad_present &
          1) != 0)
     {
-        i = 0xf;
+        i = PAD_ANALOG_MODE_SWITCH_DELAY;
         do
         {
             VSync(0);
             i--;
         } while (i > 0);
-        PadSetMainMode(0, 1, 0);
+        PadSetMainMode(PAD_PORT_1, PAD_MAIN_MODE_ANALOG,
+                       PAD_MAIN_MODE_KEEP_LOCK);
     }
 }

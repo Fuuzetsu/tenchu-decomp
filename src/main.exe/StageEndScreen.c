@@ -218,7 +218,7 @@ void StageEndScreen(void)
     selection = STAGE_END_ADVANCE;
     ui.old_pad = 0;
     SetupAppearance(0, -1);
-    PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
+    PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
 
@@ -348,7 +348,7 @@ void StageEndScreen(void)
             second_x = 0x28;
             while (1)
             {
-                pad = GetRealPad(0);
+                pad = GetRealPad(PAD_PORT_1);
                 pressed = pad & (pad ^ ui.old_pad);
                 ui.old_pad = pad;
                 if ((pressed & PADRright) != 0)

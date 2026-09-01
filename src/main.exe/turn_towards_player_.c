@@ -20,8 +20,8 @@
  * turn, and is it safe to step" helper called by nearly every AI think
  * handler in this TU (Think1sleep/Think2confirm/think_setting_go_towards_-
  * player and many unmatched Think* siblings). Result is a bitmask of
- * button-like turn/walk bits (0x1000 "close enough to stop turning",
- * 0x2000/0x8000 "turn right/left") truncated to s16 on return.
+ * button-like turn/walk bits (PADLup "close enough to stop turning",
+ * PADLright/PADLleft for turning) truncated to s16 on return.
  *
  * Attrib and Degree keep their recovered signed object types.  This function's
  * `lhu` flag reads use the shared `Attrib` view, while the raw-angle path
@@ -95,7 +95,7 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     }
     else if ((s16)dir < -turn)
     {
-        result = -0x8000;
+        result = (s16)PADLleft;
     }
     adir = (s16)dir;
     if (adir < 0)

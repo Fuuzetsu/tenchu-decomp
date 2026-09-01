@@ -47,7 +47,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
         enemy->vector.vx = 0;                                                 \
         if (StagePlayer == enemy)                                             \
         {                                                                     \
-            PadShockAR(0, rumble_power_, RUMBLE_ATTACK_NORMAL,                \
+            PadShockAR(PAD_PORT_1, rumble_power_, RUMBLE_ATTACK_NORMAL,                \
                        rumble_release_);                                      \
         }                                                                     \
     }
@@ -58,7 +58,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
                                                                               \
         if (StagePlayer == Me_MOTION_C)                                       \
         {                                                                     \
-            PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL,            \
+            PadShockAR(PAD_PORT_1, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL,            \
                        rumble_release_);                                      \
             who = enemy;                                                      \
         }                                                                     \
@@ -241,7 +241,8 @@ void DamageControl(void)
             SetImpact(&p, 6 * FIXED_ONE, IMPACT_SPRITE_HIT);
             if (StagePlayer == enemy)
             {
-                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);
+                PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
+                           RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);
             }
         }
         else
@@ -458,7 +459,8 @@ resolve_hit:
             }
             if (StagePlayer == Me_MOTION_C)
             {
-                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_MEDIUM);
+                PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
+                           RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_MEDIUM);
             }
             else
             {

@@ -191,6 +191,6 @@ found:
     {
         return -1;
     }
-    PadShockAR(0, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
+    PadShockAR(PAD_PORT_1, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
     return -1;
 }

@@ -140,7 +140,7 @@ int main(void)
         DoInfoViewProc();
         DoMiscProc();
         draw_visible_characters_();
-        pad = GetPad(0);
+        pad = GetPad(PAD_CONTROLLER_1);
         if ((pad & PADselect) != 0 && SkipFrame == 0)
         {
             FntPrint(fmt_free_memory, vgetfreesize(), vgetmaxsize());

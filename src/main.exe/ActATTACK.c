@@ -818,7 +818,7 @@ dispatch:
             Sound(Me_MOTION_C, CHAR_SE_ATTACK);
             if (Me_MOTION_C == StagePlayer)
             {
-                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_FAST, RUMBLE_RELEASE_NONE);
+                PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_FAST, RUMBLE_RELEASE_NONE);
             }
         }
         else if (dtM->count == battle->atke)

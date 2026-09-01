@@ -40,7 +40,7 @@ void score_screen_input_(void)
 
         StartDrawing();
         prev = lastpad;
-        lastpad = GetRealPad(0);
+        lastpad = GetRealPad(PAD_PORT_1);
         result = 0;
         if (prev == 0 && lastpad != 0)
         {

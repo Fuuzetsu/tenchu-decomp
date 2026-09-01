@@ -61,11 +61,13 @@ void ComPad(int port, u8 *rxbuf)
     int initlevel;
     int hi, lo;
 
-    if ((rxbuf[1] >> 4) == 8)
+    if (PAD_REPORT_TYPE(rxbuf) == PAD_REPORT_TYPE_MULTITAP)
     {
         for (i = 0; i < PAD_SLOTS_PER_PORT; i++)
         {
-            ComPad(port + i, rxbuf + 2 + i * 8);
+            ComPad(port + i,
+                   rxbuf + PAD_REPORT_HEADER_SIZE +
+                       i * PAD_SLOT_REPORT_SIZE);
         }
         return;
     }
@@ -73,7 +75,7 @@ void ComPad(int port, u8 *rxbuf)
     pad = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
                   [port & PAD_SLOT_INDEX_MASK];
 
-    if (rxbuf[0] != 0)
+    if (rxbuf[PAD_REPORT_STATUS] != PAD_REPORT_STATUS_OK)
     {
         pad->button = 0;
         pad->x = 0;
@@ -82,8 +84,8 @@ void ComPad(int port, u8 *rxbuf)
         return;
     }
 
-    hi = rxbuf[2];
-    lo = rxbuf[3];
+    hi = rxbuf[PAD_REPORT_BUTTON_HIGH];
+    lo = rxbuf[PAD_REPORT_BUTTON_LOW];
     pad->y = 0;
     pad->x = 0;
     raw = ~(lo | (hi << 8));
@@ -106,12 +108,12 @@ void ComPad(int port, u8 *rxbuf)
          * branch shape; measured). */
         if (i & PADLright)
         {
-            raw = 0x2D;
+            raw = PAD_DIGITAL_AXIS_MAGNITUDE;
             pad->x = raw;
         }
         else if (i & PADLleft)
         {
-            raw = -0x2D;
+            raw = -PAD_DIGITAL_AXIS_MAGNITUDE;
             pad->x = raw;
         }
     }
@@ -120,17 +122,17 @@ void ComPad(int port, u8 *rxbuf)
 
         i = pad->button;
         if (i & PADLdown)
-            pad->y = 0x2D;
+            pad->y = PAD_DIGITAL_AXIS_MAGNITUDE;
         else if (i & PADLup)
-            pad->y = -0x2D;
+            pad->y = -PAD_DIGITAL_AXIS_MAGNITUDE;
     }
 
-    if ((rxbuf[1] >> 4) == 7)
+    if (PAD_REPORT_TYPE(rxbuf) == PAD_REPORT_TYPE_ANALOG)
         pad->fAnalog = 1;
     else
         pad->fAnalog = 0;
 
-    if (PadInfoMode(port, 2, 0) != 0)
+    if (PadInfoMode(port, PAD_INFO_CURRENT_EXTENDED_ID, 0) != 0)
     {
         pad->actbuf[0] = pad->act1;
         pad->actbuf[1] = pad->act2;
@@ -143,16 +145,16 @@ void ComPad(int port, u8 *rxbuf)
 
     initlevel = PadGetState(port);
     pad->active = 1;
-    if (initlevel == 1)
+    if (initlevel == PAD_STATE_FIND_PAD)
         pad->Send = 0;
 
     act = pad->actbuf;
     if (pad->Send == 0)
     {
-        PadSetAct(port, act, 2);
-        if (initlevel != 2)
+        PadSetAct(port, act, PAD_ACTUATOR_COUNT);
+        if (initlevel != PAD_STATE_FIND_CTP1)
         {
-            if (initlevel != 6)
+            if (initlevel != PAD_STATE_STABLE)
                 return;
             PadSetActAlign(port, align);
         }

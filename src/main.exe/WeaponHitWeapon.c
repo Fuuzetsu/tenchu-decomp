@@ -92,7 +92,7 @@ void WeaponHitWeapon(ModelType *hand)
             Sound(Me_MOTION_C, SE_WEAPON_CLASH);
             if (StagePlayer == Me_MOTION_C)
             {
-                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
+                PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
             }
             break;
         } while (1);

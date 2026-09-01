@@ -144,7 +144,7 @@ void game_over_screen_(void)
     old_pad = 0;
     clear_b = 0;
     SetupAppearance(0, -1);
-    PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
+    PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
 
     i = 0;
     persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
@@ -257,7 +257,7 @@ void game_over_screen_(void)
 
         case GAMEOVER_TITLE:
             previous_pad = old_pad;
-            pad = GetRealPad(0);
+            pad = GetRealPad(PAD_PORT_1);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
             if ((new_press & PADRright) != 0 && GameClock < 0x23b)
@@ -299,7 +299,7 @@ void game_over_screen_(void)
 
         case GAMEOVER_ARCHIVE:
             previous_pad = old_pad;
-            pad = GetRealPad(0);
+            pad = GetRealPad(PAD_PORT_1);
             old_pad = pad;
             new_press = pad & (pad ^ previous_pad);
             GsSortSprite(&gov_title, OTablePt, GAME_OVER_TITLE_OT_PRIORITY);

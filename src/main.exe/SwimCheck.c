@@ -112,7 +112,7 @@ short SwimCheck(void)
         if (Me_MOTION_C == StagePlayer)
         {
             SetCameraMode(CMODE_SWIM);
-            PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
+            PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
         }
         ActionHalt = 0;
         set_model_hide_(Me_MOTION_C, 1);

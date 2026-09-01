@@ -68,8 +68,8 @@ void PadProc(void)
 {
     int ct;
 
-    ComPad(0, ComBuf[0]);
-    ComPad(0x10, ComBuf[1]);
+    ComPad(PAD_PORT_1, ComBuf[0]);
+    ComPad(PAD_PORT_2, ComBuf[1]);
 
     /* The negate-then-add split is byte-required (the folded subtract
      * recolors the loads; measured). */
@@ -77,7 +77,7 @@ void PadProc(void)
     ct += PadArrange.attack;
     if (ct > 0)
     {
-        PadShock(0, 1,
+        PadShock(PAD_PORT_1, 1,
                      PadArrange.pow * (PadArrange.attack - ct) /
                          PadArrange.attack);
     }
@@ -86,12 +86,12 @@ void PadProc(void)
         ct += PadArrange.release;
         if (ct <= 0)
             goto motor_off;
-        PadShock(0, 0,
+        PadShock(PAD_PORT_1, 0,
                      PadArrange.pow * ct / PadArrange.release);
     }
     PadArrange.time++;
     return;
 
 motor_off:
-    PadShock(0, 0, 0);
+    PadShock(PAD_PORT_1, 0, 0);
 }

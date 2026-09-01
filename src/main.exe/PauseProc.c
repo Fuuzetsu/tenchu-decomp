@@ -51,7 +51,7 @@
  *    and the sh through Owner->life kills cse's memory equivalence, which is
  *    exactly the original's reload pattern.
  *  - The unpause wait is the cookbook's top-test shape:
- *    while(1) { if (!(GetRealPad(0) & PADstart)) break; VSync(2); }.
+ *    while(1) { if (!(GetRealPad(PAD_PORT_1) & PADstart)) break; VSync(2); }.
  */
 #include "item.h"
 #include "padcmd.h"
@@ -100,10 +100,11 @@ void PauseProc(void)
     s16 j;
     s16 buf[0x21];
 
-    pad = GetPad(0);
+    pad = GetPad(PAD_CONTROLLER_1);
     i = 0;
     cnt = 0;
-    if (((pad & PADstart) && !(SystemFlag & SYSFLAG_PAUSE)) || get_pad_active_(0) == 0)
+    if (((pad & PADstart) && !(SystemFlag & SYSFLAG_PAUSE)) ||
+        get_pad_active_(PAD_CONTROLLER_1) == 0)
     {
         SystemFlag = (SystemFlag | SYSFLAG_PAUSE) & ~SYSFLAG_DEBUG_SELECT;
         SoundEx((VECTOR *)0, SE_PAUSE_ENTER);
@@ -118,7 +119,7 @@ void PauseProc(void)
     {
         opad = cur;
         PadProc();
-        cur = GetPad(0);
+        cur = GetPad(PAD_CONTROLLER_1);
         trig = cur & (cur ^ opad);
         opad = trig;
         if (cur == (PADstart | PADselect))
@@ -156,7 +157,7 @@ void PauseProc(void)
         {
             while (1)
             {
-                if (!(GetRealPad(0) & PADstart))
+                if (!(GetRealPad(PAD_PORT_1) & PADstart))
                     break;
                 VSync(2);
             }

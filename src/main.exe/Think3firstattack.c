@@ -63,7 +63,7 @@ s16 Think3firstattack(void)
     {
         s32 masked;
 
-        masked = pad & ~0x5FFF;
+        masked = pad & PAD_TURN_BUTTONS_SIGNED;
         /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {

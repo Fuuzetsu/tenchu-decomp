@@ -158,7 +158,7 @@ void ActDAMAGE(void)
             Sound(Me_MOTION_C, SE_BODY_SLAM);
             spawn_smoke_burst_(dtL, 500, 30, 30);
             if (StagePlayer == Me_MOTION_C)
-                PadShockAR(0, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
+                PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {

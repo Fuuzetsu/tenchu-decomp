@@ -38,7 +38,7 @@ s16 ThinkBasicHuman1(void)
 {
     s32 pad;
 
-    pad = remap_buttons_(GetPad(0));
+    pad = remap_buttons_(GetPad(PAD_CONTROLLER_1));
     if ((pad & PADselect) && (SystemFlag & SYSFLAG_DEBUGPRINT))
     {
         pad = 0;

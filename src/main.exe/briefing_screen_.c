@@ -134,7 +134,7 @@ void briefing_screen_(void)
     while (1)
     {
         previous_pad = old_pad;
-        pad = GetRealPad(0);
+        pad = GetRealPad(PAD_PORT_1);
         old_pad = pad;
         if ((pad & (pad ^ previous_pad) & (PADstart | PADRright)) != 0)
         {

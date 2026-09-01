@@ -54,7 +54,7 @@ void debug_menu_player_jump(void)
         FntPrint(fmt_jump_z, pos.vz);
         FntFlush(-1);
         EndDrawing(-2);
-        pad = GetRealPad(0);
+        pad = GetRealPad(PAD_PORT_1);
         exit_pad = pad;
         if (pad & PADselect)
         {
@@ -96,7 +96,7 @@ void debug_menu_player_jump(void)
 
     do
     {
-        pad = GetRealPad(0);
+        pad = GetRealPad(PAD_PORT_1);
     } while (pad != 0);
     StartDrawing();
 }
