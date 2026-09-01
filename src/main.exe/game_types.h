@@ -1387,7 +1387,8 @@ enum stage_rank
  * gNannido=0 with EngageLevel=3 (heaviest attack veto, no NPC auto-guard)
  * and gNannido=2 with EngageLevel=1 (no veto, densest attack cadence,
  * 600-frame alerts). */
-typedef enum game_difficulty game_difficulty;
+/* Difficulty is persisted and exported as a single byte. */
+typedef u8 game_difficulty;
 enum game_difficulty
 {
     DIFFICULTY_EASY = 0x00,
@@ -1511,7 +1512,7 @@ typedef struct TLinkInfo
     u8 GameRetry;                     /* 0x048 bit0: retry/continue current stage;
                                        *       original demo member name (+0x0D) */
     ScoreStats score_stats;           /* 0x04C current mission counters */
-    u8 Nannido;                       /* 0x058 gNannido: game_difficulty (demo +0x5) */
+    game_difficulty Nannido;          /* 0x058 gNannido (demo +0x5) */
     u8 Stereo;                        /* 0x059 gSound: 1 = stereo, 0 = mono
                                        *       (InitSoundEffect/InitPersistentState
                                        *       -> SsSetStereo/SsSetMono; demo +0x7) */

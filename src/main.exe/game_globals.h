@@ -23,7 +23,7 @@ extern short SkipFrame;
 extern int StageID;
 extern AreaMapType *GlobalAreaMap;
 extern MapAttribute FieldAttrib;
-extern unsigned char gNannido;
+extern game_difficulty gNannido;
 extern unsigned char gSound;
 extern unsigned char gSoundLevel;
 extern unsigned char gSELevel;
