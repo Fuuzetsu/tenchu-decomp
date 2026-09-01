@@ -767,9 +767,11 @@ dispatch:
         dtM->mask = MOTION_MASK_ALL;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:
-        dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy - dtM->motion->rotate[0]->y);
+        dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy -
+                    dtM->motion->rotate[0].keyframes->y);
         is_player = Me_MOTION_C == StagePlayer;
-        ((*Me_MOTION_C->model->object)->rotate).vy = dtM->motion->rotate[0]->y;
+        ((*Me_MOTION_C->model->object)->rotate).vy =
+            dtM->motion->rotate[0].keyframes->y;
         if (is_player)
         {
             SetCameraMode(CMODE_NORMAL);

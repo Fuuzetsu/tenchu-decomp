@@ -37,6 +37,9 @@
  * SAME source condition: the second is just the natural entry-duplicated
  * bound check of `for (j = 0; j < mmp->n; j++)` (cookbook Loops), not a
  * second nested if.
+ * The remaining base-only `(s32)` casts preserve the target's offset-first
+ * `addu` operands; spelling these as conventional byte-pointer additions
+ * reverses each commutative instruction's source registers.
  */
 extern char msg_no_motion_data[]; /* NO MOTION DATA */
 
@@ -54,14 +57,18 @@ MotionPackType *LoadMotion(unsigned long *data)
     }
     for (i = 0; i < mpd->n; i++)
     {
-        mpd->motion[i] = (MotionDataType *)((s32)mpd->motion[i] + (s32)mpd);
-        mmp = mpd->motion[i];
+        mpd->motion[i].data =
+            (MotionDataType *)(mpd->motion[i].offset + (s32)mpd);
+        mmp = mpd->motion[i].data;
         if (mmp->n != 0)
         {
-            mmp->locate = (MotionElementType *)((s32)mmp->locate + (s32)mmp);
+            mmp->locate.keyframes =
+                (MotionElementType *)(mmp->locate.offset + (s32)mmp);
             for (j = 0; j < mmp->n; j++)
             {
-                mmp->rotate[j] = (MotionElementType *)((s32)mmp->rotate[j] + (s32)mmp);
+                mmp->rotate[j].keyframes =
+                    (MotionElementType *)(mmp->rotate[j].offset +
+                                          (s32)mmp);
             }
         }
     }

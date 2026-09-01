@@ -24,10 +24,10 @@
  * onto that bone's ModelType.rotate and refresh its coordinate, before
  * disabling the manager (loop = -2, count = 0).
  *
- * Matching notes: `mot->locate` is re-read fresh at each of its three uses
- * (x/z/y) rather than cached in a pointer temp — every intervening `sw`
- * (unproven-alias to cc1's weak per-store analysis) forces the next read to
- * reload; same for `mmp->model` between the object[0]/rotate.pad reads.
+ * Matching notes: `mot->locate.keyframes` is re-read fresh at each of its
+ * three uses (x/z/y) rather than cached in a pointer temp — every intervening
+ * `sw` (unproven-alias to cc1's weak per-store analysis) forces the next read
+ * to reload; same for `mmp->model` between the object[0]/rotate.pad reads.
  * rotate.vx/vy/vz load their s16 source fields with `lhu` (a same-width
  * short-to-short copy needs no sign extension — cookbook Expressions), while
  * the locate->x/y/z reads widen into the `long` matrix translation and so
@@ -44,18 +44,21 @@ short HoldMotion(MotionManager *mmp)
     if (mmp->mask & 1)
     {
         object = *mmp->model->object;
-        object->locate.coord.t[0] = (s32)mot->locate->x;
-        object->locate.coord.t[2] = (s32)mot->locate->z;
-        object->locate.coord.t[1] = (s32)mmp->model->rotate.pad * (s32)mot->locate->y >> 12;
+        object->locate.coord.t[0] = (s32)mot->locate.keyframes->x;
+        object->locate.coord.t[2] = (s32)mot->locate.keyframes->z;
+        object->locate.coord.t[1] =
+            ((s32)mmp->model->rotate.pad *
+             (s32)mot->locate.keyframes->y) >>
+            12;
     }
     for (i = 0; i < mmp->n; i++)
     {
         if ((mmp->mask >> i) & 1)
         {
             object = mmp->model->object[i];
-            object->rotate.vx = mot->rotate[i]->x;
-            object->rotate.vy = mot->rotate[i]->y;
-            object->rotate.vz = mot->rotate[i]->z;
+            object->rotate.vx = mot->rotate[i].keyframes->x;
+            object->rotate.vy = mot->rotate[i].keyframes->y;
+            object->rotate.vz = mot->rotate[i].keyframes->z;
             UpdateCoordinate(object);
         }
     }

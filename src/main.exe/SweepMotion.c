@@ -46,19 +46,19 @@ short SweepMotion(MotionManager *mmp)
     {
         object = *mmp->model->object;
         object->locate.coord.t[0] +=
-            (mot->locate->x - object->locate.coord.t[0]) / count;
+            (mot->locate.keyframes->x - object->locate.coord.t[0]) / count;
         object->locate.coord.t[2] +=
-            (mot->locate->z - object->locate.coord.t[2]) / count;
+            (mot->locate.keyframes->z - object->locate.coord.t[2]) / count;
         object->locate.coord.t[1] +=
-            (((s32)mmp->model->rotate.pad * mot->locate->y >> 12) -
+            (((s32)mmp->model->rotate.pad * mot->locate.keyframes->y >> 12) -
              object->locate.coord.t[1]) /
             count;
         object->rotate.vx +=
-            (mot->rotate[0]->x - object->rotate.vx) / count;
+            (mot->rotate[0].keyframes->x - object->rotate.vx) / count;
         object->rotate.vy +=
-            (mot->rotate[0]->y - object->rotate.vy) / count;
+            (mot->rotate[0].keyframes->y - object->rotate.vy) / count;
         object->rotate.vz +=
-            (mot->rotate[0]->z - object->rotate.vz) / count;
+            (mot->rotate[0].keyframes->z - object->rotate.vz) / count;
         UpdateCoordinate(object);
     }
 
@@ -68,11 +68,11 @@ short SweepMotion(MotionManager *mmp)
         {
             object = mmp->model->object[i];
             object->rotate.vx +=
-                (mot->rotate[i]->x - object->rotate.vx) / count;
+                (mot->rotate[i].keyframes->x - object->rotate.vx) / count;
             object->rotate.vy +=
-                (mot->rotate[i]->y - object->rotate.vy) / count;
+                (mot->rotate[i].keyframes->y - object->rotate.vy) / count;
             object->rotate.vz +=
-                (mot->rotate[i]->z - object->rotate.vz) / count;
+                (mot->rotate[i].keyframes->z - object->rotate.vz) / count;
             UpdateCoordinate(object);
         }
     }

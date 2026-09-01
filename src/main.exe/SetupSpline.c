@@ -55,7 +55,7 @@ void SetupSpline(MotionManager *mmp)
 
     time = mmp->motion->time;
     spc = (SplineControlType *)mmp->control;
-    spc->key0 = mmp->motion->locate;
+    spc->key0 = mmp->motion->locate.keyframes;
     t = time;
     /* This pre-loop identity replaces one weighted t read formerly supplied
      * by a zero-trip wrapper inside the real loop. */
@@ -68,7 +68,7 @@ void SetupSpline(MotionManager *mmp)
     for (i = 0; i < mmp->n; i++)
     {
         spc = &mmp->control[i + 1];
-        spc->key0 = mmp->motion->rotate[i];
+        spc->key0 = mmp->motion->rotate[i].keyframes;
         spc->dd0.pad = time;
         if (t != 0)
         {
