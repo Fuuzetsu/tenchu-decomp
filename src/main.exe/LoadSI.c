@@ -28,8 +28,8 @@
 
 /*
  * LoadSI (0x8005c2c4, 0x140 bytes total: entry + 2 override pieces) — the
- * debug-menu file loader: target==0 loads a whole-stage resource by name
- * from the CD/host filesystem (FileRead); target!=0 loads it from the
+ * debug-menu file loader: disk storage loads a whole-stage resource by name
+ * from the CD/host filesystem (FileRead); card storage loads it from the
  * memory card (BISLPS_00000-prefixed save slot), staging through an 8KB
  * scratch buffer and skipping the first 0x200-byte card-file header before
  * copying the real 0x1E00-byte payload into the returned buffer.
@@ -46,7 +46,7 @@
  *    before $a1 is reused for the first sprintf's format arg) and the
  *    valloc'd/returned buffer in $s0. Only the local COUNT/TYPES carry over;
  *    one `ret` variable serves BOTH return paths (FileRead's result on the
- *    target==0 path, valloc's buffer otherwise) — matches PSX.SYM's 6 named
+ *    disk path, valloc's buffer otherwise) — matches PSX.SYM's 6 named
  *    locals (ret/fn/msg/cmd/result/block) with no extra `puVar1`.
  *  - `block` is ONE 8192-byte buffer, not Ghidra's two overlapping locals
  *    (auStack_2018/auStack_1e18): MemCardReadFile fills all 0x2000 bytes,
@@ -72,23 +72,20 @@ extern char msg_card_error[];      /* "card error %d" */
 
 extern void *valloc(u32 size);
 extern void vfree(void *p);
-extern s32 MemCardAccept(s32 chan);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
-extern s32 MemCardReadFile(s32 chan, char *name, void *buf, s32 mode, s32 size);
 extern void *memcpy(void *dst, void *src, u32 n);
 extern void sprintf(char *s, char *fmt, ...);
 extern void AdtMessageBox(char *fmt, ...);
 
-void *LoadSI(int target, u8 *name)
+void *LoadSI(enum save_storage storage, u8 *name)
 {
     void *ret;
     char *msg;
     u8 fn[200];
     u8 block[BLOCKSIZE];
     s32 cmd;
-    s32 result;
+    enum card_result result;
 
-    if (target == 0)
+    if (storage == SAVE_STORAGE_DISK)
     {
         sprintf(fn, fmt_concat, ImagePath, name);
         ret = FileRead(fn);
@@ -100,9 +97,9 @@ void *LoadSI(int target, u8 *name)
     {
     } while (0);
     ret = valloc(BLOCKSIZE);
-    MemCardAccept((s32)msg);
-    MemCardSync((s32)msg, &cmd, &result);
-    if (result != 0 && result != 3)
+    MemCardAccept(MEMCARD_CHANNEL_0);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
+    if (result != CARD_RESULT_SUCCESS && result != CARD_RESULT_NEW_CARD)
     {
         msg = msg_card_error;
         vfree(ret);
@@ -110,9 +107,9 @@ void *LoadSI(int target, u8 *name)
         goto done;
     }
     sprintf(fn, fmt_card_name, CID, StageID, name);
-    MemCardReadFile(0, fn, block, 0, BLOCKSIZE);
-    MemCardSync(0, &cmd, &result);
-    if (result != 0)
+    MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, block, 0, BLOCKSIZE);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
+    if (result != CARD_RESULT_SUCCESS)
     {
         msg = msg_file_read_error;
         vfree(ret);

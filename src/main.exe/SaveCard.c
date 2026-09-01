@@ -37,10 +37,6 @@ extern char str_sjis_title[];
 extern void *memset(void *dst, s32 value, u32 size);
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
-extern s32 MemCardCreateFile(s32 chan, char *name, s32 blocks);
-extern s32 MemCardWriteFile(s32 chan, char *name, void *data, s32 offset,
-                            s32 size);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
 /*
  * The 0x200-byte card header and payload are two views into a single 8 KiB
@@ -52,8 +48,8 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     u8 fn[200];
     u8 block[BLOCKSIZE];
     s32 cmd;
-    s32 result;
-    s32 chan;
+    enum card_result result;
+    enum memcard_channel chan;
     TCardHeader *hd;
     void *data;
     u8 *icon1;
@@ -65,14 +61,14 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     hd->Magic[0] = 'S';
     hd->Magic[1] = 'C';
     hd->Type = SAVE_ICON_3_FRAMES;
-    hd->BlockEntry = 1;
+    hd->BlockEntry = CARD_FILE_BLOCKS;
     memset(hd->Title, 0, sizeof(hd->Title));
     sprintf(hd->Title, str_sjis_title);
     memset(hd->reserve, 0, sizeof(hd->reserve));
 
     icon1 = (u8 *)GetArcData(ICON_CARD1);
     icon2 = (u8 *)GetArcData(ICON_CARD2);
-    chan = 0;
+    chan = MEMCARD_CHANNEL_0;
     icon3 = (u8 *)GetArcData(ICON_CARD3);
     data = block + sizeof(TCardHeader);
     __builtin_memcpy(hd->Clut, CARD_ICON_TIM_CLUT(icon1), sizeof(hd->Clut));
@@ -84,13 +80,13 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
                      sizeof(hd->Icon[2]));
 
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
-    result = MemCardCreateFile(chan, fn, 1);
+    result = MemCardCreateFile(chan, (char *)fn, CARD_FILE_BLOCKS);
     if ((result == CARD_RESULT_SUCCESS || result == CARD_RESULT_FILE_EXISTS) &&
         write_data != 0)
     {
         memcpy(data, mem, size);
-        result = MemCardWriteFile(chan, fn, block, 0, BLOCKSIZE);
-        MemCardSync(0, &cmd, &result);
+        result = MemCardWriteFile(chan, (char *)fn, block, 0, BLOCKSIZE);
+        MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     }
     return result;
 }

@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "infoview.h"
 #include "layout_save.h"
+#include "memcard.h"
 
 #define N_MUSIC_IDS 161
 #define FILE_SLOT_INITIAL_SELECTION 16
@@ -85,8 +86,7 @@ extern char fmt_num_2[]; /* "%d" */
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(void *buf, long size);
 extern void PackItemLayout(void *buf, long size);
-extern void SaveSI(int target, u8 *name, void *mem, long size);
-extern void load_save_slot_(int target, u8 *name);
+extern void load_save_slot_(enum save_storage storage, u8 *name);
 extern void InitializeImage(void);
 extern void _PlayMusic(s32 id, s32 mode);
 extern void CdaStop(void);
@@ -129,7 +129,7 @@ void FileOption(void)
         } music;
     } FileOptionWork;
     s16 n;
-    s32 TargetIO;
+    enum save_storage storage;
     u8 *fname;
     s32 k;
     s32 i;
@@ -149,21 +149,21 @@ void FileOption(void)
     switch (n)
     {
     case LOAD:
-        TargetIO = AdtSelect(msg_load_ok, SelectIO, 3);
-        if (TargetIO == ADT_SELECT_CANCEL)
+        storage = AdtSelect(msg_load_ok, SelectIO, 3);
+        if (storage == ADT_SELECT_CANCEL)
             return;
         fname = (u8 *)AdtSelect(msg_load_no, SelectSlot,
                                 FILE_SLOT_INITIAL_SELECTION);
         if (fname == (u8 *)ADT_SELECT_CANCEL)
             return;
         /* The caller-side mask is in the bytes (the callee masks again;
-         * the SAVE twin passes TargetIO unmasked): retail's own. */
-        load_save_slot_(TargetIO & 0xFF, fname);
+         * the SAVE twin passes storage unmasked): retail's own. */
+        load_save_slot_(storage & 0xFF, fname);
         leLayoutEnemy(0);
         break;
     case SAVE:
-        TargetIO = AdtSelect(msg_save_ok, SelectIO, 3);
-        if (TargetIO != ADT_SELECT_CANCEL)
+        storage = AdtSelect(msg_save_ok, SelectIO, 3);
+        if (storage != ADT_SELECT_CANCEL)
         {
             fname = (u8 *)AdtSelect(msg_save_no, SelectSlot,
                                     FILE_SLOT_INITIAL_SELECTION);
@@ -171,7 +171,7 @@ void FileOption(void)
             {
                 lePackEnemyLayout(Buf.layout.enemies, ENESIZE);
                 PackItemLayout(Buf.layout.items, ITEMSIZE);
-                SaveSI(TargetIO, fname, &Buf.layout, sizeof(Buf.layout));
+                SaveSI(storage, fname, &Buf.layout, sizeof(Buf.layout));
             }
         }
         break;

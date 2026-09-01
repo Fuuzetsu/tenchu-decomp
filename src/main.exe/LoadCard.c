@@ -26,10 +26,6 @@ extern char CardPathFormat[];
 
 extern void *valloc(u32 size);
 extern void vfree(void *ptr);
-extern s32 MemCardAccept(s32 chan);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
-extern s32 MemCardReadFile(s32 chan, char *name, void *data, s32 offset,
-                           s32 size);
 extern int sprintf(char *buf, char *fmt, ...);
 
 /*
@@ -44,14 +40,15 @@ card_result LoadCard(s32 target, u8 *name)
     u8 fn[200];
     u8 block[BLOCKSIZE];
     s32 cmd;
-    s32 result;
+    enum card_result result;
 
     allocation = valloc(BLOCKSIZE);
-    result = MemCardAccept(0);
-    MemCardSync(0, &cmd, &result);
+    result = MemCardAccept(MEMCARD_CHANNEL_0);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
-    result = MemCardReadFile(0, fn, block, 0, BLOCKSIZE);
-    MemCardSync(0, &cmd, &result);
+    result = MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, block, 0,
+                             BLOCKSIZE);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     if (result != CARD_RESULT_SUCCESS)
     {
         vfree(allocation);

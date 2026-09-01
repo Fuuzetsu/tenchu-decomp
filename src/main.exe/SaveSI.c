@@ -38,8 +38,8 @@
  * END PSX.SYM */
 
 /*
- * Write a save: target 0 is the dev-PC path (PCcreat/PCwrite of the raw
- * blob); otherwise build the card block — header magic, "STAGE %d" title,
+ * Write a save: disk storage uses PCcreat/PCwrite for the raw blob; card
+ * storage builds the card block — header magic, "STAGE %d" title,
  * the three icon frames copied from the archive — then accept the card,
  * offering a format when it is unformatted, create the file, and write the
  * block, reporting each failure through the msg_* strings.
@@ -76,16 +76,10 @@ extern int sprintf(char *buf, char *fmt, ...);
 extern s32 PCcreat(char *name, s32 mode);
 extern s32 PCwrite(s32 fd, void *data, s32 size);
 extern s32 PCclose(s32 fd);
-extern s32 MemCardAccept(s32 chan);
-extern s32 MemCardCreateFile(s32 chan, char *name, s32 blocks);
-extern s32 MemCardWriteFile(s32 chan, char *name, void *data, s32 offset,
-                            s32 size);
-extern s32 MemCardFormat(s32 chan);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 extern s32 AdtSelect(char *title, TAdtSelect *choices, s32 mode);
 extern void AdtMessageBox(char *fmt, ...);
 
-void SaveSI(s32 target, u8 *name, void *mem, s32 size)
+void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
 {
     s32 fd;
     char *msg;
@@ -93,12 +87,12 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     u8 block[BLOCKSIZE];
     TAdtSelect sel[3];
     s32 cmd;
-    s32 result;
-    s32 chan;
+    enum card_result result;
+    enum memcard_channel chan;
     TCardHeader *hd;
     void *data;
 
-    if (target == 0)
+    if (storage == SAVE_STORAGE_DISK)
     {
         sprintf(fn, fmt_concat, ImagePath, name);
         fd = PCcreat(fn, 0);
@@ -113,7 +107,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     }
 
     msg = 0;
-    chan = 0;
+    chan = MEMCARD_CHANNEL_0;
     hd = (TCardHeader *)block;
     data = block + sizeof(TCardHeader);
     if ((u32)size > BLOCKSIZE - sizeof(TCardHeader))
@@ -128,15 +122,16 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         u8 *src;
         u8 *dst;
         s32 alignment;
+        enum card_result create_result;
         s32 end;
         s32 *cmdp;
-        s32 *resultp;
+        enum card_result *resultp;
 
         /* The block header a PSX memory card expects. */
         hd->Magic[0] = 'S';
         hd->Magic[1] = 'C';
         hd->Type = SAVE_ICON_3_FRAMES;
-        hd->BlockEntry = 1;
+        hd->BlockEntry = CARD_FILE_BLOCKS;
         sprintf(hd->Title, fmt_save_title, STAGE_NUMBER(StageID), name);
 
         icon1 = (u8 *)GetArcData(ICON_CARD1);
@@ -215,21 +210,18 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             } while ((s32)src != end);
         }
 
-        src = (u8 *)chan;
-        MemCardAccept((s32)src);
+        MemCardAccept(chan);
         cmdp = &cmd;
         resultp = &result;
-        MemCardSync(0, cmdp, resultp);
-        if (result == 0 || result == 3)
+        MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
+        if (result == CARD_RESULT_SUCCESS || result == CARD_RESULT_NEW_CARD)
         {
             goto create_file;
         }
-        if (result == 4)
+        if (result == CARD_RESULT_UNFORMATTED)
         {
             __builtin_memcpy(sel, sel_okcancel, sizeof(sel));
-            src = (u8 *)msg_format_card;
-            dst = (u8 *)sel;
-            end = AdtSelect((char *)src, (TAdtSelect *)dst, 1);
+            end = AdtSelect(msg_format_card, sel, 1);
             if (end == 0)
             {
                 msg = msg_not_formatted;
@@ -237,8 +229,8 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
             else
             {
                 MemCardFormat(chan);
-                MemCardSync(0, cmdp, resultp);
-                if (result == 0)
+                MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
+                if (result == CARD_RESULT_SUCCESS)
                 {
                     goto create_file;
                 }
@@ -254,11 +246,12 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
     create_file:
         sprintf(fn, fmt_card_name, CID, StageID, name);
         src = (u8 *)chan;
-        /* Identical arms, byte-required (measured: collapsing costs a
-         * ~108-instruction allocation cascade). The flow join keeps fn's
-         * address in its own register across the call; the icon3 twin
-         * that used to sit before MemCardAccept was NOT load-bearing and
-         * was collapsed. */
+        /* `src`'s channel-valued reuse and these identical arms are
+         * byte-required (measured: removing either causes a broad register
+         * reallocation; a separate scalar channel local does not match).
+         * The arms' flow join keeps fn's address in its own register across
+         * the call. The icon3 twin that used to sit before MemCardAccept was
+         * not load-bearing and was collapsed. */
         if (msg != 0)
         {
             dst = fn;
@@ -267,17 +260,19 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         {
             dst = fn;
         }
-        alignment = MemCardCreateFile((s32)src, (char *)dst, 1);
-        result = alignment;
-        if (alignment != 0 && alignment != 6)
+        create_result = MemCardCreateFile((enum memcard_channel)src,
+                                          (char *)dst, CARD_FILE_BLOCKS);
+        result = create_result;
+        if (create_result != CARD_RESULT_SUCCESS &&
+            create_result != CARD_RESULT_FILE_EXISTS)
         {
             msg = msg_create_error;
             goto done;
         }
         memcpy(data, mem, size);
-        MemCardWriteFile(chan, fn, block, 0, BLOCKSIZE);
-        MemCardSync(0, &cmd, &result);
-        if (result != 0)
+        MemCardWriteFile(chan, (char *)fn, block, 0, BLOCKSIZE);
+        MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
+        if (result != CARD_RESULT_SUCCESS)
         {
             msg = msg_write_error;
         }

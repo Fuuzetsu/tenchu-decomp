@@ -5,7 +5,7 @@
 /*
  * check_card_file_ (0x80056e30, 0x94 bytes) — MEMCARD.C family: primes the card
  * system with the standard ChkCard.c/LoadCard.c/DeleteCard.c boilerplate
- * (MemCardAccept(0) then MemCardSync to block for the result), builds a
+ * (MemCardAccept on channel 0, then blocking MemCardSync), builds a
  * memory-card path exactly like DeleteCard.c ("%s%s" of the volume-id
  * prefix TENCHU_ID and the caller's `name`), opens it via MemCardOpen in
  * mode 1, blocks on MemCardSync again, and — unlike DeleteCard/LoadCard,
@@ -39,27 +39,24 @@
 extern char CardPathFormat[]; /* "%s%s" style path format */
 
 extern int sprintf(char *buf, char *fmt, ...);
-extern s32 MemCardAccept(s32 chan);
-extern s32 MemCardOpen(s32 chan, char *path, s32 mode);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
-extern void MemCardClose(void);
 
 card_result check_card_file_(char *name)
 {
     char path[200];
     s32 cmd;
-    s32 result;
+    enum card_result result;
     /* A second sync pair, unlike every sibling's single reused cmd/result:
      * collapsing them onto one pair mismatches (separate stack slots are
      * retail's own). */
     s32 acceptCmd;
-    s32 acceptResult;
+    enum card_result acceptResult;
 
-    result = MemCardAccept(0);
-    MemCardSync(0, &cmd, &result);
+    result = MemCardAccept(MEMCARD_CHANNEL_0);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     sprintf(path, CardPathFormat, TENCHU_ID, name);
-    acceptResult = MemCardOpen(0, path, 1);
-    MemCardSync(0, &acceptCmd, &acceptResult);
+    acceptResult = MemCardOpen(MEMCARD_CHANNEL_0, path,
+                               MEMCARD_OPEN_READ_ONLY);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &acceptCmd, &acceptResult);
     if (acceptResult == CARD_RESULT_SUCCESS)
     {
         MemCardClose();

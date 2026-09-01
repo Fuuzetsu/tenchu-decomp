@@ -1,11 +1,12 @@
 #include "common.h"
 #include "main.exe.h"
 #include "layout_save.h"
+#include "memcard.h"
 
 /*
  * load_layout (0x8003cc78, 0x8c bytes) - sibling of load_save_slot_ (the very
  * next function in this TU): loads a built-in enemy/item layout blob via
- * LoadSI (always target 0) using one of three known filenames,
+ * LoadSI (always disk storage) using one of three known filenames,
  * copied from the N_STAGE_LAYOUTS-entry table `LayoutNames` into a local
  * array first (the asm loads all three words up front and stores them to the
  * stack BEFORE
@@ -17,7 +18,6 @@
  * re-lays-out the enemy table via leLayoutEnemy(1) at the end, even on a
  * failed load.
  */
-extern void *LoadSI(int target, u8 *name);
 extern void leRestoreEnemyLayout(void *buf);
 extern void RestoreItemLayout(void *buf);
 extern void vfree(void *buf);
@@ -31,7 +31,7 @@ void load_layout(s32 index)
     u8 *names[N_STAGE_LAYOUTS];
 
     __builtin_memcpy(names, LayoutNames, sizeof(names));
-    layout = LoadSI(0, names[index]);
+    layout = LoadSI(SAVE_STORAGE_DISK, names[index]);
     if (layout == 0)
     {
         AdtMessageBox(msg_load_layout_error);

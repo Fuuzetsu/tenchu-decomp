@@ -23,15 +23,12 @@
  * overwritten in place by MemCardSync, so the seed value is never read. FormatCard.c is the same function over MemCardFormat.
  */
 
-extern s32 MemCardAccept(s32 chan);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
-
 card_result ChkCard(void)
 {
     s32 cmd;
-    s32 result;
+    enum card_result result;
 
-    result = MemCardAccept(0);
-    MemCardSync(0, &cmd, &result);
+    result = MemCardAccept(MEMCARD_CHANNEL_0);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     return result;
 }

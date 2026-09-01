@@ -21,15 +21,12 @@
  * that file for the shared-stack-slot note); only the kick-off call differs.
  */
 
-extern s32 MemCardFormat(s32 chan);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
-
 card_result FormatCard(void)
 {
     s32 cmd;
-    s32 result;
+    enum card_result result;
 
-    result = MemCardFormat(0);
-    MemCardSync(0, &cmd, &result);
+    result = MemCardFormat(MEMCARD_CHANNEL_0);
+    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     return result;
 }

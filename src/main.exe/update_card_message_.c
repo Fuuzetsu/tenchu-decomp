@@ -41,13 +41,11 @@ extern s16 McardRetryCount;
 
 extern card_result ChkCard(void);
 extern card_result FormatCard(void);
-extern s32 MemCardExist(s32 chan);
-extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
 s32 update_card_message_(s16 *state, u16 *message)
 {
     s32 cmd;
-    s32 result;
+    enum card_result result;
     card_result card_status;
     card_state next_state;
     card_page next_message;
@@ -128,8 +126,8 @@ s32 update_card_message_(s16 *state, u16 *message)
         break;
 
     case CARD_STATE_FORMAT_PROMPT:
-        result = MemCardExist(0);
-        MemCardSync(0, &cmd, &result);
+        result = MemCardExist(MEMCARD_CHANNEL_0);
+        MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
         next_message = CARD_PAGE_FORMAT_PROMPT;
         if (result == CARD_RESULT_SUCCESS)
         {

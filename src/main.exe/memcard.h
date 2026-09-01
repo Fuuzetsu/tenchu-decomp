@@ -6,7 +6,37 @@
 /* MEMCARD.C's one-card-block size, recovered from PSX.SYM. */
 enum
 {
-    BLOCKSIZE = 8192
+    BLOCKSIZE = 8192,
+    CARD_FILE_BLOCKS = 1
+};
+
+/* INFOVIEW's save/load menu contains the two choices "disk" (0) and
+ * "card" (1). SaveSI/LoadSI dispatch on that value. */
+enum save_storage
+{
+    SAVE_STORAGE_DISK = 0,
+    SAVE_STORAGE_CARD = 1
+};
+
+/* The game consistently addresses the first card channel. Psy-Q encodes
+ * other ports/slots in this integer, so keep it distinct from operation
+ * modes and result codes at the API boundary. */
+enum memcard_channel
+{
+    MEMCARD_CHANNEL_0 = 0
+};
+
+/* MemCardSync(0) waits for completion; a nonzero mode only polls the
+ * library state. Every game-side operation uses the blocking form. */
+enum memcard_sync_mode
+{
+    MEMCARD_SYNC_BLOCKING = 0,
+    MEMCARD_SYNC_POLL = 1
+};
+
+enum memcard_open_mode
+{
+    MEMCARD_OPEN_READ_ONLY = 1
 };
 
 /* Fixed 16-colour, 16x16 TIM layout used by the three memory-card icon
@@ -120,7 +150,8 @@ enum card_page
     CARD_PAGE_OVERWRITE_GAME_DATA_PROMPT = 44
 };
 
-/* Result values returned by the Psy-Q memory-card operations. */
+/* Psy-Q writes operation results as words. The game's MEMCARD.C wrappers
+ * expose the same values through their original signed-short return ABI. */
 typedef s16 card_result;
 enum card_result
 {
@@ -133,6 +164,29 @@ enum card_result
     CARD_RESULT_FILE_EXISTS = 6,
     CARD_RESULT_FULL = 7
 };
+
+/* Psy-Q LIBMCRD interface used by both MEMCARD.C and INFOVIEW.C. */
+extern enum card_result MemCardAccept(enum memcard_channel channel);
+extern enum card_result MemCardOpen(enum memcard_channel channel, char *path,
+                                    enum memcard_open_mode mode);
+extern void MemCardClose(void);
+extern enum card_result MemCardExist(enum memcard_channel channel);
+extern enum card_result MemCardCreateFile(enum memcard_channel channel,
+                                          char *name, s32 blocks);
+extern enum card_result MemCardDeleteFile(enum memcard_channel channel,
+                                          char *path);
+extern enum card_result MemCardReadFile(enum memcard_channel channel,
+                                        char *name, void *data, s32 offset,
+                                        s32 size);
+extern enum card_result MemCardWriteFile(enum memcard_channel channel,
+                                         char *name, void *data, s32 offset,
+                                         s32 size);
+extern enum card_result MemCardFormat(enum memcard_channel channel);
+extern s32 MemCardSync(enum memcard_sync_mode mode, s32 *command,
+                       enum card_result *result);
+
+extern void SaveSI(enum save_storage storage, u8 *name, void *data, s32 size);
+extern void *LoadSI(enum save_storage storage, u8 *name);
 
 /* MEMCARD.C-private originally; extern because that source is split here. */
 extern unsigned char *TENCHU_ID;
