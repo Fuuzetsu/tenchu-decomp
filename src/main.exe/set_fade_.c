@@ -63,7 +63,7 @@ found:
     fade = &ef->param.fade;
     fade->g = g;
     fade->b = b;
-    fade->mode = 0;
+    fade->mode = FADE_MODE_IN;
     start_time = GameClock;
     fade->priority = priority;
     fade->start_time = start_time;

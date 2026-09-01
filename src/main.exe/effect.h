@@ -89,7 +89,8 @@ struct TexScroll /* size 24 */
 
 /* BloodType.mode runs the same four phases as GoreType.mode: airborne
  * until it lands, then spread, linger, and fade out. */
-enum
+typedef u8 blood_mode;
+enum blood_mode
 {
     BLOOD_MODE_AIRBORNE = 0,
     BLOOD_MODE_SPREAD = 1,
@@ -113,7 +114,7 @@ struct BloodType /* size 36 */
      * consume a halfword fade plus separate sprite and phase bytes. */
     u16 brightness; /* +0x20 — retail halfword fade/brightness */
     u8 sprite;      /* +0x22 — sprBlood/sprBloodStay selection */
-    u8 mode;        /* +0x23 — retail draw phase */
+    blood_mode mode; /* +0x23 — retail draw phase */
 };
 
 struct BleedType /* size 32 */
@@ -129,7 +130,8 @@ struct BleedType /* size 32 */
 
 /* SplashType.mode: the first frame spawns the droplet burst, then the
  * column rises over `speed` frames and collapses again over another. */
-enum
+typedef u8 splash_mode;
+enum splash_mode
 {
     SPLASH_MODE_SPAWN = 0,
     SPLASH_MODE_RISE = 1,
@@ -145,7 +147,14 @@ struct SplashType /* size 20 */
     short sy; /* +0xe */
     u8 speed; /* +0x10 */
     u8 count; /* +0x11 */
-    u8 mode;  /* +0x12 */
+    splash_mode mode; /* +0x12 */
+};
+
+typedef u8 frame_mode;
+enum frame_mode
+{
+    FRAME_MODE_FLASH = 0,
+    FRAME_MODE_FADE = 1
 };
 
 struct FrameType /* size 24 */
@@ -156,12 +165,13 @@ struct FrameType /* size 24 */
     long pz;              /* +0xc */
     short size;           /* +0x10 */
     short count;          /* +0x12 */
-    u8 mode;              /* +0x14 */
+    frame_mode mode;      /* +0x14 */
 };
 
 /* ExplosionType.mode: the flash frame and the fireball both grow, on two
  * different sprites; the last phase shrinks and alpha-fades out. */
-enum
+typedef u8 explosion_mode;
+enum explosion_mode
 {
     EXPLOSION_MODE_FLASH = 0,
     EXPLOSION_MODE_EXPAND = 1,
@@ -179,13 +189,14 @@ struct ExplosionType /* size 36 (aka HinokoType — reference/psxsym-types.h
     long rotate; /* +0x18 */
     long scale;  /* +0x1c */
     u8 time;     /* +0x20 */
-    u8 mode;     /* +0x21 */
+    explosion_mode mode; /* +0x21 */
 };
 
 /* GoreType.mode: SetGore launches a gob airborne, DrawGore walks it the
  * rest of the way -- on landing it spreads into a pool, sits for a while,
  * then fades its brightness to nothing and releases the slot. */
-enum
+typedef u8 gore_mode;
+enum gore_mode
 {
     GORE_MODE_AIRBORNE = 0,
     GORE_MODE_SPREAD = 1,
@@ -199,7 +210,7 @@ struct GoreType /* size 32 */
     SVECTOR vec; /* +0x10 */
     long col;    /* +0x18 */
     u8 time;     /* +0x1C */
-    u8 mode;     /* +0x1D */
+    gore_mode mode; /* +0x1D */
 };
 
 struct SmokeType /* size 0x24; PSX.SYM supplies every demo member/name, and
@@ -216,6 +227,13 @@ struct SmokeType /* size 0x24; PSX.SYM supplies every demo member/name, and
 
 typedef struct FlyWireType FlyWireType;
 
+typedef u8 flywire_mode;
+enum flywire_mode
+{
+    FLYWIRE_MODE_EXTEND = 0,
+    FLYWIRE_MODE_STRAIGHTEN = 1
+};
+
 struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
                     * proven by DrawFlyWire/SetFlyWire */
 {
@@ -225,7 +243,7 @@ struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
     VECTOR NCenter; /* +0x30 */
     short count;    /* +0x40 */
     short time;     /* +0x42 */
-    u8 mode;        /* +0x44 */
+    flywire_mode mode; /* +0x44 */
 };
 
 /* Retail-only full-screen fade state, proven jointly by set_fade_ and its
@@ -235,7 +253,8 @@ struct FlyWireType /* fields through 0x44, naturally rounded to size 0x48;
  * not PSX.SYM's standalone POLY_XF4 drawing helper. */
 /* FadeType.mode: ramp the colour up over `duration`, hold it, then ramp
  * it back down and release the slot. */
-enum
+typedef u8 fade_mode;
+enum fade_mode
 {
     FADE_MODE_IN = 0,
     FADE_MODE_HOLD = 1,
@@ -250,7 +269,7 @@ struct FadeType /* size 20 */
     long priority;   /* +0x04 */
     long start_time; /* +0x08 */
     long end_time;   /* +0x0C */
-    u8 mode;         /* +0x10 */
+    fade_mode mode;  /* +0x10 */
 };
 
 union EffectParam /* size 72 (union EFFECT__180fake) */

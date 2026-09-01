@@ -94,7 +94,7 @@ found:
     fp->px = pos->vx;
     fp->py = pos->vy;
     z = pos->vz;
-    fp->mode = 0;
+    fp->mode = FRAME_MODE_FLASH;
     fp->size = size;
     fp->count = time;
     fp->pz = z;

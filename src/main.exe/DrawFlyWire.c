@@ -28,9 +28,7 @@ void DrawFlyWire(TEffectSlot *ef)
 {
     enum
     {
-        FLYWIRE_MODE_EXTEND = 0,
-        FLYWIRE_MODE_STRAIGHTEN = 1,
-        m = 5
+        FLYWIRE_STRAIGHTEN_FRAMES = 5
     };
     FlyWireType *param;
     VECTOR pos;
@@ -69,14 +67,20 @@ void DrawFlyWire(TEffectSlot *ef)
          * mismatches; measured). */
         memset(&tmp, 0, sizeof(VECTOR));
         count = param->count;
-        tmp.vx = ((param->center.vx * (m - count)) + (param->NCenter.vx * count)) / m;
+        tmp.vx = ((param->center.vx * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +
+                  (param->NCenter.vx * count)) /
+                 FLYWIRE_STRAIGHTEN_FRAMES;
         count = param->count;
-        tmp.vy = ((param->center.vy * (m - count)) + (param->NCenter.vy * count)) / m;
+        tmp.vy = ((param->center.vy * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +
+                  (param->NCenter.vy * count)) /
+                 FLYWIRE_STRAIGHTEN_FRAMES;
         count = param->count;
-        tmp.vz = ((param->center.vz * (m - count)) + (param->NCenter.vz * count)) / m;
+        tmp.vz = ((param->center.vz * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +
+                  (param->NCenter.vz * count)) /
+                 FLYWIRE_STRAIGHTEN_FRAMES;
         pos = tmp;
         SetWire(&param->start, &param->end, &pos, FIXED_ONE);
-        if (param->count >= m)
+        if (param->count >= FLYWIRE_STRAIGHTEN_FRAMES)
         {
             ef->proc = 0;
         }

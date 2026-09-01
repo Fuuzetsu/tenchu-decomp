@@ -111,8 +111,6 @@ void DrawFrame(TEffectSlot *ef)
 {
     enum
     {
-        FRAME_MODE_FLASH = 0,
-        FRAME_MODE_FADE = 1,
         FRAME_FLASH_LEVEL = 0x80
     };
     FrameType *param = &ef->param.frame;

@@ -78,7 +78,7 @@ found:
     param->start = *start;
     param->end = *end;
     param->count = 0;
-    param->mode = 0;
+    param->mode = FLYWIRE_MODE_EXTEND;
 
     {
         VECTOR *v1;
