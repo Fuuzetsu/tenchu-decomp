@@ -1,11 +1,12 @@
 #ifndef TENCHU_MUSIC_H
 #define TENCHU_MUSIC_H
 
-/* Logical ids stored in event data and MusicIDTable. The names through
+/* Logical ids stored in event data and MusicIdByTrack. The names through
  * STAGE_OPEN8A are the original demo enum. Retail's stage-10/11 ESD roots
- * request 126/127 (MUSIC_EVENT_ID_BASE + 26/27), and MusicIDTable maps those
- * ids onto the two physical rows immediately after STAGE9. Id 30 is also a
- * retail addition, but its precise track identity has not survived. */
+ * request 126/127 (MUSIC_EVENT_ID_BASE + 26/27), and MusicIdByTrack maps those
+ * ids onto the two physical rows immediately after STAGE9. Retail id 30 is
+ * Onikage's fight theme: STAGE4/7/8.ESD request event cue 130 at his three
+ * encounters, which maps to MUSIC.XA channel 2 through the final table row. */
 typedef enum MusicId MusicId;
 enum MusicId
 {
@@ -37,10 +38,10 @@ enum MusicId
     MUSIC_ID_STAGE_OPEN8A = 25,
     MUSIC_ID_STAGE10 = 26,
     MUSIC_ID_STAGE11 = 27,
-    MUSIC_ID_RETAIL_30 = 30
+    MUSIC_ID_ONIKAGE = 30
 };
 
-/* Physical rows in retail's XA MusicTable. MusicIDTable maps the logical ids
+/* Physical rows in retail's XA MusicTable. MusicIdByTrack maps the logical ids
  * above onto these rows. */
 typedef enum MusicTrack MusicTrack;
 enum MusicTrack
@@ -63,7 +64,7 @@ enum MusicTrack
     MUSIC_TRACK_CHARA = 15,
     MUSIC_TRACK_BARMAR = 16,
     MUSIC_TRACK_MEIOU = 17,
-    MUSIC_TRACK_RETAIL_30 = 18,
+    MUSIC_TRACK_ONIKAGE = 18,
     MUSIC_TRACK_COUNT = 19
 };
 
@@ -123,8 +124,10 @@ struct TVoiceTable
 }; /* 0x06 */
 
 extern TMusicTable MusicTable[MUSIC_TRACK_COUNT];
+/* Physical track -> logical MusicId, followed by SOUND_TABLE_END. */
+extern u8 MusicIdByTrack[MUSIC_TRACK_COUNT + 1];
 extern void _PlayMusic(int cue, int mode);
 extern void PlayVoice(int id);
-extern void PlayMusicFormID(s32 id);
+extern void PlayMusicFormID(s32 event_audio_id);
 
 #endif
