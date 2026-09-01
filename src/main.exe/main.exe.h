@@ -155,7 +155,7 @@ enum
 };
 
 extern TEnemyLayout enemy[MAX_ENEMIES];
-extern TStageConfig StageConfig[];
+extern TStageConfig StageConfig[N_STAGE_CONFIGS];
 extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;

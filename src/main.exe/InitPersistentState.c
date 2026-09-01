@@ -18,7 +18,7 @@
 /*
  * InitPersistentState (0x80016134) — if the persistent-state blob at
  * 0x80010000 is uninitialised or corrupt (CHOSEN_CHARACTER has any bit but
- * bit0 set, or CHOSEN_STAGE is out of range >10), wipe it (memset 0xE70) and
+ * bit0 set, or CHOSEN_STAGE is outside StageConfig), wipe it (memset 0xE70) and
  * seed it with defaults: magic 0x19981110 at offset 0, audio/config bytes,
  * StageNoMAX[2], the per-character shop-stock row 0 (0xFE-filled then
  * patched), a copy of that row into char 1's slot, the default item counts,
@@ -62,7 +62,7 @@ s32 InitPersistentState(void)
 
     /* CharType is 0 or 1 (Rikimaru/Ayame), so any higher bit means the
      * saved slot is corrupt. */
-    if ((pg->CharType & ~1) != 0 || pg->StageNo > 10)
+    if ((pg->CharType & ~1) != 0 || pg->StageNo >= N_STAGE_CONFIGS)
     {
         memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
                TENCHU_PERSISTENT_STATE_SIZE);

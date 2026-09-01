@@ -1005,6 +1005,10 @@ enum
     STAGE_FREE_PRINCESS = 10
 };
 
+/* Number of physical mission configurations indexed by StageNo. Stage uid
+ * is a separate ordering used by the score/unlock tables. */
+#define N_STAGE_CONFIGS (STAGE_FREE_PRINCESS + 1)
+
 /* Each stage has three authored layouts. A saved value outside that range
  * asks CreateStage to choose one at random; menus use the byte sentinel. */
 #define N_STAGE_LAYOUTS 3

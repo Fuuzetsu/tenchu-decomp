@@ -66,7 +66,7 @@
  * the retail instruction schedule and ordinary relocations.
  */
 
-extern s32 MusicByStage[11]; /* music id by stage */
+extern s32 MusicByStage[N_STAGE_CONFIGS]; /* music id by stage */
 /* declared as an unknown-size array ON PURPOSE: not-small -> split-address
  * (lui+lo_sum through an allocated reg), where BIS's scalar `extern u8`
  * spelling would be sdata-flagged and become a $at macro store */
@@ -119,7 +119,7 @@ void FileOption(void)
     typedef union FileOptionWork
     {
         u8 bytes[ENESIZE + ITEMSIZE];
-        s32 music_by_stage[11];
+        s32 music_by_stage[N_STAGE_CONFIGS];
         struct
         {
             TAdtSelect targets[N_MUSIC_IDS + 1];

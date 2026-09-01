@@ -99,7 +99,7 @@ void CreateStage(int StageNo, int CharType)
     s32 py;
     s32 pz;
 
-    if ((u32)StageNo >= 11)
+    if ((u32)StageNo >= N_STAGE_CONFIGS)
     {
         AdtMessageBox(fmt_illigal_stage_id, StageNo);
         return;

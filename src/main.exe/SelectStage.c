@@ -19,8 +19,8 @@
 /*
  * SelectStage (0x8005c404) — builds language, character, and stage debug
  * menus, then writes the selected values into the caller's persistent-state
- * record. A stage selection above 10 is the menu's retry entry, so all three
- * prompts repeat until a real stage is chosen.
+ * record. A selection outside StageConfig is the menu's retry entry, so all
+ * three prompts repeat until a real stage is chosen.
  *
  * Matching notes:
  *  - Retail takes `TLinkInfo *ps`, despite the demo symbol's stale
@@ -28,8 +28,8 @@
  *    pointer in a0, and this body stores its three results at +0x5e/+4/+5.
  *  - The local declarations reproduce the full 0x500-byte working window:
  *    language[5] at sp+0x10, player[3] at sp+0x38, StageSelect[14] at sp+0x50,
- *    and name[11][100] at sp+0xc0. Their padding plus the saved-register
- *    area gives the target's 0x528 frame.
+ *    and name[N_STAGE_CONFIGS][100] at sp+0xc0. Their padding plus the
+ *    saved-register area gives the target's 0x528 frame.
  *  - Capturing `StageConfig[i].uid` once keeps it live across `sprintf` in
  *    s0 and lets both stage-entry stores reuse one computed address. Reading
  *    the field separately at each use was three instructions too long.
@@ -57,7 +57,7 @@ void SelectStage(TLinkInfo *ps)
     TAdtSelect language[5];
     TAdtSelect player[3];
     TAdtSelect StageSelect[14];
-    u8 name[11][100];
+    u8 name[N_STAGE_CONFIGS][100];
     s32 i;
     s32 uid;
 
@@ -66,7 +66,7 @@ void SelectStage(TLinkInfo *ps)
     i = 0;
     while (1)
     {
-        if (i >= 11)
+        if (i >= N_STAGE_CONFIGS)
         {
             break;
         }
@@ -77,7 +77,7 @@ void SelectStage(TLinkInfo *ps)
         i++;
     }
     StageSelect[i].name = str_back;
-    StageSelect[i].value = 11;
+    StageSelect[i].value = N_STAGE_CONFIGS;
     StageSelect[i + 1].name = NULL;
 
     do
@@ -85,5 +85,5 @@ void SelectStage(TLinkInfo *ps)
         ps->language = AdtSelect(str_language_select, language, 0);
         ps->CharType = AdtSelect(str_player_select, player, 0);
         ps->StageNo = AdtSelect(str_stage_select, StageSelect, 0);
-    } while (ps->StageNo > 10);
+    } while (ps->StageNo >= N_STAGE_CONFIGS);
 }
