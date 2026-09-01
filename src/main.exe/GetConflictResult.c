@@ -76,9 +76,9 @@
  *    lh of offset.pad (spelling it `pad < i` loads first — not a sched
  *    tie).
  *  - `model->id` is loaded TWICE, un-CSE'd (the DeleteConflict lhu-vs-lh
- *    split): `int id = model->id;` (lh — the `== -1` guard and the scan
- *    base id*0x78) and `short idx = model->id;` (lhu, narrowing — the
- *    post-loop result/position base). Different machine modes don't CSE.
+ *    split): `int id = model->id;` (lh — the CONFLICT_NONE guard and the
+ *    scan base id*0x78) and `short idx = model->id;` (lhu, narrowing —
+ *    the post-loop result/position base). Different machine modes don't CSE.
  *  - `if (index < 0)` is `sll a1,16; bgez` (short sign test); `i = 0;`
  *    sits before it so reorg fills the bgez delay slot, and `index = 0`
  *    cse-copies the zero (`move a2,a3`).

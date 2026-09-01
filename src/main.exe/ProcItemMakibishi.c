@@ -125,10 +125,11 @@ void ProcItemMakibishi(TItem *item)
 
     case MAKIBISHI_MODE_ARMED:
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
-            i = -1;
+            i = CONFLICT_NONE;
         else
             i = GetConflictResult(item->locate, CONFLICT_NONE);
-        if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
+        if (i != CONFLICT_NONE &&
+            is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, RGB24(127, 0, 0));
             SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);

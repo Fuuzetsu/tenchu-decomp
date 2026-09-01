@@ -138,10 +138,10 @@ void ProcItemDrop(TItem *item)
 
     case DROP_MODE_WAIT:
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
-            i = -1;
+            i = CONFLICT_NONE;
         else
             i = GetConflictResult(item->locate, CONFLICT_NONE);
-        if (i == -1)
+        if (i == CONFLICT_NONE)
             return;
         human = (Humanoid *)ConflictObject[i].common;
         if (is_humanoid_on_stage_(human) == 0)
