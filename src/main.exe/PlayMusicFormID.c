@@ -37,9 +37,6 @@
    address in config/symbols.main.exe.txt (see the cookbook's drifted-D_
    note). */
 extern u8 MusicIDTable[];
-extern void PlayVoice(s32 id);
-extern void _PlayMusic(s32 id, s32 mode);
-
 void PlayMusicFormID(s32 id)
 {
     s32 MusicNo;

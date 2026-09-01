@@ -53,7 +53,6 @@ extern void *memset(void *s, int c, u32 n);
 extern s16 CVAupdate(void);
 extern void PadShock(s32 port, s32 power, s32 time);
 extern void PadProc(void);
-extern void PlayMusicFormID(s32 id);
 extern s32 CdaGetCurrentLength(void);
 extern s16 CVArun(void);
 extern void CdaStop(void);

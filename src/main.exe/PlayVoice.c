@@ -30,16 +30,6 @@
  *     extern unsigned char gSELevel;
  * END PSX.SYM */
 
-typedef struct TVoiceTable
-{
-    u8 no;      /* 0x0 */
-    u8 channel; /* 0x1 */
-    u8 smin;    /* 0x2 */
-    u8 ssec;    /* 0x3 */
-    u8 emin;    /* 0x4 */
-    u8 esec;    /* 0x5 */
-} TVoiceTable;  /* 0x6 */
-
 extern u8 CHOSEN_LANGUAGE;
 
 /* Retail retains VoiceXaName and adds one filename pointer per localization. */
@@ -48,16 +38,16 @@ extern u8 *VoiceXaNameF;
 extern u8 *VoiceXaNameI;
 extern u8 *VoiceXaNameJ;
 /* Per-language voice tables. */
-extern TVoiceTable *VoiceTables[N_LANGUAGES];
+extern TVoiceTable *EventVoiceTables[N_LANGUAGES];
 
-/* INTRO/TORA voice tables + their filenames (id ranges [100,200)/[200,300)). */
-extern TVoiceTable VoiceBank1[];
-extern TVoiceTable VoiceBank2[];
-extern u8 *VoiceFiles1;
-extern u8 *VoiceFiles2;
+/* The two non-localized banks and their literal INTRO.XA/TORA.XA paths. */
+extern TVoiceTable IntroVoiceTable[];
+extern TVoiceTable ToraVoiceTable[];
+extern u8 *IntroVoiceXaName;
+extern u8 *ToraVoiceXaName;
 
 /* Fallback (language/range-independent) voice table. */
-extern TVoiceTable VoiceCommon[]; /* fallback bank searched when no stage table matches */
+extern TVoiceTable CommonVoiceTable[];
 
 extern char fmt_bad_voice_no[];           /* bad voice no %d */
 extern char fmt_playvoice_fail_chan_id[]; /* playvoice fail %s  chan %d  id %d */
@@ -82,9 +72,9 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
 
 /*
  * MATCHED: PlayVoice (0x8004eee4, 756 bytes / 189 instructions) searches a
- * language table for ids below 100, VoiceBank1 for ids 100-199, or VoiceBank2
- * for higher ids,
- * then falls back to VoiceCommon using the first localized filename. A miss
+ * language EVENT table for ids below VOICE_ID_INTRO_BASE, IntroVoiceTable for
+ * ids 100-199, or ToraVoiceTable for higher ids, then falls back to
+ * CommonVoiceTable using the English EVENT filename. A miss
  * reports the id and stops CD audio.
  * A hit clamps gSELevel, restores the XA mix, converts the row's minute/second
  * pairs to start/end locations, and plays its channel; playback failure is
@@ -136,26 +126,26 @@ void PlayVoice(int id)
     CdlLOC start;
     CdlLOC end;
 
-    __builtin_memcpy(tables, VoiceTables, sizeof(tables));
+    __builtin_memcpy(tables, EventVoiceTables, sizeof(tables));
     memset(&start, 0, sizeof(start));
     memset(&end, 0, sizeof(end));
 
-    if (id >= 100)
+    if (id >= VOICE_ID_INTRO_BASE)
     {
-        if (id >= 200)
+        if (id >= VOICE_ID_TORA_BASE)
         {
-            voice = VoiceBank2;
-            id -= 200;
-            FileName = VoiceFiles2;
+            voice = ToraVoiceTable;
+            id -= VOICE_ID_TORA_BASE;
+            FileName = ToraVoiceXaName;
         }
         else
         {
-            voice = VoiceBank1;
-            FileName = VoiceFiles1;
-            id -= 100;
+            voice = IntroVoiceTable;
+            FileName = IntroVoiceXaName;
+            id -= VOICE_ID_INTRO_BASE;
         }
         match = 0;
-        if (voice->no != SOUND_TABLE_END)
+        if (voice->id != SOUND_TABLE_END)
         {
             do
             {
@@ -169,12 +159,12 @@ void PlayVoice(int id)
                     voice = next;
                 }
                 match = voice;
-                if (id == cursor->no)
+                if (id == cursor->id)
                     break;
                 next = cursor + 1;
                 voice = next;
-            } while (next->no != SOUND_TABLE_END);
-            if (id != cursor->no)
+            } while (next->id != SOUND_TABLE_END);
+            if (id != cursor->id)
                 match = 0;
         }
         goto found;
@@ -195,7 +185,7 @@ void PlayVoice(int id)
         voice = *voice_entry;
         FileName = *filename_entry;
         match = 0;
-        if (voice->no != SOUND_TABLE_END)
+        if (voice->id != SOUND_TABLE_END)
         {
             end_marker = SOUND_TABLE_END;
             cursor = voice;
@@ -217,30 +207,30 @@ void PlayVoice(int id)
                         cursor = next;
                     }
                 }
-                if (id == cursor->no)
+                if (id == cursor->id)
                     break;
                 cursor++;
                 match = 0;
-            } while (cursor->no != end_marker);
+            } while (cursor->id != end_marker);
         }
     }
 found:
     if (match == 0)
     {
-        fallback = VoiceCommon;
-        if (fallback->no != SOUND_TABLE_END)
+        fallback = CommonVoiceTable;
+        if (fallback->id != SOUND_TABLE_END)
         {
             fallback_end = SOUND_TABLE_END;
             cursor = fallback;
             do
             {
-                if (id == cursor->no)
+                if (id == cursor->id)
                 {
                     match = cursor;
                     goto found2;
                 }
                 cursor++;
-            } while (cursor->no != fallback_end);
+            } while (cursor->id != fallback_end);
         }
         match = 0;
     found2:
@@ -263,8 +253,8 @@ found:
         u8 min;
         u8 sec;
 
-        min = match->smin;
-        sec = match->ssec;
+        min = match->start_minute;
+        sec = match->start_second;
         BuildVoiceLocation(&start, min, sec);
     }
 
@@ -272,8 +262,8 @@ found:
         u8 min;
         u8 sec;
 
-        min = match->emin;
-        sec = match->esec;
+        min = match->end_minute;
+        sec = match->end_second;
         BuildVoiceLocation(&end, min, sec);
     }
 

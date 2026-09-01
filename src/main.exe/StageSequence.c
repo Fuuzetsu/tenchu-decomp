@@ -77,7 +77,6 @@ extern char fmt_num_bracket[]; /*  [%d] */
 extern char str_newline_3[];
 
 extern void UpdateEvent(s16 n, s16 id);
-extern void PlayMusicFormID(s32 id);
 extern s16 CVAsequence(s16 sid);
 
 s32 StageSequence(void)

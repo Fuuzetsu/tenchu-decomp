@@ -62,7 +62,6 @@ extern char path_font_tim[]; /* font.tim */
 extern s16 StageItem[];
 
 extern void vfree(void *ptr);
-extern void _PlayMusic(s32 music, s32 mode);
 extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);

@@ -1796,7 +1796,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097c98",
-      "source_owner": "VoiceFiles1",
+      "source_owner": "IntroVoiceXaName",
       "target_file": "207C.data.s",
       "target_address": "0x80012c74",
       "target_owner": "D_80012C68",
@@ -1805,7 +1805,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x80097c9c",
-      "source_owner": "VoiceFiles2",
+      "source_owner": "ToraVoiceXaName",
       "target_file": "207C.data.s",
       "target_address": "0x80012c8c",
       "target_owner": "D_80012C68",
@@ -1826,7 +1826,7 @@
       "source_owner": "VoiceXaNameF",
       "target_file": "207C.data.s",
       "target_address": "0x80012e9c",
-      "target_owner": "VoiceCommon",
+      "target_owner": "CommonVoiceTable",
       "symbol": "voice_event_french_xa_name"
     },
     {

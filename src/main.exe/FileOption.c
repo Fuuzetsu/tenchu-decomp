@@ -68,7 +68,7 @@
  * the retail instruction schedule and ordinary relocations.
  */
 
-extern s32 MusicByStage[N_STAGE_CONFIGS]; /* music id by stage */
+extern MusicTrack MusicByStage[N_STAGE_CONFIGS];
 /* declared as an unknown-size array ON PURPOSE: not-small -> split-address
  * (lui+lo_sum through an allocated reg), where BIS's scalar `extern u8`
  * spelling would be sdata-flagged and become a $at macro store */
@@ -88,13 +88,11 @@ extern void lePackEnemyLayout(void *buf, long size);
 extern void PackItemLayout(void *buf, long size);
 extern void load_save_slot_(enum save_storage storage, u8 *name);
 extern void InitializeImage(void);
-extern void _PlayMusic(s32 id, s32 mode);
 extern void CdaStop(void);
 extern void SetupStageSequence(void);
 extern void CVAsetup(void);
 extern void debug_menu_file_animation_test(void);
 extern void sprintf(char *s, char *fmt, ...);
-extern void PlayMusicFormID(s32 id);
 extern void load_layout(s32 no);
 
 void FileOption(void)
@@ -121,7 +119,7 @@ void FileOption(void)
     {
         LayoutSaveData layout;
         u8 bytes[sizeof(LayoutSaveData)];
-        s32 music_by_stage[N_STAGE_CONFIGS];
+        MusicTrack music_by_stage[N_STAGE_CONFIGS];
         struct
         {
             TAdtSelect targets[N_MUSIC_IDS + 1];

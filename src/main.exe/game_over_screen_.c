@@ -77,7 +77,6 @@ extern s32 VSync(s32 mode);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern int sprintf(char *buffer, char *format, ...);
 extern BackGround *load_background_(u_long *tim);
-extern void _PlayMusic(s32 music, s32 mode);
 extern short DrawBG(BackGround *bg);
 /* Retail's own prototype drift (def: u16 dir) -- byte-required. */
 extern void tile_sprite_(Sprite3D *sprite, s16 shade);

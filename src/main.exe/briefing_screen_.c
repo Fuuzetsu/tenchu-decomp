@@ -27,7 +27,7 @@ typedef struct
 {
     char *background;
     char *foreground;
-    u16 music;
+    u16 narration_cue; /* _PlayMusic's INTRO.XA cue namespace */
 } DemoScreenAssets;
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
@@ -45,7 +45,6 @@ extern void vfree(void *ptr);
 extern void clear_screen_(void);
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void exec_process_(s32 arg0);
-extern void _PlayMusic(s32 music, s32 mode);
 extern s32 CdaGetCurrentLength(void);
 extern short DrawBG(BackGround *bg);
 extern void draw_shade_quad_(u8 *ot, s32 r, s32 g, s32 b);
@@ -167,16 +166,18 @@ void briefing_screen_(void)
         case BRIEFING_START_MUSIC:
             if (fade_now == 0)
             {
-                s16 music;
+                s16 narration_cue;
 
-                music = BriefingAssets[PSTATE->language][PSTATE->StageNo].music;
+                narration_cue =
+                    BriefingAssets[PSTATE->language][PSTATE->StageNo]
+                        .narration_cue;
                 if (PSTATE->CharType == AYAME_0 && PSTATE->language == LANG_JAPANESE &&
                     (u32)(PSTATE->StageNo - STAGE_ID_RECLAIM_CASTLE) <=
                         STAGE_ID_FREE_PRINCESS - STAGE_ID_RECLAIM_CASTLE /* the && spelling double-reads the field */)
                 {
-                    music++;
+                    narration_cue++;
                 }
-                _PlayMusic(music, CDA_ONCE);
+                _PlayMusic(narration_cue, CDA_ONCE);
                 sequence = BRIEFING_WAIT_AUDIO;
             }
             break;

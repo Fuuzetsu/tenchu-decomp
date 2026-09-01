@@ -250,7 +250,7 @@ def draft_shape(name):
 GP_EXTERNS = {
     "vmemoryGC": ["virtual_memory_pool"],
     "ComputeAllConflict": ["ConflictObjects"],
-    "PlayVoice": ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "VoiceFiles2", "VoiceFiles1"],
+    "PlayVoice": ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "ToraVoiceXaName", "IntroVoiceXaName"],
     "PutStrain": ["StrainPhase"],
     "Think3hitaway": ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"],
     "Camera": ["Projection"],

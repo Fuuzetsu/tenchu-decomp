@@ -80,25 +80,12 @@
  * rematerializes sp+224/sp+232 instead of retaining two saved-register
  * aliases. That restores the original 264-byte frame and s0-s4 allocation.
  */
-/* Retail extends PSX.SYM's TMusicTable with an XA end time. */
-typedef struct TMusicTable
-{
-    u8 *file;   /* 0x0 */
-    u8 channel; /* 0x4 */
-    u8 min;     /* 0x5 */
-    u8 sec;     /* 0x6 */
-    u8 endmin;  /* 0x7 */
-    u8 endsec;  /* 0x8 */
-} TMusicTable;  /* 0xC */
-
-extern TMusicTable MusicTable[MUSIC_TRACK_COUNT];
 extern char msg_bad_music_no[];           /* "bad music no" */
 extern char fmt_xa_path[];                /* "\TENCHU\XA\%s;1" */
 extern char fmt_playmusic_fail_chan_id[]; /* "playmusic fail %s  chan %d  id %d" */
 
 extern void AdtMessageBox(char *fmt, ...);
 extern void CdaStop(void);
-extern void PlayVoice(s32 id);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void SsSetMVol(int voll, int volr);
 extern void set_cda_volume_(u8 voll, u8 volr);
@@ -123,8 +110,8 @@ void _PlayMusic(int MusicNo, int mode)
     u8 sec;
 
     if (MusicNo < 0 ||
-        (u32)(MusicNo - MUSIC_CUE_RESERVED_FIRST) <
-            MUSIC_CUE_RESERVED_COUNT)
+        (u32)(MusicNo - MUSIC_CUE_INVALID_FIRST) <
+            MUSIC_CUE_INVALID_COUNT)
     {
         AdtMessageBox(msg_bad_music_no, MusicNo);
         CdaStop();
@@ -132,9 +119,9 @@ void _PlayMusic(int MusicNo, int mode)
     else if (MusicNo >= MUSIC_TRACK_COUNT)
     {
         PlayVoice(MusicNo +
-                  (MusicNo >= MUSIC_CUE_EXTENDED_FIRST
-                       ? MUSIC_EXTENDED_VOICE_ID_OFFSET
-                       : MUSIC_VOICE_ID_OFFSET));
+                  (MusicNo >= MUSIC_CUE_TORA_FIRST
+                       ? MUSIC_TORA_VOICE_ID_OFFSET
+                       : MUSIC_NARRATION_VOICE_ID_OFFSET));
     }
     else
     {
@@ -143,12 +130,12 @@ void _PlayMusic(int MusicNo, int mode)
         SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
         set_cda_volume_(gSoundLevel, gSoundLevel);
 
-        min = music->min;
-        sec = music->sec;
+        min = music->start_minute;
+        sec = music->start_second;
         InitMusicLocation(&start, min, sec);
 
-        min = music->endmin;
-        sec = music->endsec;
+        min = music->end_minute;
+        sec = music->end_second;
         InitMusicLocation(&end, min, sec);
 
         if (CdaPlayXA(fname, &start, &end, music->channel, (s16)mode) == 0)

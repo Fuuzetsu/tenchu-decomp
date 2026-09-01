@@ -56,7 +56,6 @@ extern void clear_screen_(void);
 extern void mission_score_screen(s32 stage);
 extern BackGround *load_background_(u_long *tim);
 extern void vfree(void *ptr);
-extern void _PlayMusic(s32 music, s32 mode);
 extern short DrawBG(BackGround *bg);
 extern void draw_time_(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
 extern void DisposeBG(BackGround *background);
