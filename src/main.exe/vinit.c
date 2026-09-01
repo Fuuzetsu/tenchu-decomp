@@ -63,16 +63,16 @@
 
 void vinit(void *adr, u32 size)
 {
-    struct VMhead h;
+    struct VMhead vh;
 
     virtual_memory_pool = adr;
     if (adr == 0)
         virtual_memory_pool = VMEM_DEFAULT_POOL;
 
     if (size != 0)
-        h.size = (size >> 2) - 2;
+        vh.size = (size >> 2) - 2;
     else
-        h.size = VMEM_DEFAULT_CAPACITY;
-    h.next = 0;
-    *(struct VMhead *)virtual_memory_pool = h;
+        vh.size = VMEM_DEFAULT_CAPACITY;
+    vh.next = 0;
+    *(struct VMhead *)virtual_memory_pool = vh;
 }
