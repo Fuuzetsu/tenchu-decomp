@@ -97,7 +97,7 @@ void RestoreItemLayout(void *buf)
 loop2:
     if (i >= MAX_ITEMS)
         return;
-    if (slot->type != -1)
+    if (slot->type != ITEM_NONE)
     {
         PARAM_ITEM_STAY tmp;
 

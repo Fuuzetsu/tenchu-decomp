@@ -260,7 +260,7 @@ typedef struct PARAM_ITEM_STAY
  * respectively produce and consume this original PSX.SYM layout. */
 typedef struct TItemLayout
 {
-    s32 type;      /* 0x00 */
+    TItemType type; /* 0x00 */
     VECTOR locate; /* 0x04 */
 } TItemLayout;     /* 0x14 */
 

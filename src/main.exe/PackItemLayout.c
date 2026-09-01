@@ -24,7 +24,7 @@
  * PackItemLayout (0x8003d0bc, 0xb8 bytes) — serialize the 30-slot item pool
  * into a caller-provided save buffer (FileOption's save path): 0x14 bytes
  * per slot (type + world position of the item's ModelType, `coord.t[0..2]`),
- * or a sentinel -1 for an empty slot. Complains via AdtMessageBox if the
+ * or ITEM_NONE (-1) for an empty slot. Complains via AdtMessageBox if the
  * buffer is too small (proven < 600 by the retail `.s`'s `sltiu` compare
  * against 0x258).
  *
@@ -64,7 +64,7 @@
  *    right after the vx store is then used for vy/vz. Writing all four fields
  *    directly through `slot` compiles 2 bytes long (an extra `addiu` fills
  *    where the target reuses `locate`'s one materialization twice).
- *  - The empty-slot sentinel is a raw `-1` (Ghidra's `~ITEM_KAGINAWA` is
+ *  - The empty-slot sentinel is `ITEM_NONE` (-1; Ghidra's `~ITEM_KAGINAWA` is
  *    just how it renders the constant `~0` given `ITEM_KAGINAWA == 0`; the
  *    asm materializes it once, outside the loop, with `addiu $a3,$zero,-1`
  *    and reuses that register every empty-slot iteration).
@@ -106,7 +106,7 @@ void PackItemLayout(void *buf, s32 size)
             }
             else
             {
-                slot->type = -1;
+                slot->type = ITEM_NONE;
             }
             i++;
         } while (i < MAX_ITEMS);
