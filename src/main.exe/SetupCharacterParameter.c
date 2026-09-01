@@ -60,16 +60,15 @@
  *    the second loops "while not yet matched" (breaking early on the
  *    sentinel) — each a plain `while`, jump.c duplicating each loop's OWN
  *    continue-condition to the entry.
- *  - `HumanData[idx].life` is read ONCE into a temp and stored to both
- *    lifemax and life (one `lhu` feeding two `sh`s) — a plain two-statement
- *    transcription would reload it twice.
+ *  - The chained life/lifemax assignment reads `HumanData[idx].life` once
+ *    and stores lifemax before life (one `lhu` feeding two `sh`s). Two plain
+ *    assignments reload the table field.
  */
 
 Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
 {
     int idx;
     s16 *idtbl;
-    s16 life;
 
     idx = 0;
     while (HumanData[idx].type != -1)
@@ -88,9 +87,7 @@ Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
         SetupMotionRegist(HumanData[idx].mtbl);
     }
     human->motion = SetupMotionManager(human->model, HumanData[idx].mtbl);
-    life = HumanData[idx].life;
-    human->lifemax = life;
-    human->life = life;
+    human->life = human->lifemax = HumanData[idx].life;
 
     idx = -1;
     /* (u16): the sltiu range test is in the bytes. */
