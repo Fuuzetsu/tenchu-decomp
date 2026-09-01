@@ -115,34 +115,16 @@ void ProcItemNingyo(TItem *item)
         if (param->hp != NINGYO_HP)
         {
             s32 human_index;
-            s32 human_count;
-            Humanoid **human_cursor;
 
-            human_count = Humans;
-            if (human_count > 0)
+            for (human_index = 0; human_index < Humans; human_index++)
             {
-                s32 human_limit;
-                TCameraStatus *camera_state;
+                Humanoid *human;
 
-                do
+                human = HumanGroup[human_index];
+                if (human->target.model == item->locate)
                 {
-                    human_index = 0;
-                } while (0);
-                camera_state = &CamState;
-                human_limit = human_count;
-                human_cursor = HumanGroup;
-                do
-                {
-                    Humanoid *human;
-
-                    human = *human_cursor;
-                    if (human->target.model == item->locate)
-                    {
-                        human->target.archive = camera_state->Owner->model;
-                    }
-                    human_index++;
-                    human_cursor++;
-                } while (human_index < human_limit);
+                    human->target.archive = CamState.Owner->model;
+                }
             }
             NingyoCount--;
         }
@@ -323,10 +305,8 @@ void ProcItemNingyo(TItem *item)
         if ((u8)retarget_countdown == 0)
         {
             s32 human_index;
-            Humanoid **human_cursor;
 
             human_index = 0;
-            human_cursor = HumanGroup;
             while (1)
             {
                 Humanoid *human;
@@ -336,7 +316,7 @@ void ProcItemNingyo(TItem *item)
                 {
                     break;
                 }
-                human = *human_cursor;
+                human = HumanGroup[human_index];
                 distance_to_decoy = GetVectorDistance(
                     (VECTOR *)item->locate->locate.coord.t,
                     human->locate);
@@ -350,7 +330,6 @@ void ProcItemNingyo(TItem *item)
                 {
                     human->target.model = item->locate;
                 }
-                human_cursor++;
                 human_index++;
             }
             param->count = RETARGET_INTERVAL;
