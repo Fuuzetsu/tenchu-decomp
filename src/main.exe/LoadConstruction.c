@@ -461,7 +461,7 @@ short LoadConstruction(u_long *data)
         vfree(MapModel);
         i = 0;
         MapModel = PathFileRead(ImagePath, name);
-        ix = MODEL_ARCHIVE_PARENTING(MapModel);
+        ix = ((ModelArchiveFile *)MapModel)->parenting;
         mma = LoadOrnamentArchive(MapModel, &World);
 
         while (1)

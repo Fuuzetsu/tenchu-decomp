@@ -675,18 +675,6 @@ struct ModelArchiveFile
     ParentingType parenting[1]; /* 0x08, followed by linked TMD files */
 }; /* 0x18 + variable data */
 
-#define MODEL_ARCHIVE_BYTE_OFFSET(member) \
-    ((s32)&((ModelArchiveFile *)0)->member)
-#define MODEL_ARCHIVE_CURSOR_ADVANCE(cursor, from, to)                      \
-    ((u_long *)((s32)(cursor) + MODEL_ARCHIVE_BYTE_OFFSET(to) -             \
-                MODEL_ARCHIVE_BYTE_OFFSET(from)))
-#define MODEL_ARCHIVE_SIGNED_COUNT(cursor) \
-    (((ModelArchiveCount *)(cursor))->signed_count)
-#define MODEL_ARCHIVE_UNSIGNED_COUNT(cursor) \
-    (((ModelArchiveCount *)(cursor))->unsigned_count)
-#define MODEL_ARCHIVE_PARENTING(file)                                      \
-    ((ParentingType *)((s32)(file) + MODEL_ARCHIVE_BYTE_OFFSET(parenting)))
-
 /* Model and humanoid attributes are signed 16-bit flag words. Keep their
  * storage types separate from the four-byte enums that name their bits. */
 typedef s16 ModelAttribute;

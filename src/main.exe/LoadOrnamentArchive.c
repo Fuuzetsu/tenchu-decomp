@@ -60,9 +60,9 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     }
     mad = (OrnamentArchiveType *)valloc(sizeof(OrnamentArchiveType));
     mad->data = adr;
-    adr = MODEL_ARCHIVE_CURSOR_ADVANCE(adr, signature, count);
-    mad->n = MODEL_ARCHIVE_UNSIGNED_COUNT(adr);
-    adr = MODEL_ARCHIVE_CURSOR_ADVANCE(adr, count, parenting);
+    adr++;
+    mad->n = ((ModelArchiveCount *)adr)->unsigned_count;
+    adr++;
     i = 0;
     uncachedSegment = PSX_KSEG1_BASE;
     mad->object =
