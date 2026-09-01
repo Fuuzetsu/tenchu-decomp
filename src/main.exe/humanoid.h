@@ -187,7 +187,8 @@ extern short SetNowMotion(struct Humanoid *human, motion_id mid,
 extern short ControlTraceLine(struct Humanoid *human);
 extern struct Humanoid *GetHumanoid(character_kind type);
 extern struct Humanoid *GetNearestHumanoid(struct Humanoid *human, short distance);
-extern short SearchTarget(struct Humanoid *human, long *distance, short *degree);
+extern search_result SearchTarget(struct Humanoid *human, long *distance,
+                                  short *degree);
 extern struct TraceLine *SetupTraceLine(struct Humanoid *human,
                                         struct TracePoint *point);
 extern void MoveHumanoid(struct Humanoid *human, short ordr, short side);

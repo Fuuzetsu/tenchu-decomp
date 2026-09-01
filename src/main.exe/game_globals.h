@@ -64,7 +64,7 @@ enum
     SR_SEEN = 1,    /* clear sight (inside clear_distance) */
     SR_GLIMPSE = 2  /* perceived beyond clear distance (the "?" case) */
 };
-extern short SR;
+extern search_result SR;
 extern PADtype *Pad;
 /* Retail stores a leading NULL followed by one pointer per stage
  * configuration. stage1appearance through stage9appearance retain PSX.SYM's

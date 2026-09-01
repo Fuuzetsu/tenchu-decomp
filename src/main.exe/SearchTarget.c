@@ -62,7 +62,7 @@ typedef struct
  * every enemy's perception ranges by roughly a quarter. */
 extern SearchSight searchsight[];
 
-short SearchTarget(Humanoid *human, long *distance, short *degree)
+search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 {
     VECTOR vect;
     VECTOR position;

@@ -78,7 +78,7 @@ s16 Think1target(void)
         return pad;
     }
 
-    SR = -1;
+    SR = SR_UNSEEN;
     if ((GameClock & 0x1f) == 0)
     {
         s32 dy;

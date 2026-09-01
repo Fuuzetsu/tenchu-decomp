@@ -29,7 +29,7 @@ s16 Think1sleep(void)
     pad = 0;
     if (mmp->mid == MOT_ACTION)
     {
-        SR = -1;
+        SR = SR_UNSEEN;
     }
     else if (mmp->count == 0)
     {
