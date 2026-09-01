@@ -289,13 +289,13 @@ void ProcItemNingyo(TItem *item)
         } while (0);
         conflict->common.tag = CONFLICT_OWNER_ITEM;
         conflict_class = CONFLICT_STAND | CONFLICT_SOFT;
-        conflict->offset.vx = 0;
-        conflict->offset.vz = 0;
-        conflict->offset.vy = collision_offset_y;
-        conflict->size.vz = collision_size;
-        conflict->size.vy = collision_size;
-        conflict->size.vx = collision_size;
-        conflict->size.pad = conflict_class;
+        conflict->offset.components.x = 0;
+        conflict->offset.components.z = 0;
+        conflict->offset.components.y = collision_offset_y;
+        conflict->size.components.z = collision_size;
+        conflict->size.components.y = collision_size;
+        conflict->size.components.x = collision_size;
+        conflict->size.components.class_flags = conflict_class;
         item->collision.mode = conflict_class;
         item->collision.size = collision_size;
         item->collision.ofsY = collision_offset_y;
@@ -363,7 +363,7 @@ void ProcItemNingyo(TItem *item)
 
             conflict_pool = ConflictObject;
             conflict = &conflict_pool[conflict_id];
-            conflict_class = conflict->size.pad;
+            conflict_class = conflict->size.components.class_flags;
             if (conflict_class == CONFLICT_HIT)
             {
                 if (param->hp == 0)

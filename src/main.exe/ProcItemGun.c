@@ -25,7 +25,7 @@
  *    argument via `param->vec`, with no intervening call; ITEM_MODE_DISPOSE → $v1, used by
  *    the entry compare and case 2's `item->mode = ITEM_MODE_DISPOSE`).
  *  - The switch INDEX register ($s2) is callee-saved and reused inside case 1
- *    as the source of every `= 1` store (common/size.pad/collision.mode): cse's
+ *    as the source of every `= 1` store (common/class flags/collision.mode): cse's
  *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
  *    and the constant-register equivalence survives the calls. Plain literal
  *    `1`s in the source produce it — do NOT hand-substitute a variable.

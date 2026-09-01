@@ -29,7 +29,7 @@
  * (SVECTOR) identity constants exactly like InsertConflict.c/
  * DeleteConflict.c, clear each slot's retail-expanded 80-byte `.result`,
  * then clear ConflictModel/ConflictDistance/
- * ConflictObjects. `.offset`/`.size = UnitVector;` are plain SVECTOR struct
+ * ConflictObjects. The `.vector = UnitVector` writes are plain SVECTOR struct
  * assignments (align-2 lwl/lwr+swl/swr); Ghidra's SUB42/uVar4 byte-shuffle
  * rendering is that same idiom (cookbook "Stack objects": cast-type
  * alignment drives copy code), not a manual field-by-field copy.
@@ -50,8 +50,8 @@ void InitConflict(void)
         ConflictObject[i].model = 0;
         ConflictObject[i].common.tag = CONFLICT_OWNER_NONE;
         ConflictObject[i].position = UnitVector2;
-        ConflictObject[i].offset = UnitVector;
-        ConflictObject[i].size = UnitVector;
+        ConflictObject[i].offset.vector = UnitVector;
+        ConflictObject[i].size.vector = UnitVector;
         memset(ConflictObject[i].result, 0, sizeof(ConflictObject[i].result));
     }
     ConflictModel = 0;

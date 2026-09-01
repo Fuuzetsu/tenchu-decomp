@@ -56,7 +56,7 @@
  *                  stops random-walking, Think2contact/StateTransition stop
  *                  when pushing against it, ChasetoTarget gives up
  *   ATTR_HIT      0x4000 — inside a weapon/projectile hitbox: every
- *                  size.pad=CONFLICT_HIT slot is created by an attack
+ *                  CONFLICT_HIT-class slot is created by an attack
  *                  (ActATTACK's swing, the gun/launcher/happou/napalm
  *                  projectiles), and the resolver saves the slot index in
  *                  vector.pad. StateTransition reacts with the startle

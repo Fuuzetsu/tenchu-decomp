@@ -98,14 +98,15 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
         w = PitfallData[param->type].HitSize;
         conflict_id = InsertConflict(param->locate);
-        ConflictObject[conflict_id].offset.vx = 0;
-        ConflictObject[conflict_id].offset.vy = 0;
-        ConflictObject[conflict_id].offset.vz = 0;
+        ConflictObject[conflict_id].offset.components.x = 0;
+        ConflictObject[conflict_id].offset.components.y = 0;
+        ConflictObject[conflict_id].offset.components.z = 0;
         ConflictObject[conflict_id].common.tag = CONFLICT_OWNER_DOOR;
-        ConflictObject[conflict_id].size.pad = CONFLICT_SOFT;
-        ConflictObject[conflict_id].size.vx = w;
-        ConflictObject[conflict_id].size.vy =
-            ConflictObject[conflict_id].size.vz = (w / 3) * 2;
+        ConflictObject[conflict_id].size.components.class_flags =
+            CONFLICT_SOFT;
+        ConflictObject[conflict_id].size.components.x = w;
+        ConflictObject[conflict_id].size.components.y =
+            ConflictObject[conflict_id].size.components.z = (w / 3) * 2;
     }
         return;
 

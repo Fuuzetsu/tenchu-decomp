@@ -277,7 +277,8 @@ void ProcItemFire(TItem *item)
             }
             if (is_humanoid_on_stage_(
                     ConflictObject[cid].common.human) == 0 &&
-                ConflictObject[cid].size.pad != CONFLICT_HIT)
+                ConflictObject[cid].size.components.class_flags !=
+                    CONFLICT_HIT)
             {
                 return;
             }
@@ -309,19 +310,19 @@ void ProcItemFire(TItem *item)
 
         DeleteConflict(item->locate);
         conflict_id = InsertConflict(item->locate);
-        ConflictObject[conflict_id].offset.vx = 0;
-        ConflictObject[conflict_id].offset.vz = 0;
-        ConflictObject[conflict_id].offset.vy = 0;
-        ConflictObject[conflict_id].size.vz = 1500;
-        ConflictObject[conflict_id].size.vy = 1500;
-        ConflictObject[conflict_id].size.vx = 1500;
+        ConflictObject[conflict_id].offset.components.x = 0;
+        ConflictObject[conflict_id].offset.components.z = 0;
+        ConflictObject[conflict_id].offset.components.y = 0;
+        ConflictObject[conflict_id].size.components.z = 1500;
+        ConflictObject[conflict_id].size.components.y = 1500;
+        ConflictObject[conflict_id].size.components.x = 1500;
         /* This arm runs with mode == FIRE_MODE_EXPLODE. Retail reuses that
-         * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the size
-         * pad, and the collision mode below -- the same one-register trick
+         * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the conflict
+         * class, and the collision mode below -- the same one-register trick
          * as the file's other box and ProcItemArrow's. Separate named
          * constants load fresh immediates and do not match. */
         ConflictObject[conflict_id].common.tag = mode;
-        ConflictObject[conflict_id].size.pad = mode;
+        ConflictObject[conflict_id].size.components.class_flags = mode;
         item->collision.size = 1500;
         item->collision.ofsY = 0;
         item->collision.mode = mode;

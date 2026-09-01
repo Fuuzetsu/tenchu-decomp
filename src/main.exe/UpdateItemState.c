@@ -88,14 +88,14 @@ loop:
                         object = (ConflictObjectType *)(
                             (s32)conflict_id * sizeof(*object) +
                             (u32)conflicts);
-                        object->offset.vx = 0;
-                        object->offset.vz = 0;
-                        object->offset.vy = ofsY;
-                        object->size.vz = sz;
-                        object->size.vy = sz;
-                        object->size.vx = sz;
+                        object->offset.components.x = 0;
+                        object->offset.components.z = 0;
+                        object->offset.components.y = ofsY;
+                        object->size.components.z = sz;
+                        object->size.components.y = sz;
+                        object->size.components.x = sz;
                         object->common.tag = CONFLICT_OWNER_ITEM;
-                        object->size.pad = mode;
+                        object->size.components.class_flags = mode;
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;
                         item->collision.mode = mode;

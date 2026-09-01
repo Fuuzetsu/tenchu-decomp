@@ -54,13 +54,14 @@
         short conflict_size;                                                  \
                                                                               \
         conflict_id = InsertConflict(hand[hand_]);                            \
-        ConflictObject[conflict_id].offset = WeaponDB[wid].confp;             \
+        ConflictObject[conflict_id].offset.vector = WeaponDB[wid].confp;      \
         conflict_size = WeaponDB[wid].confp.pad;                              \
         owner = Me_MOTION_C;                                                  \
-        ConflictObject[conflict_id].size.pad = CONFLICT_HIT;                  \
-        ConflictObject[conflict_id].size.vz = conflict_size;                  \
-        ConflictObject[conflict_id].size.vy = conflict_size;                  \
-        ConflictObject[conflict_id].size.vx = conflict_size;                  \
+        ConflictObject[conflict_id].size.components.class_flags =             \
+            CONFLICT_HIT;                                                     \
+        ConflictObject[conflict_id].size.components.z = conflict_size;        \
+        ConflictObject[conflict_id].size.components.y = conflict_size;        \
+        ConflictObject[conflict_id].size.components.x = conflict_size;        \
         ConflictObject[conflict_id].common.human = owner;                     \
     }
 

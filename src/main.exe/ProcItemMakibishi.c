@@ -23,7 +23,7 @@
  *    "neither 0 nor 1", falling out of the switch reaches the shared draw
  *    tail directly — the SAME tail case 0/case 1 reach via `break`.
  *  - The value shared by KORO_WATER, `item->mode + 1`,
- *    `.common.tag = CONFLICT_OWNER_ITEM`, `.size.pad = CONFLICT_HIT`, and
+ *    `.common.tag = CONFLICT_OWNER_ITEM`, the conflict class, and
  *    `item->collision.mode = CONFLICT_HIT` stays live in one register. The
  *    mode increment is consequently `addu` (register), not `addiu`
  *    (immediate), across the DeleteConflict/InsertConflict calls.
@@ -33,8 +33,8 @@
  *    untouched since entry); the mode-1 path materializes a fresh
  *    ITEM_MODE_DISPOSE value since nothing carries `ITEM_MODE_DISPOSE` that far — same
  *    asymmetry as ProcItemKusuri's mode-2 vs mode-1 dispose.
- *  - Collision box field-store order (offset.vx/vz/vy, then size.vz/vy/vx,
- *    then common.tag, then size.pad) exactly mirrors ProcItemDrop's
+ *  - Collision box field-store order (offset x/z/y, then size z/y/x,
+ *    then common.tag, then class flags) exactly mirrors ProcItemDrop's
  *    KORO_GRAND/KORO_STAY case, just different numbers (100 not 0xb4,
  *    CONFLICT_HIT not CONFLICT_SOFT).
  */

@@ -28,7 +28,7 @@
  * live collision against `model`. `model->id` is its own slot in the pool; the
  * slot's `result[]` array flags which other slots it currently overlaps. When
  * `index < 0` the function SCANS result[0..ConflictObjects) for the next flagged
- * (nonzero) entry that has NOT already been consumed (bit 0x40); `offset.pad`
+ * (nonzero) entry that has NOT already been consumed (bit 0x40); `result_count`
  * caps how many flagged entries may be examined. When `index >= 0` that specific
  * slot is used directly. On a hit the slot is marked consumed (|= 0x40), the
  * inter-model delta is published to ConflictDistance and the other model to
@@ -71,9 +71,10 @@
  *    result==0 skip-branch taken, filling both skip delay slots from the
  *    continue-point (`addiu v0,a2,1` twice); a do-while has no VTOP, the EQ
  *    heuristic predicts not-taken, and the fills come from the fallthrough.
- *  - The pad cap is `i > ConflictObject[id].offset.pad` (`i` FIRST):
+ *  - The result-count cap is
+ *    `i > ConflictObject[id].offset.components.result_count` (`i` FIRST):
  *    expand evaluates op0 first, putting the short `i` sll before the
- *    lh of offset.pad (spelling it `pad < i` loads first — not a sched
+ *    lh of result_count (spelling it `result_count < i` loads first — not a sched
  *    tie).
  *  - `model->id` is loaded TWICE, un-CSE'd (the DeleteConflict lhu-vs-lh
  *    split): `int id = model->id;` (lh — the CONFLICT_NONE guard and the
@@ -94,8 +95,7 @@
 
 /* index CONFLICT_NONE walks the slot's result[] for the next unconsumed overlap,
  * marking it CONFLICT_CONSUMED and returning the partner's slot id —
- * giving up after offset.pad hits (the SVECTOR pad field doubling as
- * the per-wave hit budget). A non-negative index reads that specific
+ * giving up after result_count hits. A non-negative index reads that specific
  * partner entry directly (DamageControl). CONFLICT_NONE means no slot,
  * an inactive conflict, or nothing left. */
 conflict_id GetConflictResult(ModelType *model, conflict_id index)
@@ -127,7 +127,7 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
                 if (ConflictObject[id].result[index] != 0)
                 {
                     i++;
-                    if (i > ConflictObject[id].offset.pad)
+                    if (i > ConflictObject[id].offset.components.result_count)
                     {
                         goto ret_m1;
                     }

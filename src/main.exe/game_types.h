@@ -1047,13 +1047,14 @@ struct BattleType
  * the demo. Retail raises the slot limit to 80 (InsertConflict), clears 0x50
  * result bytes, and reserves 0x2580 bytes for 80 slots, proving that the old
  * result array grew to 80 rather than gaining sixteen bytes of padding. */
-/* ConflictObject slot class, stored in size.pad (and mirrored into
- * result[] entries together with the flags below when two slots overlap):
+/* ConflictObject slot class, stored beside the three size components (and
+ * mirrored into result[] entries together with the flags below when two
+ * slots overlap):
  *   CONFLICT_HIT   — a weapon/projectile hitbox (raises ATTR_HIT on touch)
  *   CONFLICT_STAND — the object's top can be stood on (resolver snaps the
  *                    character up and clears ATTR_PUSH | ATTR_FALL)
  *   CONFLICT_SOFT  — never pushes the character out (doors, sleep gas)
- * offset.pad doubles as GetConflictResult's per-wave hit budget.
+ * offset.result_count caps GetConflictResult's per-wave result scan.
  * result[] entries carry the partner's class bits plus:
  *   CONFLICT_LIVE     — overlap recorded this frame (ComputeAllConflict)
  *   CONFLICT_CONSUMED — already returned once by GetConflictResult */
@@ -1090,13 +1091,43 @@ enum conflict_result_flag
 };
 #define N_CONFLICT_OBJECTS 80
 
+/* The original fields were declared as SVECTORs, but CONFLICT.C gives each
+ * fourth halfword a domain value instead of treating it as padding. Keep the
+ * vector views for the original aggregate resets and RotTrans call while
+ * exposing the live metadata to ordinary field accesses. */
+typedef union ConflictOffset ConflictOffset;
+union ConflictOffset
+{
+    SVECTOR vector;
+    struct
+    {
+        s16 x;
+        s16 y;
+        s16 z;
+        s16 result_count;
+    } components;
+}; /* 0x08 */
+
+typedef union ConflictSize ConflictSize;
+union ConflictSize
+{
+    SVECTOR vector;
+    struct
+    {
+        s16 x;
+        s16 y;
+        s16 z;
+        s16 class_flags; /* enum conflict_class in halfword storage */
+    } components;
+}; /* 0x08 */
+
 typedef struct ConflictObjectType ConflictObjectType;
 struct ConflictObjectType
 {
     struct ModelType *model; /* 0x00 */
     VECTOR position;         /* 0x04 */
-    SVECTOR offset;          /* 0x14 */
-    SVECTOR size;            /* 0x1C */
+    ConflictOffset offset;   /* 0x14 */
+    ConflictSize size;       /* 0x1C */
     ConflictOwner common;    /* 0x24 */
     u8 result[N_CONFLICT_OBJECTS]; /* 0x28 */
 }; /* 0x78 */

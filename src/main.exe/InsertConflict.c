@@ -50,7 +50,8 @@
  *    sign-extended value (no return sll/sra); the raw u16 `cnt` (its own reg)
  *    feeds `model->id = cnt` (sh) and `cnt + 1`.
  *  - `.position = UnitVector2` is a 16-byte word-aligned VECTOR copy (4x lw/sw);
- *    `.offset`/`.size = UnitVector` are align-2 SVECTOR copies (lwl/lwr+swl/swr).
+ *    the offset/size `.vector = UnitVector` writes are align-2 SVECTOR copies
+ *    (lwl/lwr+swl/swr).
  *    access.py --order proves every position word is a full `sw`.
  */
 
@@ -80,8 +81,8 @@ conflict_id InsertConflict(ModelType *model)
     ConflictObject[idx].model = model;
     ConflictObject[idx].common.tag = CONFLICT_OWNER_NONE;
     ConflictObject[idx].position = UnitVector2;
-    ConflictObject[idx].offset = UnitVector;
-    ConflictObject[idx].size = UnitVector;
+    ConflictObject[idx].offset.vector = UnitVector;
+    ConflictObject[idx].size.vector = UnitVector;
     memset(ConflictObject[idx].result, 0, sizeof(ConflictObject[idx].result));
     model->id = cnt;
     model->attribute = (model->attribute | MODEL_ATTR_COLLIDE) & ~MODEL_ATTR_CONFLICT;

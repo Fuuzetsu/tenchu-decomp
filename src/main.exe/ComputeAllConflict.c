@@ -32,11 +32,13 @@ extern void *memset(void *s, int c, u32 n);
  * flagged "active" (attribute bit 0x4000). Pass 1 refreshes each active slot's
  * world-space `position` from its model (either directly, when the model's
  * coordinate hierarchy root IS World, or via GsGetLw/GsSetLsMatrix/RotTrans
- * otherwise) and clears its `result[]` row, `offset.pad` hit counter, and MODEL_ATTR_CONFLICT bit. Pass 2
+ * otherwise) and clears its `result[]` row, result counter, and
+ * MODEL_ATTR_CONFLICT bit. Pass 2
  * is the O(n^2) AABB overlap test (y, then z, then x — that axis order matches
  * the target) between every distinct pair of active slots; a hit stamps both
- * slots' `result[]` (the OTHER slot's `size.pad` byte, tagged with 0x80),
- * flags both models' attribute bit MODEL_ATTR_CONFLICT, and bumps both `offset.pad` counters.
+ * slots' `result[]` (the OTHER slot's class flags, tagged with 0x80),
+ * flags both models' attribute bit MODEL_ATTR_CONFLICT, and bumps both result
+ * counters.
  *
  * Matching notes:
  *  - `confop` and `model` (real PSX.SYM locals) belong to pass 1. Pass 2
@@ -83,19 +85,19 @@ void ComputeAllConflict(void)
         if (model->attribute & MODEL_ATTR_COLLIDE)
         {
             memset(confop->result, 0, sizeof(confop->result));
-            confop->offset.pad = 0;
+            confop->offset.components.result_count = 0;
             model->attribute &= ~MODEL_ATTR_CONFLICT;
             if (model->locate.super == &World.locate)
             {
-                confop->position.vx = model->locate.coord.t[0] + confop->offset.vx;
-                confop->position.vy = model->locate.coord.t[1] + confop->offset.vy;
-                confop->position.vz = model->locate.coord.t[2] + confop->offset.vz;
+                confop->position.vx = model->locate.coord.t[0] + confop->offset.components.x;
+                confop->position.vy = model->locate.coord.t[1] + confop->offset.components.y;
+                confop->position.vz = model->locate.coord.t[2] + confop->offset.components.z;
             }
             else
             {
                 GsGetLw(&model->locate, &mat);
                 GsSetLsMatrix(&mat);
-                RotTrans(&confop->offset, &confop->position, (long *)0);
+                RotTrans(&confop->offset.vector, &confop->position, (long *)0);
             }
         }
     }
@@ -111,21 +113,25 @@ void ComputeAllConflict(void)
                 if (other->model->attribute & MODEL_ATTR_COLLIDE)
                 {
                     d = __builtin_abs(other->position.vy - ConflictObject[i].position.vy);
-                    if (d <= ConflictObject[i].size.vy + other->size.vy)
+                    if (d <= ConflictObject[i].size.components.y + other->size.components.y)
                     {
                         d = __builtin_abs(other->position.vz - ConflictObject[i].position.vz);
-                        if (d <= ConflictObject[i].size.vz + other->size.vz)
+                        if (d <= ConflictObject[i].size.components.z + other->size.components.z)
                         {
                             d = __builtin_abs(other->position.vx - ConflictObject[i].position.vx);
-                            if (d <= ConflictObject[i].size.vx + other->size.vx)
+                            if (d <= ConflictObject[i].size.components.x + other->size.components.x)
                             {
-                                ConflictObject[i].result[j] = other->size.pad | CONFLICT_LIVE;
-                                ConflictObject[j].result[i] = ConflictObject[i].size.pad | CONFLICT_LIVE;
+                                ConflictObject[i].result[j] =
+                                    other->size.components.class_flags |
+                                    CONFLICT_LIVE;
+                                ConflictObject[j].result[i] =
+                                    ConflictObject[i].size.components.class_flags |
+                                    CONFLICT_LIVE;
                                 ConflictObject[i].model->attribute =
                                     ConflictObject[i].model->attribute | MODEL_ATTR_CONFLICT;
                                 other->model->attribute = other->model->attribute | MODEL_ATTR_CONFLICT;
-                                ConflictObject[i].offset.pad++;
-                                other->offset.pad++;
+                                ConflictObject[i].offset.components.result_count++;
+                                other->offset.components.result_count++;
                             }
                         }
                     }

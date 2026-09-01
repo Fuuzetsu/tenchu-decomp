@@ -58,8 +58,10 @@
  *    into the inner (status) tree's `case KORO_WATER` compare: one pseudo, live
  *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
  *    slot. Plain nested switches produce all of it — no source trick.
- *  - `collision_mode = CONFLICT_SOFT` feeding BOTH `size.pad` (sh) and `collision.mode` (sw) is
- *    load-bearing: written as literals, pad's 8 becomes an HImode pseudo and
+ *  - `collision_mode = CONFLICT_SOFT` feeding BOTH
+ *    `size.components.class_flags` (sh) and `collision.mode` (sw) is
+ *    load-bearing: written as literals, the class flag's 8 becomes an HImode
+ *    pseudo and
  *    a separate collision.mode literal becomes a second SImode pseudo (two
  *    `li`s, function one insn too long). cse can only reuse a WIDER-mode
  *    constant reg that already

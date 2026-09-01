@@ -96,16 +96,17 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     s16 w;
 
     cid = InsertConflict(param->locate);
-    ConflictObject[cid].offset.vx = 0;
+    ConflictObject[cid].offset.components.x = 0;
     t = DoorData[param->type].HitSize;
-    ConflictObject[cid].offset.vz = 0;
-    ConflictObject[cid].offset.vy = -t / 2;
+    ConflictObject[cid].offset.components.z = 0;
+    ConflictObject[cid].offset.components.y = -t / 2;
     w = DoorData[param->type].HitSize;
     ConflictObject[cid].common.tag = CONFLICT_OWNER_DOOR;
-    ConflictObject[cid].size.pad = CONFLICT_SOFT;
-    ConflictObject[cid].size.vy = w;
+    ConflictObject[cid].size.components.class_flags = CONFLICT_SOFT;
+    ConflictObject[cid].size.components.y = w;
     w = (w / 3) * 2;
-    ConflictObject[cid].size.vz = ConflictObject[cid].size.vx = w;
+    ConflictObject[cid].size.components.z =
+        ConflictObject[cid].size.components.x = w;
     param->r = 0;
     return;
 }
