@@ -39,11 +39,12 @@
  * images, and draw primitive used by the game's visual effects.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - Copying the table at `str_newline + 8` through the named `blood_src`
- *    pointer makes cc1 materialize the anchored +8 address before the two-word
- *    stack copy.  A direct member assignment folds the loads into
- *    the `%hi` base and does not match the target's `lui; addiu; lwl/lwr`
- *    sequence.
+ *  - BloodSpriteImageIds is the real eight-byte table immediately after the
+ *    effect cursor: four interleaved flying/stain image pairs. Referring to it
+ *    through the preceding data anchor preserves the retail instruction
+ *    schedule; taking its named address directly coalesces the address-forming
+ *    instructions and does not match. The linker map still names the actual
+ *    table, so the offset is isolated here rather than leaking into its users.
  *  - The blood image IDs must stay a flat byte array.  Indexing it with
  *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
  *    formed addresses; caching a row of a two-dimensional array does not.
@@ -61,17 +62,26 @@
  *    statements leaves the same semantics but swaps adjacent instructions.
  */
 
-typedef struct
+struct BloodSpriteImagePair
 {
-    u8 image[N_BLOOD_SPRITES * 2];
-} BloodImageIds;
+    u8 flying;
+    u8 stain;
+};
 
-/* "\n"; +4 is an independent effect-pool cursor, and the image table starts at +8. */
+union BloodSpriteImageCatalog
+{
+    struct BloodSpriteImagePair variant[N_BLOOD_SPRITES];
+    u8 packed[N_BLOOD_SPRITES * sizeof(struct BloodSpriteImagePair)];
+};
+
+extern union BloodSpriteImageCatalog BloodSpriteImageIds;
 extern char str_newline[];
-/* Retail extends EFFECT.C's original three-entry static image-ID table. */
-extern u8 Effect_img[MaxImpacts];
-extern ImageArchiveId EffectImages[N_EXPLOSION_SPRITES];
-extern ImageArchiveId pat[MaxFrames];
+#define BLOOD_SPRITE_IMAGE_CATALOG \
+    ((union BloodSpriteImageCatalog *)&str_newline[8])
+/* Indexed by impact_sprite and the BOMB_SPRITE_* selectors respectively. */
+extern u8 ImpactSpriteImageIds[MaxImpacts];
+extern ImageArchiveId ExplosionSpriteImageIds[N_EXPLOSION_SPRITES];
+extern ImageArchiveId FrameSpriteImageIds[MaxFrames];
 
 extern ModelType *BLOOD_POOL_MODEL_;
 extern s16 TexScrollX;
@@ -83,9 +93,9 @@ extern void reset_effects_(void);
 
 void InitEffect(void)
 {
-    BloodImageIds blood_images;
-    BloodImageIds *bloodp;
-    BloodImageIds *blood_src;
+    union BloodSpriteImageCatalog blood_images;
+    union BloodSpriteImageCatalog *blood_src;
+    union BloodSpriteImageCatalog *bloodp;
     ImageArchiveId smoke_images[N_SMOKE_SPRITES];
     ImageArchiveId smoke_id;
     ImageArchiveId img[N_EXPLOSION_SPRITES];
@@ -93,7 +103,7 @@ void InitEffect(void)
     GsIMAGE *image;
     s16 i;
 
-    blood_src = (BloodImageIds *)&str_newline[8];
+    blood_src = BLOOD_SPRITE_IMAGE_CATALOG;
     blood_images = *blood_src;
     i = 0;
     bloodp = &blood_images;
@@ -103,10 +113,10 @@ void InitEffect(void)
          * re-adds the base for the second element (addu/addu/lbu 0), where a
          * real 2D or paired-struct access folds it into the load as lbu 1.
          * Both spellings measured 24 lines off. */
-        image = GetImage(bloodp->image[i * 2]);
+        image = GetImage(bloodp->packed[i * 2]);
         InitSprite(image, &sprBlood[i]);
         sprBlood[i].attribute = GS_ATTR_SEMITRANS_ADD;
-        image = GetImage(bloodp->image[i * 2 + 1]);
+        image = GetImage(bloodp->packed[i * 2 + 1]);
         InitSprite(image, &sprBloodStay[i]);
         sprBloodStay[i].attribute = GS_ATTR_SEMITRANS_SUBTRACT;
     }
@@ -121,7 +131,7 @@ void InitEffect(void)
     {
         if (i >= MaxFrames)
             break;
-        image = GetImage(pat[i]);
+        image = GetImage(FrameSpriteImageIds[i]);
         InitSprite(image, &sprFrame[i]);
         sprFrame[i].attribute = GS_ATTR_SEMITRANS_ADD;
         i++;
@@ -132,7 +142,7 @@ void InitEffect(void)
     {
         if (i >= MaxImpacts)
             break;
-        image = GetImage(Effect_img[i]);
+        image = GetImage(ImpactSpriteImageIds[i]);
         InitSprite(image, &sprImpact[i]);
         sprImpact[i].attribute = GS_ATTR_SEMITRANS_ADD;
         i++;
@@ -176,7 +186,7 @@ void InitEffect(void)
         {
             if (i >= N_EXPLOSION_SPRITES)
                 break;
-            __builtin_memcpy(img, EffectImages, sizeof(img));
+            __builtin_memcpy(img, ExplosionSpriteImageIds, sizeof(img));
             image = GetImage(img[i]);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprBomb[i] = sprite;
