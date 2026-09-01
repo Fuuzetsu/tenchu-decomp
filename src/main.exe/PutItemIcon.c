@@ -29,6 +29,10 @@
  * Req/Proc item family indexes by it->type for `it->model`) rather than in
  * a standalone global: PSX.SYM's complete Sprite3D names the embedded
  * `sprite` field at +0x68.
+ *
+ * The local sprite pointer is load-bearing despite the demo inventory not
+ * recording it. Repeating `ItemImage[ItemID]->sprite` at every store and at
+ * GsSortSprite prevents the required base reuse and compiles 24 bytes longer.
  */
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
