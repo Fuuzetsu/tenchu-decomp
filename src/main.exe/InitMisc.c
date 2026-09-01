@@ -107,8 +107,6 @@ void InitMisc(void)
 
     {
         SpriteDataType *spr;
-        GsIMAGE *image;
-        Sprite3D *sprite;
         u32 attr;
 
         i = 0;
@@ -117,10 +115,9 @@ void InitMisc(void)
         do
         {
             i++;
-            image = GetImage((s32)spr->spr);
-            sprite = SetupSprite((Sprite3D *)0, image);
-            spr->spr = sprite;
-            sprite->sprite.attribute = attr;
+            spr->spr = SetupSprite((Sprite3D *)0,
+                                   GetImage((s32)spr->spr));
+            spr->spr->sprite.attribute = attr;
             spr->spr->scale = spr->scale;
             spr++;
         } while (i < N_MISC_SPRITE_TYPES);
