@@ -43,8 +43,9 @@
  *    distinct union member).
  *  - `rand() % 60 + 0x62` is one expression — the call stays inline so the
  *    magic-multiply divide operates directly on $v0 (cookbook: keep calls
- *    inline in expressions); only the finished grey level is held in a
- *    temp for the three channel stores.
+ *    inline in expressions). The `b = g = r = value` chain evaluates its
+ *    stores as r, g, b, reproducing retail without a source-level grey
+ *    carrier.
  */
 
 extern short DrawSprite(Sprite3D *sprt);
@@ -58,7 +59,6 @@ void ProcMiscSprite(TMisc *m, TMiscMessage msg)
 {
     s32 type;
     Sprite3D *s;
-    u8 grey;
 
     if (msg == MM_CREATE)
         goto do_create;
@@ -79,10 +79,7 @@ do_create:
 
 do_draw:
     s = SpriteData[m->param.sprite.type].spr;
-    grey = (u8)(rand() % 60 + 0x62);
-    s->sprite.r = grey;
-    s->sprite.g = grey;
-    s->sprite.b = grey;
+    s->sprite.b = s->sprite.g = s->sprite.r = (u8)(rand() % 60 + 0x62);
     s->locate.coord.t[0] = m->x;
     s->locate.coord.t[1] = m->y;
     s->locate.coord.t[2] = m->z;
