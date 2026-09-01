@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "timpack.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -51,10 +52,9 @@
  *   offers.)
  *
  * LoadTIMpack (0x800189b4, 0x114 bytes) — LoadTIM.c's "pack" twin (same TU):
- * a packed archive's header is `adr[1]` (the element COUNT, low halfword)
- * followed by a table of ulong byte-offsets (`adr+2`, one per element,
- * walked with a plain walking pointer since only one field is touched per
- * iteration); each offset locates a TIM whose own leading ID word is
+ * a packed archive's TIMPackIndex contains the element count followed by
+ * one byte offset per element (walked with a plain pointer since only one
+ * field is touched per iteration); each offset locates a TIM whose leading ID word is
  * skipped exactly like LoadTIM.c/GetTIMpackInfo.c ("skip the leading
  * u_long ID word" convention) before handing it to GsGetTimInfo, then the
  * SAME pixel-then-optional-CLUT LoadImage pair as LoadTIM.c's body,
@@ -65,7 +65,7 @@
  * once nothing downstream reads the high bits).
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `n` (adr[1], the pack's element count) is read via `lhu` and then
+ *  - `n` (TIMPackIndex.count) is read via `lhu` and then
  *    explicit `sll 16`/`sra 16` sign-extends it for the loop's signed
  *    compare — same "narrow field feeds a widen-and-scale/extend pair"
  *    shape as CreateCloneModelArchive.c's `n`.
@@ -74,8 +74,8 @@
  *    need not be truncated at every `i + 1`, only the compare needs the
  *    16-bit view, so a throwaway sign-extended copy feeds `slt`.
  *  - THE WALKER IS `adr` ITSELF, not the `p` copy. The address the loop
- *    hands GsGetTimInfo is `(int)base + table[k] + 4` where `base` (the fixed
- *    `adr+2` table origin) is constant and the table cursor advances — but the
+ *    hands GsGetTimInfo is `TIM_PACK_IMAGE(base, cursor)` where `base` (the
+ *    fixed offset-table origin) is constant and the table cursor advances — but the
  *    target keeps the INCOMING pointer register ($s0, from param `adr`) as the
  *    advancing cursor and saves the fixed base into a fresh callee reg ($s3).
  *    So write `adr` as the one that `adr = adr + 1`s each iteration and let
@@ -92,6 +92,7 @@ short LoadTIMpack(unsigned long *adr)
 {
     RECT rect;
     GsIMAGE tim;
+    TIMPackIndex *index;
     u_long *p;
     u16 hw;
     short n;
@@ -102,8 +103,9 @@ short LoadTIMpack(unsigned long *adr)
         SystemOut(msg_no_image_pack_data);
     }
     adr++;
-    hw = *(u16 *)adr;
-    adr++;
+    index = (TIMPackIndex *)adr;
+    hw = (u16)index->count;
+    adr = index->offsets;
     i = 0;
     n = (short)hw;
     p = adr;
@@ -111,7 +113,7 @@ short LoadTIMpack(unsigned long *adr)
     {
         do
         {
-            GsGetTimInfo((u_long *)((int)p + adr[0] + 4), &tim);
+            GsGetTimInfo(TIM_PACK_IMAGE(p, adr), &tim);
             setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
             LoadImage(&rect, tim.pixel);
             if ((tim.pmode >> 3 & 1) != 0)

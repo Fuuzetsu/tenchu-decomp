@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "timpack.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -19,9 +20,9 @@
 /*
  * GetTIMpackInfo (0x80018ae8) — index a TIM-pack's offset table (same
  * "skip the leading u_long ID word" convention as GetTIMInfo.c/LoadTIM.c):
- * `adr[1]` is the pack's element count, `adr+2` is the base of a table of
- * per-element byte offsets (relative to that same base, +4 more to skip
- * each element's own ID word) into the packed TIM data. Fails (returns 0)
+ * TIMPackIndex supplies the element count and a table of per-element byte
+ * offsets relative to that table; TIMPackEntry supplies the ID word skipped
+ * before the packed TIM data. Fails (returns 0)
  * for an out-of-range idx; otherwise walks the offset table to `idx` and
  * hands the located TIM to GsGetTimInfo.
  *
@@ -36,11 +37,14 @@
 short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
 {
     short i;
+    TIMPackIndex *index;
     u_long *cursor;
     u_long *offsets;
 
     adr++;
-    if (idx < 0 || (offsets = adr + 1, (int)adr[0] <= idx))
+    index = (TIMPackIndex *)adr;
+    if (idx < 0 ||
+        (offsets = index->offsets, (int)index->count <= idx))
     {
         return 0;
     }
@@ -54,6 +58,6 @@ short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
             cursor++;
         } while (i < idx);
     }
-    GsGetTimInfo((u_long *)((int)offsets + cursor[0] + 4), image);
+    GsGetTimInfo(TIM_PACK_IMAGE(offsets, cursor), image);
     return 1;
 }
