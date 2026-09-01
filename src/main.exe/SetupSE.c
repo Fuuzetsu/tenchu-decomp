@@ -21,8 +21,9 @@
  * is the function that ALLOCATES it (valloc(sizeof(SoundEffect))).
  *
  * Matching notes:
- *  - The 0x12 halfword is read once (u16, lhu) and used TWICE: scaled by
- *    512 (sign-extend+scale idiom, sll16/sra7 — cookbook toolchain
+ *  - VabHdr.ps is read once (u16, lhu) and used TWICE: scaled by
+ *    VAB_TONE_ATTRIBUTE_BYTES_PER_PROGRAM (sign-extend+scale idiom,
+ *    sll16/sra7 — cookbook toolchain
  *    gotchas' "ordinary matchable" 2-instruction class, not the blocked
  *    3-instruction one) for `size`, and stored raw into se->program.
  *  - se->VABid is RELOADED (not kept live in a register) for the
@@ -41,6 +42,7 @@ extern char msg_sound_setup_failure[]; /* SOUND SETUP FAILURE */
 
 SoundEffect *SetupSE(u8 *vab)
 {
+    VabHdr *header;
     SoundEffect *se;
     s32 size;
     u16 programs;
@@ -49,16 +51,16 @@ SoundEffect *SetupSE(u8 *vab)
     {
         return 0;
     }
+    header = (VabHdr *)vab;
     se = (SoundEffect *)valloc(sizeof(SoundEffect));
     se->VABid = SsVabOpenHead(vab, VAB_ID_AUTO);
     if (se->VABid == VAB_ID_ERROR)
     {
         SystemOut(msg_sound_setup_failure);
     }
-    programs = *(u16 *)(vab + 0x12);
-    /* Byte-required raw spelling: (s16)programs << 9 emits one sll; the target
-     * keeps the sll16/sra7 pair. Semantically programs * 0x200 + 0xA20. */
-    size = ((programs << 16) >> 7) + 0xA20;
+    programs = header->ps;
+    size = ((programs << 16) >> (16 - VAB_TONE_ATTRIBUTE_SHIFT)) +
+           VAB_FIXED_METADATA_SIZE;
     se->program = programs;
     SsVabTransBody(vab + size, se->VABid);
     SsVabTransCompleted(1);

@@ -1218,13 +1218,85 @@ typedef s16 vab_id;
 #define VAB_ID_AUTO (-1)
 #define VAB_ID_ERROR (-1)
 
-struct VabHdr;
+/* PsyQ VAB header tables recovered from PSX.SYM. */
+typedef struct VabHdr VabHdr;
+struct VabHdr
+{
+    s32 form;      /* 0x00 */
+    s32 ver;       /* 0x04 */
+    s32 id;        /* 0x08 */
+    u32 fsize;     /* 0x0C */
+    u16 reserved0; /* 0x10 */
+    u16 ps;        /* 0x12 */
+    u16 ts;        /* 0x14 */
+    u16 vs;        /* 0x16 */
+    u8 mvol;       /* 0x18 */
+    u8 pan;        /* 0x19 */
+    u8 attr1;      /* 0x1A */
+    u8 attr2;      /* 0x1B */
+    u32 reserved1; /* 0x1C */
+}; /* 0x20 */
+
+typedef struct ProgAtr ProgAtr;
+struct ProgAtr
+{
+    u8 tones;      /* 0x00 */
+    u8 mvol;       /* 0x01 */
+    u8 prior;      /* 0x02 */
+    u8 mode;       /* 0x03 */
+    u8 mpan;       /* 0x04 */
+    u8 reserved0;  /* 0x05 */
+    s16 attr;      /* 0x06 */
+    u32 reserved1; /* 0x08 */
+    u32 reserved2; /* 0x0C */
+}; /* 0x10 */
+
+typedef struct VagAtr VagAtr;
+struct VagAtr
+{
+    u8 prior;        /* 0x00 */
+    u8 mode;         /* 0x01 */
+    u8 vol;          /* 0x02 */
+    u8 pan;          /* 0x03 */
+    u8 center;       /* 0x04 */
+    u8 shift;        /* 0x05 */
+    u8 min;          /* 0x06 */
+    u8 max;          /* 0x07 */
+    u8 vibW;         /* 0x08 */
+    u8 vibT;         /* 0x09 */
+    u8 porW;         /* 0x0A */
+    u8 porT;         /* 0x0B */
+    u8 pbmin;        /* 0x0C */
+    u8 pbmax;        /* 0x0D */
+    u8 reserved1;    /* 0x0E */
+    u8 reserved2;    /* 0x0F */
+    u16 adsr1;       /* 0x10 */
+    u16 adsr2;       /* 0x12 */
+    s16 prog;        /* 0x14 */
+    s16 vag;         /* 0x16 */
+    s16 reserved[4]; /* 0x18 */
+}; /* 0x20 */
+
+enum vab_table_dimension
+{
+    VAB_PROGRAM_ATTRIBUTE_COUNT = 128,
+    VAB_TONES_PER_PROGRAM = 16,
+    VAB_OFFSET_TABLE_ENTRY_COUNT = 256,
+    VAB_TONE_ATTRIBUTE_SHIFT = 9
+};
+
+#define VAB_TONE_ATTRIBUTE_BYTES_PER_PROGRAM \
+    (VAB_TONES_PER_PROGRAM * sizeof(VagAtr))
+#define VAB_FIXED_METADATA_SIZE                                      \
+    (sizeof(VabHdr) + VAB_PROGRAM_ATTRIBUTE_COUNT * sizeof(ProgAtr) + \
+     VAB_OFFSET_TABLE_ENTRY_COUNT * sizeof(u16))
+
 typedef struct SoundEffect SoundEffect;
 struct SoundEffect
 {
-    vab_id VABid;           /* 0x00 */
-    s16 program;            /* 0x02 */
-    struct VabHdr *VABhead; /* 0x04 */
+    vab_id VABid;      /* 0x00 */
+    s16 program;       /* 0x02 */
+    VabHdr *VABhead;   /* 0x04 */
 }; /* 0x08 */
 
 /* INFOVIEW.C's active life-bar slot (anonymous in PSX.SYM). */
