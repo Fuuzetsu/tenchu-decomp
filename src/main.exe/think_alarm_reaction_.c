@@ -238,10 +238,10 @@ s16 think_alarm_reaction_(void)
                               newRotation);
 
             human->target = Me_THINK_C->target;
-            human->think[0] = Think1Func[4];
-            human->think[1] = Think2Func[4];
-            human->think[2] = Think3Func[4];
-            think4 = Think4Func[4];
+            human->think[0] = Think1Func[THINK1_WATCH];
+            human->think[1] = Think2Func[THINK2_CONTACT];
+            human->think[2] = Think3Func[THINK3_ATK_CHASE];
+            think4 = Think4Func[THINK4_CONTACT];
             human->attribute |= ATTR_CUSTOMAI;
             human->think[3] = think4;
             EquipWeapon(human, WEAPON_DRAWN);
