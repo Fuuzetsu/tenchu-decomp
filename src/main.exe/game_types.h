@@ -801,9 +801,12 @@ struct WorldType
 }; /* 0x04 */
 
 /* Motion IDs are stored in signed halfwords; -1 means no active motion and
- * terminates motion-registration and battle tables. */
+ * terminates motion-registration and battle tables.  Their high byte is the
+ * character-status / Act* handler family; the low byte selects a motion
+ * within that family. */
 typedef s16 motion_id;
 #define MOTION_ID_NONE (-1)
+#define MOTION_STATUS(mid) ((mid) >> 8)
 
 /* AttackPQD's signed end-frame sentinel. */
 #define MOTION_FRAME_ANY (-1)

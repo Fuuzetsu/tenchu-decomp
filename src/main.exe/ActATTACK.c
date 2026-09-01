@@ -727,7 +727,7 @@ dispatch:
         {
             if (UpdateMotion(human->motion, saved_mid) != 0)
             {
-                human->status = saved_mid >> 8;
+                human->status = MOTION_STATUS(saved_mid);
                 if (apply_movement != MOTION_MOVE_NONE)
                 {
                     mot = human->motion->motion;

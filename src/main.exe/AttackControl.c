@@ -157,7 +157,7 @@ void AttackControl(void)
                              enemy->motion->loop != MOTION_LOOP_DISABLED) &&
                             UpdateMotion(enemy->motion, emid) != 0)
                         {
-                            enemy->status = (s8)(emid >> 8);
+                            enemy->status = (s8)MOTION_STATUS(emid);
                             MoveHumanoid(enemy, enemy->motion->motion->orderspd,
                                          enemy->motion->motion->sidespd);
                         }

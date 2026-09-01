@@ -57,7 +57,7 @@ short NowReturnNormal(Humanoid *human)
     {
         return 0;
     }
-    current->status = (s8)(next_motion >> 8);
+    current->status = (s8)MOTION_STATUS(next_motion);
     if (apply_movement != MOTION_MOVE_NONE)
     {
         motion = current->motion->motion;

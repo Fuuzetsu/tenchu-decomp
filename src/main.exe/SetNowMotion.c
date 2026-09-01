@@ -45,7 +45,7 @@ short SetNowMotion(Humanoid *human, motion_id mid, motion_move_mode move)
     {
         return 0;
     }
-    human->status = (s8)(mid >> 8);
+    human->status = (s8)MOTION_STATUS(mid);
     if (move != MOTION_MOVE_NONE)
     {
         MoveHumanoid(human, human->motion->motion->orderspd,

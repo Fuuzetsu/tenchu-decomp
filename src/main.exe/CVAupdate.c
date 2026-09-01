@@ -182,12 +182,13 @@ s16 CVAupdate(void)
                 }
                 else
                 {
-                    i = CVAnow->payload.actor.motion >> 8;
-                    if (human->status == STAT_DEAD && (u32)(i - (MOT_DAMAGE >> 8)) > 1)
+                    i = MOTION_STATUS(CVAnow->payload.actor.motion);
+                    if (human->status == STAT_DEAD &&
+                        (u32)(i - MOTION_STATUS(MOT_DAMAGE)) > 1)
                         return 0;
                     if (human->life > 0)
                     {
-                        if (i == (MOT_DEAD >> 8))
+                        if (i == MOTION_STATUS(MOT_DEAD))
                         {
                             human->life = 0;
                             ReqLifeBar(human);

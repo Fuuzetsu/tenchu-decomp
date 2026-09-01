@@ -181,7 +181,7 @@ void ActSTICKON(void)
                 break;
             }
 
-            if ((s8)(motID >> 8) == STAT_SQUAT)
+            if ((s8)MOTION_STATUS(motID) == STAT_SQUAT)
             {
                 dtM->mask = MOTION_MASK_ALL;
                 if (MotionUpdateMode != 0)
@@ -330,7 +330,7 @@ void ActSTICKON(void)
                 break;
             }
 
-            if ((s8)(motID >> 8) == STAT_SQUAT)
+            if ((s8)MOTION_STATUS(motID) == STAT_SQUAT)
             {
                 dtM->mask = MOTION_MASK_ALL;
                 if (MotionUpdateMode != 0)

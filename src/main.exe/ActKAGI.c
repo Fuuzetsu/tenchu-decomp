@@ -153,7 +153,7 @@ void ActKAGI(void)
         }
 
         if ((Me_MOTION_C->map.attrib & MAP_WATER) &&
-            ((motID >> 8) != STAT_KAGI))
+            (MOTION_STATUS(motID) != STAT_KAGI))
         {
             ModelArchiveType *model;
 
