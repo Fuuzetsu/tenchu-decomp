@@ -75,7 +75,7 @@ short ActiveMotion(MotionManager *mmp)
     frame = mmp->count;
     mmp->count = frame + 1;
     count = frame;
-    if (mmp->mask & 1)
+    if (mmp->mask & MOTION_MASK_ROOT)
     {
         object = *mmp->model->object;
         i = frame;
@@ -88,7 +88,7 @@ short ActiveMotion(MotionManager *mmp)
     }
     for (i = 1; i < mmp->n; i++)
     {
-        if ((mmp->mask >> i) & 1)
+        if (MOTION_PART_ENABLED(mmp->mask, i))
         {
             object = mmp->model->object[i];
             GetSpline(&object->rotate, mmp->control + (i + 1), count);

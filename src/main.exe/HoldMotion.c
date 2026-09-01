@@ -41,7 +41,7 @@ short HoldMotion(MotionManager *mmp)
     short i;
 
     mot = mmp->motion;
-    if (mmp->mask & 1)
+    if (mmp->mask & MOTION_MASK_ROOT)
     {
         object = *mmp->model->object;
         object->locate.coord.t[0] = (s32)mot->locate.keyframes->x;
@@ -53,7 +53,7 @@ short HoldMotion(MotionManager *mmp)
     }
     for (i = 0; i < mmp->n; i++)
     {
-        if ((mmp->mask >> i) & 1)
+        if (MOTION_PART_ENABLED(mmp->mask, i))
         {
             object = mmp->model->object[i];
             object->rotate.vx = mot->rotate[i].keyframes->x;
@@ -62,7 +62,7 @@ short HoldMotion(MotionManager *mmp)
             UpdateCoordinate(object);
         }
     }
-    mmp->loop = -2;
+    mmp->loop = MOTION_LOOP_FROZEN;
     mmp->count = 0;
     return 0;
 }

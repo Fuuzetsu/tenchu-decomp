@@ -88,14 +88,14 @@ void ActCHASE(void)
                 motMODE = MOTION_MOVE_UNSET;
             motion_ready:
                 MoveHumanoid(Me_MOTION_C, 35, 0);
-                if (dtM->mode & 1)
+                if (dtM->mode & MOTION_MODE_CLIMB_ALTERNATE)
                 {
-                    dtM->mode &= ~1;
+                    dtM->mode &= ~MOTION_MODE_CLIMB_ALTERNATE;
                     dtM->count = 13;
                 }
                 else
                 {
-                    dtM->mode |= 1;
+                    dtM->mode |= MOTION_MODE_CLIMB_ALTERNATE;
                 }
                 break;
             }

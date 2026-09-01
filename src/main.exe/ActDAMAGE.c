@@ -175,7 +175,7 @@ void ActDAMAGE(void)
             dtM->loop = 0;
             dtM->count = 0;
             PlayMotion(dtM, 1);
-            dtM->loop = -2;
+            dtM->loop = MOTION_LOOP_FROZEN;
             Me_MOTION_C->status = STAT_DEAD;
             Me_MOTION_C->attribute &= ~ATTR_SEARCH;
             dtV->vx = dtV->vy = dtV->vz = 0;

@@ -854,15 +854,46 @@ struct SplineControlType
     SVECTOR ds1;             /* 0x10 */
 }; /* 0x18 */
 
-/* MotionManager.mask selects which skeleton parts a motion drives. */
-#define MOTION_MASK_ALL 0x7FFF /* all 15 parts */
+/* MotionManager.mask selects which skeleton parts a motion drives.  Bit zero
+ * owns the root translation and rotation; the remaining bits map directly to
+ * ModelArchiveType.object[] indices. */
+typedef s16 motion_part_mask;
+enum motion_part_mask
+{
+    MOTION_MASK_ROOT = 1,
+    MOTION_MASK_ALL = 0x7FFF, /* all 15 ninja model parts */
+    MOTION_MASK_EVERY_PART = -1,
+    MOTION_MASK_NOROOT = -2 /* pose bones without root translation */
+};
+
+#define MOTION_PART_ENABLED(mask, index) \
+    (((mask) >> (index)) & MOTION_MASK_ROOT)
+
 /* MotionManager.loop counts completed repeats. Negative values disable
  * normal playback; handlers may decrement them further as post-motion timers.
  * The CVA sequencer parks the counter at s16 max for an endless motion. */
 typedef s16 motion_loop_count;
-#define MOTION_LOOP_DISABLED (-1)
-#define MOTION_LOOP_FOREVER 0x7FFF
-#define MOTION_MASK_NOROOT (-2) /* all but the root: pose without root motion */
+enum motion_loop_value
+{
+    MOTION_LOOP_FROZEN = -2,
+    MOTION_LOOP_DISABLED = -1,
+    MOTION_LOOP_FOREVER = 0x7FFF
+};
+
+/* The only observed MotionManager.mode bit is toggled on every ledge climb;
+ * one phase starts the climb pose at frame 13. */
+typedef s16 motion_manager_mode;
+enum motion_manager_mode
+{
+    MOTION_MODE_DEFAULT = 0,
+    MOTION_MODE_CLIMB_ALTERNATE = 1
+};
+
+enum motion_sweep_encoding
+{
+    MOTION_SWEEP_NEGATIVE_BIT = 0x80,
+    MOTION_SWEEP_BYTE_RANGE = 0x100
+};
 
 typedef struct MotionManager MotionManager;
 struct MotionManager
@@ -871,14 +902,8 @@ struct MotionManager
     s16 count;                  /* 0x02 */
     motion_loop_count loop;     /* 0x04 */
     s16 n;                      /* 0x06 */
-    s16 mask;                   /* 0x08 (per-bone animation mask: bit i
-                                 * animates skeleton part i —
-                                 * MOTION_MASK_ALL plays all 15,
-                                 * MOTION_MASK_NOROOT everything but the
-                                 * root so the pose tracks without root
-                                 * motion;
-                                 * ActiveMotion/SweepMotion walk it) */
-    s16 mode;                   /* 0x0A */
+    motion_part_mask mask;      /* 0x08 per-bone animation mask */
+    motion_manager_mode mode;   /* 0x0A */
     ModelArchiveType *model;    /* 0x0C */
     MotionDataType *motion;     /* 0x10 */
     MotionRegistType *motreg;   /* 0x14 */

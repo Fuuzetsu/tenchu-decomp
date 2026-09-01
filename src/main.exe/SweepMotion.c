@@ -42,7 +42,7 @@ short SweepMotion(MotionManager *mmp)
     count = -mmp->count++;
     mot = mmp->motion;
 
-    if (mmp->mask & 1)
+    if (mmp->mask & MOTION_MASK_ROOT)
     {
         object = *mmp->model->object;
         object->locate.coord.t[0] +=
@@ -64,7 +64,7 @@ short SweepMotion(MotionManager *mmp)
 
     for (i = 1; i < mmp->n; i++)
     {
-        if ((mmp->mask >> i) & 1)
+        if (MOTION_PART_ENABLED(mmp->mask, i))
         {
             object = mmp->model->object[i];
             object->rotate.vx +=

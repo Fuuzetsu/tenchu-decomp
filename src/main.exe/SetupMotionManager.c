@@ -37,10 +37,10 @@ MotionManager *SetupMotionManager(ModelArchiveType *mad, MotionRegistType *mot)
 
     manager = (MotionManager *)valloc(sizeof(MotionManager));
     manager->mid = MOTION_ID_NONE;
-    manager->mask = -1;
+    manager->mask = MOTION_MASK_EVERY_PART;
     manager->loop = 0;
     manager->count = 0;
-    manager->mode = 0;
+    manager->mode = MOTION_MODE_DEFAULT;
     if (mad != 0)
     {
         manager->n = mad->n;
@@ -52,6 +52,7 @@ MotionManager *SetupMotionManager(ModelArchiveType *mad, MotionRegistType *mot)
     manager->motion = 0;
     manager->model = mad;
     manager->motreg = mot;
-    manager->control = valloc((manager->n + 1) * 0x18);
+    manager->control =
+        valloc((manager->n + 1) * sizeof(SplineControlType));
     return manager;
 }

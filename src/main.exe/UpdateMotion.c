@@ -103,8 +103,8 @@ s16 UpdateMotion(MotionManager *mmp, motion_id mid)
     mmp->motion = md;
     sweep = md->sweep;
     mmp->count = sweep;
-    if (sweep & 0x80)
-        mmp->count = sweep - 0x100;
+    if (sweep & MOTION_SWEEP_NEGATIVE_BIT)
+        mmp->count = sweep - MOTION_SWEEP_BYTE_RANGE;
     mmp->loop = 0;
     i = (mmp->motion->n < mmp->model->n) ? mmp->motion->n : mmp->model->n;
     mmp->n = i;
