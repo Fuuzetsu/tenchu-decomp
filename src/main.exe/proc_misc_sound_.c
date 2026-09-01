@@ -12,22 +12,26 @@
  * lifecycle messages are ignored. MM_DO fires while `mode==0` once
  * `GameClock>=sched.next`, then reschedules.
  *
- * `sched` (overlaid on `m->param`) is a 3-word (0xC byte) sub-struct: `next`
- * (s32, GameClock deadline), `min`/`max` (s16, the delay range for the next
- * reschedule) and `sndIdx` (u8, added to 0x44 as the SoundEx sound id).
+ * `sched` (overlaid on `m->param`) is the 3-word MiscSoundSchedule: `next`
+ * (s32, GameClock deadline), `min_delay`/`max_delay` (s16, the delay range
+ * for the next reschedule), and `sound_index` (u8, added to
+ * MISC_SOUND_ID_BASE for the SoundEx id).
  *
  * Matching notes:
  *  - The MM_CREATE initialization is NOT a simple field clear — it's a
  *    whole-struct assignment `*sched = tmp;` through a freshly-built local
- *    `Schedule tmp`, which is why cc1 emits 3 WORD lw/sw pairs through the
- *    stack (emit_block_move on a 3-word-aligned struct) instead of narrow
- *    per-field stores. The AddMisc payload's `a` becomes `sndIdx`, `b`
- *    becomes `min`, and `c` becomes `max`, while `GameClock` becomes `next`;
+ *    `MiscSoundSchedule tmp`, which is why cc1 emits 3 WORD lw/sw pairs
+ *    through the stack (emit_block_move on a 3-word-aligned struct) instead
+ *    of narrow
+ *    per-field stores. The AddMisc payload's `a` becomes `sound_index`, `b`
+ *    becomes `min_delay`, and `c` becomes `max_delay`, while `GameClock`
+ *    becomes `next`;
  *    some of those values consequently move to different union offsets.
- *    In the overlaid Schedule view, `param.init.c` occupies `sndIdx`'s offset
- *    and `param.init.a` occupies `next`'s offset; the whole-struct assignment
- *    then packs the reshaped values into their runtime slots. The `min` and
- *    `max` copies both use `lhu` despite their true s16 types (cookbook: "a
+ *    In the overlaid schedule view, `param.sound_init.max_delay` occupies
+ *    `sound_index`'s offset and `param.sound_init.sound` occupies
+ *    `next`'s offset; the whole-struct assignment then packs the reshaped
+ *    values into their runtime slots. The delay-bound copies both use `lhu`
+ *    despite their true s16 types (cookbook: "a
  *    pure narrowing struct-field copy uses lhu/lbu even for signed fields")
  *    — only the `u16 *` casts produce those loads.
  *  - The three early-return guards (msg<MM_DO, mode!=0,
@@ -36,8 +40,8 @@
  *  - The position is copied through TWO separate VECTOR locals (a memset
  *    scratch, then a whole-struct-copied second local whose address is what
  *    is actually passed to SoundEx) — the leLayoutEnemy shape.
- *  - `sched->min`/`sched->max` in the reschedule arithmetic are read via the
- *    persistent `Schedule *sched` pointer (computed once, before the
+ *  - The schedule delay bounds in the reschedule arithmetic are read via the
+ *    persistent `MiscSoundSchedule *sched` pointer (computed once, before the
  *    reset-vs-else branch); the reset branch instead addresses `m->param`
  *    directly through its initialization view, since it never uses `sched`.
  *  - Needs maspsx's --expand-div (rand() % (max-min) divides by a runtime
@@ -45,18 +49,20 @@
  *
  * Three ordering facts drove the last 29 bytes; each is a source-structure
  * lever, NOT a scheduler tie (an earlier park called all three un-matchable):
- *  1. RESET FIELD ORDER — `tmp.sndIdx` must be assigned BEFORE `tmp.next`.
+ *  1. RESET FIELD ORDER — `tmp.sound_index` must be assigned BEFORE
+ *     `tmp.next`.
  *     In `.sched`'s LOG_LINKS every VARYING-base load (`mem(reg80+N)`) takes
  *     a true dep on EVERY preceding store to `tmp`, while the FIXED-address
  *     `GameClock` load (`mem(symbol_ref)`) has LOG_LINKS `(nil)` — no deps at
- *     all — so it alone floats. With `next` written before `sndIdx`, the
- *     sndIdx load is pinned below next's store and cannot fill GameClock's
- *     load-use slot, so `max`'s load fills it instead and the max pair sinks.
- *     Writing sndIdx first frees it to fill the slot, reproducing the target
- *     exactly (both nops and the v0/v0/v0/v1 assignment).
- *  2. GUARD OPERAND ORDER — the `max`-before-`min` load order comes from
- *     writing the guard as the EXPRESSION `sched->max - sched->min > 0`, not
- *     from two pre-loaded locals. With `s16 hi = sched->max;` combine fuses
+ *     all — so it alone floats. With `next` written before `sound_index`, the
+ *     sound-index load is pinned below next's store and cannot fill
+ *     GameClock's load-use slot, so the maximum-delay load fills it instead
+ *     and that pair sinks. Writing sound_index first frees it to fill the
+ *     slot, reproducing the target exactly (both nops and the v0/v0/v0/v1
+ *     assignment).
+ *  2. GUARD OPERAND ORDER — the max-before-min load order comes from writing
+ *     `sched->max_delay - sched->min_delay > 0`, not from two pre-loaded
+ *     locals. With `s16 hi = sched->max_delay;` combine fuses
  *     the load into a `sign_extend` and RELOCATES it to its use, so neither
  *     declaration order nor an s32 flip moves it (both verified inert).
  *  3. FINAL STORE ADDRESSING — `sw v0,0(s1)` (not `sw v0,24(s0)`) requires
@@ -70,26 +76,18 @@
  *     `addu v1,v1,a0`, merging only `addu v0,v0,v1; sw`.
  */
 
-typedef struct
-{
-    s32 next;  /* 0x00 (m->param+0x00) */
-    s16 min;   /* 0x04 (m->param+0x04) */
-    s16 max;   /* 0x06 (m->param+0x06) */
-    u8 sndIdx; /* 0x08 (m->param+0x08) */
-} Schedule;
-
 extern s32 rand(void);
 extern void *memset(void *dst, s32 c, u32 n);
 
 void proc_misc_sound_(TMisc *m, TMiscMessage msg)
 {
-    Schedule *sched;
-    Schedule tmp;
+    MiscSoundSchedule *sched;
+    MiscSoundSchedule tmp;
     VECTOR pos;
     VECTOR snd;
     s32 lo;
 
-    sched = (Schedule *)&m->param;
+    sched = &m->param.sound;
 
     if (msg == MM_CREATE)
         goto reset;
@@ -98,9 +96,9 @@ void proc_misc_sound_(TMisc *m, TMiscMessage msg)
     return;
 
 reset:
-    tmp.min = m->param.init.b;
-    tmp.max = m->param.init.c;
-    tmp.sndIdx = *(u8 *)&m->param.init.a;
+    tmp.min_delay = m->param.sound_init.min_delay;
+    tmp.max_delay = m->param.sound_init.max_delay;
+    tmp.sound_index = m->param.sound_init.sound.index;
     tmp.next = GameClock;
     *sched = tmp;
     m->mode.raw = 0;
@@ -117,15 +115,17 @@ normal:
     snd.vy = m->y;
     snd.vz = m->z;
     pos = snd;
-    SoundEx(&pos, sched->sndIdx + 0x44);
+    SoundEx(&pos, sched->sound_index + MISC_SOUND_ID_BASE);
 
-    if (sched->max - sched->min > 0)
+    if (sched->max_delay - sched->min_delay > 0)
     {
-        lo = GameClock + (rand() % (sched->max - sched->min) + sched->min);
+        lo = GameClock +
+             (rand() % (sched->max_delay - sched->min_delay) +
+              sched->min_delay);
     }
     else
     {
-        lo = GameClock + sched->min;
+        lo = GameClock + sched->min_delay;
     }
     sched->next = lo;
 }

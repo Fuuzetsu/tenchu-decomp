@@ -44,6 +44,16 @@ enum
 
 typedef struct tag_TMisc TMisc;
 
+/* The three authored words carried by a construction-file effect record and
+ * copied into a new misc slot before its kind-specific CREATE handler runs. */
+typedef struct MiscSpawnParameters MiscSpawnParameters;
+struct MiscSpawnParameters
+{
+    s32 a;
+    s32 b;
+    s32 c;
+}; /* 0xC */
+
 typedef u8 misc_pause_state;
 enum misc_pause_state
 {
@@ -101,6 +111,68 @@ typedef struct TSnowfall
     SVECTOR *snows; /* 0x8 */
 } TSnowfall;
 
+/* Door and pitfall rows share their authored orientation/type pair before
+ * MM_CREATE replaces the payload with the live TDoor/TPitfall view. */
+typedef struct MiscHingedModelInitParameters MiscHingedModelInitParameters;
+struct MiscHingedModelInitParameters
+{
+    s32 rotation; /* 0x0 */
+    s32 type;     /* 0x4 */
+    s32 reserved; /* 0x8 */
+}; /* 0xC */
+
+/* MISC_FIRE's nonzero `a` selects the puff processor.  Once selected, its
+ * other two authored parameters are the horizontal jitter radii. */
+typedef struct MiscPuffParameters MiscPuffParameters;
+struct MiscPuffParameters
+{
+    s32 selector; /* 0x0 */
+    s32 x_radius; /* 0x4 */
+    s32 z_radius; /* 0x8 */
+}; /* 0xC */
+
+/* The bonfire row uses only the first authored parameter, as its sprite
+ * scale.  The tail remains part of the shared three-word payload. */
+typedef struct MiscBonfireParameters MiscBonfireParameters;
+struct MiscBonfireParameters
+{
+    s32 scale;       /* 0x0 */
+    s32 reserved[2]; /* 0x4 */
+}; /* 0xC */
+
+/* A sound-emitter row arrives as three words.  MM_CREATE repacks those same
+ * twelve bytes in place into the runtime deadline/range view below. */
+typedef union MiscSoundIndexWord MiscSoundIndexWord;
+union MiscSoundIndexWord
+{
+    s32 word;
+    u8 index;
+}; /* 0x4 */
+
+typedef struct MiscSoundInitParameters MiscSoundInitParameters;
+struct MiscSoundInitParameters
+{
+    MiscSoundIndexWord sound; /* 0x0 */
+    s32 min_delay;            /* 0x4 */
+    s32 max_delay;            /* 0x8 */
+}; /* 0xC */
+
+typedef struct MiscSoundSchedule MiscSoundSchedule;
+struct MiscSoundSchedule
+{
+    s32 next;        /* 0x0 */
+    s16 min_delay;   /* 0x4 */
+    s16 max_delay;   /* 0x6 */
+    u8 sound_index;  /* 0x8 */
+}; /* 0xC */
+
+/* Construction rows store an offset into the contiguous ambient-sound range
+ * beginning at direct stage sound 0x44. */
+enum
+{
+    MISC_SOUND_ID_BASE = 0x44
+};
+
 /* The MISC_PITFALL variant of the parameter union. */
 typedef struct TPitfall
 {
@@ -120,6 +192,23 @@ enum TMiscMessage
     MM_DO = 4
 };
 
+/* The construction file supplies `init`; MM_CREATE then selects or builds the
+ * view owned by the installed processor. */
+typedef union MiscParameters MiscParameters;
+union MiscParameters
+{
+    MiscSpawnParameters init;
+    MiscHingedModelInitParameters hinged_init;
+    TDoor door;
+    TPitfall pitfall;
+    TSnowfall snowfall;
+    TSprite sprite;
+    MiscPuffParameters puff;
+    MiscBonfireParameters bonfire;
+    MiscSoundInitParameters sound_init;
+    MiscSoundSchedule sound;
+}; /* 0xC */
+
 struct tag_TMisc
 {
     void (*proc)(TMisc *, TMiscMessage); /* 0x00 */
@@ -129,19 +218,7 @@ struct tag_TMisc
     s32 count;                           /* 0x10 */
     misc_pause_state pause;              /* 0x14 */
     MiscMode mode;                       /* 0x15 */
-    union
-    {
-        struct
-        {
-            s32 a; /* 0x0 */
-            s32 b; /* 0x4 */
-            s32 c; /* 0x8 */
-        } init;
-        TDoor door;
-        TPitfall pitfall;
-        TSnowfall snowfall;
-        TSprite sprite;
-    } param; /* 0x18 */
+    MiscParameters param;                /* 0x18 */
 }; /* 0x24 */
 
 /* The static misc-resource tables begin with archive/image indices. InitMisc

@@ -54,7 +54,7 @@ do_draw:
         return;
 
     frame->r = frame->g = frame->b = (u8)(rand() % 100 + 100);
-    DrawSpriteXYZ(frame, m->x, m->y, m->z, m->param.init.a);
+    DrawSpriteXYZ(frame, m->x, m->y, m->z, m->param.bonfire.scale);
 
     if ((GameClock & 0xF) == 0)
     {

@@ -78,15 +78,17 @@ normal:
         return;
 
     x = m->x;
-    pos.vx = (1 <= (m->param.init.b << 1))
-                 ? x + (rand() % (m->param.init.b << 1) - m->param.init.b)
-                 : x - m->param.init.b;
+    pos.vx = (1 <= (m->param.puff.x_radius << 1))
+                 ? x + (rand() % (m->param.puff.x_radius << 1) -
+                        m->param.puff.x_radius)
+                 : x - m->param.puff.x_radius;
 
     pos.vy = m->y;
     z = m->z;
-    pos.vz = (1 <= (m->param.init.c << 1))
-                 ? z + (rand() % (m->param.init.c << 1) - m->param.init.c)
-                 : z - m->param.init.c;
+    pos.vz = (1 <= (m->param.puff.z_radius << 1))
+                 ? z + (rand() % (m->param.puff.z_radius << 1) -
+                        m->param.puff.z_radius)
+                 : z - m->param.puff.z_radius;
 
     if ((GameClock & 1) == 0)
     {

@@ -62,8 +62,8 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         int type;
         int t;
 
-        type = m->param.init.b;
-        t = m->param.init.a;
+        type = m->param.hinged_init.type;
+        t = m->param.hinged_init.rotation;
         if (type >= N_PITFALL_TYPES)
         {
             AdtMessageBox(fmt_unknown_pitfall_type, type);

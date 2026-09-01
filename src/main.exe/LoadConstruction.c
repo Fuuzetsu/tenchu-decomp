@@ -206,13 +206,11 @@ typedef struct WorldPlacementPayload
 
 typedef struct WorldEffectPayload
 {
-    s32 type;
+    MiscType type;
     s32 x;
     s32 y;
     s32 z;
-    s32 a;
-    s32 b;
-    s32 c;
+    MiscSpawnParameters parameters;
 } WorldEffectPayload;
 
 typedef struct WorldDataType
@@ -429,8 +427,9 @@ short LoadConstruction(u_long *data)
             case WLD_RECORD_EFFECT:
                 AddMisc(wlddt[i].real.effect.type, wlddt[i].real.effect.x,
                         wlddt[i].real.effect.y, wlddt[i].real.effect.z,
-                        wlddt[i].real.effect.a, wlddt[i].real.effect.b,
-                        wlddt[i].real.effect.c);
+                        wlddt[i].real.effect.parameters.a,
+                        wlddt[i].real.effect.parameters.b,
+                        wlddt[i].real.effect.parameters.c);
                 break;
 
             case WLD_RECORD_ITEM:

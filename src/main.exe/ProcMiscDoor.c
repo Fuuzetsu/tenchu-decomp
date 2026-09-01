@@ -59,8 +59,8 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     s32 type;
     s32 t;
 
-    type = m->param.init.b;
-    t = m->param.init.a;
+    type = m->param.hinged_init.type;
+    t = m->param.hinged_init.rotation;
     if (type >= N_DOOR_TYPES)
     {
         AdtMessageBox(fmt_unknown_door_type, type);
