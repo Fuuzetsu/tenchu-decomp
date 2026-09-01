@@ -40,7 +40,7 @@ extern TSystemFlag SystemFlag;
 extern BattleType BattleDB[105];
 extern struct Humanoid *StagePlayer;
 extern short Humans;
-extern short ActionHalt;
+extern action_halt_state ActionHalt;
 extern short EngageLevel;
 extern short Criticals;
 extern short Findenemies;

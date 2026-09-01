@@ -364,6 +364,9 @@ typedef s16 HumanoidAttribute;
 typedef s16 humanoid_life;
 #define HUMANOID_LIFE_INACTIVE (-1)
 
+typedef s16 action_halt_state;
+#define ACTION_HALT_STAGE_END (-1)
+
 /* A model's signed-halfword index in ConflictObject; -1 is unregistered. */
 typedef s16 conflict_id;
 

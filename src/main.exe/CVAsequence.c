@@ -124,7 +124,7 @@ return_zero:
     return 0;
 
 run_sequence:
-    if (ActionHalt != -1)
+    if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = 1;
     MotionUpdateMode = 1;
     StagePlayer->target = 0;
@@ -148,7 +148,7 @@ run_sequence:
     {
     } while (CVArun() != 0);
     VoiceMode = 0;
-    if (ActionHalt != -1)
+    if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = 0;
     MotionUpdateMode = 0;
     SetCameraMode(CMODE_NORMAL);

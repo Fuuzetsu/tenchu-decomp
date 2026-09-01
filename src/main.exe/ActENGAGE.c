@@ -82,7 +82,7 @@ void ActENGAGE(void)
             goto engage_case_post;
         SET_MOTION(MOT_ATTACK_TAUNT, 1);
     engage_case_post:
-        if (ActionHalt == -1 && dtM->count == 0)
+        if (ActionHalt == ACTION_HALT_STAGE_END && dtM->count == 0)
         {
             registered_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
             if (registered_id < 0)

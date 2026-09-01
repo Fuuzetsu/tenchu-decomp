@@ -129,7 +129,7 @@ s32 StageSequence(void)
         {
             SetCameraMode(CMODE_CRITICAL_HIT);
         }
-        ActionHalt = -1;
+        ActionHalt = ACTION_HALT_STAGE_END;
         StagePlayer->status = STAT_DEAD;
         return 0;
     }
