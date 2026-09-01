@@ -163,7 +163,7 @@ extern SVECTOR *dtR;
 extern SVECTOR *dtV;
 extern short dtCMD;
 extern short MotionUpdateMode;
-extern short SelectedItem;
+extern item_selection SelectedItem;
 extern TCdaStatus CdaStatus;
 /* INFOVIEW.C's shared UI and layout-editor state. */
 extern short ItemCursor;

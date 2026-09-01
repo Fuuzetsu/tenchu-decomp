@@ -1500,6 +1500,7 @@ enum game_difficulty
  * the retail ordering.  Retail swaps goshikimai/nemuri; its inserted ARMOUR
  * shifts TELEPORT to 24, replacing the demo's SYSFLAG at that value. */
 typedef enum TItemType TItemType;
+typedef s16 item_selection;
 /* SelectedItem's "nothing selected" sentinel (invented name). A #define, not
  * an enumerator: a negative member would sign the enum and flip the item
  * switches' unsigned jump-table bounds checks (sltiu -> slti; measured). */

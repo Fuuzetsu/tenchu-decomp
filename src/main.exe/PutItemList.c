@@ -99,7 +99,7 @@ void PutItemList(void)
     s32 i;
     s32 x;
 
-    SelectedItem = -1;
+    SelectedItem = ITEM_NONE;
     x = ItemX;
     i = 0;
     while (1)
