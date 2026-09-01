@@ -70,7 +70,6 @@ void ProcItemDokudango(TItem *item)
         DOKUDANGO_MODE_SEARCH = 1,
         DOKUDANGO_MODE_EAT = 2,
         DOKUDANGO_MODE_POISON = 3,
-        INACTIVE_LIFE = -1,
         DOKUDANGO_PICKUP_RANGE = 500,
         DOKUDANGO_EAT_RANGE = 1000,
         DOKUDANGO_ROLL_DELAY = 30,
@@ -207,7 +206,7 @@ void ProcItemDokudango(TItem *item)
                     break;
                 }
                 if ((search_state.find->type & PAGE_MASK) != PAGE_BOSS &&
-                    search_state.find->life != INACTIVE_LIFE &&
+                    search_state.find->life != HUMANOID_LIFE_INACTIVE &&
                     search_state.dist < nearest_distance)
                 {
                     if (search_state.find != item->owner)

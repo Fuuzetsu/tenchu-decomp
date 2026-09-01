@@ -361,6 +361,9 @@ struct ParentingType
 typedef s16 ModelAttribute;
 typedef s16 HumanoidAttribute;
 
+typedef s16 humanoid_life;
+#define HUMANOID_LIFE_INACTIVE (-1)
+
 /* A model's signed-halfword index in ConflictObject; -1 is unregistered. */
 typedef s16 conflict_id;
 
@@ -1058,7 +1061,7 @@ struct HumanDataType
     character_kind type;           /* 0x00 */
     weapon_kind wepid;             /* 0x02 */
     s16 turn;                      /* 0x04 */
-    s16 life;                      /* 0x06 */
+    humanoid_life life;            /* 0x06 */
     s16 width;                     /* 0x08 */
     s16 height;                    /* 0x0A */
     struct MotionRegistType *mtbl; /* 0x0C */

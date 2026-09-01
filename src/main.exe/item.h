@@ -155,8 +155,8 @@ typedef struct Humanoid
                                     is measured: flipping it to u16 changes the
                                     plain sites' retail lh loads to lhu) */
     s16 turn;                 /* 0x06 */
-    s16 life;                 /* 0x08 */
-    s16 lifemax;              /* 0x0A (PSX.SYM's original signed maximum-life field) */
+    humanoid_life life;       /* 0x08 */
+    humanoid_life lifemax;    /* 0x0A (PSX.SYM's original signed maximum-life field) */
     s16 width;                /* 0x0C */
     s16 height;               /* 0x0E */
     PADtype pad;              /* 0x10 (DoInfoViewProc reads .data/.trig) */

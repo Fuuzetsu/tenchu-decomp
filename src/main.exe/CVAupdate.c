@@ -129,7 +129,8 @@ s16 CVAupdate(void)
                     } while (i < model->n);
                 }
 
-                if (StagePlayer != human && human->life == -1)
+                if (StagePlayer != human &&
+                    human->life == HUMANOID_LIFE_INACTIVE)
                 {
                     human->attribute |= ATTR_CUSTOMAI;
                     human->life = human->lifemax;
@@ -165,7 +166,7 @@ s16 CVAupdate(void)
                  * target's one shift after the animation scans are indexed. */
                 if (CVAnow->x == CVA_ACTOR_DESPAWN)
                 {
-                    human->life = -1;
+                    human->life = HUMANOID_LIFE_INACTIVE;
                     human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
                     human->motion->mid = MOTION_ID_NONE;
                     SetNowMotion(human, 0, 1);

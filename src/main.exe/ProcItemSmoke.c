@@ -208,7 +208,9 @@ void ProcItemSmoke(TItem *item)
                 if (found == 0)
                     return;
                 human = scratch.find.find;
-                if (human != item->owner && human->life != -1 && human->motion->mid != MOT_DAMAGE_CHOKE)
+                if (human != item->owner &&
+                    human->life != HUMANOID_LIFE_INACTIVE &&
+                    human->motion->mid != MOT_DAMAGE_CHOKE)
                 {
                     i = STAT_DAMAGE;
                     if (ActionHalt == 0 && human->life > 0)

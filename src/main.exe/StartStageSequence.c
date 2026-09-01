@@ -173,7 +173,7 @@ void StartStageSequence(void)
 
                 target = (ModelType *)StagePlayer->model;
                 human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
-                human->life = -1;
+                human->life = HUMANOID_LIFE_INACTIVE;
                 human->target = target;
             }
         }
