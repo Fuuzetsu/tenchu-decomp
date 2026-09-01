@@ -77,7 +77,7 @@ void ProcSightShot(TItem *item)
     if (item->mode == dispose_mode)
     {
         item->owner->item[ITEM_N] = 0;
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         return;
     }
 
@@ -126,7 +126,7 @@ dispose:
         item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != ITEM_MODE_START)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
@@ -179,7 +179,7 @@ sight_mode:
             item->mode = dispose_mode;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != ITEM_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type,
                               (u32)item->mode);
@@ -203,7 +203,7 @@ sight_mode:
             item->mode = dispose_mode;
             item->proc(item);
             DeleteConflict(item->locate);
-            if (item->mode != 0)
+            if (item->mode != ITEM_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type,
                               (u32)item->mode);

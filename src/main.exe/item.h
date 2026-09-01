@@ -278,9 +278,11 @@ enum korogari_status
     KORO_OUT = 5
 };
 
-/* Item-processor teardown sentinel from ITEM.C's anonymous enum. */
-enum
+/* Shared values of the per-item processor state byte. */
+typedef u8 item_mode;
+enum item_mode
 {
+    ITEM_MODE_START = 0,
     ITEM_MODE_DISPOSE = 0xff
 };
 
@@ -480,7 +482,7 @@ struct tag_TItem
         param_gosin gosin;
         param_shinsoku shinsoku;
     } param; /* 0x20, size 0x34 */
-    u8 mode; /* 0x54 */
+    item_mode mode; /* 0x54 */
 }; /* sizeof = 0x58 (items[] stride) */
 
 /* AttackCancelControl's independently selectable cleanup work. */
@@ -515,7 +517,7 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     item->mode = ITEM_MODE_DISPOSE;                                           \
     item->proc(item);                                                         \
     DeleteConflict(item->locate);                                             \
-    if (item->mode != 0)                                                      \
+    if (item->mode != ITEM_MODE_START)                                        \
     {                                                                         \
         AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);    \
     }                                                                         \
@@ -587,7 +589,7 @@ found:
     ret->mode = ITEM_MODE_DISPOSE;                                            \
     ret->proc(ret);                                                           \
     DeleteConflict(ret->locate);                                              \
-    if (ret->mode != 0)                                                       \
+    if (ret->mode != ITEM_MODE_START)                                         \
     {                                                                         \
         AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);      \
     }                                                                         \

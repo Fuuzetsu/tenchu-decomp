@@ -92,7 +92,7 @@ void ProcItemLaunch(TItem *item)
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         DisposeAfterimage(param->effect);
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         return;
     }
     MoveFly(item, &param->fly);

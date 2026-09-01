@@ -157,7 +157,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
             ret->mode = ITEM_MODE_DISPOSE;
             ret->proc(ret);
             DeleteConflict(ret->locate);
-            if (ret->mode != 0)
+            if (ret->mode != ITEM_MODE_START)
             {
                 AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);
             }
@@ -174,7 +174,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         atype = p->type;
         item->owner = aowner;
         item->proc = ProcItemHappou;
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         item->type = atype;
         item->locate->locate.coord.t[0] = p->start.vx;
         pos = &p->start;

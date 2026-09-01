@@ -35,7 +35,7 @@
  *    forcing a variable.
  *  - `conflict_id = InsertConflict(...)` is `s32` (the same scheduling-tie
  *    fix as Makibishi/LightningBolt: extend right at the assignment).
- *  - The redundant-looking `mode != 0 && mode == 1 &&
+ *  - The redundant-looking `mode != FLY_MODE_ARC && mode == FLY_MODE_ROLL &&
  *    param->fly.p.koro.status != KORO_NORMAL` is written
  *    exactly that way (three separate tests, matching Ghidra) — the asm
  *    shows two distinct branches on `mode` even though `== 1` implies `!= 0`.
@@ -97,7 +97,7 @@ void ProcItemHappou(TItem *item)
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         DisposeAfterimage(param->effect);
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         return;
     }
     MoveFly(item, &param->fly);

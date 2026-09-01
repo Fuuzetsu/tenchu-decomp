@@ -89,7 +89,7 @@ void ProcItemArrow(TItem *item)
     ModelType *model;
     param_arrow *param;
     void (*ppu)(TItem *);
-    u8 mode_index;
+    item_mode mode_index;
     VECTOR v1;
     VECTOR v2;
     int rx;

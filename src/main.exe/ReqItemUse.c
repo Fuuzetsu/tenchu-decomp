@@ -267,7 +267,7 @@
     cur->mode = ITEM_MODE_DISPOSE;                                            \
     cur->proc(cur);                                                           \
     DeleteConflict(cur->locate);                                              \
-    if (cur->mode != 0)                                                       \
+    if (cur->mode != ITEM_MODE_START)                                         \
     {                                                                         \
         AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);      \
     }                                                                         \
@@ -280,7 +280,7 @@
     ty = p->type;                                                             \
     it->owner = us;                                                           \
     it->proc = proc_;                                                         \
-    it->mode = 0;                                                             \
+    it->mode = ITEM_MODE_START;                                               \
     it->type = ty;                                                            \
     it->locate->locate.coord.t[0] = p->start.vx;                              \
     st = &p->start;                                                           \

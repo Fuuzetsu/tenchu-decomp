@@ -82,7 +82,7 @@ void ProcItemKaengeki(TItem *item)
     s32 rx;
     s32 ry;
     s32 dispose_mode;
-    u8 mode_index;
+    item_mode mode_index;
 
     param = &item->param.kaengeki;
     dispose_mode = ITEM_MODE_DISPOSE;

@@ -79,12 +79,12 @@ void ProcKaginawa(TItem *item)
     s32 rx, ry;
     s32 dist;
     s32 tx, ty, tz;
-    u8 dispose_mode;
+    item_mode dispose_mode;
 
     dispose_mode = ITEM_MODE_DISPOSE;
     if (item->mode == dispose_mode)
     {
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         return;
     }
     owner = item->owner;
@@ -97,7 +97,7 @@ void ProcKaginawa(TItem *item)
         item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != ITEM_MODE_START)
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         item->owner = 0;
         item->proc = 0;
@@ -110,7 +110,7 @@ void ProcKaginawa(TItem *item)
         item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != ITEM_MODE_START)
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         item->owner = 0;
         item->proc = 0;
@@ -161,7 +161,7 @@ void ProcKaginawa(TItem *item)
         item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != ITEM_MODE_START)
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         item->owner = 0;
         item->proc = 0;

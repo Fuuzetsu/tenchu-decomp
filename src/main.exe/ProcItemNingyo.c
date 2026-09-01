@@ -148,7 +148,7 @@ void ProcItemNingyo(TItem *item)
             }
             NingyoCount--;
         }
-        item->mode = 0;
+        item->mode = NINGYO_MODE_WAIT;
         return;
     }
 
@@ -235,7 +235,7 @@ void ProcItemNingyo(TItem *item)
         item->mode = dispose_mode;
         item->proc(item);
         DeleteConflict(item->locate);
-        if (item->mode != 0)
+        if (item->mode != NINGYO_MODE_WAIT)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
@@ -379,7 +379,7 @@ void ProcItemNingyo(TItem *item)
                         item->mode = ITEM_MODE_DISPOSE;
                         item->proc(item);
                         DeleteConflict(item->locate);
-                        if (item->mode != 0)
+                        if (item->mode != NINGYO_MODE_WAIT)
                         {
                             AdtMessageBox(msg_item_dispose_fail, item->type,
                                           (u32)item->mode);

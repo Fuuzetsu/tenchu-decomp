@@ -102,7 +102,7 @@ int ReqItemMakibishi(PARAM_ITEM_DROP *p)
         atype = p->type;
         item->owner = aowner;
         item->proc = ProcItemMakibishi;
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         item->type = atype;
         item->locate->locate.coord.t[0] = p->start.vx;
         pos = &p->start;

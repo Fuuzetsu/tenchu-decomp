@@ -29,7 +29,7 @@
  *    idiom (contrast the cached-pointer rule, which applies when the asm
  *    instead shows ONE load surviving across several uses).
  *  - The dispose tail reuses the proven idiom: `ppu = item->proc; if (ppu ==
- *    0) return; item->mode = ITEM_MODE_DISPOSE; item->proc(item);` — checking through `ppu`
+ *    ITEM_MODE_START) return; item->mode = ITEM_MODE_DISPOSE; item->proc(item);` — checking through `ppu`
  *    but calling through the field lets cse fold the reload, landing the
  *    pointer in $v0 (Kusuri/Manebue/Drop's rule).
  */
@@ -60,7 +60,7 @@ void ProcItemTeleport(TItem *item)
     void (*ppu)(TItem *);
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->mode = 0;
+        item->mode = ITEM_MODE_START;
         return;
     }
     if ((item->owner->pad.data & PADRup) != 0)
@@ -84,7 +84,7 @@ void ProcItemTeleport(TItem *item)
     item->mode = ITEM_MODE_DISPOSE;
     item->proc(item);
     DeleteConflict(item->locate);
-    if (item->mode != 0)
+    if (item->mode != ITEM_MODE_START)
     {
         AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
     }
