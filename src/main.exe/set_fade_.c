@@ -21,7 +21,7 @@ extern void draw_fade_(TEffectSlot *ef);
 
 void set_fade_(u8 r, u8 g, u8 b, long priority)
 {
-    long tmp;
+    long start_time;
     int idx;
     TEffectSlot *base;
     TEffectSlot *slot;
@@ -64,9 +64,9 @@ found:
     fade->g = g;
     fade->b = b;
     fade->mode = 0;
-    tmp = GameClock;
+    start_time = GameClock;
     fade->priority = priority;
-    fade->start_time = tmp;
-    fade->end_time = tmp + 5;
+    fade->start_time = start_time;
+    fade->end_time = start_time + 5;
     ef->proc = (void (*)())draw_fade_;
 }

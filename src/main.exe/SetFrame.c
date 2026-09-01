@@ -44,15 +44,15 @@
  *    if it sits at a nonzero offset itself (frame.px here), still wants fp —
  *    only an offset-ZERO field (frame.super) is written through a fresh
  *    `ef->param.frame.super = ...` recast instead of `fp->super`.
- *  - `tmp = pos->vz;` (captured before the mode/size/count stores, stored via
- *    `fp->pz = tmp;` after them) reproduces the original's delayed store —
+ *  - `z = pos->vz;` (captured before the mode/size/count stores, stored via
+ *    `fp->pz = z;` after them) reproduces the original's delayed store —
  *    inlining `fp->pz = pos->vz;` in position would read pos->vz too late.
  */
 extern void DrawFrame(TEffectSlot *ef);
 
 void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
 {
-    long tmp;
+    long z;
     int idx;
     TEffectSlot *base;
     TEffectSlot *slot;
@@ -93,11 +93,11 @@ found:
     fp = &ef->param.frame;
     fp->px = pos->vx;
     fp->py = pos->vy;
-    tmp = pos->vz;
+    z = pos->vz;
     fp->mode = 0;
     fp->size = size;
     fp->count = time;
-    fp->pz = tmp;
+    fp->pz = z;
     ef->param.frame.super = super;
     ef->proc = (void (*)())DrawFrame;
 }

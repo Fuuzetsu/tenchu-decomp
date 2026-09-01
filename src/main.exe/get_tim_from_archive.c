@@ -5,8 +5,8 @@
  * get_tim_from_archive (0x8004f1d8, 0xa4 bytes) - generic archive-entry
  * accessor, near-twin of GetArcData.c: one-time-converts an ArcFile's
  * table of relative offsets into absolute pointers (same conversion
- * idiom - see GetArcData.c's matching notes for the temp-through-`t`
- * requirement), then validates and returns `entry[idx]`. Unlike
+ * idiom - see GetArcData.c's matching notes for the staged entry offset),
+ * then validates and returns `entry[idx]`. Unlike
  * GetArcData this takes the archive pointer directly as a PARAMETER (no
  * lazy FileRead/gp singleton caching), so `archive`/`idx` stay in
  * $a0/$a1 throughout with no register promotion.
@@ -27,7 +27,7 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
 {
     ArcFile *arc;
     s32 i;
-    s32 t;
+    s32 entry_offset;
 
     arc = (ArcFile *)archive;
     if (arc->loaded == 0)
@@ -37,8 +37,8 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
         {
             do
             {
-                t = arc->entry[i] + 4;
-                arc->entry[i] = (s32)arc + t;
+                entry_offset = arc->entry[i] + 4;
+                arc->entry[i] = (s32)arc + entry_offset;
                 i++;
             } while (i < arc->count);
         }

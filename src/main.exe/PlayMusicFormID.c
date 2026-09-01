@@ -43,7 +43,7 @@ extern void _PlayMusic(s32 id, s32 mode);
 void PlayMusicFormID(s32 id)
 {
     s32 MusicNo;
-    u8 *p;
+    u8 *search_table;
     u8 *table_base;
     u8 flag;
     u8 first;
@@ -65,21 +65,21 @@ void PlayMusicFormID(s32 id)
     } while (0);
     if (first != SOUND_TABLE_END)
     {
-        p = MusicIDTable;
+        search_table = MusicIDTable;
         flag = SOUND_TABLE_END;
     search:
-        if (*(u8 *)(i + (s32)p) == MusicNo)
+        if (*(u8 *)(i + (s32)search_table) == MusicNo)
         {
             goto found;
         }
         j = i + 1;
         i = j;
-        if (*(u8 *)(j + (s32)p) != flag)
+        if (*(u8 *)(j + (s32)search_table) != flag)
         {
             goto search;
         }
     found:
-        if (*(u8 *)(i + (s32)p) != SOUND_TABLE_END)
+        if (*(u8 *)(i + (s32)search_table) != SOUND_TABLE_END)
         {
             MusicNo = i;
         }

@@ -36,7 +36,7 @@ extern void DrawSplash(TEffectSlot *ef);
 
 void SetSplash(VECTOR *pos, short sx, short sy, int speed)
 {
-    long tmp;
+    long z;
     int idx;
     TEffectSlot *base;
     TEffectSlot *slot;
@@ -77,11 +77,11 @@ found:
     ef->param.splash.px = pos->vx;
     fp = &ef->param.splash;
     fp->py = pos->vy;
-    tmp = pos->vz;
+    z = pos->vz;
     fp->mode = SPLASH_MODE_SPAWN;
     fp->sx = sx;
     fp->sy = sy;
     fp->speed = speed;
-    fp->pz = tmp;
+    fp->pz = z;
     ef->proc = (void (*)())DrawSplash;
 }

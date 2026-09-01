@@ -26,9 +26,10 @@
  * `count`.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - The conversion must go through a temp: `t = entry[i] + 4; entry[i] =
- *    (s32)arc + t;`. Writing it as one expression (either operand order)
- *    lets fold-const's `associate` combine the invariant `arc + 4` into one
+ *  - The conversion must go through a temp:
+ *    `entry_offset = entry[i] + 4; entry[i] = (s32)arc + entry_offset;`.
+ *    Writing it as one expression (either operand order) lets fold-const's
+ *    `associate` combine the invariant `arc + 4` into one
  *    loop-hoisted register, an extra callee-saved reg the target doesn't
  *    have — splitting the statement keeps `arc` and the per-iteration `+4`
  *    in separate sub-expressions so nothing invariant-with-a-constant is
@@ -53,7 +54,7 @@ u_long *GetArcData(int index)
 {
     s32 i;
     ArcFile *arc;
-    s32 t;
+    s32 entry_offset;
     s32 zero = 0;
 
     if (ArcData == 0)
@@ -68,8 +69,8 @@ u_long *GetArcData(int index)
         {
             do
             {
-                t = arc->entry[i] + 4;
-                arc->entry[i] = (s32)arc + t;
+                entry_offset = arc->entry[i] + 4;
+                arc->entry[i] = (s32)arc + entry_offset;
                 i++;
             } while (i < arc->count);
         }

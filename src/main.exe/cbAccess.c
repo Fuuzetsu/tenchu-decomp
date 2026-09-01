@@ -24,11 +24,12 @@
  * cbAccess (0x80018dec, 0x114 bytes) — the access-meter's vsync-callback
  * draw routine (armed by PrepareAccess/FileRead): advances AccessPower by 8
  * (wrapping mod 256) and re-tints AccessImage's 4 vertices to a
- * four-corner tint cycling each corner between v and its complement, then swaps in a draw
- * environment with the display's own clip rect (so the meter draws
- * unclipped over the current frame), draws it, and restores the original
- * draw environment. Same canonical DRAWENV/DISPENV/RECT types as sibling
- * stop_access_meter_.c and AdtReleaseDisp.c.
+ * four-corner tint cycling each corner between the current intensity and its
+ * complement, then swaps in a draw environment with the display's own clip
+ * rect (so the meter draws unclipped over the current frame), draws it, and
+ * restores the original draw environment. Same canonical
+ * DRAWENV/DISPENV/RECT types as sibling stop_access_meter_.c and
+ * AdtReleaseDisp.c.
  *
  * Matching notes:
  *  - `n_draw = o_draw;` is a plain DRAWENV (align-4, 0x5c bytes) struct
@@ -44,7 +45,7 @@
  *    aggregate RECT assignment).
  *  - The color computation must funnel through ONE variable reused for both
  *    the `AccessPower` store and every AccessImage.rN/gN store the asm
- *    colours through $v0: `v = (AccessPower + 8) & 0xff;` (matches the
+ *    colours through $v0: `intensity = (AccessPower + 8) & 0xff;` (matches the
  *    `andi $v0,$v0,0xff` before ANY store — this is not a `u_char` truncation
  *    at the store, the mask happens at the assignment). This part is
  *    byte-identical to the target already.
@@ -72,11 +73,11 @@ void cbAccess(void)
     DISPENV o_disp;
     DRAWENV o_draw;
     DRAWENV n_draw;
-    u32 v;
+    u32 intensity;
 
-    v = (AccessPower + 8) & 0xff;
-    AccessPower = v;
-    AccessImage.r0 = v;
+    intensity = (AccessPower + 8) & 0xff;
+    AccessPower = intensity;
+    AccessImage.r0 = intensity;
     AccessImage.g0 = AccessImage.r0;
     AccessImage.b0 = 0xff - AccessImage.r0;
     AccessImage.r1 = AccessImage.r0;

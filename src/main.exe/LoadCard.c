@@ -40,13 +40,13 @@ extern int sprintf(char *buf, char *fmt, ...);
  */
 s16 LoadCard(s32 target, u8 *name)
 {
-    void *temp;
+    void *allocation;
     u8 fn[200];
     u8 block[BLOCKSIZE];
     s32 cmd;
     s32 result;
 
-    temp = valloc(BLOCKSIZE);
+    allocation = valloc(BLOCKSIZE);
     result = MemCardAccept(0);
     MemCardSync(0, &cmd, &result);
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
@@ -54,8 +54,8 @@ s16 LoadCard(s32 target, u8 *name)
     MemCardSync(0, &cmd, &result);
     if (result != 0)
     {
-        vfree(temp);
-        temp = 0;
+        vfree(allocation);
+        allocation = 0;
     }
     else
     {
@@ -63,6 +63,6 @@ s16 LoadCard(s32 target, u8 *name)
                          block + sizeof(TCardHeader),
                          TENCHU_PERSISTENT_STATE_SIZE);
     }
-    vfree(temp);
+    vfree(allocation);
     return result;
 }
