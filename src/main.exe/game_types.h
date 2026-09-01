@@ -169,6 +169,8 @@ struct ScoreStats
 }; /* 0x0C */
 
 typedef struct ScoreResult ScoreResult;
+/* ScoreResult stores the named stage-rank domain in a signed halfword. */
+typedef s16 stage_rank;
 struct ScoreResult
 {
     u16 criticalScore; /* 0x00 */
@@ -176,7 +178,7 @@ struct ScoreResult
     s16 friendPenalty; /* 0x04 */
     s16 spottedScore;  /* 0x06 */
     s16 score;         /* 0x08 */
-    s16 grade;         /* 0x0A */
+    stage_rank grade;  /* 0x0A */
 }; /* 0x0C */
 
 /* CONFLICT.C's raw area-map word type, recovered from PSX.SYM. */
@@ -1352,7 +1354,7 @@ enum character_status
 
 #define N_CHARACTER_STATUSES (STAT_DEAD + 1)
 
-typedef enum stage_rank stage_rank;
+/* Named values for the fixed-width stage_rank storage type above. */
 enum stage_rank
 {
     RANK_THUG = 0x00,
