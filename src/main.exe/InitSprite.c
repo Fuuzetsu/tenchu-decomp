@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include "tim.h"
 #include <psxsdk/libgpu.h>
 
@@ -60,7 +61,8 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     if (image != 0)
     {
         texture_mode = TIM_PIXEL_MODE(*(u16 *)&image->pmode);
-        sprite->attribute = sprite->attribute | (texture_mode << 0x18);
+        sprite->attribute =
+            sprite->attribute | GS_ATTR_TEXTURE_MODE(texture_mode);
         width_shift = 2 - texture_mode;
         sprite->w = image->pw << width_shift;
         sprite->h = image->ph;

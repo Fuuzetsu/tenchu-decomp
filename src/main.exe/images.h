@@ -1,19 +1,27 @@
 #ifndef TENCHU_IMAGES_H
 #define TENCHU_IMAGES_H
 
-/* GsSPRITE.attribute semi-transparency protocol: bits 28-29 select the GPU
- * blend equation and bit 30 enables it. */
-enum gs_sprite_blend_rate
+/* LIBGS attributes encode a TIM pixel mode in bits 24-25. For sprites,
+ * bits 28-29 carry gpu_blend_mode and bit 30 enables semi-transparency.
+ * GsSortSprite translates those fields into the GPU packet encoding. */
+enum
 {
-    SPR_BLEND_AVERAGE = 0x00000000,
-    SPR_BLEND_ADD = 0x10000000,
-    SPR_BLEND_SUBTRACT = 0x20000000,
-    SPR_BLEND_ADD_QUARTER = 0x30000000
+    GS_ATTR_TEXTURE_MODE_SHIFT = 24,
+    GS_ATTR_BLEND_MODE_SHIFT = 28
 };
 
-#define SPR_TRANS 0x40000000
-#define SPR_TRANS_ADD (SPR_TRANS | SPR_BLEND_ADD)
-#define SPR_TRANS_SUB (SPR_TRANS | SPR_BLEND_SUBTRACT)
+#define GS_ATTR_TEXTURE_MODE(mode) ((mode) << GS_ATTR_TEXTURE_MODE_SHIFT)
+#define GS_ATTR_BLEND_MODE(mode) ((mode) << GS_ATTR_BLEND_MODE_SHIFT)
+#define GS_ATTR_BLEND_MODE_MASK GS_ATTR_BLEND_MODE(GPU_BLEND_MODE_MASK)
+#define GS_ATTR_SEMITRANS_ENABLE 0x40000000
+#define GS_ATTR_SEMITRANS_MASK \
+    (GS_ATTR_SEMITRANS_ENABLE | GS_ATTR_BLEND_MODE_MASK)
+#define GS_ATTR_SEMITRANS(mode) \
+    (GS_ATTR_SEMITRANS_ENABLE | GS_ATTR_BLEND_MODE(mode))
+
+#define GS_ATTR_SEMITRANS_AVERAGE GS_ATTR_SEMITRANS(GPU_BLEND_AVERAGE)
+#define GS_ATTR_SEMITRANS_ADD GS_ATTR_SEMITRANS(GPU_BLEND_ADD)
+#define GS_ATTR_SEMITRANS_SUBTRACT GS_ATTR_SEMITRANS(GPU_BLEND_SUBTRACT)
 
 /* GetImage slots the code pins, named by what each becomes (invented
  * names): the afterimage texture, the water-splash sprite, the item

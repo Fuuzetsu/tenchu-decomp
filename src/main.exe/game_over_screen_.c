@@ -32,7 +32,7 @@
     spr.r = 0;                                                                \
     spr.g = 0;                                                                \
     spr.b = 0;                                                                \
-    spr.attribute |= SPR_TRANS_ADD;                                           \
+    spr.attribute |= GS_ATTR_SEMITRANS_ADD;                                   \
     spr.mx = spr.w >> 1;                                                      \
     spr.my = spr.h >> 1;                                                      \
     LoadTIM(tim);
@@ -158,7 +158,7 @@ void game_over_screen_(void)
         i++;
     } while (i < N_LOADOUT_ITEMS);
 
-    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     setRECT(&clear_rect, 0, 0, VRAM_W, VRAM_H);
     ClearImage(&clear_rect, 0, 0, clear_b);
@@ -169,7 +169,7 @@ void game_over_screen_(void)
     LoadTIMAndFree(tim);
     fade_sprite = SetupSprite(0, &fade_image);
     suffix = 'r';
-    fade_sprite->sprite.attribute |= SPR_TRANS_SUB;
+    fade_sprite->sprite.attribute |= GS_ATTR_SEMITRANS_SUBTRACT;
 
     language_state = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     if (CHOSEN_CHARACTER != RIKIMARU_0)
@@ -192,7 +192,7 @@ void game_over_screen_(void)
     gov_title.r = setup_brightness;
     gov_title.g = setup_brightness;
     gov_title.b = setup_brightness;
-    gov_title.attribute |= SPR_TRANS_ADD;
+    gov_title.attribute |= GS_ATTR_SEMITRANS_ADD;
     gov_title.mx = gov_title.w >> 1;
     gov_title.my = gov_title.h >> 1;
     LoadTIM(tim);
@@ -216,7 +216,7 @@ void game_over_screen_(void)
     archive_line_1.r = 0;
     archive_line_1.g = 0;
     archive_line_1.b = 0;
-    archive_line_1.attribute |= SPR_TRANS_ADD;
+    archive_line_1.attribute |= GS_ATTR_SEMITRANS_ADD;
     archive_line_1.mx = archive_line_1.w >> 1;
     archive_line_1.my = archive_line_1.h >> 1;
     LoadTIM(tim);

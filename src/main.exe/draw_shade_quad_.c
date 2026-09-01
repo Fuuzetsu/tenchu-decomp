@@ -34,7 +34,8 @@ void draw_shade_quad_(u8 *ot, s8 r, s8 g, s8 b)
     setcode(&ply->ply, 0x2A);
     setlen(&ply->tpage, 1);
     ply->ply.x0 = -SCREEN_W / 2;
-    ply->tpage.code[0] = ((2 << 5) | GPU_DRAWMODE_DITHER);
+    ply->tpage.code[0] =
+        GPU_DRAWMODE_BLEND(GPU_BLEND_SUBTRACT) | GPU_DRAWMODE_DITHER;
     ply->ply.y0 = -SCREEN_H / 2;
     ply->ply.y1 = -SCREEN_H / 2;
     ply->ply.x1 = SCREEN_W / 2;

@@ -25,5 +25,5 @@ void SetPolyXG4(POLY_XG4 *ply, short attrib)
     setlen(&ply->ply, 8);
     setcode(&ply->ply, 0x3A);
     setlen(&ply->tpage, 1);
-    ply->tpage.code[0] = (attrib & 3) << 5 | GPU_DRAWMODE_DITHER;
+    ply->tpage.code[0] = GPU_DRAWMODE_BLEND(attrib) | GPU_DRAWMODE_DITHER;
 }

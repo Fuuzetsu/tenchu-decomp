@@ -43,9 +43,9 @@
  *    induction value without an invented source-level `sprite` cursor.
  *  - GetArcData/GetImage feed their consumers directly. Their former `arc`
  *    and `image` carriers were absent from PSX.SYM and remove byte-exactly.
- *    `attr` cannot: spelling SPR_TRANS_ADD at the store moves its `lui`
- *    three instructions later (ten differing bytes), so the carrier keeps
- *    the target's pre-loop materialization order.
+ *    `attr` cannot: spelling the additive sprite attribute at the store moves
+ *    its `lui` three instructions later (ten differing bytes), so the carrier
+ *    keeps the target's pre-loop materialization order.
  *  - `Item_fInitial = 1;` is ITEM.C's original file-static `fInitial`
  *    (qualified for the split decomp) and DoItemProc's lazy-init guard.
  */
@@ -73,7 +73,7 @@ void InitializeItem(void)
     }
 
     i = 0;
-    attr = SPR_TRANS_ADD;
+    attr = GS_ATTR_SEMITRANS_ADD;
     while (1)
     {
         if (i >= 1)
@@ -84,9 +84,9 @@ void InitializeItem(void)
     }
 
     sprNapalm = SetupSprite((Sprite3D *)0, GetImage(IMG_BOMB0));
-    sprNapalm->sprite.attribute = SPR_TRANS_ADD;
+    sprNapalm->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
     sprNapalm2 = SetupSprite((Sprite3D *)0, GetImage(IMG_SMOKE));
-    sprNapalm2->sprite.attribute = SPR_TRANS_SUB;
+    sprNapalm2->sprite.attribute = GS_ATTR_SEMITRANS_SUBTRACT;
     InitSprite(GetImage(IMG_GOSHIKIMAI), &SpriteGoshikimai);
 
     Item_fInitial = 1;

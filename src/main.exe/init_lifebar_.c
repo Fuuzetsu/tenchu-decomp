@@ -5,11 +5,9 @@
 /*
  * STATUS: MATCHING — 212 bytes.
  *
- * init_lifebar_ (0x8004a6bc, 0xd4 bytes) — INFOVIEW.C: initializes two pairs
- * of life-bar element sprites (attribute 0x40000000 / SPR_TRANS_ADD — likely
- * two different GsSortSprite draw-primitive kinds for the same bar, e.g. a
- * background half and a fill half), one pair per "style" for 2 styles, each
- * pair a `GsSPRITE[2]` 0x50 bytes apart (0x24-byte GsSPRITE pair + 8 bytes
+ * init_lifebar_ (0x8004a6bc, 0xd4 bytes) — INFOVIEW.C: initializes two
+ * life-bar styles, each with an average-blended frame and an additive fill.
+ * Each `GsSPRITE[2]` is 0x50 bytes apart: a 0x48-byte pair plus eight bytes
  * of other per-style fields PutLifeBar.c also touches around this same
  * region: D_8008e414/e416/e418/e41a sit immediately before this function's
  * first sprite LifeBarFrame, and PutLifeBar indexes the very same
@@ -71,14 +69,14 @@ void init_lifebar_(void)
         slot->mx = 0;
         slot->my = 0;
         slot->rotate = LifeBarParts[i].rotate;
-        slot->attribute = SPR_TRANS;
+        slot->attribute = GS_ATTR_SEMITRANS_AVERAGE;
 
         slot = &LifeBarStyle[i].fill;
         InitSprite(GetImage(LifeBarParts[i].imgB), slot);
         slot->mx = 0;
         slot->my = 0;
         tmp = LifeBarParts[i].rotate;
-        slot->attribute = SPR_TRANS_ADD;
+        slot->attribute = GS_ATTR_SEMITRANS_ADD;
         slot->rotate = tmp;
     }
 }

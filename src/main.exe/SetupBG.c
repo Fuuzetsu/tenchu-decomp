@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include "tim.h"
 #include <psxsdk/libgpu.h>
 
@@ -63,7 +64,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->map.cellw = bg->map.cellh = 0x10;
     bg->map.ncellw = w / bg->map.cellw;
     pmode = TIM_PIXEL_MODE(raw_pmode);
-    bg->hundle.attribute = pmode << 24;
+    bg->hundle.attribute = GS_ATTR_TEXTURE_MODE(pmode);
     bg->hundle.mx = bg->hundle.w >> 1;
     bg->hundle.my = bg->hundle.h >> 1;
     bg->map.ncellh = h / bg->map.cellh;

@@ -93,7 +93,7 @@ void PutMap(void)
 
     ply = (POLY_XF4 *)GsGetWorkBase();
     GsSetWorkBase(ply + 1);
-    SetPolyXF4(ply, 2);
+    SetPolyXF4(ply, GPU_BLEND_SUBTRACT);
     setXY4(&ply->ply, -SCREEN_W / 2, -SCREEN_H / 2, SCREEN_W / 2,
            -SCREEN_H / 2, -SCREEN_W / 2, SCREEN_H / 2, SCREEN_W / 2,
            SCREEN_H / 2);

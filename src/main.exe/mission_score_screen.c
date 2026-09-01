@@ -217,7 +217,7 @@ void mission_score_screen(void)
         register GsSPRITE *initNumber = &number;
 
         InitScoreSprite(tim, &image, initNumber);
-        initNumber->attribute |= SPR_TRANS_ADD;
+        initNumber->attribute |= GS_ATTR_SEMITRANS_ADD;
         initNumber->x = -140;
         initNumber->y = -40;
         work = 128;
@@ -240,7 +240,7 @@ void mission_score_screen(void)
         register u32 attributeMask;
 
         archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
-        attributeMask = SPR_TRANS_ADD;
+        attributeMask = GS_ATTR_SEMITRANS_ADD;
     score_rank_sprite_init_loop:
     {
         u32 width;
@@ -635,7 +635,7 @@ void mission_score_screen(void)
         }
     }
 
-    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     /* Allocation carrier: keep the persistent-state role ahead of goNext. */
     /* allocation staging: folded after flow -- not recovered arithmetic */

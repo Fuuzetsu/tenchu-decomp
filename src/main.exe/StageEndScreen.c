@@ -226,7 +226,7 @@ void StageEndScreen(void)
     ui.old_pad = 0;
     SetupAppearance(RIKIMARU_0, APPEARANCE_STAGE_NONE);
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
-    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
 
     item_index = 0;
@@ -316,7 +316,7 @@ void StageEndScreen(void)
 
                 sprite = &digit;
                 StageEndInitSprite(tim, &image, sprite);
-                sprite->attribute |= SPR_TRANS_ADD;
+                sprite->attribute |= GS_ATTR_SEMITRANS_ADD;
                 sprite->x = -0x8c;
                 sprite->y = -0x28;
                 sprite->r = 0x80;
@@ -345,7 +345,7 @@ void StageEndScreen(void)
             rank.r = 0x80;
             rank.g = 0x80;
             rank.b = 0x80;
-            rank.attribute |= SPR_TRANS_ADD;
+            rank.attribute |= GS_ATTR_SEMITRANS_ADD;
             rank.mx = rank.w >> 1;
             rank.my = rank.h >> 1;
             rank.mx = 0;
@@ -533,7 +533,7 @@ void StageEndScreen(void)
     }
 
     award_stage_items_(PSTATE, &current);
-    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
 
     if (PSTATE->StageNoMAX[PSTATE->CharType] <

@@ -50,9 +50,9 @@
  *    named locals, `scale2`/`attr2`, assigned right before loop 2's own
  *    goto-loop body, in registers distinct from loop 1's).
  *  - Loop 3 (KehaiImage) stays a genuine `do{}while`: Ghidra's rendering
- *    already matches (its one constant, SPR_TRANS_ADD, is likewise just a
- *    plain pre-loop variable read, and the array is walked with a typed
- *    `GsSPRITE *` pointer with no strength-reduction concern).
+ *    already matches (its additive sprite attribute is likewise just a plain
+ *    pre-loop variable read, and the array is walked with a typed `GsSPRITE *`
+ *    pointer with no strength-reduction concern).
  *  - `ItemImage` is walked through its real `Sprite3D **` element type.
  *    `item` retains SetupSprite's result for the scale store, while
  *    `(*slot)->attribute` deliberately re-reads the pointer from the array;
@@ -97,7 +97,7 @@ void InitializeInfoView(void)
 
     image = GetImage(IMG_CURSOR);
     InitSprite(image, &CursorImage);
-    CursorImage.attribute = SPR_TRANS_ADD;
+    CursorImage.attribute = GS_ATTR_SEMITRANS_ADD;
     image = GetImage(IMG_FONT_NUMBER);
     InitSprite(image, &NumberImage);
     i = 0;
@@ -129,7 +129,7 @@ loop1:
             goto loop2;
     }
     i = 0;
-    attr3 = SPR_TRANS_ADD;
+    attr3 = GS_ATTR_SEMITRANS_ADD;
     sprite = KehaiImage;
     do
     {

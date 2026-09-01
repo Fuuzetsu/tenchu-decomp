@@ -105,7 +105,7 @@ void InitMisc(void)
         u32 attr;
 
         i = 0;
-        attr = SPR_TRANS_ADD;
+        attr = GS_ATTR_SEMITRANS_ADD;
         spr = SpriteData;
         do
         {

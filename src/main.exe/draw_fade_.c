@@ -40,7 +40,7 @@ void draw_fade_(TEffectSlot *ef)
     u8 mode;
 
     fade = &ef->param.fade;
-    SetPolyXF4(&local, 1);
+    SetPolyXF4(&local, GPU_BLEND_ADD);
     local.ply.x0 = -SCREEN_W / 2;
     local.ply.y0 = -SCREEN_H / 2;
     local.ply.x1 = SCREEN_W / 2;

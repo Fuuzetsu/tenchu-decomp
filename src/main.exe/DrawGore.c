@@ -96,7 +96,7 @@ void DrawGore(TEffectSlot *ef)
             ef->proc = 0;
         }
 
-        spr->attribute = SPR_TRANS_ADD;
+        spr->attribute = GS_ATTR_SEMITRANS_ADD;
         param->py += param->vy;
         size = param->scale;
         rotate = param->rotate;

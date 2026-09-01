@@ -115,7 +115,7 @@
 
 /* Shared full-screen fade and game-over stagger. */
 #define SCREEN_FADE_FRAMES 0x20
-#define SCREEN_FADE_MODE 2
+#define SCREEN_FADE_BLEND GPU_BLEND_SUBTRACT
 #define SCREEN_FADE_LEVEL 8
 #define GAME_OVER_LINE_1_FADE_FRAME 0x119
 #define GAME_OVER_LINE_2_FADE_FRAME 0x15F

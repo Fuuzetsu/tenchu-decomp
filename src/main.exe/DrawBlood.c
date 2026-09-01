@@ -124,7 +124,7 @@ void DrawBlood(TEffectSlot *ef)
             blood->brightness = 0;
             ef->proc = 0;
         }
-        spr->attribute = SPR_TRANS_ADD;
+        spr->attribute = GS_ATTR_SEMITRANS_ADD;
         scale = blood->scale;
         blood->py += blood->vy;
         rotate = blood->rotate;

@@ -123,13 +123,13 @@ s32 draw_card_help_(s32 page, s32 pad)
         {
             if (McardStateFlag != 0)
             {
-                McardButtons[2]->sprite.attribute &= ~SPR_TRANS;
-                McardButtons[3]->sprite.attribute |= SPR_TRANS;
+                McardButtons[2]->sprite.attribute &= ~GS_ATTR_SEMITRANS_ENABLE;
+                McardButtons[3]->sprite.attribute |= GS_ATTR_SEMITRANS_ENABLE;
             }
             else
             {
-                McardButtons[2]->sprite.attribute |= SPR_TRANS;
-                McardButtons[3]->sprite.attribute &= ~SPR_TRANS;
+                McardButtons[2]->sprite.attribute |= GS_ATTR_SEMITRANS_ENABLE;
+                McardButtons[3]->sprite.attribute &= ~GS_ATTR_SEMITRANS_ENABLE;
             }
             GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
             GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);

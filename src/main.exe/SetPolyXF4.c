@@ -21,14 +21,13 @@
  *
  *  - `ply->ply.tag`'s top byte (offset+3) is the PsyQ `setlen` length field,
  *    set to 5; `.code` is the primitive code byte, set to '*' (0x2A).
- *  - `ply->tpage.tag`'s top byte set to 1 (setlen), and `.code[0]` packed as
- *    `((attrib & 3) << 5) | GPU_DRAWMODE_DITHER` — a DR_TPAGE-style mode word (0xE1
- *    = draw-mode GPU command, with the low tpage bits ORed in).
+ *  - `ply->tpage.tag`'s top byte is set to 1 (setlen), and `.code[0]`
+ *    carries `attrib`'s gpu_blend_mode in the DR_TPAGE blend field.
  */
 void SetPolyXF4(POLY_XF4 *ply, short attrib)
 {
     setlen(&ply->ply, 5);
     setcode(&ply->ply, 0x2A);
     setlen(&ply->tpage, 1);
-    ply->tpage.code[0] = ((attrib & 3) << 5) | GPU_DRAWMODE_DITHER;
+    ply->tpage.code[0] = GPU_DRAWMODE_BLEND(attrib) | GPU_DRAWMODE_DITHER;
 }

@@ -78,9 +78,22 @@ extern TCameraStatus CamState;
 extern TCameraPos CamPosCriticalHit[N_CRITICAL_CAMERA_POSITIONS];
 extern TCameraPos CamPos;
 extern TCameraPos CamPosDefault;
+/* The GPU has four semi-transparency equations. GsSPRITE attributes and
+ * DR_TPAGE packets encode this same value in different bit positions; keep
+ * the equation itself representation-independent. */
+enum gpu_blend_mode
+{
+    GPU_BLEND_AVERAGE = 0,     /* back / 2 + front / 2 */
+    GPU_BLEND_ADD = 1,         /* back + front */
+    GPU_BLEND_SUBTRACT = 2,    /* back - front */
+    GPU_BLEND_ADD_QUARTER = 3, /* back + front / 4 */
+    GPU_BLEND_MODE_MASK = 3
+};
+
 /* A DR_TPAGE-style mode word: GP0 command 0xE1 (draw mode) with dithering
- * on. Callers OR the semi-transparency mode into bits 5-6. */
+ * on. Its bits 5-6 carry gpu_blend_mode. */
 #define GPU_DRAWMODE_DITHER 0xE1000200
+#define GPU_DRAWMODE_BLEND(mode) (((mode) & GPU_BLEND_MODE_MASK) << 5)
 
 extern GsRVIEW2 ViewInfo;
 

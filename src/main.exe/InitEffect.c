@@ -106,15 +106,15 @@ void InitEffect(void)
          * Both spellings measured 24 lines off. */
         image = GetImage(bloodp->image[i * 2]);
         InitSprite(image, &sprBlood[i]);
-        sprBlood[i].attribute = SPR_TRANS_ADD;
+        sprBlood[i].attribute = GS_ATTR_SEMITRANS_ADD;
         image = GetImage(bloodp->image[i * 2 + 1]);
         InitSprite(image, &sprBloodStay[i]);
-        sprBloodStay[i].attribute = SPR_TRANS_SUB;
+        sprBloodStay[i].attribute = GS_ATTR_SEMITRANS_SUBTRACT;
     }
 
     image = GetImage(IMG_SPLASH);
     InitSprite(image, &sprSplash);
-    sprSplash.attribute = SPR_TRANS_ADD;
+    sprSplash.attribute = GS_ATTR_SEMITRANS_ADD;
     sprSplash.my = sprSplash.h;
 
     i = 0;
@@ -124,7 +124,7 @@ void InitEffect(void)
             break;
         image = GetImage(pat[i]);
         InitSprite(image, &sprFrame[i]);
-        sprFrame[i].attribute = SPR_TRANS_ADD;
+        sprFrame[i].attribute = GS_ATTR_SEMITRANS_ADD;
         i++;
     }
 
@@ -135,7 +135,7 @@ void InitEffect(void)
             break;
         image = GetImage(Effect_img[i]);
         InitSprite(image, &sprImpact[i]);
-        sprImpact[i].attribute = SPR_TRANS_ADD;
+        sprImpact[i].attribute = GS_ATTR_SEMITRANS_ADD;
         i++;
     }
 
@@ -164,7 +164,7 @@ void InitEffect(void)
             image = GetImage(*(s32 *)smoke_address);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprSmoke[i] = sprite;
-            sprite->sprite.attribute = SPR_TRANS_ADD;
+            sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
             i++;
         }
     }
@@ -181,7 +181,7 @@ void InitEffect(void)
             image = GetImage(img[i]);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprBomb[i] = sprite;
-            sprite->sprite.attribute = SPR_TRANS_ADD;
+            sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
             i++;
         }
     }
@@ -200,7 +200,7 @@ void InitEffect(void)
             image = GetImage(IMG_SNOW);
             sprite = SetupSprite((Sprite3D *)0, image);
             SpriteSnow[i] = sprite;
-            sprite->sprite.attribute = SPR_TRANS_ADD;
+            sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
             i++;
         } while (i < N_SNOW_SPRITES);
     }

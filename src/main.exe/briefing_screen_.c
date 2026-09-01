@@ -117,7 +117,7 @@ void briefing_screen_(void)
     sprite.r = 0x80;
     sprite.g = 0x80;
     sprite.b = 0x80;
-    sprite.attribute |= SPR_TRANS_ADD;
+    sprite.attribute |= GS_ATTR_SEMITRANS_ADD;
     sprite.mx = sprite.w >> 1;
     sprite.my = sprite.h >> 1;
     sprite.mx = 0;
@@ -148,7 +148,7 @@ void briefing_screen_(void)
                 PSTATE->gItem[CHOSEN_CHARACTER][i] =
                     PSTATE->saveItem[i];
             }
-            FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+            FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
             clear_screen_();
             STAGE_LAYOUT_NUMBER = STAGE_LAYOUT_RANDOM;
             GameRetry &= (u8)~GAME_RETRY_REPLAY;

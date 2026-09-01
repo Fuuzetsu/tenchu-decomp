@@ -123,7 +123,7 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
         PrepareLightningScreenPosition();
         GetLightningScreenPosition(start->vx, start->vy, start->vz, &oldscr);
 
-        line.attribute = SPR_TRANS_ADD;
+        line.attribute = GS_ATTR_SEMITRANS_ADD;
         line.r = lr;
         line.g = lg;
         line.b = lb;

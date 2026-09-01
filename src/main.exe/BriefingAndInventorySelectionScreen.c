@@ -188,7 +188,7 @@ void BriefingAndInventorySelectionScreen(void)
      * away without one). */
     p = &spr;
     TimToSprite(buf, p);
-    spr.attribute |= SPR_TRANS_ADD;
+    spr.attribute |= GS_ATTR_SEMITRANS_ADD;
     p->x = -160;
     p->y = -120;
     p->r = 0x80;
@@ -318,7 +318,7 @@ void BriefingAndInventorySelectionScreen(void)
                 TLINKINFO_STOCK(ps, CHOSEN_CHARACTER, j7) =
                     (&ps->saveItem[0])[j7];
             }
-            FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+            FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
             clear_screen_();
             STAGE_LAYOUT_NUMBER = STAGE_LAYOUT_RANDOM;
             GameRetry = GameRetry & (u8)~GAME_RETRY_REPLAY;
@@ -495,7 +495,7 @@ void BriefingAndInventorySelectionScreen(void)
             hspr.r = 0x80;
             hspr.g = 0x80;
             hspr.b = 0x80;
-            hspr.attribute |= SPR_TRANS_ADD;
+            hspr.attribute |= GS_ATTR_SEMITRANS_ADD;
             hspr.mx = hspr.w >> 1;
             hspr.my = hspr.h >> 1;
             hspr.mx = 0;
@@ -610,7 +610,7 @@ void BriefingAndInventorySelectionScreen(void)
     } while (1);
 
 quit:
-    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
+    FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     if (PSTATE->selItem[ITEM_MANEBUE] != 0)
     {

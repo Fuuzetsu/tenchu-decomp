@@ -115,7 +115,7 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     packet->ply.code = 0x28;
     ply.ply.code |= 2;
     setlen(&packet->tpage, 1);
-    ply.tpage.code[0] = ((attrib & 3) << 5) | GPU_DRAWMODE_DITHER;
+    ply.tpage.code[0] = GPU_DRAWMODE_BLEND(attrib) | GPU_DRAWMODE_DITHER;
     ply.ply.x0 = 0;
     ply.ply.y0 = 0;
     ply.ply.y1 = 0;
