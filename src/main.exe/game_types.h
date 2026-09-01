@@ -182,6 +182,11 @@ struct ScoreResult
 /* CONFLICT.C's raw area-map word type, recovered from PSX.SYM. */
 typedef unsigned long AreaMapType;
 
+/* Terrain attributes are combined 16-bit flags, not an enum-typed field.
+ * The compiler stores enums as four bytes, while the recovered nodes and
+ * query result both carry a signed short. */
+typedef s16 MapAttribute;
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType
@@ -192,7 +197,7 @@ struct AreaNodeType
     s16 z1;        /* 0x06 */
     s16 x2;        /* 0x08 */
     s16 z2;        /* 0x0A */
-    s16 attribute; /* 0x0C */
+    MapAttribute attribute; /* 0x0C */
     s16 division;  /* 0x0E */
 }; /* 0x10 */
 
@@ -230,13 +235,16 @@ struct AreaNodeType
  * point is outside the area map ("no floor here"). */
 #define LEVEL_NONE ((s32)0x80000000)
 
-#define MAP_BUOYANT 0x0002 /* the surface holds you up: see ATTR_BUOYANT */
-#define MAP_WATER 0x0004
-#define MAP_DAMAGE 0x0100
-#define MAP_WOOD 0x0008
-#define MAP_DEATH 0x0200
-#define MAP_SLOPE_X 0x4000
-#define MAP_SLOPE_Z 0x8000
+enum map_attribute_flag
+{
+    MAP_BUOYANT = 0x0002, /* the surface holds you up: see ATTR_BUOYANT */
+    MAP_WATER = 0x0004,
+    MAP_WOOD = 0x0008,
+    MAP_DAMAGE = 0x0100,
+    MAP_DEATH = 0x0200,
+    MAP_SLOPE_X = 0x4000,
+    MAP_SLOPE_Z = 0x8000
+};
 
 /* CONFLICT.C's area-map row index. */
 typedef struct NodeIndexType NodeIndexType;
@@ -287,7 +295,7 @@ struct MapVector
 {
     s32 level;                   /* 0x00 */
     s32 height;                  /* 0x04 */
-    s16 attrib;                  /* 0x08 */
+    MapAttribute attrib;         /* 0x08 */
     s16 degree;                  /* 0x0A */
     u8 vector;                   /* 0x0C */
     u8 direct;                   /* 0x0D */

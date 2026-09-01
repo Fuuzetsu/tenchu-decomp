@@ -22,7 +22,7 @@ enum
 extern short SkipFrame;
 extern int StageID;
 extern AreaMapType *GlobalAreaMap;
-extern short FieldAttrib;
+extern MapAttribute FieldAttrib;
 extern unsigned char gNannido;
 extern unsigned char gSound;
 extern unsigned char gSoundLevel;
