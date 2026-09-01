@@ -48,15 +48,13 @@
 
 Humanoid *GetHumanoid(character_kind type)
 {
-    Humanoid *p;
     short i;
 
     for (i = 0; i < Humans; i++)
     {
-        p = HumanGroup[i];
-        if (p->type == type)
+        if (HumanGroup[i]->type == type)
         {
-            return p;
+            return HumanGroup[i];
         }
     }
     return 0;

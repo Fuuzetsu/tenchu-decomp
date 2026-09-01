@@ -22,42 +22,24 @@
  * `items[]` (item.h's proven TItem; 30 slots, the same bound
  * ClearItemLayout.c uses) for the slot whose `locate->id` (ModelType.id)
  * matches ConflictID, returning that slot's `type`. Falls back to
- * ITEM_KAGINAWA if none of the 30 slots match before the count runs
- * out. `i` counts iterations in $a1, `p` walks `items` in $v1; i's increment
- * is the first body statement (falls into the mismatch branch's delay slot)
- * and p's advance is the last (the back-branch's delay slot).
+ * ITEM_KAGINAWA if none of the 30 slots match.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - This LOOKS like a "guard clause with two returns" (Ghidra: `if (match)
- *    return type; ...keep searching...; return FALLBACK;`), which the
- *    cookbook's null-guard exception says to keep in Ghidra's literal
- *    polarity. That's wrong here and relocates the match-return to the far
- *    end of the function (past the fallback), because the "rest" arm
- *    contains the loop's OWN back-edge (`goto loop`) — cc1 keeps the code
- *    lexically AFTER the if as the inline fallthrough and relocates the
- *    if-body, regardless of which side is the "guard". Fix: invert the
- *    condition and NEST the keep-searching-and-fall-back logic inside the
- *    if, leaving the found-return as the final, unnested statement — see the
- *    refined rule added to the cookbook's Dispatch section.
+ *  - A plain indexed for-loop with an early match return emits the retail
+ *    pointer walk and rotated loop exactly; no explicit cursor or goto is
+ *    needed.
  */
 
 TItemType GetItemType(s32 ConflictID)
 {
-    TItem *p;
     s32 i;
 
-    i = 0;
-    p = items;
-loop:
-    i++;
-    if (p->locate->id != ConflictID)
+    for (i = 0; i < MAX_ITEMS; i++)
     {
-        p++;
-        if (i < MAX_ITEMS)
+        if (items[i].locate->id == ConflictID)
         {
-            goto loop;
+            return items[i].type;
         }
-        return ITEM_KAGINAWA;
     }
-    return p->type;
+    return ITEM_KAGINAWA;
 }

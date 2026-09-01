@@ -37,14 +37,13 @@
 
 s16 GetAttackDBID(Humanoid *human, s16 mid)
 {
-    s16 target;
     s16 i;
 
-    target = GetMotionID(human->motion, mid);
+    mid = GetMotionID(human->motion, mid);
     i = 0;
     while (BattleDB[i].mid != -1)
     {
-        if (BattleDB[i].mid == target)
+        if (BattleDB[i].mid == mid)
         {
             break;
         }
