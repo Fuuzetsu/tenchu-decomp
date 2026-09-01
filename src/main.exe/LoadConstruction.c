@@ -5,21 +5,21 @@
 #include "misc.h"
 #include "vmemory.h"
 
-/* Map a world coordinate to its 8x8x8 WorldMap cell index (floor
- * division by the CONSTRUCTION_CELL-unit cell, wrapped to 3 bits). Repeated per
- * axis at both construction passes; macro is reconstruction shorthand
- * (expands to the identical text). The copy interleaved with the msize
- * computation stays open-coded. */
+/* Map a world coordinate to its WorldMap cell index (floor division by the
+ * CONSTRUCTION_CELL-unit cell, wrapped to one axis). Repeated per axis at
+ * both construction passes; macro is reconstruction shorthand (expands to
+ * the identical text). The copy interleaved with the msize computation stays
+ * open-coded. */
 #define WORLD_CELL(src, out)                                                  \
     {                                                                         \
         long a = src;                                                         \
         long q;                                                               \
                                                                               \
         if (a >= 0)                                                           \
-            q = a / CONSTRUCTION_CELL;                                                    \
+            q = a / CONSTRUCTION_CELL;                                        \
         else                                                                  \
-            q = a / CONSTRUCTION_CELL - 1;                                                \
-        out = q & 7;                                                          \
+            q = a / CONSTRUCTION_CELL - 1;                                    \
+        out = q & WORLD_MAP_AXIS_MASK;                                        \
     }
 
 

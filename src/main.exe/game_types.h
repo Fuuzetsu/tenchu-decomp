@@ -389,6 +389,10 @@ struct ObjectSlotManager
     s32 max;              /* 0x08 */
 }; /* 0x0C */
 
+/* The stage spatial hash has eight wrapping cells on each axis. */
+#define WORLD_MAP_AXIS_SIZE 8
+#define WORLD_MAP_AXIS_MASK (WORLD_MAP_AXIS_SIZE - 1)
+
 /* One cell of the stage's 8x8x8 spatial hash (WorldMap):
  * LoadConstruction buckets every ornament object into its cell's
  * slot list, and DrawConstruction walks only the cells near the

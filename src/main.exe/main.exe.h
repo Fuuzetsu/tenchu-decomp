@@ -103,7 +103,7 @@ extern GsRVIEW2 ViewInfo;
 #define SCRATCH_RTP_P 0x28                  /* RotTransPers long *p */
 #define SCRATCH_RTP_FLAG 0x2c               /* RotTransPers long *flag */
 extern ModelType World;
-extern WorldType WorldMap[8][8][8];
+extern WorldType WorldMap[WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE];
 #define MAX_ENEMIES 30
 /* Layout save-file sections (the names FileOption's writer uses): the
  * packed enemy layout, then the packed item layout. */
