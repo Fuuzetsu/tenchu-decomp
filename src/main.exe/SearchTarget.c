@@ -43,10 +43,10 @@
  * `j`/`li -2` island survives while the close-distance return folds directly
  * into its conditional branch.
  *
- * The three components of `vect` must be one stack VECTOR; `mode` must remain
- * s16 for the target's repeated promotion/copy chains; and the vertical
- * adjustment needs distinct `initial_delta_y`, updated `delta_y`, and
- * `base_y` identities.
+ * The three components of `vect` must be one stack VECTOR; the sight-profile
+ * selector (demo `mode`) must remain s16 for the target's repeated
+ * promotion/copy chains; and the vertical adjustment needs distinct
+ * `initial_delta_y`, updated `delta_y`, and `base_y` identities.
  */
 
 typedef struct
@@ -56,11 +56,18 @@ typedef struct
     s32 far_distance;   /* beyond this: SR_GONE (target lost) */
 } SearchSight;
 
+enum sight_profile
+{
+    SIGHT_PROFILE_STANDING,
+    SIGHT_PROFILE_SNEAKING,
+    N_SIGHT_PROFILES
+};
+
 /* The two sight-range rows (retail data @ 0x80086b7c): row 0 for a
  * walking player {sight 16000, clear 10000, gone 20000}, row 1 when the
  * player sneaks {12000, 7000, 16000} — crouching or wall-pressing cuts
  * every enemy's perception ranges by roughly a quarter. */
-extern SearchSight searchsight[];
+extern SearchSight searchsight[N_SIGHT_PROFILES];
 
 search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 {
@@ -69,7 +76,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
     SVECTOR svect;
     s32 raw_degree;
     s32 roty;
-    s16 mode;
+    s16 profile;
     s32 limit;
     s32 absolute;
     s32 base_y;
@@ -117,7 +124,9 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 
     /* Sneaking (STAT_SQUAT or STAT_STICKON) selects the short-range
      * sight row. */
-    mode = (u16)(StagePlayer->status - STAT_SQUAT) < 2;
+    profile = (u16)(StagePlayer->status - STAT_SQUAT) < 2
+                  ? SIGHT_PROFILE_SNEAKING
+                  : SIGHT_PROFILE_STANDING;
     if (StagePlayer->status == STAT_HANG)
     {
         if (vect.vy >= 0)
@@ -142,7 +151,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
         }
     }
 
-    if (*distance >= searchsight[mode].far_distance)
+    if (*distance >= searchsight[profile].far_distance)
     {
         return SR_GONE;
     }
@@ -150,17 +159,17 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
     absolute = __builtin_abs(*degree);
     if (absolute < 900)
     {
-        if (absolute >= 450 && mode != 0)
+        if (absolute >= 450 && profile != SIGHT_PROFILE_STANDING)
         {
             return SR_UNSEEN;
         }
-        if (*distance >= searchsight[mode].sight_distance)
+        if (*distance >= searchsight[profile].sight_distance)
         {
             return SR_UNSEEN;
         }
 
         limit = 500;
-        if (mode != 0)
+        if (profile != SIGHT_PROFILE_STANDING)
         {
             limit = 300;
         }
@@ -215,7 +224,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
             do
             {
             } while (0);
-            if (mode != 0)
+            if (profile != SIGHT_PROFILE_STANDING)
             {
                 passage_result = (s32)passage_pad;
             }
@@ -226,7 +235,8 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
             return passage_result;
         }
         }
-        return (*distance < searchsight[mode].clear_distance) ? SR_SEEN : SR_GLIMPSE;
+        return (*distance < searchsight[profile].clear_distance) ? SR_SEEN
+                                                                 : SR_GLIMPSE;
     }
     return SR_UNSEEN;
 }
