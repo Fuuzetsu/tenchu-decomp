@@ -160,7 +160,7 @@ found:
     TexScrollY += 0x40;
     tscr->vx = vx;
     tscr->vy = vy;
-    ef->proc = (void (*)())UpdateTexScroll;
+    ef->proc = UpdateTexScroll;
     if (TexScrollY > 0x200)
     {
         TexScrollY = 0x100;

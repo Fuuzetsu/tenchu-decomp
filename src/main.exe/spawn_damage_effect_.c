@@ -132,7 +132,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         frame->size = 0x3000;
         frame->count = time;
         frame->super = &model->locate;
-        found_slot->proc = (void (*)())DrawFrame;
+        found_slot->proc = DrawFrame;
 
         SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
                      &work.blood.scratch.direction,

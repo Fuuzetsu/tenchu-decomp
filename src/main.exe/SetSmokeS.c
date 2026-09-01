@@ -85,5 +85,5 @@ found:
     smoke->sprite = SMOKE_SPRITE_NORMAL;
     m = smoke->time - 1;
     smoke->evtime = m - ((short)time / 2 + r % (short)time);
-    ef->proc = (void (*)())DrawSmoke;
+    ef->proc = DrawSmoke;
 }

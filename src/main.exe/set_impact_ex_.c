@@ -84,7 +84,7 @@ loop:
     }
     goto loop;
 found:
-    ef->proc = (void (*)())DrawImpact;
+    ef->proc = DrawImpact;
     ef->param.impact.px = pos->vx;
     param = &ef->param.impact;
     param->py = pos->vy;

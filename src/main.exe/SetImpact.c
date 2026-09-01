@@ -97,7 +97,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     } while (count < N_EFFECT_SLOTS);
     ef = &dmy;
 found:
-    ef->proc = (void (*)())DrawImpact;
+    ef->proc = DrawImpact;
     ef->param.impact.px = pos->vx;
     param = &ef->param.impact;
     param->py = pos->vy;

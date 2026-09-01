@@ -121,7 +121,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         gore->brightness = GORE_INITIAL_BRIGHTNESS;
         gore->mode = GORE_MODE_AIRBORNE;
         impact_phase = GameClock & (GORE_IMPACT_INTERVAL - 1);
-        gore_effect->proc = (void (*)())DrawGore;
+        gore_effect->proc = DrawGore;
     }
 
     if (impact_phase == 0)
@@ -168,7 +168,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         } while (impact_slots_searched < N_EFFECT_SLOTS);
         impact_effect = &dmy;
     impact_found:
-        impact_effect->proc = (void (*)())DrawImpact;
+        impact_effect->proc = DrawImpact;
         impact_effect->param.impact.px = scratch.impact_position.vx;
         impact = &impact_effect->param.impact;
         impact->py = scratch.impact_position.vy;

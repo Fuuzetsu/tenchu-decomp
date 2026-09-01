@@ -68,5 +68,5 @@ found:
     fade->priority = priority;
     fade->start_time = start_time;
     fade->end_time = start_time + 5;
-    ef->proc = (void (*)())draw_fade_;
+    ef->proc = draw_fade_;
 }

@@ -159,7 +159,7 @@ void DrawShadow(Humanoid *human)
             param->speed = 4;
             param->mode = SPLASH_MODE_SPAWN;
             param->pz = z;
-            effect->proc = (void (*)())DrawSplash;
+            effect->proc = DrawSplash;
         }
     }
     else if (human->map.attrib & MAP_DAMAGE)

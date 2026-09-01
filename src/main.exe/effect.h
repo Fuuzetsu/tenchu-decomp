@@ -21,6 +21,8 @@ typedef struct SmokeType SmokeType;
 typedef struct ImpactType ImpactType;
 typedef struct SnowParticleType SnowParticleType;
 typedef struct TexScroll TexScroll;
+typedef struct tag_EffectSlot TEffectSlot;
+typedef void (*EffectProc)(TEffectSlot *effect);
 
 typedef union ImpactColor ImpactColor;
 union ImpactColor
@@ -302,11 +304,11 @@ union EffectParam /* size 72 (union EFFECT__180fake) */
     struct TexScroll texscroll;
 };
 
-typedef struct tag_EffectSlot /* size 76 */
+struct tag_EffectSlot /* size 76 */
 {
-    void (*proc)();
+    EffectProc proc;
     union EffectParam param;
-} TEffectSlot;
+};
 
 extern TEffectSlot EffectSlot[N_EFFECT_SLOTS];
 extern int EFFECT_CURSOR_; /* the pool's round-robin cursor */

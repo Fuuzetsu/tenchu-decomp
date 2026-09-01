@@ -305,7 +305,7 @@ void DrawGore(TEffectSlot *ef)
         bleed->g = green;
         bleed->b = color;
         bleed->mode = 0;
-        slot->proc = (void (*)())DrawBleed;
+        slot->proc = DrawBleed;
         break;
     }
     }

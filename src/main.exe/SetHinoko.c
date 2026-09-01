@@ -127,6 +127,6 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         i++;
         param->mode = EXPLOSION_MODE_FLASH;
         param->time = r % 15 + 15;
-        ef->proc = (void (*)())DrawHinoko;
+        ef->proc = DrawHinoko;
     }
 }

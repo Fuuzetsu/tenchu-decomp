@@ -109,6 +109,6 @@ found:
     param->time = 5;
     param->mode = EXPLOSION_MODE_FLASH;
     param->vec.vz = vz;
-    ef->proc = (void (*)())DrawExplosion;
+    ef->proc = DrawExplosion;
     SetBleeds(pos, 200, 150, 20, 30, COLOR_YELLOW);
 }

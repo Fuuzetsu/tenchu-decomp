@@ -162,7 +162,7 @@ outer:
             blood->brightness = 0x80;
             blood->hint = hint;
             blood->mode = BLOOD_MODE_AIRBORNE;
-            ef->proc = (void (*)())DrawBlood;
+            ef->proc = DrawBlood;
         } while (0);
     }
     goto outer;

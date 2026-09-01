@@ -99,5 +99,5 @@ found:
     fp->count = time;
     fp->pz = z;
     ef->param.frame.super = super;
-    ef->proc = (void (*)())DrawFrame;
+    ef->proc = DrawFrame;
 }

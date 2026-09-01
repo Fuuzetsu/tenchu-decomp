@@ -197,7 +197,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             param->time = time;
             param->b = col;
             param->mode = 0;
-            ef->proc = (void (*)())DrawBleed;
+            ef->proc = DrawBleed;
         }
     } while (1);
 }

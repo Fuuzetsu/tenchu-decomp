@@ -83,5 +83,5 @@ found:
     fp->sy = sy;
     fp->speed = speed;
     fp->pz = z;
-    ef->proc = (void (*)())DrawSplash;
+    ef->proc = DrawSplash;
 }

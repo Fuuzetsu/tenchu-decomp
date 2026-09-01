@@ -233,7 +233,7 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
             param->time = time;
             param->b = col;
             param->mode = 0;
-            ef->proc = (void (*)())DrawBleed;
+            ef->proc = DrawBleed;
         }
     } while (1);
 }

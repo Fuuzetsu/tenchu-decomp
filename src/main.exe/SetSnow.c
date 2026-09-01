@@ -84,5 +84,5 @@ found:
     particle->ground = GetAreaMapLevel(GlobalAreaMap, ef->param.snow.x,
                                        particle->sample_y, particle->z,
                                        AREA_LEVEL_FIRST_HIT);
-    ef->proc = (void (*)())DrawSnow;
+    ef->proc = DrawSnow;
 }

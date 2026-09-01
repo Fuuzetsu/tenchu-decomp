@@ -189,7 +189,7 @@ found:
 
     if (param->time > 0)
     {
-        ef->proc = (void (*)())DrawFlyWire;
+        ef->proc = DrawFlyWire;
         result = param->time + 5;
     }
     else

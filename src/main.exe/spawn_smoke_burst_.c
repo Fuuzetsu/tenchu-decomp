@@ -143,6 +143,6 @@ found:
     m = smoke->time - 8;
     smoke->sprite = 1;
     smoke->evtime = m - ((s32)r % 15);
-    ef->proc = (void (*)())DrawSmoke;
+    ef->proc = DrawSmoke;
     goto loop;
 }

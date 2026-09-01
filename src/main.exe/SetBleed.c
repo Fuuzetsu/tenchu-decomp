@@ -97,5 +97,5 @@ found:
     param->time = time;
     param->b = col;
     param->mode = 0;
-    ef->proc = (void (*)())DrawBleed;
+    ef->proc = DrawBleed;
 }
