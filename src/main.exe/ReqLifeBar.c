@@ -90,7 +90,7 @@ int ReqLifeBar(Humanoid *h)
         goto ret_zero;
     }
     LifeBar[g].target = h;
-    LifeBar[g].style = 1;
+    LifeBar[g].style = LIFE_BAR_STYLE_ENEMY;
     LifeBar[g].life = h->life;
     LifeBar[g].max = h->lifemax;
     if (h->life == 0)

@@ -29,7 +29,8 @@
  * loop touches 2+ fields"). Twin: DrawEffect.c (0.16), same TU as
  * PutItemIcon.c/PutItemCursor.c.
  */
-extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
+extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax,
+                       life_bar_style style);
 
 s32 PutLifeBarS(void)
 {

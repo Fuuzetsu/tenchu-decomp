@@ -2054,7 +2054,17 @@ struct SoundEffect
     VabHdr *VABhead;   /* 0x04 */
 }; /* 0x08 */
 
-/* INFOVIEW.C's active life-bar slot (anonymous in PSX.SYM). */
+/* INFOVIEW.C has two authored life-bar presentations: the player's HUD bar
+ * and the temporary enemy bars requested by combat. */
+typedef enum life_bar_style life_bar_style;
+enum life_bar_style
+{
+    LIFE_BAR_STYLE_PLAYER = 0,
+    LIFE_BAR_STYLE_ENEMY = 1,
+    N_LIFE_BAR_STYLES = 2
+};
+
+/* INFOVIEW.C's active enemy-life-bar slot (anonymous in PSX.SYM). */
 typedef struct LifeBarEntry LifeBarEntry;
 struct LifeBarEntry
 {
@@ -2062,19 +2072,13 @@ struct LifeBarEntry
     s32 life;                /* 0x04 */
     s32 max;                 /* 0x08 */
     s32 count;               /* 0x0C */
-    s32 style;               /* 0x10 */
+    life_bar_style style;    /* 0x10 */
 }; /* 0x14 */
 
 /* Retail adds one slot to the demo's original nLifeBar = 4 pool. */
 enum
 {
     nLifeBar = 5
-};
-
-/* Retail's redesigned INFOVIEW.C life-bar style. */
-enum
-{
-    nLifeBarStyle = 2
 };
 
 typedef struct TLifeBarStyle TLifeBarStyle;

@@ -85,7 +85,7 @@
  *    assigns this scalar before use, and the block has no initializer/VLA.
  */
 
-void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, s32 style)
+void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
 {
     GsSPRITE *img;
     GsSPRITE *ou;

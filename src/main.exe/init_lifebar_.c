@@ -22,7 +22,7 @@
  * LifeBarParts is a small local per-style source table (not referenced by any
  * other matched function): a `long` forwarded into both sprites' `rotate`
  * field, plus one image-id byte per sprite (fed straight to GetImage).
- * Indexed by the SAME loop counter used for the `i < nLifeBarStyle` test
+ * Indexed by the SAME loop counter used for the `i < N_LIFE_BAR_STYLES` test
  * (`LifeBarParts[i]`), not walked with its own incrementing pointer: touching
  * 2+ fields
  * (word0 and both id bytes) per iteration through a raw walking pointer
@@ -47,9 +47,9 @@
  */
 typedef struct
 {
-    s32 rotate; /* +0x0, forwarded into both sprites' `rotate` verbatim */
-    u8 imgA;    /* +0x4 */
-    u8 imgB;    /* +0x5 */
+    s32 rotation;    /* +0x0, forwarded into both sprites verbatim */
+    u8 frame_image;  /* +0x4 */
+    u8 fill_image;   /* +0x5 */
 } LifeBarSpriteEntry;
 
 extern LifeBarSpriteEntry LifeBarParts[];
@@ -62,20 +62,20 @@ void init_lifebar_(void)
     s32 tmp;
     int i;
 
-    for (i = 0; i < nLifeBarStyle; i++)
+    for (i = 0; i < N_LIFE_BAR_STYLES; i++)
     {
         slot = &LifeBarStyle[i].frame;
-        InitSprite(GetImage(LifeBarParts[i].imgA), slot);
+        InitSprite(GetImage(LifeBarParts[i].frame_image), slot);
         slot->mx = 0;
         slot->my = 0;
-        slot->rotate = LifeBarParts[i].rotate;
+        slot->rotate = LifeBarParts[i].rotation;
         slot->attribute = GS_ATTR_SEMITRANS_AVERAGE;
 
         slot = &LifeBarStyle[i].fill;
-        InitSprite(GetImage(LifeBarParts[i].imgB), slot);
+        InitSprite(GetImage(LifeBarParts[i].fill_image), slot);
         slot->mx = 0;
         slot->my = 0;
-        tmp = LifeBarParts[i].rotate;
+        tmp = LifeBarParts[i].rotation;
         slot->attribute = GS_ATTR_SEMITRANS_ADD;
         slot->rotate = tmp;
     }

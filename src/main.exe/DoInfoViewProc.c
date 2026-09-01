@@ -92,7 +92,8 @@ extern void PlayerOption(void);
 extern void debug_menu_stage_option(void);
 extern void PauseProc(void);
 extern void PutItemList(void);
-extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
+extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax,
+                       life_bar_style style);
 extern int PutLifeBarS(void);
 extern void PutStrain(s32 x, s32 y);
 extern void PutMap(void);
@@ -260,7 +261,8 @@ nosel:
         PauseProc();
     }
     PutItemList();
-    PutLifeBar(-148, 105, CamState.Owner->life, CamState.Owner->lifemax, 0);
+    PutLifeBar(-148, 105, CamState.Owner->life, CamState.Owner->lifemax,
+               LIFE_BAR_STYLE_PLAYER);
     PutLifeBarS();
     PutStrain(-134, 92);
     if ((GetPad(PAD_CONTROLLER_1) & PADselect) &&

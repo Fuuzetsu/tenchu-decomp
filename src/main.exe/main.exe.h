@@ -216,7 +216,7 @@ extern GsSPRITE KehaiImage[N_KEHAI_IMAGES];
 #define KehaiCriticalImage (KehaiImage[N_KEHAI_IMAGES - 1])
 extern GsSPRITE MapImage;
 extern LifeBarEntry LifeBar[nLifeBar];
-extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
+extern TLifeBarStyle LifeBarStyle[N_LIFE_BAR_STYLES];
 extern void PutItemIcon(int ItemID, short x, short y, short scale);
 extern void PutItemCursor(short x, short y, short size, int rotdif);
 extern GsOT *OTablePt;
