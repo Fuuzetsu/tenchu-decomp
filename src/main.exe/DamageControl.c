@@ -11,8 +11,8 @@
 extern Humanoid *Me_MOTION_C;
 extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
-/* MOTION.C's original direction-to-damage-animation table. */
-extern s16 damagemotion[8];
+/* MOTION.C's original severity-and-direction damage-animation table. */
+extern s16 damagemotion[N_DAMAGE_MOTIONS];
 
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
@@ -639,13 +639,13 @@ resolve_hit:
                     dmg = (dmg * 7) / 10;
                 }
                 deg = dmg >> 3;
-                if (deg > 3)
+                if (deg > DAMAGE_MOTION_LAUNCH_TIER)
                 {
-                    deg = 3;
+                    deg = DAMAGE_MOTION_LAUNCH_TIER;
                 }
                 if (Me_MOTION_C->map.height > 0)
                 {
-                    deg = 3;
+                    deg = DAMAGE_MOTION_LAUNCH_TIER;
                 }
                 t = dmg * 5 / 2 + 0x50;
                 newvy = dtR->vy + did;
@@ -659,7 +659,7 @@ resolve_hit:
                 {
                     dtR->vy = newvy - ANGLE_HALF;
                 }
-                if (deg == 3)
+                if (deg == DAMAGE_MOTION_LAUNCH_TIER)
                 {
                     MoveHumanoid(Me_MOTION_C,
                                  (__builtin_abs(did) > ANGLE_QUADRANT)
@@ -681,7 +681,7 @@ resolve_hit:
                 {
                     Me_MOTION_C->life = 0;
                     DeadHumanoid = Me_MOTION_C;
-                    if (deg != 3)
+                    if (deg != DAMAGE_MOTION_LAUNCH_TIER)
                     {
                         SET_MOTION(MOT_DEAD, 1);
                         SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
@@ -702,7 +702,7 @@ resolve_hit:
                         }
                         if (abs_direction > ANGLE_QUADRANT)
                         {
-                            deg += 4;
+                            deg += DAMAGE_MOTION_FROM_BEHIND_OFFSET;
                         }
                         dtM->mid = -1;
                         motID = damagemotion[deg];
@@ -728,7 +728,7 @@ resolve_hit:
                     }
                     if (abs_direction > ANGLE_QUADRANT)
                     {
-                        deg += 4;
+                        deg += DAMAGE_MOTION_FROM_BEHIND_OFFSET;
                     }
                     dtM->mid = -1;
                     SET_MOTION(damagemotion[deg], 0);

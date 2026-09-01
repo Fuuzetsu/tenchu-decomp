@@ -730,8 +730,8 @@ enum
     MOT_ITEM_PLANT = 0xF03,
     MOT_ITEM_KAENGEKI = 0xF04,    /* fire-breath loop */
     MOT_ITEM_SHINSOKU = 0xF05,    /* far-sight cast (widens AI activation) */
-    MOT_DAMAGE_FRONT_MID = 0x1001,   /* damagemotion[]: front hits by     */
-    MOT_DAMAGE_FRONT_HEAVY = 0x1002, /* severity; +4 rows are from-behind */
+    MOT_DAMAGE_FRONT_MID = 0x1001,   /* damagemotion[]: front hits by      */
+    MOT_DAMAGE_FRONT_HEAVY = 0x1002, /* severity; second half from behind */
     MOT_DAMAGE_BACK_LIGHT = 0x1003,
     MOT_DAMAGE_BACK_HEAVY = 0x1004,
     MOT_DAMAGE_LAUNCH_BACK = 0x1005, /* knocked off the feet backward */
@@ -751,6 +751,13 @@ enum
     MOT_DEAD_STEALTH_FRONT_AYAME = 0x110D,
     MOT_DEAD_STEALTH_SIDE_AYAME = 0x110E
 };
+
+/* damagemotion[] stores four front-hit severity tiers followed by the four
+ * corresponding from-behind reactions. The last tier launches the victim. */
+#define N_DAMAGE_MOTION_TIERS 4
+#define DAMAGE_MOTION_LAUNCH_TIER (N_DAMAGE_MOTION_TIERS - 1)
+#define DAMAGE_MOTION_FROM_BEHIND_OFFSET N_DAMAGE_MOTION_TIERS
+#define N_DAMAGE_MOTIONS (N_DAMAGE_MOTION_TIERS * 2)
 
 /* Camera-mode names recovered from the demo's CAMERA.C. This list is not
  * exhaustive for retail: current code also supplies unnamed modes 15-17. */
