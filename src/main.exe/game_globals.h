@@ -66,10 +66,11 @@ enum
 };
 extern short SR;
 extern PADtype *Pad;
-/* Retail stores 12 pointers. Slot 0 is NULL; stage1appearance through
- * stage9appearance retain PSX.SYM's names, while stages 10 and 11 are retail
- * additions named by the established sequence. */
-extern short *StageAppearance[12];
+/* Retail stores a leading NULL followed by one pointer per stage
+ * configuration. stage1appearance through stage9appearance retain PSX.SYM's
+ * names; stages 10 and 11 are retail additions named by that sequence. */
+#define N_STAGE_APPEARANCE_TABLES (N_STAGE_CONFIGS + 1)
+extern short *StageAppearance[N_STAGE_APPEARANCE_TABLES];
 /* Retail's stage=-1 sentinel is entry 23; the demo table had 18 entries. */
 extern StageCharType StageChar[24];
 
