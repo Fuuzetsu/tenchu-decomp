@@ -63,7 +63,7 @@ short PlaySE(SoundEffect *se, short pt, long dv)
     {
         d = dv >> 8;
         v = (s16)(dv >> 8);
-        voll = (u32)((dv & 0x7f) * gSELevel) >> 7;
+        voll = (u32)((dv & SOUND_VOLUME_MAX) * gSELevel) >> 7;
         if (v > 0)
         {
             d = -(s32)((u32)((dv >> 8) & 0x3ff) >> 4);

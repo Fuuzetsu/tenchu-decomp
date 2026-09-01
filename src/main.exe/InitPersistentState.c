@@ -75,8 +75,8 @@ s32 InitPersistentState(void)
         ps->magic = magic;
         ps->Nannido = 0;
         ps->Stereo = 1;
-        ps->SoundLevel = 0x7f;
-        ps->SELevel = 0x7f;
+        ps->SoundLevel = SOUND_VOLUME_MAX;
+        ps->SELevel = SOUND_VOLUME_MAX;
         ps->fMemory = 0;
         ps->Anakon = 1;
         ps->StageNoMAX[AYAME_0] = 1;

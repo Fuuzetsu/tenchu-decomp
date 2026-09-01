@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -22,8 +23,9 @@
 
 /*
  * SoundEx (0x8004fc70) — play a positional sound effect: if `locate` is null
- * or IS the player's own position, play at a fixed volume (0x3f for seid
- * 0x12, else 0x7f), no direction encoded. Otherwise compute planar+vertical
+ * or IS the player's own position, play at a fixed volume (0x3f for
+ * SE_RUN_STEP, else SOUND_VOLUME_MAX), no direction encoded. Otherwise
+ * compute planar+vertical
  * distance from the player; give up (return -1) past 18000/10000 units. If
  * both distances are under 2000, full volume with no direction; otherwise a
  * distance-attenuated volume, ORed with the (clamped, +-0x1000 wrapped)
@@ -40,8 +42,9 @@
  *    `jal PlaySE` + return tail, not the differing argument setup. Ghidra's
  *    `uVar4 = iVar5 << 8 | uVar4;` placed AFTER the if/else is a decompiler
  *    normalization artifact — the short branch never executes that OR.
- *  - **`dist` must carry the final `volume` value** (`dist = 0x7f - ...; dist =
- *    (dist * ...);` then `vol = (angle<<8)|dist`). The SquareRoot0 result and
+ *  - **`dist` must carry the final `volume` value** (`dist =
+ *    SOUND_VOLUME_MAX - ...; dist = (dist * ...);` then
+ *    `vol = (angle<<8)|dist`). The SquareRoot0 result and
  *    the volume coalesce into ONE callee-saved register ($s1) in the target,
  *    because `volume` is computed in the ratan2 call's delay slot and survives
  *    the call (forced callee-saved), and `dist` dies exactly where `volume` is
@@ -66,7 +69,8 @@
  *    instead. `raw` dies at the abssi2, freeing the $v0-vs-$v1 tie the parked
  *    draft could not reach. This refines UpdateMotion's "reach abssi2 inline"
  *    rule: the abs RESULT can be a reusable variable — spell the ternary GE.
- *  - **`maxvol = 0x7f;` hoisted above the near/far branch is a PRIORITY
+ *  - **`maxvol = SOUND_VOLUME_MAX;` hoisted above the near/far branch is a
+ *    PRIORITY
  *    ballast, found by the permuter and verified against global.c**: with the
  *    abs now one insn shorter (x2), `dist`'s live length dropped 50→48 and its
  *    allocno priority (floor_log2(refs)*refs/live_length, allocno_compare)
@@ -74,9 +78,10 @@
  *    their $s0/$s1 colours (14 bytes). The extra li insn inside dist's live
  *    range restores 27/49 = 5510 < 5555 → pp back to $s0, dist $s1. The insn
  *    costs no bytes: it lands exactly on the target's `addiu v0,zero,0x7f`
- *    feeding `subu s1,v0,v1` (the else-arm's `0x7f - q`), and the then-arm
- *    keeps its own LITERAL `dist = 0x7f;` (cse leaves the immediate li in the
- *    jump delay slot rather than copying maxvol's register).
+ *    feeding `subu s1,v0,v1` (the else-arm's max-volume subtraction), and
+ *    the then-arm keeps its own `dist = SOUND_VOLUME_MAX;` literal (cse
+ *    leaves the immediate li in the jump delay slot rather than copying
+ *    maxvol's register).
  *  - The ratan2 result reuses `raw` (dead since the abs): its pseudo is
  *    $v0-homed everywhere, so the call-result move deletes as a no-op and
  *    `subu a2,v0,v1` reads $v0 directly.
@@ -99,7 +104,8 @@ short SoundEx(VECTOR *locate, short seid)
     pp = StagePlayer->locate;
     if (locate == 0 || locate == pp)
     {
-        return PlaySE(StageSE, seid, (seid == 0x12) ? 0x3f : 0x7f);
+        return PlaySE(StageSE, seid,
+                      (seid == SE_RUN_STEP) ? 0x3f : SOUND_VOLUME_MAX);
     }
 
     dx = locate->vx - pp->vx;
@@ -115,11 +121,11 @@ short SoundEx(VECTOR *locate, short seid)
     {
         return -1;
     }
-    maxvol = 0x7f;
+    maxvol = SOUND_VOLUME_MAX;
     if (dist < 2000 && dy < 2000)
     {
         angle = 0;
-        dist = 0x7f;
+        dist = SOUND_VOLUME_MAX;
     }
     else
     {

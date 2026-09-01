@@ -133,8 +133,11 @@
 #define RUMBLE_RELEASE_MEDIUM 20
 #define RUMBLE_RELEASE_LONG 30
 
-/* SPU master-volume ceiling used when restoring music/voice. */
-#define MASTER_VOLUME_MAX 0x7F
+/* Seven-bit volume ceiling shared by persisted sound levels and playback. */
+#define SOUND_VOLUME_MAX 0x7F
+
+/* SPU master-volume values used when muting or restoring music/voice. */
+#define MASTER_VOLUME_MAX SOUND_VOLUME_MAX
 #define MASTER_VOLUME_MUTE 0
 
 /* Screen projection distance (GsSetProjection): apparent sprite size is

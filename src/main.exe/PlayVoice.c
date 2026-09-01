@@ -254,8 +254,8 @@ found:
     }
 
     volume = gSELevel;
-    if (volume >= 0x7f)
-        volume = 0x7f;
+    if (volume >= SOUND_VOLUME_MAX)
+        volume = SOUND_VOLUME_MAX;
     SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
     set_cda_volume_(volume, volume);
 
