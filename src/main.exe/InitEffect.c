@@ -211,7 +211,7 @@ void InitEffect(void)
         } while (i < N_SNOW_SPRITES);
     }
 
-    TexScrollX = 0x340;
-    TexScrollY = 0x100;
+    TexScrollX = TEXSCROLL_VRAM_ORIGIN_X;
+    TexScrollY = TEXSCROLL_VRAM_ORIGIN_Y;
     reset_effects_();
 }

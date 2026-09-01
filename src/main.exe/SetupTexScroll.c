@@ -45,8 +45,8 @@
  *    `short` loop counter suppresses loop.c's strength reduction and keeps
  *    the target's own `(x<<0x10)>>0x10`-style recompute-from-base shape
  *    (cookbook: "a short loop counter suppresses strength reduction").
- *  - The bit test `(0xF >> (j*2+i)) & 1` is always true for j,i in {0,1}
- *    (indices 0-3, all set in 0xF), but the target still computes it. Ghidra
+ *  - The cell-mask test is always true for j,i in the 2x2 grid because
+ *    retail selects TEXSCROLL_COPY_ALL, but the target still computes it. Ghidra
  *    renders an extra `& 0x1F` because MIPS variable shifts mask their count
  *    in hardware; retaining that decompiler artifact emits a real `andi`
  *    which is absent from the target.
@@ -140,31 +140,31 @@ found:
     j = 0;
     while (1)
     {
-        for (i = 0; i < 2; i++)
+        for (i = 0; i < TEXSCROLL_GRID_COLUMNS; i++)
         {
-            mask = 0xF;
-            if ((mask >> (j * 2 + i)) & 1)
+            mask = TEXSCROLL_COPY_ALL;
+            if ((mask >> (j * TEXSCROLL_GRID_COLUMNS + i)) & 1)
             {
                 MoveImage(&tscr->image, sx + img->pw * i,
                           ((s32)scrollYShifted >> 16) + img->ph * j);
             }
         }
         j++;
-        if (j >= 2)
+        if (j >= TEXSCROLL_GRID_ROWS)
         {
             scrollYShifted = 0;
             break;
         }
     }
 
-    TexScrollY += 0x40;
+    TexScrollY += TEXSCROLL_VRAM_SLOT_STRIDE;
     tscr->vx = vx;
     tscr->vy = vy;
     ef->proc = UpdateTexScroll;
-    if (TexScrollY > 0x200)
+    if (TexScrollY > TEXSCROLL_VRAM_Y_LIMIT)
     {
-        TexScrollY = 0x100;
-        TexScrollX += 0x40;
+        TexScrollY = TEXSCROLL_VRAM_ORIGIN_Y;
+        TexScrollX += TEXSCROLL_VRAM_SLOT_STRIDE;
     }
 }
 }

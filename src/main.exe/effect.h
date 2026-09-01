@@ -103,6 +103,34 @@ struct TexScroll /* size 24 */
     RECT image; /* +0x10 */
 };
 
+/* SetupTexScroll copies a source TIM into any selected cells of a 2x2 VRAM
+ * grid. Retail always selects all four cells; the demo exposed this mask as
+ * the function's `mode` argument. The resulting image is scrolled in 1/16
+ * texel units, while successive grids are packed into 0x40-pixel VRAM slots. */
+enum texscroll_cell_mask
+{
+    TEXSCROLL_COPY_TOP_LEFT = 1 << 0,
+    TEXSCROLL_COPY_TOP_RIGHT = 1 << 1,
+    TEXSCROLL_COPY_BOTTOM_LEFT = 1 << 2,
+    TEXSCROLL_COPY_BOTTOM_RIGHT = 1 << 3,
+    TEXSCROLL_COPY_ALL = TEXSCROLL_COPY_TOP_LEFT |
+                         TEXSCROLL_COPY_TOP_RIGHT |
+                         TEXSCROLL_COPY_BOTTOM_LEFT |
+                         TEXSCROLL_COPY_BOTTOM_RIGHT
+};
+
+enum texscroll_layout
+{
+    TEXSCROLL_GRID_COLUMNS = 2,
+    TEXSCROLL_GRID_ROWS = 2,
+    TEXSCROLL_SUBPIXEL_BITS = 4,
+    TEXSCROLL_SUBPIXEL_SCALE = 1 << TEXSCROLL_SUBPIXEL_BITS,
+    TEXSCROLL_VRAM_ORIGIN_X = 0x340,
+    TEXSCROLL_VRAM_ORIGIN_Y = 0x100,
+    TEXSCROLL_VRAM_Y_LIMIT = 0x200,
+    TEXSCROLL_VRAM_SLOT_STRIDE = 0x40
+};
+
 /* BloodType.mode runs the same four phases as GoreType.mode: airborne
  * until it lands, then spread, linger, and fade out. */
 typedef u8 blood_mode;

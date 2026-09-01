@@ -64,11 +64,13 @@ void UpdateTexScroll(TEffectSlot *ef)
     DR_MOVE *prim;
 
     tscr = &ef->param.texscroll;
-    tscr->px = (u32)(tscr->px + tscr->vx) % (u32)(tscr->image.w << 4);
-    tscr->py = (u32)(tscr->py + tscr->vy) % (u32)(tscr->image.h << 4);
+    tscr->px = (u32)(tscr->px + tscr->vx) %
+               (u32)(tscr->image.w << TEXSCROLL_SUBPIXEL_BITS);
+    tscr->py = (u32)(tscr->py + tscr->vy) %
+               (u32)(tscr->image.h << TEXSCROLL_SUBPIXEL_BITS);
 
-    tscr->image.x = tscr->sx + tscr->px / 16;
-    tscr->image.y = tscr->sy + tscr->py / 16;
+    tscr->image.x = tscr->sx + tscr->px / TEXSCROLL_SUBPIXEL_SCALE;
+    tscr->image.y = tscr->sy + tscr->py / TEXSCROLL_SUBPIXEL_SCALE;
 
     prim = (DR_MOVE *)GsGetWorkBase();
     GsSetWorkBase(prim + 1);
