@@ -47,7 +47,7 @@ extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void exec_process_(s32 arg0);
 extern s32 CdaGetCurrentLength(void);
 extern short DrawBG(BackGround *bg);
-extern void draw_shade_quad_(u8 *ot, s32 r, s32 g, s32 b);
+extern void draw_shade_quad_(void *ot, s32 r, s32 g, s32 b);
 extern void DisposeBG(BackGround *bg);
 
 static inline void TimToDemoSprite(u_long *file, GsIMAGE *image,
@@ -296,8 +296,7 @@ void briefing_screen_(void)
         intensity = fade & 0xff;
         if (fade != 0)
         {
-            draw_shade_quad_((u8 *)OTablePt->org,
-                             intensity, intensity, intensity);
+            draw_shade_quad_(OTablePt->org, intensity, intensity, intensity);
         }
         SkipFrame = SKIPFRAME_AFTER_LOAD;
         EndDrawing(0);

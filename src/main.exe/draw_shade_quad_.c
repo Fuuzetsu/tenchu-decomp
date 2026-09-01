@@ -5,8 +5,8 @@
 /*
  * draw_shade_quad_ (0x80038c0c, 0xd4 bytes) — builds a semi-transparent POLY_F4
  * and its DR_TPAGE command in a recovered POLY_XF4 at the current work base,
- * advances the work base by 0xC0, colors the quad with the caller's RGB, then
- * adds the quad and draw mode to the order table.
+ * advances the work base by six packet slots, colors the quad with the
+ * caller's RGB, then adds the quad and draw mode to the order table.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - The `-SCREEN_W / 2` constant materialized before the first AddPrim call is a
@@ -24,12 +24,12 @@
  *    "bisect a multi-diff score-0 candidate" rule).
  */
 
-void draw_shade_quad_(u8 *ot, s8 r, s8 g, s8 b)
+void draw_shade_quad_(void *ot, s8 r, s8 g, s8 b)
 {
     POLY_XF4 *ply;
 
     ply = (POLY_XF4 *)GsGetWorkBase();
-    GsSetWorkBase((u8 *)ply + 0xC0);
+    GsSetWorkBase(ply + 6);
     setPolyF4(&ply->ply);
     setSemiTrans(&ply->ply, 1);
     setlen(&ply->tpage, GPU_PACKET_LENGTH(DR_TPAGE));

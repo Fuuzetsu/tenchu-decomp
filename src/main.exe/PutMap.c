@@ -144,5 +144,5 @@ void PutMap(void)
     MapImage.x = MapSlideX;
     MapImage.y = MapSlideY;
     GsSortSprite(&MapImage, OTablePt, 1);
-    AddXF4((void *)((u8 *)OTablePt->org + 8), ply);
+    AddXF4(OTablePt->org + 2, ply);
 }

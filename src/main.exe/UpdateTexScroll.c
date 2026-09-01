@@ -73,5 +73,5 @@ void UpdateTexScroll(TEffectSlot *ef)
     prim = (DR_MOVE *)GsGetWorkBase();
     GsSetWorkBase(prim + 1);
     SetDrawMove(prim, &tscr->image, tscr->x, tscr->y);
-    AddPrim((u8 *)OTablePt->org, (u8 *)prim);
+    AddPrim(OTablePt->org, prim);
 }
