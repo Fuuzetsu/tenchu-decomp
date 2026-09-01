@@ -78,7 +78,7 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     TMD_FAST_WORD(work, fogz) = TMD_FAST_FOG_Z;
     while (n != 0)
     {
-        switch (TMD_BATCH_MODE(prim) & TMD_PRIMITIVE_MODE_MASK)
+        switch (prim->batch.mode & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = fast_tng4_(

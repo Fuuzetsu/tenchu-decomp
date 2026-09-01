@@ -55,7 +55,7 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
 
     while (n != 0)
     {
-        switch (TMD_BATCH_MODE(prim) & TMD_PRIMITIVE_MODE_MASK)
+        switch (prim->batch.mode & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = adiv_tng4_(&prim->gt4, vertices,

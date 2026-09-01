@@ -127,12 +127,10 @@ union TmdPrimitiveRecord
     TmdTexturedGouraudQuadRecord gt4;
 };
 
-#define TMD_BATCH_BYTE_OFFSET(member) \
-    ((u_long)&((TmdPrimitiveBatch *)0)->member)
-#define TMD_BATCH_COUNT(primitive)                                  \
-    (*(u_short *)((int)(primitive) + TMD_BATCH_BYTE_OFFSET(count)))
-#define TMD_BATCH_MODE(primitive)                                  \
-    (*(u_char *)((int)(primitive) + TMD_BATCH_BYTE_OFFSET(mode)))
+/* Count is the leading halfword.  Keep this first-member view rather than
+ * `batch.count`: repeated structured accesses let GCC 2.8 alias-fold loads
+ * across renderer calls, unlike the retail code. */
+#define TMD_BATCH_COUNT(primitive) (*(u_short *)(primitive))
 #define TMD_MEMBER_BYTES(primitive, member) \
     ((int)sizeof((primitive)->member))
 #define TMD_MEMBER_WORDS(primitive, member) \
