@@ -1574,6 +1574,9 @@ enum
     MOT_DEAD_STEALTH_SIDE_AYAME = 0x110E
 };
 
+#define N_STEALTH_DEATH_MOTIONS \
+    (MOT_DEAD_STEALTH_SIDE_AYAME - MOT_DEAD_STEALTH_BACK + 1)
+
 /* damagemotion[] stores four front-hit severity tiers followed by the four
  * corresponding from-behind reactions. The last tier launches the victim. */
 #define N_DAMAGE_MOTION_TIERS 4

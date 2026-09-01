@@ -30,7 +30,7 @@
  * Matching notes (1,680 bytes / 420 instructions):
  *  - The explicit splash/event/ordinary labels preserve the target's
  *    dispatch-chain-first layout and its otherwise-elided jump over splash.
- *  - The 0x28 scratch overlay fixes the VECTOR at sp+0x10 and the two
+ *  - The 0x28 scratch layout fixes the VECTOR at sp+0x10 and the two
  *    SVECTORs at sp+0x28/sp+0x30 while keeping the source aggregates typed.
  *  - svec_y_n200_z_n240 is an unknown-sized SVECTOR array so its [0] copy retains
  *    the target's split high/low address materialization.
@@ -83,20 +83,17 @@ typedef struct
 #define DEATH_GORE_VELOCITY_Y(velocity) ((velocity) & 0xff)
 #define DEATH_GORE_VELOCITY_Z(velocity) ((velocity) >> 8)
 
-typedef union
+typedef struct
 {
-    struct
-    {
-        VECTOR p;
-        u8 pad[8];
-        SVECTOR position;
-        SVECTOR vector;
-    } dead;
+    VECTOR p;
+    u8 pad[8];
+    SVECTOR position;
+    SVECTOR vector;
 } ActDeadScratch;
 
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *DeadHumanoid;
-extern DeadEvent *DeadEvents[];
+extern DeadEvent *DeadEvents[N_STEALTH_DEATH_MOTIONS];
 extern SVECTOR svec_y_n200_z_n240[];
 
 extern s32 rand(void);
@@ -199,7 +196,7 @@ splash_dead:
 {
     if (rand() % 20 == 0)
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
-    scratch.dead.p.vy = Me_MOTION_C->map.level;
+    scratch.p.vy = Me_MOTION_C->map.level;
     if ((rand() & 5) == 0)
     {
         i = 0;
@@ -210,11 +207,11 @@ splash_dead:
 
             r = rand();
             width = Me_MOTION_C->width;
-            scratch.dead.p.vx = dtL->vx + (r % width) * 2 - width;
+            scratch.p.vx = dtL->vx + (r % width) * 2 - width;
             r = rand();
             width = Me_MOTION_C->width;
-            scratch.dead.p.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&scratch.dead.p, (rand() & 7) << FIXED_SHIFT,
+            scratch.p.vz = dtL->vz + (r % width) * 2 - width;
+            SetSplash(&scratch.p, (rand() & 7) << FIXED_SHIFT,
                       (rand() & 7) << FIXED_SHIFT, 6);
             i++;
         } while (i < 5);
@@ -293,23 +290,23 @@ ordinary_dead:
 blood_effect:
     if ((dtM->count & 4) && blood != -1)
     {
-        scratch.dead.position = svec_y_n200_z_n240[0];
-        memset(&scratch.dead.vector, 0, sizeof(scratch.dead.vector));
-        scratch.dead.vector.vy = -blds;
-        scratch.dead.vector.vz = -bldo;
+        scratch.position = svec_y_n200_z_n240[0];
+        memset(&scratch.vector, 0, sizeof(scratch.vector));
+        scratch.vector.vy = -blds;
+        scratch.vector.vz = -bldo;
         if (blds == 0)
         {
-            scratch.dead.position.vx = 0;
-            scratch.dead.position.vy = -200;
-            scratch.dead.position.vz = -240;
+            scratch.position.vx = 0;
+            scratch.position.vy = -200;
+            scratch.position.vz = -240;
         }
         else
         {
-            scratch.dead.position.vx = 0;
-            scratch.dead.position.vy = -410;
-            scratch.dead.position.vz = 0;
+            scratch.position.vx = 0;
+            scratch.position.vy = -410;
+            scratch.position.vz = 0;
         }
         SetGore(&Me_MOTION_C->model->object[blood]->locate,
-                &scratch.dead.position, &scratch.dead.vector);
+                &scratch.position, &scratch.vector);
     }
 }
