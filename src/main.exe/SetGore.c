@@ -74,13 +74,11 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
 
     {
         int gore_index;
-        TEffectSlot *gore_pool;
         TEffectSlot *gore_slot;
         int gore_slots_searched;
         BloodType *gore;
 
         gore_slots_searched = 0;
-        gore_pool = EffectSlot;
         gore_index = EFFECT_CURSOR_;
         do
         {
@@ -89,14 +87,14 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
             {
                 gore_index = 0;
             }
-            if (gore_pool[gore_index].proc == 0)
+            if (EffectSlot[gore_index].proc == 0)
             {
                 EFFECT_CURSOR_ = gore_index + 1;
                 if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                gore_slot = &gore_pool[gore_index];
+                gore_slot = &EffectSlot[gore_index];
                 goto gore_found;
             }
             gore_slots_searched++;
@@ -126,7 +124,6 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
     if (impact_phase == 0)
     {
         int impact_index;
-        TEffectSlot *impact_pool;
         TEffectSlot *impact_slot;
         int impact_slots_searched;
         ImpactType *impact;
@@ -140,7 +137,6 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         scratch.impact_position.vy = local_position->vy;
         impact_slots_searched = 0;
         scratch.impact_position.vz = local_position->vz;
-        impact_pool = EffectSlot;
         impact_index = EFFECT_CURSOR_;
         do
         {
@@ -149,14 +145,14 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
             {
                 impact_index = 0;
             }
-            if (impact_pool[impact_index].proc == 0)
+            if (EffectSlot[impact_index].proc == 0)
             {
                 EFFECT_CURSOR_ = impact_index + 1;
                 if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                impact_slot = &impact_pool[impact_index];
+                impact_slot = &EffectSlot[impact_index];
                 goto impact_found;
             }
             impact_slots_searched++;

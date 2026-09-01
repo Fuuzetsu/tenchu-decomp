@@ -40,12 +40,14 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   wrapper struct `((Wrap *)p)->a[i]` is a COMPONENT_REF → base-first, no frame
   rematerialisation (AddEnemy cluster D).
 - **Do not transcribe a strength-reduced array cursor back into C.** In a real
-  bottom-tested loop, repeated `base[i]` accesses can become a compiler-created
+  bottom-tested loop, repeated `array[i]` accesses can become a compiler-created
   pointer induction variable: an indexed initial address, `addiu pointer,stride`
   on the back edge, and a base reset on index wrap. All 22 round-robin
   EffectSlot scans in the 21 pool-spawning functions reproduce that machine
-  lockstep exactly from direct indexing (`SetBlood`, `SetGore`, and
-  `SetupTexScroll` are representative). An explicit source pointer can hide
+  lockstep exactly from indexing. Twenty scans go all the way back to direct
+  `EffectSlot[i]` expressions (`SetGore` and `SetupTexScroll` are representative);
+  only `SetBlood` and `spawn_smoke_burst_` need a cached base across their
+  hand-written outer goto loops. An explicit source scan pointer can hide
   the ARRAY_REF and force ugly integer address arithmetic merely to recover an
   `addu` operand order that the indexed loop produces naturally.
 - **fold: `A op 0 ? A : -A` → ABS_EXPR** (fold-const.c) — but only the GE spelling;

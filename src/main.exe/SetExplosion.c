@@ -28,11 +28,12 @@
  *    real `do { ... } while (count < N_EFFECT_SLOTS);`, not a hand-rolled goto — the
  *    give-up path's `slot = &dmy;` sits AFTER the loop, not inside it, so
  *    loop.c doesn't get a chance to hoist that address. The source indexes
- *    `base[idx]`; loop strength reduction creates the target's scan pointer.
+ *    `EffectSlot[idx]`; loop strength reduction creates the target's scan
+ *    pointer.
  *  - UNLIKE SetImpact, `count = count + 1;` here comes BEFORE the
  *    `if (slot->proc == 0)` test, not after (both Ghidra's own rendering
  *    and the raw asm's delay-slot fill agree: the branch testing
- *    `base[idx].proc` has `count++` in its delay slot, executed regardless of
+ *    `EffectSlot[idx].proc` has `count++` in its delay slot, executed regardless of
  *    outcome — only possible if count++ is the statement immediately
  *    preceding the if in source). Each EffectSlot-pool inserter in this TU
  *    apparently wrote this test/increment order slightly differently;
@@ -62,7 +63,6 @@ extern void DrawExplosion(TEffectSlot *ef);
 void SetExplosion(VECTOR *pos, SVECTOR *vect)
 {
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     ExplosionType *param;
@@ -70,7 +70,6 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
     short vz;
 
     count = 0;
-    base = EffectSlot;
     idx = EFFECT_CURSOR_;
     do
     {
@@ -80,14 +79,14 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
             idx = 0;
         }
         count++;
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
     } while (count < N_EFFECT_SLOTS);

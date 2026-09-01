@@ -47,7 +47,6 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                     u16 rotate, u16 rotate_speed, u16 time, u16 type)
 {
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     ImpactType *param;
@@ -55,7 +54,6 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
 
     idx = EFFECT_CURSOR_;
     count = 0;
-    base = EffectSlot;
     do
     {
         idx++;
@@ -63,14 +61,14 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
         {
             idx = 0;
         }
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
         count++;

@@ -31,7 +31,6 @@ extern void DrawFlyWire(TEffectSlot *ef);
 
 int SetFlyWire(VECTOR *start, VECTOR *end)
 {
-    TEffectSlot *base;
     TEffectSlot *slot;
     FlyWireType *param;
     int idx;
@@ -41,7 +40,6 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
 
     idx = EFFECT_CURSOR_;
     i = 0;
-    base = EffectSlot;
     do
     {
         idx++;
@@ -50,14 +48,14 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
             idx = 0;
         }
         i++;
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
     } while (i < N_EFFECT_SLOTS);

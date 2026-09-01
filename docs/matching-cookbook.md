@@ -2146,16 +2146,18 @@ irreducible nest: DrawConstruction's 3.
   them look like they conflicted.
 - **An EffectSlot `idx`/pointer lockstep in assembly can be strength
   reduction, not two source locals.** The decisive experiment is the WHOLE
-  scan: keep `idx`, test `base[idx].proc`, and assign `slot = &base[idx]` only
-  on success. Across all 22 EffectSlot allocator scans, loop.c recreates the
+  scan: keep `idx`, test `EffectSlot[idx].proc`, and assign
+  `slot = &EffectSlot[idx]` only on success. Across 20 of the 22 EffectSlot
+  allocator scans, loop.c recreates the
   target's initialized pointer,
   stride increment, and wrap reset exactly. This also removes the invented
-  `ef`/`found_slot` result alias. Testing only `slot = base + idx` while leaving
+  `ef`/`found_slot` result alias and the cached pool base. Testing only
+  `slot = base + idx` while leaving
   the rest of the transcribed cursor graph in place led to the false conclusion
   that an integer pointer sum was required. Hand-written goto scanners are a
   separate case: without real loop notes, their explicit pointer walk may be
-  source-authored. `base` is also independently load-bearing in several outer
-  loops, so removing every pool-related local at once is not the rule.
+  source-authored. `SetBlood` and `spawn_smoke_burst_` are the two measured
+  exceptions: their hand-written outer goto loops still need a cached pool base.
 - **Removing a declaration can gate green by falling back to an IMPLICIT
   one.** Auditing the four K&R `extern void f();` redeclarations in the
   tree, three of them compiled and matched with the line deleted — but
@@ -2331,8 +2333,9 @@ irreducible nest: DrawConstruction's 3.
   the locals PSX.SYM recorded. 271 functions differ. `SetBlood` was the
   worked example — its old `slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) +
   (int)base);` existed because we introduced a source-level scan pointer for
-  loop.c's induction variable. Restoring direct `base[idx]` accesses removed
-  both that cast and the invented `ef`, while matching exactly. The original's
+  loop.c's induction variable. Restoring the indexed scan removed both that cast
+  and the invented `ef`, while matching exactly; in 20 scans, direct
+  `EffectSlot[idx]` also removed the invented base alias. The original's
   five locals contain no `base`, `idx`, `count` or `ef`; the demo is not a
   retail spec, so
   treat a difference as a lead; but a name like `u0Val`/`pyByte`/`half2`

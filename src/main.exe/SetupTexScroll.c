@@ -25,7 +25,7 @@
  * retail scroll velocities). It uses the same round-robin EffectSlot[200]
  * pool search as SetSplash/SetFrame/SetBleed/SetSmoke (see
  * SetSplash.c for the shared indexed do-while idiom). Loop strength reduction
- * creates the target's scan pointer from the direct `base[idx]` accesses.
+ * creates the target's scan pointer from direct `EffectSlot[idx]` accesses.
  *
  * The found slot's `texscroll` payload is retail's shortened form of the
  * PSX.SYM TexScroll record: it keeps px/py, vx/vy, x/y, sx/sy, and image,
@@ -75,7 +75,6 @@ extern s16 TexScrollY;
 void SetupTexScroll(GsIMAGE *img, short vx, short vy)
 {
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     TexScroll *tscr;
@@ -86,7 +85,6 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
 
     idx = EFFECT_CURSOR_;
     count = 0;
-    base = EffectSlot;
     do
     {
         idx++;
@@ -94,14 +92,14 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
         {
             idx = 0;
         }
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
         count++;

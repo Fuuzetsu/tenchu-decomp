@@ -31,16 +31,17 @@
  *    ($a0/$a1/$a2) are read at entry and no parameter was dropped.
  *  - Same EffectSlot[200] round-robin search as SetBlood/SetExplosion/
  *    SetImpact (do-while, `slot = &dmy;` sits AFTER the loop). Direct
- *    `base[idx]` accesses let loop strength reduction generate the target's
- *    scan pointer instead of exposing that compiler cursor in the source. This
+ *    `EffectSlot[idx]` accesses let loop strength reduction generate the
+ *    target's scan pointer instead of exposing that compiler cursor in the source. This
  *    function's own asm has `count = count + 1;` BEFORE the
- *    `if (base[idx].proc == 0)` test (the "occupied" branch's delay slot
+ *    `if (EffectSlot[idx].proc == 0)` test (the "occupied" branch's delay slot
  *    unconditionally increments count) — SetExplosion's order, not
  *    SetImpact's.
  *  - The outer "spawn n particles" fill is `while (1) { if (!(i < n)) break;
- *    ...; i++; }`, NOT a hand-rolled goto (that put `base` in $s3 and shifted
- *    every param register up by one — 55 bytes of cascade). The while(1)+break
- *    form lets loop.c place `base` in $s5 exactly as the target does; loop.c
+ *    ...; i++; }`, NOT a hand-rolled goto (that put the generated pool base in
+ *    $s3 and shifted every parameter register up by one — 55 bytes of cascade).
+ *    The while(1)+break form lets loop.c place that base in $s5 exactly as the
+ *    target does; loop.c
  *    still does NOT hoist the %15 magic-multiply constant (it stays inside the
  *    loop, recomputed per iteration, matching the target).
  *  - `time`'s rand() must be a SEPARATE `r = rand();` statement BEFORE `i++`
@@ -65,7 +66,6 @@ extern void DrawHinoko(TEffectSlot *ef);
 void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
 {
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     ExplosionType *param;
@@ -73,7 +73,6 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
     int r;
 
     i = 0;
-    base = EffectSlot;
     while (1)
     {
         if (i >= n)
@@ -90,14 +89,14 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
                 idx = 0;
             }
             count++;
-            if (base[idx].proc == 0)
+            if (EffectSlot[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                slot = &base[idx];
+                slot = &EffectSlot[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);

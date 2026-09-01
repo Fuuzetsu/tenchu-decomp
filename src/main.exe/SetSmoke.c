@@ -32,21 +32,17 @@
  *  - Same EffectSlot[200] pool search shape as SetExplosion (do{...}while
  *    (count<200), slot=&dmy AFTER the loop, count++ BEFORE the proc test),
  *    wrapped in an OUTER `do { ... } while (1);` spawning n particles.
- *  - `base = EffectSlot;` is the FIRST statement of the outer loop body,
- *    BEFORE the `count = 0;` and the guard. Position is load-bearing twice
- *    over: (a) a set of a USER variable inside a loop is only hoistable by
- *    loop.c when it is guaranteed to execute once the loop is entered
- *    (scan_loop's third eligibility case), i.e. it must precede the
- *    conditional `return`; being a user variable it supplies the indexed
- *    EffectSlot scan and result address through one long-lived pseudo whose
- *    savings*lifetime clears the move threshold, landing `lui/addiu` in the
- *    prologue with base cached in $s7 for the whole function. (b) The two
- *    moves (high + lo_sum) decay loop.c's move threshold by 3 each
+ *  - The source indexes `EffectSlot[idx]` directly. Loop strength reduction
+ *    creates one long-lived array-base pseudo, and loop.c hoists its
+ *    `lui/addiu` pair into the prologue with the base cached in $s7. The old
+ *    source-level `base = EffectSlot` alias was redundant: removing the
+ *    declaration, assignment, and every use together preserves the bytes.
+ *    The two generated address moves still decay loop.c's move threshold by 3
+ *    each
  *    (move_movables: `threshold -= 3` per move), which is EXACTLY what keeps
  *    the `time<<16` chain of the bright line un-hoisted later (29 → 23 after
- *    base, then the %100 magic; 23*2*3 < 153). Writing `base = EffectSlot;`
- *    ABOVE the loop leaves only one -3 decay before that decision and the
- *    time<<16 chain hoists into the prologue, spilling n/time to the stack.
+ *    address pair, then the %100 magic; 23*2*3 < 153). Partially rewriting
+ *    the scan changes this economy; the whole direct-array graph does not.
  *  - The guard is `if (i >= n) return;` with `i` FIRST. Operand order controls
  *    which extension is emitted first (op0 then op1): i-first puts n's
  *    sign-extension pair immediately before the slt, giving it lifetime 2 —
@@ -56,7 +52,7 @@
  *    `n` stays RAW in $fp. The reversed spelling `if (n <= i)` gives n's pair
  *    lifetime 4 (29*2*4=232 >= 153): loop.c hoists the widening into a
  *    callee-saved register and the compare degrades to sll/sra/slt.
- *  - `count = 0;` sits between `base = ...` and the guard; it lands in the
+ *  - `count = 0;` is the first statement before the guard; it lands in the
  *    guard's branch delay slot (`beqz / addu a1,zero,zero`).
  *  - `i` must be `short` (PSX.SYM: `reg $s4 short i`) for the double-shift
  *    HImode compare idiom.
@@ -81,7 +77,6 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
 {
     short i;
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     SmokeType *smoke;
@@ -91,7 +86,6 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
     i = 0;
     do
     {
-        base = EffectSlot;
         count = 0;
         if (i >= n)
         {
@@ -106,14 +100,14 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
                 idx = 0;
             }
             count++;
-            if (base[idx].proc == 0)
+            if (EffectSlot[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                slot = &base[idx];
+                slot = &EffectSlot[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);

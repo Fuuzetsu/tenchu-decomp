@@ -2677,8 +2677,9 @@ def rule_ptr_index_sum(text, name, span):
 
     This is a last-mile matcher for a genuine source pointer sum whose target wants the
     opposite `addu` order. Do not use it to transcribe a compiler-generated array cursor:
-    first try removing the pointer and accessing `base[idx]` throughout the real loop;
-    strength reduction closed SetBlood and SetHinoko naturally. Yields BOTH operand
+    first try removing the pointer and accessing the named array directly throughout
+    the real loop (`EffectSlot[idx]`); strength reduction closed SetHinoko naturally.
+    Only introduce a cached base if that whole graph fails, as in SetBlood. Yields BOTH operand
     assignments (which is base vs index); a semantically-wrong one just produces wrong
     bytes and is discarded by scoring. Only fires on a pointer-typed local declaration
     whose initializer is a bare `A + B`."""

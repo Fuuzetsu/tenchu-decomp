@@ -1012,7 +1012,9 @@ differ. A local we invented is the usual reason a natural spelling will
 not compile to the right bytes, so this is the queue. Worked examples:
 `SetBlood`'s old `(TEffectSlot *)(idx * sizeof(...) + (int)base)` existed
 only because we transcribed loop.c's generated scan pointer into the C;
-the direct `base[idx]` loop is exact and retains only the result `slot`;
+the indexed loop is exact and retains only the result `slot`. A second
+whole-graph pass went further: 20 of the 22 scans now spell the source array
+directly as `EffectSlot[idx]`, with no invented base alias either;
 `SetupImageToPoly{FT4,GT4}` recovered the original's `tx`/`ty`/`th`, one
 of which is a single variable advanced in place where we had two.
 Bare, the tool audits GLOBAL declarations the same way. Method that

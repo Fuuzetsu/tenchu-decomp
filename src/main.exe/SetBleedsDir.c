@@ -150,7 +150,6 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             VECTOR *pos = &npos;
             int time = btime;
             int idx;
-            TEffectSlot *base;
             TEffectSlot *slot;
             int count;
             BleedType *param;
@@ -158,7 +157,6 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
 
             idx = EFFECT_CURSOR_;
             count = 0;
-            base = EffectSlot;
             do
             {
                 idx++;
@@ -166,14 +164,14 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
                 {
                     idx = 0;
                 }
-                if (base[idx].proc == 0)
+                if (EffectSlot[idx].proc == 0)
                 {
                     EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                     {
                         EFFECT_CURSOR_ = 0;
                     }
-                    slot = &base[idx];
+                    slot = &EffectSlot[idx];
                     goto found;
                 }
                 count++;

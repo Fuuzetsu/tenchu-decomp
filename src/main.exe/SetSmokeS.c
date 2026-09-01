@@ -36,7 +36,6 @@ extern void DrawSmoke(TEffectSlot *ef);
 void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
 {
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     SmokeType *smoke;
@@ -44,7 +43,6 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     int m;
 
     count = 0;
-    base = EffectSlot;
     idx = EFFECT_CURSOR_;
     do
     {
@@ -53,14 +51,14 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
         {
             idx = 0;
         }
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
         count++;

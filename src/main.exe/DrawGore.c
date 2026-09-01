@@ -59,8 +59,8 @@ extern void DrawBleed(TEffectSlot *ef);
  * prevent reassociation of `(position - 60) + rand()%120`,
  * and the full-width `green` local preserves the target's li 0x7f10 before a
  * byte store. The pool's iteration count is PSX.SYM's `i`; direct
- * `base[cursor]` accesses let loop strength reduction create the machine-level
- * scan pointer, while `slot` carries only the found/fallback result. The
+ * `EffectSlot[cursor]` accesses let loop strength reduction create the
+ * machine-level scan pointer, while `slot` carries only the found/fallback result. The
  * retained `velocity` pointer is also a
  * measured aggregate-copy boundary: spelling its destination directly costs
  * 15 diff lines.
@@ -182,7 +182,6 @@ void DrawGore(TEffectSlot *ef)
         int cursor;
         int i;
         TEffectSlot *slot;
-        TEffectSlot *base;
         BleedType *bleed;
 
         x = param->px;
@@ -270,7 +269,6 @@ void DrawGore(TEffectSlot *ef)
         scratch.bleed.temporary.velocity.vz = param->vz / 2;
         *velocity = scratch.bleed.temporary.velocity;
 
-        base = EffectSlot;
         cursor = EFFECT_CURSOR_;
         i = 0;
         do
@@ -281,9 +279,9 @@ void DrawGore(TEffectSlot *ef)
                 cursor = 0;
             }
             i++;
-            if (base[cursor].proc == 0)
+            if (EffectSlot[cursor].proc == 0)
             {
-                slot = &base[cursor];
+                slot = &EffectSlot[cursor];
                 EFFECT_CURSOR_ = cursor + 1;
                 bleed = &slot->param.bleed;
                 if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)

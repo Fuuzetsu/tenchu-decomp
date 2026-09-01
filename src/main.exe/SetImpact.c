@@ -36,7 +36,7 @@
  *    real loop doesn't risk loop.c hoisting its address either — the
  *    hoisting hazard that forced SetFrame/SetSplash/SetBleed's goto shape
  *    doesn't apply once the fallback assignment moves outside the loop body.
- *    Direct `base[idx]` accesses are strength-reduced into the pointer walk
+ *    Direct `EffectSlot[idx]` accesses are strength-reduced into the pointer walk
  *    visible in the target.
  *  - The randomized speed (`spd`) and the two packed colour constants
  *    `start_color`/`end_color`
@@ -62,7 +62,6 @@ void SetImpact(VECTOR *pos, short size, short type)
     long start_color;
     long end_color;
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     ImpactType *param;
@@ -72,7 +71,6 @@ void SetImpact(VECTOR *pos, short size, short type)
     start_color = COLOR_GRAY;
     end_color = COLOR_GRAY;
     count = 0;
-    base = EffectSlot;
     idx = EFFECT_CURSOR_;
     do
     {
@@ -81,14 +79,14 @@ void SetImpact(VECTOR *pos, short size, short type)
         {
             idx = 0;
         }
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
         count++;

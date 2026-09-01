@@ -74,7 +74,6 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         short time;
         int idx;
         int count;
-        TEffectSlot *base;
         TEffectSlot *slot;
         FrameType *frame;
 
@@ -98,7 +97,6 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
 
         idx = EFFECT_CURSOR_;
         count = 0;
-        base = EffectSlot;
         do
         {
             idx++;
@@ -107,14 +105,14 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
                 idx = 0;
             }
             count++;
-            if (base[idx].proc == 0)
+            if (EffectSlot[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
                 if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                slot = &base[idx];
+                slot = &EffectSlot[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);

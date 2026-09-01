@@ -62,7 +62,7 @@
  *    the rand call precedes the independent Y adjustment without retaining
  *    a copy.  The other random remainders stay inline; reusing one multi-def
  *    temp inserted four target-absent moves after the calls.
- *  - The EffectSlot scan directly indexes `base[idx]` in a bottom-tested
+ *  - The EffectSlot scan directly indexes `EffectSlot[idx]` in a bottom-tested
  *    loop. Strength reduction generates the target's pointer walk; `slot`
  *    carries only the found/fallback result recorded by PSX.SYM.
  *  - ShadowMdl is viewed as ModelType: locate@0, rotate@0x50, and
@@ -98,7 +98,6 @@ void DrawShadow(Humanoid *human)
         {
             s32 idx;
             s32 count;
-            TEffectSlot *base;
             TEffectSlot *slot;
             SplashType *param;
             s32 z;
@@ -119,7 +118,6 @@ void DrawShadow(Humanoid *human)
 
             idx = EFFECT_CURSOR_;
             count = 0;
-            base = EffectSlot;
             do
             {
                 idx++;
@@ -127,14 +125,14 @@ void DrawShadow(Humanoid *human)
                 {
                     idx = 0;
                 }
-                if (base[idx].proc == 0)
+                if (EffectSlot[idx].proc == 0)
                 {
                     EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                     {
                         EFFECT_CURSOR_ = 0;
                     }
-                    slot = &base[idx];
+                    slot = &EffectSlot[idx];
                     goto found;
                 }
                 count++;

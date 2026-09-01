@@ -21,14 +21,12 @@ void set_fade_(u8 r, u8 g, u8 b, long priority)
 {
     long start_time;
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     FadeType *fade;
 
     idx = EFFECT_CURSOR_;
     count = 0;
-    base = EffectSlot;
     do
     {
         idx++;
@@ -36,14 +34,14 @@ void set_fade_(u8 r, u8 g, u8 b, long priority)
         {
             idx = 0;
         }
-        if (base[idx].proc == 0)
+        if (EffectSlot[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
             if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            slot = &base[idx];
+            slot = &EffectSlot[idx];
             goto found;
         }
         count++;
