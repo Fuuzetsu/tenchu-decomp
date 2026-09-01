@@ -204,6 +204,10 @@ extern MotionPackType *MotionPack;
 extern MotionPackType *CommonMotion;
 extern MotionPackType *PlayerMotion;
 extern MotionPackType *StageMotion;
+extern SVECTOR SplineTable[N_SPLINE_BASIS_ROWS];
+extern s16 SplineFracOld;
+extern s16 SplineFrac;
+extern SVECTOR *SplineRow;
 /* One sprite/model pointer for every carried-item storage slot. */
 extern Sprite3D *ItemImage[N_ITEM_SLOTS];
 extern SoundEffect *StageSE;
@@ -238,6 +242,8 @@ extern void UpdateCoordinate(ModelType *dim);
 extern short NowReturnNormal(struct Humanoid *human);
 extern short GetMotionID(MotionManager *mmp, motion_id mid);
 extern short ActiveMotion(MotionManager *mmp);
+extern void eval_spline_gte_(SVECTOR *out, SplineControlType *spc,
+                             SVECTOR *basis);
 extern long GetTargetDistance(struct Humanoid *human, short *deg);
 extern enemy_layout_index leFindEnemy(void);
 extern void leLayoutEnemy(int mode);

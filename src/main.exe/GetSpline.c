@@ -45,14 +45,6 @@
  * implementation remains guarded; this matched caller contains only C.
  */
 extern void UpdateSplineControl(SplineControlType *spc);
-/* The definition's third param is SVECTOR *basis; this TU keeps the
- * cached row address in an s32 (SplineRow) and passes it uncast --
- * a period pointer-in-int idiom, same 32-bit value either way. */
-extern void eval_spline_gte_(SVECTOR *vect, SplineControlType *spc, s32 row);
-extern s16 SplineFracOld;
-extern s16 SplineFrac;
-extern s32 SplineRow;
-extern u8 SplineTable[];
 
 void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
 {
@@ -87,12 +79,12 @@ void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
     }
     UpdateSplineControl(spc);
 skip:
-    SplineFrac = (s16)(((cnt - spc->key0->time) * 0x20) /
+    SplineFrac = (s16)(((cnt - spc->key0->time) * SPLINE_FRACTION_SCALE) /
                        (spc->key1->time - spc->key0->time));
     if ((s32)SplineFracOld != (s32)SplineFrac)
     {
         SplineFracOld = SplineFrac;
-        SplineRow = (s32)(SplineTable + SplineFrac * 8);
+        SplineRow = &SplineTable[SplineFrac];
     }
     eval_spline_gte_(vect, spc, SplineRow);
 }

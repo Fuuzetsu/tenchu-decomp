@@ -869,6 +869,14 @@ struct SplineControlType
     SVECTOR ds1;             /* 0x10 */
 }; /* 0x18 */
 
+/* Hermite interpolation uses a 5-bit fraction.  The lookup includes both
+ * endpoints, so fraction 0..32 selects one complete SVECTOR basis row. */
+enum
+{
+    SPLINE_FRACTION_SCALE = 32,
+    N_SPLINE_BASIS_ROWS = SPLINE_FRACTION_SCALE + 1
+};
+
 /* MotionManager.mask selects which skeleton parts a motion drives.  Bit zero
  * owns the root translation and rotation; the remaining bits map directly to
  * ModelArchiveType.object[] indices. */
