@@ -6,8 +6,7 @@
 /*
  * fast_tnf4_ (0x80059b08, 0x4ec bytes) — DecodeTMD-family primitive
  * renderer, the 1.00 mnemonic clone of fast_tng4_ (the POLY_GT4 pair of
- * the family; all members share the (u_short *, u_long, u_long *, int,
- * TMD_FAST_WORK *) signature). The ONLY difference from fast_tng4_ is the
+ * the family). The ONLY difference from fast_tng4_ is the
  * record type: TMD_P_TNF4, whose ONE colour word (record->r0) feeds all four
  * per-vertex colour slots (the flat-colour variant — fast_tng4_ reads four
  * distinct words), with the matching 0x20 stride. Everything else —
@@ -25,7 +24,8 @@
  * 4-byte remainder.
  */
 
-u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count, TMD_FAST_WORK *wp)
+u_long *fast_tnf4_(TMD_P_TNF4 *record, VERT *vertices, u_long *packet,
+                   int count, TMD_FAST_WORK *wp)
 {
     TMD_FAST_WORK *work;
     POLY_GT4 *prim;
@@ -33,7 +33,6 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
     u_char *codeAddr;
     s32 codeVal;
     u_long *sz0Ptr;
-    TMD_P_TNF4 *record;
     u_long *rgbPtr;
     u_long *otSlot;
     u32 idx0, idx1, idx2;
@@ -48,14 +47,14 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
         codeAddr = &work->gt4.r0;
         codeVal = GPU_POLY_GT4_CODE;
         sz0Ptr = (u_long *)&work->sz[0];
-        record = (TMD_P_TNF4 *)primitive;
         do
         {
             idx0 = record->v0;
             idx1 = record->v1;
             idx2 = record->v2;
-            gte_ldv3((SVECTOR *)(idx0 * 8 + vertop), (SVECTOR *)(idx1 * 8 + vertop),
-                     (SVECTOR *)(idx2 * 8 + vertop));
+            gte_ldv3(TMD_VERTEX_AT(vertices, idx0),
+                     TMD_VERTEX_AT(vertices, idx1),
+                     TMD_VERTEX_AT(vertices, idx2));
             gte_rtpt();
 
             *(s32 *)&prim->u0 = *(s32 *)&record->tu0;
@@ -73,7 +72,7 @@ u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet, int count,
                 goto next;
 
             gte_stsxy3_gt3(prim);
-            gte_ldv0((SVECTOR *)(record->v3 * 8 + vertop));
+            gte_ldv0(TMD_VERTEX_AT(vertices, record->v3));
             gte_rtps();
 
             *(s32 *)&prim->u3 = *(s32 *)&record->tu3;

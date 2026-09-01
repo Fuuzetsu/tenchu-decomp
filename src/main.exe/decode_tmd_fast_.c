@@ -13,6 +13,8 @@
  * Matching notes (636 bytes / 159 instructions):
  *  - The real linked-TMD field layout is load-bearing for the prologue's load
  *    schedule.
+ *  - The mode tag selects the concrete TMD_P_* record type; every renderer
+ *    receives that typed stream together with the shared Sony VERT table.
  *  - The volatile attribute read preserves the retail reload across the two
  *    packet-parameter stores.
  *  - The workspace parameter must stay a plain INT (an opaque scratch
@@ -31,14 +33,18 @@
 
 extern u_long DivDepth;
 
-extern u_long *fast_tng4_(u_short *primitive, u_long vertop, u_long *packet,
-                          u_short count, u_long *work);
-extern u_long *fast_tnf4_(u_short *primitive, u_long vertop, u_long *packet,
-                          u_short count, u_long *work);
-extern u_long *fast_tnf3_(u_short *primitive, u_long vertop, u_long *packet,
-                          u_short count, u_long *work);
-extern u_long *fast_tng3_(u_short *primitive, u_long vertop, u_long *packet,
-                          u_short count, u_long *work);
+extern u_long *fast_tng4_(TMD_P_TNG4 *primitive, VERT *vertices,
+                          u_long *packet, u_short count,
+                          TMD_FAST_WORK *work);
+extern u_long *fast_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices,
+                          u_long *packet, u_short count,
+                          TMD_FAST_WORK *work);
+extern u_long *fast_tnf3_(TMD_P_TNF3 *primitive, VERT *vertices,
+                          u_long *packet, u_short count,
+                          TMD_FAST_WORK *work);
+extern u_long *fast_tng3_(TMD_P_TNG3 *primitive, VERT *vertices,
+                          u_long *packet, u_short count,
+                          TMD_FAST_WORK *work);
 
 void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
 {
@@ -46,14 +52,14 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     struct TMD_STRUCT *tmd;
     u_short *prim;
     int n;
-    u_long vertop;
+    VERT *vertices;
 
     tmd = (struct TMD_STRUCT *)obj->tmd;
     GsLMODE = GS_DOBJ_LMODE(obj->attribute);
     prim = (u_short *)tmd->primtop;
     n = tmd->primn;
     GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
-    vertop = (u_long)tmd->vertop;
+    vertices = (VERT *)tmd->vertop;
     GsLIOFF = GS_DOBJ_LIOFF(obj->attribute);
     attr = *(volatile u_long *)&obj->attribute;
     DivDepth = GS_DOBJ_DIVISION_DEPTH(obj->attribute);
@@ -71,26 +77,30 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
         switch (TMD_BATCH_MODE(prim) & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
-            GsOUT_PACKET_P = fast_tng4_(prim, vertop, GsOUT_PACKET_P,
-                                        TMD_BATCH_COUNT(prim), work);
+            GsOUT_PACKET_P = fast_tng4_(
+                (TMD_P_TNG4 *)prim, vertices, GsOUT_PACKET_P,
+                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, TMD_P_TNG4);
             continue;
         case TMD_PRIM_FT4:
-            GsOUT_PACKET_P = fast_tnf4_(prim, vertop, GsOUT_PACKET_P,
-                                        TMD_BATCH_COUNT(prim), work);
+            GsOUT_PACKET_P = fast_tnf4_(
+                (TMD_P_TNF4 *)prim, vertices, GsOUT_PACKET_P,
+                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, TMD_P_TNF4);
             continue;
         case TMD_PRIM_FT3:
-            GsOUT_PACKET_P = fast_tnf3_(prim, vertop, GsOUT_PACKET_P,
-                                        TMD_BATCH_COUNT(prim), work);
+            GsOUT_PACKET_P = fast_tnf3_(
+                (TMD_P_TNF3 *)prim, vertices, GsOUT_PACKET_P,
+                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, TMD_P_TNF3);
             continue;
         case TMD_PRIM_GT3:
-            GsOUT_PACKET_P = fast_tng3_(prim, vertop, GsOUT_PACKET_P,
-                                        TMD_BATCH_COUNT(prim), work);
+            GsOUT_PACKET_P = fast_tng3_(
+                (TMD_P_TNG3 *)prim, vertices, GsOUT_PACKET_P,
+                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, TMD_P_TNG3);
             continue;

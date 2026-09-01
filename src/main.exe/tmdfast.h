@@ -62,6 +62,11 @@ typedef struct
     ((u_short *)((int)(primitive) + TMD_BATCH_COUNT(primitive) *     \
                                         TMD_RECORD_BYTES(type)))
 
+/* Primitive vertex indices address Sony's packed VERT table. Keeping the
+ * scaled index first also retains the original add operand order. */
+#define TMD_VERTEX_AT(vertices, index)                               \
+    ((VERT *)((index) * sizeof(VERT) + (u_long)(vertices)))
+
 /*
  * Tenchu's own modified copies of the libgs linked-TMD renderers live in game
  * code at 0x80057b80..0x8005a7a4 (the stock SDK builds sit separately at
@@ -121,8 +126,8 @@ enum
     TMD_FAST_FOG_Z = 15000
 };
 
-/* The renderers take (primitive stream, vertex-array base, output packet
- * list, record count, work).  The dispatcher deliberately declares the
+/* The renderers take (typed primitive records, Sony's VERT table, output
+ * packet list, record count, work).  The dispatcher deliberately declares the
  * count parameter u_short at its call sites (the retail caller codegen
  * depends on it), while the definitions widen it to int — so the
  * prototypes live with the callers, not here. */

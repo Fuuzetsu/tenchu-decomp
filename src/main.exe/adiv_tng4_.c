@@ -43,8 +43,9 @@
 
 extern void subdivide_quad_(u_long *outv, u_long *packet, int mode);
 
-u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
-                   volatile u_long shift, volatile u_long ot, u_long *wp)
+u_long *adiv_tng4_(TMD_P_TNG4 *primitive, VERT *vertices, u_long *packet,
+                   int count, volatile u_long shift, GsOT *volatile ot,
+                   u_long *wp)
 {
     int hwd;
     int vwd;
@@ -55,7 +56,6 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     u_long t1;
     u_long t2;
     SVECTOR *v0;
-    TMD_P_TNG4 *primitive;
     u_long *po;
     u_char b;
     SVECTOR *v3;
@@ -67,9 +67,8 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     /* The ADIV_* accessors derive scalar byte/word addresses from ADIV_WORK's
      * fields. Direct member stores do NOT match: they un-pin the interleaved
      * volatile parameter reads (see tmdfast.h and cookbook 3.13).
-     * The read side keeps Sony's `u_long vertop` convention from the
-     * GsTMDfast* siblings it is called beside, so a source vertex is
-     * index * 8 off that base. */
+     * The read side uses Sony's VERT table directly: each primitive index
+     * selects one authored position instead of rebuilding its byte address. */
     work = wp;
     hwd = HWD0;
     ADIV_WORD(work, limit) = 4;
@@ -78,7 +77,7 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     vwd = VWD0;
     ADIV_SHORT(work, adivw) = (short)(hwd / 2);
     ADIV_SHORT(work, adivh) = (short)(vwd / 2);
-    t0 = *(u_long *)(ot + 4);
+    t0 = (u_long)ot->org;
     shiftWord = shift;
     ADIV_WORD(work, adivz) = 150;
     ADIV_WORD(work, shift) = shiftWord;
@@ -94,33 +93,32 @@ u_long *adiv_tng4_(u_short *primtop, u_long vertop, u_long *packet, int count,
         v2 = (SVECTOR *)ADIV_WORD_ADDRESS(work, v[2]);
         v3 = (SVECTOR *)ADIV_WORD_ADDRESS(work, v[3]);
         cd = code;
-        primitive = (TMD_P_TNG4 *)primtop;
         do
         {
             ADIV_SHORT(work, v[0].pos.vx) =
-                *(u_short *)(primitive->v0 * 8 + vertop);
+                vertices[primitive->v0].vx;
             ADIV_SHORT(work, v[0].pos.vy) =
-                *(u_short *)(primitive->v0 * 8 + vertop + 2);
+                vertices[primitive->v0].vy;
             ADIV_SHORT(work, v[0].pos.vz) =
-                *(u_short *)(primitive->v0 * 8 + vertop + 4);
+                vertices[primitive->v0].vz;
             ADIV_SHORT(work, v[1].pos.vx) =
-                *(u_short *)(primitive->v1 * 8 + vertop);
+                vertices[primitive->v1].vx;
             ADIV_SHORT(work, v[1].pos.vy) =
-                *(u_short *)(primitive->v1 * 8 + vertop + 2);
+                vertices[primitive->v1].vy;
             ADIV_SHORT(work, v[1].pos.vz) =
-                *(u_short *)(primitive->v1 * 8 + vertop + 4);
+                vertices[primitive->v1].vz;
             ADIV_SHORT(work, v[2].pos.vx) =
-                *(u_short *)(primitive->v2 * 8 + vertop);
+                vertices[primitive->v2].vx;
             ADIV_SHORT(work, v[2].pos.vy) =
-                *(u_short *)(primitive->v2 * 8 + vertop + 2);
+                vertices[primitive->v2].vy;
             ADIV_SHORT(work, v[2].pos.vz) =
-                *(u_short *)(primitive->v2 * 8 + vertop + 4);
+                vertices[primitive->v2].vz;
             ADIV_SHORT(work, v[3].pos.vx) =
-                *(u_short *)(primitive->v3 * 8 + vertop);
+                vertices[primitive->v3].vx;
             ADIV_SHORT(work, v[3].pos.vy) =
-                *(u_short *)(primitive->v3 * 8 + vertop + 2);
+                vertices[primitive->v3].vy;
             ADIV_SHORT(work, v[3].pos.vz) =
-                *(u_short *)(primitive->v3 * 8 + vertop + 4);
+                vertices[primitive->v3].vz;
             *vp = (u_long)v0;
             vp[1] = (u_long)v1;
             vp[2] = (u_long)v2;

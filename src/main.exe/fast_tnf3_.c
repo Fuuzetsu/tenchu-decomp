@@ -6,8 +6,8 @@
 /*
  * fast_tnf3_ (0x80059ff4, 0x3d8 bytes) — DecodeTMD-family primitive
  * renderer, TMD primitive code 0x25 in decode_tmd_fast_'s switch (paired there
- * with fast_tng4_/fast_tnf4_/fast_tng3_ — all four called with the
- * identical (u_short *, u_long, u_long *, u_short, u_long *) signature).
+ * with fast_tng4_/fast_tnf4_/fast_tng3_ through the same typed renderer
+ * interface).
  * Builds one POLY_GT3 (Gouraud-shaded, textured triangle, GPU code 0x34)
  * output packet per input record: transforms the record's 3 vertex indices
  * through the GTE (RTPT), discards back-facing/degenerate triangles (NCLIP
@@ -89,7 +89,8 @@
  *    the whole prologue rotates). Dead but harmless when param_4 == 0.
  */
 
-u_long *fast_tnf3_(u_short *primitive, u_long vertop, u_long *packet, int count, TMD_FAST_WORK *wp)
+u_long *fast_tnf3_(TMD_P_TNF3 *record, VERT *vertices, u_long *packet,
+                   int count, TMD_FAST_WORK *wp)
 {
     TMD_FAST_WORK *work;
     POLY_GT3 *prim;
@@ -97,7 +98,6 @@ u_long *fast_tnf3_(u_short *primitive, u_long vertop, u_long *packet, int count,
     s32 codeVal;
     u_long *sz0Ptr;
     u_long *sz1Ptr;
-    TMD_P_TNF3 *record;
     u_long *rgbPtr;
     u_long *otSlot;
     u32 idx0, idx1, idx2;
@@ -112,14 +112,14 @@ u_long *fast_tnf3_(u_short *primitive, u_long vertop, u_long *packet, int count,
         codeVal = GPU_POLY_GT3_CODE;
         sz0Ptr = (u_long *)&work->sz[0];
         sz1Ptr = (u_long *)&work->sz[1];
-        record = (TMD_P_TNF3 *)primitive;
         do
         {
             idx0 = record->v0;
             idx1 = record->v1;
             idx2 = record->v2;
-            gte_ldv3((SVECTOR *)(idx0 * 8 + vertop), (SVECTOR *)(idx1 * 8 + vertop),
-                     (SVECTOR *)(idx2 * 8 + vertop));
+            gte_ldv3(TMD_VERTEX_AT(vertices, idx0),
+                     TMD_VERTEX_AT(vertices, idx1),
+                     TMD_VERTEX_AT(vertices, idx2));
             gte_rtpt();
 
             *(s32 *)&prim->u0 = *(s32 *)&record->tu0;
