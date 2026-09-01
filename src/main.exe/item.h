@@ -230,8 +230,8 @@ typedef struct Humanoid
     s32 pad_hold;             /* 0xB0 (packed AI pad command/duration;
                                  high half carries D-pad bits and the low
                                  byte counts remaining frames) */
-    u8 item[0x1A];            /* 0xB4 (carry count per TItemType — ProcItemDrop;
-                                 DoInfoViewProc's cursor wraps at index 0x19) */
+    u8 item[N_ITEM_SLOTS];    /* 0xB4 (carry count per TItemType — ProcItemDrop;
+                               * DoInfoViewProc's cursor wraps at ITEM_N) */
 } Humanoid;
 
 typedef struct PARAM_ITEM_LAUNCH

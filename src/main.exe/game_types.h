@@ -1388,6 +1388,9 @@ enum TItemType
     ITEM_N = 0x19,
 };
 
+/* Item-kind storage plus the system/aiming flag kept at item[ITEM_N]. */
+#define N_ITEM_SLOTS (ITEM_N + 1)
+
 /* The pre-mission shop and carried loadout stop at armour. The five item
  * kinds after it are combat/projectile effects, not selectable stock. */
 #define N_LOADOUT_ITEMS (ITEM_ARMOUR + 1)

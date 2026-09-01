@@ -59,7 +59,8 @@ extern PadArrangeType PadArrange;
 extern int turn_towards_player_(int x_diff, int z_diff);
 extern struct Humanoid *Me_THINK_C;
 /* Retail permits 40 actors and reserves 0xA0 bytes before the next global. */
-extern struct Humanoid *HumanGroup[40];
+#define MAX_HUMANS 40
+extern struct Humanoid *HumanGroup[MAX_HUMANS];
 /* Retail's type=-1 sentinel is entry 77; the demo table had 63 entries. */
 extern HumanDataType HumanData[78];
 extern HumanAnimType CVAhuman[N_CVA_HUMANS];
@@ -181,12 +182,13 @@ extern int CurrentEnemyID; /* enemy[] index latched by leFindEnemy */
 extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
 /* Retail groups the demo's three named Kehai sprites with one new state. */
-extern GsSPRITE KehaiImage[4];
+#define N_KEHAI_IMAGES 4
+extern GsSPRITE KehaiImage[N_KEHAI_IMAGES];
 #define KehaiGreenImage (KehaiImage[0])
 #define KehaiYellowImage (KehaiImage[1])
 #define KehaiRedImage (KehaiImage[2])
 /* Descriptive name: this fourth, extreme-state sprite is retail-only. */
-#define KehaiCriticalImage (KehaiImage[3])
+#define KehaiCriticalImage (KehaiImage[N_KEHAI_IMAGES - 1])
 extern GsSPRITE MapImage;
 extern LifeBarEntry LifeBar[nLifeBar];
 extern TLifeBarStyle LifeBarStyle[nLifeBarStyle];
@@ -207,8 +209,8 @@ extern MotionPackType *MotionPack;
 extern MotionPackType *CommonMotion;
 extern MotionPackType *PlayerMotion;
 extern MotionPackType *StageMotion;
-/* Retail initializes slots 0..25; the next global confirms 26-pointer storage. */
-extern Sprite3D *ItemImage[26];
+/* One sprite/model pointer for every carried-item storage slot. */
+extern Sprite3D *ItemImage[N_ITEM_SLOTS];
 extern SoundEffect *StageSE;
 extern short VoiceMode;
 extern CVAType *CVAdata;

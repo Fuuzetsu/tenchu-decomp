@@ -24,7 +24,7 @@
 /*
  * InitializeInfoView (0x8004a790, 0x160 bytes) — one-time HUD/inventory init,
  * called from DoInfoViewProc the first frame (guarded by fInitialize) and
- * from main(). Sets up the cursor/digit sprites, the shared 26-slot item-image
+ * from main(). Sets up the cursor/digit sprites, the shared item-image
  * table (ItemImage, images 0x14.. then padded with image 0xF),
  * and the retail-expanded 4-entry KehaiImage array, then resets enemy
  * layout/info-view state and marks fInitialize.
@@ -112,7 +112,7 @@ loop1:
     slot++;
     if (++i < N_LOADOUT_ITEMS)
         goto loop1;
-    if (i < 0x1A)
+    if (i < N_ITEM_SLOTS)
     {
         scale2 = 0x3000;
         attr2 = 0x1C;
@@ -125,7 +125,7 @@ loop1:
         item->scale = scale2;
         (*slot)->attribute = attr2;
         slot++;
-        if (++i < 0x1A)
+        if (++i < N_ITEM_SLOTS)
             goto loop2;
     }
     i = 0;
@@ -138,7 +138,7 @@ loop1:
         sprite->attribute = attr3;
         i++;
         sprite++;
-    } while (i < 4);
+    } while (i < N_KEHAI_IMAGES);
     leResetEnemyLayout();
     ResetInfoview(-1);
     init_lifebar_();

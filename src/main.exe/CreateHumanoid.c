@@ -65,7 +65,7 @@
  * 172 (7f000001). Read the ready lists.
  *
  * Other matching notes (docs/matching-cookbook.md):
- *  - `if (mad == 0 || Humans >= 0x28) { SystemOut(...); } <unconditional
+ *  - `if (mad == 0 || Humans >= MAX_HUMANS) { SystemOut(...); } <unconditional
  *    body...>` — NOT nested inside the success guard. SystemOut never returns,
  *    and the target's block ORDER places the short SystemOut call INLINE right
  *    after the guard (reached by the `||` short-circuit's first-operand branch)
@@ -111,7 +111,7 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     s32 half2;
     s16 oldHumans;
 
-    if (mad == 0 || Humans >= 0x28)
+    if (mad == 0 || Humans >= MAX_HUMANS)
     {
         SystemOut(msg_human_overflow);
     }
