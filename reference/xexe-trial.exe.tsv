@@ -288,7 +288,7 @@
 0x80048770	176	PlayMusicFormID	main	-
 0x80048820	52	FUN_8004f68c	main	-
 0x80048854	176	FUN_8004f6c0	main	-
-0x80048904	68	FUN_8004f770	main	-
+0x80048904	68	search_id_table_	main	-
 0x80048948	488	cbCheckCD	main	-
 0x80048b30	356	CdaPlayXA	main	-
 0x80048c94	128	CdaStop	main	-

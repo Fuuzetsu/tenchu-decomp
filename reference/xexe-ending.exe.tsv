@@ -53,7 +53,7 @@
 0x80017330	176	PlayMusicFormID	main	-
 0x800173e0	52	FUN_8004f68c	main	-
 0x80017414	176	FUN_8004f6c0	main	-
-0x800174c4	68	FUN_8004f770	main	-
+0x800174c4	68	search_id_table_	main	-
 0x80017508	488	cbCheckCD	main	-
 0x800176f0	356	CdaPlayXA	main	-
 0x80017854	128	CdaStop	main	-

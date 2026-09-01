@@ -423,7 +423,7 @@ segments:
       - [0x37f70, c, PlayMusicFormID]
       - [0x38020, c, FUN_80048820]
       - [0x38054, c, FUN_80048854]
-      - [0x38104, c, FUN_8004f770]
+      - [0x38104, c, search_id_table_]
       - [0x38148, c, cbCheckCD]
       - [0x38330, c, CdaPlayXA]
       - [0x38494, c, CdaStop]

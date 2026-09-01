@@ -46,6 +46,6 @@ segments:
     subalign: 4
     subsegments:
       - [0x800, textbin]
-      - [0x66c0, c, FUN_8004f770]
+      - [0x66c0, c, search_id_table_]
       - [0x6704, textbin]
   - [0x3c800]

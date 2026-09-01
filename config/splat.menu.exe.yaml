@@ -109,7 +109,7 @@ segments:
       - [0x6d30, c, PlayMusicFormID]
       - [0x6de0, c, FUN_800175e0]
       - [0x6e14, c, FUN_80017614]
-      - [0x6ec4, c, FUN_8004f770]
+      - [0x6ec4, c, search_id_table_]
       - [0x6f08, c, cbCheckCD]
       - [0x70f0, c, CdaPlayXA]
       - [0x7254, c, CdaStop]
