@@ -1498,7 +1498,14 @@ enum TSystemFlag
  * with reference and position endpoint pairs; r1/r2/p1/p2 are the game's
  * OWN labels (the debug camera editor prints exactly these strings for
  * the four slots of the live CamPos block). */
-#define N_DEBUG_CAMERA_SLOTS 4
+enum debug_camera_slot
+{
+    DEBUG_CAMERA_SLOT_R1 = 0,
+    DEBUG_CAMERA_SLOT_R2 = 1,
+    DEBUG_CAMERA_SLOT_P1 = 2,
+    DEBUG_CAMERA_SLOT_P2 = 3,
+    N_DEBUG_CAMERA_SLOTS = 4
+};
 
 typedef struct TCameraPos TCameraPos;
 struct TCameraPos
@@ -1507,6 +1514,15 @@ struct TCameraPos
     SVECTOR r2; /* 0x08 */
     SVECTOR p1; /* 0x10 */
     SVECTOR p2; /* 0x18 */
+}; /* 0x20 */
+
+/* The debug editor treats the live camera block both as one four-vector
+ * camera preset and as four independently selectable vectors. */
+typedef union DebugCameraStorage DebugCameraStorage;
+union DebugCameraStorage
+{
+    TCameraPos camera;
+    SVECTOR slot[N_DEBUG_CAMERA_SLOTS]; /* indexed by enum debug_camera_slot */
 }; /* 0x20 */
 
 /* CDPLAYER.C's playback state and its original anonymous-enum constants.
