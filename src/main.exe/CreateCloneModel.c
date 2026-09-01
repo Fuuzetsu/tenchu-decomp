@@ -35,28 +35,28 @@ extern void *valloc(u32 size);
 
 ModelType *CreateCloneModel(ModelType *objp)
 {
-    ModelType *base;
+    ModelType *model;
 
-    base = (ModelType *)valloc(sizeof(ModelType));
-    base->object.coord2 = &base->locate;
-    base->object.attribute = 0;
-    GsInitCoordinate2(&World.locate, &base->locate);
-    base->locate.coord.t[0] = 0;
-    base->locate.coord.t[1] = 0;
-    base->locate.coord.t[2] = 0;
-    base->rotate.vx = 0;
-    base->rotate.vy = 0;
-    base->rotate.vz = 0;
-    base->clip.vx = 0;
-    base->clip.vy = 0;
-    base->clip.vz = 0;
-    RotMatrixYXZ(&base->rotate, &base->locate.coord);
-    base->locate.flg = 0;
-    base->id = -1;
-    base->attribute = 0;
+    model = (ModelType *)valloc(sizeof(ModelType));
+    model->object.coord2 = &model->locate;
+    model->object.attribute = 0;
+    GsInitCoordinate2(&World.locate, &model->locate);
+    model->locate.coord.t[0] = 0;
+    model->locate.coord.t[1] = 0;
+    model->locate.coord.t[2] = 0;
+    model->rotate.vx = 0;
+    model->rotate.vy = 0;
+    model->rotate.vz = 0;
+    model->clip.vx = 0;
+    model->clip.vy = 0;
+    model->clip.vz = 0;
+    RotMatrixYXZ(&model->rotate, &model->locate.coord);
+    model->locate.flg = 0;
+    model->id = -1;
+    model->attribute = 0;
     if (objp != 0)
     {
-        base->object.tmd = objp->object.tmd;
+        model->object.tmd = objp->object.tmd;
     }
-    return base;
+    return model;
 }
