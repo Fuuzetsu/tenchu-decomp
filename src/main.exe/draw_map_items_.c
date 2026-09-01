@@ -5,7 +5,8 @@
 
 /*
  * Draws the current map target and each live goshikimai owned by the camera
- * owner after rotating and scaling their X/Z coordinates through `area`.
+ * owner after rotating and scaling their X/Z coordinates through the current
+ * stage's map placement.
  *
  * Matching notes:
  *  - The RequestItem candidate above is REFUTED: the demo dispatcher's
@@ -18,7 +19,7 @@
  *    instructions too long.
  *  - The two X call arguments need distinct temporaries even though their
  *    expressions are identical and their live ranges do not overlap. Each
- *    temporary pulls the area[2] load/shift ahead of the Y rounding branch;
+ *    temporary pulls the screen_x load/shift ahead of the Y rounding branch;
  *    sharing one source variable coalesces the regions and recolors both
  *    division chains, while inlining either argument schedules that region
  *    too late.
@@ -28,7 +29,7 @@
 
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 
-void draw_map_items_(s32 x, s32 z, s32 *area)
+void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
 {
     s32 divisor;
     s32 sine;
@@ -39,27 +40,28 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
     s32 draw_y;
     s32 i;
 
-    divisor = area[0];
+    divisor = placement->scale_divisor;
     if (divisor <= 0)
     {
         divisor = 1;
     }
 
-    sine = rsin(area[1]);
-    cosine = rcos(area[1]);
+    sine = rsin(placement->rotation);
+    cosine = rcos(placement->rotation);
 
     draw_x = (x / divisor) * cosine + (z / divisor) * sine;
     if (draw_x < 0)
     {
         draw_x += FIXED_ONE - 1;
     }
-    first_draw_arg_x = (draw_x >> 12) + area[2];
+    first_draw_arg_x = (draw_x >> 12) + placement->screen_x;
     draw_y = (x / divisor) * sine - (z / divisor) * cosine;
     if (draw_y < 0)
     {
         draw_y += FIXED_ONE - 1;
     }
-    DrawTargetS(first_draw_arg_x, (draw_y >> 12) + area[3], 0, RGB24(200, 20, 20));
+    DrawTargetS(first_draw_arg_x, (draw_y >> 12) + placement->screen_y, 0,
+                RGB24(200, 20, 20));
 
     i = 0;
     while (1)
@@ -79,12 +81,14 @@ void draw_map_items_(s32 x, s32 z, s32 *area)
             }
             draw_y = (items[i].locate->locate.coord.t[0] / divisor) * sine -
                      (items[i].locate->locate.coord.t[2] / divisor) * cosine;
-            loop_draw_arg_x = (draw_x >> 12) + area[2];
+            loop_draw_arg_x = (draw_x >> 12) + placement->screen_x;
             if (draw_y < 0)
             {
                 draw_y += FIXED_ONE - 1;
             }
-            DrawTargetS(loop_draw_arg_x, (draw_y >> 12) + area[3], 0, RGB24(20, 20, 200));
+            DrawTargetS(loop_draw_arg_x,
+                        (draw_y >> 12) + placement->screen_y, 0,
+                        RGB24(20, 20, 200));
         }
 
         i++;

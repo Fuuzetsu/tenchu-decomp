@@ -800,6 +800,18 @@ struct WorldType
     ObjectSlotType *top; /* 0x00 */
 }; /* 0x04 */
 
+/* Per-stage transform used by the pause-map overlay. World X/Z coordinates
+ * are divided by scale_divisor, rotated in 4.12 angle space, then translated
+ * to the map's screen origin. */
+typedef struct MapPlacementType MapPlacementType;
+struct MapPlacementType
+{
+    s32 scale_divisor; /* 0x00 */
+    s32 rotation;      /* 0x04 */
+    s32 screen_x;      /* 0x08 */
+    s32 screen_y;      /* 0x0C */
+}; /* 0x10 */
+
 /* WORLD.C's scratchpad contract between DrawConstruction and IsVisible.
  * The producer caches the current camera at +0x38. Each visibility test
  * writes its relative point at +0x10 and leaves the rotated result at +0x00,

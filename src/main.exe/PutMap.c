@@ -50,8 +50,8 @@
  * `ModelArchiveType *model` @0x58, and
  * `.locate.coord.t[0]/.t[2]` are the MATRIX translation X/Z (offsets
  * 0x18/0x20 from `model`, matching the raw `lw 0x18(v1)`/`lw 0x20(v1)`).
- * The 3rd arg is `&MapPlacement[StageID]` (a still-unnamed per-stage table,
- * stride 0x10). NOTE: MapPlacement/MapSlideX/MapSlideY (splat's x/y) were only
+ * The 3rd arg is `&MapPlacement[StageID]`, the per-stage scale/rotation/screen
+ * placement row. NOTE: MapPlacement/MapSlideX/MapSlideY (splat's x/y) were only
  * auto-labeled by splat while PutMap's OWN asm carve referenced them; once
  * this file compiles as plain C, nothing else references them, so they
  * needed explicit `config/symbols.main.exe.txt` entries (same lever as
@@ -76,10 +76,10 @@
  */
 extern s32 MapSlideX;
 extern s32 MapSlideY;
-extern s32 MapPlacement[][4];
+extern MapPlacementType MapPlacement[N_STAGE_CONFIGS];
 
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
-extern void draw_map_items_(s32 x, s32 z, s32 *area);
+extern void draw_map_items_(s32 x, s32 z, MapPlacementType *placement);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 
 void PutMap(void)
@@ -139,7 +139,7 @@ void PutMap(void)
         ply->ply.b0 = rgb;
         draw_map_items_(CamState.Owner->model->locate.coord.t[0],
                         CamState.Owner->model->locate.coord.t[2],
-                        MapPlacement[StageID]);
+                        &MapPlacement[StageID]);
         break;
     }
 
