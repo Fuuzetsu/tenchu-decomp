@@ -184,17 +184,20 @@ s32 StageSequence(void)
                 tgt = StagePlayer;
             }
             d = (s16)(tgt->locate->vx / 1000);
-            if (d < ev->x[0] || ev->x[1] < d)
+            if (d < ev->trigger.zone.x.min ||
+                ev->trigger.zone.x.max < d)
             {
                 break;
             }
             d = (s16)(tgt->locate->vz / 1000);
-            if (d < ev->z[0] || ev->z[1] < d)
+            if (d < ev->trigger.zone.z.min ||
+                ev->trigger.zone.z.max < d)
             {
                 break;
             }
             d = (s16)(tgt->locate->vy / 1000);
-            if (d < ev->y[0] || ev->y[1] < d)
+            if (d < ev->trigger.zone.y.min ||
+                ev->trigger.zone.y.max < d)
             {
                 break;
             }
@@ -202,28 +205,31 @@ s32 StageSequence(void)
             break;
 
         case EVTRIG_ATTRIBUTE:
-            if (((u16)tgt->attribute & (u16)ev->status) == (u16)ev->status)
+            if (((u16)tgt->attribute &
+                 (u16)ev->trigger.attribute_mask) ==
+                (u16)ev->trigger.attribute_mask)
             {
                 flag = 1;
             }
             break;
 
         case EVTRIG_STATUS:
-            if (StagePlayer->status != STAT_ATTACK && tgt->status == (s16)ev->status)
+            if (StagePlayer->status != STAT_ATTACK &&
+                tgt->status == ev->trigger.status)
             {
                 flag = 1;
             }
             break;
 
         case EVTRIG_MOTION:
-            if (tgt->motion->mid == (s16)ev->status)
+            if (tgt->motion->mid == ev->trigger.motion)
             {
                 flag = 1;
             }
             break;
 
         case EVTRIG_LIFE:
-            if (tgt->life <= (s16)ev->status)
+            if (tgt->life <= ev->trigger.life)
             {
                 flag = 1;
             }
@@ -252,7 +258,7 @@ s32 StageSequence(void)
         }
 
         case EVTRIG_TIME:
-            if ((s16)ev->status >= 0 && StageTime >= (s16)ev->status)
+            if (ev->trigger.time >= 0 && StageTime >= ev->trigger.time)
             {
                 flag = 1;
             }
@@ -260,7 +266,7 @@ s32 StageSequence(void)
 
         case EVTRIG_MUSIC:
             flag = 1;
-            PlayMusicFormID((s16)ev->status);
+            PlayMusicFormID(ev->trigger.music);
             break;
         }
 

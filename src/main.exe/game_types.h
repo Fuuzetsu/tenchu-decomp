@@ -538,6 +538,8 @@ typedef s16 HumanoidAttribute;
 typedef s16 humanoid_life;
 #define HUMANOID_LIFE_INACTIVE (-1)
 
+typedef s16 character_status;
+
 typedef s16 action_halt_state;
 #define ACTION_HALT_STAGE_END (-1)
 
@@ -1441,6 +1443,48 @@ struct TMakeDifInfo
 typedef struct EventSeqType EventSeqType;
 typedef u8 event_trigger_kind;
 
+typedef struct EventAxisBounds EventAxisBounds;
+struct EventAxisBounds
+{
+    s16 min;
+    s16 max;
+}; /* 0x04 */
+
+/* EventSeqType's original status/x/y/z fields, retained as the raw view of
+ * the trigger payload. Non-zone records leave the six bounds at -1. */
+typedef struct EventRawTrigger EventRawTrigger;
+struct EventRawTrigger
+{
+    s16 status;
+    s16 x[2];
+    s16 y[2];
+    s16 z[2];
+}; /* 0x0E */
+
+typedef struct EventZoneTrigger EventZoneTrigger;
+struct EventZoneTrigger
+{
+    s16 reserved;
+    EventAxisBounds x;
+    EventAxisBounds y;
+    EventAxisBounds z;
+}; /* 0x0E */
+
+/* mode selects the interpretation of the halfword at +6. The zone view is
+ * the only one that also consumes the six following bounds. */
+typedef union EventTrigger EventTrigger;
+union EventTrigger
+{
+    EventRawTrigger raw;
+    EventZoneTrigger zone;
+    HumanoidAttribute attribute_mask;
+    character_status status;
+    motion_id motion;
+    humanoid_life life;
+    s16 time;
+    s16 music;
+}; /* 0x0E */
+
 typedef struct EventRoute EventRoute;
 struct EventRoute
 {
@@ -1462,11 +1506,7 @@ struct EventSeqType
     EventHeader header; /* 0x00 */
     u8 target;  /* 0x04 watched humanoid (EVENT_TARGET_PLAYER = player) */
     event_trigger_kind mode; /* 0x05 EVTRIG_ trigger kind (stage.h) */
-    s16 status; /* 0x06 trigger operand (status/motion/life/time/music
-                 *      by mode) */
-    s16 x[2];   /* 0x08 EVTRIG_ZONE bounds, kilometre grid */
-    s16 y[2];   /* 0x0C */
-    s16 z[2];   /* 0x10 */
+    EventTrigger trigger; /* 0x06 */
 }; /* 0x14 */
 
 /* APPEAR.C's per-weapon anchor points, in the weapon model's local
@@ -1917,7 +1957,6 @@ enum character_page
  * recovery/stagger state, ...).  This retires the old descriptive guesses
  * (ATTACKING, PRESSED_AGAINST_WALL, ...), which matched these values 1:1. */
 /* Humanoid stores this domain in a signed halfword. */
-typedef s16 character_status;
 enum character_status
 {
     STAT_NORMAL = 0x00,
