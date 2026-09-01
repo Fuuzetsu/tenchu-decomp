@@ -39,9 +39,9 @@ OrnamentType *LoadOrnament(u_long *adr)
     ornament = (OrnamentType *)valloc(sizeof(OrnamentType));
     if (adr != 0)
     {
-        adr = TMD_FILE_DATA(adr);
+        adr = (u_long *)&((TMDFile *)adr)->data;
         GsMapModelingData(adr);
-        GsLinkObject4((u_long)TMD_DATA_OBJECTS(adr), &ornament->object, 0);
+        GsLinkObject4((u_long)((TMDData *)adr)->objects, &ornament->object, 0);
     }
     ornament->object.coord2 = &ornament->locate;
     ornament->object.attribute = 0;

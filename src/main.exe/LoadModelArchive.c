@@ -57,7 +57,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     ModelType *dim;
     ModelType *objp;
     GsCOORDINATE2 *super;
-    int dtmd;
+    TMDFile *dtmd;
     int parent;
 
     if (adr == 0)
@@ -76,12 +76,12 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     {
         do
         {
-            dtmd = (int)tmdp + prntp[i].index;
+            dtmd = (TMDFile *)(tmdp + prntp[i].index);
             dim = (ModelType *)valloc(sizeof(ModelType));
             if (dtmd != 0)
             {
-                GsMapModelingData(TMD_FILE_DATA(dtmd));
-                GsLinkObject4((u_long)TMD_FILE_OBJECTS(dtmd), &dim->object, 0);
+                GsMapModelingData((u_long *)&dtmd->data);
+                GsLinkObject4((u_long)dtmd->data.objects, &dim->object, 0);
             }
             dim->object.coord2 = &dim->locate;
             dim->object.attribute = 0;

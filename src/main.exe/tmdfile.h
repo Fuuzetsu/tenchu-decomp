@@ -45,12 +45,4 @@ enum
     TMD_OBJECT_WORDS = sizeof(TmdObjectRecord) / sizeof(u_long)
 };
 
-#define TMD_FILE_BYTE_OFFSET(member) ((u_long)&((TMDFile *)0)->member)
-#define TMD_DATA_BYTE_OFFSET(member) ((u_long)&((TMDData *)0)->member)
-#define TMD_FILE_DATA(file)                                        \
-    ((u_long *)((int)(file) + TMD_FILE_BYTE_OFFSET(data)))
-#define TMD_DATA_OBJECTS(data)                                     \
-    ((u_long *)((int)(data) + TMD_DATA_BYTE_OFFSET(objects)))
-#define TMD_FILE_OBJECTS(file) TMD_DATA_OBJECTS(TMD_FILE_DATA(file))
-
 #endif
