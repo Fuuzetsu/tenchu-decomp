@@ -342,8 +342,8 @@ struct ModelType
 /* A humanoid's articulated model. The skeleton's sub-object indices
  * the code pins: 0 is the waist/root, 2 the head (JAW's bite
  * hitbox; simple models' attach fallback), 8/0xb the barehanded
- * FIST fighter's striking-limb pair, 0xd/0xe the left/right
- * hands (arrows spawn at 0xd; the grapple hook fires and the medicine
+ * FIST fighter's striking-limb pair, and 0xd/0xe the two weapon-hand
+ * anchors (arrows spawn at 0xd; the grapple hook fires and the medicine
  * bottle attaches at 0xe; armed attacks put hitboxes on both). Ninja
  * models carry 15 parts (HenshinModelSnapshot); NPC models fewer
  * (ProcItemKusuri's n > 0xe test picks the fallback). */

@@ -128,10 +128,12 @@ void ProcItemKusuri(TItem *item)
             ModelArchiveType *arc;
 
             arc = item->owner->model;
-            if (arc->n > 0xe)
-                item->locate->locate.super = &arc->object[0xe]->locate;
+            if (arc->n > MODEL_PART_WEAPON_HAND_1)
+                item->locate->locate.super =
+                    &arc->object[MODEL_PART_WEAPON_HAND_1]->locate;
             else
-                item->locate->locate.super = &arc->object[2]->locate;
+                item->locate->locate.super =
+                    &arc->object[MODEL_PART_HEAD]->locate;
         }
         item->locate->locate.coord.t[0] = 0;
         item->locate->locate.coord.t[1] = 50;

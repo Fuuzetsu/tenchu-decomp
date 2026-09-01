@@ -13,16 +13,19 @@
 #define WPATK_CLASS_RANGED 3
 #define N_WPATK_CLASSES (WPATK_CLASS_RANGED + 1)
 
-/* ModelArchiveType.object[] roles proven by the humanoid callers.  The
- * weapon anchors vary with wpatk; the ordinal hand names intentionally do
- * not claim left or right. */
+/* ModelArchiveType.object[] roles proven by the humanoid callers.  Some
+ * specialized skeletons reuse indices (the beast's first striking limb is
+ * at the ordinary humanoid head index).  The weapon anchors vary with
+ * wpatk; the ordinal hand names intentionally do not claim left or right. */
 #define MODEL_PART_WAIST 0
+#define MODEL_PART_HEAD 2
 #define MODEL_PART_BEAST_HAND_0 2
 #define MODEL_PART_BEAST_HAND_1 1
 #define MODEL_PART_ONININ_HAND_0 8
 #define MODEL_PART_ONININ_HAND_1 0x0B
 #define MODEL_PART_WEAPON_HAND_0 0x0D
 #define MODEL_PART_WEAPON_HAND_1 0x0E
+#define N_NINJA_MODEL_PARTS (MODEL_PART_WEAPON_HAND_1 + 1)
 
 /* The hand index shared by hand[], wepid[], and GetWeaponData's wpid. */
 #define WEAPON_HAND_0 0
@@ -135,8 +138,8 @@ struct HenshinModelPart
 typedef struct HenshinModelSnapshot HenshinModelSnapshot;
 struct HenshinModelSnapshot
 {
-    s32 waist;              /* 0x00 */
-    HenshinModelPart p[15]; /* 0x04 */
+    s32 waist;                                /* 0x00 */
+    HenshinModelPart p[N_NINJA_MODEL_PARTS]; /* 0x04 */
 }; /* 0xB8 */
 
 /* ITEM.C's original disguise snapshot. Retail adds a second snapshot for

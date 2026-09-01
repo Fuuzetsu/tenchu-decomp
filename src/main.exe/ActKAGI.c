@@ -187,7 +187,8 @@ void ActKAGI(void)
         {
             VECTOR *p;
 
-            p = GetAbsolutePosition(Me_MOTION_C->model->object[14], 0, 0, 0);
+            p = GetAbsolutePosition(
+                Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1], 0, 0, 0);
             dtM->loop = -1;
             dtM->count = SetFlyWire(p, &CamState.TargetVector);
         }
@@ -303,7 +304,8 @@ void ActKAGI(void)
             v.vz >>= 1;
         }
         setVector(dtV, v.vx, v.vy, v.vz);
-        SetWire(GetAbsolutePosition(Me_MOTION_C->model->object[14], 0, 0, 0),
+        SetWire(GetAbsolutePosition(
+                    Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1], 0, 0, 0),
                 &CamState.TargetVector, 0, FIXED_ONE);
         break;
     }

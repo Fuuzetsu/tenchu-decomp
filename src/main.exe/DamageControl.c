@@ -563,7 +563,9 @@ resolve_hit:
                     MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
                     RECOIL_ATTACKER(RUMBLE_POWER_HALF, RUMBLE_RELEASE_NONE);
                     DeleteConflict(ConflictObject[(short)id].model);
-                    pp = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, (short)(dmg * 10 + 100), 0);
+                    pp = GetAbsolutePosition(
+                        Me_MOTION_C->model->object[MODEL_PART_HEAD], 0,
+                        (short)(dmg * 10 + 100), 0);
                     t = 0;
                     do
                     {

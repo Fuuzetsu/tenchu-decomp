@@ -207,7 +207,7 @@ draw_done:
         {
             return;
         }
-        head = human->model->object[2];
+        head = human->model->object[MODEL_PART_HEAD];
         if (CamState.Mode != CMODE_DIRECTION && CamState.Mode != CMODE_SIGHT)
         {
             MotionElementType *rotation;
@@ -285,7 +285,7 @@ draw_done:
         return;
     }
 
-    head = human->model->object[2];
+    head = human->model->object[MODEL_PART_HEAD];
     if (magnitude > 900)
     {
         head->rotate.vy = magnitude * 900 / direction;
