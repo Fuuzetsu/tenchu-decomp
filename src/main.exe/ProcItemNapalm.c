@@ -112,8 +112,8 @@ void ProcItemNapalm(TItem *item)
         model->sprite.r = t;
         model->sprite.g = model->sprite.r;
         model->sprite.b = model->sprite.r;
-        model->sprite.rotate = (rand() % 360) << 12;
-        model->scale = (ex << 12) / 50 + FIXED_ONE;
+        model->sprite.rotate = (rand() % 360) << FIXED_SHIFT;
+        model->scale = (ex << FIXED_SHIFT) / 50 + FIXED_ONE;
 
         sprNapalm2->sprite.r = (ITEM_MODE_DISPOSE - model->sprite.r) / 3;
         sprNapalm2->sprite.g = sprNapalm2->sprite.r;

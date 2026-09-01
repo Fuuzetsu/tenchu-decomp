@@ -52,15 +52,16 @@ void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
     draw_x = (x / divisor) * cosine + (z / divisor) * sine;
     if (draw_x < 0)
     {
-        draw_x += FIXED_ONE - 1;
+        draw_x += FIXED_TRUNC_BIAS;
     }
-    first_draw_arg_x = (draw_x >> 12) + placement->screen_x;
+    first_draw_arg_x = (draw_x >> FIXED_SHIFT) + placement->screen_x;
     draw_y = (x / divisor) * sine - (z / divisor) * cosine;
     if (draw_y < 0)
     {
-        draw_y += FIXED_ONE - 1;
+        draw_y += FIXED_TRUNC_BIAS;
     }
-    DrawTargetS(first_draw_arg_x, (draw_y >> 12) + placement->screen_y, 0,
+    DrawTargetS(first_draw_arg_x,
+                (draw_y >> FIXED_SHIFT) + placement->screen_y, 0,
                 RGB24(200, 20, 20));
 
     i = 0;
@@ -77,17 +78,18 @@ void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
                      (items[i].locate->locate.coord.t[2] / divisor) * sine;
             if (draw_x < 0)
             {
-                draw_x += FIXED_ONE - 1;
+                draw_x += FIXED_TRUNC_BIAS;
             }
             draw_y = (items[i].locate->locate.coord.t[0] / divisor) * sine -
                      (items[i].locate->locate.coord.t[2] / divisor) * cosine;
-            loop_draw_arg_x = (draw_x >> 12) + placement->screen_x;
+            loop_draw_arg_x =
+                (draw_x >> FIXED_SHIFT) + placement->screen_x;
             if (draw_y < 0)
             {
-                draw_y += FIXED_ONE - 1;
+                draw_y += FIXED_TRUNC_BIAS;
             }
             DrawTargetS(loop_draw_arg_x,
-                        (draw_y >> 12) + placement->screen_y, 0,
+                        (draw_y >> FIXED_SHIFT) + placement->screen_y, 0,
                         RGB24(20, 20, 200));
         }
 

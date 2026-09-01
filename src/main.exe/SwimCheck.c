@@ -103,8 +103,8 @@ short SwimCheck(void)
             r = rand();
             width = Me_MOTION_C->width;
             vect.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&vect, (rand() & 7) << 12,
-                      (rand() & 7) << 12, 6);
+            SetSplash(&vect, (rand() & 7) << FIXED_SHIFT,
+                      (rand() & 7) << FIXED_SHIFT, 6);
             i++;
         } while (i < 20);
 

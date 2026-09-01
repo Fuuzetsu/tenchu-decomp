@@ -192,8 +192,8 @@ splash_dead:
             r = rand();
             width = Me_MOTION_C->width;
             scratch.dead.p.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&scratch.dead.p, (rand() & 7) << 12,
-                      (rand() & 7) << 12, 6);
+            SetSplash(&scratch.dead.p, (rand() & 7) << FIXED_SHIFT,
+                      (rand() & 7) << FIXED_SHIFT, 6);
             i++;
         } while (i < 5);
     }

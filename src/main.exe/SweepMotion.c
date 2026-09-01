@@ -50,7 +50,8 @@ short SweepMotion(MotionManager *mmp)
         object->locate.coord.t[2] +=
             (mot->locate.keyframes->z - object->locate.coord.t[2]) / count;
         object->locate.coord.t[1] +=
-            (((s32)mmp->model->rotate.pad * mot->locate.keyframes->y >> 12) -
+            (((s32)mmp->model->rotate.pad * mot->locate.keyframes->y >>
+               FIXED_SHIFT) -
              object->locate.coord.t[1]) /
             count;
         object->rotate.vx +=

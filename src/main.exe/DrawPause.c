@@ -102,8 +102,8 @@ void DrawPause(int frame)
         {
         } while (0);
         bias = 0x80;
-        far_col = rsin(t) * 125 / 4096 + bias;
-        ply.r0 = rsin(t + 0x200) * 125 / 4096 + bias;
+        far_col = rsin(t) * 125 / FIXED_ONE + bias;
+        ply.r0 = rsin(t + 0x200) * 125 / FIXED_ONE + bias;
         ply.g0 = ply.r0;
         ply.b0 = ply.r0;
         ply.r1 = ply.r0;

@@ -510,17 +510,20 @@ void mission_score_screen(void)
             medal->y = -0xE;
             medal->scalex = FIXED_ONE;
             medal->scaley = FIXED_ONE;
-            medalBrightness = rcos((GameClock << 12) / MEDAL_PULSE_PERIOD) * MEDAL_PULSE_AMPLITUDE;
+            medalBrightness =
+                rcos((GameClock << FIXED_SHIFT) / MEDAL_PULSE_PERIOD) *
+                MEDAL_PULSE_AMPLITUDE;
             if (medalBrightness < 0)
             {
                 medalDraw = medal;
-                medalBrightness += FIXED_ONE - 1;
+                medalBrightness += FIXED_TRUNC_BIAS;
             }
             else
             {
                 medalDraw = medal;
             }
-            medalBrightness = (medalBrightness >> 12) + 0x7F;
+            medalBrightness =
+                (medalBrightness >> FIXED_SHIFT) + 0x7F;
             medalDraw->r = medalDraw->g = medalDraw->b = medalBrightness;
             GsSortSprite(medalDraw, OTablePt, 1);
         }
@@ -580,12 +583,14 @@ void mission_score_screen(void)
             sprite->y = i * SCORE_ROW_SPACING + SCORE_ROW_SPACING;
             if (i == insertedRank)
             {
-                rowBrightness = rsin((GameClock << 12) / MEDAL_PULSE_PERIOD) * ROW_PULSE_AMPLITUDE;
+                rowBrightness =
+                    rsin((GameClock << FIXED_SHIFT) / MEDAL_PULSE_PERIOD) *
+                    ROW_PULSE_AMPLITUDE;
                 if (rowBrightness < 0)
                 {
-                    rowBrightness += FIXED_ONE - 1;
+                    rowBrightness += FIXED_TRUNC_BIAS;
                 }
-                rowBrightness = (rowBrightness >> 12) + 100;
+                rowBrightness = (rowBrightness >> FIXED_SHIFT) + 100;
             }
             else
             {

@@ -57,37 +57,38 @@ void DrawImpact(TEffectSlot *ef)
     } work;
 
     param = &ef->param.impact;
-    ratio = (param->count << 12) / param->time;
+    ratio = (param->count << FIXED_SHIFT) / param->time;
     spr = &sprImpact[param->type];
-    spr->rotate = param->rotate << 12;
+    spr->rotate = param->rotate << FIXED_SHIFT;
     inverse = FIXED_ONE - ratio;
 
     start = param->start_size * inverse;
     param->rotate += param->rotate_speed;
     if (start < 0)
     {
-        start += FIXED_ONE - 1;
+        start += FIXED_TRUNC_BIAS;
     }
 
-    size = (start >> 12) + (param->end_size * ratio) / FIXED_ONE;
+    size = (start >> FIXED_SHIFT) +
+           (param->end_size * ratio) / FIXED_ONE;
 
     start = param->start_color.channel.r;
     start = start * inverse;
     end_raw = param->end_color.channel.r;
     if (start < 0)
     {
-        start += FIXED_ONE - 1;
+        start += FIXED_TRUNC_BIAS;
     }
-    spr->r = (start >> 12) + (end_raw * ratio) / FIXED_ONE;
+    spr->r = (start >> FIXED_SHIFT) + (end_raw * ratio) / FIXED_ONE;
 
     work.color = param->start_color.channel.g;
     start2 = work.color * inverse;
     end_raw = param->end_color.channel.g;
     if (start2 < 0)
     {
-        start2 += FIXED_ONE - 1;
+        start2 += FIXED_TRUNC_BIAS;
     }
-    start2 = start2 >> 12;
+    start2 = start2 >> FIXED_SHIFT;
     spr->g = start2 + (end_raw * ratio) / FIXED_ONE;
 
     work.color = param->start_color.channel.b;
@@ -95,9 +96,9 @@ void DrawImpact(TEffectSlot *ef)
     end_raw = param->end_color.channel.b;
     if (start2 < 0)
     {
-        start2 += FIXED_ONE - 1;
+        start2 += FIXED_TRUNC_BIAS;
     }
-    start2 = start2 >> 12;
+    start2 = start2 >> FIXED_SHIFT;
     spr->b = start2 + (end_raw * ratio) / FIXED_ONE;
 
     end = param->px;

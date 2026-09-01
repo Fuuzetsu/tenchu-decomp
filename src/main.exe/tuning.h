@@ -1,13 +1,11 @@
 #ifndef TUNING_H
 #define TUNING_H
 
-/* Named game-tuning constants. None of these names appear in the demo
- * symbols — they are our handles on recurring retail values so a mod can
- * retune them in one place (./Build mod patches in place; the values
- * below are the byte-matched retail defaults, and changing any of them
- * deliberately fails ./Build check). Add a constant here when the same
- * quantity recurs across files or is an obvious gameplay knob; leave
- * one-off frame counts inline. */
+/* Named engine conventions and game-tuning constants. None of these names
+ * appear in the demo symbols — they are our handles on recurring retail
+ * values and deliberate gameplay knobs. ./Build mod patches values in place;
+ * the definitions below are the byte-matched retail defaults, and changing
+ * one deliberately fails ./Build check. Leave one-off frame counts inline. */
 
 /* Display */
 #define SCREEN_W 320
@@ -19,10 +17,14 @@
 #define VRAM_W 1024
 #define VRAM_H 512
 
-/* PSX 12.12 fixed-point values used by sprite/effect scales and angles. */
+/* PSX values with 12 fractional bits, used by GTE results, interpolation,
+ * and sprite/effect scales. Signed products add FIXED_TRUNC_BIAS before an
+ * arithmetic shift when the intended conversion truncates toward zero. */
+#define FIXED_SHIFT 12
 #define FIXED_QUARTER 0x0400
 #define FIXED_HALF 0x0800
 #define FIXED_ONE 0x1000
+#define FIXED_TRUNC_BIAS (FIXED_ONE - 1)
 
 /* Packed 0xRRGGBB effect colours. Use RGB24 for one-off palette shades. */
 #define RGB24(r, g, b) (((r) << 16) | ((g) << 8) | (b))

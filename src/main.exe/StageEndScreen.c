@@ -493,7 +493,7 @@ void StageEndScreen(void)
 
                 rank.x = -25;
                 rank.y = 78;
-                pulse = rsin((GameClock << 12) / 90) * 0x7f;
+                pulse = rsin((GameClock << FIXED_SHIFT) / 90) * 0x7f;
                 /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                 do
                 {
@@ -505,10 +505,10 @@ void StageEndScreen(void)
                  * one-shot fence, not liveness. */
                 if (pulse < 0)
                 {
-                    pulse += FIXED_ONE - 1;
+                    pulse += FIXED_TRUNC_BIAS;
                 }
                 rank.r = rank.g = rank.b =
-                    (pulse >> 12) + 0x7f;
+                    (pulse >> FIXED_SHIFT) + 0x7f;
                 GsSortSprite(&rank, OTablePt, 1);
 
                 if (current.grade == RANK_GRAND_MASTER)
@@ -518,7 +518,8 @@ void StageEndScreen(void)
                     icon->y = 0x38;
                     icon->scalex = FIXED_ONE;
                     icon->scaley = FIXED_ONE;
-                    pulse = rcos((GameClock << 12) / 90) * 0x50;
+                    pulse =
+                        rcos((GameClock << FIXED_SHIFT) / 90) * 0x50;
                     icon->r = icon->g = icon->b = (pulse / FIXED_ONE) + 0x7f;
                     GsSortSprite(icon, OTablePt, 1);
                 }

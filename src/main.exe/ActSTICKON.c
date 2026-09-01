@@ -470,8 +470,8 @@ void ActSTICKON(void)
             Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0 + pd],
             0, 0, 0);
         angle = (s16)angle;
-        position->vx -= (rsin(angle) * 500) >> 12;
-        position->vz -= (rcos(angle) * 500) >> 12;
+        position->vx -= (rsin(angle) * 500) >> FIXED_SHIFT;
+        position->vz -= (rcos(angle) * 500) >> FIXED_SHIFT;
         item.start.vx = position->vx;
         item.start.vy = position->vy;
         item.start.vz = position->vz;
@@ -501,19 +501,21 @@ void ActSTICKON(void)
                 {
                 } while (0);
                 y = next_angle;
-                item.end.vx = (rsin(y) * (-30 - rand() % 200)) >> 12;
+                item.end.vx =
+                    (rsin(y) * (-30 - rand() % 200)) >> FIXED_SHIFT;
                 item.end.vy = rand();
                 item.end.vy = -(item.end.vy % 30);
-                item.end.vz = (rcos(y) * (-30 - rand() % 200)) >> 12;
+                item.end.vz =
+                    (rcos(y) * (-30 - rand() % 200)) >> FIXED_SHIFT;
                 ReqItemMakibishi((PARAM_ITEM_DROP *)&item);
             }
         }
         else
         {
             y = angle;
-            item.end.vx = (rsin(y) * -120) >> 12;
+            item.end.vx = (rsin(y) * -120) >> FIXED_SHIFT;
             item.end.vy = 0;
-            item.end.vz = (rcos(y) * -120) >> 12;
+            item.end.vz = (rcos(y) * -120) >> FIXED_SHIFT;
             switch (item.type)
             {
             case ITEM_FIRE:

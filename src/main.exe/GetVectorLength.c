@@ -52,10 +52,6 @@ long GetVectorLength(long dx, long dy, long dz)
 {
     enum
     {
-        patch = 4096
-    };
-    enum
-    {
         div = 256
     };
     long len;
@@ -63,7 +59,8 @@ long GetVectorLength(long dx, long dy, long dz)
     long v;
 
     big = 0;
-    if (abs(dx) > patch || abs(dy) > patch || abs(dz) > patch)
+    if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+        abs(dz) > FIXED_ONE)
     {
         big = 1;
     }

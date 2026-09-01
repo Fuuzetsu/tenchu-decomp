@@ -8,14 +8,14 @@
  * almost certainly the same original TU. No PSX.SYM prototype is recorded
  * for it.
  *
- * Steps from `from` toward `to` in units of 0x1F4000 / GetVectorLength(delta)
- * (a fixed 500-world-unit step in 1.12 fixed point, so the iteration count
+ * Steps from `from` toward `to` in units of
+ * (500 * FIXED_ONE) / GetVectorLength(delta), so the iteration count
  * scales with the ray length), sampling the ground level at each step via
  * CGetLevel; stops as soon
  * as the ground rises above the ray's height there (CGetLevel's result <
  * the step's own y). Writes the last step that stayed above ground into
  * `*out` (skipped when NULL) and returns how far along the ray it got in
- * the same 1.12 fixed point (0x1000 == reached `to`) — SetCameraMode
+ * the same fixed-point fraction (FIXED_ONE == reached `to`) — SetCameraMode
  * treats a return > 0x7FF (past halfway) as "clear".
  *
  * Confirmed 4-parameter signature (Ghidra's own decompilation only shows 3):
@@ -79,7 +79,7 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     dy = to->vy - y;
     z = from->vz;
     dz = to->vz - z;
-    step = (500 << 12) / GetVectorLength(dx, dy, dz);
+    step = (500 << FIXED_SHIFT) / GetVectorLength(dx, dy, dz);
     lx = x;
     ly = y;
     lz = z;
@@ -87,22 +87,22 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     t = step;
     while (1)
     {
-        if (t >= 0x1000)
+        if (t >= FIXED_ONE)
             break;
         /* The hand-biased >>12 spelling (vs plain /4096) is byte-required:
          * the fold changes the scheduler's interleave (measured). */
         rawx = dx * t;
         if (rawx < 0)
-            rawx += 0xFFF;
+            rawx += FIXED_TRUNC_BIAS;
         rawy = dy * t;
-        tx = x + (rawx >> 0xC);
+        tx = x + (rawx >> FIXED_SHIFT);
         if (rawy < 0)
-            rawy += 0xFFF;
+            rawy += FIXED_TRUNC_BIAS;
         rawz = dz * t;
-        ty = y + (rawy >> 0xC);
+        ty = y + (rawy >> FIXED_SHIFT);
         if (rawz < 0)
-            rawz += 0xFFF;
-        tz = z + (rawz >> 0xC);
+            rawz += FIXED_TRUNC_BIAS;
+        tz = z + (rawz >> FIXED_SHIFT);
         if (CGetLevel(&hint, tx, ty, tz, flag) < ty)
             break;
         lx = tx;

@@ -49,21 +49,22 @@
  *    for both; `dy`/`dz` are never referenced again by name after being
  *    stored into `nv` — every later use goes through `nv.vy`/`nv.vz`
  *    instead, which is why only dx's reads skip a stack round-trip.
- *  - The two `[0,0xfff]`-then-`>>0xc` clamps need the GetVectorLength.c
- *    "default-then-override temp" shape (`t = v; if (v<0) t = v+0xfff; v =
- *    t>>0xc;`), not an in-place `if (v<0) v+=0xfff; v>>=0xc;` — same idiom,
+ *  - The two signed fixed-point reductions need the GetVectorLength.c
+ *    "default-then-override temp" shape (`t = v; if (v<0) t =
+ *    v+FIXED_TRUNC_BIAS; v = t>>FIXED_SHIFT;`), not an in-place
+ *    adjustment and shift — same idiom,
  *    same reason (the branch's delay slot gets the unconditional default).
  *  - The eased-speed reduction is THREE statements, not one expression:
- *    `mspd = info->spd*(sla+0x1000); if (mspd<0) mspd+=0x1fff;
- *    spd = mspd>>0xd; spd = spd + info->ac;`. Two levers here, both
+ *    the product and signed bias land in `mspd`, the shift lands in `spd`,
+ *    then `info->ac` is added to `spd`. Two levers here are both
  *    length/register-critical:
  *      (a) the product needs its OWN temp `mspd` distinct from `spd` — the
- *          in-place `spd = info->spd*…; if (spd<0) spd+=0x1fff; spd = (spd>>0xd)
- *          + ac;` fused the pre-shift accumulator and the final speed
+ *          in-place product, bias, shift, and add fuse the pre-shift
+ *          accumulator and the final speed
  *          into one pseudo (a0), which coloured the whole chain a0 and drifted
  *          6 bytes; a fresh `mspd` lets the accumulator take v1.
- *      (b) the final `spd = mspd>>0xd` and `spd = spd + info->ac` must be
- *          SEPARATE statements — the fused `spd = (mspd>>0xd) + info->ac;`
+ *      (b) the final shift and `spd = spd + info->ac` must be SEPARATE
+ *          statements — a fused shift-and-add
  *          keeps the shift result in mspd's register (v1) and only the add
  *          lands in spd (a0); splitting makes the shift itself target spd (a0)
  *          and the add happen in place (the last 2-byte tie).
@@ -115,15 +116,15 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
         t = theta;
         if (theta < 0)
         {
-            t = theta + 0xFFF;
+            t = theta + FIXED_TRUNC_BIAS;
         }
-        theta = t >> 0xC;
+        theta = t >> FIXED_SHIFT;
         t = slab;
         if (slab < 0)
         {
-            t = slab + 0xFFF;
+            t = slab + FIXED_TRUNC_BIAS;
         }
-        slab = t >> 0xC;
+        slab = t >> FIXED_SHIFT;
     }
 
     if (slab == 0)
@@ -132,15 +133,15 @@ void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
     }
     else
     {
-        sla = (theta << 0xC) / slab;
+        sla = (theta << FIXED_SHIFT) / slab;
     }
 
-    mspd = info->spd * (sla + 0x1000);
+    mspd = info->spd * (sla + FIXED_ONE);
     if (mspd < 0)
     {
-        mspd += 0x1FFF;
+        mspd += 2 * FIXED_ONE - 1;
     }
-    spd = mspd >> 0xD;
+    spd = mspd >> (FIXED_SHIFT + 1);
     spd += info->ac;
     if (ip < spd)
     {

@@ -82,7 +82,8 @@ short ActiveMotion(MotionManager *mmp)
         GetSpline(&vect, mmp->control, i);
         object->locate.coord.t[0] = (s32)vect.vx;
         object->locate.coord.t[2] = (s32)vect.vz;
-        object->locate.coord.t[1] = (s32)mmp->model->rotate.pad * (s32)vect.vy >> 12;
+        object->locate.coord.t[1] =
+            (s32)mmp->model->rotate.pad * (s32)vect.vy >> FIXED_SHIFT;
         GetSpline(&object->rotate, mmp->control + 1, i);
         UpdateCoordinate(object);
     }

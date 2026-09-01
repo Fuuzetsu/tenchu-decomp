@@ -26,21 +26,22 @@
 /*
  * MoveFly (0x8003dfd4) — advances a thrown/flying item one frame along a
  * quadratic Bezier arc, or hands off to MoveKorogari once it has landed.
- * Needs maspsx --expand-div (Build.hs + permute.py): it divides `t<<12` by
- * the runtime byte `param->p.fly.count2` (ASPSX break 7 / break 6 guards).
+ * Needs maspsx --expand-div (Build.hs + permute.py): it divides
+ * `t << FIXED_SHIFT` by the runtime byte `param->p.fly.count2` (ASPSX
+ * break 7 / break 6 guards).
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - The mode dispatch is a plain `switch (param->mode)` with cases 0 and 1
  *    and no default (measured byte-identical 2026-08-31, replacing an
  *    equivalent two-goto ladder): both bodies are forward-jump targets and
  *    the do-nothing default falls through.
- *  - A named runtime copy of `one` shares the constant across `q = k - …`
- *    and `w9 = k - d2 + …` (one `li` reused as a subtract base), matching the
+ *  - The named runtime copy `k = FIXED_ONE` shares the constant across
+ *    `q = k - …` and `w9 = k - d2 + …` (one `li` reused as a subtract base), matching the
  *    target's a3; two inline `0x1000` literals compile a fold-reassociated
  *    `q2 + 0x1000` and diverge.
  *  - `d2 = q * 2` as its own statement lets reorg steal the `sll` into the
  *    `q*q < 0` guard's delay slot; folded into w8/w9 it leaves a nop there.
- *  - Each `xs/ys/zs = >>12` sits immediately after its own `<0` adjust so
+ *  - Each fixed-point reduction sits immediately after its own `<0` adjust so
  *    reorg fills the NEXT guard's delay slot with it (deferred one step).
  *  - `nv = q2;` is an explicit second copy of q2 (permuter-found): the target
  *    keeps q2 live in TWO registers — one (`q2`) used only by the `y` multiply,
@@ -55,10 +56,6 @@ extern void MoveKorogari(TItem *item, param_korogari *param);
 
 static void MoveFly(TItem *item, param_fly *param)
 {
-    enum
-    {
-        one = 4096
-    };
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;
     s32 xs, ys, zs;
     s32 t, ax, ay, az;
@@ -68,16 +65,16 @@ static void MoveFly(TItem *item, param_fly *param)
     case FLY_MODE_ARC:
     {
         t = param->p.fly.count;
-        k = one;
-        q = k - (t << 12) / param->p.fly.count2;
+        k = FIXED_ONE;
+        q = k - (t << FIXED_SHIFT) / param->p.fly.count2;
         q2 = q * q;
         d2 = q * 2;
         /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
          * fold back to `q2 / FIXED_ONE` -- q2 is reused as the interpolation weight afterwards,
          * so the schedule differs (9 lines). Its sibling below does. */
         if (q2 < 0)
-            q2 += FIXED_ONE - 1;
-        q2 = q2 >> 12;
+            q2 += FIXED_TRUNC_BIAS;
+        q2 = q2 >> FIXED_SHIFT;
         nv = q2;
         w9 = k - d2 + nv;
         w8 = d2 + nv * -2;

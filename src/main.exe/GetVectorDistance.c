@@ -38,10 +38,6 @@ int GetVectorDistance(VECTOR *v1, VECTOR *v2)
 {
     enum
     {
-        patch = 4096
-    };
-    enum
-    {
         div = 256
     };
     long dx, dy, dz;
@@ -54,7 +50,8 @@ int GetVectorDistance(VECTOR *v1, VECTOR *v2)
     dz = v1->vz - v2->vz;
 
     big = 0;
-    if (abs(dx) > patch || abs(dy) > patch || abs(dz) > patch)
+    if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+        abs(dz) > FIXED_ONE)
     {
         big = 1;
     }

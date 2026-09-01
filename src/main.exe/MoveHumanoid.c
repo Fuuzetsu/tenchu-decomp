@@ -69,9 +69,9 @@ void MoveHumanoid(Humanoid *human, short ordr, short side)
             side_speed = side - 0x100;
         }
         human->vector.vx = (short)(((short)sine * order_speed -
-                                    (short)cosine * side_speed) >> 0xc);
+                                    (short)cosine * side_speed) >> FIXED_SHIFT);
         human->vector.vz = (short)(((short)cosine * order_speed +
-                                    (short)sine * side_speed) >> 0xc);
+                                    (short)sine * side_speed) >> FIXED_SHIFT);
     }
     else
     {

@@ -140,8 +140,8 @@ outer:
         do
         {
             blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
-            blood->scale = rand() % 4096 + 0x2000;
-            blood->rotate = (rand() % 360) * 4096;
+            blood->scale = rand() % FIXED_ONE + 2 * FIXED_ONE;
+            blood->rotate = (rand() % 360) * FIXED_ONE;
             blood->px = pos->vx;
             blood->py = pos->vy;
             blood->pz = pos->vz;

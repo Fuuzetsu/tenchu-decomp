@@ -44,6 +44,6 @@ void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side)
     s = -rsin(ry);
     c = -rcos(ry);
     vect->vy = 0;
-    vect->vx = (short)(((short)s * ordr - (short)c * side) >> 0xc);
-    vect->vz = (short)(((short)c * ordr + (short)s * side) >> 0xc);
+    vect->vx = (short)(((short)s * ordr - (short)c * side) >> FIXED_SHIFT);
+    vect->vz = (short)(((short)c * ordr + (short)s * side) >> FIXED_SHIFT);
 }

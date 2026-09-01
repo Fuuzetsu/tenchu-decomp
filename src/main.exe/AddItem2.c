@@ -106,10 +106,10 @@ void AddItem2(void)
      * fold back to `sx / FIXED_ONE` -- sx is still live for the x term below,
      * so the schedule differs (64 lines). Its sibling below does. */
     if (sx < 0)
-        sx += FIXED_ONE - 1;
+        sx += FIXED_TRUNC_BIAS;
     h = pm->locate.coord.t[1];
     y = h;
-    x = pm->locate.coord.t[0] - (sx >> 12);
+    x = pm->locate.coord.t[0] - (sx >> FIXED_SHIFT);
     cx = rcos(pm->rotate.vy) * 1000;
     pm = CamState.Owner->model;
     z = pm->locate.coord.t[2] - (cx / FIXED_ONE);

@@ -105,10 +105,6 @@ static inline void GetWireRotation(VECTOR *start, VECTOR *end, int *rx,
 
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 {
-    enum
-    {
-        ONE = 4096
-    };
     VECTOR StockCenter;
     long lcount;
     int i;
@@ -138,7 +134,8 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         dy = v1->vy - v2->vy;
         dz = v1->vz - v2->vz;
         big = 0;
-        if (abs(dx) > ONE || abs(dy) > ONE || abs(dz) > ONE)
+        if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+            abs(dz) > FIXED_ONE)
         {
             big = 1;
         }
@@ -168,7 +165,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         center->vz = (end->vz + start->vz) / 2;
     }
 
-    ecount = lcount * len / ONE;
+    ecount = lcount * len / FIXED_ONE;
     i = 0;
     while (1)
     {
@@ -180,18 +177,18 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             break;
         }
 
-        /* one_value re-registers ONE for this block: byte-required
-         * (using `ONE` directly recolors the sum/negate pair; measured). */
-        one_value = ONE;
-        t = one_value - i * ONE / lcount;
+        /* one_value re-registers FIXED_ONE for this block: byte-required
+         * (using it directly recolors the sum/negate pair; measured). */
+        one_value = FIXED_ONE;
+        t = one_value - i * FIXED_ONE / lcount;
         Q = t * 2;
-        R = t * t / ONE;
+        R = t * t / FIXED_ONE;
         x = ((one_value - Q + R) * end->vx +
-             (Q - R * 2) * center->vx + R * start->vx) / ONE;
+             (Q - R * 2) * center->vx + R * start->vx) / FIXED_ONE;
         y = ((one_value - Q + R) * end->vy +
-             (Q - R * 2) * center->vy + R * start->vy) / ONE;
+             (Q - R * 2) * center->vy + R * start->vy) / FIXED_ONE;
         z = ((one_value - Q + R) * end->vz +
-             (Q - R * 2) * center->vz + R * start->vz) / ONE;
+             (Q - R * 2) * center->vz + R * start->vz) / FIXED_ONE;
 
         GetWireScreenPosition(x, y, z, &scr);
 

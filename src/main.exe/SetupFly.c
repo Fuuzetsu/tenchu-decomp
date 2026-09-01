@@ -120,21 +120,22 @@ void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 t
     }
     fly->count = 1;
 skip_default:
-    /* Biased-shift /4096 pair: byte-required (the / fold mismatches;
-     * measured -- same class as trace_ground_/StageEndScreen). */
+    /* Signed fixed-point reductions: the biased shifts are byte-required;
+     * the equivalent divisions mismatch (same class as
+     * trace_ground_/StageEndScreen). */
     x_product = len * (yw / 2);
     fly->count2 = fly->count;
     if (x_product < 0)
     {
-        x_product += FIXED_ONE - 1;
+        x_product += FIXED_TRUNC_BIAS;
     }
     len = len * (yh / 2);
-    yw = x_product >> 12;
+    yw = x_product >> FIXED_SHIFT;
     if (len < 0)
     {
-        len += FIXED_ONE - 1;
+        len += FIXED_TRUNC_BIAS;
     }
-    yh = len >> 12;
+    yh = len >> FIXED_SHIFT;
     midx = (fly->sx + fly->vx) / 2;
     v8 = yw << 1;
     if (v8 > 0)

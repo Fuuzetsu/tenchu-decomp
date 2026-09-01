@@ -65,9 +65,9 @@ short ChasetoTarget(long length)
         (me->chase[HUMANOID_CHASE_X] | chase[HUMANOID_CHASE_Z]) == 0)
     {
         deg = rand();
-        vx = rcos(deg) * length >> 12;
+        vx = rcos(deg) * length >> FIXED_SHIFT;
         me->chase[HUMANOID_CHASE_X] = vx;
-        vz = rsin(deg) * length >> 12;
+        vz = rsin(deg) * length >> FIXED_SHIFT;
         chase[HUMANOID_CHASE_Z] = vz;
     }
     return turn_towards_player_(xx, zz);
