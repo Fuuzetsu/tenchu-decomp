@@ -182,6 +182,7 @@ typedef struct ScoreResult ScoreResult;
 /* ScoreResult stores the named stage-rank domain in a signed halfword. */
 typedef s16 stage_rank;
 typedef u8 compact_stage_rank;
+typedef s16 stage_award_tier;
 struct ScoreResult
 {
     u16 criticalScore; /* 0x00 */

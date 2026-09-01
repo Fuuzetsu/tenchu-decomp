@@ -18,7 +18,7 @@
  *    row[0x41f].  Writing it as state->gItem[chr][0x13] makes cc1 add
  *    0x13 to the index in a separate instruction instead of folding 0x41f
  *    into the lbu/sb memory operands.
- *  - `award_kind` and `remaining` are signed 16-bit values. An unsigned-width
+ *  - `award_tier` and `remaining` are signed 16-bit values. An unsigned-width
  *    mechanical rewrite happens to restore the instruction count while
  *    replacing the required sll/sra sign extension with andi/sltiu.
  */
@@ -37,7 +37,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         STAGE_AWARD_NOVICE = RANK_GRAND_MASTER - RANK_NOVICE,
         STAGE_AWARD_THUG = RANK_GRAND_MASTER - RANK_THUG
     };
-    s16 award_kind;
+    stage_award_tier award_tier;
     s16 i;
     s16 remaining;
     u8 *row;
@@ -45,11 +45,11 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     /* The selector runs in reverse rank order. A locked ordinary item takes
      * +2 before the common +1 so 0xFE wraps to exactly 1; the Grand Master
      * stage prize performs the equivalent +3 directly. */
-    award_kind = RANK_GRAND_MASTER - (u16)result->grade;
-    if (award_kind >= STAGE_AWARD_NOVICE)
+    award_tier = RANK_GRAND_MASTER - (u16)result->grade;
+    if (award_tier >= STAGE_AWARD_NOVICE)
     {
         remaining = 5;
-        if (award_kind == STAGE_AWARD_THUG)
+        if (award_tier == STAGE_AWARD_THUG)
         {
             remaining = 3;
         }
@@ -72,7 +72,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             }
         }
     }
-    else if (award_kind == STAGE_AWARD_NINJA)
+    else if (award_tier == STAGE_AWARD_NINJA)
     {
         i = ITEM_SHURIKEN;
         do
@@ -93,7 +93,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             i++;
         }
     }
-    else if (award_kind == STAGE_AWARD_MASTER_NINJA)
+    else if (award_tier == STAGE_AWARD_MASTER_NINJA)
     {
         i = ITEM_SHURIKEN;
         do
