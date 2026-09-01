@@ -41,10 +41,10 @@ void AfsInit(TAFS *handle)
     handle->maxElements = 0;
     handle->maxElementArea = 0;
     handle->pElement = 0;
-    p = valloc(5 * sizeof(TAFSFileHandle));
+    p = valloc(N_AFS_FILE_HANDLES * sizeof(TAFSFileHandle));
     handle->pHandle = p;
     if (p == 0)
         AdtMessageBox(msg_afsinit_not_enough_memory);
     else
-        memset(p, 0, 5 * sizeof(TAFSFileHandle));
+        memset(p, 0, N_AFS_FILE_HANDLES * sizeof(TAFSFileHandle));
 }

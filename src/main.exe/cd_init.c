@@ -12,13 +12,13 @@
  * disc_file_descriptor_t rendering suggests — its auto-typed struct just
  * has byte-granularity fields there, a display artifact; the m2c reference
  * (`var_v0->unk18 = 0;`, one assignment) and the raw asm agree it's one sw.
- * Walks the pool backwards from index 9 to 0.
+ * Walks the pool backwards from its last entry to index 0.
  */
 
 void cd_init(void)
 {
     int i;
 
-    for (i = 10 - 1; i >= 0; i--)
+    for (i = N_CD_FILE_HANDLES - 1; i >= 0; i--)
         FileHandlePool[i].flagUse = 0;
 }

@@ -38,6 +38,10 @@ extern int puts(char *s);
 
 FILE *cd_open(char *name)
 {
+    enum
+    {
+        CD_SEARCH_RETRY_LIMIT = 10
+    };
     char path[80];
     FILE *candidate;
     FILE *file;
@@ -64,7 +68,7 @@ FILE *cd_open(char *name)
             goto have_handle;
         }
         index++;
-    } while (index < 10);
+    } while (index < N_CD_FILE_HANDLES);
     file = NULL;
 
 have_handle:
@@ -85,7 +89,7 @@ have_handle:
                 return file;
             }
             retries++;
-        } while (retries < 10);
+        } while (retries < CD_SEARCH_RETRY_LIMIT);
         puts(msg_open_file_not_found);
     }
     return NULL;

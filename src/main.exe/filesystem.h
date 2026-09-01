@@ -70,11 +70,17 @@ struct MemoryDiskType
     unsigned long *data;
 };
 
+enum
+{
+    N_CD_FILE_HANDLES = 10,
+    N_AFS_FILE_HANDLES = 5
+};
+
 /* FILEIO.C-private originally; extern because that source is split here. */
 extern TAFS systemAFS;
 extern MemoryDiskType *MDfat;
 /* FILEIO.C's ten-slot CD handle pool, named by the demo symbol data. */
-extern FILE FileHandlePool[10];
+extern FILE FileHandlePool[N_CD_FILE_HANDLES];
 
 int cd_seek(FILE *f, int offset, TSeekMode whence);
 

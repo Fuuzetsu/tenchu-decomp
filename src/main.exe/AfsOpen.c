@@ -87,7 +87,7 @@ TAFSFileHandle *AfsOpen(TAFS *handle, char *path)
                 return cur;
             }
             cur += 2;
-        } while (count < 5);
+        } while (count < N_AFS_FILE_HANDLES);
         AdtMessageBox(msg_afsopen_no_handle, path);
     }
     return 0;
