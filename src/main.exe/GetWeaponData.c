@@ -83,7 +83,7 @@ extern char path_human_weapon[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\ */
 extern int sprintf(char *buf, char *fmt, ...);
 extern OrnamentType *LoadOrnament(u_long *adr);
 
-static inline void FindWeaponId(Humanoid *human, s16 wid, s16 wpid)
+static inline void FindWeaponId(Humanoid *human, weapon_kind wid, s16 wpid)
 {
     s16 i;
 
@@ -99,7 +99,8 @@ static inline void FindWeaponId(Humanoid *human, s16 wid, s16 wpid)
     }
 }
 
-void GetWeaponData(Humanoid *human, s16 body, s16 wid, s16 wpid, int wep)
+void GetWeaponData(Humanoid *human, s16 body, weapon_kind wid, s16 wpid,
+                   int wep)
 {
     s16 w;
     s16 i;
