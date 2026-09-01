@@ -41,14 +41,9 @@
  *    plus a THIRD addiu for the +(MaxMisc-1)*sizeof(TMisc) offset — the
  *    "offset-0 folds, a nonzero offset materializes" rule; ordinary pointer
  *    arithmetic reproduces it with no special spelling.
- *  - DoorData/PitfallData's `Model[2]` fields double as int archive-index
- *    slots before this function ever runs (the original static initializer
- *    packs a GetArcData index — or -1 for "none" — into the same word later
- *    overwritten with the loaded ModelType pointer); PSX.SYM's own locals
- *    (`int iDoor1`/`iDoor2`) confirm the field is READ as a plain int here,
- *    cast off the ModelType* field (`(s32)door->Model[0]`), while other
- *    already-matched files access the same field as a ModelType* — no
- *    conflict, this is a different TU's own read of the field's raw bits.
+ *  - DoorData/PitfallData's `Model[2]` fields begin as archive-index words
+ *    (or -1 for "none") and are overwritten with loaded ModelType pointers.
+ *    MiscModelReference exposes those two lifecycle views directly.
  *    Retail's address delta from PitfallData to SpriteData is
  *    N_PITFALL_TYPES records, and the loop handles the same number of
  *    variants; the demo declaration had only 2.
@@ -58,8 +53,8 @@
  *    immediately by its own call and needs no separate temp beyond the
  *    parameter register) — same "pointer/value cached only when it must
  *    survive a call" shape as ProcMiscDoor's twins.
- *  - SpriteData's own `.spr` field is likewise read (cast to int) as the
- *    GetImage index BEFORE being overwritten with the real Sprite3D*.
+ *  - SpriteData's own `.spr` field is likewise read as the GetImage index
+ *    BEFORE being overwritten with the real Sprite3D*.
  *  - The final `Misc_fInitial = 1;` is MISC.C's original file-static
  *    `fInitial`, qualified for the split decomp; DoMiscProc reads it.
  */
@@ -90,17 +85,17 @@ void InitMisc(void)
 
         for (i = 0; i < N_DOOR_TYPES; i++)
         {
-            iDoor1 = (s32)DoorData[i].Model[0];
-            iDoor2 = (s32)DoorData[i].Model[1];
-            if (iDoor1 != -1)
+            iDoor1 = DoorData[i].Model[0].archive_id;
+            iDoor2 = DoorData[i].Model[1].archive_id;
+            if (iDoor1 != MISC_MODEL_NONE)
             {
                 data = LoadModel(GetArcData(iDoor1));
-                DoorData[i].Model[0] = data;
+                DoorData[i].Model[0].model = data;
             }
-            if (iDoor2 != -1)
+            if (iDoor2 != MISC_MODEL_NONE)
             {
                 data = LoadModel(GetArcData(iDoor2));
-                DoorData[i].Model[1] = data;
+                DoorData[i].Model[1].model = data;
             }
         }
     }
@@ -115,10 +110,10 @@ void InitMisc(void)
         do
         {
             i++;
-            spr->spr = SetupSprite((Sprite3D *)0,
-                                   GetImage((s32)spr->spr));
-            spr->spr->sprite.attribute = attr;
-            spr->spr->scale = spr->scale;
+            spr->spr.sprite = SetupSprite((Sprite3D *)0,
+                                          GetImage(spr->spr.image_id));
+            spr->spr.sprite->sprite.attribute = attr;
+            spr->spr.sprite->scale = spr->scale;
             spr++;
         } while (i < N_MISC_SPRITE_TYPES);
     }
@@ -130,17 +125,17 @@ void InitMisc(void)
 
         for (i = 0; i < N_PITFALL_TYPES; i++)
         {
-            id1 = (s32)PitfallData[i].Model[0];
-            id2 = (s32)PitfallData[i].Model[1];
-            if (id1 != -1)
+            id1 = PitfallData[i].Model[0].archive_id;
+            id2 = PitfallData[i].Model[1].archive_id;
+            if (id1 != MISC_MODEL_NONE)
             {
                 data = LoadModel(GetArcData(id1));
-                PitfallData[i].Model[0] = data;
+                PitfallData[i].Model[0].model = data;
             }
-            if (id2 != -1)
+            if (id2 != MISC_MODEL_NONE)
             {
                 data = LoadModel(GetArcData(id2));
-                PitfallData[i].Model[1] = data;
+                PitfallData[i].Model[1].model = data;
             }
         }
     }

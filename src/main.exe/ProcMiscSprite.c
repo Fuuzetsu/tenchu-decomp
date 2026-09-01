@@ -78,7 +78,7 @@ do_create:
     return;
 
 do_draw:
-    s = SpriteData[m->param.sprite.type].spr;
+    s = SpriteData[m->param.sprite.type].spr.sprite;
     s->sprite.b = s->sprite.g = s->sprite.r = (u8)(rand() % 60 + 0x62);
     s->locate.coord.t[0] = m->x;
     s->locate.coord.t[1] = m->y;

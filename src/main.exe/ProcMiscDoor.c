@@ -113,7 +113,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     default:
 {
     s32 w;
-    ModelType *model;
+    MiscModelReference model;
 
     switch (m->mode.door)
     {
@@ -173,35 +173,35 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         w -= (w * r) / 0x2800;
         model = DoorData[param->type].Model[0];
     }
-    if (model != (ModelType *)-1)
+    if (model.archive_id != MISC_MODEL_NONE)
     {
         GsCOORDINATE2 *parent;
 
         /* Staged parent pointer: byte-required (the direct &->locate
          * store recolors the address; measured). */
         parent = &param->locate->locate;
-        model->locate.coord.t[0] = -w;
-        model->locate.coord.t[1] = 0;
-        model->locate.coord.t[2] = 0;
-        model->locate.super = parent;
-        model->rotate.vy = param->r;
-        UpdateCoordinate(model);
-        DrawModel(model);
+        model.model->locate.coord.t[0] = -w;
+        model.model->locate.coord.t[1] = 0;
+        model.model->locate.coord.t[2] = 0;
+        model.model->locate.super = parent;
+        model.model->rotate.vy = param->r;
+        UpdateCoordinate(model.model);
+        DrawModel(model.model);
     }
 
     model = DoorData[param->type].Model[1];
-    if (model != (ModelType *)-1)
+    if (model.archive_id != MISC_MODEL_NONE)
     {
         GsCOORDINATE2 *parent;
 
         parent = &param->locate->locate;
-        model->locate.coord.t[0] = w;
-        model->locate.coord.t[1] = 0;
-        model->locate.coord.t[2] = 0;
-        model->locate.super = parent;
-        model->rotate.vy = -param->r;
-        UpdateCoordinate(model);
-        DrawModel(model);
+        model.model->locate.coord.t[0] = w;
+        model.model->locate.coord.t[1] = 0;
+        model.model->locate.coord.t[2] = 0;
+        model.model->locate.super = parent;
+        model.model->rotate.vy = -param->r;
+        UpdateCoordinate(model.model);
+        DrawModel(model.model);
     }
 }
     }

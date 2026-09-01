@@ -144,23 +144,44 @@ struct tag_TMisc
     } param; /* 0x18 */
 }; /* 0x24 */
 
-typedef struct
+/* The static misc-resource tables begin with archive/image indices. InitMisc
+ * replaces each index in place with the resource pointer used at runtime. */
+enum
 {
-    ModelType *Model[2]; /* 0x0 */
-    s16 HitSize;         /* 0x8 */
-} DoorDataType;          /* 0xC, MISC__183fake */
+    MISC_MODEL_NONE = -1
+};
+
+typedef union MiscModelReference MiscModelReference;
+union MiscModelReference
+{
+    s32 archive_id;
+    ModelType *model;
+}; /* 0x4 */
+
+typedef union MiscSpriteReference MiscSpriteReference;
+union MiscSpriteReference
+{
+    s32 image_id;
+    Sprite3D *sprite;
+}; /* 0x4 */
 
 typedef struct
 {
-    ModelType *Model[2]; /* 0x0 */
-    s16 HitSize;         /* 0x8 */
-} PitfallDataType;       /* 0xC, MISC__184fake */
+    MiscModelReference Model[2]; /* 0x0 */
+    s16 HitSize;                 /* 0x8 */
+} DoorDataType;                  /* 0xC, MISC__183fake */
 
 typedef struct
 {
-    Sprite3D *spr; /* 0x0 */
-    s32 scale;     /* 0x4 */
-} SpriteDataType;  /* 0x8, MISC__185fake */
+    MiscModelReference Model[2]; /* 0x0 */
+    s16 HitSize;                 /* 0x8 */
+} PitfallDataType;               /* 0xC, MISC__184fake */
+
+typedef struct
+{
+    MiscSpriteReference spr; /* 0x0 */
+    s32 scale;               /* 0x4 */
+} SpriteDataType;            /* 0x8, MISC__185fake */
 
 extern TMisc misc[MaxMisc];
 extern DoorDataType DoorData[N_DOOR_TYPES];

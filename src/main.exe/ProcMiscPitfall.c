@@ -111,7 +111,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
     default:
     {
-        ModelType *model;
+        MiscModelReference model;
         ConflictObjectType *conflict;
         int conflict_id;
         int mode;
@@ -154,26 +154,26 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
         model = PitfallData[param->type].Model[0];
         w = PitfallData[param->type].HitSize;
-        if (model != (ModelType *)-1)
+        if (model.archive_id != MISC_MODEL_NONE)
         {
-            model->locate.super = &param->locate->locate;
-            model->locate.coord.t[0] = -w;
-            model->locate.coord.t[1] = 0;
-            model->locate.coord.t[2] = 0;
-            model->rotate.vz = param->r;
-            UpdateCoordinate(model);
-            DrawModel(model);
+            model.model->locate.super = &param->locate->locate;
+            model.model->locate.coord.t[0] = -w;
+            model.model->locate.coord.t[1] = 0;
+            model.model->locate.coord.t[2] = 0;
+            model.model->rotate.vz = param->r;
+            UpdateCoordinate(model.model);
+            DrawModel(model.model);
         }
         model = PitfallData[param->type].Model[1];
-        if (model != (ModelType *)-1)
+        if (model.archive_id != MISC_MODEL_NONE)
         {
-            model->locate.super = &param->locate->locate;
-            model->locate.coord.t[0] = w;
-            model->locate.coord.t[1] = 0;
-            model->locate.coord.t[2] = 0;
-            model->rotate.vz = -param->r;
-            UpdateCoordinate(model);
-            DrawModel(model);
+            model.model->locate.super = &param->locate->locate;
+            model.model->locate.coord.t[0] = w;
+            model.model->locate.coord.t[1] = 0;
+            model.model->locate.coord.t[2] = 0;
+            model.model->rotate.vz = -param->r;
+            UpdateCoordinate(model.model);
+            DrawModel(model.model);
         }
     }
         return;
