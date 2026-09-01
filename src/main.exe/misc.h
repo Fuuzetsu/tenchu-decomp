@@ -34,6 +34,14 @@ enum
     MaxMisc = 200
 };
 
+/* Retail table extents shared by InitMisc and the individual processors. */
+enum
+{
+    N_DOOR_TYPES = 11,
+    N_PITFALL_TYPES = 3,
+    N_MISC_SPRITE_TYPES = 2
+};
+
 typedef struct tag_TMisc TMisc;
 
 /* The MISC_SPRITE variant of the param union (MISC__181fake's `sprite`
@@ -125,10 +133,10 @@ typedef struct
 } SpriteDataType;  /* 0x8, MISC__185fake */
 
 extern TMisc misc[MaxMisc];
-extern DoorDataType DoorData[11];
+extern DoorDataType DoorData[N_DOOR_TYPES];
 /* Retail adds a third pitfall variant after the demo's recovered [2]. */
-extern PitfallDataType PitfallData[3];
-extern SpriteDataType SpriteData[2];
+extern PitfallDataType PitfallData[N_PITFALL_TYPES];
+extern SpriteDataType SpriteData[N_MISC_SPRITE_TYPES];
 
 /* MISC.C's original file-static fInitial, qualified because ITEM.C has a
  * distinct same-named static. Set by InitMisc and checked by DoMiscProc. */

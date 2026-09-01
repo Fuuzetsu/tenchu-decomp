@@ -49,8 +49,9 @@
  *    cast off the ModelType* field (`(s32)door->Model[0]`), while other
  *    already-matched files access the same field as a ModelType* — no
  *    conflict, this is a different TU's own read of the field's raw bits.
- *    Retail's address delta from PitfallData to SpriteData is 3 records, and
- *    the loop likewise handles 3 variants; the demo declaration had only 2.
+ *    Retail's address delta from PitfallData to SpriteData is
+ *    N_PITFALL_TYPES records, and the loop handles the same number of
+ *    variants; the demo declaration had only 2.
  *  - Both `Model[0]`/`Model[1]` are read UNCONDITIONALLY before either `if`
  *    (`iDoor2` cached because the first `if`'s GetArcData/LoadModel calls
  *    would clobber a caller-saved copy of it; `iDoor1` is consumed
@@ -87,7 +88,7 @@ void InitMisc(void)
         s32 iDoor2;
         ModelType *data;
 
-        for (i = 0; i < 11; i++)
+        for (i = 0; i < N_DOOR_TYPES; i++)
         {
             iDoor1 = (s32)DoorData[i].Model[0];
             iDoor2 = (s32)DoorData[i].Model[1];
@@ -122,7 +123,7 @@ void InitMisc(void)
             sprite->sprite.attribute = attr;
             spr->spr->scale = spr->scale;
             spr++;
-        } while (i < 2);
+        } while (i < N_MISC_SPRITE_TYPES);
     }
 
     {
@@ -130,7 +131,7 @@ void InitMisc(void)
         s32 id2;
         ModelType *data;
 
-        for (i = 0; i < 3; i++)
+        for (i = 0; i < N_PITFALL_TYPES; i++)
         {
             id1 = (s32)PitfallData[i].Model[0];
             id2 = (s32)PitfallData[i].Model[1];

@@ -66,7 +66,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 
     type = m->param.init.b;
     t = m->param.init.a;
-    if (type > 10)
+    if (type >= N_DOOR_TYPES)
     {
         AdtMessageBox(fmt_unknown_door_type, type);
         type = 0;
