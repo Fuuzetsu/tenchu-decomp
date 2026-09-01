@@ -206,6 +206,5 @@
 #define STEALTH_BASE_SEEN 300 /* ...when spotted at least once */
 #define SPOT_PENALTY 20       /* per spot; the medicine-herb stage doubles it */
 #define SCORE_PER_GRADE 100
-#define GRADE_MAX 4
 
 #endif

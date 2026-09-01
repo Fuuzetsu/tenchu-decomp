@@ -73,9 +73,9 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
         score = 0;
     }
     result->grade = score / SCORE_PER_GRADE;
-    if (result->grade > GRADE_MAX)
+    if (result->grade > RANK_GRAND_MASTER)
     {
-        result->grade = GRADE_MAX;
+        result->grade = RANK_GRAND_MASTER;
     }
 
     if (stats->stageBosses + stats->stageEnemies == 0)

@@ -1341,6 +1341,9 @@ enum stage_rank
     RANK_GRAND_MASTER = 0x04,
 };
 
+#define N_STAGE_RANKS (RANK_GRAND_MASTER + 1)
+#define N_HIGH_SCORES 5 /* leaderboard rows, independently also five */
+
 /* Difficulty: the persistent-state byte at 0x80010058 (symbol gNannido).
  * Official name from the demo PSX.SYM: WORLD.C's cross-exe config struct
  * (typedef TLinkInfo) carries `unsigned char Nannido` at +0x5 and the demo
@@ -1509,9 +1512,9 @@ typedef struct TLinkInfo
                                                        *       0xFF = infinite;
                                                        *       [CharType][0x13] =
                                                        *       stage bonus flag */
-    u8 t_char[5];                     /* 0x44C high-score character (demo name) */
-    u8 t_dani[5];                     /* 0x451 high-score rank (demo name) */
-    long t_time[5];                   /* 0x458 completion time; retail replacement for
+    u8 t_char[N_HIGH_SCORES];         /* 0x44C high-score character (demo name) */
+    u8 t_dani[N_HIGH_SCORES];         /* 0x451 high-score rank (demo name) */
+    long t_time[N_HIGH_SCORES];       /* 0x458 completion time; retail replacement for
                                        *       the demo's t_fun/t_byou byte arrays */
     u32 mission_flags;                /* 0x46C mission completion/unlock bitset
                                        *       (retail-inferred meaning) */

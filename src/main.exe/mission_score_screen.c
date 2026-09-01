@@ -6,8 +6,6 @@
 #include "images.h"
 
 #define SCORE_ROW_SPACING 0x16
-#define N_STAGE_RANKS (RANK_GRAND_MASTER + 1)
-#define N_HIGH_SCORES 5
 
 /*
  * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
