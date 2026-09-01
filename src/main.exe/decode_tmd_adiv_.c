@@ -9,7 +9,7 @@
  * Matching notes (540 bytes / 135 instructions):
  *  - Giving the linked TMD object its real field layout is load-bearing for
  *    the prologue's load scheduling.
- *  - The generic batch cursor is cast to the TMD record selected by its mode;
+ *  - The tagged batch cursor selects the TMD record member named by its mode;
  *    the renderer interface otherwise retains Sony's VERT and GsOT types.
  *  - The one-shot loops around the x7 and x9 stride expressions emit no
  *    control flow. Their loop notes make local-alloc choose the retail
@@ -37,13 +37,13 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
     int step;
     int count;
     struct TMD_STRUCT *tmd;
-    u_short *prim;
+    TmdPrimitiveRecord *prim;
     int n;
     VERT *vertices;
 
     tmd = (struct TMD_STRUCT *)obj->tmd;
     GsLMODE = GS_DOBJ_LMODE(obj->attribute);
-    prim = (u_short *)tmd->primtop;
+    prim = (TmdPrimitiveRecord *)tmd->primtop;
     n = tmd->primn;
     GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
     vertices = (VERT *)tmd->vertop;
@@ -56,25 +56,25 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
         switch (TMD_BATCH_MODE(prim) & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
-            GsOUT_PACKET_P = adiv_tng4_((TMD_P_TNG4 *)prim, vertices,
+            GsOUT_PACKET_P = adiv_tng4_(&prim->gt4, vertices,
                                         GsOUT_PACKET_P,
                                         TMD_BATCH_COUNT(prim), shift, ot,
                                         work);
             n -= TMD_BATCH_COUNT(prim);
-            step = TMD_BATCH_COUNT(prim) * TMD_RECORD_WORDS(TMD_P_TNG4);
+            step = TMD_BATCH_COUNT(prim) * TMD_MEMBER_WORDS(prim, gt4);
             step <<= 2;
             break;
         case TMD_PRIM_FT4:
-            GsOUT_PACKET_P = adiv_tnf4_((TMD_P_TNF4 *)prim, vertices,
+            GsOUT_PACKET_P = adiv_tnf4_(&prim->ft4, vertices,
                                         GsOUT_PACKET_P,
                                         TMD_BATCH_COUNT(prim), shift, ot,
                                         work);
             n -= TMD_BATCH_COUNT(prim);
-            step = TMD_BATCH_COUNT(prim) * TMD_RECORD_BYTES(TMD_P_TNF4);
+            step = TMD_BATCH_COUNT(prim) * TMD_MEMBER_BYTES(prim, ft4);
             break;
         case TMD_PRIM_FT3:
             GsOUT_PACKET_P = GsTMDfastTNF3(
-                (TMD_P_TNF3 *)prim, vertices, GsOUT_PACKET_P,
+                &prim->ft3, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), shift, ot, work);
             /* The named count (here and in case 0x35) replaced two weight
              * fences: it re-orders the local v0/v1 quantities the fences
@@ -82,21 +82,21 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
              * (measured). */
             count = TMD_BATCH_COUNT(prim);
             n -= count;
-            step = count * TMD_RECORD_WORDS(TMD_P_TNF3);
+            step = count * TMD_MEMBER_WORDS(prim, ft3);
             step <<= 2;
             break;
         case TMD_PRIM_GT3:
             GsOUT_PACKET_P = GsTMDfastTNG3(
-                (TMD_P_TNG3 *)prim, vertices, GsOUT_PACKET_P,
+                &prim->gt3, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), shift, ot, work);
             count = TMD_BATCH_COUNT(prim);
             n -= count;
-            step = count * TMD_RECORD_WORDS(TMD_P_TNG3);
+            step = count * TMD_MEMBER_WORDS(prim, gt3);
             step <<= 2;
             break;
         default:
             return;
         }
-        prim = (u_short *)((int)prim + step);
+        prim = (TmdPrimitiveRecord *)((int)prim + step);
     }
 }

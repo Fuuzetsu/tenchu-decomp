@@ -50,17 +50,38 @@ typedef struct
     tmd_primitive_mode mode;
 } TmdPrimitiveBatch;
 
+/* Every linked-TMD run starts with TmdPrimitiveBatch, after which `mode`
+ * selects the concrete PsyQ record layout.  Keep the generic header and all
+ * supported record views together so the decoders do not have to turn an
+ * untyped halfword cursor into a different pointer type in every arm. */
+typedef union TmdPrimitiveRecord TmdPrimitiveRecord;
+union TmdPrimitiveRecord
+{
+    TmdPrimitiveBatch batch;
+    TMD_P_NF3 f3;
+    TMD_P_NF4 f4;
+    TMD_P_TNF3 ft3;
+    TMD_P_TNF4 ft4;
+    TMD_P_NG3 g3;
+    TMD_P_NG4 g4;
+    TMD_P_TNG3 gt3;
+    TMD_P_TNG4 gt4;
+};
+
 #define TMD_BATCH_BYTE_OFFSET(member) \
     ((u_long)&((TmdPrimitiveBatch *)0)->member)
 #define TMD_BATCH_COUNT(primitive)                                  \
     (*(u_short *)((int)(primitive) + TMD_BATCH_BYTE_OFFSET(count)))
 #define TMD_BATCH_MODE(primitive)                                  \
     (*(u_char *)((int)(primitive) + TMD_BATCH_BYTE_OFFSET(mode)))
-#define TMD_RECORD_BYTES(type) ((int)sizeof(type))
-#define TMD_RECORD_WORDS(type) ((int)(sizeof(type) / sizeof(u_long)))
-#define TMD_NEXT_BATCH(primitive, type)                              \
-    ((u_short *)((int)(primitive) + TMD_BATCH_COUNT(primitive) *     \
-                                        TMD_RECORD_BYTES(type)))
+#define TMD_MEMBER_BYTES(primitive, member) \
+    ((int)sizeof((primitive)->member))
+#define TMD_MEMBER_WORDS(primitive, member) \
+    ((int)(sizeof((primitive)->member) / sizeof(u_long)))
+#define TMD_NEXT_BATCH(primitive, member)                            \
+    ((TmdPrimitiveRecord *)((int)(primitive) +                       \
+                            TMD_BATCH_COUNT(primitive) *              \
+                                TMD_MEMBER_BYTES(primitive, member)))
 
 /* Primitive vertex indices address Sony's packed VERT table. Keeping the
  * scaled index first also retains the original add operand order. */

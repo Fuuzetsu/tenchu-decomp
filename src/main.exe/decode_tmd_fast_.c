@@ -50,13 +50,13 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
 {
     u_long attr;
     struct TMD_STRUCT *tmd;
-    u_short *prim;
+    TmdPrimitiveRecord *prim;
     int n;
     VERT *vertices;
 
     tmd = (struct TMD_STRUCT *)obj->tmd;
     GsLMODE = GS_DOBJ_LMODE(obj->attribute);
-    prim = (u_short *)tmd->primtop;
+    prim = (TmdPrimitiveRecord *)tmd->primtop;
     n = tmd->primn;
     GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
     vertices = (VERT *)tmd->vertop;
@@ -78,44 +78,44 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
         {
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = fast_tng4_(
-                (TMD_P_TNG4 *)prim, vertices, GsOUT_PACKET_P,
+                &prim->gt4, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_TNG4);
+            prim = TMD_NEXT_BATCH(prim, gt4);
             continue;
         case TMD_PRIM_FT4:
             GsOUT_PACKET_P = fast_tnf4_(
-                (TMD_P_TNF4 *)prim, vertices, GsOUT_PACKET_P,
+                &prim->ft4, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_TNF4);
+            prim = TMD_NEXT_BATCH(prim, ft4);
             continue;
         case TMD_PRIM_FT3:
             GsOUT_PACKET_P = fast_tnf3_(
-                (TMD_P_TNF3 *)prim, vertices, GsOUT_PACKET_P,
+                &prim->ft3, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_TNF3);
+            prim = TMD_NEXT_BATCH(prim, ft3);
             continue;
         case TMD_PRIM_GT3:
             GsOUT_PACKET_P = fast_tng3_(
-                (TMD_P_TNG3 *)prim, vertices, GsOUT_PACKET_P,
+                &prim->gt3, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_TNG3);
+            prim = TMD_NEXT_BATCH(prim, gt3);
             continue;
         case TMD_PRIM_G4:
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_NG4);
+            prim = TMD_NEXT_BATCH(prim, g4);
             continue;
         case TMD_PRIM_G3:
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_NG3);
+            prim = TMD_NEXT_BATCH(prim, g3);
             continue;
         case TMD_PRIM_F3:
         case TMD_PRIM_F4:
             n -= TMD_BATCH_COUNT(prim);
-            prim = TMD_NEXT_BATCH(prim, TMD_P_NF3);
+            prim = TMD_NEXT_BATCH(prim, f3);
             continue;
         default:
             return;
