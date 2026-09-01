@@ -28,6 +28,9 @@
  * The dead rowScore declaration is also load-bearing: deleting its lexical
  * block lets GCC retain the 0x80010000 row base in s2 and makes the function
  * one instruction short, instead of rematerializing the base like retail.
+ * The function-scope `work` short similarly spans the number-sprite shade and
+ * the later stage-item index. Replacing its first role with a chained RGB
+ * assignment makes the function four bytes short.
  */
 
 typedef struct
@@ -191,7 +194,7 @@ void mission_score_screen(void)
     register TLinkInfo *statePtr;
     register s16 i;
     register s16 newPress;
-    s16 brightness;
+    s16 work;
     s32 medalBrightness;
     s32 rowBrightness;
     register s32 stageItem;
@@ -217,10 +220,10 @@ void mission_score_screen(void)
         initNumber->attribute |= SPR_TRANS_ADD;
         initNumber->x = -140;
         initNumber->y = -40;
-        brightness = 128;
-        initNumber->r = brightness;
-        initNumber->g = brightness;
-        initNumber->b = brightness;
+        work = 128;
+        initNumber->r = work;
+        initNumber->g = work;
+        initNumber->b = work;
         initNumber->mx = initNumber->w >> 1;
         initNumber->my = initNumber->h >> 1;
     }
@@ -618,12 +621,12 @@ void mission_score_screen(void)
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
         stageItem = StageItem[state->StageNo];
-        brightness = stageItem;
-        if (state->gItem[state->CharType][brightness] == ITEM_LOCKED)
+        work = stageItem;
+        if (state->gItem[state->CharType][work] == ITEM_LOCKED)
         {
             /* += 3 on a 0xFE ITEM_LOCKED slot wraps the u8 to 1: the
              * unlock hands the player a single item. */
-            state->gItem[state->CharType][brightness] += 3;
+            state->gItem[state->CharType][work] += 3;
         }
         stageItem = StageItem[state->StageNo];
         if (state->saveItem[stageItem] == ITEM_LOCKED)
