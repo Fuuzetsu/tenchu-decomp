@@ -228,7 +228,6 @@ extern short CameraPanMode;
 extern POLY_FT4 TelopP;
 extern POLY_F4 TelopbgP;
 /* CONFLICT.C's retail-expanded pool and query outputs. */
-#define N_CONFLICT_OBJECTS 80
 extern ConflictObjectType ConflictObject[N_CONFLICT_OBJECTS];
 extern s16 ConflictObjects;
 extern SVECTOR ConflictDistance;

@@ -45,7 +45,7 @@ void InitConflict(void)
 {
     short i;
 
-    for (i = 0; i < 0x50; i++)
+    for (i = 0; i < N_CONFLICT_OBJECTS; i++)
     {
         ConflictObject[i].model = 0;
         ConflictObject[i].common = 0;

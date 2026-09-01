@@ -534,6 +534,7 @@ struct BattleType
 #define CONFLICT_SOFT 8
 #define CONFLICT_CONSUMED 0x40
 #define CONFLICT_LIVE 0x80
+#define N_CONFLICT_OBJECTS 80
 
 typedef struct ConflictObjectType ConflictObjectType;
 struct ConflictObjectType
@@ -543,7 +544,7 @@ struct ConflictObjectType
     SVECTOR offset;          /* 0x14 */
     SVECTOR size;            /* 0x1C */
     void *common;            /* 0x24 */
-    u8 result[80];           /* 0x28 */
+    u8 result[N_CONFLICT_OBJECTS]; /* 0x28 */
 }; /* 0x78 */
 
 /* 3DCTRL.C's textured sprite model. The demo PSX.SYM supplies the complete
