@@ -110,8 +110,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     ConflictObject[cid].size.pad = CONFLICT_SOFT;
     ConflictObject[cid].size.vy = w;
     w = (w / 3) * 2;
-    ConflictObject[cid].size.vx = w;
-    ConflictObject[cid].size.vz = w;
+    ConflictObject[cid].size.vz = ConflictObject[cid].size.vx = w;
     param->r = 0;
     return;
 }

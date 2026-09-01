@@ -65,12 +65,8 @@ void draw_sprite_pair_(GsSPRITE *sp1, GsSPRITE *sp2, s32 x, s32 y, s32 z, s32 si
         sy = out.vy;
         sp2->y = sy;
         sp1->y = sy;
-        sp2->r = (u8)color;
-        sp2->g = (u8)color;
-        sp2->b = (u8)color;
-        sp1->r = (u8)(color / 2);
-        sp1->g = (u8)(color / 2);
-        sp1->b = (u8)(color / 2);
+        sp2->b = sp2->g = sp2->r = (u8)color;
+        sp1->b = sp1->g = sp1->r = (u8)(color / 2);
 
         t = (s16)(u16)out.vz >> 2;
         CLAMP_SORT_DEPTH(pri, t);
