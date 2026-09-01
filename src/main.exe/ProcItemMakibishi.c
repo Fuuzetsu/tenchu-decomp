@@ -83,7 +83,7 @@ void ProcItemMakibishi(TItem *item)
     void (*ppu)(TItem *);
     u8 st;
     s32 i;
-    s32 n;
+    s32 conflict_id;
 
     model = (Sprite3D *)item->model;
     param = &item->param.drop;
@@ -102,8 +102,8 @@ void ProcItemMakibishi(TItem *item)
         case KORO_STAY:
             item->mode += 1;
             DeleteConflict(item->locate);
-            n = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(n, 100, (void *)1, 1);
+            conflict_id = InsertConflict(item->locate);
+            SET_ITEM_COLLISION(conflict_id, 100, (void *)1, 1);
             break;
 
         case KORO_WATER:

@@ -95,7 +95,7 @@ void ProcItemDrop(TItem *item)
     Humanoid *human;
     MotionDataType *md;
     s32 i;
-    s32 n;
+    s32 conflict_id;
     s32 collision_mode;
     s32 x;
     s32 y;
@@ -127,9 +127,10 @@ void ProcItemDrop(TItem *item)
         case KORO_GRAND:
         case KORO_STAY:
             DeleteConflict(item->locate);
-            n = InsertConflict(item->locate);
+            conflict_id = InsertConflict(item->locate);
             collision_mode = 8;
-            SET_ITEM_COLLISION(n, 180, CONFLICT_OWNER_ITEM, collision_mode);
+            SET_ITEM_COLLISION(conflict_id, 180, CONFLICT_OWNER_ITEM,
+                               collision_mode);
             item->mode++;
             return;
         }

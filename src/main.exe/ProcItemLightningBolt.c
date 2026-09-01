@@ -37,9 +37,9 @@
  *  - `item->locate->locate.coord.t[N] = target.N` (SearchItemTarget2's output)
  *    goes through a fresh item->locate reload per component, matching the
  *    established no-cache idiom (ProcItemTeleport/Kusuri).
- *  - `n = InsertConflict(...)` must be `s32`, not `s16`: a same-statement
- *    sign-extension (right after the jal) vs a point-of-use one is a
- *    scheduling-tie lever (see ProcItemMakibishi's identical fix).
+ *  - `conflict_id = InsertConflict(...)` must be `s32`, not `s16`: a
+ *    same-statement sign-extension (right after the jal) vs a point-of-use
+ *    one is a scheduling-tie lever (see ProcItemMakibishi's identical fix).
  */
 #include "item.h"
 
@@ -81,7 +81,7 @@ void ProcItemLightningBolt(TItem *item)
     param_lightningbolt *param;
     VECTOR target;
     u8 cnt;
-    s32 n;
+    s32 conflict_id;
 
     param = &item->param.lightningbolt;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -107,8 +107,9 @@ void ProcItemLightningBolt(TItem *item)
         item->locate->locate.coord.t[1] = target.vy;
         item->locate->locate.coord.t[2] = target.vz;
         DeleteConflict(item->locate);
-        n = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(n, 100, CONFLICT_OWNER_ITEM, CONFLICT_HIT);
+        conflict_id = InsertConflict(item->locate);
+        SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
+                           CONFLICT_HIT);
         item->mode++;
         break;
 

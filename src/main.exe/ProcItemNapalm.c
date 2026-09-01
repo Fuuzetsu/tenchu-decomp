@@ -123,11 +123,12 @@ void ProcItemNapalm(TItem *item)
 
         if (param->count == 10)
         {
-            s32 n;
+            s32 conflict_id;
 
             DeleteConflict(item->locate);
-            n = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(n, 500, CONFLICT_OWNER_ITEM, CONFLICT_HIT);
+            conflict_id = InsertConflict(item->locate);
+            SET_ITEM_COLLISION(conflict_id, 500, CONFLICT_OWNER_ITEM,
+                               CONFLICT_HIT);
         }
 
         count = param->count + 1;

@@ -125,11 +125,11 @@ void ProcItemArrow(TItem *item)
         param->count = count;
         if (count == 0)
         {
-            s32 n;
+            s32 conflict_id;
 
             DeleteConflict(item->locate);
-            n = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(n, 300, (void *)1, 1);
+            conflict_id = InsertConflict(item->locate);
+            SET_ITEM_COLLISION(conflict_id, 300, (void *)1, 1);
         }
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)

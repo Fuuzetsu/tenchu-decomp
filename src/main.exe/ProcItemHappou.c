@@ -33,8 +33,8 @@
  *    variable): unlike Makibishi's `item->mode += one`, nothing here adds
  *    them to anything (only stores), so there's no register-form-add tell
  *    forcing a variable.
- *  - `n = InsertConflict(...)` is `s32` (the same scheduling-tie fix as
- *    Makibishi/LightningBolt: extend right at the assignment).
+ *  - `conflict_id = InsertConflict(...)` is `s32` (the same scheduling-tie
+ *    fix as Makibishi/LightningBolt: extend right at the assignment).
  *  - The redundant-looking `mode != 0 && mode == 1 &&
  *    param->fly.p.koro.status != KORO_NORMAL` is written
  *    exactly that way (three separate tests, matching Ghidra) — the asm
@@ -90,7 +90,7 @@ void ProcItemHappou(TItem *item)
     u8 t;
     u8 mode;
     s32 i;
-    s32 n;
+    s32 conflict_id;
 
     model = HappouModel;
     param = &item->param.launch;
@@ -106,8 +106,9 @@ void ProcItemHappou(TItem *item)
     if (t == 0)
     {
         DeleteConflict(item->locate);
-        n = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(n, 300, CONFLICT_OWNER_ITEM, CONFLICT_HIT);
+        conflict_id = InsertConflict(item->locate);
+        SET_ITEM_COLLISION(conflict_id, 300, CONFLICT_OWNER_ITEM,
+                           CONFLICT_HIT);
     }
     UpdateCoordinate(item->locate);
     model->locate = item->locate->locate;

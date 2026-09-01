@@ -107,7 +107,7 @@ void ProcItemGun(TItem *item)
         s32 rx;
         s32 ry;
         Humanoid *IsHuman;
-        s32 n;
+        s32 conflict_id;
 
         GetVectorRotation((VECTOR *)item->locate->locate.coord.t, &param->vec, &rx, &ry);
         vec.vx = rx;
@@ -118,8 +118,9 @@ void ProcItemGun(TItem *item)
         item->locate->locate.coord.t[1] = target.vy;
         item->locate->locate.coord.t[2] = target.vz;
         DeleteConflict(item->locate);
-        n = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(n, 100, CONFLICT_OWNER_ITEM, CONFLICT_HIT);
+        conflict_id = InsertConflict(item->locate);
+        SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
+                           CONFLICT_HIT);
         {
             SVECTOR vec;
 

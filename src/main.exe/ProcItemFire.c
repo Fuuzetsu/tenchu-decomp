@@ -251,15 +251,16 @@ void ProcItemFire(TItem *item)
         {
             if ((u8)count == 140)
             {
-                s32 n;
+                s32 conflict_id;
                 s32 size;
                 s32 collision_mode;
 
                 DeleteConflict(item->locate);
-                n = InsertConflict(item->locate);
+                conflict_id = InsertConflict(item->locate);
                 size = 500;
                 collision_mode = 8;
-                SET_ITEM_COLLISION(n, size, (void *)1, collision_mode);
+                SET_ITEM_COLLISION(conflict_id, size, (void *)1,
+                                   collision_mode);
             }
 
             if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
@@ -286,7 +287,7 @@ void ProcItemFire(TItem *item)
 
     case FIRE_MODE_EXPLODE:
     {
-        s32 n;
+        s32 conflict_id;
 
         scratch.explosion.vec = svec_y_n25[0];
         memset(&scratch.explosion.pos_buf, 0, sizeof(VECTOR));
@@ -307,20 +308,20 @@ void ProcItemFire(TItem *item)
         SoundEx(&scratch.explosion.pos, SE_EXPLOSION);
 
         DeleteConflict(item->locate);
-        n = InsertConflict(item->locate);
-        ConflictObject[n].offset.vx = 0;
-        ConflictObject[n].offset.vz = 0;
-        ConflictObject[n].offset.vy = 0;
-        ConflictObject[n].size.vz = 1500;
-        ConflictObject[n].size.vy = 1500;
-        ConflictObject[n].size.vx = 1500;
+        conflict_id = InsertConflict(item->locate);
+        ConflictObject[conflict_id].offset.vx = 0;
+        ConflictObject[conflict_id].offset.vz = 0;
+        ConflictObject[conflict_id].offset.vy = 0;
+        ConflictObject[conflict_id].size.vz = 1500;
+        ConflictObject[conflict_id].size.vy = 1500;
+        ConflictObject[conflict_id].size.vx = 1500;
         /* This arm runs with mode == FIRE_MODE_EXPLODE. Retail reuses that
          * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the size
          * pad, and the collision mode below -- the same one-register trick
          * as the file's other box and ProcItemArrow's. Separate named
          * constants load fresh immediates and do not match. */
-        ConflictObject[n].common = (void *)(s32)mode;
-        ConflictObject[n].size.pad = mode;
+        ConflictObject[conflict_id].common = (void *)(s32)mode;
+        ConflictObject[conflict_id].size.pad = mode;
         item->collision.size = 1500;
         item->collision.ofsY = 0;
         item->collision.mode = mode;
