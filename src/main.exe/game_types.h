@@ -274,6 +274,9 @@ struct IndexArrayType
 #define MAP_PROBE_ALL ((1 << N_MAP_PROBE_DIRECTIONS) - 1)
 #define N_MAP_PROBE_MASKS (MAP_PROBE_ALL + 1)
 
+/* A bit for each horizontal direction sampled by GetAreaMapVector. */
+typedef u8 MapProbeMask;
+
 /* WORLD.C's packed four-stage think-function selector. */
 typedef short TThinkType;
 
@@ -305,10 +308,10 @@ struct MapVector
     s32 height;                  /* 0x04 */
     MapAttribute attrib;         /* 0x08 */
     s16 degree;                  /* 0x0A */
-    u8 vector;                   /* 0x0C */
+    MapProbeMask vector;         /* 0x0C: blocked directions */
     u8 direct;                   /* 0x0D */
-    u8 angleL;                   /* 0x0E */
-    u8 angleH;                   /* 0x0F */
+    MapProbeMask angleL;         /* 0x0E: neighbouring floor is higher */
+    MapProbeMask angleH;         /* 0x0F: neighbouring floor is lower */
     struct AreaNodeType *area;   /* 0x10 (retail) */
     struct NodeIndexType *index; /* 0x14 (retail) */
 }; /* 0x18 */
