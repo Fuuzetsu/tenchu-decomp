@@ -81,6 +81,9 @@ struct TAdtSelect
     u_long value; /* 0x4 */
 };
 
+/* Menu rows use this value for their explicit cancel entry. */
+#define ADT_SELECT_CANCEL (-1)
+
 /* ADT's original quiet-state names, recovered from the demo's PSX.SYM. */
 typedef enum AdtQuietMode AdtQuietMode;
 enum AdtQuietMode
@@ -633,7 +636,8 @@ typedef s16 cva_command;
 typedef struct CVAType CVAType;
 struct CVAType
 {
-    cva_command mode; /* 0x00 CVA_CMD_ row type; 1 ends a batch, -1 the table */
+    cva_command mode; /* 0x00 CVA_CMD_ row type; WAIT ends a batch,
+                       *      CVA_CMD_END terminates the table */
     s16 id;   /* 0x02 */
     s16 x;    /* 0x04 */
     s16 y;    /* 0x06 */
@@ -1040,6 +1044,8 @@ struct HumanDataType
 }; /* 0x18 */
 
 /* STAGE.C's per-stage character placement. */
+#define STAGE_CHAR_END (-1)
+
 typedef struct StageCharType StageCharType;
 struct StageCharType
 {
@@ -1057,9 +1063,10 @@ struct StageCharType
  * with a SEQUENCE header (id = the sequence id CVAsequence scans for,
  * p = the CD track to play, -1 = silence) and then runs batches of
  * command rows separated by WAIT markers (id = frame count; a zero-length
- * wait ends the sequence). mode -1 terminates the whole table. */
+ * wait ends the sequence). CVA_CMD_END terminates the whole table. */
 enum cva_command
 {
+    CVA_CMD_END = -1,
     CVA_CMD_SEQUENCE = 0,
     CVA_CMD_WAIT = 1,
     CVA_CMD_MOTION = 2,
@@ -1069,6 +1076,15 @@ enum cva_command
     CVA_CMD_CAMERA_PAN = 6,
     CVA_CMD_EFFECT = 7,
     CVA_CMD_TELOP = 8
+};
+
+/* Command-specific sentinels stored in CVAType's shared payload fields. */
+enum
+{
+    CVA_MUSIC_STOP = -1,
+    CVA_MOTION_NO_REPOSITION = -1,
+    CVA_ACTOR_DESPAWN = -1,
+    CVA_TELOP_CLEAR = -1
 };
 
 /* Subcommands carried in CVA_CMD_EFFECT rows. */

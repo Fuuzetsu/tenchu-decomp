@@ -92,8 +92,8 @@ s16 CVAupdate(void)
             {
             case CVA_CMD_SEQUENCE:
                 /* A chained header mid-stream: p re-selects the CD
-                 * track, and -1 silences it. */
-                if (CVAnow->p == -1)
+                 * track, and CVA_MUSIC_STOP silences it. */
+                if (CVAnow->p == CVA_MUSIC_STOP)
                     CdaStop();
                 break;
 
@@ -135,7 +135,7 @@ s16 CVAupdate(void)
                     human->life = human->lifemax;
                 }
 
-                if (CVAnow->p != -1)
+                if (CVAnow->p != CVA_MOTION_NO_REPOSITION)
                 {
                     human->locate->vx = human->point[HUMANOID_HOME_X] =
                         CVAnow->x * 1000;
@@ -163,7 +163,7 @@ s16 CVAupdate(void)
                 /* For ACTOR commands the signed x slot packs two bytes.  The
                  * direct invalid test and arithmetic >>8 still share the
                  * target's one shift after the animation scans are indexed. */
-                if (CVAnow->x == -1)
+                if (CVAnow->x == CVA_ACTOR_DESPAWN)
                 {
                     human->life = -1;
                     human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
@@ -276,7 +276,7 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_TELOP:
-                if (CVAnow->id != -1)
+                if (CVAnow->id != CVA_TELOP_CLEAR)
                 {
                     SetupTelop((u8 *)strcpy((char *)TelopText,
                                             (char *)CVAdata + CVAnow->id),

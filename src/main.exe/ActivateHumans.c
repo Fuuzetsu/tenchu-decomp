@@ -219,7 +219,7 @@ void ActivateHumans(void)
                     human->type == GOO)
                 {
                     j = 0;
-                    while (StageChar[j].stage != -1)
+                    while (StageChar[j].stage != STAGE_CHAR_END)
                     {
                         if (StageChar[j].stage == StageID + 1 &&
                             StageChar[j].chrid == human->type)

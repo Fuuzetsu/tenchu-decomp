@@ -4,7 +4,8 @@
 /*
  * debug_menu_file_animation_test (0x800501b0) — scans CVAdata for event
  * records whose mode is zero, formats each event id into a menu label, and
- * runs the selected sequence. The final -1 menu value is the cancel entry.
+ * runs the selected sequence. The final ADT_SELECT_CANCEL menu value is the
+ * cancel entry.
  *
  * MATCHED (65/65 instructions, complete 260-byte carve). Matching notes:
  *  - `text[0x100]` at sp+0x10 followed by `menu[64]` at sp+0x110 fills the
@@ -41,7 +42,7 @@ void debug_menu_file_animation_test(void)
     buffer = text;
     event = CVAdata;
     count = 0;
-    while (event->mode != -1)
+    while (event->mode != CVA_CMD_END)
     {
         if (event->mode == CVA_CMD_SEQUENCE)
         {
@@ -54,12 +55,12 @@ void debug_menu_file_animation_test(void)
         event++;
     }
     menu[count].name = str_cancel;
-    menu[count].value = -1;
+    menu[count].value = ADT_SELECT_CANCEL;
     count++;
     menu[count].name = NULL;
 
     selection = AdtSelect(str_event_test, menu, 0);
-    if (selection != -1)
+    if (selection != ADT_SELECT_CANCEL)
     {
         CVAsequence((s16)selection);
     }

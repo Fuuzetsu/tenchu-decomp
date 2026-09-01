@@ -120,12 +120,12 @@ void AddEnemy(void)
     /* When the scan fills all 70 rows these two writes land at [70]/[71],
      * past the array: retail's own latent overflow. */
     ItemName[x].name = str_cancel_2;
-    ItemName[x++].value = -1;
+    ItemName[x++].value = ADT_SELECT_CANCEL;
     ItemName[x].name = 0;
     /* (s16) re-narrows the s32 return: byte-required (writer-width rule;
      * measured). */
     type = (s16)AdtSelect(str_select_type, ItemName, 0);
-    if (type == -1)
+    if (type == ADT_SELECT_CANCEL)
         return;
 
     think = 0;

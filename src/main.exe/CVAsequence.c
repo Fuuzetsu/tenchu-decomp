@@ -40,8 +40,8 @@
  *
  * Other load-bearing shapes: the event scan is a hand-rolled goto loop;
  * separate s32 `wanted`/`end_mode` values create the preheader extension and
- * loop-carried -1; and the motion arm's `(motion = 0, test)` comma expression
- * selects the retail allocation and schedule.
+ * loop-carried `CVA_CMD_END`; and the motion arm's `(motion = 0, test)` comma
+ * expression selects the retail allocation and schedule.
  */
 
 #include "item.h"
@@ -73,11 +73,11 @@ s16 CVAsequence(s16 sid)
     HumanAnimType *anim_base;
 
     CVAnow = CVAdata;
-    if (CVAdata->mode == -1)
+    if (CVAdata->mode == CVA_CMD_END)
         goto return_zero;
 
     wanted = sid;
-    end_mode = -1;
+    end_mode = CVA_CMD_END;
 scan_event:
     event = CVAnow;
     if (event->mode == CVA_CMD_SEQUENCE && event->id == wanted)
@@ -88,7 +88,7 @@ scan_event:
 
 event_found:
 
-    if (CVAnow->mode == -1)
+    if (CVAnow->mode == CVA_CMD_END)
         goto return_zero;
 
     memset(CVAhuman, 0, sizeof(CVAhuman));

@@ -90,7 +90,7 @@ void StartStageSequence(void)
     s16 tp;
 
     stg = StageChar;
-    while (stg->stage != -1)
+    while (stg->stage != STAGE_CHAR_END)
     {
         if (stg->stage == StageID + 1)
         {
