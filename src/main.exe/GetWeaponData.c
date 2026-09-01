@@ -47,19 +47,21 @@
  *
  * Both searches share the SAME idiom, matching PSX.SYM's single `reg $a0
  * short i` (one counter, not one per search): `while (Table[i].sentinel_field
- * != -1) { if (Table[i].key == wid) { ...; break; } i++; }` — the loop's
- * OWN controlling test is the -1 sentinel (duplicated at entry and at the
- * bottom by loop rotation); the `wid` compare is the inner break, never the
- * while-condition. Getting these two roles backwards (testing `wid` as the
- * while-condition, `-1` as the inner break) still reaches the exact target
- * LENGTH but materialises `wid` before the entry sentinel test instead of
- * after, a 32-byte residual confined to the second search's opening
+ * != WEAPON_KIND_END) { if (Table[i].key == wid) { ...; break; } i++; }` —
+ * the loop's OWN controlling test is the terminator (duplicated at entry
+ * and at the bottom by loop rotation); the `wid` compare is the inner
+ * break, never the while-condition. Getting these two roles backwards
+ * (testing `wid` as the while-condition, the terminator as the inner break)
+ * still reaches the exact target LENGTH but materialises `wid` before the
+ * entry sentinel test rather than after, a 32-byte residual confined to
+ * the second search's opening
  * instructions.
  *
  * The second search additionally needs its post-loop found-check
- * (`WeaponModel[i].wid != -1`) INLINE in GetWeaponData rather than behind a
- * helper function that returns `i` — with a real call/return boundary in the
- * way, cc1's jump optimizer cannot thread the loop's entry test (which is
+ * (`WeaponModel[i].wid != WEAPON_KIND_END`) INLINE in GetWeaponData rather
+ * than behind a helper function that returns `i` — with a real call/return
+ * boundary in the way, cc1's jump optimizer cannot thread the loop's entry
+ * test (which is
  * RTL-identical to the post-loop check when `i` is still 0) straight through
  * to the shared "not found" label the way it does when both tests are
  * visible in one flat function; it instead re-lands inside the loop-exit
@@ -88,7 +90,7 @@ static inline void FindWeaponId(Humanoid *human, weapon_kind wid, s16 wpid)
     s16 i;
 
     i = 0;
-    while (WeaponDB[i].ilup1.pad != -1)
+    while (WeaponDB[i].ilup1.pad != WEAPON_KIND_END)
     {
         if (WeaponDB[i].ilup1.pad == wid)
         {
@@ -116,7 +118,7 @@ void GetWeaponData(Humanoid *human, s16 body, weapon_kind wid, s16 wpid,
     if (w >= 0)
     {
         i = 0;
-        while (WeaponModel[i].wid != -1)
+        while (WeaponModel[i].wid != WEAPON_KIND_END)
         {
             if (WeaponModel[i].wid == wid)
             {
@@ -124,7 +126,7 @@ void GetWeaponData(Humanoid *human, s16 body, weapon_kind wid, s16 wpid,
             }
             i++;
         }
-        if (WeaponModel[i].wid != -1)
+        if (WeaponModel[i].wid != WEAPON_KIND_END)
         {
             if (WeaponModel[i].model == 0)
             {

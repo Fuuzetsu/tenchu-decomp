@@ -85,23 +85,23 @@ void AddEnemy(void)
     i = 0;
     /* The entry guards before both scans are in the bytes (cc1 does not
      * fold them into the while's own top test; measured). */
-    if (HumanData[0].type != -1)
+    if (HumanData[0].type != CHARACTER_KIND_END)
     {
-        while (HumanData[i].type != -1)
+        while (HumanData[i].type != CHARACTER_KIND_END)
         {
             if (x >= 70)
                 break;
             r = 0;
-            while (StageAppearance[StageID + 1][r] != -1)
+            while (StageAppearance[StageID + 1][r] != CHARACTER_KIND_END)
             {
                 if (StageAppearance[StageID + 1][r] == HumanData[i].type)
                     break;
                 r++;
             }
-            if (StageAppearance[StageID + 1][r] != -1)
+            if (StageAppearance[StageID + 1][r] != CHARACTER_KIND_END)
             {
                 y = 0;
-                while (WeaponModel[y].wid != -1)
+                while (WeaponModel[y].wid != WEAPON_KIND_END)
                 {
                     if (WeaponModel[y].wid == HumanData[i].wepid)
                         break;

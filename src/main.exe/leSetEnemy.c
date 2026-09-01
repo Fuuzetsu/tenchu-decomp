@@ -24,7 +24,8 @@
 /*
  * leSetEnemy (0x8003cb7c, 0x8c bytes) — `le`=layout-enemy family (see
  * leResetPath.c for TEnemyLayout, recovered from the Ghidra type export):
- * finds the first dead slot (type == -1) in the enemy-layout table and, if
+ * finds the first dead slot (type == CHARACTER_KIND_END) in the enemy-layout
+ * table and, if
  * one exists, fills it in from the six parameters and returns its index;
  * returns -1 if the table is full.
  *
@@ -78,7 +79,7 @@ s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s16 r)
     idx = 0;
     do
     {
-        if (enemy[idx].type == -1)
+        if (enemy[idx].type == CHARACTER_KIND_END)
         {
             result = idx;
             goto found;

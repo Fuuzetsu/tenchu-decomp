@@ -1253,7 +1253,7 @@ enum weapon_kind
     KATAYUMI = 0x35,
     YAB_1 = 0x36,
     YAZUTU_1 = 0x37,
-    END_OF_WEAPON_KIND_MARKER = 0xffff,
+    WEAPON_KIND_END = -1,
 };
 
 enum character_kind
@@ -1335,7 +1335,7 @@ enum character_kind
     S2 = 0xa7,
     ARROW = 0xa8,
     NINKEN = 0xa9,
-    END_OF_CHARACTER_KIND_MARKER = 0xffff,
+    CHARACTER_KIND_END = -1,
 };
 
 /* The persistent player state has one row for each selectable protagonist. */

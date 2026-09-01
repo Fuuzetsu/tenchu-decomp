@@ -16,15 +16,17 @@
  * leResetEnemyLayout (0x8003cc4c, 0x2c bytes) — `le`=layout-enemy family (see
  * leResetPath.c for TEnemyLayout, recovered from the Ghidra type export):
  * clears the whole enemy-layout table by marking every slot's type dead
- * (-1), counting down from the last slot to the first (a real `for`, per
+ * (`CHARACTER_KIND_END`), counting down from the last slot to the first
+ * (a real `for`, per
  * the strength-reduced walking pointer in the asm).
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The loop-invariant `-1` store value and the `for`-init counter are two
+ *  - The loop-invariant terminator and the `for`-init counter are two
  *    separate statements, and their ORDER decides which register loads
  *    first: giving the invariant its own named local (`dead`) and assigning
  *    it BEFORE the `for` puts the invariant's `li` ahead of the loop
- *    counter's `li` in the asm. An inline `enemy[i].type = -1;` inside the
+ *    counter's `li` in the asm. An inline
+ *    `enemy[i].type = CHARACTER_KIND_END;` inside the
  *    loop body still hoists the constant out (loop.c invariant motion), but
  *    hoists it to right after the counter init instead — a pure 2-insn
  *    register swap (same instructions, reordered) with no other effect.
@@ -32,10 +34,10 @@
 
 void leResetEnemyLayout(void)
 {
-    s16 dead;
+    character_kind dead;
     s32 i;
 
-    dead = -1;
+    dead = CHARACTER_KIND_END;
     for (i = MAX_ENEMIES - 1; i >= 0; i--)
     {
         enemy[i].type = dead;

@@ -29,7 +29,8 @@
 /*
  * leFindEnemy (0x8003c470, 0x1a4 bytes) — `le`=layout-enemy family (see
  * leAddPath.c/leResetPath.c for TEnemyLayout): scans the 30-slot `enemy[]`
- * table for the live (`type != -1`) entry nearest CamState.Owner's model
+ * table for the live (`type != CHARACTER_KIND_END`) entry nearest
+ * CamState.Owner's model
  * position, returning its index (or -1 if none is closer than the initial
  * 2000-unit cutoff). On a hit, spawns the same marker explosion effect as
  * leAddPath (SetExplosion with the pooled {0,-100,0} direction vector
@@ -81,7 +82,7 @@ int leFindEnemy(void)
     {
         if (i >= MAX_ENEMIES)
             break;
-        if (enemy[i].type != -1)
+        if (enemy[i].type != CHARACTER_KIND_END)
         {
             dx = enemy[i].x - px;
             dy = enemy[i].y - py;

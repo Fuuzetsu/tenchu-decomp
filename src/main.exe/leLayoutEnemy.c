@@ -102,7 +102,7 @@ void leLayoutEnemy(int mode)
             break;
         }
         en = &enemy[i];
-        if (en->type != -1)
+        if (en->type != CHARACTER_KIND_END)
         {
             Humanoid *human;
             ModelArchiveType *owner_model;

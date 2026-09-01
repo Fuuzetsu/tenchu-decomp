@@ -70,7 +70,7 @@ extern PADtype *Pad;
  * configuration. stage1appearance through stage9appearance retain PSX.SYM's
  * names; stages 10 and 11 are retail additions named by that sequence. */
 #define N_STAGE_APPEARANCE_TABLES (N_STAGE_CONFIGS + 1)
-extern short *StageAppearance[N_STAGE_APPEARANCE_TABLES];
+extern character_kind *StageAppearance[N_STAGE_APPEARANCE_TABLES];
 /* Retail's stage=-1 sentinel is entry 23; the demo table had 18 entries. */
 extern StageCharType StageChar[24];
 

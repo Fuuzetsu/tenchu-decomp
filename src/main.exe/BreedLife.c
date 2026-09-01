@@ -42,7 +42,8 @@
  *
  * BreedLife (0x8002a018, 0x278 bytes) — spawns a new Humanoid of `type` at
  * ground position (x,z) with yaw `r`: resolves `type` to its HumanData[]
- * row (linear search, sentinel .type==-1), loads the row's .MAD model file
+ * row (linear search, sentinel .type==CHARACTER_KIND_END), loads the row's
+ * .MAD model file
  * on first use (and patches every OTHER HumanData row sharing that same
  * filename to point at the freshly-loaded model too — a cache shared by
  * name, not by index), then CreateHumanoid's the instance and positions it
@@ -74,10 +75,10 @@
  *    is a plain if" family taken to its limit — there is no early return at
  *    all here, just a diagnostic call with no effect on control flow. Two
  *    INDEPENDENT tests reach the one `SystemOut` call site: the initial
- *    `HumanData[0].type == -1` (empty table) skips the search loop
- *    entirely via a direct branch, and the search loop's own post-loop
- *    `base[idx].type != -1` (found) branches around the same call —
- *    spelled as two goto tests sharing one label (the
+ *    `HumanData[0].type == CHARACTER_KIND_END` (empty table) skips the
+ *    search loop entirely via a direct branch, and the search loop's own
+ *    post-loop `base[idx].type != CHARACTER_KIND_END` (found) branches
+ *    around the same call — spelled as two goto tests sharing one label (the
  *    two-independent-goto-into-one-label family), not a nested if/return.
  *  - The first search is SetupCharacterParameter's index-based while idiom
  *    (same TU), NOT a source-level walking pointer: plain re-indexed reads
@@ -163,7 +164,7 @@ Humanoid *BreedLife(character_kind type, long x, long y, long z, long r)
     u8 name[100];
 
     idx = 0;
-    if (HumanData[0].type == -1)
+    if (HumanData[0].type == CHARACTER_KIND_END)
         goto illegal_type;
     /* First-search idiom as in SetupCharacterParameter (same TU): plain
      * re-indexed reads in the while condition and the break test; loop.c
@@ -174,14 +175,14 @@ Humanoid *BreedLife(character_kind type, long x, long y, long z, long r)
      * on the fall-through), and `base` — assigned as the loop's first
      * statement — is a loop.c movable, hoisted after that check, keeping
      * the table base alive for the post-loop found-check. */
-    while (HumanData[idx].type != -1)
+    while (HumanData[idx].type != CHARACTER_KIND_END)
     {
         base = HumanData;
         if (base[idx].type == type)
             break;
         idx++;
     }
-    if (base[idx].type != -1)
+    if (base[idx].type != CHARACTER_KIND_END)
         goto type_found;
 illegal_type:
     SystemOut(msg_illigal_character_type);
@@ -194,7 +195,7 @@ type_found:
         sprintf((char *)name, fmt_mad, path_human, pp->name);
         model = FileRead(name);
         pp->model = model;
-        if (HumanData[0].type != -1)
+        if (HumanData[0].type != CHARACTER_KIND_END)
         {
             q = pp;
             row = HumanData;
@@ -204,7 +205,7 @@ type_found:
                 row->model = model;
             }
             row++;
-            if (row->type != -1)
+            if (row->type != CHARACTER_KIND_END)
                 goto scan_next;
         }
     }

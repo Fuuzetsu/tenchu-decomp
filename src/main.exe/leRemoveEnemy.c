@@ -16,8 +16,8 @@
  * leRemoveEnemy (0x8003caec, 0x58 bytes) — `le`=layout-enemy family (see
  * leResetPath.c for TEnemyLayout, recovered from the Ghidra type export):
  * finds the currently-latched enemy slot (leFindEnemy) and, if one is
- * latched, marks its type dead (-1) and relays out the enemy set
- * (leLayoutEnemy(0)); otherwise does nothing.
+ * latched, marks its type dead (`CHARACTER_KIND_END`) and relays out the
+ * enemy set (leLayoutEnemy(0)); otherwise does nothing.
  *
  * The not-found path explicitly returns zero. The found path calls the
  * original void leLayoutEnemy API and then falls off the end, leaving that
@@ -26,7 +26,7 @@
  * would not have been possible there.
  *
  * m2c over-counts leLayoutEnemy's call as 2-arg (0, -1): $a1 still holds the
- * -1 used for the preceding `type = -1` store and was never reassigned
+ * terminator used for the preceding `type` store and was never reassigned
  * before the jal, read by m2c's basic-block-local view as a second argument
  * — every OTHER matched call site (FileOption.c, LayoutEnemyOption.c,
  * PlayerOption.c) proves leLayoutEnemy takes exactly one arg.
@@ -45,6 +45,6 @@ int leRemoveEnemy(void)
     {
         return 0;
     }
-    enemy[idx].type = -1;
+    enemy[idx].type = CHARACTER_KIND_END;
     leLayoutEnemy(0);
 }

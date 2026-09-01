@@ -86,14 +86,14 @@ void SetupAppearance(short mode, short stage)
     }
 
     i = 0;
-    while (HumanData[i].type != -1)
+    while (HumanData[i].type != CHARACTER_KIND_END)
     {
         if (HumanData[i].model != 0)
         {
             vfree(HumanData[i].model);
             HumanData[i].model = 0;
             j = 0;
-            while (HumanData[j].type != -1)
+            while (HumanData[j].type != CHARACTER_KIND_END)
             {
                 if (strcmp((char *)HumanData[i].name,
                            (char *)HumanData[j].name) == 0)
@@ -109,7 +109,7 @@ void SetupAppearance(short mode, short stage)
     }
 
     i = 0;
-    while (WeaponModel[i].wid != -1)
+    while (WeaponModel[i].wid != WEAPON_KIND_END)
     {
         if (WeaponModel[i].model != 0)
         {

@@ -26,7 +26,8 @@
 /*
  * SetupCharacterParameter (0x80029ea4, 0x174 bytes) — resolves `type` to its
  * row in the sentinel-terminated HumanData[] table (linear search on
- * .type == -1) and copies the per-type stats (turn/width/height/life) plus
+ * .type == CHARACTER_KIND_END) and copies the per-type stats
+ * (turn/width/height/life) plus
  * motion setup (SetupMotionRegist/SetupMotionManager) into `human`; then
  * resolves a second, unrelated "how manieth non-player kind on this stage"
  * count via StageAppearance[NowStage] (another sentinel-
@@ -68,10 +69,10 @@
 Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
 {
     int idx;
-    s16 *idtbl;
+    character_kind *idtbl;
 
     idx = 0;
-    while (HumanData[idx].type != -1)
+    while (HumanData[idx].type != CHARACTER_KIND_END)
     {
         if (HumanData[idx].type == type)
         {
@@ -97,7 +98,7 @@ Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
         idx = 0;
         while (idtbl[idx] != type)
         {
-            if (idtbl[idx] == -1)
+            if (idtbl[idx] == CHARACTER_KIND_END)
             {
                 break;
             }
