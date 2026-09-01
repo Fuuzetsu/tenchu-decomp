@@ -29,10 +29,10 @@
  *    q's use must precede find's init or the two same-valued pointers
  *    collapse into one register (cse folds find's addiu into `move find,q`
  *    only, keeping both, when something touches q in between).
- *  - `found = 0` lives INSIDE the exhaust break-arm (`if (i < Humans) {...
- *    continue;} found = 0; break;`): written at the loop top it is
- *    loop-invariant, loop.c hoists it into the outer loop's head, and the
- *    whole allocation shifts one callee-saved register up (s6 appears).
+ *  - The inner scan uses a normal exhaustion guard, then assigns `found = 0`
+ *    after the loop.  Moving that assignment to the loop top makes it
+ *    loop-invariant; loop.c hoists it into the outer loop's head and shifts
+ *    the whole allocation one callee-saved register up (s6 appears).
  *  - The hit handler sits at a `goto hit` label AFTER the tail, with
  *    `found = target;` first and the three find-> stores wrapped in
  *    do{}while(0): (a) creation order past the `check:` test keeps target as
@@ -189,21 +189,20 @@ void ProcItemSmoke(TItem *item)
                 i = find->i;
                 while (1)
                 {
-                    if (i < Humans)
+                    if (i >= Humans)
                     {
-                        target = HumanGroup[i];
-                        if (target->life > 0 && target->motion->mid != MOT_ACTION && (target->attribute & ATTR_SUSPEND) == 0)
-                        {
-                            dist = GetVectorDistance(&find->pos, target->locate);
-                            if (dist < find->find_dist)
-                                goto hit;
-                        }
-                        i++;
-                        continue;
+                        break;
                     }
-                    found = 0;
-                    break;
+                    target = HumanGroup[i];
+                    if (target->life > 0 && target->motion->mid != MOT_ACTION && (target->attribute & ATTR_SUSPEND) == 0)
+                    {
+                        dist = GetVectorDistance(&find->pos, target->locate);
+                        if (dist < find->find_dist)
+                            goto hit;
+                    }
+                    i++;
                 }
+                found = 0;
             check:
                 if (found == 0)
                     return;
