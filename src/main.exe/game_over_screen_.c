@@ -143,7 +143,7 @@ void game_over_screen_(void)
     title_brightness = 0;
     old_pad = 0;
     clear_b = 0;
-    SetupAppearance(0, -1);
+    SetupAppearance(RIKIMARU_0, APPEARANCE_STAGE_NONE);
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
 
     i = 0;

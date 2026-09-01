@@ -200,7 +200,7 @@ void ProcItemNinken(TItem *item)
 
         create = 0;
         if (is_humanoid_on_stage_(NINKEN_CHARACTER_PTR) == 0 ||
-            GetHumanoid(0xa9) == 0)
+            GetHumanoid(NINKEN) == 0)
         {
             create = 1;
         }

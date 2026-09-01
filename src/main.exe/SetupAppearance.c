@@ -41,8 +41,9 @@
  *    reads. The later armour clear uses an absolute TLinkInfo field view so
  *    the address is rematerialized after `pt` is repurposed.
  *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
- *    preserves their adjacent halfword layout and their mode-cache/stage-cache
- *    roles despite other globals inserted ahead of them since the demo.
+ *    preserves their adjacent halfword layout and their character-cache/
+ *    stage-cache roles despite other globals inserted ahead of them since the
+ *    demo.
  *  - StageMotion can be tested and freed directly; the earlier neutral
  *    `resource` alias was reconstruction residue. In contrast, rereading the
  *    armour selection for the second comparison instead of caching it in
@@ -50,7 +51,7 @@
  *    measured retail scheduling input.
  */
 extern s16 ARMOUR_EQUIPPED_;
-extern s16 smode;
+extern character_kind smode;
 extern s16 sstage;
 extern u8 str_rikimaua[];                     /* RIKIMAUA */
 extern u8 str_ayamea[];                       /* AYAMEA */
@@ -63,7 +64,7 @@ extern char path_human_motion_ayame_amd[];    /* K:\\WORK\\CDIMAGE\\HUMAN\\MOTIO
 extern int strcmp(const char *a, const char *b);
 extern int sprintf(char *dst, const char *fmt, ...);
 
-void SetupAppearance(short mode, short stage)
+void SetupAppearance(character_kind character, short stage)
 {
     short i;
     short j;
@@ -155,7 +156,7 @@ void SetupAppearance(short mode, short stage)
             }
             if (PlayerMotion != 0)
             {
-                if (mode != smode)
+                if (character != smode)
                 {
                     vfree(PlayerMotion);
                     PlayerMotion = 0;
@@ -165,8 +166,8 @@ void SetupAppearance(short mode, short stage)
                     return;
                 }
             }
-            smode = mode;
-            if (mode == 0)
+            smode = character;
+            if (character == RIKIMARU_0)
             {
                 pt = (u8 *)path_human_motion_rikimaru_amd;
             }

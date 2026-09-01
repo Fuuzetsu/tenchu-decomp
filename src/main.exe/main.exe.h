@@ -238,6 +238,7 @@ extern int TotalIO;
 extern POLY_GT4 AccessImage;
 
 extern void SetCameraMode(TCameraMode mode);
+extern void SetupSoundEffect(character_kind character, short stage);
 extern void UpdateCoordinate(ModelType *dim);
 extern short NowReturnNormal(struct Humanoid *human);
 extern short GetMotionID(MotionManager *mmp, motion_id mid);

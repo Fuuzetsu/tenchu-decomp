@@ -19,8 +19,8 @@
  * END PSX.SYM */
 
 /*
- * SetupSoundEffect (0x8004fe70, 0xA0 bytes) — (re)load the stage's ambient
- * sound bank: dispose any previous StageSE, then (if `stage`
+ * SetupSoundEffect (0x8004fe70, 0xA0 bytes) — (re)load the selected
+ * character's stage sound bank: dispose any previous StageSE, then (if `stage`
  * is a real stage index, i.e. >= 0) build
  * "<language-prefix>STAGE<stage><'A'|'R'>.VAB" and hand it to
  * FileRead + SetupSE.
@@ -53,7 +53,7 @@ extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[N_LANGUAGES];
 extern char fmt_stage_vab[]; /* %sSTAGE%d%c.VAB */
 
-void SetupSoundEffect(short mode, short stage)
+void SetupSoundEffect(character_kind character, short stage)
 {
     u8 name[100];
 
@@ -66,7 +66,7 @@ void SetupSoundEffect(short mode, short stage)
     {
         sprintf((char *)name, fmt_stage_vab,
                 STAGE_SOUND_PREFICES[CHOSEN_LANGUAGE], stage,
-                mode == 0 ? 0x52 : 0x41);
+                character == RIKIMARU_0 ? 'R' : 'A');
         StageSE = SetupSE((u8 *)FileRead(name));
     }
 }

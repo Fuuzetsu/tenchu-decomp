@@ -12,10 +12,16 @@ enum
     WEAPON_DRAWN = 1
 };
 
+/* Passing no stage tears down all loaded appearance motion packs. */
+enum
+{
+    APPEARANCE_STAGE_NONE = -1
+};
+
 /* APPEAR.C-private originally; extern because that source is split here. */
 extern short NowStage;
 
-extern void SetupAppearance(short mode, short stage);
+extern void SetupAppearance(character_kind character, short stage);
 extern struct Humanoid *SetupCharacterParameter(character_kind type,
                                                 struct Humanoid *human);
 extern struct Humanoid *BreedLife(character_kind type, long x, long y,

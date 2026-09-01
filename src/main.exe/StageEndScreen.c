@@ -224,7 +224,7 @@ void StageEndScreen(void)
 
     selection = STAGE_END_ADVANCE;
     ui.old_pad = 0;
-    SetupAppearance(0, -1);
+    SetupAppearance(RIKIMARU_0, APPEARANCE_STAGE_NONE);
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
