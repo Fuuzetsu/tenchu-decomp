@@ -1337,6 +1337,8 @@ enum character_status
     STAT_DEAD = 0x11
 };
 
+#define N_CHARACTER_STATUSES (STAT_DEAD + 1)
+
 typedef enum stage_rank stage_rank;
 enum stage_rank
 {

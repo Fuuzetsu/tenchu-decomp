@@ -32,7 +32,7 @@
  * dtM/motID) other MOTION.C functions read, runs whichever of
  * DamageControl/FallCheck-then-{HangCheck,SwimCheck} applies, drops the
  * D-pad directions from dtPAD while L1 (camera-center) is held, dispatches through `ActionFunc[human->status]`
- * (an indirect call through a proven 18-entry function-pointer table), and
+ * (an indirect call through the per-status function-pointer table), and
  * finally runs MotionAndMove() unless the dispatched handler left
  * `motMODE` at its reset sentinel (-1).
  *
@@ -79,7 +79,7 @@ typedef struct
 } MotionManagerU;
 
 extern Humanoid *Me_MOTION_C;
-extern void (*ActionFunc[18])(void);
+extern void (*ActionFunc[N_CHARACTER_STATUSES])(void);
 extern s16 FallCheck(void);
 extern short HangCheck(void);
 extern short SwimCheck(void);
