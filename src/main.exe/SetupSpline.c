@@ -30,11 +30,8 @@
  * for-loop over `short i` reproduces this without hand-rolling the shift.
  * mmp->control (void* in item.h — SetupMotionManager's allocation site
  * never needed the real type) is cast to SplineControlType* here, the first
- * consumer of that field's true pointee. The `time`/`t` split (raw
- * short kept for the two `sh ...dd0.pad` stores, a separate `int`-ish copy
- * sign-extended once and reused for both `!= 0` zero-tests, matching the
- * "share one sign-extended pseudo" cookbook rule) recovers the target's
- * register-based `sll/sra` instead of a spurious `lh` reload.
+ * consumer of that field's true pointee. The signed `time` halfword is shared
+ * directly by both control records and both zero tests.
  *
  * The final register allocation comes from the source's data identity, not an
  * alias fence: write each `key0` directly from `locate`/`rotate[i]`, derive
@@ -49,18 +46,14 @@ extern void UpdateSplineControl(SplineControlType *spc);
 void SetupSpline(MotionManager *mmp)
 {
     short time;
-    int t;
     short i;
     SplineControlType *spc;
 
     time = mmp->motion->time;
     spc = (SplineControlType *)mmp->control;
     spc->key0 = mmp->motion->locate.keyframes;
-    t = time;
-    /* This pre-loop identity replaces one weighted t read formerly supplied
-     * by a zero-trip wrapper inside the real loop. */
-    spc->dd0.pad = (u32)time + (u32)t - (u32)t;
-    if (t != 0)
+    spc->dd0.pad = time;
+    if (time != 0)
     {
         spc->key1 = spc->key0 + 1;
         UpdateSplineControl(spc);
@@ -70,7 +63,7 @@ void SetupSpline(MotionManager *mmp)
         spc = &mmp->control[i + 1];
         spc->key0 = mmp->motion->rotate[i].keyframes;
         spc->dd0.pad = time;
-        if (t != 0)
+        if (time != 0)
         {
             spc->key1 = spc->key0 + 1;
             UpdateSplineControl(spc);
