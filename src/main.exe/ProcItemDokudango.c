@@ -58,6 +58,9 @@ extern s16 Think1target(void);
  *    literal stores, this keeps the indirect target in $v0 and lets jump2
  *    merge the fast cleanup into the final physical copy after its mode store.
  *    A named proc local or a function-wide `ff` local changes that allocation.
+ *  - The search indexes HumanGroup[] directly; PSX.SYM records its index and
+ *    candidate but no cursor.  The one-shot candidate assignment is a required
+ *    scheduling boundary: flattening it swaps the search and roster registers.
  *  - The full cleanup sequence and mode-advance tail remain duplicated at
  *    their semantic exits so late cross-jumping can choose the target copies.
  */
@@ -141,7 +144,6 @@ void ProcItemDokudango(TItem *item)
             TFindItemTarget *search_setup;
             TFindItemTarget *search;
             VECTOR *item_position;
-            Humanoid **human_cursor;
             Humanoid *nearest_target;
             Humanoid *candidate;
             Humanoid *eater;
@@ -170,36 +172,31 @@ void ProcItemDokudango(TItem *item)
             while (1)
             {
                 human_index = search->i;
-                human_cursor = HumanGroup + human_index;
                 while (1)
                 {
-                    if (human_index < Humans)
+                    if (human_index >= Humans)
                     {
-                        candidate = *human_cursor;
-                        if (candidate->life > 0 &&
-                            candidate->motion->mid != MOT_ACTION &&
-                            (candidate->attribute & ATTR_SUSPEND) == 0)
-                        {
-                            candidate_distance =
-                                GetVectorDistance(&search->pos,
-                                                  candidate->locate);
-                            if (candidate_distance < search->find_dist)
-                            {
-                                goto hit;
-                            }
-                        }
-                        /* GCC folds this unsigned pointer progression after
-                         * flow; its extra human_cursor reference replaces
-                         * the old allocation-only wrapper. */
-                        human_cursor = (Humanoid **)(
-                            ((u32)human_cursor + (u32)human_cursor) -
-                            (u32)human_cursor) + 1;
-                        human_index++;
-                        continue;
+                        break;
                     }
-                    scan_result = 0;
-                    break;
+                    do
+                    {
+                        candidate = HumanGroup[human_index];
+                    } while (0);
+                    if (candidate->life > 0 &&
+                        candidate->motion->mid != MOT_ACTION &&
+                        (candidate->attribute & ATTR_SUSPEND) == 0)
+                    {
+                        candidate_distance =
+                            GetVectorDistance(&search->pos,
+                                              candidate->locate);
+                        if (candidate_distance < search->find_dist)
+                        {
+                            goto hit;
+                        }
+                    }
+                    human_index++;
                 }
+                scan_result = 0;
             check:
                 if (scan_result == 0)
                 {
