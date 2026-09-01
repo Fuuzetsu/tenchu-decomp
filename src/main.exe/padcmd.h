@@ -29,24 +29,11 @@ enum control_remap_slot
     CONTROL_REMAP_R2 = 5,
     CONTROL_REMAP_L1 = 6,
     CONTROL_REMAP_L2 = 7,
-    BUTTONS_PER_CONTROL_SCHEME = 8,
-    N_BUTTON_ASSIGNMENTS = N_CONTROL_SCHEMES * BUTTONS_PER_CONTROL_SCHEME
+    BUTTONS_PER_CONTROL_SCHEME = 8
 };
 
-typedef struct ControlSchemeButtons ControlSchemeButtons;
-struct ControlSchemeButtons
-{
-    u8 button[BUTTONS_PER_CONTROL_SCHEME];
-};
-
-typedef union ControlSchemeTable ControlSchemeTable;
-union ControlSchemeTable
-{
-    ControlSchemeButtons scheme[N_CONTROL_SCHEMES];
-    u8 flat[N_BUTTON_ASSIGNMENTS];
-};
-
-extern ControlSchemeTable ButtonAssign;
+/* Each row maps the canonical button order above to one selectable layout. */
+extern u8 ButtonAssign[N_CONTROL_SCHEMES][BUTTONS_PER_CONTROL_SCHEME];
 extern control_scheme ControlScheme;
 
 /* game_types.h's pad_command values tag Command[] rows for SetCommand. Each
