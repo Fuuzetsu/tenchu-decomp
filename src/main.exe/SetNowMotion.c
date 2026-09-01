@@ -29,11 +29,12 @@
  *  - The guard is a real `||` with a comma: `status != 0x11 || (ret = 0,
  *    motion->loop != -1)` — ret is zeroed in the loop-test's branch delay slot.
  *  - UpdateMotion returns s16 here (item.h): its result is `ret`, tested short.
+ *  - The two speed arguments repeat `human->motion->motion` directly. cc1
+ *    CSEs the chain to the retail pointer reuse without an invented `md`
+ *    source local, matching PSX.SYM's empty local inventory.
  */
 short SetNowMotion(Humanoid *human, short mid, short move)
 {
-    MotionDataType *md;
-
     if (human->status == STAT_DEAD && human->motion->loop == -1)
     {
         return 0;
@@ -45,8 +46,8 @@ short SetNowMotion(Humanoid *human, short mid, short move)
     human->status = (s8)(mid >> 8);
     if (move != 0)
     {
-        md = human->motion->motion;
-        MoveHumanoid(human, md->orderspd, md->sidespd);
+        MoveHumanoid(human, human->motion->motion->orderspd,
+                     human->motion->motion->sidespd);
     }
     return 1;
 }
