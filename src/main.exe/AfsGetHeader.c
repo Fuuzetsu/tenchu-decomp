@@ -11,11 +11,11 @@
  * proven TAFS/FILE layout as AfsInit.c/AfsClose.c/cd_read.c/cd_seek.c.
  *
  * Matching notes:
- *  - The stack buffer is ONE `u8 buf[0x28]` (cd_read's own destination),
+ *  - The stack buffer is one AFSVolumeHeader (cd_read's own destination),
  *    not Ghidra's three overlapping locals (acStack_30/local_24/local_20) —
  *    cc1 2.8 never shares stack slots between sibling scopes (cookbook's
- *    "Stack objects" rule); the string compare and the two byte-packed u32
- *    fields are all views into the same buffer (offsets 0/0xC/0x10).
+ *    "Stack objects" rule); the signature and two big-endian fields are all
+ *    views into that same object.
  *  - Both u32s are LEFT-associated `|` chains (`((b0<<24 | b1<<16) | b2<<8) |
  *    b3`); right-nesting them changes the shift/or order.
  *  - `posElement`'s value goes through a named local computed BEFORE
@@ -36,19 +36,17 @@ extern char str_afs_vol_200[]; /* AFS_VOL_200 */ /* "AFS_VOL_200" — lives in t
 
 int AfsGetHeader(TAFS *handle)
 {
-    u8 buf[0x28];
+    AFSVolumeHeader header;
     u32 pos;
 
     cd_seek(handle->fpVol, 0, CDSEEK_SET);
-    cd_read(handle->fpVol, buf, sizeof(buf));
-    if (strcmp((char *)buf, str_afs_vol_200) != 0)
+    cd_read(handle->fpVol, &header, sizeof(header));
+    if (strcmp((char *)header.signature, str_afs_vol_200) != 0)
     {
         return 1;
     }
-    handle->maxElements = ((u32)buf[0xC] << 24) | ((u32)buf[0xD] << 16) |
-                          ((u32)buf[0xE] << 8) | (u32)buf[0xF];
-    pos = ((u32)buf[0x10] << 24) | ((u32)buf[0x11] << 16) |
-          ((u32)buf[0x12] << 8) | (u32)buf[0x13];
+    handle->maxElements = AFS_READ_BE32(header.element_count);
+    pos = AFS_READ_BE32(header.index_position);
     handle->fModified = 0;
     handle->posElement = pos;
     return 0;

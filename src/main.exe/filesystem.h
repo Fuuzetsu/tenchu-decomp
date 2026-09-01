@@ -10,6 +10,8 @@ typedef struct TAFSElement TAFSElement;
 typedef struct TAFSFileHandle TAFSFileHandle;
 typedef struct TAFS TAFS;
 typedef struct MemoryDiskType MemoryDiskType;
+typedef struct AFSVolumeHeader AFSVolumeHeader;
+typedef struct AFSIndexEntry AFSIndexEntry;
 
 /* ReadMode combines the active backend in its low two bits with loader
  * policy flags. */
@@ -47,6 +49,39 @@ enum
     AfsFlag_Folder = 2
 };
 
+/* Big-endian on-disk AFS_VOL_200 structures. The runtime TAFSElement below
+ * is the native-endian form produced by AfsGetEntry. */
+enum
+{
+    AFS_VOLUME_SIGNATURE_SIZE = 12,
+    AFS_VOLUME_HEADER_SIZE = 0x28,
+    AFS_ELEMENT_NAME_SIZE = 20
+};
+
+struct AFSVolumeHeader
+{
+    u8 signature[AFS_VOLUME_SIGNATURE_SIZE]; /* 0x00: "AFS_VOL_200" */
+    u8 element_count[4];                     /* 0x0C: big-endian */
+    u8 index_position[4];                    /* 0x10: big-endian */
+    u8 reserved[AFS_VOLUME_HEADER_SIZE - AFS_VOLUME_SIGNATURE_SIZE - 8];
+}; /* 0x28 */
+
+struct AFSIndexEntry
+{
+    u8 marker[2];                  /* 0x00: "IX" */
+    u8 flag[2];                    /* 0x02: big-endian AfsFlag_* */
+    u8 position[4];                /* 0x04: big-endian */
+    u8 packed_size[4];             /* 0x08: big-endian */
+    u8 size[4];                    /* 0x0C: big-endian */
+    u8 name[AFS_ELEMENT_NAME_SIZE]; /* 0x10 */
+}; /* 0x24 */
+
+#define AFS_READ_BE32(bytes)                                                \
+    (((u32)(bytes)[0] << 24) | ((u32)(bytes)[1] << 16) |                   \
+     ((u32)(bytes)[2] << 8) | (u32)(bytes)[3])
+#define AFS_INDEX_BYTE_OFFSET(member) \
+    ((u32)&((AFSIndexEntry *)0)->member)
+
 struct TFileHandle
 {
     CdlFILE finfo;
@@ -54,8 +89,8 @@ struct TFileHandle
     long pos;
 };
 
-/* Per-record marker in the volume's IX table: big-endian "IX". */
-#define AFS_ELEMENT_MARK 0x4958
+/* Per-record marker in the volume's IX table. */
+#define AFS_ELEMENT_MARK (('I' << 8) | 'X')
 
 struct TAFSElement
 {
@@ -63,7 +98,7 @@ struct TAFSElement
     unsigned long pos;
     unsigned long size;
     unsigned long psize;
-    unsigned char name[20];
+    unsigned char name[AFS_ELEMENT_NAME_SIZE];
 };
 
 struct TAFSFileHandle

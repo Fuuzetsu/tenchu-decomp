@@ -6,7 +6,7 @@
  * AfsGetEntry (0x8005e950, 0x234 bytes) allocates and reads the AFS volume's
  * big-endian element table.  The demo calls getshort/getlong; retail contains
  * those helpers inline, including the address-taken stack short used to check
- * the per-record 0x4958 marker.
+ * each record's AFS_ELEMENT_MARK.
  *
  * Matching notes:
  *  - A hand-written back edge preserves the three explicit cursors.  A real
@@ -37,6 +37,19 @@ extern char msg_afsgetentry_empty_index[]; /* AfsGetEntry: empty index */
 extern char msg_afsgetenty_no_memory[];    /* AfsGetEnty: memory not enough! */
 extern char msg_afsgetentry_no_memory[];   /* AfsGetEntry: memory not enough! */
 extern char msg_illigal_index[];
+
+/* Retail keeps this cursor one byte past the start of each wire record.
+ * Derive its loads from AFSIndexEntry without changing that address graph. */
+#define AFS_CURSOR_BYTE(cursor, member, byte) \
+    ((cursor)[AFS_INDEX_BYTE_OFFSET(member) - 1 + (byte)])
+#define AFS_CURSOR_BE16(cursor, member)                                    \
+    (((u16)AFS_CURSOR_BYTE(cursor, member, 0) << 8) |                     \
+     (u16)AFS_CURSOR_BYTE(cursor, member, 1))
+#define AFS_CURSOR_BE32(cursor, member)                                    \
+    (((u32)AFS_CURSOR_BYTE(cursor, member, 0) << 24) |                    \
+     ((u32)AFS_CURSOR_BYTE(cursor, member, 1) << 16) |                    \
+     ((u32)AFS_CURSOR_BYTE(cursor, member, 2) << 8) |                     \
+     (u32)AFS_CURSOR_BYTE(cursor, member, 3))
 
 static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
 {
@@ -71,7 +84,7 @@ int AfsGetEntry(TAFS *handle)
         return 1;
     }
 
-    buffer = valloc(handle->maxElements * sizeof(TAFSElement));
+    buffer = valloc(handle->maxElements * sizeof(AFSIndexEntry));
     if (buffer != 0)
     {
         goto entry_ready;
@@ -87,7 +100,7 @@ entry_ready:
     cd_seek(handle->fpVol, handle->posElement, CDSEEK_SET);
     i = 0;
     cd_read(handle->fpVol, buffer,
-            handle->maxElements * sizeof(TAFSElement));
+            handle->maxElements * sizeof(AFSIndexEntry));
 
     raw = buffer;
     /* One-shot fences: the depth-2 pair is byte-required and irreducible
@@ -101,25 +114,21 @@ entry_ready:
                 element = elements;
                 packed = raw + 1;
             entry_loop:
-                element->flag = ((u16)packed[1] << 8) | packed[2];
-                element->pos = ((u32)packed[3] << 24) |
-                               ((u32)packed[4] << 16) |
-                               ((u32)packed[5] << 8) | packed[6];
-                element->size = ((u32)packed[11] << 24) |
-                                ((u32)packed[12] << 16) |
-                                ((u32)packed[13] << 8) | packed[14];
-                element->psize = ((u32)packed[7] << 24) |
-                                 ((u32)packed[8] << 16) |
-                                 ((u32)packed[9] << 8) | packed[10];
-                strncpy((char *)element->name, (char *)buffer + 0x10, sizeof(element->name) - 1);
+                element->flag = AFS_CURSOR_BE16(packed, flag);
+                element->pos = AFS_CURSOR_BE32(packed, position);
+                element->size = AFS_CURSOR_BE32(packed, size);
+                element->psize = AFS_CURSOR_BE32(packed, packed_size);
+                strncpy((char *)element->name,
+                        (char *)buffer + AFS_INDEX_BYTE_OFFSET(name),
+                        sizeof(element->name) - 1);
                 element->name[sizeof(element->name) - 1] = 0;
                 AfsGetShort(&marker, buffer, packed);
                 if (marker != AFS_ELEMENT_MARK)
                 {
                     goto bad_index;
                 }
-                packed += sizeof(TAFSElement);
-                buffer += sizeof(TAFSElement);
+                packed += sizeof(AFSIndexEntry);
+                buffer += sizeof(AFSIndexEntry);
                 element->name[sizeof(element->name) - 1] = 0;
                 element++;
                 if (handle->maxElements > ++i)
@@ -135,3 +144,7 @@ entry_ready:
     vfree(raw);
     return 0;
 }
+
+#undef AFS_CURSOR_BYTE
+#undef AFS_CURSOR_BE16
+#undef AFS_CURSOR_BE32
