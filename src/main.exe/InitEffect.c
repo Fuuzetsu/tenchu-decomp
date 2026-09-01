@@ -40,11 +40,11 @@
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - BloodSpriteImageIds is the real eight-byte table immediately after the
- *    effect cursor: four interleaved flying/stain image pairs. Referring to it
- *    through the preceding data anchor preserves the retail instruction
- *    schedule; taking its named address directly coalesces the address-forming
- *    instructions and does not match. The linker map still names the actual
- *    table, so the offset is isolated here rather than leaking into its users.
+ *    effect cursor: four interleaved flying/stain image pairs. It is declared
+ *    as the packed byte array emitted by the original data object, then viewed
+ *    through BloodSpriteImageCatalog while it is copied locally. The array
+ *    expression also preserves the retail split-address schedule; declaring
+ *    the external symbol as the aggregate itself coalesces those instructions.
  *  - The blood image IDs must stay a flat byte array.  Indexing it with
  *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
  *    formed addresses; caching a row of a two-dimensional array does not.
@@ -74,10 +74,7 @@ union BloodSpriteImageCatalog
     u8 packed[N_BLOOD_SPRITES * sizeof(struct BloodSpriteImagePair)];
 };
 
-extern union BloodSpriteImageCatalog BloodSpriteImageIds;
-extern char str_newline[];
-#define BLOOD_SPRITE_IMAGE_CATALOG \
-    ((union BloodSpriteImageCatalog *)&str_newline[8])
+extern u8 BloodSpriteImageIds[];
 /* Indexed by impact_sprite and the BOMB_SPRITE_* selectors respectively. */
 extern u8 ImpactSpriteImageIds[MaxImpacts];
 extern ImageArchiveId ExplosionSpriteImageIds[N_EXPLOSION_SPRITES];
@@ -103,7 +100,7 @@ void InitEffect(void)
     GsIMAGE *image;
     s16 i;
 
-    blood_src = BLOOD_SPRITE_IMAGE_CATALOG;
+    blood_src = (union BloodSpriteImageCatalog *)BloodSpriteImageIds;
     blood_images = *blood_src;
     i = 0;
     bloodp = &blood_images;
