@@ -3,12 +3,51 @@
 
 struct PADtype;
 
-enum
+/* Saved/control-global values select one of four authored button maps. Row
+ * zero is the canonical physical layout and is also the input side of every
+ * remap operation. */
+typedef s16 control_scheme;
+enum control_scheme
 {
+    CONTROL_SCHEME_DEFAULT = 0,
+    CONTROL_SCHEME_ALT_1 = 1,
+    CONTROL_SCHEME_ALT_2 = 2,
+    CONTROL_SCHEME_ALT_3 = 3,
+    N_CONTROL_SCHEMES = 4
+};
+
+/* Column identities proven by ButtonAssign's default row. It contains
+ * PADRdown, PADRleft, PADRup, PADRright, PADR1, PADR2, PADL1, and PADL2 in
+ * this order; every alternate row is a permutation of those low-byte masks. */
+enum control_remap_slot
+{
+    CONTROL_REMAP_CROSS = 0,
+    CONTROL_REMAP_SQUARE = 1,
+    CONTROL_REMAP_TRIANGLE = 2,
+    CONTROL_REMAP_CIRCLE = 3,
+    CONTROL_REMAP_R1 = 4,
+    CONTROL_REMAP_R2 = 5,
+    CONTROL_REMAP_L1 = 6,
+    CONTROL_REMAP_L2 = 7,
     BUTTONS_PER_CONTROL_SCHEME = 8,
-    N_CONTROL_SCHEMES = 4,
     N_BUTTON_ASSIGNMENTS = N_CONTROL_SCHEMES * BUTTONS_PER_CONTROL_SCHEME
 };
+
+typedef struct ControlSchemeButtons ControlSchemeButtons;
+struct ControlSchemeButtons
+{
+    u8 button[BUTTONS_PER_CONTROL_SCHEME];
+};
+
+typedef union ControlSchemeTable ControlSchemeTable;
+union ControlSchemeTable
+{
+    ControlSchemeButtons scheme[N_CONTROL_SCHEMES];
+    u8 flat[N_BUTTON_ASSIGNMENTS];
+};
+
+extern ControlSchemeTable ButtonAssign;
+extern control_scheme ControlScheme;
 
 /* game_types.h's pad_command values tag Command[] rows for SetCommand. Each
  * entry streams a canned input sequence into the pad (decoded from the retail

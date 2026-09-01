@@ -26,11 +26,6 @@
  *    pointer, making the function one instruction longer. The named pointer
  *    keeps row as the target's integer counter.
  */
-extern u8 ButtonAssign[N_BUTTON_ASSIGNMENTS];
-/* s16 here vs main.c's u16 is byte-required: this TU's read is a
- * signed lh (measured — the u16 form flips it to lhu). */
-extern s16 ControlScheme;
-
 s32 remap_buttons_(s16 pad)
 {
     s32 i;
@@ -39,21 +34,22 @@ s32 remap_buttons_(s16 pad)
     s32 test;
     u8 *rp;
 
-    rp = ButtonAssign;
+    rp = ButtonAssign.flat;
     acc = pad;
-    row = (s32)ControlScheme * BUTTONS_PER_CONTROL_SCHEME;
+    row = (s32)ControlScheme * sizeof(ControlSchemeButtons);
     i = 0;
     do
     {
-        test = pad & ButtonAssign[i];
+        test = pad &
+               ButtonAssign.scheme[CONTROL_SCHEME_DEFAULT].button[i];
         if (test != 0)
         {
-            rp = &ButtonAssign[row];
+            rp = &ButtonAssign.flat[row];
             acc = acc | *rp;
         }
         else
         {
-            rp = &ButtonAssign[row];
+            rp = &ButtonAssign.flat[row];
             acc = acc & ~*rp;
         }
         i++;

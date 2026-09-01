@@ -54,7 +54,7 @@
  *    and `SkipFrame == SKIPFRAME_SKIPPED` tests.
  */
 
-extern u16 ControlScheme;
+extern control_scheme ControlScheme;
 extern char fmt_free_memory[];
 
 extern void ResetCallback(void);
