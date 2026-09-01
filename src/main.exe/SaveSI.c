@@ -84,7 +84,7 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
     s32 fd;
     char *msg;
     u8 fn[200];
-    u8 block[BLOCKSIZE];
+    MemoryCardFileBlock block;
     TAdtSelect sel[3];
     s32 cmd;
     enum card_result result;
@@ -108,9 +108,9 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
 
     msg = 0;
     chan = MEMCARD_CHANNEL_0;
-    hd = (TCardHeader *)block;
-    data = block + sizeof(TCardHeader);
-    if ((u32)size > BLOCKSIZE - sizeof(TCardHeader))
+    hd = &block.header;
+    data = block.payload;
+    if ((u32)size > sizeof(block.payload))
     {
         AdtMessageBox(msg_size_too_large);
         goto done;
@@ -270,7 +270,7 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
             goto done;
         }
         memcpy(data, mem, size);
-        MemCardWriteFile(chan, (char *)fn, block, 0, BLOCKSIZE);
+        MemCardWriteFile(chan, (char *)fn, &block, 0, sizeof(block));
         MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
         if (result != CARD_RESULT_SUCCESS)
         {

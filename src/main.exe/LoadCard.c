@@ -29,16 +29,16 @@ extern void vfree(void *ptr);
 extern int sprintf(char *buf, char *fmt, ...);
 
 /*
- * The two apparent Ghidra buffers are one 8 KiB card block: the card header
- * occupies its first 0x200 bytes and the persistent payload begins at
- * `block + sizeof(TCardHeader)`. The fixed-size built-in payload copy
- * reproduces the compiler's aligned/unaligned loop pair.
+ * The two apparent Ghidra buffers are one MemoryCardFileBlock: its named
+ * payload member begins after the 0x200-byte card header. The fixed-size
+ * built-in payload copy reproduces the compiler's aligned/unaligned loop
+ * pair.
  */
 card_result LoadCard(s32 target, u8 *name)
 {
     void *allocation;
     u8 fn[200];
-    u8 block[BLOCKSIZE];
+    MemoryCardFileBlock block;
     s32 cmd;
     enum card_result result;
 
@@ -46,8 +46,8 @@ card_result LoadCard(s32 target, u8 *name)
     result = MemCardAccept(MEMCARD_CHANNEL_0);
     MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
-    result = MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, block, 0,
-                             BLOCKSIZE);
+    result = MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, &block, 0,
+                             sizeof(block));
     MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     if (result != CARD_RESULT_SUCCESS)
     {
@@ -57,7 +57,7 @@ card_result LoadCard(s32 target, u8 *name)
     else
     {
         __builtin_memcpy((void *)TENCHU_PERSISTENT_STATE_ADDRESS,
-                         block + sizeof(TCardHeader),
+                         block.payload,
                          TENCHU_PERSISTENT_STATE_SIZE);
     }
     vfree(allocation);

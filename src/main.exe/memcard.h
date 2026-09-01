@@ -10,6 +10,16 @@ enum
     CARD_FILE_BLOCKS = 1
 };
 
+/* One complete on-card file block: the BIOS-visible 0x200-byte header is
+ * followed by the game's opaque save payload. SaveSI/LoadSI and
+ * SaveCard/LoadCard all exchange this exact layout with libmcrd. */
+typedef struct MemoryCardFileBlock MemoryCardFileBlock;
+struct MemoryCardFileBlock
+{
+    TCardHeader header; /* 0x000 */
+    u8 payload[BLOCKSIZE - sizeof(TCardHeader)]; /* 0x200 */
+}; /* 0x2000 */
+
 /* INFOVIEW's save/load menu contains the two choices "disk" (0) and
  * "card" (1). SaveSI/LoadSI dispatch on that value. */
 enum save_storage

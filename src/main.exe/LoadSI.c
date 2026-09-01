@@ -31,8 +31,8 @@
  * debug-menu file loader: disk storage loads a whole-stage resource by name
  * from the CD/host filesystem (FileRead); card storage loads it from the
  * memory card (BISLPS_00000-prefixed save slot), staging through an 8KB
- * scratch buffer and skipping the first 0x200-byte card-file header before
- * copying the real 0x1E00-byte payload into the returned buffer.
+ * MemoryCardFileBlock and copying its payload member into the returned
+ * buffer.
  *
  * The two error arms spell their cleanup independently. jump2 merges those
  * tails back together, while the earlier CSE pass consequently treats the
@@ -48,11 +48,11 @@
  *    one `ret` variable serves BOTH return paths (FileRead's result on the
  *    disk path, valloc's buffer otherwise) — matches PSX.SYM's 6 named
  *    locals (ret/fn/msg/cmd/result/block) with no extra `puVar1`.
- *  - `block` is ONE 8192-byte buffer, not Ghidra's two overlapping locals
- *    (auStack_2018/auStack_1e18): MemCardReadFile fills all 0x2000 bytes,
- *    and the payload copy reads `block + 0x200` (skipping a 512-byte card
- *    header) — cookbook "Stack objects": overlapping Ghidra locals are one
- *    buffer plus a cast.
+ *  - `block` is ONE 8192-byte MemoryCardFileBlock, not Ghidra's two
+ *    overlapping locals (auStack_2018/auStack_1e18): MemCardReadFile fills
+ *    the complete record and the payload copy starts at its named +0x200
+ *    member — cookbook "Stack objects": the apparent locals are the header
+ *    and payload of one file block.
  *  - Stack locals declared in ADDRESS order (fn@0x18, block@0xE0, cmd@0x20E0,
  *    result@0x20E4) to reproduce the 0x20F8 frame exactly.
  *  - `CID` is this TU's gp small (an `unsigned char *` POINTER variable,
@@ -81,7 +81,7 @@ void *LoadSI(enum save_storage storage, u8 *name)
     void *ret;
     char *msg;
     u8 fn[200];
-    u8 block[BLOCKSIZE];
+    MemoryCardFileBlock block;
     s32 cmd;
     enum card_result result;
 
@@ -107,7 +107,8 @@ void *LoadSI(enum save_storage storage, u8 *name)
         goto done;
     }
     sprintf(fn, fmt_card_name, CID, StageID, name);
-    MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, block, 0, BLOCKSIZE);
+    MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, &block, 0,
+                    sizeof(block));
     MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     if (result != CARD_RESULT_SUCCESS)
     {
@@ -116,8 +117,7 @@ void *LoadSI(enum save_storage storage, u8 *name)
         ret = 0;
         goto done;
     }
-    memcpy(ret, block + sizeof(TCardHeader),
-           BLOCKSIZE - sizeof(TCardHeader));
+    memcpy(ret, block.payload, sizeof(block.payload));
 done:
     if (msg != 0)
     {

@@ -39,14 +39,15 @@ extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
 
 /*
- * The 0x200-byte card header and payload are two views into a single 8 KiB
- * block. Fixed-size built-in copies use TCardHeader's recovered Clut/Icon
- * bounds while preserving the original compiler's aligned/unaligned loops.
+ * The 0x200-byte card header and save payload are the two members of one
+ * MemoryCardFileBlock. Fixed-size built-in copies use TCardHeader's recovered
+ * Clut/Icon bounds while preserving the original compiler's aligned/unaligned
+ * loops.
  */
 card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 {
     u8 fn[200];
-    u8 block[BLOCKSIZE];
+    MemoryCardFileBlock block;
     s32 cmd;
     enum card_result result;
     enum memcard_channel chan;
@@ -56,7 +57,7 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     u8 *icon2;
     u8 *icon3;
 
-    hd = (TCardHeader *)block;
+    hd = &block.header;
 
     hd->Magic[0] = 'S';
     hd->Magic[1] = 'C';
@@ -70,7 +71,7 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     icon2 = (u8 *)GetArcData(ICON_CARD2);
     chan = MEMCARD_CHANNEL_0;
     icon3 = (u8 *)GetArcData(ICON_CARD3);
-    data = block + sizeof(TCardHeader);
+    data = block.payload;
     __builtin_memcpy(hd->Clut, CARD_ICON_TIM_CLUT(icon1), sizeof(hd->Clut));
     __builtin_memcpy(hd->Icon[0], CARD_ICON_TIM_PIXELS(icon1),
                      sizeof(hd->Icon[0]));
@@ -85,7 +86,8 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
         write_data != 0)
     {
         memcpy(data, mem, size);
-        result = MemCardWriteFile(chan, (char *)fn, block, 0, BLOCKSIZE);
+        result = MemCardWriteFile(chan, (char *)fn, &block, 0,
+                                  sizeof(block));
         MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
     }
     return result;
