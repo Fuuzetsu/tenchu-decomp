@@ -116,6 +116,10 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  */
 void PlayVoice(int id)
 {
+    enum
+    {
+        VOICE_TABLE_END = 0xFF
+    };
     u8 *FileName;
     TVoiceTable *voice;
     s32 volume;
@@ -154,7 +158,7 @@ void PlayVoice(int id)
             id -= 100;
         }
         match = 0;
-        if (voice->no != 0xff)
+        if (voice->no != VOICE_TABLE_END)
         {
             do
             {
@@ -172,7 +176,7 @@ void PlayVoice(int id)
                     break;
                 next = cursor + 1;
                 voice = next;
-            } while (next->no != 0xff);
+            } while (next->no != VOICE_TABLE_END);
             if (id != cursor->no)
                 match = 0;
         }
@@ -194,9 +198,9 @@ void PlayVoice(int id)
         voice = *voice_entry;
         FileName = *filename_entry;
         match = 0;
-        if (voice->no != 0xff)
+        if (voice->no != VOICE_TABLE_END)
         {
-            end_marker = 0xff;
+            end_marker = VOICE_TABLE_END;
             cursor = voice;
             do
             {
@@ -227,9 +231,9 @@ found:
     if (match == 0)
     {
         fallback = VoiceCommon;
-        if (fallback->no != 0xff)
+        if (fallback->no != VOICE_TABLE_END)
         {
-            fallback_end = 0xff;
+            fallback_end = VOICE_TABLE_END;
             cursor = fallback;
             do
             {

@@ -16,8 +16,8 @@
 
 /*
  * DrawTelop (0x8005141c, 0xb4 bytes) - draws the telop (on-screen caption)
- * background quad in two halves (top strip y in [0x5a,0x78], bottom strip y
- * in [-0x78,-0x5a]) via GsSortPoly, then computes the caption text's pixel
+ * background quad in two halves (top strip y in [90,120], bottom strip y
+ * in [-120,-90]) via GsSortPoly, then computes the caption text's pixel
  * width (telop_text_width_, matched — same TU) and hands its centered X position
  * to the text-draw helper draw_telop_line_ along with the ordering-table's `org`
  * pointer.
@@ -43,17 +43,21 @@ extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
 
 void DrawTelop(void)
 {
+    enum
+    {
+        TELOP_INNER_Y = 90
+    };
     s32 w;
 
-    TelopbgP.y1 = 90;
-    TelopbgP.y0 = 90;
-    TelopbgP.y3 = 120;
-    TelopbgP.y2 = 120;
+    TelopbgP.y1 = TELOP_INNER_Y;
+    TelopbgP.y0 = TELOP_INNER_Y;
+    TelopbgP.y3 = SCREEN_H / 2;
+    TelopbgP.y2 = SCREEN_H / 2;
     GsSortPoly(&TelopbgP, OTablePt, 1);
-    TelopbgP.y1 = -120;
-    TelopbgP.y0 = -120;
-    TelopbgP.y3 = -90;
-    TelopbgP.y2 = -90;
+    TelopbgP.y1 = -(SCREEN_H / 2);
+    TelopbgP.y0 = -(SCREEN_H / 2);
+    TelopbgP.y3 = -TELOP_INNER_Y;
+    TelopbgP.y2 = -TELOP_INNER_Y;
     GsSortPoly(&TelopbgP, OTablePt, 1);
     w = telop_text_width_(TelopText);
     draw_telop_line_(OTablePt->org, -(w / 2), 92, TelopText);

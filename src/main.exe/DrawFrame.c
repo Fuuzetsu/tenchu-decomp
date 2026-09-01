@@ -112,7 +112,8 @@ void DrawFrame(TEffectSlot *ef)
     enum
     {
         FRAME_MODE_FLASH = 0,
-        FRAME_MODE_FADE = 1
+        FRAME_MODE_FADE = 1,
+        FRAME_FLASH_LEVEL = 0x80
     };
     FrameType *param = &ef->param.frame;
     GsSPRITE *spr;
@@ -133,13 +134,13 @@ void DrawFrame(TEffectSlot *ef)
     switch (param->mode)
     {
     case FRAME_MODE_FLASH:
-        spr->b = 0x80;
-        spr->g = 0x80;
-        spr->r = 0x80;
+        spr->b = FRAME_FLASH_LEVEL;
+        spr->g = FRAME_FLASH_LEVEL;
+        spr->r = FRAME_FLASH_LEVEL;
         param->count--;
         if (param->count <= 0)
         {
-            param->count = 0x80;
+            param->count = FRAME_FLASH_LEVEL;
             param->mode++;
         }
         break;

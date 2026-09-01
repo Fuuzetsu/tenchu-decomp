@@ -35,6 +35,10 @@ extern char fmt_camera_edit[];
 
 void debug_output_edit_camera_settings(s16 pad)
 {
+    enum
+    {
+        CAMERA_EDIT_STEP = 50
+    };
     SVECTOR *camera;
     char *format;
     s32 marker;
@@ -56,27 +60,27 @@ void debug_output_edit_camera_settings(s16 pad)
     camera = DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_INDEX_];
     if (DEBUG_PAD_HELD_ & PADLup)
     {
-        camera->vz -= 50;
+        camera->vz -= CAMERA_EDIT_STEP;
     }
     if (DEBUG_PAD_HELD_ & PADLdown)
     {
-        camera->vz += 50;
+        camera->vz += CAMERA_EDIT_STEP;
     }
     if (DEBUG_PAD_HELD_ & PADRup)
     {
-        camera->vy -= 50;
+        camera->vy -= CAMERA_EDIT_STEP;
     }
     if (DEBUG_PAD_HELD_ & PADRdown)
     {
-        camera->vy += 50;
+        camera->vy += CAMERA_EDIT_STEP;
     }
     if (DEBUG_PAD_HELD_ & PADRleft)
     {
-        camera->vx -= 50;
+        camera->vx -= CAMERA_EDIT_STEP;
     }
     if (DEBUG_PAD_HELD_ & PADRright)
     {
-        camera->vx += 50;
+        camera->vx += CAMERA_EDIT_STEP;
     }
 
     if ((DEBUG_PAD_HELD_ & (PADL2 | PADR2)) == (PADL2 | PADR2))

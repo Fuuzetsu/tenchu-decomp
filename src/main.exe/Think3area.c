@@ -51,6 +51,10 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 
 s16 Think3area(void)
 {
+    enum
+    {
+        AREA_ENGAGE_RANGE = 4000
+    };
     s16 pad;
     s32 xx;
     s32 zz;
@@ -59,7 +63,7 @@ s16 Think3area(void)
     pad = 0;
     if (Me_THINK_C->status == STAT_ATTACK)
     {
-        return SuccessionAttack(4000, 500);
+        return SuccessionAttack(AREA_ENGAGE_RANGE, 500);
     }
 
     if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
@@ -79,10 +83,10 @@ s16 Think3area(void)
     if (Me_THINK_C->actflg != 0)
     {
         pad = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
-        if (Distance < 4000)
+        if (Distance < AREA_ENGAGE_RANGE)
         {
             Me_THINK_C->actcnt++;
-            if (Me_THINK_C->actcnt == 0 && dist > 4000)
+            if (Me_THINK_C->actcnt == 0 && dist > AREA_ENGAGE_RANGE)
             {
                 Me_THINK_C->actflg = 0;
             }
@@ -117,7 +121,7 @@ s16 Think3area(void)
             Me_THINK_C->actflg = 1;
         }
 
-        if (Distance >= 4000)
+        if (Distance >= AREA_ENGAGE_RANGE)
         {
             goto return_pad;
         }

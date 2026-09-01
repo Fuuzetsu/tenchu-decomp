@@ -23,6 +23,10 @@ extern AdtFntState AdtFnt;
 
 void AdtGetDisp(TAdtDisp *disp)
 {
+    enum
+    {
+        ADT_PANEL_MARGIN = 32
+    };
     DRAWENV de;
     DISPENV di;
 
@@ -38,10 +42,15 @@ void AdtGetDisp(TAdtDisp *disp)
     PutDrawEnv(&de);
     PutDispEnv(&di);
     FntLoad(AdtFnt.tx, AdtFnt.ty);
-    FntOpen(32, 32, 256, 176, 0, 512);
+    FntOpen(ADT_PANEL_MARGIN, ADT_PANEL_MARGIN,
+            SCREEN_W - 2 * ADT_PANEL_MARGIN,
+            SCREEN_H - 2 * ADT_PANEL_MARGIN, 0, 512);
     setPolyF4(&disp->bg);
     /* The panel behind the debug font: a 32,32 - 288,208 screen quad. */
-    setXY4(&disp->bg, 32, 32, 288, 32,
-           32, 208, 288, 208);
+    setXY4(&disp->bg,
+           ADT_PANEL_MARGIN, ADT_PANEL_MARGIN,
+           SCREEN_W - ADT_PANEL_MARGIN, ADT_PANEL_MARGIN,
+           ADT_PANEL_MARGIN, SCREEN_H - ADT_PANEL_MARGIN,
+           SCREEN_W - ADT_PANEL_MARGIN, SCREEN_H - ADT_PANEL_MARGIN);
     setRGB0(&disp->bg, 1, 1, 100);
 }

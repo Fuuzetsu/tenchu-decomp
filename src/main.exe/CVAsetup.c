@@ -37,8 +37,8 @@
  * previous CVAdata blob and loads the new one
  * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter is the character's
  * initial — 'R' Rikimaru / 'A' Ayame), then a fixed
- * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, x0..x3 = -0xA0/0xA0/-0xA0/0xA0 —
- * the canonical PsyQ SDK POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
+ * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, spanning the screen width — the
+ * canonical PsyQ SDK POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
  * "tanka.tpd" and populates 6 TANKA_SPRITES_ Sprite3D slots.
  * Each slot's `attribute` gets MODEL_ATTR_HIDDEN set,
  * and the embedded GsSPRITE's x/y are
@@ -100,10 +100,10 @@ void CVAsetup(void)
     TelopbgP.b0 = 1;
     TelopbgP.g0 = 1;
     TelopbgP.r0 = 1;
-    TelopbgP.x2 = -0xA0;
-    TelopbgP.x0 = -0xA0;
-    TelopbgP.x3 = 0xA0;
-    TelopbgP.x1 = 0xA0;
+    TelopbgP.x2 = -(SCREEN_W / 2);
+    TelopbgP.x0 = -(SCREEN_W / 2);
+    TelopbgP.x3 = SCREEN_W / 2;
+    TelopbgP.x1 = SCREEN_W / 2;
 
     if (StageID == STAGE_FREE_PRINCESS && PSTATE->CharType == RIKIMARU_0)
     {
