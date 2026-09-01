@@ -17,7 +17,8 @@
  */
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
-extern ReinforcementTypeTable AIDHumanType;
+extern character_kind
+    AIDHumanType[N_STAGE_CONFIGS][N_STAGE_REINFORCEMENT_CHOICES];
 extern s16 GotoPosition(s32 vx, s32 vz);
 extern int rand(void);
 
@@ -236,7 +237,7 @@ s16 think_alarm_reaction_(void)
             }
             Sound(Me_THINK_C, soundId);
 
-            type = AIDHumanType.by_stage[StageID][
+            type = AIDHumanType[StageID][
                 rand() % N_STAGE_REINFORCEMENT_CHOICES];
             rotation = Me_THINK_C->rotate;
             newRotation = rotation->vy + direction;

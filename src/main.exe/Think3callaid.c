@@ -59,7 +59,7 @@
  * same expression that installs Me_THINK_C, preserving the target load/store
  * schedule.
  *
- * `AIDHumanType.by_stage[StageID][r % 2]` is a signed character-kind
+ * `AIDHumanType[StageID][r % 2]` is a signed character-kind
  * table (`lh`, unlike the item-TU's usual unsigned tables), so its entries
  * pass to BreedLife without narrowing.
  *
@@ -78,7 +78,7 @@
  *    `return Think3escape();` (early, inside the if) and a second,
  *    branch-LOCAL `s16 ret;` returned at the end of the else block fixed
  *    this (the InsertConflict/DrawBG "two early returns" cookbook rule).
- *  - `character_kind *aid = AIDHumanType.flat;` declared and assigned BEFORE
+ *  - `character_kind *aid = AIDHumanType[0];` declared and assigned BEFORE
  *    `rand()` (not indexed inline after the call) is required for the table
  *    base address to be computed EARLY and survive in a
  *    callee-saved register across the call, matching target's
@@ -108,7 +108,8 @@ extern Humanoid *Me_THINK_C;
 /* Per-stage reinforcement pair (StageID*2 + coin flip) — the stage's
  * own guard faction (retail data): rouban/rounin, ninja A+B, rouban,
  * Manji cultists, pirates, tengu, oni, kabane, kerai, asigaru, sisi. */
-extern ReinforcementTypeTable AIDHumanType;
+extern character_kind
+    AIDHumanType[N_STAGE_CONFIGS][N_STAGE_REINFORCEMENT_CHOICES];
 extern int rand(void);
 extern s16 Think3escape(void);
 
@@ -129,7 +130,7 @@ short Think3callaid(void)
     else
     {
         s16 ret;
-        character_kind *aid = AIDHumanType.flat;
+        character_kind *aid = AIDHumanType[0];
         character_kind *type_ptr;
         character_kind type;
         ThinkFunc func;

@@ -2014,20 +2014,11 @@ enum mission_progress_flag
     MISSION_FLAG_ENGLISH_FINAL_STAGE = 1 << N_CAMPAIGN_MISSIONS
 };
 
-/* Each stage supplies a two-way reinforcement choice. The alarm reaction
- * indexes it by stage and coin flip; Think3callaid walks the same storage as
- * a flat signed-halfword table. */
+/* Each stage supplies a two-way reinforcement choice. */
 enum
 {
     N_STAGE_REINFORCEMENT_CHOICES = 2
 };
-
-typedef union ReinforcementTypeTable ReinforcementTypeTable;
-union ReinforcementTypeTable
-{
-    character_kind by_stage[N_STAGE_CONFIGS][N_STAGE_REINFORCEMENT_CHOICES];
-    character_kind flat[N_STAGE_CONFIGS * N_STAGE_REINFORCEMENT_CHOICES];
-}; /* 0x2C */
 
 /* Each stage has three authored layouts. A saved value outside that range
  * asks CreateStage to choose one at random; menus use the byte sentinel. */
