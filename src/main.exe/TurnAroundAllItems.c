@@ -58,7 +58,7 @@ void TurnAroundAllItems(Humanoid *user)
             itemID = i;
             memset(&p, 0, sizeof(p));
             p.type = itemID;
-            p.user = human;
+            p.user.human = human;
             p.start.vx = pos->vx;
             p.start.vy = pos->vy;
             p.start.vz = pos->vz;

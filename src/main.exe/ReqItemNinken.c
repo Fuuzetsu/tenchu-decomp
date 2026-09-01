@@ -76,9 +76,9 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemNinken;
         item->mode = ITEM_MODE_START;
         item->type = atype;
@@ -105,6 +105,6 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
     }
     param->slave = 0;
     param->count = 15;
-    SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
+    SetNowMotion(item->owner.human, MOT_ITEM_THROW, 1);
     return 1;
 }

@@ -63,7 +63,7 @@ void ProcItemTeleport(TItem *item)
         item->mode = ITEM_MODE_START;
         return;
     }
-    if ((item->owner->pad.data & PADRup) != 0)
+    if ((item->owner.human->pad.data & PADRup) != 0)
     {
         SetCameraMode(CMODE_SIGHT);
         GsSortSprite(TargetSprite, OTablePt, 0);
@@ -88,6 +88,6 @@ void ProcItemTeleport(TItem *item)
     {
         AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
     }
-    item->owner = 0;
+    item->owner.human = 0;
     item->proc = 0;
 }

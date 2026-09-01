@@ -347,7 +347,7 @@ dispatch:
                     Sound(Me_MOTION_C, SE_FIRE);
                 }
                 item.type = ITEM_NAPALM;
-                item.user = Me_MOTION_C;
+                item.user.human = Me_MOTION_C;
                 pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, -100, -300);
                 item.start.vx = pos->vx;
                 item.start.vy = pos->vy;

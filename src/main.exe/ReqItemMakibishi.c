@@ -48,7 +48,7 @@
  *    `item = ret;` assigned exactly twice — once inside the early-exit
  *    `if (ret->proc==0)`
  *    (paired with the `goto found;`), once right before the dispose block's
- *    final `item->owner=0; item->proc=0;`. Unlike the other twins (where the
+ *    final `item->owner.human=0; item->proc=0;`. Unlike the other twins (where the
  *    SAME `item` serves the whole function), this function's longer tail (`pos`
  *    surviving to the final SoundEx call) raises register pressure enough
  *    that global-alloc gives `ret`/`item` DIFFERENT hard registers ($s0/$s1),
@@ -98,9 +98,9 @@ int ReqItemMakibishi(PARAM_ITEM_DROP *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemMakibishi;
         item->mode = ITEM_MODE_START;
         item->type = atype;

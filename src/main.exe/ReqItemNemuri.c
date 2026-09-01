@@ -82,9 +82,9 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemNemuri;
         item->mode = ITEM_MODE_START;
         item->type = atype;

@@ -46,7 +46,7 @@
  *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
  *    as ReqItemDrop (vy/vz reads go through pos; vx reads p directly).
  *  - aowner/atype are real temps, same as ReqItemDrop: the asm loads both
- *    p->user and p->type back-to-back before any owner/proc/mode/type stores.
+ *    p->user.human and p->type back-to-back before any owner/proc/mode/type stores.
  *  - x/y/z (end vector) ARE real temps: the asm batches three loads before
  *    three sh stores, matching ReqItemDrop's koro.vx/vy/vz shape exactly.
  *  - `item->param.smoke.koro.hint = 0;` uses the direct union path (not
@@ -74,9 +74,9 @@ int ReqItemJirai(PARAM_ITEM_DROP *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemJirai;
         item->mode = ITEM_MODE_START;
         item->type = atype;

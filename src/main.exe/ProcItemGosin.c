@@ -81,15 +81,15 @@ void ProcItemGosin(TItem *item)
     ProcItemGosinScratch scratch;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->owner->itmctl = 0;
+        item->owner.human->itmctl = 0;
         item->mode = GOSIN_MODE_START;
         return;
     }
     switch (item->mode)
     {
     case GOSIN_MODE_START:
-        SetNowMotion(item->owner, MOT_ITEM_KAENGEKI, 1);
-        Sound(item->owner, SE_ITEM_USE);
+        SetNowMotion(item->owner.human, MOT_ITEM_KAENGEKI, 1);
+        Sound(item->owner.human, SE_ITEM_USE);
         item->mode++;
         return;
 
@@ -97,7 +97,7 @@ void ProcItemGosin(TItem *item)
     {
         MotionManager *mot;
 
-        mot = item->owner->motion;
+        mot = item->owner.human->motion;
         if (mot->mid != MOT_ITEM_KAENGEKI)
         {
             VECTOR *pos;
@@ -105,11 +105,11 @@ void ProcItemGosin(TItem *item)
             s32 itemID;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner;
+            human = item->owner.human;
             itemID = item->type;
             memset(&scratch.p, 0, sizeof(PARAM_ITEM_LAUNCH));
             scratch.p.type = itemID;
-            scratch.p.user = human;
+            scratch.p.user.human = human;
             scratch.p.start.vx = pos->vx;
             scratch.p.start.vy = pos->vy;
             scratch.p.start.vz = pos->vz;
@@ -126,7 +126,7 @@ void ProcItemGosin(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner = 0;
+            item->owner.human = 0;
             item->proc = 0;
             return;
         }
@@ -134,9 +134,9 @@ void ProcItemGosin(TItem *item)
             return;
         if (mot->loop == 0)
             return;
-        NowReturnNormal(item->owner);
-        SetBleeds(GetAbsolutePosition(item->owner->model->object[1], 0, 0, 0), 600, 100, 20, 15, RGB24(180, 140, 30));
-        item->owner->itmctl = item->type;
+        NowReturnNormal(item->owner.human);
+        SetBleeds(GetAbsolutePosition(item->owner.human->model->object[1], 0, 0, 0), 600, 100, 20, 15, RGB24(180, 140, 30));
+        item->owner.human->itmctl = item->type;
         item->param.gosin.count = GOSIN_DURATION;
         item->mode++;
         return;
@@ -159,14 +159,14 @@ void ProcItemGosin(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner = 0;
+            item->owner.human = 0;
             item->proc = 0;
             return;
         }
         if ((c & 0x3f) != 0)
             return;
         scratch.v = vec_y_n1200_z_400;
-        set_impact_ex_(&scratch.v, &item->owner->model->locate,
+        set_impact_ex_(&scratch.v, &item->owner.human->model->locate,
                        FIXED_ONE, 6 * FIXED_ONE, COLOR_GRAY, 0,
                        (s16)(rand() % 360), 2, 120, 4);
         return;

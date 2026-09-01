@@ -81,7 +81,7 @@ void RestoreItemLayout(void *buf)
             {
                 AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
             }
-            it->owner = 0;
+            it->owner.human = 0;
             it->proc = 0;
         }
         it++;

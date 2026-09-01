@@ -110,15 +110,15 @@ void ProcItemNemuri(TItem *item)
     switch (item->mode)
     {
     case NEMURI_MODE_START:
-        SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
-        SoundEx((VECTOR *)item->owner->model->locate.coord.t, SE_SLEEP_DART_THROW);
+        SetNowMotion(item->owner.human, MOT_ITEM_THROW, 1);
+        SoundEx((VECTOR *)item->owner.human->model->locate.coord.t, SE_SLEEP_DART_THROW);
         item->mode++;
         return;
 
     case NEMURI_MODE_THROW:
-        if (item->owner->motion->mid == MOT_ITEM_THROW)
+        if (item->owner.human->motion->mid == MOT_ITEM_THROW)
         {
-            if (item->owner->motion->count != NEMURI_RELEASE_FRAME)
+            if (item->owner.human->motion->count != NEMURI_RELEASE_FRAME)
             {
                 return;
             }
@@ -128,7 +128,7 @@ void ProcItemNemuri(TItem *item)
                 ConflictClass conflict_class;
 
                 pos = GetAbsolutePosition(
-                    item->owner->model->object[MODEL_PART_WEAPON_HAND_1],
+                    item->owner.human->model->object[MODEL_PART_WEAPON_HAND_1],
                     0, 0, 0);
                 param->count = 0;
                 item->mode++;
@@ -155,7 +155,7 @@ void ProcItemNemuri(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
         return;
 
@@ -214,7 +214,7 @@ void ProcItemNemuri(TItem *item)
         {
             hit_human = ConflictObject[conflict_id].common.human;
             if (is_humanoid_on_stage_(hit_human) != 0 &&
-                hit_human != item->owner)
+                hit_human != item->owner.human)
             {
                 VECTOR random_position;
                 ProcItemNemuriEffectWork effect_work;
@@ -275,7 +275,7 @@ void ProcItemNemuri(TItem *item)
                     AdtMessageBox(msg_item_dispose_fail, item->type,
                                   (u32)item->mode);
                 }
-                item->owner = 0;
+                item->owner.human = 0;
                 item->proc = 0;
                 return;
             }
@@ -312,7 +312,7 @@ void ProcItemNemuri(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
         return;
     }

@@ -28,9 +28,9 @@ void ReqItemGun(PARAM_ITEM_LAUNCH *p)
     TAKE_ITEM_SLOT();
     if (item == 0)
         return;
-    aowner = p->user;
+    aowner = p->user.human;
     atype = p->type;
-    item->owner = aowner;
+    item->owner.human = aowner;
     item->proc = ProcItemGun;
     item->mode = ITEM_MODE_START;
     item->type = atype;

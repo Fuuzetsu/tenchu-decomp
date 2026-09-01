@@ -94,14 +94,14 @@ void ProcItemLightningBolt(TItem *item)
     case LIGHTNING_MODE_START:
         param->count = 15;
         item->mode++;
-        if (item->owner == CamState.Owner)
+        if (item->owner.human == CamState.Owner)
         {
             SoundEx((VECTOR *)0, SE_LIGHTNING);
         }
         break;
 
     case LIGHTNING_MODE_STRIKE:
-        SearchItemTarget2(item->owner, &item->param.lightningbolt.rot,
+        SearchItemTarget2(item->owner.human, &item->param.lightningbolt.rot,
                           &param->start, &target);
         item->locate->locate.coord.t[0] = target.vx;
         item->locate->locate.coord.t[1] = target.vy;

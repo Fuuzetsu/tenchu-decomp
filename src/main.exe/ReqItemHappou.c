@@ -68,9 +68,9 @@
  *    the direct `p->start.vx` read, before the pos->vy/pos->vz reads) and,
  *    unlike ReqItemArrow, stays live (no register reuse forcing a
  *    recompute) all the way to SetupFly's 2nd arg — reused 4 times total.
- *  - `item->locate->rotate = p->user->model->rotate;` and the local `rot =
- *    p->user->model->rotate;` are TWO INDEPENDENT struct copies, each
- *    re-reading `p->user->model` fresh (confirmed: two separate `lw` pairs
+ *  - `item->locate->rotate = p->user.human->model->rotate;` and the local `rot =
+ *    p->user.human->model->rotate;` are TWO INDEPENDENT struct copies, each
+ *    re-reading `p->user.human->model` fresh (confirmed: two separate `lw` pairs
  *    in the raw .s, not a cached pointer) — an SVECTOR (align-2) copy
  *    compiles to `lwl/lwr`+`swl/swr` word pairs per the cookbook's
  *    alignment-drives-copy-code rule.
@@ -129,7 +129,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
     s32 r;
     s32 i;
 
-    SetNowMotion(p->user, MOT_ITEM_THROW, 1);
+    SetNowMotion(p->user.human, MOT_ITEM_THROW, 1);
     i = 0;
     while (1)
     {
@@ -162,7 +162,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
                 AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);
             }
             item = ret;
-            item->owner = 0;
+            item->owner.human = 0;
             item->proc = 0;
         }
 
@@ -170,9 +170,9 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         param = &item->param.launch;
         if (item == 0)
             return 0;
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemHappou;
         item->mode = ITEM_MODE_START;
         item->type = atype;
@@ -183,12 +183,12 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->locate->rotate = p->user->model->rotate;
-        rot = p->user->model->rotate;
+        item->locate->rotate = p->user.human->model->rotate;
+        rot = p->user.human->model->rotate;
         r = rand();
         rot.vy += (r % (R * 2) - R);
         en = &p->end;
-        SearchItemTarget2(p->user, &rot, pos, en);
+        SearchItemTarget2(p->user.human, &rot, pos, en);
         SetupFly(&param->fly, pos, en, FIXED_ONE, FIXED_QUARTER, 400);
         i++;
         ai = SetupAfterimage(item->locate, 10);
@@ -201,6 +201,6 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         ai->vector2.vz = 0;
         param->count = 8;
     }
-    Sound(p->user, SE_ITEM_USE);
+    Sound(p->user.human, SE_ITEM_USE);
     return 1;
 }

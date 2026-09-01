@@ -77,9 +77,9 @@ int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemDokudango;
         item->mode = ITEM_MODE_START;
         item->type = atype;
@@ -107,6 +107,6 @@ int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
     }
     param->count = 10;
     param->eater = 0;
-    SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
+    SetNowMotion(item->owner.human, MOT_ITEM_THROW, 1);
     return 1;
 }

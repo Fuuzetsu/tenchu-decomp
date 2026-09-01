@@ -48,7 +48,7 @@ void bow_shoot_logic(s16 kind, VECTOR *start)
     s16 speed;
 
     p.type = kind;
-    p.user = Me_MOTION_C;
+    p.user.human = Me_MOTION_C;
     p.start.vx = start->vx;
     p.start.vy = start->vy;
     p.start.vz = start->vz;

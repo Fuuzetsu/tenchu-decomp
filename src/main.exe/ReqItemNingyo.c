@@ -69,7 +69,7 @@
  *  - `rotate.vz = rand() % 68;` — non-power-of-2 modulo, the
  *    canonical magic-multiply (0x78787879, shift 5, sign correction).
  *  - SetNowMotion is called with the SAME 3 args as ReqItemDokudango
- *    (`item->owner, 0xf02, 1`) — m2c reports a spurious 4th argument in $a3,
+ *    (`item->owner.human, 0xf02, 1`) — m2c reports a spurious 4th argument in $a3,
  *    but that register is simply the UNCORRECTED mfhi intermediate from the
  *    `% 0x44` magic-multiply (mfhi->sra 5->subu sign is the real quotient,
  *    kept in a DIFFERENT register and consumed by the `q*68` subtraction;
@@ -101,9 +101,9 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
+        aowner = p->user.human;
         atype = p->type;
-        item->owner = aowner;
+        item->owner.human = aowner;
         item->proc = ProcItemNingyo;
         item->mode = ITEM_MODE_START;
         item->type = atype;
@@ -134,6 +134,6 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
     item->locate->rotate.vy = rand() % ANGLE_FULL;
     item->locate->rotate.vz = rand() % 68;
     param->hp = NINGYO_HP;
-    SetNowMotion(item->owner, MOT_ITEM_THROW, 1);
+    SetNowMotion(item->owner.human, MOT_ITEM_THROW, 1);
     return 1;
 }

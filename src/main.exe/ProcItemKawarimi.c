@@ -106,13 +106,13 @@ void ProcItemKawarimi(TItem *item)
                 break;
             memset(&scratch.work.position_build, 0, sizeof(VECTOR));
             scratch.work.position_build.vx =
-                item->owner->model->locate.coord.t[0] +
+                item->owner.human->model->locate.coord.t[0] +
                 (rand() % 1000 - 500);
             scratch.work.position_build.vy =
-                item->owner->model->locate.coord.t[1] +
+                item->owner.human->model->locate.coord.t[1] +
                 (rand() % 1000 - 1200);
             scratch.work.position_build.vz =
-                item->owner->model->locate.coord.t[2] +
+                item->owner.human->model->locate.coord.t[2] +
                 (rand() % 1000 - 500);
             scratch.position = scratch.work.position_build;
             memset(&scratch.work.vectors.velocity_build, 0, sizeof(SVECTOR));
@@ -143,7 +143,7 @@ void ProcItemKawarimi(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
         return;
     }

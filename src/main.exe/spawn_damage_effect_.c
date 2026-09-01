@@ -43,7 +43,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         s32 vz;
 
         work.launch.type = ITEM_NAPALM;
-        work.launch.user = human;
+        work.launch.user.human = human;
         /* The start.vy/end.vx/vy/vz double stores below are retail's own
          * (both writes of each pair are in the bytes). */
         x = human->model->locate.coord.t[0];

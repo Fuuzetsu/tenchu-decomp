@@ -244,7 +244,7 @@
                                                                               \
     param.vector = vector_[0];                                                \
     st = &param.vector;                                                       \
-    model = p->user->model;                                                   \
+    model = p->user.human->model;                                                   \
     GET_THROW_ROTATION(model, rx, ry, rz);                                    \
     RotateVector(st, rx, ry, rz);                                             \
     p->end.vx = param.vector.vx;                                              \
@@ -255,11 +255,11 @@
 #define SETUP_ROTATED_DROP(vector_)                                           \
     memset(&work, 0, sizeof(work));                                           \
     work.drop.type = p->type;                                                 \
-    work.drop.user = p->user;                                                 \
+    work.drop.user.human = p->user.human;                                                 \
     work.drop.start = p->start;                                               \
     param = work;                                                             \
     work.vector = vector_[0];                                                 \
-    model = p->user->model;                                                   \
+    model = p->user.human->model;                                                   \
     GET_THROW_ROTATION(model, rx, ry, rz);                                    \
     RotateVector(&work.vector, rx, ry, rz)
 
@@ -272,13 +272,13 @@
         AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);      \
     }                                                                         \
     it = cur;                                                                 \
-    it->owner = 0;                                                            \
+    it->owner.human = 0;                                                            \
     it->proc = 0
 
 #define SETUP_POOL_ITEM(proc_, model_kind_, model_)                           \
-    us = p->user;                                                             \
+    us = p->user.human;                                                             \
     ty = p->type;                                                             \
-    it->owner = us;                                                           \
+    it->owner.human = us;                                                           \
     it->proc = proc_;                                                         \
     it->mode = ITEM_MODE_START;                                               \
     it->type = ty;                                                            \
@@ -345,10 +345,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     s32 y;
     s32 z;
 
-    c = p->user->item[p->type];
+    c = p->user.human->item[p->type];
     if (c != 0 && c != ITEM_INFINITE)
     {
-        p->user->item[p->type] = c - 1;
+        p->user.human->item[p->type] = c - 1;
     }
 
     switch (p->type)
@@ -384,7 +384,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 ty;
         s32 i;
 
-        if (p->user == CamState.Owner)
+        if (p->user.human == CamState.Owner)
         {
             param_launch *param;
 
@@ -411,20 +411,20 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                 return 0;
         SETUP_POOL_ITEM(ProcSightShot, object, SyurikenModel);
             param->count = 5;
-            it->owner->item[ITEM_N] = 1;
+            it->owner.human->item[ITEM_N] = 1;
         }
         else
         {
             param.launch.type = p->type;
-            param.launch.user = p->user;
+            param.launch.user.human = p->user.human;
             param.launch.start.vx = p->start.vx;
             param.launch.start.vy = p->start.vy;
             param.launch.start.vz = p->start.vz;
-            SearchItemTarget2(param.launch.user,
-                              &param.launch.user->model->rotate,
+            SearchItemTarget2(param.launch.user.human,
+                              &param.launch.user.human->model->rotate,
                               &param.launch.start, &param.launch.end);
             ReqItemLaunch(&param.launch);
-            p->user->item[ITEM_N] = 0;
+            p->user.human->item[ITEM_N] = 0;
         }
         break;
     }
@@ -488,11 +488,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 t;
         s32 u;
 
-        if (p->user == CamState.Owner)
+        if (p->user.human == CamState.Owner)
         {
             param.vector = vec_z_n4096[0];
             st = &param.vector;
-            model = p->user->model;
+            model = p->user.human->model;
             GET_THROW_ROTATION(model, rx, ry, rz);
             RotateVector(st, rx, ry, rz);
             sx = p->start.vx;
@@ -578,7 +578,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
          * costs 8 lines. */
         y = (s32)ProcKaginawa;
         SETUP_POOL_ITEM((void (*)(TItem *))y, object, 0);
-        it->owner->item[ITEM_N] = 1;
+        it->owner.human->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
         CamState.DirectionRY = 0;

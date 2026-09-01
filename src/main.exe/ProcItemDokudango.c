@@ -92,7 +92,7 @@ void ProcItemDokudango(TItem *item)
             restore_param->org_think != 0)
         {
             restore_param->eater->think[0] = restore_param->org_think;
-            restore_param->eater->target = (ModelType *)item->owner->model;
+            restore_param->eater->target = (ModelType *)item->owner.human->model;
         }
         restore_param->eater = 0;
         item->mode = DOKUDANGO_MODE_ROLL;
@@ -209,7 +209,7 @@ void ProcItemDokudango(TItem *item)
                     search_state.find->life != HUMANOID_LIFE_INACTIVE &&
                     search_state.dist < nearest_distance)
                 {
-                    if (search_state.find != item->owner)
+                    if (search_state.find != item->owner.human)
                     {
                         goto set_target;
                     }
@@ -236,7 +236,7 @@ void ProcItemDokudango(TItem *item)
                 PARAM_ITEM_LAUNCH drop_request;
 
                 drop_request.type = item->type;
-                drop_request.user = item->owner;
+                drop_request.user.human = item->owner.human;
                 drop_request.start.vx = item->locate->locate.coord.t[0];
                 drop_request.start.vy = item->locate->locate.coord.t[1];
                 drop_request.start.vz = item->locate->locate.coord.t[2];
@@ -253,7 +253,7 @@ void ProcItemDokudango(TItem *item)
                         AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
                     }
-                    item->owner = 0;
+                    item->owner.human = 0;
                     item->proc = 0;
                 }
                 ReqItemDrop(&drop_request);
@@ -273,12 +273,12 @@ void ProcItemDokudango(TItem *item)
                 {
                     restore_param->eater->think[0] = restore_param->org_think;
                     restore_param->eater->target =
-                        (ModelType *)item->owner->model;
+                        (ModelType *)item->owner.human->model;
                 }
                 restore_param->eater = 0;
             }
             param->eater = nearest_target;
-            if (nearest_target->target == (ModelType *)item->owner->model &&
+            if (nearest_target->target == (ModelType *)item->owner.human->model &&
                 (nearest_target->attribute & ATTR_PHASE) == PHASE_CALM)
             {
                 param->org_think = nearest_target->think[0];
@@ -383,7 +383,7 @@ void ProcItemDokudango(TItem *item)
                 {
                     restore_param->eater->think[0] = restore_param->org_think;
                     restore_param->eater->target =
-                        (ModelType *)item->owner->model;
+                        (ModelType *)item->owner.human->model;
                 }
                 restore_param->eater = 0;
                 param->eater = saved_eater;

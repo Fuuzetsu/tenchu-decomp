@@ -50,7 +50,7 @@ int ReqItemStay(PARAM_ITEM_STAY *p)
     PARAM_ITEM_LAUNCH param;
 
     param.type = p->type;
-    param.user = (Humanoid *)CONFLICT_OWNER_ITEM;
+    param.user.tag = CONFLICT_OWNER_ITEM;
     param.start.vx = p->locate.vx;
     param.start.vy = p->locate.vy;
     param.start.vz = p->locate.vz;

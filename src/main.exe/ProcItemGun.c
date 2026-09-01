@@ -97,7 +97,7 @@ void ProcItemGun(TItem *item)
     {
     case GUN_MODE_FLASH:
         vec = svec_z_n250[0];
-        RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
+        RotateVectorS(&vec, item->owner.human->model->rotate.vx, item->owner.human->model->rotate.vy, 0);
         SetImpact((VECTOR *)item->locate->locate.coord.t, 2 * FIXED_ONE, 0);
         SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, COLOR_GRAY_DARK);
         item->mode++;
@@ -114,7 +114,7 @@ void ProcItemGun(TItem *item)
         vec.vx = rx;
         vec.vy = ry;
         vec.vz = 0;
-        IsHuman = SearchItemTarget2(item->owner, &vec, (VECTOR *)item->locate->locate.coord.t, &target);
+        IsHuman = SearchItemTarget2(item->owner.human, &vec, (VECTOR *)item->locate->locate.coord.t, &target);
         item->locate->locate.coord.t[0] = target.vx;
         item->locate->locate.coord.t[1] = target.vy;
         item->locate->locate.coord.t[2] = target.vz;
@@ -126,7 +126,7 @@ void ProcItemGun(TItem *item)
             SVECTOR vec;
 
             vec = svec_z_150[0];
-            RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
+            RotateVectorS(&vec, item->owner.human->model->rotate.vx, item->owner.human->model->rotate.vy, 0);
             if (IsHuman != 0)
             {
                 SetImpact(&target, 6 * FIXED_ONE, 0);
@@ -154,7 +154,7 @@ void ProcItemGun(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
         return;
     }

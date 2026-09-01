@@ -463,7 +463,7 @@ void ActSTICKON(void)
                         : base_angle_value + ANGLE_QUADRANT) &
                     0xF00;
         }
-        item.user = Me_MOTION_C;
+        item.user.human = Me_MOTION_C;
         item.type = StickonItem;
         Me_MOTION_C->item[StickonItem]--;
         position = GetAbsolutePosition(Me_MOTION_C->model->object[pd + 0xD] /* 13/14: L/R hand */,

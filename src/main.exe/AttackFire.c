@@ -71,7 +71,7 @@ void AttackFire(s16 sfrm, s16 efrm)
             Sound(Me_MOTION_C, SE_FIRE);
         }
         item.type = ITEM_NAPALM;
-        item.user = Me_MOTION_C;
+        item.user.human = Me_MOTION_C;
         start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, -100, -300);
         item.start.vx = start_pos->vx;
         item.start.vy = start_pos->vy;

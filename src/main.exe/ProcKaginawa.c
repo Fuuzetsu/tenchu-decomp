@@ -49,9 +49,9 @@
  *    two dispose blocks; in the big third block $s1 has been repurposed for
  *    the ViewInfo/CamState addresses, so the same `dispose_mode` variable is
  *    rematerialised as a fresh `li 0xff` there.
- *  - `owner = item->owner` is ONE load feeding both the hookflag test and the
+ *  - `owner = item->owner.human` is ONE load feeding both the hookflag test and the
  *    motion->mid test (caller-saved $v1, dies at the first call); the big
- *    block reloads item->owner for its pad-bit test and hookflag clear.
+ *    block reloads item->owner.human for its pad-bit test and hookflag clear.
  *  - The dispose tail is written out in all three branches; jump2's
  *    cross-jump merges the identical `jalr`-onward suffix into one shared
  *    tail after the third branch (the mode-store instruction differs — $s1
@@ -87,7 +87,7 @@ void ProcKaginawa(TItem *item)
         item->mode = ITEM_MODE_START;
         return;
     }
-    owner = item->owner;
+    owner = item->owner.human;
     if (owner->item[ITEM_N] == 0)
     {
         SetCameraMode(CMODE_DIRECTION);
@@ -99,7 +99,7 @@ void ProcKaginawa(TItem *item)
         DeleteConflict(item->locate);
         if (item->mode != ITEM_MODE_START)
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
     }
     else if (owner->motion->mid != MOT_KAGI)
@@ -112,13 +112,13 @@ void ProcKaginawa(TItem *item)
         DeleteConflict(item->locate);
         if (item->mode != ITEM_MODE_START)
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
     }
     else
     {
         GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
-        if (item->owner->pad.data & PADRup)
+        if (item->owner.human->pad.data & PADRup)
         {
             if (rx < 0)
                 GsSortSprite(TargetSprite, OTablePt, 0);
@@ -154,7 +154,7 @@ void ProcKaginawa(TItem *item)
             CamState.TargetVector = *(VECTOR *)CamState.Owner->model->locate.coord.t;
         }
         SetCameraMode(CMODE_LOCK);
-        item->owner->item[ITEM_N] = 0;
+        item->owner.human->item[ITEM_N] = 0;
         item_proc = item->proc;
         if (item_proc == 0)
             return;
@@ -163,7 +163,7 @@ void ProcKaginawa(TItem *item)
         DeleteConflict(item->locate);
         if (item->mode != ITEM_MODE_START)
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        item->owner = 0;
+        item->owner.human = 0;
         item->proc = 0;
     }
 }

@@ -59,7 +59,7 @@
  *    paths.  `(u32 *)0x80090000` plus the -0x6100 load offset produces the two
  *    target `lui v0,0x8009` definitions: one in the count guard's delay slot,
  *    and one after the effect call that clobbers v0.
- *  - The first mode-2 motion check dereferences `item->owner` directly; sharing
+ *  - The first mode-2 motion check dereferences `item->owner.human` directly; sharing
  *    the later pad-control `human` local changes a0 to a2 at all three loads.
  *  - The human-shaped `CamState.Owner` access emits two CamState HI16
  *    relocations around the effect call and one shared LO16 field load.  With
@@ -110,8 +110,8 @@ void ProcItemShinsoku(TItem *item)
     switch (item->mode)
     {
     case SHINSOKU_MODE_START:
-        SetNowMotion(item->owner, MOT_ITEM_SHINSOKU, 1);
-        Sound(item->owner, SE_ITEM_USE);
+        SetNowMotion(item->owner.human, MOT_ITEM_SHINSOKU, 1);
+        Sound(item->owner.human, SE_ITEM_USE);
         item->mode++;
         return;
 
@@ -119,7 +119,7 @@ void ProcItemShinsoku(TItem *item)
     {
         MotionManager *motion;
 
-        motion = item->owner->motion;
+        motion = item->owner.human->motion;
         if (motion->mid != MOT_ITEM_SHINSOKU)
         {
             VECTOR *pos;
@@ -131,13 +131,13 @@ void ProcItemShinsoku(TItem *item)
             PARAM_ITEM_LAUNCH *launchp;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner;
+            human = item->owner.human;
             itemID = item->type;
             launchp = &scratch.p;
             memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
             launchp = 0;
             scratch.p.type = itemID;
-            scratch.p.user = human;
+            scratch.p.user.human = human;
             scratch.p.start.vx = pos->vx;
             scratch.p.start.vy = pos->vy;
             scratch.p.start.vz = pos->vz;
@@ -159,7 +159,7 @@ void ProcItemShinsoku(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner = 0;
+            item->owner.human = 0;
             item->proc = 0;
             return;
         }
@@ -171,7 +171,7 @@ void ProcItemShinsoku(TItem *item)
         {
             return;
         }
-        spawn_smoke_burst_(item->owner->locate, 150,
+        spawn_smoke_burst_(item->owner.human->locate, 150,
                            SMOKE_DRIFT_DIVISOR_DEFAULT, 8);
         param->count = SHINSOKU_DURATION;
         item->mode++;
@@ -187,7 +187,7 @@ void ProcItemShinsoku(TItem *item)
         s32 rotate;
         VECTOR *apos;
 
-        if (item->owner->motion->mid != MOT_ITEM_SHINSOKU)
+        if (item->owner.human->motion->mid != MOT_ITEM_SHINSOKU)
         {
             if (item->proc == 0)
             {
@@ -200,14 +200,14 @@ void ProcItemShinsoku(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner = 0;
+            item->owner.human = 0;
             item->proc = 0;
             return;
         }
 
-        pos.vx = item->owner->model->locate.coord.t[0];
-        pos.vy = item->owner->model->locate.coord.t[1];
-        pos.vz = item->owner->model->locate.coord.t[2];
+        pos.vx = item->owner.human->model->locate.coord.t[0];
+        pos.vy = item->owner.human->model->locate.coord.t[1];
+        pos.vz = item->owner.human->model->locate.coord.t[2];
         pos.vx += param->vec.vx;
         pos.vy += param->vec.vy;
         pos.vz += param->vec.vz;
@@ -233,25 +233,25 @@ void ProcItemShinsoku(TItem *item)
         }
         if (valid != 0)
         {
-            item->owner->model->locate.coord.t[0] = pos.vx;
-            item->owner->model->locate.coord.t[1] = pos.vy;
-            item->owner->model->locate.coord.t[2] = pos.vz;
+            item->owner.human->model->locate.coord.t[0] = pos.vx;
+            item->owner.human->model->locate.coord.t[1] = pos.vy;
+            item->owner.human->model->locate.coord.t[2] = pos.vz;
         }
 
         if ((param->count & 3) == 0)
         {
             scratch.query.pos =
-                *(VECTOR *)item->owner->model->locate.coord.t;
+                *(VECTOR *)item->owner.human->model->locate.coord.t;
             scratch.query.pos.vy -= 300;
             set_impact_ex_(&scratch.query.pos, 0, 2 * FIXED_ONE, 5 * FIXED_ONE,
                            COLOR_GRAY, 0, 0, -30, 0x10, 3);
         }
-        if (CamState.Owner == item->owner)
+        if (CamState.Owner == item->owner.human)
         {
             SetCameraMode(CMODE_CROUCH);
         }
 
-        human = item->owner;
+        human = item->owner.human;
         buttons = human->pad.data;
         if ((buttons & PADLright) != 0)
         {
@@ -269,11 +269,11 @@ void ProcItemShinsoku(TItem *item)
         }
 
         param->count--;
-        if (param->count != 0 && (item->owner->pad.trig & (PADRleft | PADRdown | PADRright | PADRup)) == 0)
+        if (param->count != 0 && (item->owner.human->pad.trig & (PADRleft | PADRdown | PADRright | PADRup)) == 0)
         {
             return;
         }
-        NowReturnNormal(item->owner);
+        NowReturnNormal(item->owner.human);
         SetCameraMode(CMODE_NORMAL);
         if (item->proc == 0)
         {
