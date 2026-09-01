@@ -1,8 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
-
-/* A lit telop pixel: white in the 15-bit BGR the bitmap holds. */
-#define TELOP_WHITE 0x7fff
+#include "font.h"
+#include "tim.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -53,7 +52,7 @@ extern void *memset(void *dst, int value, u32 size);
 
 void SetupTelop(u8 *telop, short line)
 {
-    s16 bitmap[16][16];
+    s16 bitmap[TELOP_BITMAP_SIZE][TELOP_BITMAP_SIZE];
     RECT rect;
     s16 n;
     s16 u;
@@ -72,12 +71,15 @@ void SetupTelop(u8 *telop, short line)
      * kanji glyph path below instead of the font sprites. */
     if ((*telop & 0x80) != 0 && (telop[2] & 0x80) != 0)
     {
-        setRECT(&rect, 0x300, 0x1f0 - line * 16, 0x100, 0xf);
-        line_y = line * 16;
-        ClearImage(&rect, 0, 0, 0);
+        setRECT(&rect, TELOP_VRAM_X,
+                TELOP_VRAM_BASE_Y - line * TELOP_BITMAP_SIZE,
+                TELOP_VRAM_STRIP_WIDTH, TELOP_GLYPH_ROWS);
+        line_y = line * TELOP_BITMAP_SIZE;
+        ClearImage(&rect, TELOP_PIXEL_TRANSPARENT,
+                   TELOP_PIXEL_TRANSPARENT, TELOP_PIXEL_TRANSPARENT);
         DrawSync(0);
-        rect.w = 0x10;
-        rect.h = 0xf;
+        rect.w = TELOP_BITMAP_SIZE;
+        rect.h = TELOP_GLYPH_ROWS;
 
         if (*telop == 0)
         {
@@ -89,12 +91,13 @@ void SetupTelop(u8 *telop, short line)
         n = 0;
         while (1)
         {
-            if (n >= 0x20)
+            if (n >= TELOP_MAX_SJIS_BYTES)
             {
                 break;
             }
 
-            if (telop[n] == 0x81 && telop[n + 1] == 0x99)
+            if (telop[n] == TELOP_CUSTOM_STAR_LEAD &&
+                telop[n + 1] == TELOP_CUSTOM_STAR_TRAIL)
             {
                 font = TelopFont;
             }
@@ -122,44 +125,50 @@ void SetupTelop(u8 *telop, short line)
                     u = 0;
                     do
                     {
-                        bitmap[v][15 - u] = ((bits >> u) & 1) ? TELOP_WHITE : 0;
+                        bitmap[v][TELOP_BITMAP_SIZE - 1 - u] =
+                            ((bits >> u) & 1) ? TELOP_PIXEL_WHITE
+                                             : TELOP_PIXEL_TRANSPARENT;
                         u++;
-                    } while (u < 16);
+                    } while (u < TELOP_BITMAP_SIZE);
                     v++;
-                } while (v < 15);
-                u = 1;
-                v = 1;
+                } while (v < TELOP_GLYPH_ROWS);
+                u = TELOP_OUTLINE_FIRST_PIXEL;
+                v = TELOP_OUTLINE_FIRST_PIXEL;
                 do
                 {
-                    if (bitmap[v][u] == 0)
+                    if (bitmap[v][u] == TELOP_PIXEL_TRANSPARENT)
                     {
-                        if ((bitmap[v - 1][u] == TELOP_WHITE && bitmap[v][u - 1] == TELOP_WHITE) ||
-                            (bitmap[v][u - 1] == TELOP_WHITE && bitmap[v + 1][u] == TELOP_WHITE) ||
-                            (bitmap[v + 1][u] == TELOP_WHITE && bitmap[v][u + 1] == TELOP_WHITE) ||
-                            (bitmap[v][u + 1] == TELOP_WHITE && bitmap[v - 1][u] == TELOP_WHITE))
+                        if ((bitmap[v - 1][u] == TELOP_PIXEL_WHITE &&
+                             bitmap[v][u - 1] == TELOP_PIXEL_WHITE) ||
+                            (bitmap[v][u - 1] == TELOP_PIXEL_WHITE &&
+                             bitmap[v + 1][u] == TELOP_PIXEL_WHITE) ||
+                            (bitmap[v + 1][u] == TELOP_PIXEL_WHITE &&
+                             bitmap[v][u + 1] == TELOP_PIXEL_WHITE) ||
+                            (bitmap[v][u + 1] == TELOP_PIXEL_WHITE &&
+                             bitmap[v - 1][u] == TELOP_PIXEL_WHITE))
                         {
-                            bitmap[v][u] = 0x1ce7;
+                            bitmap[v][u] = TELOP_PIXEL_OUTLINE;
                         }
                     }
                     u++;
                     signed_v = v;
-                    if (u >= 15)
+                    if (u >= TELOP_OUTLINE_X_LIMIT)
                     {
-                        u = 1;
+                        u = TELOP_OUTLINE_FIRST_PIXEL;
                         v = signed_v + 1;
                     }
                     else
                     {
                         v = signed_v;
                     }
-                } while (v < 14);
+                } while (v < TELOP_OUTLINE_Y_LIMIT);
 
                 LoadImage(&rect, (u_long *)bitmap);
                 DrawSync(0);
                 rect.x += rect.w;
             }
 
-            n += 2;
+            n += TELOP_BYTES_PER_SJIS_GLYPH;
             if (telop[n] == 0)
             {
                 break;
@@ -168,7 +177,7 @@ void SetupTelop(u8 *telop, short line)
 
         memset(&TelopP, 0xff, sizeof(TelopP));
         final_v = SCREEN_H - line_y;
-        u = (u16)rect.x - 0x301;
+        u = (u16)rect.x - TELOP_TEXTURE_U_ORIGIN;
         setPolyFT4(&TelopP);
         TelopP.u2 = 0;
         TelopP.u0 = 0;
@@ -178,7 +187,8 @@ void SetupTelop(u8 *telop, short line)
         TelopP.u1 = u;
         TelopP.v3 = (u8)rect.h + final_v;
         TelopP.v2 = (u8)rect.h + final_v;
-        TelopP.tpage = GetTPage(2, 0, 0x300,
-                                0x1f0 - (s16)line_y);
+        TelopP.tpage = GetTPage(TIM_PIXEL_MODE_16BPP, GPU_BLEND_AVERAGE,
+                                TELOP_VRAM_X,
+                                TELOP_VRAM_BASE_Y - (s16)line_y);
     }
 }
