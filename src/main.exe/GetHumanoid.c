@@ -46,7 +46,7 @@
  *    the real per-iteration test rotates to the bottom.
  */
 
-Humanoid *GetHumanoid(short type)
+Humanoid *GetHumanoid(character_kind type)
 {
     Humanoid *p;
     short i;

@@ -65,7 +65,7 @@
  *    assignments reload the table field.
  */
 
-Humanoid *SetupCharacterParameter(s16 type, Humanoid *human)
+Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
 {
     int idx;
     s16 *idtbl;

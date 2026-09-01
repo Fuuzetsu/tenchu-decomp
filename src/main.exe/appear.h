@@ -16,9 +16,10 @@ enum
 extern short NowStage;
 
 extern void SetupAppearance(short mode, short stage);
-extern struct Humanoid *SetupCharacterParameter(short type,
+extern struct Humanoid *SetupCharacterParameter(character_kind type,
                                                 struct Humanoid *human);
-extern struct Humanoid *BreedLife(short type, long x, long y, long z, long r);
+extern struct Humanoid *BreedLife(character_kind type, long x, long y,
+                                  long z, long r);
 extern short GetAttackDBID(struct Humanoid *human, short mid);
 extern void GetWeaponData(struct Humanoid *human, short body, short wid,
                           short wpid, int wep);

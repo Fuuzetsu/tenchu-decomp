@@ -149,7 +149,7 @@ extern char msg_illigal_character_type[]; /* ILLIGAL CHARACTER TYPE */
 extern char fmt_mad[];                    /* %s%s.MAD */
 extern char path_human[];                 /* K:\\WORK\\CDIMAGE\\HUMAN\\ */
 
-Humanoid *BreedLife(s16 type, long x, long y, long z, long r)
+Humanoid *BreedLife(character_kind type, long x, long y, long z, long r)
 {
     /* PSX.SYM and the retail multiply both show a full-width counter. */
     u32 idx;

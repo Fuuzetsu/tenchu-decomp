@@ -166,14 +166,15 @@ extern short motMODE;
 
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);
-extern struct Humanoid *CreateHumanoid(short type, unsigned long *mad);
+extern struct Humanoid *CreateHumanoid(character_kind type,
+                                       unsigned long *mad);
 extern void KillHumanoid(struct Humanoid *human);
 extern short ControlAllHumanoid(void);
 extern void ControlHumanoid(struct Humanoid *human);
 extern short DefaultActionHumanoid(struct Humanoid *human);
 extern short SetNowMotion(struct Humanoid *human, short mid, short move);
 extern short ControlTraceLine(struct Humanoid *human);
-extern struct Humanoid *GetHumanoid(short type);
+extern struct Humanoid *GetHumanoid(character_kind type);
 extern struct Humanoid *GetNearestHumanoid(struct Humanoid *human, short distance);
 extern short SearchTarget(struct Humanoid *human, long *distance, short *degree);
 extern struct TraceLine *SetupTraceLine(struct Humanoid *human,

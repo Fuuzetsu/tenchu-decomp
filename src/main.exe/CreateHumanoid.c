@@ -100,7 +100,7 @@ extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 
 extern char msg_human_overflow[]; /* HUMAN OVERFLOW */
 
-Humanoid *CreateHumanoid(short type, unsigned long *mad)
+Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
 {
     Humanoid *human;
     s16 conflict_id;
