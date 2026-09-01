@@ -125,6 +125,16 @@ extern struct
     compact_character_kind type[N_PLAYABLE_CHARACTERS];
 } HensinT[N_HENSHIN_STAGE_ROWS];
 
+/* A humanoid can pursue either another articulated character model or a
+ * standalone item model.  Both begin with the transform consumed by the
+ * target-tracking code. */
+typedef union HumanoidTargetReference HumanoidTargetReference;
+union HumanoidTargetReference
+{
+    ModelType *model;
+    ModelArchiveType *archive;
+}; /* 0x04 */
+
 typedef struct Humanoid
 {
     character_kind type;      /* 0x00 */
@@ -153,10 +163,9 @@ typedef struct Humanoid
     TraceLine *trace;         /* 0x70 (SetupTraceLine/ControlTraceLine;
                                  Ghidra's own independently-built Humanoid
                                  also names this exact offset `trace`) */
-    ModelType *target;        /* 0x74 (launch_lightning_bolt_
-                                 reads target->locate.coord.t[1], the Y
-                                 translation of the target's world matrix,
-                                 for a lightning-bolt end point) */
+    HumanoidTargetReference target; /* 0x74 (launch_lightning_bolt_
+                                       reads target.model's world Y for a
+                                       lightning-bolt end point) */
     s32 point[2];             /* 0x78 (ground X/Z spawn position --
                                  BreedLife: point[0]=x via `sw a1,0x78(s0)`,
                                  point[1]=z via `sw s4,0x7C(s0)`; matches

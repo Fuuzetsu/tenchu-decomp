@@ -136,10 +136,9 @@ void ProcItemNingyo(TItem *item)
                     Humanoid *human;
 
                     human = *human_cursor;
-                    if (human->target == item->locate)
+                    if (human->target.model == item->locate)
                     {
-                        human->target =
-                            (ModelType *)camera_state->Owner->model;
+                        human->target.archive = camera_state->Owner->model;
                     }
                     human_index++;
                     human_cursor++;
@@ -342,14 +341,14 @@ void ProcItemNingyo(TItem *item)
                     (VECTOR *)item->locate->locate.coord.t,
                     human->locate);
                 if (distance_to_decoy < NINGYO_LURE_RANGE &&
-                    human->target != 0 &&
+                    human->target.model != 0 &&
                     distance_to_decoy <
                         GetVectorDistance(
-                            (VECTOR *)human->target->locate.coord.t,
+                            (VECTOR *)human->target.model->locate.coord.t,
                             human->locate) &&
                     ((u16)human->type & PAGE_MASK) != PAGE_BOSS)
                 {
-                    human->target = item->locate;
+                    human->target.model = item->locate;
                 }
                 human_cursor++;
                 human_index++;

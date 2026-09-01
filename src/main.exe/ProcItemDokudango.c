@@ -92,7 +92,7 @@ void ProcItemDokudango(TItem *item)
             restore_param->org_think != 0)
         {
             restore_param->eater->think[0] = restore_param->org_think;
-            restore_param->eater->target = (ModelType *)item->owner.human->model;
+            restore_param->eater->target.archive = item->owner.human->model;
         }
         restore_param->eater = 0;
         item->mode = DOKUDANGO_MODE_ROLL;
@@ -272,17 +272,17 @@ void ProcItemDokudango(TItem *item)
                     restore_param->org_think != 0)
                 {
                     restore_param->eater->think[0] = restore_param->org_think;
-                    restore_param->eater->target =
-                        (ModelType *)item->owner.human->model;
+                    restore_param->eater->target.archive =
+                        item->owner.human->model;
                 }
                 restore_param->eater = 0;
             }
             param->eater = nearest_target;
-            if (nearest_target->target == (ModelType *)item->owner.human->model &&
+            if (nearest_target->target.archive == item->owner.human->model &&
                 (nearest_target->attribute & ATTR_PHASE) == PHASE_CALM)
             {
                 param->org_think = nearest_target->think[0];
-                param->eater->target = item->locate;
+                param->eater->target.model = item->locate;
                 param->eater->think[0] = Think1target;
             }
             else
@@ -382,8 +382,8 @@ void ProcItemDokudango(TItem *item)
                     restore_param->org_think != 0)
                 {
                     restore_param->eater->think[0] = restore_param->org_think;
-                    restore_param->eater->target =
-                        (ModelType *)item->owner.human->model;
+                    restore_param->eater->target.archive =
+                        item->owner.human->model;
                 }
                 restore_param->eater = 0;
                 param->eater = saved_eater;

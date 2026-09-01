@@ -169,12 +169,12 @@ void StartStageSequence(void)
             UpdateCoordinate((ModelType *)human->model);
             SetupThinkFunction(human, stg->think);
             {
-                ModelType *target;
+                ModelArchiveType *target;
 
-                target = (ModelType *)StagePlayer->model;
+                target = StagePlayer->model;
                 human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
                 human->life = HUMANOID_LIFE_INACTIVE;
-                human->target = target;
+                human->target.archive = target;
             }
         }
         stg++;

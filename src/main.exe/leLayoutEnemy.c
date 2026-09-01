@@ -113,7 +113,7 @@ void leLayoutEnemy(int mode)
              * (inlining the read reorders the pair; measured). */
             owner_model = CamState.Owner->model;
             human->attribute |= ATTR_SUSPEND;
-            human->target = (ModelType *)owner_model;
+            human->target.archive = owner_model;
             human->model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_COLLIDE;
             if (mode == 1)
             {

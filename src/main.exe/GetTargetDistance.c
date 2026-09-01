@@ -23,7 +23,7 @@
  * reflects via `0x1000 - deg2`, the <= -0x800 arm wraps by adding
  * 0x1000).
  *
- * `human->target->locate.coord.t[0]/[2]` reach a GsCOORDINATE2's embedded
+ * `human->target.model->locate.coord.t[0]/[2]` reach a GsCOORDINATE2's embedded
  * MATRIX.t[] world-position (ModelType.locate @0x00, MATRIX.t[] @0x14 within
  * it — 0x18/0x20 total, matching the asm's displacements).
  *
@@ -54,8 +54,8 @@ long GetTargetDistance(Humanoid *human, short *deg)
     s32 diff;
     s16 deg2;
 
-    dx = human->target->locate.coord.t[0] - human->locate->vx;
-    dz = human->target->locate.coord.t[2] - human->locate->vz;
+    dx = human->target.model->locate.coord.t[0] - human->locate->vx;
+    dz = human->target.model->locate.coord.t[2] - human->locate->vz;
     vy = (u16)human->rotate->vy;
     angle = ratan2(-dx, -dz);
     diff = angle - vy;

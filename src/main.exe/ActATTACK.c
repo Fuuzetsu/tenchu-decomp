@@ -268,7 +268,7 @@ void ActATTACK(void)
         human = Me_MOTION_C;
         warid = human->warid;
         battle = &BattleDB[warid];
-        target = human->target;
+        target = human->target.model;
     }
     if (((target != 0) && (dtM->count < battle->revise)) && (dtM->count >= 0))
     {
@@ -701,7 +701,7 @@ dispatch:
             CamState.snap_pending = 1;
             return;
         }
-        if ((dtM->loop == 0) && (dtL->vy == Me_MOTION_C->target->locate.coord.t[1]))
+        if ((dtM->loop == 0) && (dtL->vy == Me_MOTION_C->target.model->locate.coord.t[1]))
         {
             return;
         }

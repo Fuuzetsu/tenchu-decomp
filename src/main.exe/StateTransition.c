@@ -64,9 +64,10 @@
  *  - The one-shot `do` around the case-0 chase resets emits no control-flow
  *    instructions.  Its loop-depth notes weight the two pointer uses enough
  *    for local-alloc to choose the target's $v0/$v1 order naturally.
- *  - Repeating `attacker->target` for the two coordinate reads makes cse preserve
- *    the loaded target pointer with the target's explicit copy.  The >=-form
- *    ternaries likewise expand the two absolute values directly as abssi2.
+ *  - Repeating `attacker->target.model` for the two coordinate reads makes
+ *    cse preserve the loaded target pointer with the target's explicit copy.
+ *    The >=-form ternaries likewise expand the two absolute values directly
+ *    as abssi2.
  *  - reset_alert_duration has an old-style declaration intentionally.  The
  *    case-0 call carries the already-loaded life value in $a0; the callee takes
  *    no arguments, but preserving that harmless call-site value keeps jump.c
@@ -152,8 +153,10 @@ void StateTransition(Humanoid *human)
         pad = 0;
         if ((u16)(human->type - PAGE_GUARD) < PAGE_BOSS - PAGE_GUARD)
         {
-            target_dx = human->target->locate.coord.t[0] - human->locate->vx;
-            target_dz = human->target->locate.coord.t[2] - human->locate->vz;
+            target_dx = human->target.model->locate.coord.t[0] -
+                        human->locate->vx;
+            target_dz = human->target.model->locate.coord.t[2] -
+                        human->locate->vz;
             target_direction = GetDirection(target_dx, target_dz,
                                             human->rotate->vy);
             if (target_direction > Me_THINK_C->turn)
@@ -190,7 +193,7 @@ void StateTransition(Humanoid *human)
     }
 
     SR = SearchTarget(human, &Distance, &Degree);
-    if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
+    if (Me_THINK_C->target.archive == StagePlayer->model)
     {
         player_distance = Distance;
     }
@@ -304,8 +307,7 @@ void StateTransition(Humanoid *human)
                     case 0:
                         break;
                     default:
-                        if (alert_actor->target ==
-                            (ModelType *)StagePlayer->model)
+                        if (alert_actor->target.archive == StagePlayer->model)
                         {
                             Findenemies++;
                         }
@@ -369,7 +371,7 @@ void StateTransition(Humanoid *human)
                 reset_alert_duration();
                 alert_actor = Me_THINK_C;
                 if (alert_actor->type < PAGE_BOSS &&
-                    alert_actor->target == (ModelType *)StagePlayer->model)
+                    alert_actor->target.archive == StagePlayer->model)
                 {
                     Findenemies++;
                 }
@@ -390,7 +392,7 @@ void StateTransition(Humanoid *human)
     {
         if (Attrib & ATTR_ALERT)
         {
-            if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
+            if (Me_THINK_C->target.archive == StagePlayer->model)
             {
                 StrainRatio = 0;
             }
@@ -428,7 +430,7 @@ void StateTransition(Humanoid *human)
             }
 
             attacker = Me_THINK_C;
-            target_dy = attacker->target->locate.coord.t[1] -
+            target_dy = attacker->target.model->locate.coord.t[1] -
                         attacker->locate->vy;
             target_dy = target_dy >= 0 ? target_dy : -target_dy;
             if (target_dy < ATTACK_HEIGHT_RANGE)
@@ -460,8 +462,8 @@ void StateTransition(Humanoid *human)
             searcher = Me_THINK_C;
             Attrib = base_attrib | ATTR_SEARCH | PHASE_INVESTIGATE;
             searcher->chase[HUMANOID_CHASE_X] =
-                searcher->target->locate.coord.t[0];
-            last_seen_z = searcher->target->locate.coord.t[2];
+                searcher->target.model->locate.coord.t[0];
+            last_seen_z = searcher->target.model->locate.coord.t[2];
             searcher->actscnt = 1;
             searcher->chase[HUMANOID_CHASE_Z] = last_seen_z;
         }
@@ -512,7 +514,7 @@ void StateTransition(Humanoid *human)
             alert_actor = Me_THINK_C;
             if (alert_actor->type < PAGE_BOSS &&
                 (Attrib & ATTR_SEARCH) == 0 &&
-                alert_actor->target == (ModelType *)StagePlayer->model)
+                alert_actor->target.archive == StagePlayer->model)
             {
                 Findenemies++;
             }

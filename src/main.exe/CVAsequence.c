@@ -128,7 +128,7 @@ run_sequence:
     if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = 1;
     MotionUpdateMode = 1;
-    StagePlayer->target = 0;
+    StagePlayer->target.model = 0;
     PadShockAR(0, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     PadShock(0, 0, 0);
     PadProc();

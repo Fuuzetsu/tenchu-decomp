@@ -110,12 +110,12 @@ void AttackControl(void)
                 {
                     ModelType *target;
 
-                    Me_MOTION_C->target = (ModelType *)enemy->model;
+                    Me_MOTION_C->target.archive = enemy->model;
                     GetTargetDistance(Me_MOTION_C, &mydeg);
-                    target = enemy->target;
-                    enemy->target = (ModelType *)StagePlayer->model;
+                    target = enemy->target.model;
+                    enemy->target.archive = StagePlayer->model;
                     GetTargetDistance(enemy, &deg);
-                    enemy->target = target;
+                    enemy->target.model = target;
 
                     if (dtL->vy == enemy->locate->vy &&
                         Me_MOTION_C->map.vector == 0 &&
@@ -228,11 +228,11 @@ void AttackControl(void)
         human = Me_MOTION_C;
         if (enemy != NULL)
         {
-            human->target = (ModelType *)enemy->model;
+            human->target.archive = enemy->model;
         }
         else
         {
-            human->target = NULL;
+            human->target.model = NULL;
         }
     }
 }
