@@ -6,12 +6,8 @@
  * caller tests it before reading the result table. */
 /* ModelType.attribute draw/cull configuration (the Draw* family's atr
  * tests, in test order) and the collision pair: */
-/* Humanoid.wpatk packs the weapon's range class in the high nibble
- * (0-2 melee reach tiers, WPATK_CLASS_RANGED for bows/guns) and the
- * attack-pattern index in the low nibble. */
-#define WPATK_CLASS(w) ((w) >> 4)
-#define WPATK_CLASS_RANGED 3
-#define N_WPATK_CLASSES (WPATK_CLASS_RANGED + 1)
+/* Humanoid.wpatk is a weapon_kind whose high nibble is the
+ * weapon_attack_class declared beside that domain in game_types.h. */
 
 /* The hand index shared by hand[], wepid[], and GetWeaponData's wpid. */
 #define WEAPON_HAND_0 0
@@ -86,7 +82,7 @@ extern ThinkFunc Think2Func[N_THINK2_PROGRAMS];
 extern ThinkFunc Think3Func[N_THINK3_PROGRAMS];
 extern ThinkFunc Think4Func[N_THINK4_PROGRAMS];
 extern ThinkDBtype ThinkDB[20];
-extern ThinkFunc AttackFunc[N_WPATK_CLASSES];
+extern ThinkFunc AttackFunc[N_WEAPON_ATTACK_CLASSES];
 
 /* Think1watch/Think1target act on the ticks where actcnt's low bits are
  * clear, so the character looks around once per this many idle ticks. */

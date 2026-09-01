@@ -29,8 +29,8 @@
 /*
  * GetWeaponData (0x8002a290, 0x1f4 bytes) — two independent sentinel-
  * terminated linear searches feeding into `human`:
- *  1. WeaponDB[].ilup1.pad (SVECTOR's pad field, repurposed as an id) ==
- *     wid resolves an index stored into human->wepid[wpid] (item.h's
+ *  1. WeaponDB[].ilup1.components.kind == wid resolves an index stored into
+ *     human->wepid[wpid] (item.h's
  *     proven `wepid[2]`@0x90, this function's own proof — see item.h).
  *  2. WeaponModel[].wid == wid resolves a row whose .model (lazily
  *     FileRead of "%s%s.TMD" formatted from the fixed
@@ -90,9 +90,9 @@ static inline void FindWeaponId(Humanoid *human, weapon_kind wid, s16 wpid)
     s16 i;
 
     i = 0;
-    while (WeaponDB[i].ilup1.pad != WEAPON_KIND_END)
+    while (WeaponDB[i].ilup1.components.kind != WEAPON_KIND_END)
     {
-        if (WeaponDB[i].ilup1.pad == wid)
+        if (WeaponDB[i].ilup1.components.kind == wid)
         {
             human->wepid[wpid] = i;
             break;

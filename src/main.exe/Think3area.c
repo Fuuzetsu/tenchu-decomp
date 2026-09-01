@@ -71,7 +71,7 @@ s16 Think3area(void)
         SR = SR_NONE;
     }
 
-    if (WPATK_CLASS(Me_THINK_C->wpatk) == WPATK_CLASS_RANGED)
+    if (WEAPON_ATTACK_CLASS(Me_THINK_C->wpatk) == WEAPON_ATTACK_RANGED)
     {
         return Think3attack();
     }
@@ -82,7 +82,7 @@ s16 Think3area(void)
 
     if (Me_THINK_C->actflg != 0)
     {
-        pad = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
+        pad = AttackFunc[WEAPON_ATTACK_CLASS(Me_THINK_C->wpatk)]();
         if (Distance < AREA_ENGAGE_RANGE)
         {
             Me_THINK_C->actcnt++;

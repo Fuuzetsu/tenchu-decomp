@@ -1831,26 +1831,65 @@ struct EventSeqType
     EventTrigger trigger; /* 0x06 */
 }; /* 0x14 */
 
-/* APPEAR.C's per-weapon anchor points, in the weapon model's local
- * space: confp positions the CONFlict hitbox (its .pad doubles as the
- * hitbox size — ActATTACK), and ilup0/ilup1 are the two ILlUsion
- * Points the afterimage trail (BattleType's ilus/ilue window)
- * stretches between — blade root and tip. ilup1.pad doubles as the
- * row's weapon id, with WEAPON_KIND_END terminating the table
- * (GetWeaponData). */
-typedef struct WeaponType WeaponType;
-struct WeaponType
-{
-    SVECTOR confp; /* 0x00 */
-    SVECTOR ilup0; /* 0x08 */
-    SVECTOR ilup1; /* 0x10 */
-}; /* 0x18 */
-
-/* APPEAR.C's weapon-model database row. */
-/* Weapon kinds use signed halfword storage so -1 can terminate the APPEAR
+/* Weapon kinds use signed halfword storage so -1 can terminate APPEAR.C's
  * tables; enum weapon_kind below supplies the named values. */
 typedef s16 weapon_kind;
 
+/* The high nibble of Humanoid.wpatk selects the AI attack controller. The
+ * table order is proved by AttackFunc: AttackShort, AttackGeneral,
+ * AttackLong, then AttackIndirect. */
+typedef s16 weapon_attack_class;
+enum weapon_attack_class
+{
+    WEAPON_ATTACK_SHORT = 0,
+    WEAPON_ATTACK_GENERAL = 1,
+    WEAPON_ATTACK_LONG = 2,
+    WEAPON_ATTACK_RANGED = 3
+};
+
+#define WEAPON_ATTACK_CLASS(kind) ((kind) >> 4)
+#define N_WEAPON_ATTACK_CLASSES (WEAPON_ATTACK_RANGED + 1)
+
+/* APPEAR.C's per-weapon anchor points, in the weapon model's local space.
+ * The original fields are SVECTORs, but two fourth halfwords carry table
+ * metadata: confp's is the uniform conflict-box half-extent, and ilup1's is
+ * the row's weapon kind (or WEAPON_KIND_END). Preserve vector views for the
+ * aggregate copies while exposing those fields to their consumers. */
+typedef union WeaponConflictPoint WeaponConflictPoint;
+union WeaponConflictPoint
+{
+    SVECTOR vector;
+    struct
+    {
+        s16 x;
+        s16 y;
+        s16 z;
+        s16 half_extent;
+    } components;
+}; /* 0x08 */
+
+typedef union WeaponTrailEndpoint WeaponTrailEndpoint;
+union WeaponTrailEndpoint
+{
+    SVECTOR vector;
+    struct
+    {
+        s16 x;
+        s16 y;
+        s16 z;
+        weapon_kind kind;
+    } components;
+}; /* 0x08 */
+
+typedef struct WeaponType WeaponType;
+struct WeaponType
+{
+    WeaponConflictPoint confp; /* 0x00: conflict centre and half-extent */
+    SVECTOR ilup0;              /* 0x08: afterimage trail start */
+    WeaponTrailEndpoint ilup1; /* 0x10: afterimage trail end and row key */
+}; /* 0x18 */
+
+/* APPEAR.C's weapon-model database row. */
 typedef struct WeaponModelType WeaponModelType;
 struct WeaponModelType
 {
@@ -1862,8 +1901,8 @@ struct WeaponModelType
 /* APPEAR.C's character database row. */
 /* Weapon kinds (HumanDataType.wepid, copied into Humanoid.wpatk by
  * SetupWeapon). The high nibble is the RANGE CLASS the think layer
- * extracts with `wpatk >> 4` to pick the Attack* controller (0 short /
- * 1 general / 2 long / 3 indirect-ranged: every *_YUMI archer is 0x32).
+ * extracts with WEAPON_ATTACK_CLASS to pick the Attack* controller (short,
+ * general, long, or indirect-ranged: every *_YUMI archer is 0x32).
  * The names in `weapon_kind` above are the game's own for every kind
  * from 0x04 up: WeaponModel[] pairs each wid with the string it builds
  * its .TMD path from, and all of 0x04..0x37 match. Only 0x00..0x03 have

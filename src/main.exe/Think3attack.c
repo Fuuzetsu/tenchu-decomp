@@ -42,8 +42,8 @@
 
 extern Humanoid *Me_THINK_C;
 /* Per-range-class engagement distances (retail data: 3000/3500/4000
- * for the melee classes, 20000 for the ranged class — wpatk >> 4). */
-extern s16 atkd[N_WPATK_CLASSES];
+ * for the melee classes, 20000 for the ranged class). */
+extern s16 atkd[N_WEAPON_ATTACK_CLASSES];
 
 extern s16 SuccessionAttack(s32 dist, s16 degree);
 extern s16 ItemUse(void);
@@ -52,14 +52,14 @@ s16 Think3attack(void)
 {
     s16 rng;
     s16 pad;
-    s16 idx;
+    weapon_attack_class idx;
 
     pad = 0;
-    idx = WPATK_CLASS(Me_THINK_C->wpatk);
+    idx = WEAPON_ATTACK_CLASS(Me_THINK_C->wpatk);
 
     if (Me_THINK_C->status == STAT_ATTACK)
     {
-        if (idx != WPATK_CLASS_RANGED)
+        if (idx != WEAPON_ATTACK_RANGED)
         {
             pad = SuccessionAttack(3000, 1500);
         }
@@ -71,21 +71,21 @@ s16 Think3attack(void)
     }
 
     if (SR != SR_GONE &&
-        ((idx == WPATK_CLASS_RANGED && Distance < 14000) || Distance < SR_CLEAR_RANGE))
+        ((idx == WEAPON_ATTACK_RANGED && Distance < 14000) || Distance < SR_CLEAR_RANGE))
     {
         SR = SR_NONE;
     }
 
-    if ((s16)((N_WPATK_CLASSES - idx) * Me_THINK_C->turn) < Degree)
+    if ((s16)((N_WEAPON_ATTACK_CLASSES - idx) * Me_THINK_C->turn) < Degree)
     {
         pad = PADLright;
     }
-    else if (Degree < -(s16)((N_WPATK_CLASSES - idx) * Me_THINK_C->turn))
+    else if (Degree < -(s16)((N_WEAPON_ATTACK_CLASSES - idx) * Me_THINK_C->turn))
     {
         pad = PADLleft;
     }
 
-    if (idx != WPATK_CLASS_RANGED)
+    if (idx != WEAPON_ATTACK_RANGED)
     {
         rng = atkd[idx] / 2;
     }
@@ -122,7 +122,7 @@ s16 Think3attack(void)
     }
     else if (Distance < atkd[idx])
     {
-        if (idx == WPATK_CLASS_RANGED)
+        if (idx == WEAPON_ATTACK_RANGED)
         {
             if (pad == 0 && rand() % (EngageLevel * 4) == 0)
             {

@@ -46,7 +46,7 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  * 1-in-30 chance (Distance <
  * 2000) to press PADRdown (jump); arm actflg once far enough away
  * (Distance > 4000) or once Attrib bit 0x400 is set. Else (already
- * acting): dispatch through AttackFunc[wpatk>>4]() — same
+ * acting): dispatch through the packed weapon attack class — same
  * zero-argument indirect-call idiom as Think3chase.c.
  *
  * Matching notes:
@@ -85,7 +85,7 @@ s16 Think3hitaway(void)
     }
     else if (Me_THINK_C->actflg != 0)
     {
-        pad = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
+        pad = AttackFunc[WEAPON_ATTACK_CLASS(Me_THINK_C->wpatk)]();
     }
     else
     {

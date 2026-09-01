@@ -54,8 +54,9 @@
         short conflict_size;                                                  \
                                                                               \
         conflict_id = InsertConflict(hand[hand_]);                            \
-        ConflictObject[conflict_id].offset.vector = WeaponDB[wid].confp;      \
-        conflict_size = WeaponDB[wid].confp.pad;                              \
+        ConflictObject[conflict_id].offset.vector =                           \
+            WeaponDB[wid].confp.vector;                                       \
+        conflict_size = WeaponDB[wid].confp.components.half_extent;           \
         owner = Me_MOTION_C;                                                  \
         ConflictObject[conflict_id].size.components.class_flags =             \
             CONFLICT_HIT;                                                     \
@@ -68,7 +69,7 @@
 #define SETUP_WEAPON_AFTERIMAGE(hand_)                                        \
     ilu = SetupAfterimage(hand[hand_], 10);                                   \
     ilu->vector1 = WeaponDB[wid].ilup0;                                       \
-    ilu->vector2 = WeaponDB[wid].ilup1;                                       \
+    ilu->vector2 = WeaponDB[wid].ilup1.vector;                                \
     Me_MOTION_C->illusion[hand_] = ilu
 
 #define FIRE_GUN_AT_FRAME(frame_, y_)                                         \

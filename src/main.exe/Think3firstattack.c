@@ -37,16 +37,16 @@
  * defers the function's s16 conversion to the shared return tail.
  */
 extern Humanoid *Me_THINK_C;
-/* Per-range-class first-attack distances, indexed by wpatk >> 4
+/* Per-range-class first-attack distances, indexed by weapon attack class
  * (same shape as Think3attack.c's atkd table). */
-extern s16 atkd2[N_WPATK_CLASSES];
+extern s16 atkd2[N_WEAPON_ATTACK_CLASSES];
 /* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
 extern int turn_towards_player_(int x_diff, int z_diff);
 
 s16 Think3firstattack(void)
 {
     s32 pad;
-    s16 idx;
+    weapon_attack_class idx;
     s32 degree;
 
     pad = turn_towards_player_(0, 0);
@@ -58,8 +58,8 @@ s16 Think3firstattack(void)
     {
         Attrib |= ATTR_SEARCH;
     }
-    idx = WPATK_CLASS(Me_THINK_C->wpatk);
-    if (idx == WPATK_CLASS_RANGED)
+    idx = WEAPON_ATTACK_CLASS(Me_THINK_C->wpatk);
+    if (idx == WEAPON_ATTACK_RANGED)
     {
         s32 masked;
 
