@@ -178,6 +178,7 @@ struct ScoreStats
 typedef struct ScoreResult ScoreResult;
 /* ScoreResult stores the named stage-rank domain in a signed halfword. */
 typedef s16 stage_rank;
+typedef u8 compact_stage_rank;
 struct ScoreResult
 {
     u16 criticalScore; /* 0x00 */
@@ -292,6 +293,7 @@ typedef short TThinkType;
 /* Character ids are stored as signed halfwords so tables can use -1 as
  * their end marker; enum character_kind below supplies the named values. */
 typedef s16 character_kind;
+typedef u8 compact_character_kind;
 
 /* WORLD.C's editable enemy placement. */
 #define MAX_ENEMY_PATH_POINTS 7
@@ -1538,7 +1540,7 @@ enum game_language
 typedef struct TLinkInfo
 {
     u32 magic;                        /* 0x000 0x19981110 (InitPersistentState) */
-    u8 CharType;                      /* 0x004 CHOSEN_CHARACTER (stock matrix row;
+    compact_character_kind CharType; /* 0x004 CHOSEN_CHARACTER (stock matrix row;
                                        *       demo +0x0, short) */
     u8 StageNo;                       /* 0x005 CHOSEN_STAGE (demo +0x2) */
     u8 layout;                        /* 0x006 STAGE_LAYOUT_NUMBER */
@@ -1580,8 +1582,8 @@ typedef struct TLinkInfo
                                                        *       0xFF = infinite;
                                                        *       [CharType][0x13] =
                                                        *       stage bonus flag */
-    u8 t_char[N_HIGH_SCORES];         /* 0x44C high-score character (demo name) */
-    u8 t_dani[N_HIGH_SCORES];         /* 0x451 high-score rank (demo name) */
+    compact_character_kind t_char[N_HIGH_SCORES]; /* 0x44C high-score character */
+    compact_stage_rank t_dani[N_HIGH_SCORES]; /* 0x451 high-score rank */
     long t_time[N_HIGH_SCORES];       /* 0x458 completion time; retail replacement for
                                        *       the demo's t_fun/t_byou byte arrays */
     u32 mission_flags;                /* 0x46C mission completion/unlock bitset

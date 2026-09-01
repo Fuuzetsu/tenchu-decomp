@@ -143,7 +143,7 @@ extern HenshinModelSnapshot HenshinSnapshot;
 #define N_HENSHIN_STAGE_ROWS (N_STAGE_CONFIGS + 1)
 extern struct
 {
-    u8 type[N_PLAYABLE_CHARACTERS];
+    compact_character_kind type[N_PLAYABLE_CHARACTERS];
 } HensinT[N_HENSHIN_STAGE_ROWS];
 
 typedef struct Humanoid

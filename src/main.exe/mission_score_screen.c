@@ -322,8 +322,8 @@ void mission_score_screen(void)
             if (SCORE_STATE->t_time[i] == 0)
             {
                 SCORE_STATE->t_time[i] = SCORE_CLOCK_MAX;
-                SCORE_STATE->t_char[i] = 0;
-                SCORE_STATE->t_dani[i] = 0;
+                SCORE_STATE->t_char[i] = RIKIMARU_0;
+                SCORE_STATE->t_dani[i] = RANK_THUG;
             }
         }
     }
