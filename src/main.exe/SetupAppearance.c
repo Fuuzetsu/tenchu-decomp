@@ -43,12 +43,11 @@
  *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
  *    preserves their adjacent halfword layout and their mode-cache/stage-cache
  *    roles despite other globals inserted ahead of them since the demo.
- *  - `resource` holds the StageMotion pointer for the null-check/free. An
- *    earlier draft also routed the two HumanData name stores through it as
- *    an allocation lever; re-measured 2026-08-29, the direct
- *    HumanData[i].name spellings are byte-identical, so only the
- *    StageMotion use remains (that stale measurement is why the type is a
- *    neutral void *).
+ *  - StageMotion can be tested and freed directly; the earlier neutral
+ *    `resource` alias was reconstruction residue. In contrast, rereading the
+ *    armour selection for the second comparison instead of caching it in
+ *    `appearance` grows the function by four bytes, so that byte remains a
+ *    measured retail scheduling input.
  */
 extern s16 ARMOUR_EQUIPPED_;
 extern s16 smode;
@@ -70,7 +69,6 @@ void SetupAppearance(short mode, short stage)
     short j;
     u8 name[100];
     u8 *pt;
-    void *resource;
     u8 appearance;
 
     NowStage = stage;
@@ -133,10 +131,9 @@ void SetupAppearance(short mode, short stage)
             vfree(PlayerMotion);
             PlayerMotion = 0;
         }
-        resource = StageMotion;
-        if (resource != 0)
+        if (StageMotion != 0)
         {
-            vfree(resource);
+            vfree(StageMotion);
             StageMotion = 0;
         }
     }
