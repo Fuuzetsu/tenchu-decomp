@@ -87,8 +87,6 @@ void Camera(void)
     if ((SystemFlag & SYSFLAG_DEBUGPRINT) != 0 && SkipFrame != SKIPFRAME_SKIPPED &&
         (pad_dat & PADselect) != 0)
     {
-        ModelType *model;
-
         if (pad_dat & PADL2)
         {
             Projection = PROJECTION_DISTANCE;
@@ -101,8 +99,10 @@ void Camera(void)
         {
             Projection++;
         }
-        model = CamState.Owner->model;
-        FntPrint(fmt_owner_r, model->locate.coord.t[0], model->locate.coord.t[1], model->locate.coord.t[2], model->rotate.vy);
+        FntPrint(fmt_owner_r, CamState.Owner->model->locate.coord.t[0],
+                 CamState.Owner->model->locate.coord.t[1],
+                 CamState.Owner->model->locate.coord.t[2],
+                 CamState.Owner->model->rotate.vy);
         FntPrint(str_newline);
         GsSetProjection(Projection);
         debug_output_edit_camera_settings(pad_dat);

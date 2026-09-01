@@ -71,7 +71,6 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 s16 Think3hitaway(void)
 {
     u16 pad;
-    s32 degree;
 
     if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
@@ -90,12 +89,7 @@ s16 Think3hitaway(void)
     }
     else
     {
-        degree = Degree;
-        if (degree < 0)
-        {
-            degree = -degree;
-        }
-        if (degree < 1000)
+        if (__builtin_abs(Degree) < 1000)
         {
             pad = turn_towards_player_(0, 0);
             pad = (pad & (PADLleft | PADLdown | PADLright)) | PADLdown;
