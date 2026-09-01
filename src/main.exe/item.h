@@ -203,8 +203,8 @@ typedef struct Humanoid
     /* PSX.SYM used void *, but SetupAfterimage is the sole producer and
      * every consumer uses the afterimage API. */
     struct AfterimageType *illusion[N_WEAPON_HANDS]; /* 0xA4 */
-    s16 sound;                /* 0xAC (PSX.SYM name) SE-bank base: Sound()
-                               * ORs category ids < 0x10 into it */
+    s16 sound;                /* 0xAC (PSX.SYM name) packed VAB program base;
+                               * Sound() adds a character_sound_slot */
     s16 itmctl;               /* 0xAE (PSX.SYM's item-control field;
                                  retail shifts it eight bytes from +0xA6) */
     s32 pad_hold;             /* 0xB0 (packed AI pad command/duration;

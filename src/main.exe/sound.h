@@ -5,6 +5,45 @@
  * tables. */
 #define SOUND_TABLE_END 0xFF
 
+/* PlaySE's `pt` is a packed VAB program/tone pair: one nibble apiece. */
+enum sound_id_encoding
+{
+    SOUND_ID_TONE_BITS = 4,
+    SOUND_ID_TONE_MASK = (1 << SOUND_ID_TONE_BITS) - 1,
+    SOUND_ID_PROGRAM_MASK = SOUND_ID_TONE_MASK << SOUND_ID_TONE_BITS
+};
+
+#define SOUND_ID(program, tone) \
+    (((program) << SOUND_ID_TONE_BITS) | (tone))
+#define SOUND_ID_PROGRAM(id) ((id) >> SOUND_ID_TONE_BITS)
+#define SOUND_ID_TONE(id) ((id) & SOUND_ID_TONE_MASK)
+#define SOUND_ID_HAS_PROGRAM(id) ((id) & SOUND_ID_PROGRAM_MASK)
+#define SOUND_PROGRAM_BASE(program) SOUND_ID(program, 0)
+#define SOUND_ID_WITH_PROGRAM(tone, program_base) ((tone) | (program_base))
+
+/* SoundEx and PlaySE exchange a signed direction above a seven-bit volume;
+ * bit 7 is unused. */
+enum sound_spatial_encoding
+{
+    SOUND_LEVEL_SHIFT = 7,
+    SOUND_SPATIAL_DIRECTION_SHIFT = 8,
+    SOUND_PAN_ANGLE_MASK = 0x3FF,
+    SOUND_PAN_ANGLE_SHIFT = 4,
+    SOUND_PAN_CENTER = 0x40
+};
+
+enum
+{
+    SOUND_VOICE_COUNT = 24,
+    SOUND_KEY_NOTE = 0x24
+};
+
+#define SOUND_SPATIAL(direction, volume) \
+    (((direction) << SOUND_SPATIAL_DIRECTION_SHIFT) | (volume))
+#define SOUND_SPATIAL_DIRECTION(value) \
+    ((value) >> SOUND_SPATIAL_DIRECTION_SHIFT)
+#define SOUND_SPATIAL_VOLUME(value) ((value) & SOUND_VOLUME_MAX)
+
 /* Inferred handles for retail sound slots. None of these names survive in
  * PSX.SYM or the game data; they summarize the gameplay role of each known
  * slot. The encoding class is recovered; confidence describes only the
@@ -66,26 +105,27 @@
 #define SE_FATAL_FALL          0x49 /* high: player enters death area */
 #define SE_ITEM_USE            0x4C /* high: item activation/use */
 
-/* Per-character effect/category slots passed through Sound(). Slots 0/1 are
- * deliberately A/B: ordinary equip/stow and twin-blade swaps use opposite
- * phases, so a directional name would overclaim. */
-#define CHAR_SE_WEAPON_CHANGE_A  0 /* medium: one weapon-change phase */
-#define CHAR_SE_WEAPON_CHANGE_B  1 /* medium: the other weapon-change phase */
-#define CHAR_SE_ATTACK            2 /* high: primary attack effect */
-#define CHAR_SE_ATTACK_ALT        3 /* high: alternate attack effect */
-#define CHAR_SE_IMPACT            4 /* medium-high: character impact */
-#define CHAR_SE_SPECIAL           5 /* medium: character-specific effect */
-
-/* Per-character voice slots. */
-#define CHAR_VOICE_HURT        6    /* medium-high: damage reaction */
-#define CHAR_VOICE_HURT_ALT    7    /* medium-high: alternate damage reaction */
-#define CHAR_VOICE_HURT_HEAVY  8    /* medium-high: severe/fatal damage */
-#define CHAR_VOICE_ACTION_A    9    /* medium: attack/reinforcement line */
-#define CHAR_VOICE_ACTION_B    10   /* medium: alternate action line */
-#define CHAR_VOICE_TAUNT       11   /* high: taunt attack */
-#define CHAR_VOICE_NOTICE      0x0C /* medium-high: glimpse/corpse notice */
-#define CHAR_VOICE_ALERT       0x0D /* high: target acquired/alert bark */
-#define CHAR_VOICE_REACTION    0x0E /* medium: alarm/give-up reaction */
-#define CHAR_VOICE_IDLE        0x0F /* high: idle/fidget voice */
+/* Per-character slots passed through Sound(). Slots 0/1 are deliberately
+ * A/B: ordinary equip/stow and twin-blade swaps use opposite phases, so a
+ * directional name would overclaim. Slots 6-15 are voice lines. */
+enum character_sound_slot
+{
+    CHAR_SE_WEAPON_CHANGE_A = 0, /* medium: one weapon-change phase */
+    CHAR_SE_WEAPON_CHANGE_B = 1, /* medium: the other weapon-change phase */
+    CHAR_SE_ATTACK = 2,          /* high: primary attack effect */
+    CHAR_SE_ATTACK_ALT = 3,      /* high: alternate attack effect */
+    CHAR_SE_IMPACT = 4,          /* medium-high: character impact */
+    CHAR_SE_SPECIAL = 5,         /* medium: character-specific effect */
+    CHAR_VOICE_HURT = 6,         /* medium-high: damage reaction */
+    CHAR_VOICE_HURT_ALT = 7,     /* medium-high: alternate damage reaction */
+    CHAR_VOICE_HURT_HEAVY = 8,   /* medium-high: severe/fatal damage */
+    CHAR_VOICE_ACTION_A = 9,     /* medium: attack/reinforcement line */
+    CHAR_VOICE_ACTION_B = 10,    /* medium: alternate action line */
+    CHAR_VOICE_TAUNT = 11,       /* high: taunt attack */
+    CHAR_VOICE_NOTICE = 12,      /* medium-high: glimpse/corpse notice */
+    CHAR_VOICE_ALERT = 13,       /* high: target acquired/alert bark */
+    CHAR_VOICE_REACTION = 14,    /* medium: alarm/give-up reaction */
+    CHAR_VOICE_IDLE = 15         /* high: idle/fidget voice */
+};
 
 #endif

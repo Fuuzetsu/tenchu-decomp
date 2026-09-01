@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -22,32 +23,26 @@
 
 /*
  * PlaySE (0x80018b64) — trigger a positional sound effect on a rotating
- * voice slot. `dv` packs the pan direction in its high byte (dv>>8) and a
- * base volume in the low 7 bits; the persisted master-volume byte
- * gSELevel (PersistentState._91_1_, offset 0x5B) scales it. The pan
- * direction is turned into a signed offset `d`: right (v>0) → -mag, left
- * (v<0) → +mag, where mag = (|dir| & 0x3ff) >> 4. `voice` (gp-extern s16)
- * cycles 0..23. SsUtKeyOnV keys the note; if it returns success (bit 15
- * clear, tested as (ret<<16)>=0), SsUtAutoPan applies the pan and the slot
- * index is returned, else -1.
+ * voice slot. `dv` packs the pan direction above a seven-bit base volume;
+ * the persisted master-volume byte gSELevel (TLinkInfo.SELevel at 0x5B)
+ * scales it. The pan direction becomes a signed offset `d`: right (v>0)
+ * produces -mag and left (v<0) produces +mag, using
+ * SOUND_PAN_ANGLE_MASK/SOUND_PAN_ANGLE_SHIFT. `voice`
+ * (gp-extern s16) cycles through SOUND_VOICE_COUNT slots. SsUtKeyOnV keys
+ * the note; if it returns success (bit 15 clear, tested as (ret<<16)>=0),
+ * SsUtAutoPan applies the pan and the slot index is returned, else -1.
  *
- * STATUS: NON_MATCHING — 69 vs 71 instructions / 8 bytes short. The draft
- * is instruction-for-instruction correct EXCEPT for two register-coalescing
- * copies cc1 emits in the target but elides here:
- *   - `move s0,a2` — the target keeps `dv>>8` in the incoming param reg $a2
- *     (used by the v/mask reads, dies before the call) and copies it to a
- *     separate callee-saved $s0 for `d` (which survives the SsUtKeyOnV call);
- *     our cc1 coalesces both into $s0 and drops the copy.
- *   - `move v0,v1` — the target consolidates `voll` ($v1) into $v0 before its
- *     two stack-arg stores; ours stores $v1 directly.
- * Both are pure register-allocation/coalescing ties below the C level (same
- * value in two regs vs one). autorules found no width win; a bounded
- * decomp-permuter run (4 workers, ~420s, --stop-on-zero) never reached 0 —
- * its AST transforms can't force cc1 to keep the elided copies. The
- * redundant double `bgez` sign test that the target has (an inline
- * `v = (v < 0) ? -v : v;` abs on an already-known-negative value) IS
- * reproduced by the ternary spelling below — a plain `if (v<0) v=-v;` collapses
- * it (cc1 threads the dominated test). New cookbook rule candidate.
+ * STATUS: MATCH.
+ *
+ * Matching notes:
+ *  - Keep the direction's full-width assignment to `d` separate from the
+ *    narrowed assignment to `v`; their two value histories reproduce the
+ *    target's incoming-parameter copy and signed tests.
+ *  - The negative arm's apparently redundant ternary is load-bearing. It
+ *    emits the target's second `bgez`; a plain `if (v < 0) v = -v` lets cc1
+ *    thread the already-known sign test and collapses it.
+ *  - The SOUND_SPATIAL_* and SOUND_ID_* macros preserve the expression graph
+ *    of the recovered shifts and masks while naming both packed protocols.
  */
 extern s16 voice;
 extern u16 SsUtKeyOnV(s16, s16, s32, s32, s32, s32, u32, u32);
@@ -61,23 +56,28 @@ short PlaySE(SoundEffect *se, short pt, long dv)
 
     if (se != NULL)
     {
-        d = dv >> 8;
-        v = (s16)(dv >> 8);
-        voll = (u32)((dv & SOUND_VOLUME_MAX) * gSELevel) >> 7;
+        d = SOUND_SPATIAL_DIRECTION(dv);
+        v = (s16)SOUND_SPATIAL_DIRECTION(dv);
+        voll = (u32)(SOUND_SPATIAL_VOLUME(dv) * gSELevel) >>
+               SOUND_LEVEL_SHIFT;
         if (v > 0)
         {
-            d = -(s32)((u32)((dv >> 8) & 0x3ff) >> 4);
+            d = -(s32)((u32)(SOUND_SPATIAL_DIRECTION(dv) &
+                             SOUND_PAN_ANGLE_MASK) >>
+                       SOUND_PAN_ANGLE_SHIFT);
         }
         else if (v < 0)
         {
             v = (v < 0) ? -v : v;
-            d = (v & 0x3ff) >> 4;
+            d = (v & SOUND_PAN_ANGLE_MASK) >> SOUND_PAN_ANGLE_SHIFT;
         }
-        voice = (voice + 1) % 24;
-        if ((s16)SsUtKeyOnV(voice, se->VABid, pt >> 4, pt & 0xf, 0x24, 0, voll,
+        voice = (voice + 1) % SOUND_VOICE_COUNT;
+        if ((s16)SsUtKeyOnV(voice, se->VABid, SOUND_ID_PROGRAM(pt),
+                            SOUND_ID_TONE(pt), SOUND_KEY_NOTE, 0, voll,
                             voll) >= 0)
         {
-            SsUtAutoPan(voice, 0x40, (s16)(0x40 - d), 1);
+            SsUtAutoPan(voice, SOUND_PAN_CENTER,
+                        (s16)(SOUND_PAN_CENTER - d), 1);
             return voice;
         }
     }

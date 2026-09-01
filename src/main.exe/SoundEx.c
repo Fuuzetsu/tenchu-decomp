@@ -44,7 +44,7 @@
  *    normalization artifact — the short branch never executes that OR.
  *  - **`dist` must carry the final `volume` value** (`dist =
  *    SOUND_VOLUME_MAX - ...; dist = (dist * ...);` then
- *    `vol = (angle<<8)|dist`). The SquareRoot0 result and
+ *    `vol = SOUND_SPATIAL(angle, dist)`). The SquareRoot0 result and
  *    the volume coalesce into ONE callee-saved register ($s1) in the target,
  *    because `volume` is computed in the ratan2 call's delay slot and survives
  *    the call (forced callee-saved), and `dist` dies exactly where `volume` is
@@ -104,8 +104,9 @@ short SoundEx(VECTOR *locate, short seid)
     pp = StagePlayer->locate;
     if (locate == 0 || locate == pp)
     {
-        return PlaySE(StageSE, seid,
-                      (seid == SE_RUN_STEP) ? 0x3f : SOUND_VOLUME_MAX);
+        return PlaySE(
+            StageSE, seid,
+            SOUND_SPATIAL(0, (seid == SE_RUN_STEP) ? 0x3f : SOUND_VOLUME_MAX));
     }
 
     dx = locate->vx - pp->vx;
@@ -149,6 +150,6 @@ short SoundEx(VECTOR *locate, short seid)
             }
         }
     }
-    vol = (angle << 8) | dist;
+    vol = SOUND_SPATIAL(angle, dist);
     return PlaySE(StageSE, seid, vol);
 }

@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "appear.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -105,6 +106,7 @@ Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
             idx++;
         }
     }
-    human->sound = (idx + 6) * 0x10 /* SE bank: 0x50 for player/partner (idx -1), 0x60+ per stage */;
+    /* VAB program 5 for player/partner (idx -1), then 6+ per stage. */
+    human->sound = SOUND_PROGRAM_BASE(idx + 6);
     return human;
 }

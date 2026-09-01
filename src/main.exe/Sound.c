@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -31,28 +32,29 @@
  * END PSX.SYM */
 
 /*
- * Sound (0x8004ff10) — play a character's sound effect. `seid` with any of the
- * high nibble set (0xf0) is an explicit id: play it at the character's
- * position. Otherwise it's a per-character category slot (< 0x10), OR'd
- * with Humanoid.sound (the character's SE-bank base); category ids >= 6
- * are the voice lines — muted globally by VoiceMode and while the
- * character's AI is suspended (ATTR_SUSPEND).
+ * Sound (0x8004ff10) — play a character's sound effect. A `seid` with its VAB
+ * program already packed is played directly at the character's position.
+ * Otherwise it is a character_sound_slot combined with Humanoid.sound's
+ * program base; the slots after CHAR_SE_SPECIAL are voice lines, muted by
+ * VoiceMode and while the character's AI is suspended (ATTR_SUSPEND).
  *
  * Matching notes (this was a parked 5-byte NON_MATCHING; the fix needed BOTH
  * edits below — RTL story from cc1 -dl/-dg dumps):
  *  - TWO literal `return SoundEx(...)` calls, not one shared call with a
  *    `locate`/`seid` funnel. cc1 itself gives a promoted `short seid` param two
- *    pseudos — the raw SImode $a1 copy (read by the & 0xf0 test, the >5 compare
- *    and the first call's arg) and the HImode declared variable (the target's
- *    `move v1,a1` in the beqz delay slot, read only by the second call's `or`).
+ *    pseudos — the raw SImode $a1 copy (read by SOUND_ID_HAS_PROGRAM, the
+ *    CHAR_SE_SPECIAL boundary and the first call's arg) and the HImode
+ *    declared variable (the target's `move v1,a1` in the beqz delay slot,
+ *    read only by the second call's `or`).
  *    A single shared call reads ONE variable in both arms, so its sign-extend
  *    reads $v1 on the if-path too (5-byte residual, permuter-immune at ~447k
  *    iterations). Cross-jump merges the two calls' identical `sll/sra/jal`
  *    tails back into one physical copy.
- *  - The second call's arg must be `(short)(seid | human->sound)`. Without the
- *    cast it is an int expression: the sign-extend chain lands BEFORE the ior,
- *    and sched1 then floats the `$a0 = human->locate` load above the sound
- *    load, defining $a0 while `human`'s pseudo is still live — that conflict
+ *  - The second call's arg must be the cast around
+ *    `SOUND_ID_WITH_PROGRAM(seid, human->sound)`. Without the cast it is an
+ *    int expression: the sign-extend chain lands BEFORE the ior, and sched1
+ *    then floats the `$a0 = human->locate` load above the sound load, defining
+ *    $a0 while `human`'s pseudo is still live — that conflict
  *    evicts human off $a0 (`move v1,a0` at entry, everything repartitioned).
  *    The cast folds the truncation into the ior (or-then-extend, the target's
  *    shape); the deeper or-chain then wins sched1's priority race, the sound
@@ -64,11 +66,11 @@
 
 short Sound(Humanoid *human, short seid)
 {
-    if (seid & 0xf0)
+    if (SOUND_ID_HAS_PROGRAM(seid))
     {
         return SoundEx(human->locate, seid);
     }
-    if (seid > 5)
+    if (seid > CHAR_SE_SPECIAL)
     {
         if (VoiceMode != 0)
         {
@@ -79,5 +81,6 @@ short Sound(Humanoid *human, short seid)
             return -1;
         }
     }
-    return SoundEx(human->locate, (short)(seid | human->sound));
+    return SoundEx(human->locate,
+                   (short)SOUND_ID_WITH_PROGRAM(seid, human->sound));
 }
