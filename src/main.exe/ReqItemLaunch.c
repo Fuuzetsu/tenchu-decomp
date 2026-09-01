@@ -68,7 +68,7 @@
  *    SetupFly, same position as the other twins' collision-size/model stores
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
- *  - The `item->param.launch.fly.mode = 0` byte store is written BEFORE the
+ *  - The `item->param.launch.fly.mode = FLY_MODE_ARC` byte store is written BEFORE the
  *    SetupAfterimage call (textually) — its independence lets the scheduler
  *    drop it into the call's delay slot, same "trailing/preceding
  *    independent store steals the call's delay slot" mechanism as
@@ -125,7 +125,7 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
         item->model = SyurikenModel;
     }
     SetupFly(&param->fly, pos, &p->end, FIXED_QUARTER, FIXED_QUARTER, 300);
-    item->param.launch.fly.mode = 0;
+    item->param.launch.fly.mode = FLY_MODE_ARC;
     ai = SetupAfterimage(item->model, 10);
     param->effect = ai;
     ai->vector1.vx = 0x14;

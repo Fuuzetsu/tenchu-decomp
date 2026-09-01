@@ -59,7 +59,7 @@
  *    (cookbook: Ghidra undercounts stack args). The first parameter retains
  *    PSX.SYM's `struct param_fly *`; the curve workspace itself is the nested
  *    `struct tag_fly`.
- *  - `pfly->mode` (byte @0x28) is set to 0 as the FIRST statement, before
+ *  - `pfly->mode` (byte @0x28) is set to FLY_MODE_ARC as the FIRST statement, before
  *    start/end are even copied in — matches Ghidra's own rendering exactly.
  *  - The "speed" byte (@0x24, `dist / time`, a genuine variable division —
  *    needs `--expand-div`) is clamped to at least 1 when the division
@@ -104,7 +104,7 @@ void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 t
     struct tag_fly *fly;
 
     fly = &pfly->p.fly;
-    pfly->mode = 0;
+    pfly->mode = FLY_MODE_ARC;
     fly->sx = start->vx;
     fly->sy = start->vy;
     fly->sz = start->vz;

@@ -313,14 +313,21 @@ struct tag_fly
     u8 count2; /* 0x25 */
 }; /* 0x28 */
 
+typedef u8 fly_mode;
+enum fly_mode
+{
+    FLY_MODE_ARC = 0,
+    FLY_MODE_ROLL = 1
+};
+
 typedef struct param_fly
 {
     union
     {
         struct tag_fly fly;
         param_korogari koro;
-    } p;     /* 0x00 */
-    u8 mode; /* 0x28 */
+    } p;          /* 0x00 */
+    fly_mode mode; /* 0x28 */
 } param_fly; /* 0x2C */
 
 typedef struct param_arrow

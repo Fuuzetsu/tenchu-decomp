@@ -86,11 +86,6 @@ void ProcItemArrow(TItem *item)
         ARROW_MODE_WAIT = 1,
         ARROW_MODE_BLINK = 2
     };
-    enum
-    {
-        FLY_MODE_ARC = 0,
-        FLY_MODE_ROLL = 1
-    };
     ModelType *model;
     param_arrow *param;
     void (*ppu)(TItem *);

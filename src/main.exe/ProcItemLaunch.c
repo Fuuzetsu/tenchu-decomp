@@ -122,7 +122,7 @@ void ProcItemLaunch(TItem *item)
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
         goto dispose;
     }
-    if (param->fly.mode == 0)
+    if (param->fly.mode == FLY_MODE_ARC)
         return;
     switch (param->fly.p.koro.status)
     {

@@ -57,8 +57,6 @@ static void MoveFly(TItem *item, param_fly *param)
 {
     enum
     {
-        FLY_MODE_ARC = 0,
-        FLY_MODE_ROLL = 1,
         one = 4096
     };
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;

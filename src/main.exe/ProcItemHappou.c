@@ -88,7 +88,7 @@ void ProcItemHappou(TItem *item)
     ModelType *model;
     param_launch *param;
     u8 t;
-    u8 mode;
+    fly_mode mode;
     s32 i;
     s32 conflict_id;
 
@@ -115,9 +115,10 @@ void ProcItemHappou(TItem *item)
     DrawModel(model);
     DrawAfterimage(param->effect, 1);
     mode = param->fly.mode;
-    if (mode != 0)
+    if (mode != FLY_MODE_ARC)
     {
-        if (mode == 1 && param->fly.p.koro.status != KORO_NORMAL)
+        if (mode == FLY_MODE_ROLL &&
+            param->fly.p.koro.status != KORO_NORMAL)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, COLOR_YELLOW);
             SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
