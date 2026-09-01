@@ -68,12 +68,11 @@
  * (passed to `set_cda_volume_` twice, identically, exactly as that file
  * does).
  *
- * The MusicNo<100-vs->=100 id offset (`+0x52`/`+0x64`) is a plain
- * default-then-override scalar (no address involved), so the literal
- * Ghidra shape (`id = MusicNo+0x52; if (MusicNo>99) id = MusicNo+0x64;`)
- * is safe here — the cookbook's default-then-override CAVEAT is
- * specifically about a shared ADDRESS pseudo stationary across a later
- * access to the same lvalue, not a plain scalar with no further reference.
+ * The MusicNo<100-vs->=100 id offset (`+0x52`/`+0x64`) can be passed as a
+ * conditional expression directly to PlayVoice. Likewise, testing CdaPlayXA's
+ * return value directly preserves retail's branch. Neither result needs the
+ * generic `n` carrier from the first reconstruction, matching PSX.SYM's local
+ * inventory as well as the retail instructions.
  *
  * Two source identities close the former whole-function cascade. Expressing
  * the synthesized-voice arm before the XA arm reproduces retail's physical
@@ -123,7 +122,6 @@ void _PlayMusic(int MusicNo, int mode)
     TMusicTable *music;
     u8 min;
     u8 sec;
-    int n;
 
     if (MusicNo < 0 || (u32)(MusicNo - 0x3D) < 0x27)
     {
@@ -132,12 +130,7 @@ void _PlayMusic(int MusicNo, int mode)
     }
     else if (MusicNo >= 0x13)
     {
-        n = MusicNo + 0x52;
-        if (MusicNo > 99)
-        {
-            n = MusicNo + 100;
-        }
-        PlayVoice(n);
+        PlayVoice(MusicNo + (MusicNo > 99 ? 100 : 0x52));
     }
     else
     {
@@ -154,8 +147,7 @@ void _PlayMusic(int MusicNo, int mode)
         sec = music->endsec;
         InitMusicLocation(&end, min, sec);
 
-        n = CdaPlayXA(fname, &start, &end, music->channel, (s16)mode);
-        if (n == 0)
+        if (CdaPlayXA(fname, &start, &end, music->channel, (s16)mode) == 0)
         {
             AdtMessageBox(fmt_playmusic_fail_chan_id, fname, music->channel, MusicNo);
         }
