@@ -49,7 +49,7 @@
  *    sit between the la and the copy — cse2 has a (set REG0 REG1) special
  *    case that would otherwise rewrite the ADJACENT pair to move the la into
  *    p and flip the copy direction.
- *  - tp/ptm are pointer variables initialized at declaration: their addius
+ *  - name_table/ptm are pointer variables initialized at declaration: their addius
  *    are the two prologue frame addresses (t1/s1); the calls then pass plain
  *    registers (no per-call addiu rematerialization, unlike &tm spelled at
  *    each use).
@@ -63,7 +63,7 @@
  *    lose priority races (REG_LIVE_LENGTH is doubled for equiv-noted regs).
  *  - The do{}while(0) around stores+switch+call+pause is the regalloc lever
  *    (depth-2 refs) that produces the target's caller-saved assignment
- *    [base a0, va a2, vb a3, vc t0, tp t1]; the switch's sltiu bound check
+ *    [base a0, va a2, vb a3, vc t0, name_table t1]; the switch's sltiu bound check
  *    floats to the top of the block only because it is INSIDE the note range
  *    (loop notes are scheduler barriers), and the wrapper must extend through
  *    p->pause = 1 or jump.c moves case 0's then-arm (a jump out of the note
@@ -72,17 +72,12 @@
  *  - Case 5's name table is copied from an anonymous-initializer-style data
  *    blob kept as an extern: the original's u8*[7]={"Water1.tim",...} would
  *    emit the strings + table into THIS object and cannot reproduce the
- *    interleaved original .data. The aggregate view remains only because
- *    tp->n[x] gives the target's base+index addu; plain array indexing emits
- *    index+base.
+ *    interleaved original .data. Naming the selected pointer separately gives
+ *    the target's base+index addu; plain array indexing emits index+base.
  *  - The loop bound compares SIGNED ((s32) casts): the target uses slt, and
  *    Ghidra renders the condition as (int)ptVar1 < -0x7ff3da88.
  */
 
-typedef struct
-{
-    u8 *n[7];
-} TimNameBlock;                                            /* codegen-only array view */
 extern u8 *MiscTimNames[7];                                /* the seven water/warp TIM names */
 extern u8 path_image_2[]; /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char fmt_undefined_effect[];                        /* "undefined effect %d" */
@@ -102,13 +97,14 @@ void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
 {
     TMisc *base = misc;
     TMisc *p;
-    u8 *tbl[7];
+    u8 *tim_names[7];
     GsIMAGE tm;
-    TimNameBlock *tp = (TimNameBlock *)tbl;
+    u8 **name_table = tim_names;
     GsIMAGE *ptm = &tm;
     s32 va = a;
     s32 vb = b;
     s32 vc = c;
+    u8 **selected_name;
     u_long *adr;
 
     p = base;
@@ -145,8 +141,9 @@ loop:
                 p->proc = ProcMiscSprite;
                 break;
             case MISC_TEXSCROLL:
-                __builtin_memcpy(tbl, MiscTimNames, sizeof(tbl));
-                adr = PathFileRead(path_image_2, tp->n[x]);
+                __builtin_memcpy(tim_names, MiscTimNames, sizeof(tim_names));
+                selected_name = name_table + x;
+                adr = PathFileRead(path_image_2, *selected_name);
                 GetTIMInfo(adr, ptm);
                 LoadTIMAndFree(adr);
                 SetupTexScroll(ptm, y, z);
