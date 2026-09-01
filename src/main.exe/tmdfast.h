@@ -146,4 +146,21 @@ typedef struct
     ADIV_FRAME frame[1]; /* 0xe0 recursion frames, one per depth level */
 } ADIV_WORK;
 
+/* The entry renderers need scalar pointer arithmetic for retail scheduling,
+ * but its constants can still be derived from the typed workspace map. */
+#define ADIV_BYTE_OFFSET(member) ((u_long)&((ADIV_WORK *)0)->member)
+#define ADIV_WORD_OFFSET(member) (ADIV_BYTE_OFFSET(member) / sizeof(u_long))
+#define ADIV_BYTE(work, member)                                            \
+    (*(u_char *)((int)(work) + ADIV_BYTE_OFFSET(member)))
+#define ADIV_SHORT(work, member)                                          \
+    (*(short *)((int)(work) + ADIV_BYTE_OFFSET(member)))
+#define ADIV_WORD(work, member) ((work)[ADIV_WORD_OFFSET(member)])
+#define ADIV_WORD_ADDRESS(work, member) ((work) + ADIV_WORD_OFFSET(member))
+
+enum
+{
+    GPU_POLY_GT4_CODE = 0x3c,
+    GPU_POLY_GT4_LENGTH = sizeof(POLY_GT4) / sizeof(u_long) - 1
+};
+
 #endif

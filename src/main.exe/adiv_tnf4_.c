@@ -60,93 +60,102 @@ u_long *adiv_tnf4_(u_short *primtop, u_long vertop, u_long *packet, int count,
     SVECTOR *v1;
     u_long *vp;
 
-    /* Every access below is a BYTE offset into the ADIV_WORK scratch
-     * (tmdfast.h), which is this function's real map: `v[4]` at 0x80 on a
-     * 0x18 stride puts the four root vertices at 0x80, 0x98, 0xb0 and
-     * 0xc8, each an x/y/z triple two bytes apart. Half of these used to be
-     * spelled `work + N` on the u_long* — the same addresses in word
-     * units, which hid that sequence. Member stores through the struct
-     * itself do NOT match (they un-pin the interleaved volatile parameter
-     * reads; see tmdfast.h's note and cookbook 3.13), so consistent byte
-     * offsets against a documented layout is as close as this gets.
+    /* The ADIV_* accessors derive scalar byte/word addresses from ADIV_WORK's
+     * fields. Direct member stores do NOT match: they un-pin the interleaved
+     * volatile parameter reads (see tmdfast.h and cookbook 3.13).
      * The read side keeps Sony's `u_long vertop` convention from the
      * GsTMDfast* siblings it is called beside, so a source vertex is
      * index * 8 off that base. */
     work = wp;
     hwd = HWD0;
     init = 4;
-    *work = init;        /* limit */
-    frame = work + 0x38; /* frame[0] */
+    ADIV_WORD(work, limit) = init;
+    frame = ADIV_WORD_ADDRESS(work, frame[0]);
     vp = frame;
     vwd = VWD0;
-    *(short *)((int)work + 0x34) = (short)(hwd / 2);       /* adivw */
-    *(short *)((int)work + 0x36) = (short)(vwd / 2); /* adivh */
+    ADIV_SHORT(work, adivw) = (short)(hwd / 2);
+    ADIV_SHORT(work, adivh) = (short)(vwd / 2);
     o = ot;
     t1 = shift;
     t0 = *(u_long *)(o + 4);
     init = 150;
-    work[8] = init;                      /* adivz */
-    setlen(&((ADIV_WORK *)work)->packet, 0xc);
-    code = 0x3c;
-    work[3] = t1;                         /* shift */
+    ADIV_WORD(work, adivz) = init;
+    setlen(&((ADIV_WORK *)work)->packet, GPU_POLY_GT4_LENGTH);
+    code = GPU_POLY_GT4_CODE;
+    ADIV_WORD(work, shift) = t1;
     ((ADIV_WORK *)work)->out = packet;
     setcode(&((ADIV_WORK *)work)->packet, code);
-    work[4] = t0;                         /* org */
+    ADIV_WORD(work, org) = t0;
     cnt = count;
     if (cnt != 0)
     {
-        v0 = (SVECTOR *)(work + 0x20); /* v[0..3] */
-        v1 = (SVECTOR *)(work + 0x26);
-        v2 = (SVECTOR *)(work + 0x2c);
-        v3 = (SVECTOR *)(work + 0x32);
+        v0 = (SVECTOR *)ADIV_WORD_ADDRESS(work, v[0]);
+        v1 = (SVECTOR *)ADIV_WORD_ADDRESS(work, v[1]);
+        v2 = (SVECTOR *)ADIV_WORD_ADDRESS(work, v[2]);
+        v3 = (SVECTOR *)ADIV_WORD_ADDRESS(work, v[3]);
         cd = code;
         primitive = (TMD_P_TNF4 *)primtop;
         do
         {
-            *(short *)((int)work + 0x80) = *(u_short *)(primitive->v0 * 8 + vertop);
-            *(short *)((int)work + 0x82) = *(u_short *)(primitive->v0 * 8 + vertop + 2);
-            *(short *)((int)work + 0x84) = *(u_short *)(primitive->v0 * 8 + vertop + 4);
-            *(short *)((int)work + 0x98) = *(u_short *)(primitive->v1 * 8 + vertop);
-            *(short *)((int)work + 0x9a) = *(u_short *)(primitive->v1 * 8 + vertop + 2);
-            *(short *)((int)work + 0x9c) = *(u_short *)(primitive->v1 * 8 + vertop + 4);
-            *(short *)((int)work + 0xb0) = *(u_short *)(primitive->v2 * 8 + vertop);
-            *(short *)((int)work + 0xb2) = *(u_short *)(primitive->v2 * 8 + vertop + 2);
-            *(short *)((int)work + 0xb4) = *(u_short *)(primitive->v2 * 8 + vertop + 4);
-            *(short *)((int)work + 0xc8) = *(u_short *)(primitive->v3 * 8 + vertop);
-            *(short *)((int)work + 0xca) = *(u_short *)(primitive->v3 * 8 + vertop + 2);
-            *(short *)((int)work + 0xcc) = *(u_short *)(primitive->v3 * 8 + vertop + 4);
+            ADIV_SHORT(work, v[0].pos.vx) =
+                *(u_short *)(primitive->v0 * 8 + vertop);
+            ADIV_SHORT(work, v[0].pos.vy) =
+                *(u_short *)(primitive->v0 * 8 + vertop + 2);
+            ADIV_SHORT(work, v[0].pos.vz) =
+                *(u_short *)(primitive->v0 * 8 + vertop + 4);
+            ADIV_SHORT(work, v[1].pos.vx) =
+                *(u_short *)(primitive->v1 * 8 + vertop);
+            ADIV_SHORT(work, v[1].pos.vy) =
+                *(u_short *)(primitive->v1 * 8 + vertop + 2);
+            ADIV_SHORT(work, v[1].pos.vz) =
+                *(u_short *)(primitive->v1 * 8 + vertop + 4);
+            ADIV_SHORT(work, v[2].pos.vx) =
+                *(u_short *)(primitive->v2 * 8 + vertop);
+            ADIV_SHORT(work, v[2].pos.vy) =
+                *(u_short *)(primitive->v2 * 8 + vertop + 2);
+            ADIV_SHORT(work, v[2].pos.vz) =
+                *(u_short *)(primitive->v2 * 8 + vertop + 4);
+            ADIV_SHORT(work, v[3].pos.vx) =
+                *(u_short *)(primitive->v3 * 8 + vertop);
+            ADIV_SHORT(work, v[3].pos.vy) =
+                *(u_short *)(primitive->v3 * 8 + vertop + 2);
+            ADIV_SHORT(work, v[3].pos.vz) =
+                *(u_short *)(primitive->v3 * 8 + vertop + 4);
             *vp = (u_long)v0;
             vp[1] = (u_long)v1;
             vp[2] = (u_long)v2;
             vp[3] = (u_long)v3;
             gte_ldv3(v0, v1, v2);
             gte_rtpt();
-            *(short *)((int)work + 0x94) = *(u16 *)&primitive->tu0;
-            *(short *)((int)work + 0xac) = *(u16 *)&primitive->tu1;
-            t2 = (u_long)(work + 0x23);
-            gte_stsxy3((u_long *)t2, work + 0x29, work + 0x2f);
+            ADIV_SHORT(work, v[0].tu) = *(u16 *)&primitive->tu0;
+            ADIV_SHORT(work, v[1].tu) = *(u16 *)&primitive->tu1;
+            t2 = (u_long)ADIV_WORD_ADDRESS(work, v[0].sxy);
+            gte_stsxy3((u_long *)t2,
+                       ADIV_WORD_ADDRESS(work, v[1].sxy),
+                       ADIV_WORD_ADDRESS(work, v[2].sxy));
             gte_nclip();
-            *(short *)((int)work + 0xc4) = *(u16 *)&primitive->tu2;
-            *(short *)((int)work + 0xdc) = *(u16 *)&primitive->tu3;
-            gte_stopz(work + 6); /* zmax */
-            if (0 < (int)work[6])
+            ADIV_SHORT(work, v[2].tu) = *(u16 *)&primitive->tu2;
+            ADIV_SHORT(work, v[3].tu) = *(u16 *)&primitive->tu3;
+            gte_stopz(ADIV_WORD_ADDRESS(work, zmax));
+            if (0 < (int)ADIV_WORD(work, zmax))
             {
                 gte_ldv0(v3);
                 gte_rtps();
-                work[0x22] = *(u_long *)&primitive->r0;
+                ADIV_WORD(work, v[0].col) = *(u_long *)&primitive->r0;
                 b = (u_char)cd;
-                *(u_char *)((int)work + 0x8b) = b;
-                work[0x28] = *(u_long *)&primitive->r0;
-                *(u_char *)((int)work + 0xa3) = b;
-                work[0x2e] = *(u_long *)&primitive->r0;
-                *(u_char *)((int)work + 0xbb) = b;
-                work[0x34] = *(u_long *)&primitive->r0;
-                *(u_char *)((int)work + 0xd3) = b;
-                gte_stsxy(work + 0x35);
-                t0 = (u_long)(work + 0x24);
-                t2 = (u_long)(work + 0x2a);
-                t1 = (u_long)(work + 0x30);
-                gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1, work + 0x36);
+                ADIV_BYTE(work, v[0].col.cd) = b;
+                ADIV_WORD(work, v[1].col) = *(u_long *)&primitive->r0;
+                ADIV_BYTE(work, v[1].col.cd) = b;
+                ADIV_WORD(work, v[2].col) = *(u_long *)&primitive->r0;
+                ADIV_BYTE(work, v[2].col.cd) = b;
+                ADIV_WORD(work, v[3].col) = *(u_long *)&primitive->r0;
+                ADIV_BYTE(work, v[3].col.cd) = b;
+                gte_stsxy(ADIV_WORD_ADDRESS(work, v[3].sxy));
+                t0 = (u_long)ADIV_WORD_ADDRESS(work, v[0].sz);
+                t2 = (u_long)ADIV_WORD_ADDRESS(work, v[1].sz);
+                t1 = (u_long)ADIV_WORD_ADDRESS(work, v[2].sz);
+                gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1,
+                           ADIV_WORD_ADDRESS(work, v[3].sz));
                 ((ADIV_WORK *)work)->packet.clut = primitive->clut;
                 ((ADIV_WORK *)work)->packet.tpage = primitive->tpage;
                 subdivide_quad_(frame, work, 0);
