@@ -47,7 +47,6 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
 {
     SVECTOR scr;
     s32 otz;
-    s16 sc;
     s32 t;
     s32 pri;
 
@@ -68,9 +67,8 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
-        sp->scaley = sc;
-        sp->scalex = sc;
+        sp->scalex = sp->scaley =
+            (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         sp->x = scr.vx;
         sp->y = scr.vy;
         t = (scr.vz + (s32)zbias) >> 2;

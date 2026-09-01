@@ -86,7 +86,6 @@ void DrawGore(TEffectSlot *ef)
         s32 brightness;
         s32 size;
         s32 rotate;
-        s16 scale;
         s32 sort_depth;
         s32 priority;
 
@@ -107,11 +106,8 @@ void DrawGore(TEffectSlot *ef)
         {
             return;
         }
-        scale = (s16)((size * PROJECTION_DISTANCE) / scratch.screen.vz) + 1;
-        spr->scaley = scale;
-        spr->scalex = scale;
-        spr2->scaley = scale;
-        spr2->scalex = scale;
+        spr2->scalex = spr2->scaley = spr->scalex = spr->scaley =
+            (s16)((size * PROJECTION_DISTANCE) / scratch.screen.vz) + 1;
         spr->rotate = rotate;
         spr2->rotate = rotate;
         spr2->x = spr->x = scratch.screen.vx;
@@ -316,7 +312,6 @@ void DrawGore(TEffectSlot *ef)
     {
         s32 size;
         s32 otz;
-        s16 scale;
         s32 sort_depth;
         s32 priority;
 
@@ -335,9 +330,8 @@ void DrawGore(TEffectSlot *ef)
         {
             return;
         }
-        scale = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
-        spr->scaley = scale;
-        spr->scalex = scale;
+        spr->scalex = spr->scaley =
+            (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         spr->x = scratch.screen.vx;
         spr->y = scratch.screen.vy;
         sort_depth = (s16)(u16)scratch.screen.vz >> 2;

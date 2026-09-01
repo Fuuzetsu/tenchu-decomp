@@ -120,7 +120,6 @@ void DrawFrame(TEffectSlot *ef)
     SVECTOR scr;
     s16 idx;
     s32 otz;
-    s16 sc;
     s32 t;
     s32 pri;
     s32 px, py, pz;
@@ -178,9 +177,8 @@ void DrawFrame(TEffectSlot *ef)
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
-        spr->scaley = sc;
-        spr->scalex = sc;
+        spr->scalex = spr->scaley =
+            (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         spr->x = scr.vx;
         spr->y = scr.vy;
         t = scr.vz - 0x32;

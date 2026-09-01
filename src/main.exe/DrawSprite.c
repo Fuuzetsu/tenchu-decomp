@@ -115,7 +115,6 @@ short DrawSprite(Sprite3D *sprt)
     long result;
     long pri;
     s32 iv;
-    short scale;
     short rxy[2];
 
     objp = (ModelType *)sprt;
@@ -186,9 +185,7 @@ ret:
         return 0;
     }
     iv = (sprt->scale >> 2) * PROJECTION_DISTANCE;
-    scale = (short)(iv / pri);
-    sprt->sprite.scaley = scale;
-    sprt->sprite.scalex = scale;
+    sprt->sprite.scalex = sprt->sprite.scaley = (short)(iv / pri);
     GsSortSprite(&sprt->sprite, OTablePt, (u16)pri);
     return 1;
 }

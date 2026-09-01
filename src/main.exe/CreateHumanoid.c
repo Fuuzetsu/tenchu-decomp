@@ -108,7 +108,6 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     u16 ww;
     s32 half;
     s32 nhalf;
-    s32 half2;
     s16 oldHumans;
 
     if (mad == 0 || Humans >= MAX_HUMANS)
@@ -139,9 +138,8 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     ConflictObject[idx].offset.vy = nhalf - human->model->rotate.pad;
     ww = human->width;
     ConflictObject[idx].common = human;
-    half2 = (s16)ww / 2;
-    ConflictObject[idx].size.vz = half2;
-    ConflictObject[idx].size.vx = half2;
+    ConflictObject[idx].size.vx = ConflictObject[idx].size.vz =
+        (s16)ww / 2;
     if (type == KUMA_0 || type == KUMA_1)
     {
         ConflictObject[idx].offset.vy = -0x1C5;

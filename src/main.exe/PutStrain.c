@@ -98,7 +98,6 @@ void PutStrain(s32 x, s32 y)
     s32 delta;
     s32 s;
     u16 phase;
-    s16 scale;
 
     ratio = StrainRatio;
     if (ratio != 0x7fffffff)
@@ -164,9 +163,8 @@ void PutStrain(s32 x, s32 y)
         StrainPhase = phase;
         spr->r = spr->g = spr->b =
             rsin(phase) * 0x60 / FIXED_ONE + range / 2;
-        scale = (s16)((delta << 0xb) / powrange) + FIXED_HALF;
-        spr->scalex = scale;
-        spr->scaley = scale;
+        spr->scaley = spr->scalex =
+            (s16)((delta << 0xb) / powrange) + FIXED_HALF;
         GsSortSprite(spr, OTablePt, 0);
     }
 }

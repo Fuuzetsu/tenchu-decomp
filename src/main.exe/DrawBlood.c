@@ -112,7 +112,6 @@ void DrawBlood(TEffectSlot *ef)
     {
     case BLOOD_MODE_FADE:
     {
-        s16 screen_scale;
         s32 scale;
         long rotate;
         s32 otz;
@@ -136,11 +135,8 @@ void DrawBlood(TEffectSlot *ef)
         {
             return;
         }
-        screen_scale = (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
-        spr->scaley = screen_scale;
-        spr->scalex = screen_scale;
-        sprt->scaley = screen_scale;
-        sprt->scalex = screen_scale;
+        sprt->scalex = sprt->scaley = spr->scalex = spr->scaley =
+            (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
         spr->rotate = rotate;
         sprt->rotate = rotate;
         sprt->x = spr->x = scratch.scr.vx;
@@ -298,7 +294,6 @@ void DrawBlood(TEffectSlot *ef)
     }
     }
 {
-    s16 screen_scale;
     s32 scale;
     s32 otz;
     s32 sort_depth;
@@ -319,9 +314,8 @@ void DrawBlood(TEffectSlot *ef)
     {
         return;
     }
-    screen_scale = (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
-    spr->scaley = screen_scale;
-    spr->scalex = screen_scale;
+    spr->scalex = spr->scaley =
+        (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
     spr->x = scratch.scr.vx;
     spr->y = scratch.scr.vy;
     sort_depth = (s16)(u16)scratch.scr.vz >> 2;

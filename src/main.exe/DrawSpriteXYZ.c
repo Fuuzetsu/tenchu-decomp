@@ -64,7 +64,6 @@
 void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
 {
     SVECTOR scr;
-    s16 sc;
     s32 otz;
     s32 t;
     s32 pri;
@@ -73,9 +72,8 @@ void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale)
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
     {
-        sc = (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
-        sprt->scaley = sc;
-        sprt->scalex = sc;
+        sprt->scalex = sprt->scaley =
+            (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
         sprt->x = scr.vx;
         sprt->y = scr.vy;
         t = (s16)(u16)scr.vz >> 2;

@@ -29,7 +29,6 @@ void DrawSnow(TEffectSlot *ef)
     u32 offset;
     s32 wrapped;
     s32 size;
-    s16 scale;
     s16 depth;
     s16 otz;
     s32 priority;
@@ -111,9 +110,8 @@ void DrawSnow(TEffectSlot *ef)
     depth = screen.vz;
     if (depth > NEAR_DEPTH)
     {
-        scale = (s16)((size * PROJECTION_DISTANCE) / depth) + 1;
-        sprite->scaley = scale;
-        sprite->scalex = scale;
+        sprite->scalex = sprite->scaley =
+            (s16)((size * PROJECTION_DISTANCE) / depth) + 1;
         sprite->x = screen.vx;
         sprite->y = screen.vy;
         otz = (s16)(u16)screen.vz >> 2;
