@@ -29,13 +29,16 @@
  * goto back edge keeps `i` and `item` as independent, unbiased variables.
  * Since that shape also disables loop-invariant hoisting, cache `ViewInfo`
  * and `ConflictObject` explicitly before the label; this reproduces the
- * target's s5/s6 bases without reintroducing a loop GIV.
+ * target's s5/s6 bases without reintroducing a loop GIV. Direct use of the
+ * global ConflictObject array shortens the function by two instructions, so
+ * the cached array base itself remains source-authored.
  *
  * The first camera coordinate deliberately uses `ViewInfo` directly while
  * the remaining two use `view`, retaining the target's branch-local `lui`
- * plus persistent base.  Finally, the conflict address is an integer sum
- * with the scaled index written first: that preserves `addu v1,v1,s6`
- * instead of the commuted `addu v1,s6,v1` emitted by ordinary subscripting.
+ * plus persistent base. The inserted collision record is then written as one
+ * coherent `conflicts[conflict_id]` field graph. CSE forms its element address
+ * once in the target operand order; the old integerized element pointer and
+ * its `object` alias were compiler artifacts from testing only one access.
  */
 
 extern s32 abs(s32 x);
@@ -48,7 +51,6 @@ enum
 
 static void UpdateItemState(void)
 {
-    ConflictObjectType *object;
     ConflictObjectType *conflicts;
     TItem *item;
     GsRVIEW2 *view;
@@ -85,17 +87,15 @@ loop:
                         mode = item->collision.mode;
                         DeleteConflict(item->locate);
                         conflict_id = InsertConflict(item->locate);
-                        object = (ConflictObjectType *)(
-                            (s32)conflict_id * sizeof(*object) +
-                            (u32)conflicts);
-                        object->offset.components.x = 0;
-                        object->offset.components.z = 0;
-                        object->offset.components.y = ofsY;
-                        object->size.components.z = sz;
-                        object->size.components.y = sz;
-                        object->size.components.x = sz;
-                        object->common.tag = CONFLICT_OWNER_ITEM;
-                        object->size.components.class_flags = mode;
+                        conflicts[conflict_id].offset.components.x = 0;
+                        conflicts[conflict_id].offset.components.z = 0;
+                        conflicts[conflict_id].offset.components.y = ofsY;
+                        conflicts[conflict_id].size.components.z = sz;
+                        conflicts[conflict_id].size.components.y = sz;
+                        conflicts[conflict_id].size.components.x = sz;
+                        conflicts[conflict_id].common.tag = CONFLICT_OWNER_ITEM;
+                        conflicts[conflict_id].size.components.class_flags =
+                            mode;
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;
                         item->collision.mode = mode;

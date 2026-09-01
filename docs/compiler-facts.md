@@ -50,6 +50,14 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   hand-written outer goto loops. An explicit source scan pointer can hide
   the ARRAY_REF and force ugly integer address arithmetic merely to recover an
   `addu` operand order that the indexed loop produces naturally.
+- **Test a complete indexed field graph before naming its element address.**
+  GCC's CSE can form one scaled address from repeated
+  `base[index].member` stores in straight-line code. In `UpdateItemState`, eight
+  field writes through `conflicts[conflict_id]` reproduce the exact single
+  machine address and remove an integer pointer sum plus its `object` alias.
+  The cached `conflicts = ConflictObject` base remains necessary across the
+  hand-written outer goto loop; direct use of the global is two instructions
+  shorter. Array recovery and base-lifetime recovery are separate questions.
 - **fold: `A op 0 ? A : -A` → ABS_EXPR** (fold-const.c) — but only the GE spelling;
   the LT ternary re-binds `arg1` after swapping arms so the abs check misses and
   expansion takes the branchy path (SoundEx, UpdateMotion). `x >= 0 ? x : -x`,

@@ -30,10 +30,11 @@
  * divisor constants.  A function-wide coordinate initializes too early and
  * produces a different schedule.
  *
- * The score table is carried as its real three-dimensional type through the
- * selected stage row. Its character byte stride and the final offset-first
- * address add remain explicit because one direct subscript changes retail's
- * register allocation.
+ * The score table is carried as its real three-dimensional type. The initial
+ * current-score lookup retains its character byte stride and offset-first add
+ * because a direct subscript shortens that path. The later next-stage layout
+ * search indexes `stage_stats[character][stage][0]` directly; converting that
+ * whole selection graph removes two offset carriers with no byte change.
  * The function-wide `work` scalar deliberately serves the score sprite's x
  * transfer and the later persistent-state byte load. Splitting those uses into
  * semantic block locals changes six instruction bytes; spelling the latter as
@@ -204,8 +205,6 @@ void StageEndScreen(void)
     s32 pulse;
     s32 i;
     s32 layout_index;
-    u32 layout_character_byte_offset;
-    ScoreStats *layout_stage_record;
     s32 top_y;
     s16 second_x;
     union
@@ -594,17 +593,10 @@ void StageEndScreen(void)
         }
         else
         {
-            ScoreStats (*layout_records)[N_STAGE_SCORE_SLOTS]
-                                        [N_STAGE_LAYOUTS];
-
-            layout_records = PSTATE->stage_stats;
             PSTATE->StageNo =
                 StageOrder[NEXT_STAGE_UID(StageConfig[PSTATE->StageNo].uid)];
-            layout_character_byte_offset = (u32)PSTATE->CharType *
-                                           sizeof(*layout_records);
-            layout_stage_record = layout_records[0][PSTATE->StageNo];
-            layout_record = (ScoreStats *)(layout_character_byte_offset +
-                                           (u32)layout_stage_record);
+            layout_record = &PSTATE->stage_stats[PSTATE->CharType]
+                                                [PSTATE->StageNo][0];
             layout_index = 0;
             /* A goto loop, and provably so: the empty-exit branch's delay
              * slot holds the POST-loop `li v0,3` (the != 3 compare) — a

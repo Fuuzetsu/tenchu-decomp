@@ -2158,6 +2158,13 @@ irreducible nest: DrawConstruction's 3.
   separate case: without real loop notes, their explicit pointer walk may be
   source-authored. `SetBlood` and `spawn_smoke_burst_` are the two measured
   exceptions: their hand-written outer goto loops still need a cached pool base.
+- **The same whole-graph rule applies to a run of fields, not just a loop.**
+  If decompiled C computes `element = (T *)(index * sizeof(T) + (u32)base)`
+  and then touches several `element->field`s, replace the entire run with
+  `base[index].field` before judging the cast. `UpdateItemState`'s eight
+  collision-record stores make GCC CSE one exact element address and eliminate
+  both the integer sum and `object` alias. Removing its separately cached
+  global base is a different experiment and fails by two instructions.
 - **Removing a declaration can gate green by falling back to an IMPLICIT
   one.** Auditing the four K&R `extern void f();` redeclarations in the
   tree, three of them compiled and matched with the line deleted — but
