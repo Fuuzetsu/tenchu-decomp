@@ -25,24 +25,9 @@
  * only runs once, then returns `entry[index]` after validating `index`
  * against `count`.
  *
- * Matching notes (see docs/matching-cookbook.md):
- *  - The conversion must go through a temp:
- *    `entry_offset = entry[i].offset + ARC_ENTRY_TABLE_OFFSET;` followed by
- *    the relocated store.
- *    Writing it as one expression (either operand order) lets fold-const's
- *    `associate` combine the invariant archive/table-base sum into one
- *    loop-hoisted register, an extra callee-saved reg the target doesn't
- *    have — splitting the statement keeps `arc` and the per-iteration table
- *    offset in separate sub-expressions so nothing invariant-with-a-constant
- *    is left for loop.c to hoist.
- *  - `arc->count > zero` (a fresh `s32 zero = 0;` local) instead of the
- *    equivalent `> 0` literal fixes a pure a0/a1 register SWAP between `arc`
- *    and the loop counter `i` (12 bytes, permuter-found, no length/
- *    instruction change) — adding one more pseudo shifts global-alloc's
- *    pseudo-number tie-break enough to flip which of the two competing
- *    variables lands in which hard reg. Cheaper than a full permuter run
- *    once you suspect this class of tie: try naming a literal operand
- *    through a same-valued local first.
+ * The relocation is an ordinary counted loop. Grouping the entry's relative
+ * offset with the table-header displacement before adding the archive base
+ * mirrors the wire format and preserves the retail arithmetic order.
  */
 
 /* PSX.SYM names IMAGES.C's original archive pointer ArcData. */
@@ -55,8 +40,6 @@ u_long *GetArcData(int index)
 {
     s32 i;
     ArcFile *arc;
-    s32 entry_offset;
-    s32 zero = 0;
 
     if (ArcData == 0)
     {
@@ -65,16 +48,11 @@ u_long *GetArcData(int index)
     arc = ArcData;
     if (arc->loaded == ARC_ENTRIES_RELATIVE)
     {
-        i = 0;
-        if (arc->count > zero)
+        for (i = 0; i < arc->count; i++)
         {
-            do
-            {
-                entry_offset =
-                    arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
-                arc->entry[i].data = (u_long *)((u8 *)arc + entry_offset);
-                i++;
-            } while (i < arc->count);
+            arc->entry[i].data =
+                (u_long *)((u8 *)arc +
+                           (arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET));
         }
         arc->loaded = ARC_ENTRIES_ABSOLUTE;
     }
