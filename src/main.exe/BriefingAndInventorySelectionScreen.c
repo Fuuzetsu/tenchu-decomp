@@ -44,7 +44,8 @@
  *    `(&ps->gItem[0][0])[idx + (ps->CharType << 5)]` and keep
  *    the grid traversal as a real for loop; both shapes affect expansion and
  *    delay-slot duplication.
- *    Still true now that gItem is properly `[2][0x20]`: the natural
+ *    Still true now that gItem is properly
+ *    `[N_PLAYABLE_CHARACTERS][SAVE_ITEM_SLOTS]`: the natural
  *    `ps->gItem[ps->CharType][idx]` costs 12 lines at these seven
  *    sites, so the flat walk is the shape, not the type.
  *  - Preserve the two `dsp->u` memory rereads. They seed the required s1/s2
@@ -167,10 +168,10 @@ void BriefingAndInventorySelectionScreen(void)
     }
     q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     uid = StageConfig[q->StageNo].uid;
-    q->selItem[0] = ITEM_INFINITE;
+    q->selItem[ITEM_KAGINAWA] = ITEM_INFINITE;
     if (uid == 0)
     {
-        q->selItem[1] = 5;
+        q->selItem[ITEM_SHURIKEN] = 5;
         return;
     }
     if ((q->GameRetry & GAME_RETRY_REPLAY) == 0)
@@ -244,7 +245,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
             break;
         case CHEAT_ITEM_REFILL - 1:
-            for (j = 1; j < 9; j++)
+            for (j = ITEM_SHURIKEN; j < ITEM_NEMURI; j++)
             {
                 int n = j + ps->CharType * 0x20;
                 if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
@@ -259,7 +260,7 @@ void BriefingAndInventorySelectionScreen(void)
                     (&ps->gItem[0][0])[n] = (&ps->gItem[0][0])[n] + 1;
                 }
             }
-            for (j = 9; j < N_LOADOUT_ITEMS; j++)
+            for (j = ITEM_NEMURI; j < N_LOADOUT_ITEMS; j++)
             {
                 int n = j + ps->CharType * 0x20;
                 if ((&ps->gItem[0][0])[n] != ITEM_LOCKED)
@@ -282,7 +283,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
             break;
         case CHEAT_ITEM_UNLOCK - 1:
-            for (j = 9; j < N_LOADOUT_ITEMS; j++)
+            for (j = ITEM_NEMURI; j < N_LOADOUT_ITEMS; j++)
             {
                 int n = j + ps->CharType * 0x20;
                 if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
@@ -614,7 +615,7 @@ quit:
     {
         PSTATE->selItem[ITEM_MANEBUE] = ITEM_INFINITE;
     }
-    for (j = 0; j < 9; j++)
+    for (j = ITEM_KAGINAWA; j < ITEM_NEMURI; j++)
     {
         if (PSTATE->gItem[PSTATE->CharType][j] == 0)
         {

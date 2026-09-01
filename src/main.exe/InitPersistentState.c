@@ -20,8 +20,8 @@
  * 0x80010000 is uninitialised or corrupt (CHOSEN_CHARACTER has any bit but
  * bit0 set, or CHOSEN_STAGE is outside StageConfig), wipe it (memset 0xE70) and
  * seed it with defaults: magic 0x19981110 at offset 0, audio/config bytes,
- * StageNoMAX[2], the per-character shop-stock row 0 (0xFE-filled then
- * patched), a copy of that row into char 1's slot, the default item counts,
+ * StageNoMAX, the Rikimaru shop-stock row (ITEM_LOCKED-filled then
+ * patched), a copy of that row into Ayame's row, the default item counts,
  * then pick mono/stereo and re-enter the stage-select menu. Returns 0 when it
  * (re)initialised, 1 when the existing state was already valid.
  *
@@ -79,28 +79,29 @@ s32 InitPersistentState(void)
         ps->SELevel = 0x7f;
         ps->fMemory = 0;
         ps->Anakon = 1;
-        ps->StageNoMAX[1] = 1;
-        ps->StageNoMAX[0] = 1;
+        ps->StageNoMAX[AYAME_0] = 1;
+        ps->StageNoMAX[RIKIMARU_0] = 1;
         do
         {
             stockp[0x40c] = fill;
             i--;
             stockp--;
         } while (i >= 0);
-        ps->gItem[0][0] = ITEM_INFINITE;
-        ps->gItem[0][1] = 6;
-        ps->gItem[0][2] = 6;
-        ps->gItem[0][3] = 2;
-        ps->gItem[0][4] = 1;
-        ps->gItem[0][5] = 1;
-        ps->gItem[0][7] = 3;
-        ps->gItem[0][8] = 5;
-        __builtin_memcpy(&ps->gItem[1][0], &ps->gItem[0][0],
-                         sizeof(ps->gItem) / 2);
-        ps->selItem[1] = 10;
-        ps->selItem[0] = ITEM_INFINITE;
-        ps->selItem[2] = 5;
-        ps->selItem[3] = 2;
+        ps->gItem[RIKIMARU_0][ITEM_KAGINAWA] = ITEM_INFINITE;
+        ps->gItem[RIKIMARU_0][ITEM_SHURIKEN] = 6;
+        ps->gItem[RIKIMARU_0][ITEM_MAKIBISHI] = 6;
+        ps->gItem[RIKIMARU_0][ITEM_KUSURI] = 2;
+        ps->gItem[RIKIMARU_0][ITEM_FIRE] = 1;
+        ps->gItem[RIKIMARU_0][ITEM_SMOKE] = 1;
+        ps->gItem[RIKIMARU_0][ITEM_DOKUDANGO] = 3;
+        ps->gItem[RIKIMARU_0][ITEM_GOSHIKIMAI] = 5;
+        __builtin_memcpy(&ps->gItem[AYAME_0][ITEM_KAGINAWA],
+                         &ps->gItem[RIKIMARU_0][ITEM_KAGINAWA],
+                         sizeof(ps->gItem) / N_PLAYABLE_CHARACTERS);
+        ps->selItem[ITEM_SHURIKEN] = 10;
+        ps->selItem[ITEM_KAGINAWA] = ITEM_INFINITE;
+        ps->selItem[ITEM_MAKIBISHI] = 5;
+        ps->selItem[ITEM_KUSURI] = 2;
         ps->layout = STAGE_LAYOUT_RANDOM;
         if (ps->Stereo != 0)
         {

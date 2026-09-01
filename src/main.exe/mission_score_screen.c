@@ -44,7 +44,7 @@ typedef struct
     u32 rankReserved;
     GsSPRITE rankSprites[N_STAGE_RANKS];
     u32 characterReserved;
-    GsSPRITE characterSprites[2];
+    GsSPRITE characterSprites[N_PLAYABLE_CHARACTERS];
 } MissionScoreSpriteStorage;
 
 extern u8 CHOSEN_CHARACTER;

@@ -527,7 +527,7 @@ void StageEndScreen(void)
             StageConfig[PSTATE->StageNo].uid;
     }
 
-    item_index = 1;
+    item_index = ITEM_SHURIKEN;
     do
     {
         if (CamState.Owner->item[item_index] == ITEM_INFINITE)

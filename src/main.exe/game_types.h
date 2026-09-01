@@ -1250,6 +1250,9 @@ enum character_kind
     END_OF_CHARACTER_KIND_MARKER = 0xffff,
 };
 
+/* The persistent player state has one row for each selectable protagonist. */
+#define N_PLAYABLE_CHARACTERS (AYAME_0 + 1)
+
 /* The character roster is paged by the type's high nibble (type & 0xf0):
  * palace/story 0x00, common guards 0x10, ninja 0x20, Manji cult 0x30,
  * pirates 0x40, tengu 0x50, oni 0x60, undead 0x70, named characters and
@@ -1464,14 +1467,20 @@ typedef struct TLinkInfo
                                        *       gate, PadProc; demo +0xE; default 1) */
     u8 language;                      /* 0x05E CHOSEN_LANGUAGE (retail-only) */
     u8 control_scheme;                /* 0x05F saved pad-remapping row (retail-only) */
-    u8 StageNoMAX[2];                 /* 0x060 highest stage uid per character;
-                                       *       official demo member name (demo +0x3) */
-    ScoreStats stage_stats[2][13][N_STAGE_LAYOUTS]; /* 0x064 [character][stage][layout] */
-    u8 gItem[2][SAVE_ITEM_SLOTS];     /* 0x40C shop stock, per character;
-                                       *       [CharType][item];
-                                       *       retail expansion of demo gItem[30];
-                                       *       0xFE = locked, 0xFF = infinite;
-                                       *       [CharType][0x13] = stage bonus item flag */
+    u8 StageNoMAX[N_PLAYABLE_CHARACTERS]; /* 0x060 highest stage uid per
+                                           *       character; official demo
+                                           *       member name (demo +0x3) */
+    ScoreStats
+        stage_stats[N_PLAYABLE_CHARACTERS][13][N_STAGE_LAYOUTS]; /* 0x064 */
+    u8 gItem[N_PLAYABLE_CHARACTERS][SAVE_ITEM_SLOTS]; /* 0x40C shop stock,
+                                                       *       per character;
+                                                       *       [CharType][item];
+                                                       *       retail expansion
+                                                       *       of demo gItem[30];
+                                                       *       0xFE = locked,
+                                                       *       0xFF = infinite;
+                                                       *       [CharType][0x13] =
+                                                       *       stage bonus flag */
     u8 t_char[5];                     /* 0x44C high-score character (demo name) */
     u8 t_dani[5];                     /* 0x451 high-score rank (demo name) */
     long t_time[5];                   /* 0x458 completion time; retail replacement for

@@ -28,6 +28,10 @@ extern s32 rand(void);
 
 void award_stage_items_(TLinkInfo *state, ScoreResult *result)
 {
+    enum
+    {
+        N_RANDOM_AWARD_ITEMS = ITEM_ARMOUR - ITEM_SHURIKEN
+    };
     s16 kind;
     s16 i;
     s16 remaining;
@@ -47,8 +51,8 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         }
         while (remaining != 0)
         {
-            i = rand() % 18 + 1;
-            if (i < 9)
+            i = rand() % N_RANDOM_AWARD_ITEMS + ITEM_SHURIKEN;
+            if (i < ITEM_NEMURI)
             {
                 if (state->gItem[state->CharType][i] == ITEM_LOCKED)
                 {
@@ -66,7 +70,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
     else if (kind == 2)
     {
-        i = 1;
+        i = ITEM_SHURIKEN;
         do
         {
             if (state->gItem[state->CharType][i] == ITEM_LOCKED)
@@ -75,7 +79,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             }
             state->gItem[state->CharType][i]++;
             i++;
-        } while (i < 9);
+        } while (i < ITEM_NEMURI);
         while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
@@ -87,7 +91,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
     else if (kind == 1)
     {
-        i = 1;
+        i = ITEM_SHURIKEN;
         do
         {
             if (state->gItem[state->CharType][i] == ITEM_LOCKED)
@@ -96,7 +100,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             }
             state->gItem[state->CharType][i]++;
             i++;
-        } while (i < 9);
+        } while (i < ITEM_NEMURI);
         while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
@@ -109,8 +113,8 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         remaining = 5;
         do
         {
-            i = rand() % 18 + 1;
-            if (i < 9)
+            i = rand() % N_RANDOM_AWARD_ITEMS + ITEM_SHURIKEN;
+            if (i < ITEM_NEMURI)
             {
                 if (state->gItem[state->CharType][i] == ITEM_LOCKED)
                 {
@@ -128,7 +132,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
     else
     {
-        i = 1;
+        i = ITEM_SHURIKEN;
         do
         {
             if (state->gItem[state->CharType][i] == ITEM_LOCKED)
@@ -137,7 +141,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             }
             state->gItem[state->CharType][i] += 2;
             i++;
-        } while (i < 9);
+        } while (i < ITEM_NEMURI);
         while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
