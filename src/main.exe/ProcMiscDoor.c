@@ -34,9 +34,11 @@
  *  - The message dispatch is a real switch. expand_case emits the target's
  *    destroy/create/pause/resume test order while the bodies remain in their
  *    readable create/destroy/pause/resume/control order.
- *  - An unsigned self-identity after the angle calculation gives `t` the
- *    original allocation priority, allowing `t`, `wrap`, and `dir` to reuse
- *    $v0 at their non-overlapping lifetimes without a zero-trip loop.
+ *  - Keep the ratan2 result and the door's current rotation as two source
+ *    statements (`t = ...; t += ...;`). That real producer/update boundary
+ *    gives PSX.SYM's `t` its target allocation priority. Folding both into
+ *    one expression previously required a fake unsigned self-identity and an
+ *    invented `wrap` local; the wrapped remainder is naturally one expression.
  *  - `__builtin_abs` is intentional.  This build disables ordinary builtin
  *    folding, while the explicit builtin produces the target's inline
  *    bgez/nop/negu sequence and the required DoorData register allocation.
@@ -134,19 +136,17 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
             if (ConflictObject[cid].common.tag != CONFLICT_OWNER_DOOR)
             {
                 s32 t;
-                s32 wrap;
                 s32 dir;
 
                 t = ratan2(
-                            ConflictObject[cid].position.vz - param->locate->locate.coord.t[2],
-                            ConflictObject[cid].position.vx - param->locate->locate.coord.t[0]) +
-                        param->locate->rotate.vy;
-                /* allocation staging: folded after flow -- not recovered arithmetic */
-                t = ((u32)t + (u32)t) - (u32)t;
-                wrap = t + 2 * ANGLE_FULL;
+                    ConflictObject[cid].position.vz -
+                        param->locate->locate.coord.t[2],
+                    ConflictObject[cid].position.vx -
+                        param->locate->locate.coord.t[0]);
+                t += param->locate->rotate.vy;
                 /* dir stages the predicate before the speed: byte-required
                  * (a plain if/else puts the store in a1, not v0; measured). */
-                dir = (wrap % ANGLE_FULL) <= ANGLE_HALF;
+                dir = ((t + 2 * ANGLE_FULL) % ANGLE_FULL) <= ANGLE_HALF;
                 if (dir != 0)
                     dir = DOOR_ANGLE_STEP;
                 else

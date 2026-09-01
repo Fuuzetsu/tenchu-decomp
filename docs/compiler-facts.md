@@ -34,6 +34,12 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   so `narrow = -narrowVar` can never sign-extend first; a separate SImode operand
   variable blocks the narrowing and keeps `sll/sra` + `negu`-on-extended
   (mission_score_screen).
+- **A fused producer can hide the source boundary that supplied allocation
+  weight.** In `ProcMiscDoor`, `t = ratan2(...) + rotation` needed a
+  post-flow `(t+t)-t` reference carrier. Restoring the ordinary two-statement
+  update, `t = ratan2(...); t += rotation;`, matches exactly without the
+  identity or the invented wrapped-angle local. Test the producer graph before
+  declaring an allocation fence irreducible.
 - **ARRAY_REF gate**: `c-typeck.c:1406` builds an ARRAY_REF only when the operand
   has ARRAY_TYPE **and is not an INDIRECT_REF**. A pointer-to-array cast
   `(*(T (*)[N])p)[i]` is an INDIRECT_REF → index-first arithmetic; a one-field

@@ -2227,16 +2227,23 @@ irreducible nest: DrawConstruction's 3.
   change — `PlayVoice`, `SetBleeds` and `SetBleedsDir` already contained
   the nested `pos`/`time`/`min`/`sec` scopes their repeated demo names
   describe.
-- **The `(x + x) - x` identity is the ONLY C-level way to spend one extra
-  reference.** It exists to bump `REG_N_REFS` in flow.c and is folded away
-  afterwards, so it costs no instruction and changes only allocation. Every
+- **The `(x + x) - x` identity is the only known C-level way to spend one
+  extra otherwise-meaningless reference.** It exists to bump `REG_N_REFS` in
+  flow.c and is folded away afterwards, so it costs no instruction and changes
+  only allocation. Every
   simpler spelling was measured and fails, because fold collapses them
   before the count: `x|x`, `x&x`, `x^0`, `x*1`, `x+0`. A gated sweep of
-  the tree's 14 such identities found 12 genuinely load-bearing (removing
-  one costs 12-52 lines) and one redundant PAIR in ProcItemNingyo, where
-  either copy alone is exact but removing both is not — so **when two of
-  these sit in one function, test them together as well as separately**.
-  Say at the site that it is allocation staging, not arithmetic.
+  the tree's original identities found most genuinely load-bearing under a
+  removal-only test (removing one costs 12-52 lines) and one redundant PAIR in
+  ProcItemNingyo, where either copy alone is exact but removing both is not —
+  so **when two of these sit in one function, test them together as well as
+  separately**.
+  Say at the site that it is allocation staging, not arithmetic. But a passing
+  removal test does **not** prove the weight itself was source-authored: first
+  split any fused producer/update that feeds the identity. `ProcMiscDoor`'s
+  `t = ratan2(...) + rotation` needed the fence; the natural
+  `t = ratan2(...); t += rotation;` supplies the same allocation boundary and
+  removes both the identity and an invented `wrap` local exactly.
 - **`*(u16 *)&x` on a field that is ALREADY 16 bits is noise; delete it.**
   The reinterpret only means something when it changes the access: it is
   load-bearing when it narrows a wider field (`GsDOBJ2.attribute` and
