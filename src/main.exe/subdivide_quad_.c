@@ -14,37 +14,37 @@
     {                                                                         \
         ADIV_VERT *va;                                                        \
         ADIV_VERT *vb;                                                        \
-        u32 *pk;                                                              \
+        POLY_GT3 *pk;                                                         \
         u32 *slot;                                                            \
         int dz;                                                               \
         u16 tp;                                                               \
                                                                               \
         va = (a);                                                             \
-        pk = (u32 *)work->out;                                                \
+        pk = (POLY_GT3 *)work->out;                                           \
         vb = (b);                                                             \
-        pk[2] = *(u32 *)&va->sxy;                                             \
-        pk[5] = *(u32 *)&vb->sxy;                                             \
-        pk[8] = *(u32 *)&(m)->sxy;                                            \
+        *(u32 *)&pk->x0 = *(u32 *)&va->sxy;                                  \
+        *(u32 *)&pk->x1 = *(u32 *)&vb->sxy;                                  \
+        *(u32 *)&pk->x2 = *(u32 *)&(m)->sxy;                                 \
         dz = va->sz;                                                          \
         if (dz < 0)                                                           \
         {                                                                     \
             dz += 3;                                                      \
         }                                                                     \
         work->zmax = dz >> 2;                                                 \
-        pk[3] = (u32) * (u16 *)&va->tu;                                       \
-        pk[6] = (u32) * (u16 *)&vb->tu;                                       \
-        pk[9] = (u32) * (u16 *)&(m)->tu;                                      \
-        pk[1] = *(u32 *)&va->col;                                             \
-        pk[4] = *(u32 *)&vb->col;                                             \
-        pk[7] = *(u32 *)&(m)->col;                                            \
-        ((POLY_GT3 *)pk)->clut = work->packet.clut;                           \
+        *(u32 *)&pk->u0 = (u32) * (u16 *)&va->tu;                            \
+        *(u32 *)&pk->u1 = (u32) * (u16 *)&vb->tu;                            \
+        *(u32 *)&pk->u2 = (u32) * (u16 *)&(m)->tu;                           \
+        *(u32 *)&pk->r0 = *(u32 *)&va->col;                                  \
+        *(u32 *)&pk->r1 = *(u32 *)&vb->col;                                  \
+        *(u32 *)&pk->r2 = *(u32 *)&(m)->col;                                 \
+        pk->clut = work->packet.clut;                                         \
         tp = work->packet.tpage;                                              \
         setlen(pk, GPU_POLY_GT3_LENGTH);                                      \
         setcode(pk, GPU_POLY_GT3_CODE);                                       \
-        ((POLY_GT3 *)pk)->tpage = tp;                                         \
+        pk->tpage = tp;                                                       \
         slot = (u32 *)(work->org + (work->zmax >> work->shift));              \
         work->otp = (u_long *)slot;                                           \
-        *pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;                 \
+        *(u32 *)pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;          \
         *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;                   \
         work->out += GPU_POLY_GT3_WORDS;                                      \
     }
@@ -79,9 +79,10 @@
  *    rest through the midpoint pointer, per the matched bytes.
  *  - Each GT3 emission re-derives the packet/OT fields from the workspace
  *    (never from the leaf `proto` pointer) — distinct spellings, kept.
- *  - Packet payload transfers use a u32 word view because each assignment
- *    copies a packed colour, XY, or UV word. Named metadata uses POLY_GT3/
- *    POLY_GT4 fields and the SDK setlen/setcode macros.
+ *  - Packet payload transfers address the SDK POLY_GT3/POLY_GT4 fields but
+ *    retain word-sized copies because each assignment moves one packed colour,
+ *    XY, or UV pair. Metadata uses the same packet types and the SDK
+ *    setlen/setcode macros.
  */
 
 void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
@@ -94,7 +95,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     int zA;
     int zB;
     int zC;
-    u32 *packet_words;
+    POLY_GT4 *packet;
     ADIV_VERT *pv;
     ADIV_VERT *pv2;
     u32 *otp;
@@ -237,23 +238,35 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     {
                         do
                         {
-                            packet_words = (u32 *)work->out;
-                            packet_words[2] = *(u32 *)&fp->vp[0]->sxy;
-                            packet_words[5] = *(u32 *)&fp->vp[1]->sxy;
-                            packet_words[8] = *(u32 *)&fp->vp[2]->sxy;
-                            packet_words[11] = *(u32 *)&fp->vp[3]->sxy;
-                            packet_words[3] = *(u32 *)&fp->vp[0]->tu;
-                            packet_words[6] = *(u32 *)&fp->vp[1]->tu;
-                            packet_words[9] = *(u32 *)&fp->vp[2]->tu;
-                            packet_words[12] = *(u32 *)&fp->vp[3]->tu;
-                            packet_words[1] = *(u32 *)&fp->vp[0]->col;
-                            packet_words[4] = *(u32 *)&fp->vp[1]->col;
-                            packet_words[7] = *(u32 *)&fp->vp[2]->col;
-                            packet_words[10] = *(u32 *)&fp->vp[3]->col;
+                            packet = (POLY_GT4 *)work->out;
+                            *(u32 *)&packet->x0 =
+                                *(u32 *)&fp->vp[0]->sxy;
+                            *(u32 *)&packet->x1 =
+                                *(u32 *)&fp->vp[1]->sxy;
+                            *(u32 *)&packet->x2 =
+                                *(u32 *)&fp->vp[2]->sxy;
+                            *(u32 *)&packet->x3 =
+                                *(u32 *)&fp->vp[3]->sxy;
+                            *(u32 *)&packet->u0 =
+                                *(u32 *)&fp->vp[0]->tu;
+                            *(u32 *)&packet->u1 =
+                                *(u32 *)&fp->vp[1]->tu;
+                            *(u32 *)&packet->u2 =
+                                *(u32 *)&fp->vp[2]->tu;
+                            *(u32 *)&packet->u3 =
+                                *(u32 *)&fp->vp[3]->tu;
+                            *(u32 *)&packet->r0 =
+                                *(u32 *)&fp->vp[0]->col;
+                            *(u32 *)&packet->r1 =
+                                *(u32 *)&fp->vp[1]->col;
+                            *(u32 *)&packet->r2 =
+                                *(u32 *)&fp->vp[2]->col;
+                            *(u32 *)&packet->r3 =
+                                *(u32 *)&fp->vp[3]->col;
                         } while (0);
                     } while (0);
-                    ((POLY_GT4 *)packet_words)->clut = proto->clut;
-                    ((POLY_GT4 *)packet_words)->tpage = proto->tpage;
+                    packet->clut = proto->clut;
+                    packet->tpage = proto->tpage;
                     *(u_long *)work->out = proto->tag;
                     otp = (u32 *)(work->org + (work->zmax >> work->shift));
                     work->otp = (u_long *)otp;
@@ -363,37 +376,38 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     {
                         ADIV_VERT *va;
                         ADIV_VERT *vb;
-                        u32 *pk;
+                        POLY_GT3 *pk;
                         u32 *slot;
                         int dz;
                         u16 tp;
 
                         vb = fp->vp[1];
-                        pk = (u32 *)work->out;
+                        pk = (POLY_GT3 *)work->out;
                         va = fp->vp[3];
-                        pk[2] = *(u32 *)&vb->sxy;
-                        pk[5] = *(u32 *)&va->sxy;
-                        pk[8] = *(u32 *)&m31->sxy;
+                        *(u32 *)&pk->x0 = *(u32 *)&vb->sxy;
+                        *(u32 *)&pk->x1 = *(u32 *)&va->sxy;
+                        *(u32 *)&pk->x2 = *(u32 *)&m31->sxy;
                         dz = vb->sz;
                         if (dz < 0)
                         {
                             dz += 3;
                         }
                         work->zmax = dz >> 2;
-                        pk[3] = (u32) * (u16 *)&vb->tu;
-                        pk[6] = (u32) * (u16 *)&va->tu;
-                        pk[9] = (u32) * (u16 *)&m31->tu;
-                        pk[1] = *(u32 *)&vb->col;
-                        pk[4] = *(u32 *)&va->col;
-                        pk[7] = *(u32 *)&m31->col;
-                        ((POLY_GT3 *)pk)->clut = work->packet.clut;
+                        *(u32 *)&pk->u0 = (u32) * (u16 *)&vb->tu;
+                        *(u32 *)&pk->u1 = (u32) * (u16 *)&va->tu;
+                        *(u32 *)&pk->u2 = (u32) * (u16 *)&m31->tu;
+                        *(u32 *)&pk->r0 = *(u32 *)&vb->col;
+                        *(u32 *)&pk->r1 = *(u32 *)&va->col;
+                        *(u32 *)&pk->r2 = *(u32 *)&m31->col;
+                        pk->clut = work->packet.clut;
                         tp = work->packet.tpage;
                         setlen(pk, GPU_POLY_GT3_LENGTH);
                         setcode(pk, GPU_POLY_GT3_CODE);
-                        ((POLY_GT3 *)pk)->tpage = tp;
+                        pk->tpage = tp;
                         slot = (u32 *)(work->org + (work->zmax >> work->shift));
                         work->otp = (u_long *)slot;
-                        *pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;
+                        *(u32 *)pk =
+                            *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;
                         *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;
                         tail = (int)(work->out + GPU_POLY_GT3_WORDS);
                     }
