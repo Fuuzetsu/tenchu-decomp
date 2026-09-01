@@ -34,7 +34,7 @@
  * D-pad directions from dtPAD while L1 (camera-center) is held, dispatches through `ActionFunc[human->status]`
  * (an indirect call through the per-status function-pointer table), and
  * finally runs MotionAndMove() unless the dispatched handler left
- * `motMODE` at its reset sentinel (-1).
+ * `motMODE` at MOTION_MOVE_UNSET.
  *
  * THREE struct-field reads in this TU are UNSIGNED (`lhu`) against fields
  * item.h already proves SIGNED (`s16`) in other TUs: `human->attribute`
@@ -108,7 +108,7 @@ void HumanActionControl(Humanoid *human)
     dtPAD = human->pad.data;
     Me_MOTION_C = human;
     dtCMD = GetCommand(&human->pad);
-    motMODE = -1;
+    motMODE = MOTION_MOVE_UNSET;
     locate = Me_MOTION_C->locate;
     motion = Me_MOTION_C->motion;
     rotate = Me_MOTION_C->rotate;
@@ -139,7 +139,7 @@ void HumanActionControl(Humanoid *human)
         dtPAD = dtPAD & ~(PADLup | PADLright | PADLdown | PADLleft);
     }
     ActionFunc[Me_MOTION_C->status]();
-    if (motMODE != -1)
+    if (motMODE != MOTION_MOVE_UNSET)
     {
         MotionAndMove();
     }

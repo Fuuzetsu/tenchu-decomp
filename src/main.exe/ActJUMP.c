@@ -101,7 +101,7 @@ void ActJUMP(void)
                 } while (i < N_CVA_HUMANS);
             }
             SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = -1;
+            motMODE = MOTION_MOVE_UNSET;
         landed_motion_done:
             Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             dtM->count >>= 2;
@@ -143,7 +143,7 @@ void ActJUMP(void)
                 } while (i < N_CVA_HUMANS);
             }
             SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = -1;
+            motMODE = MOTION_MOVE_UNSET;
         fall_motion_done:
             if (mid != MOT_JUMP_RUN)
             {

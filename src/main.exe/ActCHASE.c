@@ -85,7 +85,7 @@ void ActCHASE(void)
                     } while (i < N_CVA_HUMANS);
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
-                motMODE = -1;
+                motMODE = MOTION_MOVE_UNSET;
             motion_ready:
                 MoveHumanoid(Me_MOTION_C, 35, 0);
                 if (dtM->mode & 1)

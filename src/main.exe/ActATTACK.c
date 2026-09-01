@@ -562,7 +562,7 @@ dispatch:
             }
         set_motion:
             t = SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = -1;
+            motMODE = MOTION_MOVE_UNSET;
         snap_origin:
             if (t != 0)
             {
@@ -692,7 +692,7 @@ dispatch:
         Humanoid *human;
         ModelType *waist;
         motion_id saved_mid;
-        short motion_flag;
+        motion_move_mode apply_movement;
 
         if (dtM->count == 1)
         {
@@ -720,7 +720,7 @@ dispatch:
         waist->locate.coord.t[0] = 0;
         ReturnNormal();
         saved_mid = motID;
-        motion_flag = motMODE;
+        apply_movement = motMODE;
         human = Me_MOTION_C;
         if (human->status != STAT_DEAD ||
             human->motion->loop != MOTION_LOOP_DISABLED)
@@ -728,7 +728,7 @@ dispatch:
             if (UpdateMotion(human->motion, saved_mid) != 0)
             {
                 human->status = saved_mid >> 8;
-                if (motion_flag != 0)
+                if (apply_movement != 0)
                 {
                     mot = human->motion->motion;
                     MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
@@ -738,7 +738,7 @@ dispatch:
         dtM->count = 0;
         dtM->loop = 0;
         PlayMotion(dtM, 1);
-        motMODE = -1;
+        motMODE = MOTION_MOVE_UNSET;
         CamState.snap_pending = 1;
         return;
     }

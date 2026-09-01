@@ -144,7 +144,7 @@ short SwimCheck(void)
             } while (i < N_CVA_HUMANS);
         }
         SetNowMotion(Me_MOTION_C, motID, motMODE);
-        motMODE = -1;
+        motMODE = MOTION_MOVE_UNSET;
     motion_done:
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
         reset_alert_duration();

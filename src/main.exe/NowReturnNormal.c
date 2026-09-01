@@ -29,9 +29,9 @@
  * may have written them (the compiler can't assume otherwise across a call).
  * motID/motMODE have their recovered signed object types, but this retail
  * caller reads their raw halfwords with `lhu` before copying each into a
- * `motion_id`/`short` locals (matching SetNowMotion's underlying parameter
- * widths). That makes the later signed sra/sll+beqz idioms (not andi)
- * reappear.
+ * `motion_id`/`motion_move_mode` locals (matching SetNowMotion's underlying
+ * parameter widths). That makes the later signed sra/sll+beqz idioms (not
+ * andi) reappear.
  */
 extern void ReturnNormal(void);
 extern Humanoid *Me_MOTION_C;
@@ -41,7 +41,7 @@ short NowReturnNormal(Humanoid *human)
     Humanoid *current;
     MotionDataType *motion;
     motion_id next_motion;
-    short apply_movement;
+    motion_move_mode apply_movement;
 
     Me_MOTION_C = human;
     ReturnNormal();

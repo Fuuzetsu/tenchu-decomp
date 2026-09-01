@@ -195,7 +195,7 @@ void ActSTICKON(void)
                     }
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
-                motMODE = -1;
+                motMODE = MOTION_MOVE_UNSET;
             stickon_motion_done:
                 dtM->count = -5;
                 break;
@@ -344,7 +344,7 @@ void ActSTICKON(void)
                     }
                 }
                 SetNowMotion(Me_MOTION_C, motID, motMODE);
-                motMODE = -1;
+                motMODE = MOTION_MOVE_UNSET;
             slide_motion_done:
                 dtM->count = -5;
                 break;

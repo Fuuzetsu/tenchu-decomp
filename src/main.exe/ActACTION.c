@@ -171,7 +171,7 @@ void ActACTION(void)
                 } while (i < N_CVA_HUMANS);
             }
             SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = -1;
+            motMODE = MOTION_MOVE_UNSET;
         motion_ready:
             dtM->count = -0xf;
         }

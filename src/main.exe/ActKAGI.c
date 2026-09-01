@@ -277,7 +277,7 @@ void ActKAGI(void)
                 }
             }
             SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = -1;
+            motMODE = MOTION_MOVE_UNSET;
 
         motion_active:
             dtM->count >>= 1;

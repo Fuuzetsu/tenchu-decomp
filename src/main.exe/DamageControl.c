@@ -778,7 +778,7 @@ resolve_hit:
         v->vx = 0;
         if (Me_MOTION_C->life != 0)
         {
-            motMODE = -1;
+            motMODE = MOTION_MOVE_UNSET;
             return;
         }
         SET_MOTION(MOT_DEAD_DROWN, 1);

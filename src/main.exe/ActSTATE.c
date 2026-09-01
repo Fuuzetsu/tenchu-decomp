@@ -374,7 +374,7 @@ void ActSTATE(void)
             } while (i < N_CVA_HUMANS);
         }
         SetNowMotion(Me_MOTION_C, motID, motMODE);
-        motMODE = -1;
+        motMODE = MOTION_MOVE_UNSET;
     motion_ready:
         Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
         return;

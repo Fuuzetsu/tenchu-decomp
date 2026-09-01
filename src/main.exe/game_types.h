@@ -470,6 +470,9 @@ typedef s16 motion_id;
 /* AttackPQD's signed end-frame sentinel. */
 #define MOTION_FRAME_ANY (-1)
 
+typedef s16 motion_move_mode;
+#define MOTION_MOVE_UNSET (-1)
+
 /* MOTION.C's keyframe, motion, registry, spline, and playback records. */
 typedef struct MotionElementType MotionElementType;
 struct MotionElementType

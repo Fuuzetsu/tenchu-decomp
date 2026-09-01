@@ -57,6 +57,6 @@ short MotionAndMove(void)
         } while (i < N_CVA_HUMANS);
     }
     result = SetNowMotion(Me_MOTION_C, motID, motMODE);
-    motMODE = -1;
+    motMODE = MOTION_MOVE_UNSET;
     return result;
 }

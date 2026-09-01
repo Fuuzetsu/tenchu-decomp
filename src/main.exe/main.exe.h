@@ -25,7 +25,7 @@
             }                                                                 \
         }                                                                     \
         SetNowMotion(Me_MOTION_C, motID, motMODE);                            \
-        motMODE = -1;                                                         \
+        motMODE = MOTION_MOVE_UNSET;                                          \
     }
 
 /* Clamp a >>2 screen depth into [0, DEPTH_LIMIT - 1] for the OT sort;
