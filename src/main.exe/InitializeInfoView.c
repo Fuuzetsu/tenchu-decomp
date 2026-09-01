@@ -30,35 +30,17 @@
  * and the retail-expanded 4-entry KehaiImage array, then resets enemy
  * layout/info-view state and marks fInitialize.
  *
- * STATUS: MATCHING — 352 bytes. The loop-1 SetupSprite result must be
- * assigned through `*slot` in one expression: that assignment chain keeps
- * the result live long enough for the following slot reload to take `$v1`,
- * leaving `$v0` for the 0x1C attribute constant.
+ * STATUS: MATCHING — 352 bytes. The SetupSprite result is assigned to its
+ * ItemImage slot in the same expression so the following attribute write
+ * deliberately goes back through the shared table.
  *
  * Matching notes:
- *  - Loops 1 and 2 (the ItemImage pool) are HAND-ROLLED GOTO LOOPS, not
- *    do-whiles, despite Ghidra/m2c rendering plain `do{}while`: loop 1's
- *    0x1C attribute constant is RE-MATERIALIZED every iteration
- *    (`li v0,0x1c` inside the loop body each pass) rather than hoisted to a
- *    preheader, which only happens with NO loop notes for loop.c to act on
- *    (same lesson as PutNumber's /10 magic constant and
- *    SelectCameraOwnerOption's `&targets[i]`). The 0x3000 scale, by
- *    contrast, IS hoisted before loop 1 — but that isn't loop.c invariant
- *    motion either: it's a plain NAMED VARIABLE (`scale1`) assigned once
- *    before the (goto) loop and read every iteration, exactly like
- *    `buffer`/`ppHVar4` persist across SelectCameraOwnerOption's goto loop.
- *    Loop 2 hoists BOTH its scale and attribute the same way (two more
- *    named locals, `scale2`/`attr2`, assigned right before loop 2's own
- *    goto-loop body, in registers distinct from loop 1's).
- *  - Loop 3 (KehaiImage) stays a genuine `do{}while`: Ghidra's rendering
- *    already matches (its additive sprite attribute is likewise just a plain
- *    pre-loop variable read, and the array is walked with a typed `GsSPRITE *`
- *    pointer with no strength-reduction concern).
- *  - `ItemImage` is walked through its real `Sprite3D **` element type.
- *    `item` retains SetupSprite's result for the scale store, while
- *    `(*slot)->attribute` deliberately re-reads the pointer from the array;
- *    that is the target's slot reload without erasing the pointer type or
- *    spelling the recovered +0x5A field as a raw offset.
+ *  - The three loops index ItemImage[] and KehaiImage[] directly. GCC
+ *    strength-reduces those subscripts to the advancing cursors in retail.
+ *  - The padding phase keeps its scale and attribute in named values across
+ *    the GetImage/SetupSprite calls. The first phase can use the same values
+ *    directly because the compiler naturally hoists or rematerializes them
+ *    in the corresponding retail locations.
  *  - `fInitialize` is this TU's gp small; maspsxGpExterns is PER FILE (each
  *    split function is its own assembly unit), so this file needs its OWN
  *    Build.hs entry — DoInfoViewProc.c's entry only covers DoInfoViewProc.c.
@@ -83,62 +65,44 @@ void InitializeInfoView(void)
 {
     GsIMAGE *image;
     Sprite3D *item;
-    Sprite3D **slot;
-    Sprite3D **base2; /* not a redundant alias: `slot = ItemImage + i;`
-                       * directly costs 2 lines. Loop 2's scale2/attr2
-                       * and loop 1's scale1 are load-bearing too (20,
-                       * 25 and 29 lines cumulatively) -- see above. */
-    GsSPRITE *sprite;
     int i;
-    s32 scale1;
-    s32 scale2;
-    s32 attr3;
-    s32 attr2;
+    s32 padding_scale;
+    s32 padding_attribute;
 
     image = GetImage(IMG_CURSOR);
     InitSprite(image, &CursorImage);
     CursorImage.attribute = GS_ATTR_SEMITRANS_ADD;
     image = GetImage(IMG_FONT_NUMBER);
     InitSprite(image, &NumberImage);
-    i = 0;
-    scale1 = 0x3000;
-    slot = ItemImage;
-loop1:
-    image = GetImage(i + IMG_ICON_KAGINAWA);
-    item = (*slot = SetupSprite(0, image));
-    item->scale = scale1;
-    (*slot)->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
-                         MODEL_ATTR_CULL_FAR;
-    slot++;
-    if (++i < N_LOADOUT_ITEMS)
-        goto loop1;
+    for (i = 0; i < N_LOADOUT_ITEMS; i++)
+    {
+        image = GetImage(i + IMG_ICON_KAGINAWA);
+        item = (ItemImage[i] = SetupSprite(0, image));
+        item->scale = 0x3000;
+        ItemImage[i]->attribute = MODEL_ATTR_CULL_BEHIND |
+                                  MODEL_ATTR_CULL_SCREEN |
+                                  MODEL_ATTR_CULL_FAR;
+    }
     if (i < N_ITEM_SLOTS)
     {
-        scale2 = 0x3000;
-        attr2 = 0x1C;
-        base2 = ItemImage;
-        slot = base2 + i;
-    loop2:
-        image = GetImage(IMG_GUNFIRE);
-        item = SetupSprite(0, image);
-        *slot = item;
-        item->scale = scale2;
-        (*slot)->attribute = attr2;
-        slot++;
-        if (++i < N_ITEM_SLOTS)
-            goto loop2;
+        padding_scale = 0x3000;
+        padding_attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
+                            MODEL_ATTR_CULL_FAR;
+        do
+        {
+            image = GetImage(IMG_GUNFIRE);
+            item = (ItemImage[i] = SetupSprite(0, image));
+            item->scale = padding_scale;
+            ItemImage[i]->attribute = padding_attribute;
+            i++;
+        } while (i < N_ITEM_SLOTS);
     }
-    i = 0;
-    attr3 = GS_ATTR_SEMITRANS_ADD;
-    sprite = KehaiImage;
-    do
+    for (i = 0; i < N_KEHAI_IMAGES; i++)
     {
         image = GetImage(i + IMG_KEHAI_GREEN);
-        InitSprite(image, sprite);
-        sprite->attribute = attr3;
-        i++;
-        sprite++;
-    } while (i < N_KEHAI_IMAGES);
+        InitSprite(image, &KehaiImage[i]);
+        KehaiImage[i].attribute = GS_ATTR_SEMITRANS_ADD;
+    }
     leResetEnemyLayout();
     ResetInfoview(-1);
     init_lifebar_();
