@@ -57,8 +57,6 @@ extern char NUMBER_TIM_PATH[];
 extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
-extern s16 StageItem[];
-
 extern void vfree(void *ptr);
 extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);

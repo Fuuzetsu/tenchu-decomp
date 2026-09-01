@@ -33,9 +33,6 @@
  * `Humanoid` struct (reference/ghidra_types.h) AND item.h's cross-TU
  * Humanoid.model, both agreeing at the same offsets.
  */
-extern s16 VISIBLE_ENEMIES_;
-extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
-extern s16 DrawModeSave[];
 extern short DrawModelArchive(ModelArchiveType *mad, long gap);
 extern short DrawOrnament(OrnamentType *objp);
 

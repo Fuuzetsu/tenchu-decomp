@@ -23,7 +23,6 @@
  *    replacing the required sll/sra sign extension with andi/sltiu.
  */
 
-extern s16 StageItem[];
 extern s32 rand(void);
 
 void award_stage_items_(TLinkInfo *state, ScoreResult *result)

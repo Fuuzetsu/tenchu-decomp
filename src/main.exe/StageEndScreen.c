@@ -48,8 +48,6 @@
 extern u8 CHOSEN_CHARACTER;
 extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern packed_stage_id StageOrder[];
-extern s16 StageItem[];
 extern char NUMBER_TIM_PATH[];
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);

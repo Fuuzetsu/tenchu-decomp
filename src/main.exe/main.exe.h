@@ -62,6 +62,12 @@ extern struct Humanoid *Me_THINK_C;
 /* Retail permits 40 actors and reserves 0xA0 bytes before the next global. */
 #define MAX_HUMANS 40
 extern struct Humanoid *HumanGroup[MAX_HUMANS];
+/* The per-frame render roster is parallel to HumanGroup and has the same
+ * retail capacity: one visible actor pointer and saved TMD draw mode per
+ * slot, with VISIBLE_ENEMIES_ entries live. */
+extern s16 VISIBLE_ENEMIES_;
+extern s16 DrawModeSave[MAX_HUMANS];
+extern struct Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[MAX_HUMANS];
 /* Retail's CHARACTER_KIND_END row is entry 77; the demo table had 63. */
 extern HumanDataType HumanData[78];
 extern HumanAnimType CVAhuman[N_CVA_HUMANS];
@@ -278,6 +284,11 @@ enum
 
 extern TEnemyLayout enemy[MAX_ENEMIES];
 extern TStageConfig StageConfig[N_STAGE_CONFIGS];
+/* StageOrder converts campaign uid to runtime stage id; StageItem maps each
+ * runtime stage to its Grand Master reward. Both retail tables contain one
+ * signed halfword per member of their respective stage domain. */
+extern packed_stage_id StageOrder[N_STAGE_UIDS];
+extern item_selection StageItem[N_STAGE_CONFIGS];
 extern MotionManager *dtM;
 extern VECTOR *dtL;
 extern SVECTOR *dtR;

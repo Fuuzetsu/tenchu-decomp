@@ -32,8 +32,6 @@ extern s32 PacketUsed; /* u32 in EndDrawing.c; the signed view here is measured 
 extern s16 ThinkBudgetRaw;
 extern s16 ThinkCount;
 extern s16 ThinkBudget;
-extern s16 VISIBLE_ENEMIES_;
-extern Humanoid *VISIBLE_CHARACTERS_ON_STAGE_[];
 
 /*
  * MATCHED — 1,608 bytes / 402 instructions, 0x68-byte frame, exact CFG.
