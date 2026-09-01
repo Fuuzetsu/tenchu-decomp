@@ -68,22 +68,4 @@ enum tim_mode_flag
 #define TIM_FILE_IMAGE(file) \
     ((u_long *)&((TIMFile *)(file))->image.mode)
 
-#define TIM_IMAGE_BYTE_OFFSET(member) \
-    ((s32)&((TIMImageData *)0)->member)
-#define TIM_IMAGE_CURSOR_ADVANCE(cursor, from, to)                         \
-    ((u_long *)((s32)(cursor) + TIM_IMAGE_BYTE_OFFSET(to) -                \
-                TIM_IMAGE_BYTE_OFFSET(from)))
-
-#define TIM_BLOCK_BYTE_OFFSET(member) \
-    ((s32)&((TIMDataBlock *)0)->member)
-#define TIM_BLOCK_CURSOR_ADVANCE(cursor, from, to)                         \
-    ((u_long *)((s32)(cursor) + TIM_BLOCK_BYTE_OFFSET(to) -                \
-                TIM_BLOCK_BYTE_OFFSET(from)))
-#define TIM_BLOCK_NEXT(cursor)                                             \
-    ((u_long *)((cursor) +                                                 \
-                (((TIMDataBlock *)(cursor))->byte_size >>                  \
-                 TIM_BYTE_TO_WORD_SHIFT)))
-#define TIM_BLOCK_POSITION(cursor) ((TIMBlockPosition *)(cursor))
-#define TIM_BLOCK_SIZE(cursor) ((TIMBlockSize *)(cursor))
-
 #endif

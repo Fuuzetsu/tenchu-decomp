@@ -11,35 +11,35 @@ void GsGetTimInfo(unsigned long *image, GsIMAGE *tim)
     tim->pmode = *image;
     if (TIM_HAS_CLUT(tim->pmode))
     {
-        image = TIM_IMAGE_CURSOR_ADVANCE(image, mode, blocks);
-        pixel = TIM_BLOCK_NEXT(image);
-        image = TIM_BLOCK_CURSOR_ADVANCE(image, byte_size, position);
-        tim->cx = TIM_BLOCK_POSITION(image)->x;
-        tim->cy = TIM_BLOCK_POSITION(image)->y;
-        image = TIM_BLOCK_CURSOR_ADVANCE(image, position, size);
-        tim->cw = TIM_BLOCK_SIZE(image)->width;
-        tim->ch = TIM_BLOCK_SIZE(image)->height;
-        image = TIM_BLOCK_CURSOR_ADVANCE(image, size, data);
+        image++;
+        pixel = image + (*image >> TIM_BYTE_TO_WORD_SHIFT);
+        image++;
+        tim->cx = ((TIMBlockPosition *)image)->x;
+        tim->cy = ((TIMBlockPosition *)image)->y;
+        image++;
+        tim->cw = ((TIMBlockSize *)image)->width;
+        tim->ch = ((TIMBlockSize *)image)->height;
+        image++;
         tim->clut = image;
 
-        pixel = TIM_BLOCK_CURSOR_ADVANCE(pixel, byte_size, position);
-        tim->px = TIM_BLOCK_POSITION(pixel)->x;
-        tim->py = TIM_BLOCK_POSITION(pixel)->y;
-        pixel = TIM_BLOCK_CURSOR_ADVANCE(pixel, position, size);
-        tim->pw = TIM_BLOCK_SIZE(pixel)->width;
-        tim->ph = TIM_BLOCK_SIZE(pixel)->height;
-        pixel = TIM_BLOCK_CURSOR_ADVANCE(pixel, size, data);
+        pixel++;
+        tim->px = ((TIMBlockPosition *)pixel)->x;
+        tim->py = ((TIMBlockPosition *)pixel)->y;
+        pixel++;
+        tim->pw = ((TIMBlockSize *)pixel)->width;
+        tim->ph = ((TIMBlockSize *)pixel)->height;
+        pixel++;
         tim->pixel = pixel;
     }
     else
     {
-        image = TIM_IMAGE_CURSOR_ADVANCE(image, mode, blocks[0].position);
-        tim->px = TIM_BLOCK_POSITION(image)->x;
-        tim->py = TIM_BLOCK_POSITION(image)->y;
-        image = TIM_BLOCK_CURSOR_ADVANCE(image, position, size);
-        tim->pw = TIM_BLOCK_SIZE(image)->width;
-        tim->ph = TIM_BLOCK_SIZE(image)->height;
-        image = TIM_BLOCK_CURSOR_ADVANCE(image, size, data);
+        image += 2;
+        tim->px = ((TIMBlockPosition *)image)->x;
+        tim->py = ((TIMBlockPosition *)image)->y;
+        image++;
+        tim->pw = ((TIMBlockSize *)image)->width;
+        tim->ph = ((TIMBlockSize *)image)->height;
+        image++;
         tim->pixel = image;
     }
 }
