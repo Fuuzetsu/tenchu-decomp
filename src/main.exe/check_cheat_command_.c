@@ -19,10 +19,10 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
 {
     u16 *history;
     s32 combination_index;
-    s16 *guard_entry;
-    s16 *entry;
-    s16 *pattern;
-    s16 *pattern_start;
+    CheatCommandSequence *guard_entry;
+    CheatCommandSequence *entry;
+    u16 *pattern;
+    u16 *pattern_start;
     u32 outer_end;
     u32 inner_end;
     s32 i;
@@ -39,14 +39,14 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
         PAD_HISTORY_[0] = buttons;
         if (guard_entry != NULL)
         {
-            outer_end = 0xffff;
+            outer_end = CHEAT_COMMAND_END;
             combination_index = 0;
             do
             {
                 entry = CHEAT_COMMANDS_[combination_index];
                 i = 0;
-                pattern_start = entry + 1;
-                if ((u16)entry[1] == outer_end)
+                pattern_start = entry->presses;
+                if (entry->presses[0] == outer_end)
                     goto matched;
 
                 /* Identical arms, and byte-required (measured both ways,
@@ -62,25 +62,25 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
                  * fails the same way; jump threading later deletes the
                  * branch and the dead [1] read. No demo homolog exists. */
                 if (PAD_HISTORY_[1] != 0)
-                    inner_end = 0xffff;
+                    inner_end = CHEAT_COMMAND_END;
                 else
-                    inner_end = 0xffff;
+                    inner_end = CHEAT_COMMAND_END;
                 pattern = pattern_start;
                 history = PAD_HISTORY_;
                 do
                 {
 
-                    if ((u16)*pattern != *history)
+                    if (*pattern != *history)
                     {
                         goto compare_end;
                     }
                     pattern++;
                     history++;
                     i++;
-                } while ((u16)*pattern != inner_end);
+                } while (*pattern != inner_end);
 
             compare_end:
-                if ((u16)pattern_start[i] == outer_end)
+                if (pattern_start[i] == outer_end)
                 {
                 matched:
                     i = N_CHEAT_HISTORY_ENTRIES - 1;
@@ -90,7 +90,7 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
                         i--;
                     } while (i > 0);
                     PAD_HISTORY_[0] = 0;
-                    return CHEAT_COMMANDS_[combination_index][0];
+                    return CHEAT_COMMANDS_[combination_index]->result;
                 }
 
                 combination_index++;

@@ -75,10 +75,21 @@ enum
 {
     N_CHEAT_COMMANDS = 7,
     N_CHEAT_COMMAND_TABLE_ENTRIES = N_CHEAT_COMMANDS + 1,
-    N_CHEAT_HISTORY_ENTRIES = 12
+    N_CHEAT_HISTORY_ENTRIES = 12,
+    CHEAT_COMMAND_END = 0xFFFF
 };
 
-extern short *CHEAT_COMMANDS_[N_CHEAT_COMMAND_TABLE_ENTRIES];
+/* A cheat row publishes a signed result and then matches a newest-first,
+ * CHEAT_COMMAND_END-terminated sequence of pad presses. */
+typedef struct CheatCommandSequence CheatCommandSequence;
+struct CheatCommandSequence
+{
+    s16 result;     /* 0x00 */
+    u16 presses[1]; /* 0x02, sentinel-terminated variable tail */
+};
+
+extern CheatCommandSequence
+    *CHEAT_COMMANDS_[N_CHEAT_COMMAND_TABLE_ENTRIES];
 extern unsigned short PAD_HISTORY_[N_CHEAT_HISTORY_ENTRIES];
 
 #define CHEAT_ITEM_CAP 0x1    /* Tri+Left Tri+Down Tri+Right Tri+Up

@@ -25,9 +25,9 @@
 
 /*
  * MATCHED: SetCommand (0x8001b038, 0x10c bytes) finds cmd in the
- * NULL-terminated Command table. Each entry contains an id followed by a
- * 0xFFFF-terminated argument list. On a hit it copies arguments after the
- * first into pad->stream, sets pad->time to 1, and returns the first argument;
+ * NULL-terminated Command table. Each row contains an id followed by a
+ * 0xFFFF-terminated input sequence. On a hit it copies inputs after the first
+ * into pad->stream, sets pad->time to 1, and returns the first input;
  * a miss returns zero.
  *
  * Matching constraints:
@@ -54,8 +54,8 @@
 short SetCommand(PADtype *pad, pad_command cmd)
 {
     s16 i;
-    COMMAND *entry;
-    COMMAND *args;
+    PadCommandSequence *entry;
+    u16 *inputs;
     s16 n;
     s16 j;
     /* Named for its value, not a role, because the value IS the shared
@@ -70,13 +70,13 @@ short SetCommand(PADtype *pad, pad_command cmd)
     while (Command[i] != 0)
     {
         entry = Command[i];
-        found = (entry[0] == cmd);
+        found = (entry->command.encoded == cmd);
         one = 1;
         if (found)
         {
-            args = entry + 1;
+            inputs = entry->inputs;
             n = 0;
-            while (args[n] != PAD_COMMAND_END)
+            while (inputs[n] != PAD_COMMAND_END)
             {
                 n++;
             }
@@ -85,12 +85,12 @@ short SetCommand(PADtype *pad, pad_command cmd)
                 j = 1;
                 do
                 {
-                    pad->stream[j - 1] = args[j];
+                    pad->stream[j - 1] = inputs[j];
                     j++;
                 } while (j < n);
             }
             pad->time = one;
-            return (s16)args[0];
+            return (s16)inputs[0];
         }
         i++;
     }

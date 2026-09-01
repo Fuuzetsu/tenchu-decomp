@@ -25,12 +25,11 @@
  * STATUS: MATCHED — exact retail bytes (292 bytes, 73 instructions).
  *
  * GetCommand (0x8001af14) — checks pad->stream[] (the recent-input ring,
- * newest first) against every entry in the global Command table (same
- * NULL-terminated `COMMAND *` table as SetCommand.c: entry[0] = command id,
- * entry[1..] = a 0xFFFF-terminated button-sequence pattern). The first
+ * newest first) against every entry in the global Command table (the same
+ * NULL-terminated PadCommandSequence table as SetCommand.c). The first
  * entry whose pattern is a prefix of pad->stream[] wins: pad->stream[] is
  * shifted down by one (dropping the oldest, stream[0] cleared for the next
- * frame) and entry[0] is returned. Returns 0 if no entry matches.
+ * frame) and the row's command id is returned. Returns 0 if no entry matches.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - Outer loop is a plain rotated `for (i = 0; Command[i] != 0; i++)` —
@@ -55,19 +54,19 @@
 
 pad_command GetCommand(PADtype *pad)
 {
-    COMMAND *cmd;
+    u16 *pattern;
     short i;
     short j;
 
     for (i = 0; Command[i] != 0; i++)
     {
-        cmd = Command[i] + 1;
-        for (j = 0; cmd[j] != PAD_COMMAND_END; j++)
+        pattern = Command[i]->inputs;
+        for (j = 0; pattern[j] != PAD_COMMAND_END; j++)
         {
-            if (cmd[j] != pad->stream[j])
+            if (pattern[j] != pad->stream[j])
                 break;
         }
-        if (cmd[j] != PAD_COMMAND_END)
+        if (pattern[j] != PAD_COMMAND_END)
             continue;
 
         j = PAD_COMMAND_STREAM_LENGTH - 1;
@@ -77,9 +76,9 @@ pad_command GetCommand(PADtype *pad)
             j--;
         } while (j > 0);
         pad->stream[0] = 0;
-        /* (pad_command *): the return is an lh where every table read above
+        /* The runtime view is an lh where every encoded-pattern read above
          * is lhu — byte-required (verified against the .s). */
-        return *(pad_command *)Command[i];
+        return Command[i]->command.runtime;
     }
     return CMD_NONE;
 }
