@@ -21,6 +21,16 @@ extern ReinforcementTypeTable AIDHumanType;
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern int rand(void);
 
+/* actscnt belongs to whichever Think* handler is active.  In this handler it
+ * is a state, not a counter: reach the reported position, circle there, or
+ * move far enough away to call in another guard. */
+enum alarm_reaction_state
+{
+    ALARM_REACTION_APPROACH = 0,
+    ALARM_REACTION_CIRCLE = 1,
+    ALARM_REACTION_CALL_BACKUP = 2
+};
+
 /*
  * `nextState` intentionally carries each condition and its eventual result.
  * Reusing the dead `alertTime` local for StageID keeps the comparison operand
@@ -44,7 +54,7 @@ s16 think_alarm_reaction_(void)
              Me_THINK_C->locate->vz;
     state = Me_THINK_C->actscnt;
 
-    if (state == 0)
+    if (state == ALARM_REACTION_APPROACH)
     {
         s32 distance;
 
@@ -79,7 +89,7 @@ s16 think_alarm_reaction_(void)
                 nextState = nextState < 30;
                 if (nextState == 0)
                 {
-                    nextState = 1;
+                    nextState = ALARM_REACTION_CIRCLE;
                 }
                 else
                 {
@@ -87,24 +97,24 @@ s16 think_alarm_reaction_(void)
                     alertTime = StageID;
                     if (alertTime != nextState)
                     {
-                        nextState = 2;
+                        nextState = ALARM_REACTION_CALL_BACKUP;
                     }
                     else
                     {
-                        nextState = 1;
+                        nextState = ALARM_REACTION_CIRCLE;
                     }
                 }
             }
             else
             {
-                nextState = 1;
+                nextState = ALARM_REACTION_CIRCLE;
             }
             self->actscnt = nextState;
         }
         goto done;
     }
 
-    if (state == 1)
+    if (state == ALARM_REACTION_CIRCLE)
     {
         u8 count;
 
@@ -215,7 +225,7 @@ s16 think_alarm_reaction_(void)
             ThinkFunc think4;
 
             RESET_ALERT_DURATION(alertTime);
-            Me_THINK_C->actscnt = 0;
+            Me_THINK_C->actscnt = ALARM_REACTION_APPROACH;
             Me_THINK_C->actcnt = 1;
 
             randomValue = rand();
@@ -247,7 +257,7 @@ s16 think_alarm_reaction_(void)
             human->think[3] = think4;
             EquipWeapon(human, WEAPON_DRAWN);
             SetNowMotion(human, MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-            human->actscnt = 0;
+            human->actscnt = ALARM_REACTION_APPROACH;
             human->actcnt = 1;
             human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
 
