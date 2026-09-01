@@ -1799,7 +1799,7 @@
       "source_owner": "IntroVoiceXaName",
       "target_file": "207C.data.s",
       "target_address": "0x80012c74",
-      "target_owner": "D_80012C68",
+      "target_owner": "path_stages_xa",
       "symbol": "voice_intro_xa_name"
     },
     {
@@ -1808,7 +1808,7 @@
       "source_owner": "ToraVoiceXaName",
       "target_file": "207C.data.s",
       "target_address": "0x80012c8c",
-      "target_owner": "D_80012C68",
+      "target_owner": "path_stages_xa",
       "symbol": "voice_tora_xa_name"
     },
     {
@@ -1817,7 +1817,7 @@
       "source_owner": "VoiceXaName",
       "target_file": "207C.data.s",
       "target_address": "0x80012ca4",
-      "target_owner": "D_80012C68",
+      "target_owner": "path_stages_xa",
       "symbol": "voice_event_english_xa_name"
     },
     {

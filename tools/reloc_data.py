@@ -8,8 +8,11 @@ reviewed manifest to copies of those generated files.  Every entry:
 * identifies the pointer word by file, address, and enclosing data owner;
 * identifies its target by an exact address and enclosing data owner; and
 * inserts a section-relative symbol at that exact target before replacing the
-  literal with ``.word symbol``.  A reviewed external target may instead name
-  an existing section-owned base plus an explicit addend.
+  literal with ``.word symbol``. Inputs that already carry that exact symbolic
+  word are validated and retained, so naming a reviewed pointer in the exact
+  data assembly cannot regress the relocatable lane. A reviewed external
+  target may instead name an existing section-owned base plus an explicit
+  addend.
 
 The owner checks are evidence guards, not relocation bases.  In particular,
 an interior target is not rewritten as a guessed top-level symbol plus an
@@ -242,16 +245,21 @@ def rewrite_file(path: Path, file_key: Path, entries: Sequence[PointerEntry]) ->
     found_targets: set[int] = set()
     output: list[str] = []
     owner: str | None = None
+    owner_has_data = False
     index = 0
     while index < len(lines):
         line_number = index + 1
         line = lines[index]
         pointer: PointerEntry | None = None
         encoded_lines = 1
+        previous_owner = owner
         owner, closing = _active_owner(line, owner)
+        if previous_owner is None and owner is not None:
+            owner_has_data = False
         address_match = ADDRESS_RE.search(line)
         if address_match is not None:
             address = int(address_match.group("address"), 16)
+            owner_starts_here = not owner_has_data
             target = target_entries.get(address)
             if target is not None:
                 require(
@@ -263,7 +271,16 @@ def rewrite_file(path: Path, file_key: Path, entries: Sequence[PointerEntry]) ->
                     f"{path}:{line_number}: target owner is {owner}, "
                     f"expected {target.target_owner}",
                 )
-                output.append(_anchor(target.symbol, target.target_address, target.target_owner))
+                # A generated dlabel already supplies the exact section-owned
+                # symbol when its first encoded datum is the reviewed target.
+                if not (owner_starts_here and owner == target.symbol):
+                    output.append(
+                        _anchor(
+                            target.symbol,
+                            target.target_address,
+                            target.target_owner,
+                        )
+                    )
                 found_targets.add(address)
 
             pointer = source_entries.get(address)
@@ -280,14 +297,19 @@ def rewrite_file(path: Path, file_key: Path, entries: Sequence[PointerEntry]) ->
                 word = WORD_RE.search(line)
                 byte = BYTE_RE.search(line)
                 if word is not None:
+                    operand = word.group("operand")
                     try:
-                        literal = int(word.group("operand"), 0)
-                    except ValueError as error:
-                        raise RelocDataError(
-                            f"{path}:{line_number}: source operand is not a literal"
-                        ) from error
-                    start, end = word.span("operand")
-                    line = line[:start] + pointer.expression + line[end:]
+                        literal = int(operand, 0)
+                    except ValueError:
+                        require(
+                            pointer.target_addend == 0 and operand == pointer.symbol,
+                            f"{path}:{line_number}: source operand {operand!r} is "
+                            f"neither a literal nor {pointer.symbol}",
+                        )
+                        literal = pointer.target_address
+                    else:
+                        start, end = word.span("operand")
+                        line = line[:start] + pointer.expression + line[end:]
                 elif byte is not None:
                     require(
                         closing is None,
@@ -355,9 +377,11 @@ def rewrite_file(path: Path, file_key: Path, entries: Sequence[PointerEntry]) ->
                     f"{pointer.target_address:#x}",
                 )
                 found_sources.add(address)
+            owner_has_data = True
         output.append(line)
         if closing is not None:
             owner = None
+            owner_has_data = False
         index += encoded_lines if pointer is not None else 1
 
     missing_sources = sorted(set(source_entries) - found_sources)

@@ -41,6 +41,19 @@ dlabel PointerTable
 enddlabel PointerTable
 """
 
+SYMBOLIC_SOURCE_ASM = SOURCE_ASM.replace(
+    ".word 0x80011004", f".word {SYMBOL}"
+)
+
+TOP_LEVEL_SOURCE_ASM = """\
+.include "macro.inc"
+.section .data, "wa"
+
+dlabel PointerTable
+    /* 1000 80012000 00100180 */ .word StringPool
+enddlabel PointerTable
+"""
+
 BYTE_SOURCE_ASM = """\
 .include "macro.inc"
 .section .data, "wa"
@@ -143,7 +156,7 @@ class RewriteTests(unittest.TestCase):
                   ("english", "french", "italian", "japanese")),
                 "msg_no_trace_point",
                 "D_80011960",
-                "D_80012C68",
+                "path_stages_xa",
                 "CommonVoiceTable",
                 "D_80012EB4",
                 "D_800130AC",
@@ -396,6 +409,34 @@ class RewriteTests(unittest.TestCase):
             self.assertIn(f".word {SYMBOL}", source)
             self.assertNotIn(".word 0x80011004", source)
             self.assertEqual(target.count(SYMBOL), 3)
+
+    def test_rewrite_accepts_an_already_symbolic_pointer_word(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            fixture = Fixture(Path(temporary), source=SYMBOLIC_SOURCE_ASM)
+            result = fixture.rewrite()
+
+            self.assertEqual(result, reloc_data.RewriteResult(1, 1, 2))
+            source = (fixture.outputs / "source.data.s").read_text()
+            self.assertIn(f".word {SYMBOL}", source)
+            self.assertNotIn(".word 0x80011004", source)
+
+    def test_rewrite_reuses_an_exact_top_level_data_label(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            document = manifest_document(
+                target_address=hex(BASE),
+                target_owner="StringPool",
+                symbol="StringPool",
+            )
+            fixture = Fixture(
+                Path(temporary), document, source=TOP_LEVEL_SOURCE_ASM
+            )
+            result = fixture.rewrite()
+
+            self.assertEqual(result, reloc_data.RewriteResult(1, 1, 2))
+            target = (fixture.outputs / "target.data.s").read_text()
+            self.assertEqual(target.count("\ndlabel StringPool\n"), 1)
+            self.assertNotIn("reloc-data: exact interior", target)
+            self.assertNotIn(".globl StringPool", target)
 
     def test_rewrite_coalesces_four_little_endian_bytes_into_symbolic_word(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
