@@ -13,7 +13,10 @@ This opt-in proof rewrites only generated build products:
   output section following initialized data;
 * every script-assigned symbol in the loaded MAIN.EXE image is allowed to come
   from its real input label, including initialized data, the remaining mixed
-  SDK/data carve, BSS, and ``_gp``;
+  SDK/data carve, and BSS;
+* the startup ABI's ``_gp`` name aliases the section-owned briefing VRAM
+  rectangle whose address it shares, instead of hiding that object behind the
+  reserved linker name;
 * every manifest-transformed pointer target object can replace its matching
   generated data input before the final link;
 * new C files under the normal-link extension directory receive ordinary
@@ -63,6 +66,7 @@ BSS_PAD_END = 0x80098000
 BSS_END = 0x800CDBA8
 HEAP_START = BSS_END + 4
 GP_ADDRESS = 0x80097698
+GP_STORAGE_SYMBOL = "BriefingVramRect"
 MEMORY_POOL_START = RAM_LAYOUT.memory_pool_floor
 MEMORY_POOL_END = RAM_LAYOUT.memory_pool_end
 MEMORY_POOL_SIZE = MEMORY_POOL_END - MEMORY_POOL_START
@@ -330,6 +334,29 @@ def rebase_persistent_assignments(
 
 def transform_tail_source(source: str) -> tuple[str, set[str]]:
     lines = source.splitlines(keepends=True)
+
+    gp_starts = [
+        index
+        for index, line in enumerate(lines)
+        if line.rstrip("\r\n") == f"dlabel {GP_STORAGE_SYMBOL}"
+    ]
+    gp_ends = [
+        index
+        for index, line in enumerate(lines)
+        if line.rstrip("\r\n") == f"enddlabel {GP_STORAGE_SYMBOL}"
+    ]
+    if len(gp_starts) != 1 or len(gp_ends) != 1 or gp_starts[0] >= gp_ends[0]:
+        raise LaneError(
+            f"expected one complete {GP_STORAGE_SYMBOL} data object for the _gp alias"
+        )
+    gp_start, gp_end = gp_starts[0], gp_ends[0]
+    newline = "\r\n" if lines[gp_start].endswith("\r\n") else "\n"
+    lines.insert(gp_start, f"dlabel _gp{newline}")
+    # ``gp_end`` was measured before the opening alias was inserted, so the
+    # owner's closing line is now at gp_end + 1. Close the outer alias after it;
+    # both object symbols then cover the same bytes without emitting any data.
+    lines.insert(gp_end + 2, f"enddlabel _gp{newline}")
+
     marker_indices = [
         index
         for index, line in enumerate(lines)

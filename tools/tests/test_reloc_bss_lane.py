@@ -132,6 +132,10 @@ class TailTransformTests(unittest.TestCase):
     SOURCE = """\
 .include "macro.inc"
 .section .data, "wa"
+dlabel BriefingVramRect
+    .word 0x010002c0
+    .word 0x01000100
+enddlabel BriefingVramRect
 dlabel Initialized
     .word 1
 enddlabel Initialized
@@ -148,6 +152,13 @@ enddlabel World
     def test_moves_zero_tail_to_nobits_without_rewriting_data(self) -> None:
         output, labels = lane.transform_tail_source(self.SOURCE)
         self.assertIn(
+            "dlabel _gp\ndlabel BriefingVramRect\n"
+            "    .word 0x010002c0\n"
+            "    .word 0x01000100\n"
+            "enddlabel BriefingVramRect\nenddlabel _gp\n",
+            output,
+        )
+        self.assertIn(
             '.word 1\nenddlabel Initialized\n.section .bss, "aw", @nobits\n\n'
             "nonmatching OTablePt",
             output,
@@ -157,6 +168,12 @@ enddlabel World
     def test_requires_one_known_split_marker(self) -> None:
         with self.assertRaisesRegex(lane.LaneError, "expected one"):
             lane.transform_tail_source(self.SOURCE.replace("nonmatching OTablePt", ""))
+
+    def test_requires_the_section_owned_gp_storage_object(self) -> None:
+        with self.assertRaisesRegex(lane.LaneError, "BriefingVramRect"):
+            lane.transform_tail_source(
+                self.SOURCE.replace("BriefingVramRect", "UnknownRect")
+            )
 
 
 class LinkerRewriteTests(unittest.TestCase):
