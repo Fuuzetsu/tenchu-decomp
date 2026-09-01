@@ -30,13 +30,10 @@
  * piece 3 the same way — one ordinary function (cookbook "Split functions":
  * SetupStageSequence/FileOption precedent). Written as plain C, no _jtbl.
  *
- * The `i = 0;`/`image = Images;` pair after the whole `if (count < 0x3e)
- * AdtMessageBox(...)` sits in Ghidra's own rendering as ONE statement each,
- * positioned after the inner if with no restructuring — reorg duplicates
- * `i = 0;` into the guard branch's delay slot (runs unconditionally on both
- * arms) AND leaves the original copy after the AdtMessageBox call for the
- * fallthrough arm (harmless double-execution), exactly the InitializeImage.c
- * "shared default via delay slot" mechanism.
+ * The counted loop indexes the owning `Images` array directly. GCC
+ * strength-reduces `&Images[i]` to the retail walking pointer; its `i = 0`
+ * initializer after the optional error message also supplies the target's
+ * shared delay-slot default.
  *
  * The final bounds check needed its condition WRITTEN INVERTED relative to
  * Ghidra's own `if (index < 0x3e) return Images+index; else {bad; return
@@ -62,7 +59,6 @@ GsIMAGE *GetImage(ImageArchiveId index)
     u_long *pt;
     u_long *adr;
     int i;
-    GsIMAGE *image;
 
     if (Images_fInitialize == 0)
     {
@@ -71,16 +67,12 @@ GsIMAGE *GetImage(ImageArchiveId index)
         {
             AdtMessageBox(msg_bad_image_file);
         }
-        i = 0;
-        image = Images;
-        do
+        for (i = 0; i < N_IMAGES; i++)
         {
             adr = get_tim_from_archive(pt, i);
-            GetTIMInfo(adr, image);
+            GetTIMInfo(adr, &Images[i]);
             LoadTIM(adr);
-            i++;
-            image++;
-        } while (i < N_IMAGES);
+        }
         vfree(pt);
         Images_fInitialize = 1;
     }
