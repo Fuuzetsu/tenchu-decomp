@@ -45,7 +45,7 @@ void CdaStop(void)
         VSyncCallback(0);
         cd_control(CdlPause, 0, 0);
         CdFlush();
-        CdaStatus.CurPos = -2;
-        CdaStatus.status = 0;
+        CdaStatus.CurPos = CDA_STOPPED_POSITION;
+        CdaStatus.status = CDA_STATUS_IDLE;
     }
 }

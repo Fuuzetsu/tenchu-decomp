@@ -2,6 +2,7 @@
 // model (structs/enums/typedefs). Included by main.exe.h AFTER the PSY-Q
 // SDK header and the base-int typedefs, so it may use GsIMAGE/VECTOR/u16/etc.
 
+#include <psxsdk/libcd.h>
 #include <psxsdk/libgpu.h>
 //
 // This file is the round-trip unit with Ghidra: `tools/sync_to_ghidra.py`
@@ -940,29 +941,57 @@ struct TCameraPos
  * Retail keeps the demo's original members but rearranges the tail, adds the
  * left/right volume bytes, and appends the pending drive command. */
 typedef struct TCdaStatus TCdaStatus;
-enum
+typedef s16 cda_play_mode;
+enum cda_play_mode
 {
     CDA_ONCE = 0,
     CDA_REPEAT = 1
 };
 
-enum
+typedef u8 cda_flags;
+enum cda_flag
 {
     CDA_FLAG_ACTIVE = 1
 };
 
+typedef u8 cda_drive_status;
+enum cda_drive_status_value
+{
+    CDA_STATUS_IDLE = 0
+};
+
+typedef u8 cda_command;
+enum cda_command_value
+{
+    CDA_COMMAND_NONE = 0,
+    CDA_COMMAND_READ_XA = CdlReadS
+};
+
+enum cda_stream_constant
+{
+    CDA_SECTORS_PER_SECOND = 75,
+    CDA_FILE_LEAD_IN_SECTORS = 2 * CDA_SECTORS_PER_SECOND,
+    CDA_POSITION_GUARD_SECTORS = 4 * CDA_SECTORS_PER_SECOND,
+    CDA_DATA_SECTOR_SHIFT = 11,
+    CDA_STATUS_CHECK_THRESHOLD = 10,
+    CDA_XA_FILE_NUMBER = 1,
+    CDA_DRIVE_SETTLE_FRAMES = 3,
+    CDA_STOPPED_POSITION = -2,
+    CDA_XA_DRIVE_MODE = CdlModeSpeed | CdlModeRT | CdlModeSF | CdlModeDA
+};
+
 struct TCdaStatus
 {
-    s32 StartPos;   /* 0x00 */
-    s32 CurPos;     /* 0x04 */
-    s32 EndPos;     /* 0x08 */
-    s16 mode;       /* 0x0C */
-    s16 CheckCount; /* 0x0E */
-    u8 status;      /* 0x10 */
-    u8 voll;        /* 0x11 */
-    u8 volr;        /* 0x12 */
-    u8 flag;        /* 0x13 */
-    u8 command;     /* 0x14 */
+    s32 StartPos;            /* 0x00 */
+    s32 CurPos;              /* 0x04 */
+    s32 EndPos;              /* 0x08 */
+    cda_play_mode mode;      /* 0x0C */
+    s16 CheckCount;          /* 0x0E */
+    cda_drive_status status; /* 0x10 */
+    u8 voll;                 /* 0x11 */
+    u8 volr;                 /* 0x12 */
+    cda_flags flag;          /* 0x13 */
+    cda_command command;     /* 0x14 */
 }; /* 0x18 */
 
 /* CAMERA.C's smoothing history. Retail inserted a per-frame acceleration

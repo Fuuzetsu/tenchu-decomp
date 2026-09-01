@@ -70,7 +70,7 @@ void cbCheckCD(void)
     s32 ret;
     s32 com;
 
-    if (cs->command == CdlReadS)
+    if (cs->command == CDA_COMMAND_READ_XA)
     {
         CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
         if ((cs->flag & CDA_FLAG_ACTIVE) &&
@@ -78,13 +78,13 @@ void cbCheckCD(void)
         {
             return;
         }
-        cs->command = 0;
+        cs->command = CDA_COMMAND_NONE;
         SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
         SsSetSerialVol(SS_SERIAL_A, cs->voll, cs->volr);
         return;
     }
 
-    if (cs->CheckCount++ < 0xA)
+    if (cs->CheckCount++ < CDA_STATUS_CHECK_THRESHOLD)
     {
         return;
     }
@@ -95,9 +95,9 @@ void cbCheckCD(void)
     switch (ret)
     {
     case CdlDiskError:
-        cs->command = CdlReadS;
+        cs->command = CDA_COMMAND_READ_XA;
         cs->CheckCount = 0;
-        cs->status = 0;
+        cs->status = CDA_STATUS_IDLE;
         return;
     case CdlComplete:
         if (com == CdlPause)
@@ -108,19 +108,20 @@ void cbCheckCD(void)
         {
             cs->CurPos = CdPosToInt(&scratch.second.loc);
             if ((cs->status & CdlStatRead) &&
-                (cs->EndPos < cs->CurPos || cs->CurPos < CdaStatus.StartPos - 300))
+                (cs->EndPos < cs->CurPos ||
+                 cs->CurPos < CdaStatus.StartPos - CDA_POSITION_GUARD_SECTORS))
             {
                 if (cs->mode == CDA_REPEAT)
                 {
-                    cs->command = CdlReadS;
+                    cs->command = CDA_COMMAND_READ_XA;
                     cs->CheckCount = 0;
-                    cs->status = 0;
+                    cs->status = CDA_STATUS_IDLE;
                     return;
                 }
                 SsSetSerialAttr(SS_SERIAL_A, SS_MIX, SS_SON);
                 SsSetSerialVol(SS_SERIAL_A, 0, 0);
                 cd_control(CdlPause, 0, 0);
-                cs->status = 0;
+                cs->status = CDA_STATUS_IDLE;
                 return;
             }
             CdControl(CdlNop, NULL, scratch.first.result);

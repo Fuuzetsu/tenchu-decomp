@@ -97,7 +97,7 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     }
     CdaStatus.mode = saved_mode;
     pos = CdPosToInt(&cf.pos);
-    CdaStatus.StartPos = pos + 150;
+    CdaStatus.StartPos = pos + CDA_FILE_LEAD_IN_SECTORS;
     if (end != 0)
     {
         pos = CdPosToInt(end);
@@ -105,20 +105,21 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     }
     else
     {
-        CdaStatus.EndPos = CdaStatus.StartPos + (cf.size >> 0xb);
+        CdaStatus.EndPos = CdaStatus.StartPos +
+                           (cf.size >> CDA_DATA_SECTOR_SHIFT);
     }
     if (start != 0)
     {
         pos = CdPosToInt(start);
         CdaStatus.StartPos += pos;
     }
-    param[0] = CdlModeSpeed | CdlModeRT | CdlModeSF | CdlModeDA;
+    param[0] = CDA_XA_DRIVE_MODE;
     cd_control(CdlSetmode, param, 0);
-    VSync(3);
-    CdaStatus.command = CdlReadS;
+    VSync(CDA_DRIVE_SETTLE_FRAMES);
+    CdaStatus.command = CDA_COMMAND_READ_XA;
     CdaStatus.CheckCount = 0;
-    CdaStatus.status = 0;
-    filter.file = 1;
+    CdaStatus.status = CDA_STATUS_IDLE;
+    filter.file = CDA_XA_FILE_NUMBER;
     filter.chan = channel;
     cd_control(CdlSetfilter, (u8 *)&filter, 0);
     VSyncCallback(cbCheckCD);

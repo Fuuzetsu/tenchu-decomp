@@ -135,7 +135,7 @@ run_sequence:
     if (sound > 0)
     {
         PlayMusicFormID(sound);
-        while (CdaStatus.status != 0)
+        while (CdaStatus.status != CDA_STATUS_IDLE)
         {
             if (CdaGetCurrentLength() > 0)
                 break;
