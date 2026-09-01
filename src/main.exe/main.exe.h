@@ -16,7 +16,7 @@
                                                                               \
         if (MotionUpdateMode != 0)                                            \
         {                                                                     \
-            for (i = 0; i < 5; i++)                                           \
+            for (i = 0; i < N_CVA_HUMANS; i++)                                \
             {                                                                 \
                 if (CVAhuman[i].human == Me_MOTION_C)                         \
                 {                                                             \
@@ -62,7 +62,7 @@ extern struct Humanoid *Me_THINK_C;
 extern struct Humanoid *HumanGroup[40];
 /* Retail's type=-1 sentinel is entry 77; the demo table had 63 entries. */
 extern HumanDataType HumanData[78];
-extern HumanAnimType CVAhuman[5];
+extern HumanAnimType CVAhuman[N_CVA_HUMANS];
 extern SVECTOR UnitVector;
 extern VECTOR UnitVector2;
 /* Unit x/z push per 4-bit probe direction code (retail data: 0/±1

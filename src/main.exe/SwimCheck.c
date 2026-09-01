@@ -142,7 +142,7 @@ short SwimCheck(void)
                     goto motion_done;
                 }
                 i++;
-            } while (i < 5);
+            } while (i < N_CVA_HUMANS);
         }
         SetNowMotion(Me_MOTION_C, motID, motMODE);
         motMODE = -1;

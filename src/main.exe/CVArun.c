@@ -28,12 +28,13 @@
  * draw_visible_characters_, matched — Ghidra's own
  * `FUN_80029368`), then two CVA-specific passes:
  *  1. STAGE_FREE_PRINCESS + RIKIMARU_0 only:
- *     6-entry TANKA_SPRITES_ sprite-fade-and-sort pass — each
+ *     N_TANKA_SPRITES-entry sprite-fade-and-sort pass — each
  *     slot is a Sprite3D with a "hidden" `attribute` bit and a
  *     three-channel fade in its embedded GsSPRITE. The shared brightness
  *     increments by 8 while `sprite.r`'s sign bit is clear, then the sprite
  *     is sorted.
- *  2. CVAhuman[5] (proven HumanAnimType: human/loop/motid) reconciliation:
+ *  2. CVAhuman[N_CVA_HUMANS] reconciliation (proven HumanAnimType:
+ *     human/loop/motid):
  *     for each live human whose queued motion has already looped enough
  *     (`CVAhuman[i].loop <= human->motion->loop`), either motid==-1 (stop:
  *     set motion->loop to -1 and clear the human's x/z velocity) or (status != DEAD)
@@ -63,7 +64,7 @@
  *    store as `+8` inline would reload/recompute three times.
  */
 
-extern Sprite3D *TANKA_SPRITES_[6];
+extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 extern u8 CHOSEN_CHARACTER;
 
 extern void AVCameraControl(void);
@@ -98,7 +99,7 @@ short CVArun(void)
 
     if (StageID == STAGE_FREE_PRINCESS && CHOSEN_CHARACTER == RIKIMARU_0)
     {
-        for (i = 0; i < 6; i++)
+        for (i = 0; i < N_TANKA_SPRITES; i++)
         {
             e = TANKA_SPRITES_[i];
             if ((e->attribute & MODEL_ATTR_HIDDEN) == 0)
@@ -117,7 +118,7 @@ short CVArun(void)
 
     EndDrawing(-2);
 
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < N_CVA_HUMANS; i++)
     {
         human = CVAhuman[i].human;
         if (human != 0 && CVAhuman[i].loop <= human->motion->loop)

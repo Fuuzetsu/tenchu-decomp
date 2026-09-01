@@ -393,7 +393,7 @@ dispatch:
             } while (0);
             if (MotionUpdateMode != 0)
             {
-                for (; i < 5; i++)
+                for (; i < N_CVA_HUMANS; i++)
                 {
                     if (CVAhuman[i].human == Me_MOTION_C)
                     {
@@ -430,7 +430,7 @@ dispatch:
             SET_MOTION(MOT_ATTACK_SLASH3, 1);
             if (MotionUpdateMode != 0)
             {
-                for (i = 0; i < 5; i++)
+                for (i = 0; i < N_CVA_HUMANS; i++)
                 {
                     if (CVAhuman[i].human == Me_MOTION_C)
                     {
@@ -459,7 +459,7 @@ dispatch:
             SET_MOTION(MOT_ATTACK_SLASH4, 1);
             if (MotionUpdateMode != 0)
             {
-                for (i = 0; i < 5; i++)
+                for (i = 0; i < N_CVA_HUMANS; i++)
                 {
                     if (CVAhuman[i].human == Me_MOTION_C)
                     {
@@ -506,7 +506,7 @@ dispatch:
             } while (0);
             if (MotionUpdateMode != 0)
             {
-                for (; i < 5; i++)
+                for (; i < N_CVA_HUMANS; i++)
                 {
                     if (CVAhuman[i].human == Me_MOTION_C)
                     {
@@ -552,7 +552,7 @@ dispatch:
             } while (0);
             if (MotionUpdateMode != 0)
             {
-                for (; i < 5; i++)
+                for (; i < N_CVA_HUMANS; i++)
                 {
                     if (CVAhuman[i].human == Me_MOTION_C)
                     {

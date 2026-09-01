@@ -186,7 +186,7 @@ void ActSTICKON(void)
                 dtM->mask = MOTION_MASK_ALL;
                 if (MotionUpdateMode != 0)
                 {
-                    for (i = 0; i < 5; i++)
+                    for (i = 0; i < N_CVA_HUMANS; i++)
                     {
                         if (CVAhuman[i].human == Me_MOTION_C)
                         {
@@ -335,7 +335,7 @@ void ActSTICKON(void)
                 dtM->mask = MOTION_MASK_ALL;
                 if (MotionUpdateMode != 0)
                 {
-                    for (i = 0; i < 5; i++)
+                    for (i = 0; i < N_CVA_HUMANS; i++)
                     {
                         if (CVAhuman[i].human == Me_MOTION_C)
                         {

@@ -20,9 +20,10 @@
  * MotionAndMove (0x80027210, 0x90 bytes) — advance the current motion
  * command onto Me_MOTION_C via SetNowMotion, but first guard against
  * clobbering a motion already mid-update on another humanoid: when
- * MotionUpdateMode is set, scan the 5-entry CVAhuman[] table and bail early
+ * MotionUpdateMode is set, scan the CVAhuman[] table and bail early
  * (return 0, no call) if Me_MOTION_C is already one of the tracked
- * entries. CVAhuman[5] stride 8 (0x800c2cc8..0x800c2cf0 = 0x28 = 5*8).
+ * entries. CVAhuman[N_CVA_HUMANS] has stride 8
+ * (0x800c2cc8..0x800c2cf0 = 0x28 total).
  * This routine only needs the leading `human` pointer; the trailing
  * `loop` and `motid` halfwords are real fields used by CVArun.
  *
@@ -53,7 +54,7 @@ short MotionAndMove(void)
                 return 0;
             }
             i++;
-        } while (i < 5);
+        } while (i < N_CVA_HUMANS);
     }
     result = SetNowMotion(Me_MOTION_C, motID, motMODE);
     motMODE = -1;

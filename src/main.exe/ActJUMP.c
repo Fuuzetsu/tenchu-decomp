@@ -98,7 +98,7 @@ void ActJUMP(void)
                         goto landed_motion_done;
                     }
                     i++;
-                } while (i < 5);
+                } while (i < N_CVA_HUMANS);
             }
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;
@@ -140,7 +140,7 @@ void ActJUMP(void)
                         goto fall_motion_done;
                     }
                     i++;
-                } while (i < 5);
+                } while (i < N_CVA_HUMANS);
             }
             SetNowMotion(Me_MOTION_C, motID, motMODE);
             motMODE = -1;

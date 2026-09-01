@@ -585,6 +585,9 @@ struct HumanAnimType
     s16 motid;              /* 0x06 */
 }; /* 0x08 */
 
+#define N_CVA_HUMANS 5
+#define N_TANKA_SPRITES 6
+
 /* Motion-id families (motID / MotionManager.mid): the high byte indexes the
  * Act* handler table at 0x80086b24 (ActNORMAL..ActDEAD, the demo's own
  * function names), the low byte selects the move within the family.  A

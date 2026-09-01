@@ -39,7 +39,7 @@
  * initial — 'R' Rikimaru / 'A' Ayame), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, spanning the screen width — the
  * canonical PsyQ SDK POLY_F4). On STAGE_FREE_PRINCESS as Rikimaru it loads
- * "tanka.tpd" and populates 6 TANKA_SPRITES_ Sprite3D slots.
+ * "tanka.tpd" and populates the TANKA_SPRITES_ Sprite3D slots.
  * Each slot's `attribute` gets MODEL_ATTR_HIDDEN set,
  * and the embedded GsSPRITE's x/y are
  * laid out in a fan (`(2-i)*20+10`, `(i%3)*8-4`) — then the LAST slot's
@@ -63,7 +63,7 @@ extern char *STAGE_ANIMATION_PREFICES[N_LANGUAGES];
 extern char fmt_stage_cad[];       /* %sSTAGE%d%c.CAD */
 extern char path_anim_tanka_tpd[]; /* K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd */
 
-extern Sprite3D *TANKA_SPRITES_[6];
+extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
 extern void vfree(void *p);
 extern int sprintf(char *buf, char *fmt, ...);
@@ -108,7 +108,7 @@ void CVAsetup(void)
     if (StageID == STAGE_FREE_PRINCESS && PSTATE->CharType == RIKIMARU_0)
     {
         adr = FileRead((u8 *)path_anim_tanka_tpd);
-        for (i = 0; i < 6; i++)
+        for (i = 0; i < N_TANKA_SPRITES; i++)
         {
             GetTIMpackInfo(adr, &image, i);
             sprite = SetupSprite(0, &image);
@@ -121,8 +121,8 @@ void CVAsetup(void)
             slot->sprite.g = 0;
             slot->sprite.r = 0;
         }
-        TANKA_SPRITES_[5]->sprite.x -= 8;
-        TANKA_SPRITES_[5]->sprite.y = 40;
+        TANKA_SPRITES_[N_TANKA_SPRITES - 1]->sprite.x -= 8;
+        TANKA_SPRITES_[N_TANKA_SPRITES - 1]->sprite.y = 40;
         LoadTIMpackAndFree(adr);
     }
 }

@@ -63,7 +63,7 @@ extern s16 CVAflag; /* set by CVA camera/telop commands */
 extern u8 TelopText[];
 extern u8 ctype_tab[]; /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
-extern Sprite3D *TANKA_SPRITES_[6];
+extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern int ReqLifeBar(Humanoid *h);
@@ -110,10 +110,10 @@ s16 CVAupdate(void)
                     if (CVAhuman[i].human == 0)
                         break;
                     i++;
-                    if (i >= 5)
+                    if (i >= N_CVA_HUMANS)
                         break;
                 }
-                if (i == 5)
+                if (i == N_CVA_HUMANS)
                     SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
 
                 human->vector = UnitVector;
@@ -192,10 +192,10 @@ s16 CVAupdate(void)
                         if (CVAhuman[i].human == human)
                             break;
                         i++;
-                        if (i >= 5)
+                        if (i >= N_CVA_HUMANS)
                             break;
                     }
-                    if (i == 5)
+                    if (i == N_CVA_HUMANS)
                     {
                         i = 0;
                         while (1)
@@ -203,10 +203,10 @@ s16 CVAupdate(void)
                             if (CVAhuman[i].human == 0)
                                 break;
                             i++;
-                            if (i >= 5)
+                            if (i >= N_CVA_HUMANS)
                                 break;
                         }
-                        if (i == 5)
+                        if (i == N_CVA_HUMANS)
                             return 0;
                     }
 
@@ -295,7 +295,7 @@ s16 CVAupdate(void)
                         {
                             TANKA_SPRITES_[i]->attribute |= MODEL_ATTR_HIDDEN;
                             i++;
-                        } while (i < 6);
+                        } while (i < N_TANKA_SPRITES);
                     }
                     else
                     {
