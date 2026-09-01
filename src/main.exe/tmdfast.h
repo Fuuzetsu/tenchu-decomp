@@ -153,6 +153,69 @@ enum
  * depends on it), while the definitions widen it to int — so the
  * prototypes live with the callers, not here. */
 
+/* The GPU consumes colour/code, screen XY, and texture/page data as packed
+ * words even though PsyQ exposes their components as individual fields.
+ * Keeping both views makes the subdivision arithmetic use named components
+ * while packet emission copies the actual words without pointer punning. */
+typedef union GpuColorWord GpuColorWord;
+union GpuColorWord
+{
+    u_long word;
+    CVECTOR channel;
+}; /* 0x04 */
+
+typedef union GpuScreenPosition GpuScreenPosition;
+union GpuScreenPosition
+{
+    u_long word;
+    DVECTOR component;
+}; /* 0x04 */
+
+typedef union GpuTextureWord GpuTextureWord;
+union GpuTextureWord
+{
+    u_long word;
+    u_short coordinates;
+    struct
+    {
+        u_char u;
+        u_char v;
+        u_short metadata;
+    } component;
+}; /* 0x04 */
+
+/* One complete textured-Gouraud vertex in the GPU command stream. */
+typedef struct GpuTexturedGouraudVertex GpuTexturedGouraudVertex;
+struct GpuTexturedGouraudVertex
+{
+    GpuColorWord color;
+    GpuScreenPosition screen;
+    GpuTextureWord texture;
+}; /* 0x0C */
+
+/* PsyQ's field view and the GPU's word-stream view of the same packets. */
+typedef union GpuPolyGT3Packet GpuPolyGT3Packet;
+union GpuPolyGT3Packet
+{
+    POLY_GT3 packet;
+    struct
+    {
+        u_long tag;
+        GpuTexturedGouraudVertex vertex[3];
+    } gpu;
+}; /* 0x28 */
+
+typedef union GpuPolyGT4Packet GpuPolyGT4Packet;
+union GpuPolyGT4Packet
+{
+    POLY_GT4 packet;
+    struct
+    {
+        u_long tag;
+        GpuTexturedGouraudVertex vertex[4];
+    } gpu;
+}; /* 0x34 */
+
 /*
  * One subdivision vertex of the active-subdivision cluster: object-space
  * position, (interpolated) colour with the primitive code byte, projected
@@ -161,12 +224,11 @@ enum
  */
 typedef struct
 {
-    SVECTOR pos;   /* 0x00 object-space vertex (pad unused) */
-    CVECTOR col;   /* 0x08 colour + primitive code */
-    DVECTOR sxy;   /* 0x0c projected screen XY */
-    long sz;       /* 0x10 projected screen Z */
-    u_char tu, tv; /* 0x14 texture coords */
-    u_short pad;   /* 0x16 */
+    SVECTOR pos;              /* 0x00 object-space vertex (pad unused) */
+    GpuColorWord color;       /* 0x08 colour + primitive code */
+    GpuScreenPosition screen; /* 0x0C projected screen XY */
+    long sz;                  /* 0x10 projected screen Z */
+    GpuTextureWord texture;   /* 0x14 UV plus the packed upper halfword */
 } ADIV_VERT;       /* 0x18 bytes */
 
 /*

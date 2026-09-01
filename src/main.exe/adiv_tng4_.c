@@ -125,30 +125,34 @@ u_long *adiv_tng4_(TMD_P_TNG4 *primitive, VERT *vertices, u_long *packet,
             vp[3] = (u_long)v3;
             gte_ldv3(v0, v1, v2);
             gte_rtpt();
-            ADIV_SHORT(work, v[0].tu) = *(u16 *)&primitive->tu0;
-            ADIV_SHORT(work, v[1].tu) = *(u16 *)&primitive->tu1;
-            t2 = (u_long)ADIV_WORD_ADDRESS(work, v[0].sxy);
+            ADIV_SHORT(work, v[0].texture.coordinates) =
+                *(u16 *)&primitive->tu0;
+            ADIV_SHORT(work, v[1].texture.coordinates) =
+                *(u16 *)&primitive->tu1;
+            t2 = (u_long)ADIV_WORD_ADDRESS(work, v[0].screen.word);
             gte_stsxy3((u_long *)t2,
-                       ADIV_WORD_ADDRESS(work, v[1].sxy),
-                       ADIV_WORD_ADDRESS(work, v[2].sxy));
+                       ADIV_WORD_ADDRESS(work, v[1].screen.word),
+                       ADIV_WORD_ADDRESS(work, v[2].screen.word));
             gte_nclip();
-            ADIV_SHORT(work, v[2].tu) = *(u16 *)&primitive->tu2;
-            ADIV_SHORT(work, v[3].tu) = *(u16 *)&primitive->tu3;
+            ADIV_SHORT(work, v[2].texture.coordinates) =
+                *(u16 *)&primitive->tu2;
+            ADIV_SHORT(work, v[3].texture.coordinates) =
+                *(u16 *)&primitive->tu3;
             gte_stopz(ADIV_WORD_ADDRESS(work, zmax));
             if (0 < (int)ADIV_WORD(work, zmax))
             {
                 gte_ldv0(v3);
                 gte_rtps();
-                ADIV_WORD(work, v[0].col) = *(u_long *)&primitive->r0;
+                ADIV_WORD(work, v[0].color.word) = *(u_long *)&primitive->r0;
                 b = (u_char)cd;
-                ADIV_BYTE(work, v[0].col.cd) = b;
-                ADIV_WORD(work, v[1].col) = *(u_long *)&primitive->r1;
-                ADIV_BYTE(work, v[1].col.cd) = b;
-                ADIV_WORD(work, v[2].col) = *(u_long *)&primitive->r2;
-                ADIV_BYTE(work, v[2].col.cd) = b;
-                ADIV_WORD(work, v[3].col) = *(u_long *)&primitive->r3;
-                ADIV_BYTE(work, v[3].col.cd) = b;
-                gte_stsxy(ADIV_WORD_ADDRESS(work, v[3].sxy));
+                ADIV_BYTE(work, v[0].color.channel.cd) = b;
+                ADIV_WORD(work, v[1].color.word) = *(u_long *)&primitive->r1;
+                ADIV_BYTE(work, v[1].color.channel.cd) = b;
+                ADIV_WORD(work, v[2].color.word) = *(u_long *)&primitive->r2;
+                ADIV_BYTE(work, v[2].color.channel.cd) = b;
+                ADIV_WORD(work, v[3].color.word) = *(u_long *)&primitive->r3;
+                ADIV_BYTE(work, v[3].color.channel.cd) = b;
+                gte_stsxy(ADIV_WORD_ADDRESS(work, v[3].screen.word));
                 t0 = (u_long)ADIV_WORD_ADDRESS(work, v[0].sz);
                 t2 = (u_long)ADIV_WORD_ADDRESS(work, v[1].sz);
                 t1 = (u_long)ADIV_WORD_ADDRESS(work, v[2].sz);

@@ -14,40 +14,60 @@
     {                                                                         \
         ADIV_VERT *va;                                                        \
         ADIV_VERT *vb;                                                        \
-        POLY_GT3 *pk;                                                         \
+        GpuPolyGT3Packet *pk;                                                 \
         u32 *slot;                                                            \
         int dz;                                                               \
         u16 tp;                                                               \
                                                                               \
         va = (a);                                                             \
-        pk = (POLY_GT3 *)work->out;                                           \
+        pk = (GpuPolyGT3Packet *)work->out;                                   \
         vb = (b);                                                             \
-        *(u32 *)&pk->x0 = *(u32 *)&va->sxy;                                  \
-        *(u32 *)&pk->x1 = *(u32 *)&vb->sxy;                                  \
-        *(u32 *)&pk->x2 = *(u32 *)&(m)->sxy;                                 \
+        pk->gpu.vertex[0].screen.word = va->screen.word;                      \
+        pk->gpu.vertex[1].screen.word = vb->screen.word;                      \
+        pk->gpu.vertex[2].screen.word = (m)->screen.word;                     \
         dz = va->sz;                                                          \
         if (dz < 0)                                                           \
         {                                                                     \
-            dz += 3;                                                      \
+            dz += 3;                                                          \
         }                                                                     \
         work->zmax = dz >> 2;                                                 \
-        *(u32 *)&pk->u0 = (u32) * (u16 *)&va->tu;                            \
-        *(u32 *)&pk->u1 = (u32) * (u16 *)&vb->tu;                            \
-        *(u32 *)&pk->u2 = (u32) * (u16 *)&(m)->tu;                           \
-        *(u32 *)&pk->r0 = *(u32 *)&va->col;                                  \
-        *(u32 *)&pk->r1 = *(u32 *)&vb->col;                                  \
-        *(u32 *)&pk->r2 = *(u32 *)&(m)->col;                                 \
-        pk->clut = work->packet.clut;                                         \
+        pk->gpu.vertex[0].texture.word = va->texture.coordinates;             \
+        pk->gpu.vertex[1].texture.word = vb->texture.coordinates;             \
+        pk->gpu.vertex[2].texture.word = (m)->texture.coordinates;            \
+        pk->gpu.vertex[0].color.word = va->color.word;                        \
+        pk->gpu.vertex[1].color.word = vb->color.word;                        \
+        pk->gpu.vertex[2].color.word = (m)->color.word;                       \
+        pk->packet.clut = work->packet.clut;                                  \
         tp = work->packet.tpage;                                              \
-        setlen(pk, GPU_POLY_GT3_LENGTH);                                      \
-        setcode(pk, GPU_POLY_GT3_CODE);                                       \
-        pk->tpage = tp;                                                       \
+        setlen(&pk->packet, GPU_POLY_GT3_LENGTH);                             \
+        setcode(&pk->packet, GPU_POLY_GT3_CODE);                              \
+        pk->packet.tpage = tp;                                                \
         slot = (u32 *)(work->org + (work->zmax >> work->shift));              \
         work->otp = (u_long *)slot;                                           \
         *(u32 *)pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;          \
         *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;                   \
         work->out += GPU_POLY_GT3_WORDS;                                      \
     }
+
+/* Average one edge into this recursion frame. The x store intentionally
+ * precedes the midpoint pointer assignment; all remaining fields go through
+ * that pointer, matching the renderer's shared interpolation sequence. */
+#define INTERPOLATE_ADIV_VERTEX(storage, midpoint, a, b)                      \
+    storage.pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);                    \
+    midpoint = &storage;                                                      \
+    midpoint->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);                  \
+    midpoint->pos.vz = (short)((a->pos.vz + b->pos.vz) / 2);                  \
+    midpoint->color.channel.r =                                               \
+        (u8)((a->color.channel.r + b->color.channel.r) >> 1);                 \
+    midpoint->color.channel.g =                                               \
+        (u8)((a->color.channel.g + b->color.channel.g) >> 1);                 \
+    midpoint->color.channel.b =                                               \
+        (u8)((a->color.channel.b + b->color.channel.b) >> 1);                 \
+    midpoint->color.channel.cd = a->color.channel.cd;                         \
+    midpoint->texture.component.u =                                           \
+        (u8)((a->texture.component.u + b->texture.component.u) >> 1);         \
+    midpoint->texture.component.v =                                           \
+        (u8)((a->texture.component.v + b->texture.component.v) >> 1)
 
 /*
  * subdivide_quad_ (0x80057b80, 3796 bytes) — the recursive quad subdivider of
@@ -79,10 +99,11 @@
  *    rest through the midpoint pointer, per the matched bytes.
  *  - Each GT3 emission re-derives the packet/OT fields from the workspace
  *    (never from the leaf `proto` pointer) — distinct spellings, kept.
- *  - Packet payload transfers address the SDK POLY_GT3/POLY_GT4 fields but
- *    retain word-sized copies because each assignment moves one packed colour,
- *    XY, or UV pair. Metadata uses the same packet types and the SDK
- *    setlen/setcode macros.
+ *  - GpuPolyGT3Packet/GpuPolyGT4Packet expose the same storage as both PsyQ
+ *    packet fields and GPU vertex words. Leaf quads copy each complete texture
+ *    word; triangle fan pieces zero-extend only the UV halfword before their
+ *    CLUT/tpage fields are installed. The remaining casts are the DMA-tag/OT
+ *    link writes whose aliasing keeps retail's load scheduling.
  */
 
 void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
@@ -95,7 +116,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     int zA;
     int zB;
     int zC;
-    POLY_GT4 *packet;
+    GpuPolyGT4Packet *packet;
     ADIV_VERT *pv;
     ADIV_VERT *pv2;
     u32 *otp;
@@ -160,18 +181,19 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     work->zmax = zC >> 2;
     if (work->adivz <= zC >> 2)
     {
-        if (fp->vp[0]->sxy.vx > fp->vp[1]->sxy.vx)
+        if (fp->vp[0]->screen.component.vx >
+            fp->vp[1]->screen.component.vx)
         {
-            work->maxx = fp->vp[0]->sxy.vx;
-            work->minx = fp->vp[1]->sxy.vx;
+            work->maxx = fp->vp[0]->screen.component.vx;
+            work->minx = fp->vp[1]->screen.component.vx;
         }
         else
         {
-            work->maxx = fp->vp[1]->sxy.vx;
-            work->minx = fp->vp[0]->sxy.vx;
+            work->maxx = fp->vp[1]->screen.component.vx;
+            work->minx = fp->vp[0]->screen.component.vx;
         }
-        s = fp->vp[2]->sxy.vx;
-        u = fp->vp[2]->sxy.vx;
+        s = fp->vp[2]->screen.component.vx;
+        u = fp->vp[2]->screen.component.vx;
         if (s < work->minx)
         {
             work->minx = u;
@@ -180,8 +202,8 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
         {
             work->maxx = u;
         }
-        s = fp->vp[3]->sxy.vx;
-        u = fp->vp[3]->sxy.vx;
+        s = fp->vp[3]->screen.component.vx;
+        u = fp->vp[3]->screen.component.vx;
         if (s < work->minx)
         {
             work->minx = u;
@@ -193,18 +215,19 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
         if ((-(int)work->adivw <= (int)work->maxx) &&
             ((int)work->minx <= (int)work->adivw))
         {
-            if (fp->vp[0]->sxy.vy > fp->vp[1]->sxy.vy)
+            if (fp->vp[0]->screen.component.vy >
+                fp->vp[1]->screen.component.vy)
             {
-                work->maxy = fp->vp[0]->sxy.vy;
-                work->miny = fp->vp[1]->sxy.vy;
+                work->maxy = fp->vp[0]->screen.component.vy;
+                work->miny = fp->vp[1]->screen.component.vy;
             }
             else
             {
-                work->maxy = fp->vp[1]->sxy.vy;
-                work->miny = fp->vp[0]->sxy.vy;
+                work->maxy = fp->vp[1]->screen.component.vy;
+                work->miny = fp->vp[0]->screen.component.vy;
             }
-            s = fp->vp[2]->sxy.vy;
-            u = fp->vp[2]->sxy.vy;
+            s = fp->vp[2]->screen.component.vy;
+            u = fp->vp[2]->screen.component.vy;
             if (s < work->miny)
             {
                 work->miny = u;
@@ -213,8 +236,8 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
             {
                 work->maxy = u;
             }
-            s = fp->vp[3]->sxy.vy;
-            u = fp->vp[3]->sxy.vy;
+            s = fp->vp[3]->screen.component.vy;
+            u = fp->vp[3]->screen.component.vy;
             if (s < work->miny)
             {
                 work->miny = u;
@@ -238,35 +261,35 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     {
                         do
                         {
-                            packet = (POLY_GT4 *)work->out;
-                            *(u32 *)&packet->x0 =
-                                *(u32 *)&fp->vp[0]->sxy;
-                            *(u32 *)&packet->x1 =
-                                *(u32 *)&fp->vp[1]->sxy;
-                            *(u32 *)&packet->x2 =
-                                *(u32 *)&fp->vp[2]->sxy;
-                            *(u32 *)&packet->x3 =
-                                *(u32 *)&fp->vp[3]->sxy;
-                            *(u32 *)&packet->u0 =
-                                *(u32 *)&fp->vp[0]->tu;
-                            *(u32 *)&packet->u1 =
-                                *(u32 *)&fp->vp[1]->tu;
-                            *(u32 *)&packet->u2 =
-                                *(u32 *)&fp->vp[2]->tu;
-                            *(u32 *)&packet->u3 =
-                                *(u32 *)&fp->vp[3]->tu;
-                            *(u32 *)&packet->r0 =
-                                *(u32 *)&fp->vp[0]->col;
-                            *(u32 *)&packet->r1 =
-                                *(u32 *)&fp->vp[1]->col;
-                            *(u32 *)&packet->r2 =
-                                *(u32 *)&fp->vp[2]->col;
-                            *(u32 *)&packet->r3 =
-                                *(u32 *)&fp->vp[3]->col;
+                            packet = (GpuPolyGT4Packet *)work->out;
+                            packet->gpu.vertex[0].screen.word =
+                                fp->vp[0]->screen.word;
+                            packet->gpu.vertex[1].screen.word =
+                                fp->vp[1]->screen.word;
+                            packet->gpu.vertex[2].screen.word =
+                                fp->vp[2]->screen.word;
+                            packet->gpu.vertex[3].screen.word =
+                                fp->vp[3]->screen.word;
+                            packet->gpu.vertex[0].texture.word =
+                                fp->vp[0]->texture.word;
+                            packet->gpu.vertex[1].texture.word =
+                                fp->vp[1]->texture.word;
+                            packet->gpu.vertex[2].texture.word =
+                                fp->vp[2]->texture.word;
+                            packet->gpu.vertex[3].texture.word =
+                                fp->vp[3]->texture.word;
+                            packet->gpu.vertex[0].color.word =
+                                fp->vp[0]->color.word;
+                            packet->gpu.vertex[1].color.word =
+                                fp->vp[1]->color.word;
+                            packet->gpu.vertex[2].color.word =
+                                fp->vp[2]->color.word;
+                            packet->gpu.vertex[3].color.word =
+                                fp->vp[3]->color.word;
                         } while (0);
                     } while (0);
-                    packet->clut = proto->clut;
-                    packet->tpage = proto->tpage;
+                    packet->packet.clut = proto->clut;
+                    packet->packet.tpage = proto->tpage;
                     *(u_long *)work->out = proto->tag;
                     otp = (u32 *)(work->org + (work->zmax >> work->shift));
                     work->otp = (u_long *)otp;
@@ -280,68 +303,42 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                 {
                     a = fp->vp[0];
                     b = fp->vp[1];
-                    fp->mid[0].pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);
-                    m01 = &fp->mid[0];
-                    m01->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);
-                    m01->pos.vz = (short)((a->pos.vz + b->pos.vz) / 2);
-                    m01->col.r = (u8)((a->col.r + b->col.r) >> 1);
-                    m01->col.g = (u8)((a->col.g + b->col.g) >> 1);
-                    m01->col.b = (u8)((a->col.b + b->col.b) >> 1);
-                    m01->col.cd = a->col.cd;
-                    m01->tu = (u8)((a->tu + b->tu) >> 1);
-                    m01->tv = (u8)((a->tv + b->tv) >> 1);
+                    INTERPOLATE_ADIV_VERTEX(fp->mid[0], m01, a, b);
                     a = fp->vp[0];
                     b = fp->vp[2];
-                    fp->mid[1].pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);
-                    m02 = &fp->mid[1];
-                    m02->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);
-                    m02->pos.vz = (short)((a->pos.vz + b->pos.vz) / 2);
-                    m02->col.r = (u8)((a->col.r + b->col.r) >> 1);
-                    m02->col.g = (u8)((a->col.g + b->col.g) >> 1);
-                    m02->col.b = (u8)((a->col.b + b->col.b) >> 1);
-                    m02->col.cd = a->col.cd;
-                    m02->tu = (u8)((a->tu + b->tu) >> 1);
-                    m02->tv = (u8)((a->tv + b->tv) >> 1);
+                    INTERPOLATE_ADIV_VERTEX(fp->mid[1], m02, a, b);
                     a = fp->vp[2];
                     b = fp->vp[3];
-                    fp->mid[2].pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);
-                    m23 = &fp->mid[2];
-                    m23->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);
-                    m23->pos.vz = (short)((a->pos.vz + b->pos.vz) / 2);
-                    m23->col.r = (u8)((a->col.r + b->col.r) >> 1);
-                    m23->col.g = (u8)((a->col.g + b->col.g) >> 1);
-                    m23->col.b = (u8)((a->col.b + b->col.b) >> 1);
-                    m23->col.cd = a->col.cd;
-                    m23->tu = (u8)((a->tu + b->tu) >> 1);
-                    m23->tv = (u8)((a->tv + b->tv) >> 1);
+                    INTERPOLATE_ADIV_VERTEX(fp->mid[2], m23, a, b);
                     gte_ldv3((SVECTOR *)m01, (SVECTOR *)m02, (SVECTOR *)m23);
                     gte_rtpt();
                     a = fp->vp[3];
                     b = fp->vp[1];
-                    fp->mid[3].pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);
-                    m31 = &fp->mid[3];
-                    m31->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);
-                    m31->pos.vz = (short)((a->pos.vz + b->pos.vz) / 2);
-                    m31->col.r = (u8)((a->col.r + b->col.r) >> 1);
-                    m31->col.g = (u8)((a->col.g + b->col.g) >> 1);
-                    m31->col.b = (u8)((a->col.b + b->col.b) >> 1);
-                    m31->col.cd = a->col.cd;
-                    m31->tu = (u8)((a->tu + b->tu) >> 1);
-                    m31->tv = (u8)((a->tv + b->tv) >> 1);
+                    INTERPOLATE_ADIV_VERTEX(fp->mid[3], m31, a, b);
                     a = fp->vp[0];
                     b = fp->vp[3];
                     fp->mid[4].pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);
                     m03 = &fp->mid[4];
                     m03->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);
                     m03->pos.vz = (short)((a->pos.vz + b->pos.vz) / 2);
-                    m03->col.r = (u8)((a->col.r + b->col.r) >> 1);
-                    m03->col.g = (u8)((a->col.g + b->col.g) >> 1);
-                    m03->col.b = (u8)((a->col.b + b->col.b) >> 1);
-                    m03->col.cd = a->col.cd;
-                    m03->tu = (u8)((a->tu + b->tu) >> 1);
-                    m23sxy = (u_long *)&fp->mid[2].sxy;
-                    m03->tv = (u8)((a->tv + b->tv) >> 1);
-                    gte_stsxy3((u_long *)&fp->mid[0].sxy, (u_long *)&fp->mid[1].sxy, m23sxy);
+                    m03->color.channel.r =
+                        (u8)((a->color.channel.r + b->color.channel.r) >> 1);
+                    m03->color.channel.g =
+                        (u8)((a->color.channel.g + b->color.channel.g) >> 1);
+                    m03->color.channel.b =
+                        (u8)((a->color.channel.b + b->color.channel.b) >> 1);
+                    m03->color.channel.cd = a->color.channel.cd;
+                    m03->texture.component.u =
+                        (u8)((a->texture.component.u +
+                              b->texture.component.u) >>
+                             1);
+                    m23sxy = (u_long *)&fp->mid[2].screen.word;
+                    m03->texture.component.v =
+                        (u8)((a->texture.component.v +
+                              b->texture.component.v) >>
+                             1);
+                    gte_stsxy3((u_long *)&fp->mid[0].screen.word,
+                               (u_long *)&fp->mid[1].screen.word, m23sxy);
                     gte_stsz3((u_long *)&fp->mid[0].sz, (u_long *)&fp->mid[1].sz, (u_long *)&fp->mid[2].sz);
                     gte_ldv3((SVECTOR *)m23, (SVECTOR *)m31, (SVECTOR *)m03);
                     gte_rtpt();
@@ -350,7 +347,9 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     nf->vp[2] = m02;
                     nf->vp[3] = m03;
                     nf->vp[0] = pv;
-                    gte_stsxy3(m23sxy, (u_long *)&fp->mid[3].sxy, (u_long *)&fp->mid[4].sxy);
+                    gte_stsxy3(m23sxy,
+                               (u_long *)&fp->mid[3].screen.word,
+                               (u_long *)&fp->mid[4].screen.word);
                     gte_stsz3((u_long *)&fp->mid[2].sz, (u_long *)&fp->mid[3].sz, (u_long *)&fp->mid[4].sz);
                     depth++;
                     subdivide_quad_(next, work, depth);
@@ -376,34 +375,37 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     {
                         ADIV_VERT *va;
                         ADIV_VERT *vb;
-                        POLY_GT3 *pk;
+                        GpuPolyGT3Packet *pk;
                         u32 *slot;
                         int dz;
                         u16 tp;
 
                         vb = fp->vp[1];
-                        pk = (POLY_GT3 *)work->out;
+                        pk = (GpuPolyGT3Packet *)work->out;
                         va = fp->vp[3];
-                        *(u32 *)&pk->x0 = *(u32 *)&vb->sxy;
-                        *(u32 *)&pk->x1 = *(u32 *)&va->sxy;
-                        *(u32 *)&pk->x2 = *(u32 *)&m31->sxy;
+                        pk->gpu.vertex[0].screen.word = vb->screen.word;
+                        pk->gpu.vertex[1].screen.word = va->screen.word;
+                        pk->gpu.vertex[2].screen.word = m31->screen.word;
                         dz = vb->sz;
                         if (dz < 0)
                         {
                             dz += 3;
                         }
                         work->zmax = dz >> 2;
-                        *(u32 *)&pk->u0 = (u32) * (u16 *)&vb->tu;
-                        *(u32 *)&pk->u1 = (u32) * (u16 *)&va->tu;
-                        *(u32 *)&pk->u2 = (u32) * (u16 *)&m31->tu;
-                        *(u32 *)&pk->r0 = *(u32 *)&vb->col;
-                        *(u32 *)&pk->r1 = *(u32 *)&va->col;
-                        *(u32 *)&pk->r2 = *(u32 *)&m31->col;
-                        pk->clut = work->packet.clut;
+                        pk->gpu.vertex[0].texture.word =
+                            vb->texture.coordinates;
+                        pk->gpu.vertex[1].texture.word =
+                            va->texture.coordinates;
+                        pk->gpu.vertex[2].texture.word =
+                            m31->texture.coordinates;
+                        pk->gpu.vertex[0].color.word = vb->color.word;
+                        pk->gpu.vertex[1].color.word = va->color.word;
+                        pk->gpu.vertex[2].color.word = m31->color.word;
+                        pk->packet.clut = work->packet.clut;
                         tp = work->packet.tpage;
-                        setlen(pk, GPU_POLY_GT3_LENGTH);
-                        setcode(pk, GPU_POLY_GT3_CODE);
-                        pk->tpage = tp;
+                        setlen(&pk->packet, GPU_POLY_GT3_LENGTH);
+                        setcode(&pk->packet, GPU_POLY_GT3_CODE);
+                        pk->packet.tpage = tp;
                         slot = (u32 *)(work->org + (work->zmax >> work->shift));
                         work->otp = (u_long *)slot;
                         *(u32 *)pk =
