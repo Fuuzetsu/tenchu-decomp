@@ -37,8 +37,9 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
         {
             do
             {
-                entry_offset = arc->entry[i] + 4;
-                arc->entry[i] = (s32)arc + entry_offset;
+                entry_offset =
+                    arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
+                arc->entry[i].offset = (s32)arc + entry_offset;
                 i++;
             } while (i < arc->count);
         }
@@ -49,5 +50,5 @@ u_long *get_tim_from_archive(u_long *archive, int idx)
         AdtMessageBox(fmt_bad_archive_index, idx);
         return 0;
     }
-    return (u_long *)arc->entry[idx];
+    return arc->entry[idx].data;
 }

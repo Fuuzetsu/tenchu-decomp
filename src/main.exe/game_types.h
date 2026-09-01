@@ -157,14 +157,23 @@ struct TCardHeader
     u8 Icon[CARD_ICON_FRAME_COUNT][CARD_ICON_BITMAP_SIZE]; /* 0x080 */
 }; /* 0x200 */
 
-/* IMAGES.C's offset-table archive header. */
+typedef union ArcEntry ArcEntry;
+union ArcEntry
+{
+    s32 offset;   /* relative to ArcFile.entry before relocation */
+    u_long *data; /* absolute resource pointer after relocation */
+}; /* 0x04 */
+
+/* IMAGES.C's relocatable offset-table archive header. */
 typedef struct ArcFile ArcFile;
 struct ArcFile
 {
-    s16 count;    /* 0x00 */
-    s16 loaded;   /* 0x02 */
-    s32 entry[1]; /* 0x04: offset before fixup, pointer after */
+    s16 count;         /* 0x00 */
+    s16 loaded;        /* 0x02 */
+    ArcEntry entry[1]; /* 0x04 */
 }; /* 0x08 */
+
+#define ARC_ENTRY_TABLE_OFFSET ((s32)&((ArcFile *)0)->entry)
 
 /* Retail's inventory-shop presentation and stock-limit record. */
 typedef struct ShopItemDefault ShopItemDefault;

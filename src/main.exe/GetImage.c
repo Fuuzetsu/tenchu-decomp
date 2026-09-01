@@ -67,7 +67,7 @@ GsIMAGE *GetImage(int index)
     if (Images_fInitialize == 0)
     {
         pt = FileRead(path_image_images_arc);
-        if ((short)*pt < N_IMAGES)
+        if (((ArcFile *)pt)->count < N_IMAGES)
         {
             AdtMessageBox(msg_bad_image_file);
         }

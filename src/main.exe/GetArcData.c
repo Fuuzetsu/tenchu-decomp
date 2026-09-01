@@ -17,23 +17,24 @@
  * GetArcData (0x8004f37c, 0xd0 bytes) — lazily loads "models.arc" via
  * FileRead into the gp-relative static ArcData (defined in this TU, hence
  * gp-addressed — see the cookbook's gp section), one-time-converts
- * its table of `count` relative offsets (each stored where it will end up
- * holding an absolute pointer — same slot reused for both, like
- * ProcItemDrop's shared-constant idiom but here for a whole table) into
- * absolute pointers via `entry[i] += (char *)arc + 4` (the "+4" skips the
- * {count,loaded} header word), marks `loaded` so the conversion only runs
- * once, then returns `entry[index]` after validating `index` against
- * `count`.
+ * its table of `count` ArcEntry offsets (each stored where it will end up
+ * holding an absolute pointer — the union names both views of the same slot,
+ * as in ProcItemDrop's shared-constant idiom but here for a whole table) into
+ * absolute pointers relative to `ARC_ENTRY_TABLE_OFFSET` (the entry table
+ * follows the {count,loaded} header word), marks `loaded` so the conversion
+ * only runs once, then returns `entry[index]` after validating `index`
+ * against `count`.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - The conversion must go through a temp:
- *    `entry_offset = entry[i] + 4; entry[i] = (s32)arc + entry_offset;`.
+ *    `entry_offset = entry[i].offset + ARC_ENTRY_TABLE_OFFSET;` followed by
+ *    the relocated store.
  *    Writing it as one expression (either operand order) lets fold-const's
- *    `associate` combine the invariant `arc + 4` into one
+ *    `associate` combine the invariant archive/table-base sum into one
  *    loop-hoisted register, an extra callee-saved reg the target doesn't
- *    have — splitting the statement keeps `arc` and the per-iteration `+4`
- *    in separate sub-expressions so nothing invariant-with-a-constant is
- *    left for loop.c to hoist.
+ *    have — splitting the statement keeps `arc` and the per-iteration table
+ *    offset in separate sub-expressions so nothing invariant-with-a-constant
+ *    is left for loop.c to hoist.
  *  - `arc->count > zero` (a fresh `s32 zero = 0;` local) instead of the
  *    equivalent `> 0` literal fixes a pure a0/a1 register SWAP between `arc`
  *    and the loop counter `i` (12 bytes, permuter-found, no length/
@@ -69,8 +70,9 @@ u_long *GetArcData(int index)
         {
             do
             {
-                entry_offset = arc->entry[i] + 4;
-                arc->entry[i] = (s32)arc + entry_offset;
+                entry_offset =
+                    arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
+                arc->entry[i].offset = (s32)arc + entry_offset;
                 i++;
             } while (i < arc->count);
         }
@@ -81,5 +83,5 @@ u_long *GetArcData(int index)
         AdtMessageBox(fmt_bad_archive_index, index);
         return 0;
     }
-    return (u_long *)arc->entry[index];
+    return arc->entry[index].data;
 }
