@@ -90,10 +90,6 @@ extern short camera_terrain_pitch_(Humanoid *h);
 
 void SetCameraMode(TCameraMode mode)
 {
-    enum
-    {
-        MaxCriticalValiation = 3
-    };
     VECTOR va;
     VECTOR vb;
     VECTOR vc;
@@ -118,13 +114,13 @@ void SetCameraMode(TCameraMode mode)
          * removing one each costs cs 5, hitf 12, tbl 21, pv 32, fp 62,
          * camera 70, pos+rot 110, and the whole plain graph 94. Only
          * `n` was staging, and it is gone. */
-        CamState.OldMode = rand() % (MaxCriticalValiation + 1);
+        CamState.OldMode = rand() % N_CRITICAL_CAMERA_POSITIONS;
         i = 0;
         cs = &CamState;
         tbl = CamPosCriticalHit;
         fp = &flag;
     loop:
-        if (!(i < MaxCriticalValiation + 1))
+        if (!(i < N_CRITICAL_CAMERA_POSITIONS))
             goto giveup;
         cs->OldMode++;
         if (cs->OldMode > MaxCriticalValiation)

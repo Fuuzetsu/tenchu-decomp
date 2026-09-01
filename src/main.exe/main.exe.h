@@ -74,7 +74,7 @@ extern short RefrectMove[16][2];
 extern short RefrectVector[16];
 extern TCameraStatus CamState;
 /* Retail expands the demo's three-entry table to four camera placements. */
-extern TCameraPos CamPosCriticalHit[4];
+extern TCameraPos CamPosCriticalHit[N_CRITICAL_CAMERA_POSITIONS];
 extern TCameraPos CamPos;
 extern TCameraPos CamPosDefault;
 /* A DR_TPAGE-style mode word: GP0 command 0xE1 (draw mode) with dithering

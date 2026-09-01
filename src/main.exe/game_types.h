@@ -776,6 +776,14 @@ enum TCameraMode
     CMODE_HANG = 0x11
 };
 
+/* CAMERA.C's original maximum-index spelling, plus retail's four-entry
+ * critical-hit camera count. */
+enum
+{
+    MaxCriticalValiation = 3,
+    N_CRITICAL_CAMERA_POSITIONS = MaxCriticalValiation + 1
+};
+
 /* CAMERA.C's global camera state. Retail rearranges the demo PSX.SYM
  * record: DirectionRX/DirectionRY move ahead of OldMode, and OldMode becomes
  * a byte beside a new one-shot camera-snap flag. The resulting retail record
