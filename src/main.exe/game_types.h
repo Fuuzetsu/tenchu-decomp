@@ -2025,6 +2025,10 @@ enum
 #define N_STAGE_LAYOUTS 3
 #define STAGE_LAYOUT_RANDOM 0xFF
 
+/* The persistent score matrix reserves two stage slots beyond the eleven
+ * runtime StageConfig entries. */
+#define N_STAGE_SCORE_SLOTS 13
+
 /* STAGE.C's stage metadata and starting transform. */
 typedef struct TStageConfig TStageConfig;
 struct TStageConfig
@@ -2600,8 +2604,9 @@ typedef struct TLinkInfo
                                                   *       uid per character;
                                                   *       official demo member
                                                   *       name (demo +0x3) */
-    ScoreStats
-        stage_stats[N_PLAYABLE_CHARACTERS][13][N_STAGE_LAYOUTS]; /* 0x064 */
+    ScoreStats stage_stats[N_PLAYABLE_CHARACTERS]
+                          [N_STAGE_SCORE_SLOTS]
+                          [N_STAGE_LAYOUTS]; /* 0x064 */
     u8 gItem[N_PLAYABLE_CHARACTERS][SAVE_ITEM_SLOTS]; /* 0x40C shop stock,
                                                        *       per character;
                                                        *       [CharType][item];

@@ -30,8 +30,10 @@
  * divisor constants.  A function-wide coordinate initializes too early and
  * produces a different schedule.
  *
- * The score-table character and stage strides remain explicit because a
- * direct three-dimensional subscript changes retail's register allocation.
+ * The score table is carried as its real three-dimensional type through the
+ * selected stage row. Its character byte stride and the final offset-first
+ * address add remain explicit because one direct subscript changes retail's
+ * register allocation.
  * The function-wide `work` scalar deliberately serves the score sprite's x
  * transfer and the later persistent-state byte load. Splitting those uses into
  * semantic block locals changes six instruction bytes; spelling the latter as
@@ -204,8 +206,8 @@ void StageEndScreen(void)
     s32 pulse;
     s32 i;
     s32 layout_index;
-    u32 layout_character_offset;
-    u32 layout_stage_offset;
+    u32 layout_character_byte_offset;
+    ScoreStats *layout_stage_record;
     s32 top_y;
     s16 second_x;
     union
@@ -253,17 +255,17 @@ void StageEndScreen(void)
 
     {
         ScoreStats *base_record;
-        u32 character_offset;
-        u32 stage_offset;
+        u32 character_byte_offset;
+        ScoreStats *stage_record;
+        ScoreStats (*records)[N_STAGE_SCORE_SLOTS][N_STAGE_LAYOUTS];
         TLinkInfo *state;
 
         state = PSTATE;
-        character_offset = (u32)state->CharType *
-                           sizeof(state->stage_stats[0]);
-        stage_offset = (u32)state->StageNo *
-                           sizeof(state->stage_stats[0][0]) +
-                       (u32)&PSTATE->stage_stats;
-        base_record = (ScoreStats *)(character_offset + stage_offset);
+        records = state->stage_stats;
+        character_byte_offset = state->CharType * sizeof(*records);
+        stage_record = records[0][state->StageNo];
+        base_record = (ScoreStats *)(character_byte_offset +
+                                     (u32)stage_record);
         record = base_record + state->layout;
         score = calculate_score(record, state->StageNo);
     }
@@ -594,19 +596,17 @@ void StageEndScreen(void)
         }
         else
         {
-            u32 layout_base;
+            ScoreStats (*layout_records)[N_STAGE_SCORE_SLOTS]
+                                        [N_STAGE_LAYOUTS];
 
-            layout_base = (u32)&PSTATE->stage_stats;
+            layout_records = PSTATE->stage_stats;
             PSTATE->StageNo =
                 StageOrder[NEXT_STAGE_UID(StageConfig[PSTATE->StageNo].uid)];
-            layout_character_offset = (u32)PSTATE->CharType *
-                                      sizeof(PSTATE->stage_stats[0]);
-            layout_stage_offset =
-                (u32)PSTATE->StageNo *
-                    sizeof(PSTATE->stage_stats[0][0]) +
-                layout_base;
-            layout_record = (ScoreStats *)(layout_character_offset +
-                                           layout_stage_offset);
+            layout_character_byte_offset = (u32)PSTATE->CharType *
+                                           sizeof(*layout_records);
+            layout_stage_record = layout_records[0][PSTATE->StageNo];
+            layout_record = (ScoreStats *)(layout_character_byte_offset +
+                                           (u32)layout_stage_record);
             layout_index = 0;
             /* A goto loop, and provably so: the empty-exit branch's delay
              * slot holds the POST-loop `li v0,3` (the != 3 compare) — a
