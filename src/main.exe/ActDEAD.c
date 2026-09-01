@@ -41,25 +41,47 @@
  *    delay slot.
  */
 
+enum death_event_action
+{
+    DEATH_EVENT_SOUND_PLAYER = 0,
+    DEATH_EVENT_SOUND_VICTIM = 1,
+    DEATH_EVENT_RUMBLE = 2,
+    DEATH_EVENT_GORE = 3,
+    DEATH_EVENT_END = 4
+};
+
+/* Each death-script opcode gives the last two halfwords a different meaning.
+ * DEATH_EVENT_END uses the gore payload too; a model_part of -1 makes it a
+ * sentinel-only row. local_velocity packs Y in the low byte and Z in the
+ * high byte, matching the SVECTOR built below. */
+typedef union
+{
+    struct
+    {
+        s16 sound_id;
+        s16 unused;
+    } sound;
+    struct
+    {
+        s16 attack;
+        s16 release;
+    } rumble;
+    struct
+    {
+        s16 model_part;
+        u16 local_velocity;
+    } gore;
+} DeathEventPayload;
+
 typedef struct
 {
     s16 frame;
-    s16 action;
-    s16 argument;
-    s16 packed;
+    s16 action; /* enum death_event_action in halfword table storage */
+    DeathEventPayload payload;
 } DeadEvent;
 
-/* DeadEvent.action codes (invented names): the killer's grunt, the
- * victim's cry, pad rumble, a blood burst, and the burst that also
- * terminates the event list (the scan stops on it). */
-enum
-{
-    DEADEV_SOUND_PLAYER = 0,
-    DEADEV_SOUND_SELF = 1,
-    DEADEV_RUMBLE = 2,
-    DEADEV_BLOOD = 3,
-    DEADEV_END = 4
-};
+#define DEATH_GORE_VELOCITY_Y(velocity) ((velocity) & 0xff)
+#define DEATH_GORE_VELOCITY_Z(velocity) ((velocity) >> 8)
 
 typedef union
 {
@@ -209,10 +231,10 @@ event_dead:
     motion = dtM;
     pp = DeadEvents[motion->mid - MOT_DEAD_STEALTH_BACK];
     i = 0;
-    if (pp[i].action == DEADEV_END)
+    if (pp[i].action == DEATH_EVENT_END)
         goto event_ready;
     count = motion->count;
-    stop = DEADEV_END;
+    stop = DEATH_EVENT_END;
 scan_event:
     if (pp[i].frame == count)
         goto event_ready;
@@ -225,30 +247,35 @@ event_ready:
 
     switch (pp[i].action)
     {
-    case DEADEV_SOUND_PLAYER:
-        Sound(StagePlayer, pp[i].argument);
+    case DEATH_EVENT_SOUND_PLAYER:
+        Sound(StagePlayer, pp[i].payload.sound.sound_id);
         break;
-    case DEADEV_SOUND_SELF:
-        Sound(Me_MOTION_C, pp[i].argument);
+    case DEATH_EVENT_SOUND_VICTIM:
+        Sound(Me_MOTION_C, pp[i].payload.sound.sound_id);
         break;
-    case DEADEV_RUMBLE:
-        PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, pp[i].argument, pp[i].packed);
+    case DEATH_EVENT_RUMBLE:
+        PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
+                   pp[i].payload.rumble.attack,
+                   pp[i].payload.rumble.release);
         break;
-    case DEADEV_BLOOD:
-    case DEADEV_END:
+    case DEATH_EVENT_GORE:
+    case DEATH_EVENT_END:
     {
         u16 packed;
 
         ReqLifeBar(Me_MOTION_C);
-        blood = pp[i].argument;
-        packed = pp[i].packed;
-        bldo = packed >> 8;
-        blds = packed & 0xff;
+        blood = pp[i].payload.gore.model_part;
+        packed = pp[i].payload.gore.local_velocity;
+        bldo = DEATH_GORE_VELOCITY_Z(packed);
+        blds = DEATH_GORE_VELOCITY_Y(packed);
         break;
     }
     }
     goto blood_effect;
 }
+
+#undef DEATH_GORE_VELOCITY_Z
+#undef DEATH_GORE_VELOCITY_Y
 
 ordinary_dead:
     if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST)
