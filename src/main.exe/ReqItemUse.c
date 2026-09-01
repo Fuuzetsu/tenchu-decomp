@@ -176,14 +176,14 @@
  *    draft with per-case aggregates laddered the frame to 416 bytes), so
  *    the original declared shared function-scope workspaces; the per-case
  *    address-taken rx/ry pairs DO ladder (96..204), giving frame 224.
- *    The kusuri-family "VECTOR v" lives at param's HEAD (*(VECTOR *)&param);
- *    makibishi/jirai stage a layout-compatible PARAM_ITEM_DROP in `work`
- *    (memset + 3 field copies + `param = work`), then reuse work's head as
- *    the throw vector.
+ *    The kusuri-family "VECTOR v" lives at the head of `param`;
+ *    makibishi/jirai stage a PARAM_ITEM_DROP in `work` (memset + 3 field
+ *    copies + `param = work`), then reuse work's head as the throw vector.
+ *    ItemRequestWorkspace names all three views without pointer casts.
  *  - Retail case map from the jump table (demo enum differs: 8/9 swapped,
  *    0x16=NAPALM, 0x17=LIGHTNINGBOLT, 0x18=TELEPORT).
  *  - The camera-check template is ReqItemDefault.c's idiom verbatim; the
- *    `st = (VECTOR *)&param;` pointer temp before the guard puts &param in
+ *    The `st` pointer temp before the guard puts &param.vector in
  *    a callee-saved reg across GetVectorRotation (guard delay slot addiu).
  *  - The owner guard and teleport transition use the recovered
  *    `CamState.Owner` and `CamState.Mode` fields.  `CMODE_SIGHT` names the
@@ -242,26 +242,26 @@
     s32 ry;                                                                   \
     s32 rz;                                                                   \
                                                                               \
-    *(VECTOR *)&param = vector_[0];                                           \
-    st = (VECTOR *)&param;                                                    \
+    param.vector = vector_[0];                                                \
+    st = &param.vector;                                                       \
     model = p->user->model;                                                   \
     GET_THROW_ROTATION(model, rx, ry, rz);                                    \
     RotateVector(st, rx, ry, rz);                                             \
-    p->end.vx = ((VECTOR *)&param)->vx;                                       \
-    p->end.vy = ((VECTOR *)&param)->vy;                                       \
-    p->end.vz = ((VECTOR *)&param)->vz;                                       \
+    p->end.vx = param.vector.vx;                                              \
+    p->end.vy = param.vector.vy;                                              \
+    p->end.vz = param.vector.vz;                                              \
     request_(p)
 
 #define SETUP_ROTATED_DROP(vector_)                                           \
-    memset(&work, 0, sizeof(PARAM_ITEM_LAUNCH));                              \
-    work.type = p->type;                                                      \
-    work.user = p->user;                                                      \
-    work.start = p->start;                                                    \
+    memset(&work, 0, sizeof(work));                                           \
+    work.drop.type = p->type;                                                 \
+    work.drop.user = p->user;                                                 \
+    work.drop.start = p->start;                                               \
     param = work;                                                             \
-    *(VECTOR *)&work = vector_[0];                                            \
+    work.vector = vector_[0];                                                 \
     model = p->user->model;                                                   \
     GET_THROW_ROTATION(model, rx, ry, rz);                                    \
-    RotateVector((VECTOR *)&work, rx, ry, rz)
+    RotateVector(&work.vector, rx, ry, rz)
 
 #define RECLAIM_POOL_ITEM()                                                   \
     cur->mode = ITEM_MODE_DISPOSE;                                            \
@@ -339,8 +339,8 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         D2 = 50
     };
     u8 c;
-    PARAM_ITEM_LAUNCH param; /* @sp+16: per-case launch params / vector scratch */
-    PARAM_ITEM_LAUNCH work;  /* @sp+56: makibishi/jirai staging + throw vector */
+    ItemRequestWorkspace param; /* @sp+16: per-case request / vector scratch */
+    ItemRequestWorkspace work;  /* @sp+56: drop staging / throw vector */
     s32 sz;
     s32 y;
     s32 z;
@@ -368,10 +368,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             if (i >= 5)
                 break;
             i++;
-            param.end.vx = ((VECTOR *)&work)->vx + rand() % D - D2;
-            param.end.vy = ((VECTOR *)&work)->vy - rand() % D2 - D2;
-            param.end.vz = ((VECTOR *)&work)->vz + rand() % D - D2;
-            ReqItemMakibishi((PARAM_ITEM_DROP *)&param);
+            param.drop.vec.vx = work.vector.vx + rand() % D - D2;
+            param.drop.vec.vy = work.vector.vy - rand() % D2 - D2;
+            param.drop.vec.vz = work.vector.vz + rand() % D - D2;
+            ReqItemMakibishi(&param.drop);
         }
         break;
     }
@@ -415,13 +415,15 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         }
         else
         {
-            param.type = p->type;
-            param.user = p->user;
-            param.start.vx = p->start.vx;
-            param.start.vy = p->start.vy;
-            param.start.vz = p->start.vz;
-            SearchItemTarget2(param.user, &param.user->model->rotate, &param.start, &param.end);
-            ReqItemLaunch(&param);
+            param.launch.type = p->type;
+            param.launch.user = p->user;
+            param.launch.start.vx = p->start.vx;
+            param.launch.start.vy = p->start.vy;
+            param.launch.start.vz = p->start.vz;
+            SearchItemTarget2(param.launch.user,
+                              &param.launch.user->model->rotate,
+                              &param.launch.start, &param.launch.end);
+            ReqItemLaunch(&param.launch);
             p->user->item[ITEM_N] = 0;
         }
         break;
@@ -453,10 +455,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_KAENGEKI:
     {
-        *(VECTOR *)&param = vec_z_n60[0];
-        p->end.vx = ((VECTOR *)&param)->vx;
-        p->end.vy = ((VECTOR *)&param)->vy;
-        p->end.vz = ((VECTOR *)&param)->vz;
+        param.vector = vec_z_n60[0];
+        p->end.vx = param.vector.vx;
+        p->end.vy = param.vector.vy;
+        p->end.vz = param.vector.vz;
         ReqItemKaengeki(p);
         break;
     }
@@ -488,19 +490,19 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 
         if (p->user == CamState.Owner)
         {
-            *(VECTOR *)&param = vec_z_n4096[0];
-            st = (VECTOR *)&param;
+            param.vector = vec_z_n4096[0];
+            st = &param.vector;
             model = p->user->model;
             GET_THROW_ROTATION(model, rx, ry, rz);
             RotateVector(st, rx, ry, rz);
             sx = p->start.vx;
             sz = p->start.vz;
-            t = ((VECTOR *)&param)->vx;
+            t = param.vector.vx;
             p->end.vx = t;
-            t = ((VECTOR *)&param)->vy;
+            t = param.vector.vy;
             p->end.vy = t;
             t = p->end.vx;
-            u = ((VECTOR *)&param)->vz;
+            u = param.vector.vz;
             t += sx;
             p->end.vx = t;
             t = p->end.vy;
@@ -526,16 +528,16 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 vz;
 
         SETUP_ROTATED_DROP(vec_z_n1000);
-        vx = ((VECTOR *)&work)->vx;
-        vy = ((VECTOR *)&work)->vy;
-        vz = ((VECTOR *)&work)->vz;
-        param.start.vx += vx;
-        param.end.vx = vx;
-        param.end.vy = vy;
-        param.end.vz = vz;
-        param.start.vy += vy;
-        param.start.vz += vz;
-        ReqItemJirai((PARAM_ITEM_DROP *)&param);
+        vx = work.vector.vx;
+        vy = work.vector.vy;
+        vz = work.vector.vz;
+        param.drop.start.vx += vx;
+        param.drop.vec.vx = vx;
+        param.drop.vec.vy = vy;
+        param.drop.vec.vz = vz;
+        param.drop.start.vy += vy;
+        param.drop.start.vz += vz;
+        ReqItemJirai(&param.drop);
         break;
     }
     case ITEM_KAGINAWA:

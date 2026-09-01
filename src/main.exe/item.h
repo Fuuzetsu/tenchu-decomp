@@ -249,6 +249,16 @@ typedef struct PARAM_ITEM_DROP
     VECTOR vec;     /* 0x18 */
 } PARAM_ITEM_DROP;  /* 0x28 (demo: 0x24, without user) */
 
+/* ReqItemUse keeps two shared request-sized work areas. Each can hold either
+ * request layout or temporarily use its first 16 bytes as a throw vector. */
+typedef union ItemRequestWorkspace ItemRequestWorkspace;
+union ItemRequestWorkspace
+{
+    PARAM_ITEM_LAUNCH launch;
+    PARAM_ITEM_DROP drop;
+    VECTOR vector;
+};
+
 /* A stationary/placed item's spawn params (AddItem2's ReqItemStay). */
 typedef struct PARAM_ITEM_STAY
 {
