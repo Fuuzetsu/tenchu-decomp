@@ -163,10 +163,11 @@
  * lightningbolt end-vector tail. RTL dumps showed that its block-local
  * sz pseudo was claimed by local-alloc before the other values reached
  * global allocation. Reusing three function-scope SImode scratch words later
- * in the kaginawa case gives global allocation byte-neutral anchors: sz holds
- * the items base ($a1), scratch the ProcKaginawa address ($v0), and z the
- * scaled item index ($v1). The typed views of scratch separate its callback
- * and lightning-end-Y roles without an integer/function-pointer cast. Reusing
+ * in the kaginawa case gives global allocation byte-neutral anchors: the
+ * start-Z/item-pool workspace holds the items base ($a1), scratch the
+ * ProcKaginawa address ($v0), and z the scaled item index ($v1). The typed
+ * workspace views separate the otherwise unrelated scalar, pointer, callback,
+ * and lightning-end-Y roles without pointer-through-integer casts. Reusing
  * scratch/z for the final lightningbolt sums then produces the retail register
  * coloring and instruction order.
  *
@@ -348,7 +349,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 end_y;
         void (*proc)(TItem *);
     } scratch; /* disjoint callback and lightning-vector scratch views */
-    s32 sz;
+    union
+    {
+        s32 start_z;
+        u8 *item_pool;
+        u32 item_pool_address;
+    } z_workspace; /* disjoint lightning scalar and item-pool base views */
     s32 z;
 
     c = p->user.human->item[p->type];
@@ -502,7 +508,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             GET_THROW_ROTATION(model, rx, ry, rz);
             RotateVector(st, rx, ry, rz);
             sx = p->start.vx;
-            sz = p->start.vz;
+            z_workspace.start_z = p->start.vz;
             t = param.vector.vx;
             p->end.vx = t;
             t = param.vector.vy;
@@ -516,7 +522,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             u = p->start.vy;
             sx = p->end.vz;
             scratch.end_y = t + u;
-            z = sx + sz;
+            z = sx + z_workspace.start_z;
             p->end.vy = scratch.end_y;
             p->end.vz = z;
         }
@@ -556,14 +562,14 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 i;
 
         i = 0;
-        sz = (s32)items;
+        z_workspace.item_pool = (u8 *)items;
         do
         {
             ic++;
             if (ic >= MAX_ITEMS)
                 ic = 0;
             z = ic * sizeof(*items);
-            cur = (TItem *)(z + sz);
+            cur = (TItem *)(z + z_workspace.item_pool_address);
             if (cur->proc == 0)
             {
                 it = cur;
