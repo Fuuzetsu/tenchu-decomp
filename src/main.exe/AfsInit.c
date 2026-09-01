@@ -35,16 +35,14 @@ extern char msg_afsinit_not_enough_memory[]; /* AfsInit: not enough memory! */ /
 
 void AfsInit(TAFS *handle)
 {
-    void *p;
-
     handle->fpVol = 0;
     handle->maxElements = 0;
     handle->maxElementArea = 0;
     handle->pElement = 0;
-    p = valloc(N_AFS_FILE_HANDLES * sizeof(TAFSFileHandle));
-    handle->pHandle = p;
-    if (p == 0)
+    handle->pHandle = valloc(N_AFS_FILE_HANDLES * sizeof(TAFSFileHandle));
+    if (handle->pHandle == 0)
         AdtMessageBox(msg_afsinit_not_enough_memory);
     else
-        memset(p, 0, N_AFS_FILE_HANDLES * sizeof(TAFSFileHandle));
+        memset(handle->pHandle, 0,
+               N_AFS_FILE_HANDLES * sizeof(TAFSFileHandle));
 }
