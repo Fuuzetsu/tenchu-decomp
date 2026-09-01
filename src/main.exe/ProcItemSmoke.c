@@ -210,7 +210,7 @@ void ProcItemSmoke(TItem *item)
                 human = scratch.find.find;
                 if (human != item->owner && human->life != -1 && human->motion->mid != MOT_DAMAGE_CHOKE)
                 {
-                    i = 0x10;
+                    i = STAT_DAMAGE;
                     if (ActionHalt == 0 && human->life > 0)
                     {
                         dispose_weapon_data_of_char_(human,

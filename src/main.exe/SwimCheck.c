@@ -46,7 +46,7 @@ extern void reset_alert_duration(void);
 
 short SwimCheck(void)
 {
-    short status;
+    character_status status;
     short i;
     VECTOR vect;
     VECTOR *locate;

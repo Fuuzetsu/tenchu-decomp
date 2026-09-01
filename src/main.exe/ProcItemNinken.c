@@ -342,7 +342,7 @@ void ProcItemNinken(TItem *item)
     {
         s32 owner_attribute;
         Humanoid *target;
-        s16 status;
+        character_status status;
 
         if (GameClock % 15 != 0)
         {
