@@ -26,7 +26,7 @@
 extern s32 MemCardAccept(s32 chan);
 extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
-s16 ChkCard(void)
+card_result ChkCard(void)
 {
     s32 cmd;
     s32 result;

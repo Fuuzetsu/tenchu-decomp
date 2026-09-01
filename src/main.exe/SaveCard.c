@@ -47,7 +47,7 @@ extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
  * block. Fixed-size built-in copies use TCardHeader's recovered Clut/Icon
  * bounds while preserving the original compiler's aligned/unaligned loops.
  */
-s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
+card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 {
     u8 fn[200];
     u8 block[BLOCKSIZE];
@@ -82,7 +82,8 @@ s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardCreateFile(chan, fn, 1);
-    if ((result == 0 || result == 6) && write_data != 0)
+    if ((result == CARD_RESULT_SUCCESS || result == CARD_RESULT_FILE_EXISTS) &&
+        write_data != 0)
     {
         memcpy(data, mem, size);
         result = MemCardWriteFile(chan, fn, block, 0, BLOCKSIZE);

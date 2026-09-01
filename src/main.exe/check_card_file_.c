@@ -10,7 +10,8 @@
  * prefix TENCHU_ID and the caller's `name`), opens it via MemCardOpen in
  * mode 1, blocks on MemCardSync again, and — unlike DeleteCard/LoadCard,
  * which go on to read/delete the file — immediately closes it again with
- * no read/write in between if the open failed (`acceptResult == 0`). That shape
+ * no read/write in between when the sync succeeds
+ * (`acceptResult == CARD_RESULT_SUCCESS`). That shape
  * (open, sync, close-on-failure, return the sync's out-value truncated
  * to a short — the open's return is only a seed MemCardSync overwrites —
  * no data transfer at all) reads as a plain "does this save file
@@ -43,7 +44,7 @@ extern s32 MemCardOpen(s32 chan, char *path, s32 mode);
 extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 extern void MemCardClose(void);
 
-s16 check_card_file_(char *name)
+card_result check_card_file_(char *name)
 {
     char path[200];
     s32 cmd;
@@ -59,7 +60,7 @@ s16 check_card_file_(char *name)
     sprintf(path, CardPathFormat, TENCHU_ID, name);
     acceptResult = MemCardOpen(0, path, 1);
     MemCardSync(0, &acceptCmd, &acceptResult);
-    if (acceptResult == 0)
+    if (acceptResult == CARD_RESULT_SUCCESS)
     {
         MemCardClose();
     }

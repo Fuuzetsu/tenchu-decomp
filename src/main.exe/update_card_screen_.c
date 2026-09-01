@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "memcard.h"
 
 /*
  * update_card_screen_ (0x8005a7a4) — advance the memory-card save UI state machine.
@@ -45,7 +46,7 @@
 
 extern char *McardFile;
 extern s16 McardStateFlag;
-extern s16 McardState;
+extern card_state McardState;
 extern s16 McardPage;
 extern s16 McardRetry;
 
@@ -56,61 +57,13 @@ extern s32 setup_card_screen_(s16 mode);
  * cast moves to the other argument) changes the caller's frame. 1998
  * shipped without a shared header here. */
 extern s16 update_card_message_(u16 *state, s16 *page);
-extern s16 check_card_file_(char *name);
-extern s16 SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data);
+extern card_result check_card_file_(char *name);
+extern card_result SaveCard(s32 target, u8 *name, void *mem, s32 size,
+                            s16 write_data);
 extern s32 draw_card_help_(s32 page, s32 pad);
 
 s32 update_card_screen_(s32 pad)
 {
-    enum
-    {
-        CARD_STATE_EXIT = -1,
-        CARD_ACTIVE_STATE_MIN = 0,
-        CARD_STATE_SHOW_CHECKING = CARD_ACTIVE_STATE_MIN,
-        CARD_STATE_PREPARE_CHECK = 3,
-        CARD_STATE_NO_CARD = 10,
-        CARD_STATE_EXIT_NO_CARD = 11,
-        CARD_STATE_RESTART_NO_CARD = 12,
-        CARD_STATE_DAMAGED = 20,
-        CARD_STATE_EXIT_DAMAGED = 21,
-        CARD_STATE_RESTART_DAMAGED = 22,
-        CARD_STATE_FORMAT_PROMPT = 30,
-        CARD_STATE_FORMAT_COMPLETE = 38,
-        CARD_STATE_CARD_READY = 40,
-        CARD_STATE_FILE_CHECK_WAIT_1 = 41,
-        CARD_STATE_FILE_CHECK_WAIT_2 = 42,
-        CARD_STATE_CHECK_SAVE_FILE = 43,
-        CARD_STATE_BEGIN_NEW_SAVE = 50,
-        CARD_STATE_NEW_SAVE_WAIT_1 = 51,
-        CARD_STATE_NEW_SAVE_WAIT_2 = 52,
-        CARD_STATE_WRITE_NEW_SAVE = 53,
-        CARD_STATE_WRITE_COMPLETE = 54,
-        CARD_STATE_FINISH_SAVE = 55,
-        CARD_STATE_WRITE_FAILED = 56,
-        CARD_STATE_WRITE_FAILURE_ACKNOWLEDGED = 57,
-        CARD_STATE_OVERWRITE_GAME_DATA_PROMPT = 60,
-        CARD_STATE_BEGIN_OVERWRITE = 61,
-        CARD_STATE_CANCEL_OVERWRITE = 62,
-        CARD_STATE_OVERWRITE_WAIT_1 = 63,
-        CARD_STATE_OVERWRITE_WAIT_2 = 64,
-        CARD_STATE_WRITE_OVERWRITE = 65,
-        CARD_STATE_NOT_ENOUGH_SPACE_PROMPT = 70,
-        CARD_STATE_EXIT_NOT_ENOUGH_SPACE = 71,
-        CARD_STATE_RESTART_NOT_ENOUGH_SPACE = 72,
-        CARD_STATE_CANNOT_SAVE_PROMPT = 90,
-        CARD_STATE_SAVE_COMPLETE_EXIT = 99
-    };
-    enum
-    {
-        CARD_PAGE_NONE = 0,
-        CARD_PAGE_WRITING = 7,
-        CARD_PAGE_WRITE_COMPLETE = 9,
-        CARD_PAGE_WRITE_FAILED = 14,
-        CARD_PAGE_NO_CARD_CANNOT_SAVE_PROMPT = 24,
-        CARD_PAGE_DAMAGED_CANNOT_SAVE_PROMPT = 25,
-        CARD_PAGE_NOT_ENOUGH_SPACE_CANNOT_SAVE_PROMPT = 26,
-        CARD_PAGE_OVERWRITE_GAME_DATA_PROMPT = 44
-    };
     u16 saved_state;
     s16 value;
     s32 cond;
@@ -139,10 +92,10 @@ s32 update_card_screen_(s32 pad)
         {
         default:
             goto restart_card_check;
-        case 0:
+        case CARD_RESULT_SUCCESS:
             McardState = CARD_STATE_OVERWRITE_GAME_DATA_PROMPT;
             break;
-        case 5:
+        case CARD_RESULT_FILE_NOT_FOUND:
             McardState = CARD_STATE_BEGIN_NEW_SAVE;
             break;
             }
@@ -163,16 +116,16 @@ s32 update_card_screen_(s32 pad)
         default:
             save_result_state = CARD_STATE_WRITE_FAILED;
             break;
-        case 0:
+        case CARD_RESULT_SUCCESS:
             save_result_state = CARD_STATE_WRITE_COMPLETE;
             break;
-        case 1:
+        case CARD_RESULT_NO_CARD:
             save_result_state = CARD_STATE_NO_CARD;
             break;
-        case 7:
+        case CARD_RESULT_FULL:
             save_result_state = CARD_STATE_NOT_ENOUGH_SPACE_PROMPT;
             break;
-        case 4:
+        case CARD_RESULT_UNFORMATTED:
             McardState = CARD_STATE_FORMAT_PROMPT;
             McardStateFlag = 0;
             goto retry_new_save;
@@ -231,16 +184,16 @@ s32 update_card_screen_(s32 pad)
         default:
             save_result_state = CARD_STATE_WRITE_FAILED;
             break;
-        case 0:
+        case CARD_RESULT_SUCCESS:
             save_result_state = CARD_STATE_WRITE_COMPLETE;
             break;
-        case 1:
+        case CARD_RESULT_NO_CARD:
             save_result_state = CARD_STATE_NO_CARD;
             break;
-        case 7:
+        case CARD_RESULT_FULL:
             save_result_state = CARD_STATE_NOT_ENOUGH_SPACE_PROMPT;
             break;
-        case 4:
+        case CARD_RESULT_UNFORMATTED:
             McardState = CARD_STATE_FORMAT_PROMPT;
             McardStateFlag = 0;
             goto retry_overwrite;
@@ -287,7 +240,7 @@ s32 update_card_screen_(s32 pad)
             McardPage = CARD_PAGE_NONE;
             McardRetry = 0;
             setup_card_screen_(1);
-            if (McardState < CARD_ACTIVE_STATE_MIN)
+            if (McardState < CARD_STATE_SHOW_CHECKING)
             {
                 McardState = CARD_STATE_PREPARE_CHECK;
                 return 1;

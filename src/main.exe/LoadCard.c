@@ -38,7 +38,7 @@ extern int sprintf(char *buf, char *fmt, ...);
  * `block + sizeof(TCardHeader)`. The fixed-size built-in payload copy
  * reproduces the compiler's aligned/unaligned loop pair.
  */
-s16 LoadCard(s32 target, u8 *name)
+card_result LoadCard(s32 target, u8 *name)
 {
     void *allocation;
     u8 fn[200];
@@ -52,7 +52,7 @@ s16 LoadCard(s32 target, u8 *name)
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardReadFile(0, fn, block, 0, BLOCKSIZE);
     MemCardSync(0, &cmd, &result);
-    if (result != 0)
+    if (result != CARD_RESULT_SUCCESS)
     {
         vfree(allocation);
         allocation = 0;

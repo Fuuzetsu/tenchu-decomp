@@ -48,7 +48,7 @@ extern int sprintf(char *buf, char *fmt, ...);
 extern s32 MemCardDeleteFile(s32 chan, char *path);
 extern s32 MemCardSync(s32 mode, s32 *cmd, s32 *result);
 
-s16 DeleteCard(u8 *name)
+card_result DeleteCard(u8 *name)
 {
     u8 fn[200];
     s32 cmd;
