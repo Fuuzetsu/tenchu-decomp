@@ -51,9 +51,10 @@
  *    0..7; case 7 falls into the shared exit.
  *  - Inner path submenu: `k = (s16)AdtSelect(...)` with int k extends ONCE
  *    at the assignment; `if (k != -1)` then a 3-case switch whose SOURCE
- *    order is case 1, case 2, case 0 — recovered from the target's body
- *    layout (bodies are in source order; the balanced compare tree sorts by
- *    value regardless).
+ *    order is ENEMY_PATH_ADD (1), ENEMY_PATH_RESET (2),
+ *    ENEMY_PATH_SELECT (0) — recovered from the target's body layout (bodies
+ *    are in source order; the balanced compare tree sorts by value
+ *    regardless).
  *  - CurrentEnemyID is this TU's gp small (Build.hs maspsxGpExterns +
  *    permute.py GP_EXTERNS); everything else is absolute externs.
  */
@@ -82,6 +83,12 @@ void LayoutEnemyOption(void)
         SET_PATH = 5,
         REPORT = 6,
         CAMERA = 7
+    };
+    enum
+    {
+        ENEMY_PATH_SELECT = 0,
+        ENEMY_PATH_ADD = 1,
+        ENEMY_PATH_RESET = 2
     };
     s32 n;
     s32 k;
@@ -126,16 +133,16 @@ void LayoutEnemyOption(void)
             {
                 switch (k)
                 {
-                case 1:
+                case ENEMY_PATH_ADD:
                     leAddPath(CurrentEnemyID,
                               CamState.Owner->model->locate.coord.t[0],
                               CamState.Owner->model->locate.coord.t[1],
                               CamState.Owner->model->locate.coord.t[2]);
                     break;
-                case 2:
+                case ENEMY_PATH_RESET:
                     leResetPath(CurrentEnemyID);
                     break;
-                case 0:
+                case ENEMY_PATH_SELECT:
                     CurrentEnemyID = leFindEnemy();
                     break;
                 }

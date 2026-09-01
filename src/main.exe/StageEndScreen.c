@@ -571,7 +571,7 @@ void StageEndScreen(void)
     dispatch = selection;
     switch (dispatch)
     {
-    case 0:
+    case STAGE_END_ADVANCE:
         PSTATE->GameRetry &= (u8)~GAME_RETRY_REPLAY;
         if (PSTATE->StageNo == 7)
         {

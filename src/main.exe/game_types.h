@@ -975,6 +975,13 @@ enum
     CVA_CMD_TELOP = 8
 };
 
+/* Subcommands carried in CVA_CMD_EFFECT rows. */
+enum
+{
+    CVA_EFFECT_BLOOD = 1,
+    CVA_EFFECT_FADE = 3
+};
+
 /* Stage uids, named from StageConfig's own title strings (retail data
  * @ 0x80011f18). StageNo is the reorderable campaign SLOT (0..7 via
  * StageOrder); these are the per-stage uid values the code compares. */

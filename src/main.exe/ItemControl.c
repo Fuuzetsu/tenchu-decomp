@@ -44,7 +44,7 @@ void ItemControl(void)
     case ITEM_JIRAI:
         motID = MOT_ITEM + 3;
         break;
-    case -1:
+    case ITEM_NONE:
     case ITEM_KAWARIMI:
         goto item_sound;
     default:

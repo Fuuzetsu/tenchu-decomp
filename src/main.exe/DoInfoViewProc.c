@@ -128,6 +128,11 @@ static inline void ItemAddMenu(void)
 
 static inline void ItemLayoutMenu(void)
 {
+    enum
+    {
+        ITEM_LAYOUT_SET = 0,
+        ITEM_LAYOUT_CLEAR_ALL = 1
+    };
     s32 n;
     TAdtSelect Option[5];
     TAdtSelect OkCancel[3];
@@ -137,10 +142,10 @@ static inline void ItemLayoutMenu(void)
     n = AdtSelect(str_item_layout_option, Option, 0);
     switch (n)
     {
-    case 0:
+    case ITEM_LAYOUT_SET:
         AddItem2();
         break;
-    case 1:
+    case ITEM_LAYOUT_CLEAR_ALL:
         if (AdtSelect(msg_clear_ok, OkCancel, 1) == 1)
         {
             ClearItemLayout();

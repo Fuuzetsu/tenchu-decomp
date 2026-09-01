@@ -52,9 +52,10 @@
  * Matching notes:
  *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
  *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
- *  - The chrid translation is a two-case switch. expand_case keeps the -1
- *    arm inline and lays the -2 arm out later while emitting the target's
- *    -2/-1 test order. The named `stg_think` pointer keeps the compiler's
+ *  - The chrid translation is a two-case switch. expand_case keeps the
+ *    STAGE_CHAR_PARTNER (-1) arm inline and lays the STAGE_CHAR_STORY_NPC
+ *    (-2) arm out later while emitting the target's -2/-1 test order. The
+ *    named `stg_think` pointer keeps the compiler's
  *    derived think-field base live; the volatile row view prevents CSE with
  *    the preceding signed chrid load.
  *  - `y` deliberately carries each x/z product to both destination stores;
@@ -95,7 +96,9 @@ void StartStageSequence(void)
         {
             enum
             {
-                StageCharThinkOffset = 0x0c
+                StageCharThinkOffset = 0x0c,
+                STAGE_CHAR_PARTNER = -1,
+                STAGE_CHAR_STORY_NPC = -2
             };
             s16 chrid;
             volatile u16 *stg_think;
@@ -109,7 +112,7 @@ void StartStageSequence(void)
                      ->chrid;
             switch (chrid)
             {
-            case -1:
+            case STAGE_CHAR_PARTNER:
                 /* The partner ninja — whichever of the pair the player did
                  * not pick. */
                 tp = RIKIMARU_1;
@@ -119,7 +122,7 @@ void StartStageSequence(void)
                 }
                 break;
 
-            case -2:
+            case STAGE_CHAR_STORY_NPC:
                 /* The player-specific story NPC — Rikimaru's stages place
                  * the lord, Ayame's the princess. */
                 tp = HIME;

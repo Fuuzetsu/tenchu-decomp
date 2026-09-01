@@ -265,10 +265,10 @@ s16 CVAupdate(void)
                 vect.vz = CVAnow->z * 10;
                 switch (CVAnow->id)
                 {
-                case 1:
+                case CVA_EFFECT_BLOOD:
                     SetBlood(&vect, CVAnow->p, 30);
                     break;
-                case 3:
+                case CVA_EFFECT_FADE:
                     set_fade_((u8)CVAnow->x, (u8)CVAnow->y,
                               (u8)CVAnow->z, CVAnow->p);
                     break;
