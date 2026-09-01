@@ -18,10 +18,12 @@
 
 extern u_long DivDepth;
 
-extern u_long *adiv_tng4_(TMD_P_TNG4 *primitive, VERT *vertices,
+extern u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive,
+                          VERT *vertices,
                           u_long *packet, u_short count, u_long shift,
                           GsOT *ot, u_long *work);
-extern u_long *adiv_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices,
+extern u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive,
+                          VERT *vertices,
                           u_long *packet, u_short count, u_long shift,
                           GsOT *ot, u_long *work);
 extern u_long *GsTMDfastTNF3(TMD_P_TNF3 *primitive, VERT *vertices,
@@ -74,7 +76,7 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
             break;
         case TMD_PRIM_FT3:
             GsOUT_PACKET_P = GsTMDfastTNF3(
-                &prim->ft3, vertices, GsOUT_PACKET_P,
+                &prim->ft3.packet, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), shift, ot, work);
             /* The named count (here and in case 0x35) replaced two weight
              * fences: it re-orders the local v0/v1 quantities the fences
@@ -87,7 +89,7 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
             break;
         case TMD_PRIM_GT3:
             GsOUT_PACKET_P = GsTMDfastTNG3(
-                &prim->gt3, vertices, GsOUT_PACKET_P,
+                &prim->gt3.packet, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), shift, ot, work);
             count = TMD_BATCH_COUNT(prim);
             n -= count;

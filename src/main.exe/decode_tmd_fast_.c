@@ -13,7 +13,7 @@
  * Matching notes (636 bytes / 159 instructions):
  *  - The real linked-TMD field layout is load-bearing for the prologue's load
  *    schedule.
- *  - The mode tag selects the concrete TMD_P_* record type; every renderer
+ *  - The mode tag selects the concrete packed TMD record view; every renderer
  *    receives that typed stream together with the shared Sony VERT table.
  *  - The volatile attribute read preserves the retail reload across the two
  *    packet-parameter stores.
@@ -33,16 +33,20 @@
 
 extern u_long DivDepth;
 
-extern u_long *fast_tng4_(TMD_P_TNG4 *primitive, VERT *vertices,
+extern u_long *fast_tng4_(TmdTexturedGouraudQuadRecord *primitive,
+                          VERT *vertices,
                           u_long *packet, u_short count,
                           TMD_FAST_WORK *work);
-extern u_long *fast_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices,
+extern u_long *fast_tnf4_(TmdTexturedFlatQuadRecord *primitive,
+                          VERT *vertices,
                           u_long *packet, u_short count,
                           TMD_FAST_WORK *work);
-extern u_long *fast_tnf3_(TMD_P_TNF3 *primitive, VERT *vertices,
+extern u_long *fast_tnf3_(TmdTexturedFlatTriangleRecord *primitive,
+                          VERT *vertices,
                           u_long *packet, u_short count,
                           TMD_FAST_WORK *work);
-extern u_long *fast_tng3_(TMD_P_TNG3 *primitive, VERT *vertices,
+extern u_long *fast_tng3_(TmdTexturedGouraudTriangleRecord *primitive,
+                          VERT *vertices,
                           u_long *packet, u_short count,
                           TMD_FAST_WORK *work);
 

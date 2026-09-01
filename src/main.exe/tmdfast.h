@@ -51,6 +51,64 @@ typedef struct
     tmd_primitive_mode mode;
 } TmdPrimitiveBatch;
 
+/* Sony's TMD declarations expose texture and colour records one byte at a
+ * time, but the renderers transfer those fields as complete 32-bit stream
+ * words.  These views describe both representations without manufacturing
+ * pointers to the first byte of each word. */
+typedef union TmdTexturedFlatTriangleRecord TmdTexturedFlatTriangleRecord;
+union TmdTexturedFlatTriangleRecord
+{
+    TMD_P_TNF3 packet;
+    struct
+    {
+        TmdPrimitiveBatch batch;
+        GpuTextureWord texture[3];
+        GpuColorWord color;
+        u16 vertex[3];
+        u16 padding;
+    } stream;
+}; /* 0x1C */
+
+typedef union TmdTexturedGouraudTriangleRecord TmdTexturedGouraudTriangleRecord;
+union TmdTexturedGouraudTriangleRecord
+{
+    TMD_P_TNG3 packet;
+    struct
+    {
+        TmdPrimitiveBatch batch;
+        GpuTextureWord texture[3];
+        GpuColorWord color[3];
+        u16 vertex[3];
+        u16 padding;
+    } stream;
+}; /* 0x24 */
+
+typedef union TmdTexturedFlatQuadRecord TmdTexturedFlatQuadRecord;
+union TmdTexturedFlatQuadRecord
+{
+    TMD_P_TNF4 packet;
+    struct
+    {
+        TmdPrimitiveBatch batch;
+        GpuTextureWord texture[4];
+        GpuColorWord color;
+        u16 vertex[4];
+    } stream;
+}; /* 0x20 */
+
+typedef union TmdTexturedGouraudQuadRecord TmdTexturedGouraudQuadRecord;
+union TmdTexturedGouraudQuadRecord
+{
+    TMD_P_TNG4 packet;
+    struct
+    {
+        TmdPrimitiveBatch batch;
+        GpuTextureWord texture[4];
+        GpuColorWord color[4];
+        u16 vertex[4];
+    } stream;
+}; /* 0x2C */
+
 /* Every linked-TMD run starts with TmdPrimitiveBatch, after which `mode`
  * selects the concrete PsyQ record layout.  Keep the generic header and all
  * supported record views together so the decoders do not have to turn an
@@ -61,12 +119,12 @@ union TmdPrimitiveRecord
     TmdPrimitiveBatch batch;
     TMD_P_NF3 f3;
     TMD_P_NF4 f4;
-    TMD_P_TNF3 ft3;
-    TMD_P_TNF4 ft4;
+    TmdTexturedFlatTriangleRecord ft3;
+    TmdTexturedFlatQuadRecord ft4;
     TMD_P_NG3 g3;
     TMD_P_NG4 g4;
-    TMD_P_TNG3 gt3;
-    TMD_P_TNG4 gt4;
+    TmdTexturedGouraudTriangleRecord gt3;
+    TmdTexturedGouraudQuadRecord gt4;
 };
 
 #define TMD_BATCH_BYTE_OFFSET(member) \
@@ -118,8 +176,8 @@ union TmdPrimitiveRecord
  */
 typedef struct
 {
-    POLY_GT4 gt4;  /* 0x00 quad staging packet */
-    POLY_GT3 gt3;  /* 0x34 triangle staging packet */
+    GpuPolyGT4Packet gt4; /* 0x00 quad staging packet */
+    GpuPolyGT3Packet gt3; /* 0x34 triangle staging packet */
     long sz[4];    /* 0x5c per-vertex screen Z (gte_stsz3/gte_stsz4) */
     long pad6c[2]; /* 0x6c */
     long flag;     /* 0x74 GTE FLAG staging (RTPT/RTPS overflow reject) */

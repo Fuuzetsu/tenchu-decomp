@@ -20,9 +20,9 @@
  * `setlen`/`setcode` all compile identically. Same mechanism as the
  * decode_tmd_fast_ int-parameter lever (cookbook 3.13).
  *
- * This is the flat-colour TMD_P_TNF4 sibling of adiv_tng4_.  Keeping the
- * primitive's original record type is essential: under the common -O2 flags,
- * loop.c derives the target's one record cursor from the named fields.  The
+ * This is the flat-colour TMD_P_TNF4-layout sibling of adiv_tng4_. Keeping the
+ * primitive's real record shape is essential: under the common -O2 flags,
+ * loop.c derives the target's one record cursor from the named fields. The
  * old u_short-offset draft created two competing induction pointers and only
  * matched when strength reduction was disabled for this artificial file.
  *
@@ -37,7 +37,8 @@
 
 extern void subdivide_quad_(u_long *outv, u_long *packet, int mode);
 
-u_long *adiv_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices, u_long *packet,
+u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
+                   u_long *packet,
                    int count, volatile u_long shift, GsOT *volatile ot,
                    u_long *wp)
 {
@@ -96,29 +97,29 @@ u_long *adiv_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices, u_long *packet,
         do
         {
             ADIV_SHORT(work, v[0].pos.vx) =
-                vertices[primitive->v0].vx;
+                vertices[primitive->stream.vertex[0]].vx;
             ADIV_SHORT(work, v[0].pos.vy) =
-                vertices[primitive->v0].vy;
+                vertices[primitive->stream.vertex[0]].vy;
             ADIV_SHORT(work, v[0].pos.vz) =
-                vertices[primitive->v0].vz;
+                vertices[primitive->stream.vertex[0]].vz;
             ADIV_SHORT(work, v[1].pos.vx) =
-                vertices[primitive->v1].vx;
+                vertices[primitive->stream.vertex[1]].vx;
             ADIV_SHORT(work, v[1].pos.vy) =
-                vertices[primitive->v1].vy;
+                vertices[primitive->stream.vertex[1]].vy;
             ADIV_SHORT(work, v[1].pos.vz) =
-                vertices[primitive->v1].vz;
+                vertices[primitive->stream.vertex[1]].vz;
             ADIV_SHORT(work, v[2].pos.vx) =
-                vertices[primitive->v2].vx;
+                vertices[primitive->stream.vertex[2]].vx;
             ADIV_SHORT(work, v[2].pos.vy) =
-                vertices[primitive->v2].vy;
+                vertices[primitive->stream.vertex[2]].vy;
             ADIV_SHORT(work, v[2].pos.vz) =
-                vertices[primitive->v2].vz;
+                vertices[primitive->stream.vertex[2]].vz;
             ADIV_SHORT(work, v[3].pos.vx) =
-                vertices[primitive->v3].vx;
+                vertices[primitive->stream.vertex[3]].vx;
             ADIV_SHORT(work, v[3].pos.vy) =
-                vertices[primitive->v3].vy;
+                vertices[primitive->stream.vertex[3]].vy;
             ADIV_SHORT(work, v[3].pos.vz) =
-                vertices[primitive->v3].vz;
+                vertices[primitive->stream.vertex[3]].vz;
             *vp = (u_long)v0;
             vp[1] = (u_long)v1;
             vp[2] = (u_long)v2;
@@ -126,31 +127,31 @@ u_long *adiv_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices, u_long *packet,
             gte_ldv3(v0, v1, v2);
             gte_rtpt();
             ADIV_SHORT(work, v[0].texture.coordinates) =
-                *(u16 *)&primitive->tu0;
+                primitive->stream.texture[0].coordinates;
             ADIV_SHORT(work, v[1].texture.coordinates) =
-                *(u16 *)&primitive->tu1;
+                primitive->stream.texture[1].coordinates;
             t2 = (u_long)ADIV_WORD_ADDRESS(work, v[0].screen.word);
             gte_stsxy3((u_long *)t2,
                        ADIV_WORD_ADDRESS(work, v[1].screen.word),
                        ADIV_WORD_ADDRESS(work, v[2].screen.word));
             gte_nclip();
             ADIV_SHORT(work, v[2].texture.coordinates) =
-                *(u16 *)&primitive->tu2;
+                primitive->stream.texture[2].coordinates;
             ADIV_SHORT(work, v[3].texture.coordinates) =
-                *(u16 *)&primitive->tu3;
+                primitive->stream.texture[3].coordinates;
             gte_stopz(ADIV_WORD_ADDRESS(work, zmax));
             if (0 < (int)ADIV_WORD(work, zmax))
             {
                 gte_ldv0(v3);
                 gte_rtps();
-                ADIV_WORD(work, v[0].color.word) = *(u_long *)&primitive->r0;
+                ADIV_WORD(work, v[0].color.word) = primitive->stream.color.word;
                 b = (u_char)cd;
                 ADIV_BYTE(work, v[0].color.channel.cd) = b;
-                ADIV_WORD(work, v[1].color.word) = *(u_long *)&primitive->r0;
+                ADIV_WORD(work, v[1].color.word) = primitive->stream.color.word;
                 ADIV_BYTE(work, v[1].color.channel.cd) = b;
-                ADIV_WORD(work, v[2].color.word) = *(u_long *)&primitive->r0;
+                ADIV_WORD(work, v[2].color.word) = primitive->stream.color.word;
                 ADIV_BYTE(work, v[2].color.channel.cd) = b;
-                ADIV_WORD(work, v[3].color.word) = *(u_long *)&primitive->r0;
+                ADIV_WORD(work, v[3].color.word) = primitive->stream.color.word;
                 ADIV_BYTE(work, v[3].color.channel.cd) = b;
                 gte_stsxy(ADIV_WORD_ADDRESS(work, v[3].screen.word));
                 t0 = (u_long)ADIV_WORD_ADDRESS(work, v[0].sz);
@@ -158,8 +159,10 @@ u_long *adiv_tnf4_(TMD_P_TNF4 *primitive, VERT *vertices, u_long *packet,
                 t1 = (u_long)ADIV_WORD_ADDRESS(work, v[2].sz);
                 gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1,
                            ADIV_WORD_ADDRESS(work, v[3].sz));
-                ((ADIV_WORK *)work)->packet.clut = primitive->clut;
-                ((ADIV_WORK *)work)->packet.tpage = primitive->tpage;
+                ((ADIV_WORK *)work)->packet.clut =
+                    primitive->stream.texture[0].component.metadata;
+                ((ADIV_WORK *)work)->packet.tpage =
+                    primitive->stream.texture[1].component.metadata;
                 subdivide_quad_(frame, work, 0);
             }
             cnt--;
