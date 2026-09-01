@@ -96,7 +96,7 @@ found:
     z = pos->vz;
     fp->mode = FRAME_MODE_FLASH;
     fp->size = size;
-    fp->count = time;
+    fp->progress.countdown = time;
     fp->pz = z;
     ef->param.frame.super = super;
     ef->proc = DrawFrame;

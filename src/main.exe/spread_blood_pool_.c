@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "tmdfast.h"
+#include "effect.h"
 
 /*
  * MATCH.
@@ -16,7 +17,6 @@
 
 extern ModelType *BLOOD_POOL_MODEL_;
 
-extern void spawn_damage_effect_(Humanoid *human, s32 mode);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 
 void spread_blood_pool_(Humanoid *human)
@@ -45,7 +45,7 @@ void spread_blood_pool_(Humanoid *human)
     {
         if ((GameClock & 0xf) == 0)
         {
-            spawn_damage_effect_(human, 0);
+            spawn_damage_effect_(human, DAMAGE_EFFECT_ATTACHED_FLASH);
         }
         return;
     }

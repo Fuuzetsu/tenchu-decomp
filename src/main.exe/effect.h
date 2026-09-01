@@ -8,6 +8,7 @@
  * stride 76 bytes. */
 
 struct AreaNodeType; /* opaque here: only ever stored, never dereferenced */
+struct Humanoid;
 
 typedef struct BloodType BloodType;
 typedef struct BleedType BleedType;
@@ -185,6 +186,16 @@ enum frame_mode
     FRAME_MODE_FADE = 1
 };
 
+/* The frame effect counts down as a signed halfword. Once it enters the fade
+ * phase, the renderer also consumes that word's low byte as the sprite's
+ * brightness. */
+typedef union FrameProgress FrameProgress;
+union FrameProgress
+{
+    s16 countdown;
+    u8 fade_level;
+}; /* 0x02 */
+
 struct FrameType /* size 24 */
 {
     GsCOORDINATE2 *super; /* +0x0 */
@@ -192,8 +203,17 @@ struct FrameType /* size 24 */
     long py;              /* +0x8 */
     long pz;              /* +0xc */
     short size;           /* +0x10 */
-    short count;          /* +0x12 */
+    FrameProgress progress; /* +0x12 */
     frame_mode mode;      /* +0x14 */
+};
+
+/* Damage floors alternate a large launched burst with a smaller flash and
+ * bleed effect attached to one body part. */
+typedef enum DamageEffectKind DamageEffectKind;
+enum DamageEffectKind
+{
+    DAMAGE_EFFECT_ATTACHED_FLASH = 0,
+    DAMAGE_EFFECT_NAPALM = 1
 };
 
 /* ExplosionType.mode: the flash frame and the fireball both grow, on two
@@ -363,6 +383,7 @@ extern ModelType *ModelHook;
 extern ModelType *ShadowMdl;
 extern void DrawGore(TEffectSlot *ef);
 extern void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector);
+extern void spawn_damage_effect_(struct Humanoid *human, DamageEffectKind kind);
 extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 

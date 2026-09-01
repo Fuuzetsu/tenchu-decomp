@@ -18,7 +18,7 @@ extern SVECTOR svec_y_n60[];
  * svec_y_n60 intentionally has unknown array size: a typed object declaration
  * changes the old compiler's address materialization and instruction schedule.
  */
-void spawn_damage_effect_(Humanoid *human, int mode)
+void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
 {
     union
     {
@@ -34,7 +34,7 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         } blood;
     } work;
 
-    if (mode != 0)
+    if (kind != DAMAGE_EFFECT_ATTACHED_FLASH)
     {
         s32 x;
         s32 y;
@@ -128,9 +128,9 @@ void spawn_damage_effect_(Humanoid *human, int mode)
         frame->px = position->vx;
         frame->py = position->vy;
         frame->pz = position->vz;
-        frame->mode = 0;
-        frame->size = 0x3000;
-        frame->count = time;
+        frame->mode = FRAME_MODE_FLASH;
+        frame->size = 3 * FIXED_ONE;
+        frame->progress.countdown = time;
         frame->super = &model->locate;
         found_slot->proc = DrawFrame;
 
