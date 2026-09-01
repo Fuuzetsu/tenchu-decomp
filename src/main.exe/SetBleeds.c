@@ -38,12 +38,12 @@
  *  - Outer loop is `do { if (n <= 0) return; ...; } while (1);` (the guard
  *    INSIDE, unconditional back-jump) — same rule as SetSmoke's outer loop.
  *  - STACK LAYOUT is the whole game (frame 0x58): npos@sp+0x10, v@sp+0x20,
- *    scratch SVECTOR t@sp+0x28 — and the position jitter is built as a
- *    VECTOR THROUGH `(VECTOR *)&v` (spanning v AND t's slots, 0x20..0x2F,
- *    memset(&v,0,sizeof(VECTOR)) included), then copied out with
- *    `npos = *(VECTOR *)&v;` (the first 16-byte block copy). The velocity
- *    jitter is then built in `t` and copied with `v = t;` (the second,
- *    lwl/lwr unaligned 8-byte copy). That aliasing reproduces the "compute
+ *    scratch SVECTOR t@sp+0x28 — and the position jitter spans both short
+ *    vectors as one VECTOR (sp+0x20..0x2F, with a 16-byte memset), then is
+ *    copied out to npos. The velocity jitter is built in the upper half and
+ *    copied to the lower half (the second, lwl/lwr unaligned 8-byte copy).
+ *    BleedSpawnVectors names that shared storage without pointer punning.
+ *    This overlap reproduces the "compute
  *    into throwaway stack scratch + second block-copy" residual both parked
  *    drafts fought: the values are STORED to stack per-arm and never need
  *    callee-saved registers, freeing $fp for `time`. The demo build has the
@@ -98,8 +98,7 @@ extern void *memset(void *s, int c, u32 n);
 void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col)
 {
     VECTOR npos;
-    SVECTOR v;
-    SVECTOR t;
+    BleedSpawnVectors work;
     int grange2;
     long b;
     int g;
@@ -118,61 +117,61 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
         {
             return;
         }
-        memset(&v, 0, sizeof(VECTOR));
+        memset(&work, 0, sizeof(VECTOR));
         b = pos->vx;
         if (grange2 > 0)
         {
-            ((VECTOR *)&v)->vx = b + (rand() % grange2 - g);
+            work.position.vx = b + (rand() % grange2 - g);
         }
         else
         {
-            ((VECTOR *)&v)->vx = b - g;
+            work.position.vx = b - g;
         }
         b = pos->vy;
         if (grange2 > 0)
         {
-            ((VECTOR *)&v)->vy = b + (rand() % grange2 - g);
+            work.position.vy = b + (rand() % grange2 - g);
         }
         else
         {
-            ((VECTOR *)&v)->vy = b - g;
+            work.position.vy = b - g;
         }
         b = pos->vz;
         if (grange2 > 0)
         {
-            ((VECTOR *)&v)->vz = b + (rand() % grange2 - g);
+            work.position.vz = b + (rand() % grange2 - g);
         }
         else
         {
-            ((VECTOR *)&v)->vz = b - g;
+            work.position.vz = b - g;
         }
-        npos = *(VECTOR *)&v;
-        memset(&t, 0, sizeof(SVECTOR));
+        npos = work.position;
+        memset(&work.vector.temporary, 0, sizeof(SVECTOR));
         if (srange * 2 > 0)
         {
-            t.vx = rand() % (srange * 2) - srange;
+            work.vector.temporary.vx = rand() % (srange * 2) - srange;
         }
         else
         {
-            t.vx = -srange;
-        }
-        if (srange * 2 > 0)
-        {
-            t.vy = rand() % (srange * 2) - srange;
-        }
-        else
-        {
-            t.vy = z2 - srange;
+            work.vector.temporary.vx = -srange;
         }
         if (srange * 2 > 0)
         {
-            t.vz = rand() % (srange * 2) - srange;
+            work.vector.temporary.vy = rand() % (srange * 2) - srange;
         }
         else
         {
-            t.vz = z3 - srange;
+            work.vector.temporary.vy = z2 - srange;
         }
-        v = t;
+        if (srange * 2 > 0)
+        {
+            work.vector.temporary.vz = rand() % (srange * 2) - srange;
+        }
+        else
+        {
+            work.vector.temporary.vz = z3 - srange;
+        }
+        work.vector.velocity = work.vector.temporary;
         half = time / 2;
         rem = time - half;
         if (rem > 0)
@@ -228,7 +227,7 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
             param = &ef->param.bleed;
             r = col >> 16;
             ef->param.bleed.pos = *pos;
-            ef->param.bleed.vec = v;
+            ef->param.bleed.vec = work.vector.velocity;
             param->r = r;
             param->g = col >> 8;
             param->time = time;
