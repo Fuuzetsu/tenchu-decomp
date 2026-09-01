@@ -117,7 +117,7 @@ void CreateStage(stage_id StageNo, int CharType)
 
     base = StageConfig;
     stage = &base[StageNo];
-    ImagePath = (u8 *)stage->path;
+    ImagePath = stage->path;
     StageID = StageNo;
     SetupSoundEffect(CharType, STAGE_NUMBER(StageNo));
     DoBriefingAndInventorySelection();

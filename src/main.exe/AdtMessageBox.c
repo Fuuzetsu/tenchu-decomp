@@ -24,9 +24,9 @@
  *    cc1 keeps it memory-resident for its whole lifetime — reusing a
  *    second name here would just get its own register/copy instead): a
  *    leading "%#"/"%$" prefix is stripped (advancing the pointer by 2) and
- *    drives a 0/1/2 `mode` selecting how modal the box is (2 = "%#": no
- *    counter line, no wait; 1 = "%$": counter line, no wait; 0 = default:
- *    full modal "press start" wait). Two shape levers here, both needed
+ *    drives an `adt_message_mode` selecting how modal the box is (`%#` =
+ *    text only; `%$` = counted but no wait; default = full modal "press
+ *    start" wait). Two shape levers here, both needed
  *    together: (1) Ghidra's own `goto` for the "neither # nor $" case
  *    (must skip the '#'/'$' handling entirely, unreachable via a plain
  *    if/else-if); (2) the '#' test's polarity is the OPPOSITE of Ghidra's
@@ -78,6 +78,13 @@ extern char msg_press_start[];                                         /* "\n\nP
 extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
 extern s32 VSync(s32 mode);
 
+enum adt_message_mode
+{
+    ADT_MESSAGE_MODAL,
+    ADT_MESSAGE_NO_WAIT,
+    ADT_MESSAGE_TEXT_ONLY
+};
+
 void AdtMessageBox(char *fmt, ...)
 {
     s32 mode;
@@ -85,7 +92,7 @@ void AdtMessageBox(char *fmt, ...)
     char buf[504]; /* print limit is 500; 504 is the frame-layout size */
     TAdtDisp ad;
 
-    mode = 0;
+    mode = ADT_MESSAGE_MODAL;
     if (AdtPadRead == AdtDmyPadRead)
         fmt = msg_adtinit_not_called;
     if (AdtFnt.quiet == ADT_QUIET)
@@ -96,12 +103,12 @@ void AdtMessageBox(char *fmt, ...)
         {
             if (fmt[1] != '$')
                 goto skip;
-            mode = 1;
+            mode = ADT_MESSAGE_NO_WAIT;
             fmt += 2;
         }
         else
         {
-            mode = 2;
+            mode = ADT_MESSAGE_TEXT_ONLY;
             fmt += 2;
         }
     }
@@ -112,7 +119,7 @@ skip:
 
     AdtVsprintf((s32 *)((char *)&fmt + sizeof(fmt)), buf, 0x1F4, fmt);
     AdtGetDisp(&ad);
-    if (mode < 2)
+    if (mode < ADT_MESSAGE_TEXT_ONLY)
     {
         DrawPrim(&ad.bg);
         count = AdtMessageBoxCount + 1;
@@ -120,12 +127,12 @@ skip:
         FntPrint(fmt_messagebox_count, count);
     }
     FntPrint(buf);
-    if (mode == 0)
+    if (mode == ADT_MESSAGE_MODAL)
         FntPrint(msg_press_start);
     FntFlush(-1);
     DrawSync(0);
     VSync(2);
-    if (mode == 0)
+    if (mode == ADT_MESSAGE_MODAL)
     {
         while (AdtPadRead(0) & PADstart)
             VSync(0);

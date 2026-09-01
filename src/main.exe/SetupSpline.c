@@ -28,10 +28,9 @@
  * counter idiom (cookbook Loops): the source counter is a plain `short i`,
  * not `int` — its own sign-extend fuses with the array-index scale, so a
  * for-loop over `short i` reproduces this without hand-rolling the shift.
- * mmp->control (void* in item.h — SetupMotionManager's allocation site
- * never needed the real type) is cast to SplineControlType* here, the first
- * consumer of that field's true pointee. The signed `time` halfword is shared
- * directly by both control records and both zero tests.
+ * mmp->control carries the SplineControlType pointer allocated by
+ * SetupMotionManager. The signed `time` halfword is shared directly by both
+ * control records and both zero tests.
  *
  * The final register allocation comes from the source's data identity, not an
  * alias fence: write each `key0` directly from `locate`/`rotate[i]`, derive
@@ -50,7 +49,7 @@ void SetupSpline(MotionManager *mmp)
     SplineControlType *spc;
 
     time = mmp->motion->time;
-    spc = (SplineControlType *)mmp->control;
+    spc = mmp->control;
     spc->key0 = mmp->motion->locate.keyframes;
     spc->dd0.pad = time;
     if (time != 0)
