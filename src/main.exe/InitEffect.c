@@ -70,14 +70,13 @@ typedef struct
 extern char str_newline[];
 /* Retail extends EFFECT.C's original three-entry static image-ID table. */
 extern u8 Effect_img[MaxImpacts];
-extern s32 EffectImages[N_EXPLOSION_SPRITES];
-extern s32 pat[MaxFrames];
+extern ImageArchiveId EffectImages[N_EXPLOSION_SPRITES];
+extern ImageArchiveId pat[MaxFrames];
 
 extern ModelType *BLOOD_POOL_MODEL_;
 extern s16 TexScrollX;
 extern s16 TexScrollY;
 
-extern GsIMAGE *GetImage(s32 index);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern ModelType *LoadModel(u_long *adr);
 extern void reset_effects_(void);
@@ -87,9 +86,9 @@ void InitEffect(void)
     BloodImageIds blood_images;
     BloodImageIds *bloodp;
     BloodImageIds *blood_src;
-    s32 smoke_images[N_SMOKE_SPRITES];
-    s32 smoke_id;
-    s32 img[N_EXPLOSION_SPRITES];
+    ImageArchiveId smoke_images[N_SMOKE_SPRITES];
+    ImageArchiveId smoke_id;
+    ImageArchiveId img[N_EXPLOSION_SPRITES];
     POLY_F4 *poly;
     GsIMAGE *image;
     s16 i;
@@ -161,7 +160,7 @@ void InitEffect(void)
             } while (0);
             smoke_address = (u8 *)smoke_images + smoke_offset;
             smoke_images[SMOKE_SPRITE_NORMAL] = smoke_id;
-            image = GetImage(*(s32 *)smoke_address);
+            image = GetImage(*(ImageArchiveId *)smoke_address);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprSmoke[i] = sprite;
             sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
@@ -197,7 +196,7 @@ void InitEffect(void)
         i = 0;
         do
         {
-            image = GetImage(IMG_SNOW);
+            image = GetImage(IMG_MISC_SNOW);
             sprite = SetupSprite((Sprite3D *)0, image);
             SpriteSnow[i] = sprite;
             sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;

@@ -25,7 +25,7 @@
  * DrawPause (0x8004b18c, 0x1C8 bytes) — draws the pause-screen "wobbling
  * brightness ring" overlay: swaps in a screen-sized clip/offset draw
  * environment (from the current display env), draws a pulsing quad using
- * the Tenchu logo image, then restores the original draw env.
+ * the archive's PAUSE image, then restores the original draw env.
  * Called by PauseProc (already matched) with the pause frame counter.
  *
  * MATCH. Matching notes (all verified against the original bytes):
@@ -72,8 +72,6 @@
  *    the ADDEND itself through a named variable did.
  */
 
-extern GsIMAGE *GetImage(s32 id);
-
 void DrawPause(int frame)
 {
     DISPENV o_disp;
@@ -94,7 +92,7 @@ void DrawPause(int frame)
         n_draw.ofs[0] = o_disp.disp.x;
         n_draw.ofs[1] = o_disp.disp.y;
         PutDrawEnv(&n_draw);
-        image = GetImage(IMG_TENCHU);
+        image = GetImage(IMG_PAUSE);
         SetupImageToPolyGT4(image, &ply, (s16)(0xA0 - image->pw * 2), (s16)(0x78 - (image->ph >> 1)));
         t = (s16)frame * 0x44;
         /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */

@@ -149,6 +149,79 @@ enum
     ITEMSIZE = 2000
 };
 
+/* images.arc slots consumed by GetImage. The demo symbols provide the
+ * original asset vocabulary; retail's 62-entry archive, its TIM artwork,
+ * and the tables that feed InitEffect/InitializeInfoView establish the new
+ * ordering. In particular, item icons occupy one slot per selectable
+ * TItemType, and each life-bar style owns a frame/fill pair. */
+typedef enum ImageArchiveId ImageArchiveId;
+enum ImageArchiveId
+{
+    IMG_BLOOD_FLY_0 = 0,
+    IMG_BLOOD_STAY_0 = 1,
+    IMG_BLOOD_FLY_1 = 2,
+    IMG_BLOOD_STAY_1 = 3,
+    IMG_BLOOD_FLY_2 = 4,
+    IMG_BLOOD_STAY_2 = 5,
+    IMG_SMOKE = 6,
+    IMG_BOMB0 = 7,
+    IMG_BOMB1 = 8,
+    IMG_BOMB2 = 9,
+    IMG_AFTERIMAGE = 10,
+    IMG_GUARD = 11,
+    IMG_HIT = 12,
+    IMG_GOSHIKIMAI = 13,
+    IMG_SPLASH = 14,
+    IMG_GUNFIRE = 15,
+    IMG_PLAYER_LIFEBAR_FRAME = 16,
+    IMG_PLAYER_LIFEBAR_FILL = 17,
+    IMG_ENEMY_LIFEBAR_FRAME = 18,
+    IMG_ENEMY_LIFEBAR_FILL = 19,
+    IMG_ICON_KAGINAWA = 20,
+    IMG_ICON_SHURIKEN = 21,
+    IMG_ICON_MAKIBISHI = 22,
+    IMG_ICON_KUSURI = 23,
+    IMG_ICON_FIRE = 24,
+    IMG_ICON_SMOKE = 25,
+    IMG_ICON_JIRAI = 26,
+    IMG_ICON_DOKUDANGO = 27,
+    IMG_ICON_GOSHIKIMAI = 28,
+    IMG_ICON_NEMURI = 29,
+    IMG_ICON_KAWARIMI = 30,
+    IMG_ICON_HENSHIN = 31,
+    IMG_ICON_GOSIN = 32,
+    IMG_ICON_SHINSOKU = 33,
+    IMG_ICON_NINGYO = 34,
+    IMG_ICON_HAPPOU = 35,
+    IMG_ICON_NINKEN = 36,
+    IMG_ICON_KAENGEKI = 37,
+    IMG_ICON_MANEBUE = 38,
+    IMG_ICON_ARMOUR = 39,
+    IMG_FRAME0 = 40,
+    IMG_FRAME1 = 41,
+    IMG_FRAME2 = 42,
+    IMG_FRAME3 = 43,
+    IMG_LOADING = 44,
+    IMG_TENCHU = 45,
+    IMG_KEHAI_GREEN = 46,
+    IMG_KEHAI_YELLOW = 47,
+    IMG_KEHAI_RED = 48,
+    IMG_KEHAI_CRITICAL = 49,
+    IMG_CURSOR = 50,
+    IMG_FONT_NUMBER = 51,
+    IMG_SIGHT = 52,
+    IMG_MISC_FIRE1 = 53,
+    IMG_MISC_FIRE2 = 54,
+    IMG_MISC_SNOW = 55,
+    IMG_BLOOD_FLY_3 = 56,
+    IMG_BLOOD_STAY_3 = 57,
+    IMG_SMOKE_ALT = 58,
+    IMG_SHINSOKU = 59,
+    IMG_GOSIN = 60,
+    IMG_PAUSE = 61,
+    N_IMAGES = 62
+};
+
 /* models.arc slots consumed by GetArcData. The demo symbols supply the
  * original names through MODEL_AKINb, and retail's door/pitfall tables and
  * direct callers retain that ordering. MODEL_N was the demo's end marker;

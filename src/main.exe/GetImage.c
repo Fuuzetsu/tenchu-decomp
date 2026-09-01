@@ -57,7 +57,7 @@ extern char msg_bad_image_index[];   /* bad image index */
 extern u8 Images_fInitialize;
 extern GsIMAGE Images[N_IMAGES];
 
-GsIMAGE *GetImage(int index)
+GsIMAGE *GetImage(ImageArchiveId index)
 {
     u_long *pt;
     u_long *adr;

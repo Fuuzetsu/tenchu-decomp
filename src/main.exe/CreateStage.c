@@ -63,7 +63,6 @@ extern char path_stage_con[];       /* STAGE.CON */
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
-extern GsIMAGE *GetImage(s32 id);
 extern BackGround *load_background_(u_long *data);
 extern void vfree(void *ptr);
 extern void clear_screen_(void);
@@ -126,7 +125,7 @@ void CreateStage(stage_id StageNo, int CharType)
     __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
                      sizeof(scratch.title));
     dat = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
-    image = GetImage(IMG_TEN_LOGO);
+    image = GetImage(IMG_TENCHU);
     SetupImageToPolyFT4(image, &ply_ten, 0x34, 0x43);
     bg = load_background_(dat);
     vfree(dat);

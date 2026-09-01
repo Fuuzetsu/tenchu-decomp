@@ -53,7 +53,6 @@ typedef struct
 } LifeBarSpriteEntry;
 
 extern LifeBarSpriteEntry LifeBarParts[];
-extern GsIMAGE *GetImage(s32 id);
 
 void init_lifebar_(void)
 {

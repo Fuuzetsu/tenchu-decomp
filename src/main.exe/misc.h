@@ -233,7 +233,7 @@ union MiscModelReference
 typedef union MiscSpriteReference MiscSpriteReference;
 union MiscSpriteReference
 {
-    s32 image_id;
+    ImageArchiveId image_id;
     Sprite3D *sprite;
 }; /* 0x4 */
 

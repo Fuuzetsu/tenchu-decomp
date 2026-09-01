@@ -30,8 +30,6 @@
  * clears.
  */
 
-extern GsIMAGE *GetImage(s32 id);
-
 void InitAccessInfo(void)
 {
     SetupImageToPolyGT4(GetImage(IMG_LOADING), &AccessImage, 0xd6, 0xd9);

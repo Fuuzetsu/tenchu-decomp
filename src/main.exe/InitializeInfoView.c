@@ -25,7 +25,8 @@
  * InitializeInfoView (0x8004a790, 0x160 bytes) — one-time HUD/inventory init,
  * called from DoInfoViewProc the first frame (guarded by fInitialize) and
  * from main(). Sets up the cursor/digit sprites, the shared item-image
- * table (ItemImage, images 0x14.. then padded with image 0xF),
+ * table (ItemImage, the contiguous IMG_ICON_* range, then padded with the
+ * otherwise-unused gunfire image),
  * and the retail-expanded 4-entry KehaiImage array, then resets enemy
  * layout/info-view state and marks fInitialize.
  *
@@ -73,7 +74,6 @@
  */
 extern u8 fInitialize;
 
-extern GsIMAGE *GetImage(s32 id);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void leResetEnemyLayout(void);
 extern void ResetInfoview(s32 stage);
@@ -104,7 +104,7 @@ void InitializeInfoView(void)
     scale1 = 0x3000;
     slot = ItemImage;
 loop1:
-    image = GetImage(i + 0x14);
+    image = GetImage(i + IMG_ICON_KAGINAWA);
     item = (*slot = SetupSprite(0, image));
     item->scale = scale1;
     (*slot)->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
@@ -119,7 +119,7 @@ loop1:
         base2 = ItemImage;
         slot = base2 + i;
     loop2:
-        image = GetImage(IMG_ITEM_ICONS);
+        image = GetImage(IMG_GUNFIRE);
         item = SetupSprite(0, image);
         *slot = item;
         item->scale = scale2;
