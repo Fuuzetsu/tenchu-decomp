@@ -59,8 +59,6 @@ extern char *TRN_SPRITE_PTRS[N_LANGUAGES];
 extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
-extern s16 StageItem[];
-
 extern void vfree(void *ptr);
 extern void _PlayMusic(s32 music, s32 mode);
 extern BackGround *load_background_(u_long *tim);
@@ -505,7 +503,7 @@ void mission_score_screen(void)
 
         if (result.grade == RANK_GRAND_MASTER)
         {
-            medal = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
+            medal = &ItemImage[StageItem.by_stage[CHOSEN_STAGE]]->sprite;
             medal->x = 0x8A;
             medal->y = -0xE;
             medal->scalex = FIXED_ONE;
@@ -620,7 +618,7 @@ void mission_score_screen(void)
         register TLinkInfo *state =
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
-        stageItem = StageItem[state->StageNo];
+        stageItem = StageItem.by_stage[state->StageNo];
         work = stageItem;
         if (state->gItem[state->CharType][work] == ITEM_LOCKED)
         {
@@ -628,7 +626,7 @@ void mission_score_screen(void)
              * unlock hands the player a single item. */
             state->gItem[state->CharType][work] += 3;
         }
-        stageItem = StageItem[state->StageNo];
+        stageItem = StageItem.by_stage[state->StageNo];
         if (state->saveItem[stageItem] == ITEM_LOCKED)
         {
             state->saveItem[stageItem] += 3;

@@ -21,6 +21,8 @@ enum
 
 extern short SkipFrame;
 extern stage_id StageID;
+extern StageOrderTable StageOrder;
+extern StageRewardItemTable StageItem;
 extern AreaMapType *GlobalAreaMap;
 extern MapAttribute FieldAttrib;
 extern game_difficulty gNannido;
