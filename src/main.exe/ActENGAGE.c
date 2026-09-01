@@ -34,8 +34,9 @@
  *  - The successful command and item arms repeat the complete
  *    motID/motMODE/return tail.  jump2 merges the stores onto the final
  *    0x602 arm while retaining the target's separate constant-load islands.
- *  - The two-way switch around the camera branch leaves a referenced case
- *    label that prevents an otherwise over-aggressive cross-jump merge.
+ *  - The retreat input is an ordinary two-way branch: holding down selects
+ *    the chase-back motion; otherwise the actor returns to its normal or
+ *    weapon-ready stance and restores the player camera when needed.
  *  - Loading dtV before each component value gives the velocity pointer and
  *    component value the target's $v1/$v0 allocation.
  */
@@ -146,12 +147,12 @@ void ActENGAGE(void)
         count = --dtM->count;
         if (count < dtM->loop)
         {
-            switch (dtPAD & PADLdown)
+            if ((dtPAD & PADLdown) != 0)
             {
-            default:
                 SET_MOTION(MOT_CHASE_BACK, MOTION_MOVE_APPLY);
-                break;
-            case 0:
+            }
+            else
+            {
                 if (Me_MOTION_C == StagePlayer)
                     SetCameraMode(CMODE_NORMAL);
                 if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
@@ -162,7 +163,6 @@ void ActENGAGE(void)
                 {
                     SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
                 }
-                break;
             }
         }
         if ((GameClock & 3) != 0)

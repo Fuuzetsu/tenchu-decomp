@@ -52,9 +52,9 @@
  *    test also needs maspsx's `--expand-div` compatibility sequence.
  *  - The three alert arms deliberately contain the same Findenemies tail.
  *    gcc's cross-jump pass merges those copies while carrying the already
- *    loaded Humanoid pointer into the join.  The case-0 boolean switch leaves
- *    a real label barrier so jump.c does not also merge its preceding type
- *    check with case 1.
+ *    loaded Humanoid pointer into the join. The first arm expresses the same
+ *    actor-type and player-target eligibility test directly as the later
+ *    alert arms.
  *  - The first FieldAttrib store is the comma side effect in the fifth
  *    GetAreaMapLevel argument.  This keeps the value live until all four
  *    register arguments have been loaded, matching the original store
@@ -302,16 +302,10 @@ void StateTransition(Humanoid *human)
 
                     reset_alert_duration();
                     alert_actor = Me_THINK_C;
-                    switch (alert_actor->type < PAGE_BOSS)
+                    if (alert_actor->type < PAGE_BOSS &&
+                        alert_actor->target.archive == StagePlayer->model)
                     {
-                    case 0:
-                        break;
-                    default:
-                        if (alert_actor->target.archive == StagePlayer->model)
-                        {
-                            Findenemies++;
-                        }
-                        break;
+                        Findenemies++;
                     }
                 }
             }
