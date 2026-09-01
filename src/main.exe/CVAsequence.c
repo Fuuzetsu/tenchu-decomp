@@ -61,7 +61,6 @@ s16 CVAsequence(s16 sid)
 {
     CVAType *event;
     CVAType *cursor;
-    Humanoid **slot;
     Humanoid *human;
     s16 sound;
     s16 i;
@@ -99,21 +98,16 @@ event_found:
     cursor++;
     CVAnow = cursor;
     TelopText[0] = 0;
-    if (Humans > 0)
+    for (; i < Humans; i++)
     {
-        do
+        human = HumanGroup[i];
+        if (human->status != STAT_DEAD &&
+            (human->attribute & ATTR_SUSPEND) == 0)
         {
-            slot = &HumanGroup[i];
-            human = *slot;
-            if (human->status != STAT_DEAD &&
-                (human->attribute & ATTR_SUSPEND) == 0)
-            {
-                dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
-                NowReturnNormal(*slot);
-                (*slot)->pad.data = 0;
-            }
-            i++;
-        } while (i < Humans);
+            dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
+            NowReturnNormal(HumanGroup[i]);
+            HumanGroup[i]->pad.data = 0;
+        }
     }
 
     CVAflag = 0;
