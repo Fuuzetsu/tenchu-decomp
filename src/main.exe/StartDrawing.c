@@ -39,15 +39,12 @@
  *    reloads fresh with `lh` (DeleteConflict's ConflictObjects rule: two
  *    un-CSE'd loads of one signed-short global, one lhu one lh — give the
  *    narrowing use its own temp and let the index re-read the global).
- *  - `(newPage << PACKET_PAGE_SHIFT) + (s32)Packet`: EXPAND_SUM
- *    special-cases a MULT sub-term (always expands first, any source order)
- *    but NOT a shift —
- *    a shift preserves source order, so the shift is spelled first to land
- *    it as the addu's first source register, matching the target's
- *    `addu $a0,$v1(shift),$a0(addr)` (cookbook's fold/EXPAND_SUM section).
+ *  - The recovered `Packet[][PACKET_PAGE_SIZE]` declaration makes
+ *    `Packet[newPage]` perform the page-stride shift before adding the
+ *    absolute arena base, including the target's addu operand order.
  *  - OTable/Packet are ABSOLUTE (`lui`/`addiu` to %hi/%lo) in this TU,
  *    not %gp_rel — OTable's known 0x28-byte size and Packet's incomplete
- *    array type are both non-small; DrawingPage/OTablePt/
+ *    outer array type are both non-small; DrawingPage/OTablePt/
  *    GameClock ARE %gp_rel here (tools/gpsyms.py --write; Build.hs
  *    maspsxGpExterns + permute.py GP_EXTERNS both list StartDrawing now).
  *  - GsSetWorkBase/GsClearOt live above 0x80060000 (precompiled PsyQ SDK —
@@ -55,10 +52,9 @@
  *    setup).
  */
 
-/* Demo PSX.SYM: unsigned char Packet[2][65536] — the double GPU packet
- * buffer. The incomplete extern spelling is load-bearing (absolute, not
- * gp-relative — see the notes above). */
-extern u8 Packet[];
+/* Leave only the PSX.SYM-proven outer bound incomplete: this retains the
+ * absolute symbol access while preserving the 64 KiB page type. */
+extern u8 Packet[][PACKET_PAGE_SIZE];
 
 void StartDrawing(void)
 {
@@ -66,7 +62,7 @@ void StartDrawing(void)
 
     newPage = 1 - DrawingPage;
     DrawingPage = newPage;
-    GsSetWorkBase((void *)((newPage << PACKET_PAGE_SHIFT) + (s32)Packet));
+    GsSetWorkBase(Packet[newPage]);
 
     OTablePt = &OTable[DrawingPage];
     GsClearOt(0, 0, OTablePt);

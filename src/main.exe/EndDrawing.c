@@ -38,10 +38,8 @@
  *     asm computes the quotient then re-multiplies and compares, matching
  *     Ghidra's literal rendering, not a modulo idiom), while not already
  *     mid-skip (`SkipFrame == 0`), snapshot how much of the current GPU
- *     packet buffer is left: `GsGetWorkBase() - Packet` (the buffer's
- *     base, same absolute symbol as StartDrawing.c's page stride constant)
- *     minus the current page's byte offset
- *     (`DrawingPage << PACKET_PAGE_SHIFT`), clamped to PACKET_PAGE_SIZE.
+ *     packet buffer is left by subtracting the current typed page base from
+ *     `GsGetWorkBase()`, clamped to PACKET_PAGE_SIZE.
  *     Two independent `sw`s (one per branch) store the clamped
  *     and unclamped values — plain if/else, no eager-store-then-override
  *     idiom needed (each arm's stored VALUE differs, so cc1 has nothing to
@@ -118,10 +116,9 @@
  * 0x800976b8, directly between SkipFrame and `time`).
  */
 
-/* Demo PSX.SYM: unsigned char Packet[2][65536] — the double GPU packet
- * buffer. The incomplete extern spelling is load-bearing (absolute, not
- * gp-relative — see the notes above). */
-extern u8 Packet[];
+/* Leave only the PSX.SYM-proven outer bound incomplete: this retains the
+ * absolute symbol access while preserving the 64 KiB page type. */
+extern u8 Packet[][PACKET_PAGE_SIZE];
 extern u32 PacketUsed;
 extern s32 time;
 
@@ -136,8 +133,7 @@ void EndDrawing(short sync)
 
     if ((GameClock == (GameClock / 30) * 30) && (SkipFrame == 0))
     {
-        val = (u32)GsGetWorkBase() - (u32)Packet -
-              (DrawingPage << PACKET_PAGE_SHIFT);
+        val = GsGetWorkBase() - Packet[DrawingPage];
         if (val > PACKET_PAGE_SIZE)
             PacketUsed = PACKET_PAGE_SIZE;
         else
