@@ -278,6 +278,8 @@ struct IndexArrayType
 typedef short TThinkType;
 
 /* WORLD.C's editable enemy placement. */
+#define MAX_ENEMY_PATH_POINTS 7
+
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
 {
@@ -289,7 +291,7 @@ struct TEnemyLayout
     s32 z;                /* 0x10 */
     s16 r;                /* 0x14 */
     s16 pad;              /* 0x16 */
-    VECTOR path[7];       /* 0x18 */
+    VECTOR path[MAX_ENEMY_PATH_POINTS]; /* 0x18 */
 }; /* 0x88 */
 
 /* Area-map query result. PSX.SYM supplies the original first 16 bytes and

@@ -58,7 +58,7 @@ void leAddPath(s32 id, s32 x, s32 y, s32 z)
     if ((u32)id < MAX_ENEMIES)
     {
         e = &enemy[id];
-        if (e->nPath < 7)
+        if (e->nPath < MAX_ENEMY_PATH_POINTS)
         {
             (&e->path[0])[e->nPath].vx = x;
             (&e->path[0])[e->nPath].vy = y;
