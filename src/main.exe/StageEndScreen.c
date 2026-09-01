@@ -32,6 +32,10 @@
  *
  * The score-table character and stage strides remain explicit because a
  * direct three-dimensional subscript changes retail's register allocation.
+ * The function-wide `work` scalar deliberately serves the score sprite's x
+ * transfer and the later persistent-state byte load. Splitting those uses into
+ * semantic block locals changes six instruction bytes; spelling the latter as
+ * a direct volatile load grows the function by four bytes.
  */
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
@@ -196,7 +200,7 @@ void StageEndScreen(void)
         STAGE_END_QUIT = 2     /* back to the main menu */
     };
     s16 selection;
-    s32 dispatch;
+    s32 work;
     s32 pulse;
     s32 i;
     s32 layout_index;
@@ -392,8 +396,8 @@ void StageEndScreen(void)
                     } while (0);
                     enemy_count = stats.stageEnemies;
                     i = stats.stageBosses;
-                    dispatch = second_x;
-                    sprite->x = dispatch;
+                    work = second_x;
+                    sprite->x = work;
                     sprite->y = top_y;
                     pulse = enemy_count - i;
                     value = pulse;
@@ -560,16 +564,15 @@ void StageEndScreen(void)
 
     if (gfMemory != 0)
     {
-        dispatch = TENCHU_PERSISTENT_STATE_ADDRESS;
-        dispatch = *(volatile u8 *)(dispatch + 5);
-        if (dispatch != 7)
+        work = TENCHU_PERSISTENT_STATE_ADDRESS;
+        work = *(volatile u8 *)(work + 5);
+        if (work != 7)
         {
             score_screen_input_();
         }
     }
 
-    dispatch = selection;
-    switch (dispatch)
+    switch (selection)
     {
     case STAGE_END_ADVANCE:
         PSTATE->GameRetry &= (u8)~GAME_RETRY_REPLAY;
