@@ -55,11 +55,11 @@
  *  - Each SetupSprite loop has its own block-scoped `sprite` temporary.
  *    Sharing one function-scoped pointer extends its lifetime and emits
  *    three extra return-value moves.
- *  - The one-shot smoke assignment is an RTL scheduling fence.  Keeping the
- *    scaled-index assignment in the comma expression gives the target's
- *    `li 58; sll; sw` order, while `smoke_address` keeps the subsequent
- *    address add between the two stack stores.  Splitting these into ordinary
- *    statements leaves the same semantics but swaps adjacent instructions.
+ *  - The smoke loop's two image IDs are a block-local initialized array, so
+ *    each iteration emits the target's two stack stores before indexing it.
+ *    The later explosion-ID array belongs to its own block as well. Their
+ *    lexical order gives them the adjacent retail stack slots naturally;
+ *    function-scoping the explosion array reverses those slots.
  */
 
 struct BloodSpriteImagePair
@@ -93,9 +93,6 @@ void InitEffect(void)
     union BloodSpriteImageCatalog blood_images;
     union BloodSpriteImageCatalog *blood_src;
     union BloodSpriteImageCatalog *bloodp;
-    ImageArchiveId smoke_images[N_SMOKE_SPRITES];
-    ImageArchiveId smoke_id;
-    ImageArchiveId img[N_EXPLOSION_SPRITES];
     POLY_F4 *poly;
     GsIMAGE *image;
     s16 i;
@@ -150,32 +147,29 @@ void InitEffect(void)
 
     {
         Sprite3D *sprite;
-        s32 smoke_offset;
-        u8 *smoke_address;
 
         i = 0;
         while (1)
         {
             if (i >= N_SMOKE_SPRITES)
                 break;
-            smoke_id = IMG_SMOKE;
-            smoke_images[SMOKE_SPRITE_ALT] =
-                (smoke_offset = i * 4, IMG_SMOKE_ALT);
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
-            do
             {
-            } while (0);
-            smoke_address = (u8 *)smoke_images + smoke_offset;
-            smoke_images[SMOKE_SPRITE_NORMAL] = smoke_id;
-            image = GetImage(*(ImageArchiveId *)smoke_address);
-            sprite = SetupSprite((Sprite3D *)0, image);
-            sprSmoke[i] = sprite;
-            sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
+                ImageArchiveId smoke_images[N_SMOKE_SPRITES] = {
+                    IMG_SMOKE,
+                    IMG_SMOKE_ALT
+                };
+
+                image = GetImage(smoke_images[i]);
+                sprite = SetupSprite((Sprite3D *)0, image);
+                sprSmoke[i] = sprite;
+                sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
+            }
             i++;
         }
     }
 
     {
+        ImageArchiveId img[N_EXPLOSION_SPRITES];
         Sprite3D *sprite;
 
         i = 0;

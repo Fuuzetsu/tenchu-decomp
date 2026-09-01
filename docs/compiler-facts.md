@@ -142,7 +142,10 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   outgoing-arg boundary, each BLKmode local rounded up to 8 bytes — slot order is
   arithmetic, not searchable (stop_access_meter_; AdtMessageBox: each separately
   declared aggregate is individually rounded; LoadConstruction: odd 20-byte
-  aggregates spaced 24 apart are N separate locals).
+  aggregates spaced 24 apart are N separate locals). Nested declarations join
+  that order when their block is expanded: InitEffect's per-iteration smoke-ID
+  array precedes the later explosion-ID block and therefore owns the lower
+  slot, even though their lifetimes are disjoint.
 - **`mips_expand_epilogue` ALWAYS lets reorg pull the sp-restore into `jr ra`'s
   delay slot** for a trivial frame — a bare `nop` there with the restore before
   the jump is another compiler (the SDK-boundary tell; verified via `.dbr` +

@@ -1406,7 +1406,10 @@ bytes.
   declaration order is double-booked (slots AND a CSE merge), break the merge
   with the independent lever — the identical-arm call fence (cbAccess,
   stop_access_meter_). `stack-decl-swap` sweeps the adjacent-pair case
-  (leLayoutEnemy).
+  (leLayoutEnemy). Scope is evidence too: InitEffect's initialized smoke-ID
+  array is created inside the smoke iteration and its explosion-ID array lives
+  in the following block. Restoring those two real scopes both removes a byte
+  cursor/cast and assigns their adjacent stack slots in target order.
 - **The three-phase rule**: params → declared locals → reload spills (pseudo
   order). A declared local can never sit above a reload spill; target layouts
   with spilled params at the lowest slots are all-reload, unreachable by any
