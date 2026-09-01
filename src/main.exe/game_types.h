@@ -1000,6 +1000,11 @@ enum
     STAGE_FREE_PRINCESS = 10
 };
 
+/* Each stage has three authored layouts. A saved value outside that range
+ * asks CreateStage to choose one at random; menus use the byte sentinel. */
+#define N_STAGE_LAYOUTS 3
+#define STAGE_LAYOUT_RANDOM 0xFF
+
 /* STAGE.C's stage metadata and starting transform. */
 typedef struct TStageConfig TStageConfig;
 struct TStageConfig
@@ -1448,7 +1453,7 @@ typedef struct TLinkInfo
     u8 control_scheme;                /* 0x05F saved pad-remapping row (retail-only) */
     u8 StageNoMAX[2];                 /* 0x060 highest stage uid per character;
                                        *       official demo member name (demo +0x3) */
-    ScoreStats stage_stats[2][13][3]; /* 0x064 [character][stage][layout] */
+    ScoreStats stage_stats[2][13][N_STAGE_LAYOUTS]; /* 0x064 [character][stage][layout] */
     u8 gItem[2][SAVE_ITEM_SLOTS];     /* 0x40C shop stock, per character;
                                        *       [CharType][item];
                                        *       retail expansion of demo gItem[30];

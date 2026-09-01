@@ -164,9 +164,9 @@ void CreateStage(int StageNo, int CharType)
             ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i];
 
     create_ninken_character_(CharType, StageNo);
-    if (((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= 3)
+    if (((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout >= N_STAGE_LAYOUTS)
     {
-        ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % 3;
+        ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->layout = rand() % N_STAGE_LAYOUTS;
         *(volatile TSystemFlag *)&SystemFlag |= SYSFLAG_RANDOM_LAYOUT;
     }
     else

@@ -605,15 +605,15 @@ void StageEndScreen(void)
             if (layout_record->stageBosses + layout_record->stageEnemies == 0)
                 goto layout_done;
             layout_index++;
-            if (layout_index < 3)
+            if (layout_index < N_STAGE_LAYOUTS)
             {
                 layout_record++;
                 goto layout_loop;
             }
         layout_done:
-            if (layout_index == 3)
+            if (layout_index == N_STAGE_LAYOUTS)
             {
-                STAGE_LAYOUT_NUMBER = 0xff;
+                STAGE_LAYOUT_NUMBER = STAGE_LAYOUT_RANDOM;
             }
             else
             {
@@ -625,7 +625,7 @@ void StageEndScreen(void)
         PSTATE->GameRetry |= GAME_RETRY_REPLAY;
         break;
     case STAGE_END_QUIT:
-        STAGE_LAYOUT_NUMBER = 0xff;
+        STAGE_LAYOUT_NUMBER = STAGE_LAYOUT_RANDOM;
         exec_process_(PROCESS_MENU);
         break;
     }

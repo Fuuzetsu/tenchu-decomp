@@ -87,7 +87,7 @@ s32 InitPersistentState(void)
             i--;
             stockp--;
         } while (i >= 0);
-        ps->gItem[0][0] = 0xff;
+        ps->gItem[0][0] = ITEM_INFINITE;
         ps->gItem[0][1] = 6;
         ps->gItem[0][2] = 6;
         ps->gItem[0][3] = 2;
@@ -98,10 +98,10 @@ s32 InitPersistentState(void)
         __builtin_memcpy(&ps->gItem[1][0], &ps->gItem[0][0],
                          sizeof(ps->gItem) / 2);
         ps->selItem[1] = 10;
-        ps->selItem[0] = 0xff;
+        ps->selItem[0] = ITEM_INFINITE;
         ps->selItem[2] = 5;
         ps->selItem[3] = 2;
-        ps->layout = 0xff;
+        ps->layout = STAGE_LAYOUT_RANDOM;
         if (ps->Stereo != 0)
         {
             SsSetStereo();

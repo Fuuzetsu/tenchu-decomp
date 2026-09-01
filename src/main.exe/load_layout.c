@@ -5,8 +5,9 @@
  * load_layout (0x8003cc78, 0x8c bytes) - sibling of load_save_slot_ (the very
  * next function in this TU): loads a built-in enemy/item layout blob via
  * LoadSI (always target 0) using one of three known filenames,
- * copied from the 3-entry table `LayoutNames` into a local array first (the
- * asm loads all three words up front and stores them to the stack BEFORE
+ * copied from the N_STAGE_LAYOUTS-entry table `LayoutNames` into a local
+ * array first (the asm loads all three words up front and stores them to the
+ * stack BEFORE
  * indexing with the variable `index` - a real local-array copy, not a
  * direct `LayoutNames[index]` index, which would materialize the address
  * differently), then restores the enemy layout and item layout out of it
@@ -21,12 +22,12 @@ extern void RestoreItemLayout(void *buf);
 extern void vfree(void *buf);
 extern void AdtMessageBox(char *fmt, ...);
 extern char msg_load_layout_error[]; /* load layout error */
-extern u8 *LayoutNames[3];
+extern u8 *LayoutNames[N_STAGE_LAYOUTS];
 
 void load_layout(s32 index)
 {
     void *buf;
-    u8 *names[3];
+    u8 *names[N_STAGE_LAYOUTS];
 
     __builtin_memcpy(names, LayoutNames, sizeof(names));
     buf = LoadSI(0, names[index]);

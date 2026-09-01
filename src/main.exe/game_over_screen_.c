@@ -339,7 +339,7 @@ void game_over_screen_(void)
                 vfree(gov_archive);
                 vfree(fade_sprite);
                 DisposeBG(background);
-                STAGE_LAYOUT_NUMBER = 0xff;
+                STAGE_LAYOUT_NUMBER = STAGE_LAYOUT_RANDOM;
                 exec_process_(PROCESS_MENU);
             }
             tile_sprite_(fade_sprite, shade);

@@ -652,7 +652,7 @@ void mission_score_screen(void)
     }
     else
     {
-        statePtr->layout = 0xFF;
+        statePtr->layout = STAGE_LAYOUT_RANDOM;
         exec_process_(PROCESS_MENU);
     }
 }

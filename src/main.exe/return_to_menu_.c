@@ -9,7 +9,7 @@
  * saveItem@0x27/gItem@0x40C/CharType@0x4 offsets). This is backup_shop_stock_'s mirror
  * image: restores this character's shop stock row FROM the loadout backup
  * (`PSTATE->gItem[PSTATE->CharType][i] = PSTATE->saveItem[i];`), then fades
- * out, tears down (clear_screen_), resets the stage layout number to 0xFF
+ * out, tears down (clear_screen_), requests a random stage layout
  * and clears PersistentState's retry/continue flag (GameRetry &= ~1), then
  * calls exec_process_(PROCESS_MENU) (a cleanup/teardown helper
  * — see its own file).
@@ -61,7 +61,7 @@ void return_to_menu_(void)
     } while ((s16)i < 0x14);
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
-    PSTATE->layout = 0xff;
+    PSTATE->layout = STAGE_LAYOUT_RANDOM;
     PSTATE->GameRetry = PSTATE->GameRetry & (u8)~GAME_RETRY_REPLAY;
     exec_process_(PROCESS_MENU);
 }
