@@ -3,8 +3,8 @@
 
 /*
  * award_stage_items_ (0x80052ea8) — awards inventory stock at the end of a
- * stage.  The result kind chooses a deterministic one- or two-item sweep,
- * optional random bonuses, and the stage-specific reward; locked stock
+ * stage. The rank-specific award chooses a deterministic one- or two-item
+ * sweep, optional random bonuses, and the stage-specific reward; locked stock
  * entries use 0xfe and are opened by adding through the byte value.
  *
  * STATUS: MATCHED — exact 1244 bytes / 311 instructions.
@@ -18,7 +18,7 @@
  *    row[0x41f].  Writing it as state->gItem[chr][0x13] makes cc1 add
  *    0x13 to the index in a separate instruction instead of folding 0x41f
  *    into the lbu/sb memory operands.
- *  - `kind` and `remaining` are signed 16-bit values.  An unsigned-width
+ *  - `award_kind` and `remaining` are signed 16-bit values. An unsigned-width
  *    mechanical rewrite happens to restore the instruction count while
  *    replacing the required sll/sra sign extension with andi/sltiu.
  */
@@ -30,22 +30,26 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
 {
     enum
     {
-        N_RANDOM_AWARD_ITEMS = ITEM_ARMOUR - ITEM_SHURIKEN
+        N_RANDOM_AWARD_ITEMS = ITEM_ARMOUR - ITEM_SHURIKEN,
+        STAGE_AWARD_GRAND_MASTER = RANK_GRAND_MASTER - RANK_GRAND_MASTER,
+        STAGE_AWARD_MASTER_NINJA = RANK_GRAND_MASTER - RANK_MASTER_NINJA,
+        STAGE_AWARD_NINJA = RANK_GRAND_MASTER - RANK_NINJA,
+        STAGE_AWARD_NOVICE = RANK_GRAND_MASTER - RANK_NOVICE,
+        STAGE_AWARD_THUG = RANK_GRAND_MASTER - RANK_THUG
     };
-    s16 kind;
+    s16 award_kind;
     s16 i;
     s16 remaining;
     u8 *row;
 
-    /* The worse the rank, the bigger the consolation award (a Grand
-     * Master run gets nothing). A locked special item takes +2 before
-     * the common +1 so 0xFE wraps to exactly 1 — the award unlocks it
-     * with one unit. */
-    kind = 4 - (u16)result->grade;
-    if (kind >= 3)
+    /* The selector runs in reverse rank order. A locked ordinary item takes
+     * +2 before the common +1 so 0xFE wraps to exactly 1; the Grand Master
+     * stage prize performs the equivalent +3 directly. */
+    award_kind = RANK_GRAND_MASTER - (u16)result->grade;
+    if (award_kind >= STAGE_AWARD_NOVICE)
     {
         remaining = 5;
-        if (kind == 4)
+        if (award_kind == STAGE_AWARD_THUG)
         {
             remaining = 3;
         }
@@ -68,7 +72,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             }
         }
     }
-    else if (kind == 2)
+    else if (award_kind == STAGE_AWARD_NINJA)
     {
         i = ITEM_SHURIKEN;
         do
@@ -89,7 +93,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             i++;
         }
     }
-    else if (kind == 1)
+    else if (award_kind == STAGE_AWARD_MASTER_NINJA)
     {
         i = ITEM_SHURIKEN;
         do
@@ -130,7 +134,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             }
         } while (remaining != 0);
     }
-    else
+    else /* STAGE_AWARD_GRAND_MASTER */
     {
         i = ITEM_SHURIKEN;
         do
