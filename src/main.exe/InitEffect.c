@@ -187,7 +187,7 @@ void InitEffect(void)
     }
 
     ShadowMdl = LoadModel(GetArcData(MODEL_SHADOW));
-    BLOOD_POOL_MODEL_ = LoadModel(GetArcData(ARC_BLOOD_POOL_MODEL));
+    BLOOD_POOL_MODEL_ = LoadModel(GetArcData(MODEL_BLOOD_POOL));
     AfterIMG = GetImage(IMG_AFTERIMAGE);
     ModelHook = LoadModel(GetArcData(MODEL_KAGIHEAD));
 

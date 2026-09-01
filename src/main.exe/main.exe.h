@@ -149,25 +149,48 @@ enum
     ITEMSIZE = 2000
 };
 
-/* models.arc slots (GetArcData indices) — official names from the demo
- * debug symbols' MODEL_/ICON_ enum, whose values line up 1:1 with the
- * retail slots the code pins (…SYURIKEN 0x14, ARROW 0x15, CARD1-3,
- * SHADOW 0x19, KAGIHEAD 0x1A, NINGYO 0x1B, HAPPOU 0x1C — so retail
- * kept the demo's archive order; the demo list runs MON6B 0 .. AKINb
- * 0x1E with MODEL_N = 0x1F). Retail appends entries past MODEL_N;
- * ARC_BLOOD_POOL_MODEL is our invented name for one of them. */
-enum
+/* models.arc slots consumed by GetArcData. The demo symbols supply the
+ * original names through MODEL_AKINb, and retail's door/pitfall tables and
+ * direct callers retain that ordering. MODEL_N was the demo's end marker;
+ * retail reuses its slot for the blood pool and appends a one-piece pitfall
+ * model. The two retail-only names describe their observed consumers. */
+typedef enum ModelArchiveId ModelArchiveId;
+enum ModelArchiveId
 {
-    MODEL_SYURIKEN = 0x14,
-    MODEL_ARROW = 0x15,
-    ICON_CARD1 = 0x16,
-    ICON_CARD2 = 0x17,
-    ICON_CARD3 = 0x18,
-    MODEL_SHADOW = 0x19,
-    MODEL_KAGIHEAD = 0x1A,
-    MODEL_NINGYO = 0x1B,
-    MODEL_HAPPOU = 0x1C,
-    ARC_BLOOD_POOL_MODEL = 0x1F
+    MODEL_ARCHIVE_NONE = -1,
+    MODEL_MON6B = 0,
+    MODEL_MON6A = 1,
+    MODEL_DOORZ00 = 2,
+    MODEL_DOORZ01 = 3,
+    MODEL_MON5B = 4,
+    MODEL_MON5A = 5,
+    MODEL_MONB = 6,
+    MODEL_MONA = 7,
+    MODEL_MON2B = 8,
+    MODEL_MON2A = 9,
+    MODEL_MON3B = 10,
+    MODEL_MON3A = 11,
+    MODEL_MON01 = 12,
+    MODEL_MON00 = 13,
+    MODEL_GMON01 = 14,
+    MODEL_GMON00 = 15,
+    MODEL_AKI01 = 16,
+    MODEL_AKI00 = 17,
+    MODEL_OTO_L = 18,
+    MODEL_OTO_R = 19,
+    MODEL_SYURIKEN = 20,
+    MODEL_ARROW = 21,
+    ICON_CARD1 = 22,
+    ICON_CARD2 = 23,
+    ICON_CARD3 = 24,
+    MODEL_SHADOW = 25,
+    MODEL_KAGIHEAD = 26,
+    MODEL_NINGYO = 27,
+    MODEL_HAPPOU = 28,
+    MODEL_AKINa = 29,
+    MODEL_AKINb = 30,
+    MODEL_BLOOD_POOL = 31,
+    MODEL_SINGLE_PITFALL = 32
 };
 
 /* exec_process_ ids — which PS-X EXE boots next ("bad process id" is

@@ -221,17 +221,12 @@ struct tag_TMisc
     MiscParameters param;                /* 0x18 */
 }; /* 0x24 */
 
-/* The static misc-resource tables begin with archive/image indices. InitMisc
- * replaces each index in place with the resource pointer used at runtime. */
-enum
-{
-    MISC_MODEL_NONE = -1
-};
-
+/* InitMisc replaces each table's archive identity in place with the loaded
+ * model pointer. MODEL_ARCHIVE_NONE leaves that half of the door absent. */
 typedef union MiscModelReference MiscModelReference;
 union MiscModelReference
 {
-    s32 archive_id;
+    ModelArchiveId archive_id;
     ModelType *model;
 }; /* 0x4 */
 

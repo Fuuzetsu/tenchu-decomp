@@ -155,7 +155,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
         model = PitfallData[param->type].Model[0];
         w = PitfallData[param->type].HitSize;
-        if (model.archive_id != MISC_MODEL_NONE)
+        if (model.archive_id != MODEL_ARCHIVE_NONE)
         {
             model.model->locate.super = &param->locate->locate;
             model.model->locate.coord.t[0] = -w;
@@ -166,7 +166,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
             DrawModel(model.model);
         }
         model = PitfallData[param->type].Model[1];
-        if (model.archive_id != MISC_MODEL_NONE)
+        if (model.archive_id != MODEL_ARCHIVE_NONE)
         {
             model.model->locate.super = &param->locate->locate;
             model.model->locate.coord.t[0] = w;

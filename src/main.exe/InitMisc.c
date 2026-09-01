@@ -79,20 +79,20 @@ void InitMisc(void)
     } while (i >= 0);
 
     {
-        s32 iDoor1;
-        s32 iDoor2;
+        ModelArchiveId iDoor1;
+        ModelArchiveId iDoor2;
         ModelType *data;
 
         for (i = 0; i < N_DOOR_TYPES; i++)
         {
             iDoor1 = DoorData[i].Model[0].archive_id;
             iDoor2 = DoorData[i].Model[1].archive_id;
-            if (iDoor1 != MISC_MODEL_NONE)
+            if (iDoor1 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(iDoor1));
                 DoorData[i].Model[0].model = data;
             }
-            if (iDoor2 != MISC_MODEL_NONE)
+            if (iDoor2 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(iDoor2));
                 DoorData[i].Model[1].model = data;
@@ -119,20 +119,20 @@ void InitMisc(void)
     }
 
     {
-        s32 id1;
-        s32 id2;
+        ModelArchiveId id1;
+        ModelArchiveId id2;
         ModelType *data;
 
         for (i = 0; i < N_PITFALL_TYPES; i++)
         {
             id1 = PitfallData[i].Model[0].archive_id;
             id2 = PitfallData[i].Model[1].archive_id;
-            if (id1 != MISC_MODEL_NONE)
+            if (id1 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(id1));
                 PitfallData[i].Model[0].model = data;
             }
-            if (id2 != MISC_MODEL_NONE)
+            if (id2 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(id2));
                 PitfallData[i].Model[1].model = data;

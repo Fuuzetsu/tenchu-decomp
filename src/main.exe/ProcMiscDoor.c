@@ -174,7 +174,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         w -= (w * r) / 0x2800;
         model = DoorData[param->type].Model[0];
     }
-    if (model.archive_id != MISC_MODEL_NONE)
+    if (model.archive_id != MODEL_ARCHIVE_NONE)
     {
         GsCOORDINATE2 *parent;
 
@@ -191,7 +191,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     }
 
     model = DoorData[param->type].Model[1];
-    if (model.archive_id != MISC_MODEL_NONE)
+    if (model.archive_id != MODEL_ARCHIVE_NONE)
     {
         GsCOORDINATE2 *parent;
 
