@@ -39,6 +39,13 @@
  *    embedded GsSPRITE `.sprite` field this function writes.
  *  - The `for (i=0;i<1;i++)` TargetSprite loop is Ghidra's own literal
  *    rendering (a `bgtz`-tested single-iteration loop) — transcribed as-is.
+ *    Indexing TargetSprite directly lets loop.c derive retail's pointer
+ *    induction value without an invented source-level `sprite` cursor.
+ *  - GetArcData/GetImage feed their consumers directly. Their former `arc`
+ *    and `image` carriers were absent from PSX.SYM and remove byte-exactly.
+ *    `attr` cannot: spelling SPR_TRANS_ADD at the store moves its `lui`
+ *    three instructions later (ten differing bytes), so the carrier keeps
+ *    the target's pre-loop materialization order.
  *  - `Item_fInitial = 1;` is ITEM.C's original file-static `fInitial`
  *    (qualified for the split decomp) and DoItemProc's lazy-init guard.
  */
@@ -51,20 +58,13 @@ extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void InitializeItem(void)
 {
-    u_long *arc;
-    GsIMAGE *image;
-    GsSPRITE *sprite;
     s32 i;
     u32 attr;
 
-    arc = GetArcData(MODEL_SYURIKEN);
-    SyurikenModel = LoadModel(arc);
-    arc = GetArcData(MODEL_ARROW);
-    ArrowModel = LoadModel(arc);
-    arc = GetArcData(MODEL_NINGYO);
-    NingyoModel = LoadModel(arc);
-    arc = GetArcData(MODEL_HAPPOU);
-    HappouModel = LoadModel(arc);
+    SyurikenModel = LoadModel(GetArcData(MODEL_SYURIKEN));
+    ArrowModel = LoadModel(GetArcData(MODEL_ARROW));
+    NingyoModel = LoadModel(GetArcData(MODEL_NINGYO));
+    HappouModel = LoadModel(GetArcData(MODEL_HAPPOU));
 
     for (i = 0; i < MAX_ITEMS; i++)
     {
@@ -74,26 +74,20 @@ void InitializeItem(void)
 
     i = 0;
     attr = SPR_TRANS_ADD;
-    sprite = TargetSprite;
     while (1)
     {
         if (i >= 1)
             break;
-        image = GetImage(IMG_SIGHT);
-        InitSprite(image, sprite);
-        sprite->attribute = attr;
-        sprite++;
+        InitSprite(GetImage(IMG_SIGHT), &TargetSprite[i]);
+        TargetSprite[i].attribute = attr;
         i++;
     }
 
-    image = GetImage(IMG_BOMB0);
-    sprNapalm = SetupSprite((Sprite3D *)0, image);
+    sprNapalm = SetupSprite((Sprite3D *)0, GetImage(IMG_BOMB0));
     sprNapalm->sprite.attribute = SPR_TRANS_ADD;
-    image = GetImage(IMG_SMOKE);
-    sprNapalm2 = SetupSprite((Sprite3D *)0, image);
+    sprNapalm2 = SetupSprite((Sprite3D *)0, GetImage(IMG_SMOKE));
     sprNapalm2->sprite.attribute = SPR_TRANS_SUB;
-    image = GetImage(IMG_GOSHIKIMAI);
-    InitSprite(image, &SpriteGoshikimai);
+    InitSprite(GetImage(IMG_GOSHIKIMAI), &SpriteGoshikimai);
 
     Item_fInitial = 1;
 }
