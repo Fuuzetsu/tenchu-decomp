@@ -19,10 +19,10 @@
 /*
  * AttackPQD (0x80027688, 0xa8 bytes) — weapon holster/draw swap: on a
  * matching motion-frame trigger (dtM->count, MotionManager's proven
- * `count` field) or a wildcard trigger (efrm == -1), draws the holstered
- * weapon at weapon[3] into weapon[0] (the active slot) and clears
- * weapon[3]; on the OTHER trigger frame (dtM->count == sfrm), parks the
- * active weapon[0] in weapon[3] and draws weapon[2] into the hand
+ * `count` field) or a wildcard trigger (efrm == MOTION_FRAME_ANY), draws
+ * the holstered weapon at weapon[3] into weapon[0] (the active slot) and
+ * clears weapon[3]; on the OTHER trigger frame (dtM->count == sfrm), parks
+ * the active weapon[0] in weapon[3] and draws weapon[2] into the hand
  * instead. Either swap plays a sound
  * (Sound(human, seid), seid=1 for draw / 0 for holster) — unless the
  * source slot was already empty, in which case it's a silent no-op.
@@ -74,10 +74,10 @@
  *    statement order nor declaration order moved; the winning candidate
  *    also had two dead `if (!weapons) {}` / bare `;` no-ops that bisection
  *    showed were NOT load-bearing (removed here).
- *  - `if (count == efrm || efrm == -1)` keeps Ghidra's literal polarity
- *    (De-Morgan lever: an `||`'s THEN body is reached by the first
- *    disjunct's taken branch OR the second disjunct's fallthrough —
- *    already the asm's shape, no inversion needed here, unlike a plain
+ *  - `if (count == efrm || efrm == MOTION_FRAME_ANY)` keeps Ghidra's
+ *    literal polarity (De-Morgan lever: an `||`'s THEN body is reached by
+ *    the first disjunct's taken branch OR the second disjunct's fallthrough
+ *    — already the asm's shape, no inversion needed here, unlike a plain
  *    single-condition if/else).
  *  - `seid` is plain `s32` (not `s16`): it's only ever a call argument
  *    (never stored/compared), and the asm materializes it with a full-word
@@ -98,7 +98,7 @@ void AttackPQD(s16 sfrm, s16 efrm)
     human = Me_MOTION_C;
     count = dtM->count;
     weapons = human->weapon;
-    if (count == efrm || efrm == -1)
+    if (count == efrm || efrm == MOTION_FRAME_ANY)
     {
         if (weapons[WEAPON_SLOT_INACTIVE_1] == 0)
             return;

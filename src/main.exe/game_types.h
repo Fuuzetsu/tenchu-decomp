@@ -464,6 +464,9 @@ struct WorldType
 typedef s16 motion_id;
 #define MOTION_ID_NONE (-1)
 
+/* AttackPQD's signed end-frame sentinel. */
+#define MOTION_FRAME_ANY (-1)
+
 /* MOTION.C's keyframe, motion, registry, spline, and playback records. */
 typedef struct MotionElementType MotionElementType;
 struct MotionElementType
