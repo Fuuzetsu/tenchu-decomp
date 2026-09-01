@@ -996,10 +996,13 @@ enum motion_manager_mode
     MOTION_MODE_CLIMB_ALTERNATE = 1
 };
 
-enum motion_sweep_encoding
+/* MotionDataType's byte-sized sweep and movement fields use 8-bit two's
+ * complement values, although their consumers receive widened shorts. */
+enum motion_byte_encoding
 {
-    MOTION_SWEEP_NEGATIVE_BIT = 0x80,
-    MOTION_SWEEP_BYTE_RANGE = 0x100
+    MOTION_BYTE_SIGN_BIT = 0x80,
+    MOTION_BYTE_UPPER_MASK = 0xFF80,
+    MOTION_BYTE_RANGE = 0x100
 };
 
 typedef struct MotionManager MotionManager;
