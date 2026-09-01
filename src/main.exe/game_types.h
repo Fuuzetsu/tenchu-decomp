@@ -268,6 +268,12 @@ struct IndexArrayType
     s16 array[4][4]; /* 0x04 */
 }; /* 0x24 */
 
+/* GetAreaMapVector packs its four horizontal neighbour probes into a mask;
+ * the reflection tables cover every possible mask value. */
+#define N_MAP_PROBE_DIRECTIONS 4
+#define MAP_PROBE_ALL ((1 << N_MAP_PROBE_DIRECTIONS) - 1)
+#define N_MAP_PROBE_MASKS (MAP_PROBE_ALL + 1)
+
 /* WORLD.C's packed four-stage think-function selector. */
 typedef short TThinkType;
 

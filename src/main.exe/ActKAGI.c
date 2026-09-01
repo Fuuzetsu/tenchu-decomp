@@ -280,7 +280,7 @@ void ActKAGI(void)
 
         motion_active:
             dtM->count >>= 1;
-            if (Me_MOTION_C->map.vector != 15)
+            if (Me_MOTION_C->map.vector != MAP_PROBE_ALL)
             {
                 dtV->vz = 0;
                 dtV->vx = 0;

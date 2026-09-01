@@ -75,7 +75,7 @@
  *    without changing the object's declared type.
  */
 
-extern s16 direction[][2];
+extern s16 direction[N_MAP_PROBE_DIRECTIONS][2];
 
 /* The 4-direction movement probe. The centre query fills level/attrib/
  * area/index (mode forwards to GetAreaMapLevel with the cache bit 0x10
@@ -85,7 +85,7 @@ extern s16 direction[][2];
  * attribute) — the 4-bit wall-direction code RefrectVector maps to
  * deflection angles; angleL — the neighbour floor is HIGHER than the
  * centre's (a wall or step up); angleH — lower. With no floor at the
- * centre the result is fabricated: attrib 2, all four codes 0xF. */
+ * centre the result is fabricated: MAP_BUOYANT, all four masks set. */
 long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide, int mode)
 {
     long x, y, z;
@@ -123,27 +123,27 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
             {
                 if (y != 0)
                 {
-                    mvp->attrib = 2;
-                    mvp->angleH = 0xF;
-                    mvp->angleL = 0xF;
-                    mvp->vector = 0xF;
+                    mvp->attrib = MAP_BUOYANT;
+                    mvp->angleH = MAP_PROBE_ALL;
+                    mvp->angleL = MAP_PROBE_ALL;
+                    mvp->vector = MAP_PROBE_ALL;
                     return initial_level;
                 }
                 else
                 {
-                    mvp->attrib = 2;
-                    mvp->angleH = 0xF;
-                    mvp->angleL = 0xF;
-                    mvp->vector = 0xF;
+                    mvp->attrib = MAP_BUOYANT;
+                    mvp->angleH = MAP_PROBE_ALL;
+                    mvp->angleL = MAP_PROBE_ALL;
+                    mvp->vector = MAP_PROBE_ALL;
                     return initial_level;
                 }
             }
             else
             {
-                mvp->attrib = 2;
-                mvp->angleH = 0xF;
-                mvp->angleL = 0xF;
-                mvp->vector = 0xF;
+                mvp->attrib = MAP_BUOYANT;
+                mvp->angleH = MAP_PROBE_ALL;
+                mvp->angleL = MAP_PROBE_ALL;
+                mvp->vector = MAP_PROBE_ALL;
                 return initial_level;
             }
         }
@@ -159,7 +159,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     mvp->angleL = 0;
     mvp->vector = 0;
     m = (short)mode2;
-    for (; i < 4; i++)
+    for (; i < N_MAP_PROBE_DIRECTIONS; i++)
     {
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
         if (level2 == (u32)LEVEL_NONE ||
