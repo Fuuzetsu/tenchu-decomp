@@ -34,18 +34,16 @@ extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax, s32 mode);
 s32 PutLifeBarS(void)
 {
     s32 i;
-    s32 x;
 
     i = 0;
-    x = -0x8C;
     do
     {
         if (LifeBar[i].count > 0)
         {
-            PutLifeBar(x, -90, LifeBar[i].life, LifeBar[i].max, LifeBar[i].style);
+            PutLifeBar(i * 60 - 140, -90, LifeBar[i].life,
+                       LifeBar[i].max, LifeBar[i].style);
             LifeBar[i].count--;
         }
-        x += 60;
         i++;
     } while (i < nLifeBar);
     return 0;

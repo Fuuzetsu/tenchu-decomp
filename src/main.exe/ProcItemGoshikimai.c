@@ -71,8 +71,6 @@ void ProcItemGoshikimai(TItem *item)
     };
     param_goshikimai *param;
     Humanoid *human;
-    MotionDataType *md;
-    MotionManager *mot;
     PARAM_ITEM_LAUNCH p;
 
     param = &item->param.goshikimai;
@@ -90,20 +88,19 @@ void ProcItemGoshikimai(TItem *item)
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
             UpdateMotion(human->motion, MOT_ITEM_PLANT);
             human->status = STAT_STATE;
-            md = human->motion->motion;
-            MoveHumanoid(human, md->orderspd, md->sidespd);
+            MoveHumanoid(human, human->motion->motion->orderspd,
+                         human->motion->motion->sidespd);
         }
         item->mode++;
         return;
 
     case GOSHIKIMAI_MODE_THROW:
-        mot = item->owner->motion;
-        if (mot->mid != MOT_ITEM_PLANT)
+        if (item->owner->motion->mid != MOT_ITEM_PLANT)
         {
             item->mode = GOSHIKIMAI_MODE_START;
             return;
         }
-        if (mot->count != 15)
+        if (item->owner->motion->count != 15)
             return;
         p.type = ITEM_GOSHIKIMAI;
         p.user = item->owner;

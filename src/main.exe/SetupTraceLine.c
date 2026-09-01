@@ -24,20 +24,9 @@
  * SystemOut("NO TRACE POINT") (does not return) if point is null.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The scan is the cookbook's "wrap-around search loop with increment in
- *    the backjump's delay slot" shape (minus the wraparound): entry-
- *    duplicated guard (`if (point->pad == -1) skip`), then a bottom-tested
- *    while-loop whose `point++` is the loop body's FIRST statement (reorg
- *    steals it into the backjump's delay slot, retargeting the branch) —
- *    `while (pad != -1) { point = point + 1; pad = point->pad; }`. The
- *    tempting Ghidra-literal rewrite (`pad = point[1].pad; point = point +
- *    1;`, reading one-ahead-then-advancing) instead compiles the read at a
- *    fixed `+0xC`-larger offset every iteration with NO net effect (same
- *    value, just phase-shifted) but costs 2 extra instructions (a
- *    `+12`/`-12` compensation pair at the loop's entry/exit) that the
- *    increment-first shape avoids entirely — the exact "increment as the
- *    FIRST body statement" idiom, just verified again on a plain (non-
- *    wraparound) scan.
+ *  - The plain `while (point->pad != -1) point++;` scan emits the target's
+ *    entry guard and bottom test, with the increment in the backjump delay
+ *    slot. No copied `pad` value is needed.
  *  - `point->x`/`point->z`/`point->range` are each reloaded from
  *    `human->locate` FRESH (three separate `lw human->locate`), not cached
  *    in one pointer local — matches the raw asm's three reloads.
@@ -50,7 +39,6 @@ extern char msg_no_trace_point[]; /* NO TRACE POINT */
 TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
 {
     TraceLine *trcl;
-    s16 pad;
 
     if (point == 0)
     {
@@ -60,11 +48,9 @@ TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
     trcl->count = 0;
     trcl->index = 0;
     trcl->point = point;
-    pad = point->pad;
-    while (pad != -1)
+    while (point->pad != -1)
     {
         point++;
-        pad = point->pad;
     }
     point->x = human->locate->vx;
     point->z = human->locate->vz;

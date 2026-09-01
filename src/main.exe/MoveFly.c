@@ -64,8 +64,6 @@ static void MoveFly(TItem *item, param_fly *param)
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;
     s32 xs, ys, zs;
     s32 t, ax, ay, az;
-    ModelType *model;
-    param_korogari *pk;
 
     switch (param->mode)
     {
@@ -92,34 +90,28 @@ static void MoveFly(TItem *item, param_fly *param)
         z = w9 * param->p.fly.sz + w8 * param->p.fly.rz + nv * param->p.fly.vz;
         zs = z / FIXED_ONE;
         if (t == 0)
-    {
-            model = item->locate;
-            ax = model->locate.coord.t[0];
-            ay = model->locate.coord.t[1];
-            az = model->locate.coord.t[2];
-            pk = &param->p.koro;
-            pk->hint = 0;
-            pk->status = KORO_NORMAL;
+        {
+            ax = item->locate->locate.coord.t[0];
+            ay = item->locate->locate.coord.t[1];
+            az = item->locate->locate.coord.t[2];
+            param->p.koro.hint = 0;
+            param->p.koro.status = KORO_NORMAL;
             param->mode = FLY_MODE_ROLL;
-            setVector(pk, xs - ax, ys - ay, zs - az);
-    }
+            setVector(&param->p.koro, xs - ax, ys - ay, zs - az);
+        }
         else
-    {
+        {
             param->p.fly.count--;
-    }
+        }
         item->locate->locate.coord.t[0] = xs;
         item->locate->locate.coord.t[1] = ys;
         item->locate->locate.coord.t[2] = zs;
         return;
-
-        break;
     }
     case FLY_MODE_ROLL:
     {
-
         MoveKorogari(item, &param->p.koro);
         break;
     }
     }
-
 }

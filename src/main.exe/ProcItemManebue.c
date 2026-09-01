@@ -50,7 +50,6 @@ void ProcItemManebue(TItem *item)
         MANEBUE_MODE_WAIT = 1
     };
     param_drop *param;
-    u8 count;
 
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -67,11 +66,9 @@ void ProcItemManebue(TItem *item)
         param->count = MANEBUE_DURATION;
         item->mode++;
         return;
-        break;
     case MANEBUE_MODE_WAIT:
-        count = param->count - 1;
-        param->count = count;
-        if (count == 0)
+        param->count--;
+        if (param->count == 0)
         {
             item->owner->itmctl = 0;
             if (item->proc != 0)
