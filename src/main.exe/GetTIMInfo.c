@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tim.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -20,6 +21,6 @@
 
 s16 GetTIMInfo(u_long *adr, GsIMAGE *image)
 {
-    GsGetTimInfo(adr + 1, image);
+    GsGetTimInfo(TIM_FILE_IMAGE(adr), image);
     return 1;
 }

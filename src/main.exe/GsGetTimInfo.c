@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tim.h"
 
 /* Parse a TIM in memory into a GsIMAGE descriptor: mode word, then the
  * optional CLUT block, then the pixel block's VRAM rect (libgs API shape). */
@@ -8,37 +9,37 @@ void GsGetTimInfo(unsigned long *image, GsIMAGE *tim)
     unsigned long *pixel;
 
     tim->pmode = *image;
-    if ((tim->pmode >> 3) & 1)
+    if (TIM_HAS_CLUT(tim->pmode))
     {
-        image++;
-        pixel = image + (*image >> 2);
-        image++;
-        tim->cx = ((short *)image)[0];
-        tim->cy = ((short *)image)[1];
-        image++;
-        tim->cw = ((unsigned short *)image)[0];
-        tim->ch = ((unsigned short *)image)[1];
-        image++;
+        image = TIM_IMAGE_CURSOR_ADVANCE(image, mode, blocks);
+        pixel = TIM_BLOCK_NEXT(image);
+        image = TIM_BLOCK_CURSOR_ADVANCE(image, byte_size, position);
+        tim->cx = TIM_BLOCK_POSITION(image)->x;
+        tim->cy = TIM_BLOCK_POSITION(image)->y;
+        image = TIM_BLOCK_CURSOR_ADVANCE(image, position, size);
+        tim->cw = TIM_BLOCK_SIZE(image)->width;
+        tim->ch = TIM_BLOCK_SIZE(image)->height;
+        image = TIM_BLOCK_CURSOR_ADVANCE(image, size, data);
         tim->clut = image;
 
-        pixel++;
-        tim->px = ((short *)pixel)[0];
-        tim->py = ((short *)pixel)[1];
-        pixel++;
-        tim->pw = ((unsigned short *)pixel)[0];
-        tim->ph = ((unsigned short *)pixel)[1];
-        pixel++;
+        pixel = TIM_BLOCK_CURSOR_ADVANCE(pixel, byte_size, position);
+        tim->px = TIM_BLOCK_POSITION(pixel)->x;
+        tim->py = TIM_BLOCK_POSITION(pixel)->y;
+        pixel = TIM_BLOCK_CURSOR_ADVANCE(pixel, position, size);
+        tim->pw = TIM_BLOCK_SIZE(pixel)->width;
+        tim->ph = TIM_BLOCK_SIZE(pixel)->height;
+        pixel = TIM_BLOCK_CURSOR_ADVANCE(pixel, size, data);
         tim->pixel = pixel;
     }
     else
     {
-        image += 2;
-        tim->px = ((short *)image)[0];
-        tim->py = ((short *)image)[1];
-        image++;
-        tim->pw = ((unsigned short *)image)[0];
-        tim->ph = ((unsigned short *)image)[1];
-        image++;
+        image = TIM_IMAGE_CURSOR_ADVANCE(image, mode, blocks[0].position);
+        tim->px = TIM_BLOCK_POSITION(image)->x;
+        tim->py = TIM_BLOCK_POSITION(image)->y;
+        image = TIM_BLOCK_CURSOR_ADVANCE(image, position, size);
+        tim->pw = TIM_BLOCK_SIZE(image)->width;
+        tim->ph = TIM_BLOCK_SIZE(image)->height;
+        image = TIM_BLOCK_CURSOR_ADVANCE(image, size, data);
         tim->pixel = image;
     }
 }

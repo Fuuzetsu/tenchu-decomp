@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tim.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -40,10 +41,10 @@ short LoadTIM(unsigned long *adr)
     {
         SystemOut(msg_no_image_data);
     }
-    GsGetTimInfo(adr + 1, &tim);
+    GsGetTimInfo(TIM_FILE_IMAGE(adr), &tim);
     setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
     LoadImage(&rect, tim.pixel);
-    if ((tim.pmode >> 3) & 1)
+    if (TIM_HAS_CLUT(tim.pmode))
     {
         setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
         LoadImage(&rect, tim.clut);

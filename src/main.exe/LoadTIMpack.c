@@ -83,7 +83,7 @@
  *    writing it the other way round (p walks, adr fixed) rotates every
  *    callee-saved register by one and mismatches the whole prologue/epilogue.
  *  - `tim.pmode` is read TWICE with different widths: the CLUT-bit test
- *    reloads the FULL `lw` (needs all 32 bits for `>> 3 & 1`), independent
+ *    reloads the FULL `lw` (TIM_HAS_CLUT expands to `>> 3 & 1`), independent
  *    of any earlier access — different machine modes/uses don't CSE.
  */
 extern char msg_no_image_pack_data[]; /* NO IMAGE PACK DATA */
@@ -116,7 +116,7 @@ short LoadTIMpack(unsigned long *adr)
             GsGetTimInfo(TIM_PACK_IMAGE(p, adr), &tim);
             setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
             LoadImage(&rect, tim.pixel);
-            if ((tim.pmode >> 3 & 1) != 0)
+            if (TIM_HAS_CLUT(tim.pmode) != 0)
             {
                 setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
                 LoadImage(&rect, tim.clut);

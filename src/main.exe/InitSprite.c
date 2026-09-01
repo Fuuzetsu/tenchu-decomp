@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tim.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -22,8 +23,8 @@
  * AddXG4.c/StartDrawing.c (same TU, all matched).
  *
  * Matching notes:
- *  - `texture_mode = image->pmode & 3` reads only the LOW HALFWORD of the 4-byte
- *    pmode field (lhu at offset 0) — GsIMAGE's real layout (proven
+ *  - `TIM_PIXEL_MODE(*(u16 *)&image->pmode)` reads only the LOW HALFWORD of
+ *    the 4-byte pmode field (lhu at offset 0) — GsIMAGE's real layout (proven
  *    elsewhere, e.g. LoadTIM.c's full-word `im.pmode`) keeps pmode a
  *    u_long; this call site narrows via an explicit pointer cast rather
  *    than through the field, same idiom as a param-union's divergent
@@ -58,7 +59,7 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     sprite->scalex = 0x1000;
     if (image != 0)
     {
-        texture_mode = *(u16 *)&image->pmode & 3;
+        texture_mode = TIM_PIXEL_MODE(*(u16 *)&image->pmode);
         sprite->attribute = sprite->attribute | (texture_mode << 0x18);
         width_shift = 2 - texture_mode;
         sprite->w = image->pw << width_shift;

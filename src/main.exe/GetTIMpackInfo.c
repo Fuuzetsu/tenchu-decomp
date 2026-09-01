@@ -21,8 +21,8 @@
  * GetTIMpackInfo (0x80018ae8) — index a TIM-pack's offset table (same
  * "skip the leading u_long ID word" convention as GetTIMInfo.c/LoadTIM.c):
  * TIMPackIndex supplies the element count and a table of per-element byte
- * offsets relative to that table; TIMPackEntry supplies the ID word skipped
- * before the packed TIM data. Fails (returns 0)
+ * offsets relative to that table; each offset lands on a TIMFile whose ID
+ * word is skipped before the packed image data. Fails (returns 0)
  * for an out-of-range idx; otherwise walks the offset table to `idx` and
  * hands the located TIM to GsGetTimInfo.
  *

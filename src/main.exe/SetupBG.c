@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tim.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -61,7 +62,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->hundle.map = &bg->map;
     bg->map.cellw = bg->map.cellh = 0x10;
     bg->map.ncellw = w / bg->map.cellw;
-    pmode = raw_pmode & 3;
+    pmode = TIM_PIXEL_MODE(raw_pmode);
     bg->hundle.attribute = pmode << 24;
     bg->hundle.mx = bg->hundle.w >> 1;
     bg->hundle.my = bg->hundle.h >> 1;
