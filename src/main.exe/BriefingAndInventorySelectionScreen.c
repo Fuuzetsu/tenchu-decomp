@@ -66,9 +66,9 @@ extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 ARMOUR_USED; /* persistent blob 0x1a: blocks re-buying ITEM_ARMOUR */
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
-extern char *ITEM_SEL_SPRITE_PTRS[];
+extern char *ITEM_SEL_SPRITE_PTRS[N_LANGUAGES];
 extern char NUMBER_TIM_PATH[];
-extern u8 *ITEM_HELP_TIM_PATHS[4];
+extern u8 *ITEM_HELP_TIM_PATHS[N_LANGUAGES];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
 extern int rand(void);
@@ -100,7 +100,7 @@ extern void briefing_screen_(void);
  */
 static inline u_long *LoadHelpArchive(TLinkInfo *q)
 {
-    u8 *paths[4];
+    u8 *paths[N_LANGUAGES];
 
     __builtin_memcpy(paths, ITEM_HELP_TIM_PATHS, sizeof(paths));
     return FileRead(paths[q->language]);

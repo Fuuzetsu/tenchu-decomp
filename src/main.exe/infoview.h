@@ -15,7 +15,7 @@ extern TAdtSelect DEBUG_MENU_HIDDEN_EFFECT_SPAWN_OPTIONS[31];
 extern TAdtSelect DEBUG_MENU_ENEMY_LAYOUT_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_ENEMY_PATH_SETTING_OPTIONS[7];
 extern TAdtSelect sel_okcancel[3]; /* {"ok",1},{"cancel",0},{0,0} */
-extern TAdtSelect DEBUG_MENU_LANGUAGE_CHOICES[5];
+extern TAdtSelect DEBUG_MENU_LANGUAGE_CHOICES[N_LANGUAGES + 1];
 extern TAdtSelect sel_player[3]; /* {"RIKIMARU",0},{"AYAME",1} */
 extern TAdtSelect DEBUG_MENU_FILE_CHOICES[20];
 extern TAdtSelect DEBUG_MENU_SAVE_LOAD_CHOICES[5];

@@ -68,8 +68,8 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
 extern char fmt_arc[];                    /* %s%s%c.Arc */
 extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
-extern char *GOV_RESOURCE_PREFIX_PTRS[];
-extern char *GOV_ARCHIVE_PTRS[];
+extern char *GOV_RESOURCE_PREFIX_PTRS[N_LANGUAGES];
+extern char *GOV_ARCHIVE_PTRS[N_LANGUAGES];
 
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);

@@ -1431,6 +1431,8 @@ enum
     LANG_JAPANESE = 3
 };
 
+#define N_LANGUAGES (LANG_JAPANESE + 1)
+
 // Offsets proven by BriefingAndInventorySelectionScreen.
 // Splat also names some fields as standalone globals (CHOSEN_CHARACTER = +4,
 // CHOSEN_STAGE = +5, STAGE_LAYOUT_NUMBER = +6, CHOSEN_LANGUAGE = +0x5E,

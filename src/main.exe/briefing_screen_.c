@@ -36,9 +36,9 @@ extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 /* The adjacent retail symbols prove four complete StageConfig language rows. */
-extern DemoScreenAssets BriefingAssets[4][N_STAGE_CONFIGS];
-extern s16 BriefingLimit[4][N_STAGE_CONFIGS];
-extern s16 StageScrollAdj[4][N_STAGE_CONFIGS];
+extern DemoScreenAssets BriefingAssets[N_LANGUAGES][N_STAGE_CONFIGS];
+extern s16 BriefingLimit[N_LANGUAGES][N_STAGE_CONFIGS];
+extern s16 StageScrollAdj[N_LANGUAGES][N_STAGE_CONFIGS];
 
 extern BackGround *load_background_(u_long *tim);
 extern void vfree(void *ptr);

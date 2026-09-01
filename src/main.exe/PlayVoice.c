@@ -48,7 +48,7 @@ extern u8 *VoiceXaNameF;
 extern u8 *VoiceXaNameI;
 extern u8 *VoiceXaNameJ;
 /* Per-language voice tables. */
-extern TVoiceTable *VoiceTables[4];
+extern TVoiceTable *VoiceTables[N_LANGUAGES];
 
 /* INTRO/TORA voice tables + their filenames (id ranges [100,200)/[200,300)). */
 extern TVoiceTable VoiceBank1[];
@@ -126,13 +126,13 @@ void PlayVoice(int id)
     int end_marker;
     TVoiceTable *fallback;
     int fallback_end;
-    u8 *filenames[4] = {
+    u8 *filenames[N_LANGUAGES] = {
         VoiceXaName,
         VoiceXaNameF,
         VoiceXaNameI,
         VoiceXaNameJ,
     };
-    TVoiceTable *tables[4];
+    TVoiceTable *tables[N_LANGUAGES];
     CdlLOC start;
     CdlLOC end;
 

@@ -50,11 +50,11 @@
 typedef struct
 {
     u8 unused[32];
-    u8 *title[4];
+    u8 *title[N_LANGUAGES];
 } CreateStageTitleScratch;
 
 extern s32 DepthPoint;
-extern u8 *TITLE_SPRITES_PTRS[4];
+extern u8 *TITLE_SPRITES_PTRS[N_LANGUAGES];
 extern u8 CHOSEN_LANGUAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char fmt_illigal_stage_id[]; /* illigal stage id %d */

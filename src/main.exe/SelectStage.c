@@ -27,7 +27,8 @@
  *    `void SelectStage(void)` prototype. Both retail callers pass the state
  *    pointer in a0, and this body stores its three results at +0x5e/+4/+5.
  *  - The local declarations reproduce the full 0x500-byte working window:
- *    language[5] at sp+0x10, player[3] at sp+0x38, StageSelect[14] at sp+0x50,
+ *    language[N_LANGUAGES + 1] at sp+0x10, player[3] at sp+0x38,
+ *    StageSelect[14] at sp+0x50,
  *    and name[N_STAGE_CONFIGS][100] at sp+0xc0. Their padding plus the
  *    saved-register area gives the target's 0x528 frame.
  *  - Capturing `StageConfig[i].uid` once keeps it live across `sprintf` in
@@ -54,7 +55,7 @@ extern int sprintf(char *buf, char *fmt, ...);
 
 void SelectStage(TLinkInfo *ps)
 {
-    TAdtSelect language[5];
+    TAdtSelect language[N_LANGUAGES + 1];
     TAdtSelect player[3];
     TAdtSelect StageSelect[14];
     u8 name[N_STAGE_CONFIGS][100];

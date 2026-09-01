@@ -59,7 +59,7 @@
  *    vararg materialisation.
  */
 
-extern char *STAGE_ANIMATION_PREFICES[];
+extern char *STAGE_ANIMATION_PREFICES[N_LANGUAGES];
 extern char fmt_stage_cad[];       /* %sSTAGE%d%c.CAD */
 extern char path_anim_tanka_tpd[]; /* K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd */
 

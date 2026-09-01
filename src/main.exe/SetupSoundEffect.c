@@ -50,7 +50,7 @@ extern SoundEffect *SetupSE(u8 *vab);
 extern void sprintf(char *s, char *fmt, ...);
 
 extern u8 CHOSEN_LANGUAGE;
-extern char *STAGE_SOUND_PREFICES[];
+extern char *STAGE_SOUND_PREFICES[N_LANGUAGES];
 extern char fmt_stage_vab[]; /* %sSTAGE%d%c.VAB */
 
 void SetupSoundEffect(short mode, short stage)

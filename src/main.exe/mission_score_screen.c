@@ -53,8 +53,8 @@ extern u8 CHOSEN_LANGUAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 
 extern char NUMBER_TIM_PATH[];
-extern char *RANKS_ARCHIVE_PTRS[];
-extern char *TRN_SPRITE_PTRS[];
+extern char *RANKS_ARCHIVE_PTRS[N_LANGUAGES];
+extern char *TRN_SPRITE_PTRS[N_LANGUAGES];
 extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
