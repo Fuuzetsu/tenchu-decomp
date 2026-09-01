@@ -2017,16 +2017,10 @@ enum
     N_STAGE_REINFORCEMENT_CHOICES = 2
 };
 
-typedef struct StageReinforcementTypes StageReinforcementTypes;
-struct StageReinforcementTypes
-{
-    character_kind type[N_STAGE_REINFORCEMENT_CHOICES];
-}; /* 0x04 */
-
 typedef union ReinforcementTypeTable ReinforcementTypeTable;
 union ReinforcementTypeTable
 {
-    StageReinforcementTypes stage[N_STAGE_CONFIGS];
+    character_kind by_stage[N_STAGE_CONFIGS][N_STAGE_REINFORCEMENT_CHOICES];
     character_kind flat[N_STAGE_CONFIGS * N_STAGE_REINFORCEMENT_CHOICES];
 }; /* 0x2C */
 

@@ -236,7 +236,7 @@ s16 think_alarm_reaction_(void)
             }
             Sound(Me_THINK_C, soundId);
 
-            type = AIDHumanType.stage[StageID].type[
+            type = AIDHumanType.by_stage[StageID][
                 rand() % N_STAGE_REINFORCEMENT_CHOICES];
             rotation = Me_THINK_C->rotate;
             newRotation = rotation->vy + direction;

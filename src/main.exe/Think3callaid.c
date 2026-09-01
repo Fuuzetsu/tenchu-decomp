@@ -59,7 +59,7 @@
  * same expression that installs Me_THINK_C, preserving the target load/store
  * schedule.
  *
- * `AIDHumanType.stage[StageID].type[r % 2]` is a signed character-kind
+ * `AIDHumanType.by_stage[StageID][r % 2]` is a signed character-kind
  * table (`lh`, unlike the item-TU's usual unsigned tables), so its entries
  * pass to BreedLife without narrowing.
  *
@@ -141,7 +141,8 @@ short Think3callaid(void)
         type_ptr = (character_kind *)(
             (u8 *)aid +
             ((r % N_STAGE_REINFORCEMENT_CHOICES) * sizeof(character_kind) +
-             StageID * sizeof(StageReinforcementTypes)));
+             StageID * N_STAGE_REINFORCEMENT_CHOICES *
+                 sizeof(character_kind)));
         type = *type_ptr;
         newhuman = BreedLife(type,
                              Me_THINK_C->locate->vx,
