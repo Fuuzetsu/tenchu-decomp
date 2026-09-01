@@ -1008,8 +1008,9 @@ work is. `./Build check` still gates every commit.
 against the locals PSX.SYM recorded for the original; ~280 functions
 differ. A local we invented is the usual reason a natural spelling will
 not compile to the right bytes, so this is the queue. Worked examples:
-`SetBlood`'s ugly `(TEffectSlot *)(idx * sizeof(...) + (int)base)` exists
-only because we added a `base` local the original never had;
+`SetBlood`'s old `(TEffectSlot *)(idx * sizeof(...) + (int)base)` existed
+only because we transcribed loop.c's generated scan pointer into the C;
+the direct `base[idx]` loop is exact and retains only the result `slot`;
 `SetupImageToPoly{FT4,GT4}` recovered the original's `tx`/`ty`/`th`, one
 of which is a single variable advanced in place where we had two.
 Bare, the tool audits GLOBAL declarations the same way. Method that

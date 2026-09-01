@@ -39,6 +39,15 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   `(*(T (*)[N])p)[i]` is an INDIRECT_REF → index-first arithmetic; a one-field
   wrapper struct `((Wrap *)p)->a[i]` is a COMPONENT_REF → base-first, no frame
   rematerialisation (AddEnemy cluster D).
+- **Do not transcribe a strength-reduced array cursor back into C.** In a real
+  bottom-tested loop, repeated `base[i]` accesses can become a compiler-created
+  pointer induction variable: an indexed initial address, `addiu pointer,stride`
+  on the back edge, and a base reset on index wrap. All 22 round-robin
+  EffectSlot scans in the 21 pool-spawning functions reproduce that machine
+  lockstep exactly from direct indexing (`SetBlood`, `SetGore`, and
+  `SetupTexScroll` are representative). An explicit source pointer can hide
+  the ARRAY_REF and force ugly integer address arithmetic merely to recover an
+  `addu` operand order that the indexed loop produces naturally.
 - **fold: `A op 0 ? A : -A` → ABS_EXPR** (fold-const.c) — but only the GE spelling;
   the LT ternary re-binds `arg1` after swapping arms so the abs check misses and
   expansion takes the branchy path (SoundEx, UpdateMotion). `x >= 0 ? x : -x`,

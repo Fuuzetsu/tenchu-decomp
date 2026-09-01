@@ -31,12 +31,8 @@ extern void DrawFlyWire(TEffectSlot *ef);
 
 int SetFlyWire(VECTOR *start, VECTOR *end)
 {
-    /* The pool-scan aliases are independent allocation boundaries: direct
-     * `EffectSlot` for base is 69 lines, reusing slot for ef is 60, and
-     * deleting both is 75. Direct returns in place of result are 14. */
     TEffectSlot *base;
     TEffectSlot *slot;
-    TEffectSlot *ef;
     FlyWireType *param;
     int idx;
     int i;
@@ -46,35 +42,29 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
     idx = EFFECT_CURSOR_;
     i = 0;
     base = EffectSlot;
-    slot = base + idx;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    i++;
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    if (i > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        i++;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+    } while (i < N_EFFECT_SLOTS);
+    slot = &dmy;
 
 found:
-    param = &ef->param.flywire;
+    param = &slot->param.flywire;
     param->start = *start;
     param->end = *end;
     param->count = 0;
@@ -190,7 +180,7 @@ found:
 
     if (param->time > 0)
     {
-        ef->proc = DrawFlyWire;
+        slot->proc = DrawFlyWire;
         result = param->time + 5;
     }
     else

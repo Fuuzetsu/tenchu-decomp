@@ -82,11 +82,11 @@
  *    $fp for the whole function once the register exists to hold it.
  *  - The pool scan + store tail live in an INNER BLOCK shadowing
  *    `VECTOR *pos = &npos;` and `int time = btime;` (PSX.SYM lists these
- *    shadow scopes) — the tail copies `ef->param.bleed.pos = *pos;`
+ *    shadow scopes) — the tail copies `slot->param.bleed.pos = *pos;`
  *    REGISTER-INDIRECT through $a3 (writing `npos` directly would compile
  *    sp-relative), and `int time` is why btime joins in $v0 then copies to
- *    $t0. The scan itself is SetBleed.c's hand-rolled `goto loop;` shape
- *    verbatim; a single `n = n - 1;` sits right after `found:` (reorg
+ *    $t0. The scan itself is SetBleed.c's indexed do-while shape verbatim;
+ *    a single `n = n - 1;` sits right after `found:` (reorg
  *    duplicates it into the wrap path's delay slot).
  *  - Store order into BleedType: pos, vec, r, g, time, b, mode, proc —
  *    same as SetBleed.c. `rand() % <variable>` divisions need --expand-div
@@ -189,51 +189,44 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
             TEffectSlot *base;
             TEffectSlot *slot;
             int count;
-            TEffectSlot *ef;
             BleedType *param;
             u8 r;
 
             idx = EFFECT_CURSOR_;
             count = 0;
             base = EffectSlot;
-            slot = base + idx;
-        loop:
-            idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+            do
             {
-                slot = base;
-                idx = 0;
-            }
-            if (slot->proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+                idx++;
+        if (idx >= N_EFFECT_SLOTS)
                 {
-                    EFFECT_CURSOR_ = 0;
+                    idx = 0;
                 }
-                ef = slot;
-                goto found;
-            }
-            count++;
-            if (count > N_EFFECT_SLOTS - 1)
-            {
-                ef = &dmy;
-                goto found;
-            }
-            goto loop;
+                if (base[idx].proc == 0)
+                {
+                    EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+                    {
+                        EFFECT_CURSOR_ = 0;
+                    }
+                    slot = &base[idx];
+                    goto found;
+                }
+                count++;
+            } while (count < N_EFFECT_SLOTS);
+            slot = &dmy;
         found:
             n--;
-            param = &ef->param.bleed;
+            param = &slot->param.bleed;
             r = col >> 16;
-            ef->param.bleed.pos = *pos;
-            ef->param.bleed.vec = work.vector.velocity;
+            slot->param.bleed.pos = *pos;
+            slot->param.bleed.vec = work.vector.velocity;
             param->r = r;
             param->g = col >> 8;
             param->time = time;
             param->b = col;
             param->mode = 0;
-            ef->proc = DrawBleed;
+            slot->proc = DrawBleed;
         }
     } while (1);
 }

@@ -372,7 +372,9 @@ narrow round-trip zero fence → the four-part AttackShort shape;
 dead constant scratch feeding one narrow store → park after literal/direct
 spellings (ProcItemDokudango); `commutative-equality-register-order` →
 `eq-literal-swap` once, flat = stop (ActJUMP); pool-scan `addu` operand order
-inside an outer loop → while/break form, then accept the 2-byte tie (SetBlood).
+inside a real loop → remove the transcribed scan pointer and index the pool
+directly; loop strength reduction can recreate the target pointer walk
+(SetBlood/SetHinoko).
 
 **The tools** (details in each `--help`; orchestration.md has the full map):
 `rtldump` (any pass dump, `--draft`, `--trace UID` across passes, `--loop-log`,
@@ -2132,18 +2134,18 @@ irreducible nest: DrawConstruction's 3.
   as recognition aids rather than as a queue. **Test each site alone AND in combination** --
   MoveFly's three fold together, but an early wrong-target rewrite made
   them look like they conflicted.
-- **The EffectSlot pool scan's `idx`/`slot` lockstep is byte-required.**
-  `SetBlood`, `SetImpact`, `SetSmokeS` and `SetupTexScroll` all carry the
-  same five locals (`idx`, `base`, `slot`, `count`, `ef`) maintaining an
-  index and a pointer in step, which looks like the most obvious
-  redundancy left in the tree — PSX.SYM records none of the five for any
-  of them. It is not redundant: keeping only the index and deriving
-  `base + idx` each iteration costs 35 lines, keeping only the pointer
-  and deriving `idx = slot - base` costs 31 (measured on SetSmokeS).
-  Retail really does keep both live. `base` is separately measured as
-  load-bearing in DrawGore (11 lines). The demo's shorter local list is
-  a version difference — its SetBlood took four parameters and scanned
-  differently — not a target.
+- **An EffectSlot `idx`/pointer lockstep in assembly can be strength
+  reduction, not two source locals.** The decisive experiment is the WHOLE
+  scan: keep `idx`, test `base[idx].proc`, and assign `slot = &base[idx]` only
+  on success. Across all 22 EffectSlot allocator scans, loop.c recreates the
+  target's initialized pointer,
+  stride increment, and wrap reset exactly. This also removes the invented
+  `ef`/`found_slot` result alias. Testing only `slot = base + idx` while leaving
+  the rest of the transcribed cursor graph in place led to the false conclusion
+  that an integer pointer sum was required. Hand-written goto scanners are a
+  separate case: without real loop notes, their explicit pointer walk may be
+  source-authored. `base` is also independently load-bearing in several outer
+  loops, so removing every pool-related local at once is not the rule.
 - **Removing a declaration can gate green by falling back to an IMPLICIT
   one.** Auditing the four K&R `extern void f();` redeclarations in the
   tree, three of them compiled and matched with the line deleted — but
@@ -2317,10 +2319,12 @@ irreducible nest: DrawConstruction's 3.
   Before concluding that ugly address arithmetic is byte-required, run
   `tools/symtypes.py --locals <Func>`: it diffs our declaration block against
   the locals PSX.SYM recorded. 271 functions differ. `SetBlood` was the
-  worked example — its `slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) +
-  (int)base);` exists only because we introduced a `base` pointer local that
-  the original did not have, and the original's five locals contain no
-  `base`, `idx`, `count` or `ef` at all. The demo is not a retail spec, so
+  worked example — its old `slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) +
+  (int)base);` existed because we introduced a source-level scan pointer for
+  loop.c's induction variable. Restoring direct `base[idx]` accesses removed
+  both that cast and the invented `ef`, while matching exactly. The original's
+  five locals contain no `base`, `idx`, `count` or `ef`; the demo is not a
+  retail spec, so
   treat a difference as a lead; but a name like `u0Val`/`pyByte`/`half2`
   that no original local matches is nearly always ours. **The repeated names
   in PSX.SYM's list are nested block scopes** (`ActATTACK` records

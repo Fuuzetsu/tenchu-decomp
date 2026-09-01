@@ -14,7 +14,7 @@ extern SVECTOR svec_y_n60[];
  * Spawns either a napalm request or a body-attached frame and bleed effect.
  * The union reflects mutually exclusive stack scratch used by the two paths.
  * Keeping the body position aliases split across rand(), and retaining a
- * separate pool-result pointer, reproduces the original register lifetimes.
+ * named pool-result `slot`, reproduces the original register lifetimes.
  * svec_y_n60 intentionally has unknown array size: a typed object declaration
  * changes the old compiler's address materialization and instruction schedule.
  */
@@ -76,7 +76,6 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         int count;
         TEffectSlot *base;
         TEffectSlot *slot;
-        TEffectSlot *found_slot;
         FrameType *frame;
 
         objects = human->model->object;
@@ -100,31 +99,28 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         idx = EFFECT_CURSOR_;
         count = 0;
         base = EffectSlot;
-        slot = base + idx;
         do
         {
             idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+            if (idx >= N_EFFECT_SLOTS)
             {
-                slot = base;
                 idx = 0;
             }
             count++;
-            if (slot->proc == 0)
+            if (base[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-                if (idx + 1 > N_EFFECT_SLOTS - 1)
+                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                found_slot = slot;
+                slot = &base[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);
-        found_slot = &dmy;
+        slot = &dmy;
     found:
-        frame = &found_slot->param.frame;
+        frame = &slot->param.frame;
         frame->px = position->vx;
         frame->py = position->vy;
         frame->pz = position->vz;
@@ -132,7 +128,7 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         frame->size = 3 * FIXED_ONE;
         frame->progress.countdown = time;
         frame->super = &model->locate;
-        found_slot->proc = DrawFrame;
+        slot->proc = DrawFrame;
 
         SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
                      &work.blood.scratch.direction,

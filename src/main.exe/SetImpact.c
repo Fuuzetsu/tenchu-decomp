@@ -21,21 +21,23 @@
 
 /*
  * Matching notes (all verified against the original bytes):
- *  - Unlike SetFrame/SetSplash/SetBleed's hand-rolled `goto loop;`, this
- *    EffectSlot[200] search is a REAL `do { ... } while (count < N_EFFECT_SLOTS);`
- *    with `ef = &dmy;` placed AFTER the loop (fallthrough on exhaustion),
- *    not a while(1)+break with `ef = &dmy;` inside the loop body. The
+ *  - Like SetFrame/SetSplash/SetBleed, this EffectSlot[200] search is a real
+ *    `do { ... } while (count < N_EFFECT_SLOTS);`
+ *    with `slot = &dmy;` placed AFTER the loop (fallthrough on exhaustion),
+ *    not a while(1)+break with `slot = &dmy;` inside the loop body. The
  *    target's give-up path has a tell-tale `addiu idx,idx,1` / `addiu
  *    idx,idx,-1` pair: reorg steals the loop head's `idx = idx + 1` into
  *    the backjump's delay slot (retargeting the branch to skip it) and
  *    patches the fallthrough (loop-exhausted) path with a compensating
  *    decrement — the "wrap-around search loop" idiom (cookbook, Loops),
  *    which only appears with a genuine bottom-tested do-while (loop
- *    notes), not the hand-rolled goto shape. Since &dmy here is used
+ *    notes). Since &dmy here is used
  *    strictly AFTER the loop (not on a conditional path INSIDE it), a
  *    real loop doesn't risk loop.c hoisting its address either — the
  *    hoisting hazard that forced SetFrame/SetSplash/SetBleed's goto shape
- *    doesn't apply once `ef = &dmy;` moves outside the loop body.
+ *    doesn't apply once the fallback assignment moves outside the loop body.
+ *    Direct `base[idx]` accesses are strength-reduced into the pointer walk
+ *    visible in the target.
  *  - The randomized speed (`spd`) and the two packed colour constants
  *    `start_color`/`end_color`
  *    (COLOR_GRAY each), are all named locals assigned BEFORE the loop and
@@ -63,7 +65,6 @@ void SetImpact(VECTOR *pos, short size, short type)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     ImpactType *param;
     long pz;
 
@@ -73,33 +74,30 @@ void SetImpact(VECTOR *pos, short size, short type)
     count = 0;
     base = EffectSlot;
     idx = EFFECT_CURSOR_;
-    slot = base + idx;
     do
     {
         idx++;
-        slot++;
-        if (idx > N_EFFECT_SLOTS - 1)
+        if (idx >= N_EFFECT_SLOTS)
         {
-            slot = base;
             idx = 0;
         }
-        if (slot->proc == 0)
+        if (base[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (N_EFFECT_SLOTS - 1 < idx + 1)
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            ef = slot;
+            slot = &base[idx];
             goto found;
         }
         count++;
     } while (count < N_EFFECT_SLOTS);
-    ef = &dmy;
+    slot = &dmy;
 found:
-    ef->proc = DrawImpact;
-    ef->param.impact.px = pos->vx;
-    param = &ef->param.impact;
+    slot->proc = DrawImpact;
+    slot->param.impact.px = pos->vx;
+    param = &slot->param.impact;
     param->py = pos->vy;
     pz = pos->vz;
     param->super = 0;

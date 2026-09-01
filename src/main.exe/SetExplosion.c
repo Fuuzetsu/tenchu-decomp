@@ -26,17 +26,18 @@
  * Matching notes (all verified against the original bytes):
  *  - Same EffectSlot[200] pool search as SetImpact (see its header): a
  *    real `do { ... } while (count < N_EFFECT_SLOTS);`, not a hand-rolled goto — the
- *    give-up path's `ef = &dmy;` sits AFTER the loop, not inside it, so
- *    loop.c doesn't get a chance to hoist that address.
+ *    give-up path's `slot = &dmy;` sits AFTER the loop, not inside it, so
+ *    loop.c doesn't get a chance to hoist that address. The source indexes
+ *    `base[idx]`; loop strength reduction creates the target's scan pointer.
  *  - UNLIKE SetImpact, `count = count + 1;` here comes BEFORE the
  *    `if (slot->proc == 0)` test, not after (both Ghidra's own rendering
  *    and the raw asm's delay-slot fill agree: the branch testing
- *    `slot->proc` has `count++` in its delay slot, executed regardless of
+ *    `base[idx].proc` has `count++` in its delay slot, executed regardless of
  *    outcome — only possible if count++ is the statement immediately
  *    preceding the if in source). Each EffectSlot-pool inserter in this TU
  *    apparently wrote this test/increment order slightly differently;
  *    don't assume one sibling's shape for another without checking.
- *  - `ef->param` is `ExplosionType` (see DrawExplosion.c/DrawHinoko.c):
+ *  - `slot->param` is `ExplosionType` (see DrawExplosion.c/DrawHinoko.c):
  *    Ghidra's `blood.py/pz/scale` and `smoke.*` names are its own wrong
  *    union guess for the same proven offsets (pos@0x8, vec@0x0, time@0x20,
  *    mode@0x21).
@@ -64,7 +65,6 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     ExplosionType *param;
     int r;
     short vz;
@@ -72,31 +72,28 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
     count = 0;
     base = EffectSlot;
     idx = EFFECT_CURSOR_;
-    slot = base + idx;
     do
     {
         idx++;
-        slot++;
-        if (idx > N_EFFECT_SLOTS - 1)
+        if (idx >= N_EFFECT_SLOTS)
         {
-            slot = base;
             idx = 0;
         }
         count++;
-        if (slot->proc == 0)
+        if (base[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (N_EFFECT_SLOTS - 1 < idx + 1)
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            ef = slot;
+            slot = &base[idx];
             goto found;
         }
     } while (count < N_EFFECT_SLOTS);
-    ef = &dmy;
+    slot = &dmy;
 found:
-    param = &ef->param.explosion;
+    param = &slot->param.explosion;
     param->scale = FIXED_ONE;
     r = rand();
     param->rotate = (r % 360) * FIXED_ONE;
@@ -109,6 +106,6 @@ found:
     param->time = 5;
     param->mode = EXPLOSION_MODE_FLASH;
     param->vec.vz = vz;
-    ef->proc = DrawExplosion;
+    slot->proc = DrawExplosion;
     SetBleeds(pos, 200, 150, 20, 30, COLOR_YELLOW);
 }

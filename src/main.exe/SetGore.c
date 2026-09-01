@@ -33,9 +33,12 @@ extern void DrawImpact(TEffectSlot *ef);
  * are a retail redesign; the source identity is established by adjacency and
  * by installing DrawGore as the effect callback.
  *
- * The two EffectSlot searches intentionally use distinct scoped locals.  The
- * first cursor coalesces with the BloodType pointer in $s0; keeping one cursor
- * variable live through both searches rotates nearly every scan register.
+ * The two EffectSlot searches intentionally use distinct scoped locals. Each
+ * indexes its pool directly; loop strength reduction creates the scan pointer
+ * seen in the target, while the named slot is only the found/fallback result.
+ * The first generated cursor coalesces with the BloodType pointer in $s0;
+ * keeping one source cursor live through both searches rotates nearly every
+ * scan register.
  * `scratch` is genuinely a two-VECTOR workspace: `world_velocity` receives
  * the rotated gore velocity, while `impact_position` holds the three signed
  * position captures at sp+0x58..0x60 during the second pool search.
@@ -74,37 +77,33 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         TEffectSlot *gore_pool;
         TEffectSlot *gore_slot;
         int gore_slots_searched;
-        TEffectSlot *gore_effect;
         BloodType *gore;
 
         gore_slots_searched = 0;
         gore_pool = EffectSlot;
         gore_index = EFFECT_CURSOR_;
-        gore_slot = gore_pool + gore_index;
         do
         {
             gore_index++;
-            gore_slot++;
-            if (gore_index > N_EFFECT_SLOTS - 1)
+            if (gore_index >= N_EFFECT_SLOTS)
             {
-                gore_slot = gore_pool;
                 gore_index = 0;
             }
-            if (gore_slot->proc == 0)
+            if (gore_pool[gore_index].proc == 0)
             {
                 EFFECT_CURSOR_ = gore_index + 1;
-                if (N_EFFECT_SLOTS - 1 < gore_index + 1)
+                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                gore_effect = gore_slot;
+                gore_slot = &gore_pool[gore_index];
                 goto gore_found;
             }
             gore_slots_searched++;
         } while (gore_slots_searched < N_EFFECT_SLOTS);
-        gore_effect = &dmy;
+        gore_slot = &dmy;
     gore_found:
-        gore = &gore_effect->param.blood;
+        gore = &gore_slot->param.blood;
         gore->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
         gore->scale = GORE_INITIAL_SCALE;
         gore->rotate = (rand() % 360) * FIXED_ONE;
@@ -121,7 +120,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         gore->brightness = GORE_INITIAL_BRIGHTNESS;
         gore->mode = GORE_MODE_AIRBORNE;
         impact_phase = GameClock & (GORE_IMPACT_INTERVAL - 1);
-        gore_effect->proc = DrawGore;
+        gore_slot->proc = DrawGore;
     }
 
     if (impact_phase == 0)
@@ -129,7 +128,6 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         int impact_index;
         TEffectSlot *impact_pool;
         TEffectSlot *impact_slot;
-        TEffectSlot *impact_effect;
         int impact_slots_searched;
         ImpactType *impact;
         long impact_pz;
@@ -144,33 +142,30 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         scratch.impact_position.vz = local_position->vz;
         impact_pool = EffectSlot;
         impact_index = EFFECT_CURSOR_;
-        impact_slot = impact_pool + impact_index;
         do
         {
             impact_index++;
-            impact_slot++;
-            if (impact_index > N_EFFECT_SLOTS - 1)
+            if (impact_index >= N_EFFECT_SLOTS)
             {
-                impact_slot = impact_pool;
                 impact_index = 0;
             }
-            if (impact_slot->proc == 0)
+            if (impact_pool[impact_index].proc == 0)
             {
                 EFFECT_CURSOR_ = impact_index + 1;
-                if (N_EFFECT_SLOTS - 1 < impact_index + 1)
+                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                impact_effect = impact_slot;
+                impact_slot = &impact_pool[impact_index];
                 goto impact_found;
             }
             impact_slots_searched++;
         } while (impact_slots_searched < N_EFFECT_SLOTS);
-        impact_effect = &dmy;
+        impact_slot = &dmy;
     impact_found:
-        impact_effect->proc = DrawImpact;
-        impact_effect->param.impact.px = scratch.impact_position.vx;
-        impact = &impact_effect->param.impact;
+        impact_slot->proc = DrawImpact;
+        impact_slot->param.impact.px = scratch.impact_position.vx;
+        impact = &impact_slot->param.impact;
         impact->py = scratch.impact_position.vy;
         impact_pz = scratch.impact_position.vz;
         impact->rotate_speed = GORE_IMPACT_ROTATE_SPEED;

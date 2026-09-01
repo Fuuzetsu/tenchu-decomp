@@ -2675,12 +2675,13 @@ def rule_deref_address_split(text, name, span):
 def rule_ptr_index_sum(text, name, span):
     """Rewrite `T *p = base + idx;` to the integer-sum `p = (T*)(idx*sizeof(T) + (int)base)`.
 
-    Pointer arithmetic `base + idx` ALWAYS folds to a base-first `addu`; only integer
-    addition preserves operand order, and the target sometimes wants index-first
-    (cookbook: "Pointer arithmetic normalises to base+index"). This closed SetBlood and
-    SetHinoko. Yields BOTH operand assignments (which is base vs index); a
-    semantically-wrong one just produces wrong bytes and is discarded by scoring. Only
-    fires on a pointer-typed local declaration whose initializer is a bare `A + B`."""
+    This is a last-mile matcher for a genuine source pointer sum whose target wants the
+    opposite `addu` order. Do not use it to transcribe a compiler-generated array cursor:
+    first try removing the pointer and accessing `base[idx]` throughout the real loop;
+    strength reduction closed SetBlood and SetHinoko naturally. Yields BOTH operand
+    assignments (which is base vs index); a semantically-wrong one just produces wrong
+    bytes and is discarded by scoring. Only fires on a pointer-typed local declaration
+    whose initializer is a bare `A + B`."""
     data = text.encode()
     body = _func_body(data, name, _byte_span(text, span))
     if body is None:

@@ -36,42 +36,35 @@ void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
     int count;
     TEffectSlot *base;
     TEffectSlot *slot;
-    TEffectSlot *ef;
     SnowParticleType *particle;
     s16 vz;
 
     idx = EFFECT_CURSOR_;
     count = 0;
     base = EffectSlot;
-    slot = base + idx;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    count++;
-    if (count > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    slot = &dmy;
 found:
-    ef->param.snow.x = pos->vx;
-    particle = &ef->param.snow;
+    slot->param.snow.x = pos->vx;
+    particle = &slot->param.snow;
     particle->y = pos->vy;
     particle->z = pos->vz;
     particle->velocity[0] = velocity->vx;
@@ -81,8 +74,8 @@ found:
     particle->size = size;
     particle->sample_y = particle->y - 8000;
     particle->velocity[2] = vz;
-    particle->ground = GetAreaMapLevel(GlobalAreaMap, ef->param.snow.x,
+    particle->ground = GetAreaMapLevel(GlobalAreaMap, slot->param.snow.x,
                                        particle->sample_y, particle->z,
                                        AREA_LEVEL_FIRST_HIT);
-    ef->proc = DrawSnow;
+    slot->proc = DrawSnow;
 }

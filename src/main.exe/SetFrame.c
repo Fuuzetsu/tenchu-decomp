@@ -25,25 +25,20 @@
  * search shape recurs in SetSplash/SetBleed and every other EffectSlot
  * inserter — see effect.h and this function's comments for the reusable
  * idioms):
- *  - The pool search is a hand-rolled `goto loop;`, not `while(1){...break;}`:
- *    the give-up path takes `&dmy`'s address (a compile-time constant), and a
- *    real loop shape would let loop.c hoist that lui/addiu into the preheader
- *    — the target only materializes it at its own use, right before "found".
- *  - `idx = CURSOR; slot = base + idx;` (idx assigned first, slot computed
- *    FROM idx) lands idx/slot in the target's t0/v1 register pair; computing
- *    slot first and re-reading the cursor global for idx (relying on cse to
- *    fold the loads) swaps them to v1/t0 instead.
+ *  - The pool search is a real bottom-tested do-while over `base[idx]`.
+ *    Loop strength reduction creates the target's scan pointer and wrap reset;
+ *    `slot` is only the found/fallback result.
  *  - The free-slot cursor-update store lives INSIDE
- *    `if (slot->proc == 0) { ...; ef = slot; break; }`, not after a bare
+ *    `if (base[idx].proc == 0) { ... }`, not after a bare
  *    `if (proc==0) break;` with the update code after the loop — only the
  *    former gives the occupied path (not the found path) the branch-away
  *    polarity the target has (a bare `if(cond) break;`'s jump always goes
  *    with cond-true, i.e. the wrong path here).
  *  - A param-union write to a NONZERO field offset goes through a cached
- *    typed pointer (`fp = &ef->param.frame;`); the very first field written,
+ *    typed pointer (`fp = &slot->param.frame;`); the very first field written,
  *    if it sits at a nonzero offset itself (frame.px here), still wants fp —
  *    only an offset-ZERO field (frame.super) is written through a fresh
- *    `ef->param.frame.super = ...` recast instead of `fp->super`.
+ *    `slot->param.frame.super = ...` recast instead of `fp->super`.
  *  - `z = pos->vz;` (captured before the mode/size/count stores, stored via
  *    `fp->pz = z;` after them) reproduces the original's delayed store —
  *    inlining `fp->pz = pos->vz;` in position would read pos->vz too late.
@@ -57,40 +52,33 @@ void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     FrameType *fp;
 
     idx = EFFECT_CURSOR_;
     count = 0;
     base = EffectSlot;
-    slot = base + idx;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    count++;
-    if (count > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    slot = &dmy;
 found:
-    fp = &ef->param.frame;
+    fp = &slot->param.frame;
     fp->px = pos->vx;
     fp->py = pos->vy;
     z = pos->vz;
@@ -98,6 +86,6 @@ found:
     fp->size = size;
     fp->progress.countdown = time;
     fp->pz = z;
-    ef->param.frame.super = super;
-    ef->proc = DrawFrame;
+    slot->param.frame.super = super;
+    slot->proc = DrawFrame;
 }

@@ -22,28 +22,25 @@
 
 /*
  * Matching notes (all verified against the original bytes):
- *  - The effect-slot pool search is a hand-rolled `goto loop;` (NOT
- *    while(1)+break): the give-up path takes `&dmy`'s address, a compile-time
- *    constant, and a real loop shape would let loop.c hoist that lui/addiu to
- *    the preheader (wrong — target only materializes &dmy at its own use).
- *  - `idx` must be assigned before `slot = base + idx;` (not the other way
- *    round with a second read of the cursor global) to land idx/slot in the
- *    target's t0/v1 pair instead of the swapped v1/t0.
+ *  - The effect-slot pool search is a bottom-tested do-while over
+ *    `base[idx]`. Loop strength reduction creates the target's pointer/index
+ *    lockstep; neither that scan pointer nor a second result alias belongs in
+ *    the source. The pool-full `slot = &dmy` assignment follows the loop.
  *  - The free-slot cursor-update code (store back to the pool cursor) lives
- *    INSIDE the `if (slot->proc == 0) { ...; ef = slot; break; }` body, not
+ *    INSIDE the `if (base[idx].proc == 0) { ... }` body, not
  *    after a bare `if (proc==0) break;` — that's what gives the occupied path
  *    (not the found path) the branch-away polarity the original has.
- *  - `ef->param.bleed.pos = *pos;` / `.vec = *vec;` are plain whole-struct
+ *  - `slot->param.bleed.pos = *pos;` / `.vec = *vec;` are plain whole-struct
  *    assignments: VECTOR (align 4) block-moves as 4 lw+4 sw, SVECTOR (align 2)
  *    as lwl/lwr+swl/swr pairs — no manual field-by-field copy needed.
- *  - `param = &ef->param.bleed;` must be computed BEFORE `r = col >> 16;` (both
+ *  - `param = &slot->param.bleed;` must be computed BEFORE `r = col >> 16;` (both
  *    textually and hence in the RTL) even though r's value is stored later:
  *    with r first, cc1 duplicates r's independent `sra` onto both merge-entry
  *    paths and leaves param's address undupped, backwards from the target
  *    (which duplicates the necessarily-path-dependent param address and
  *    computes r's path-invariant value exactly once). Reordering the two flips
  *    it back.
- *  - `ef->proc = ...;` last, after time/b/mode, lets its store fall into the
+ *  - `slot->proc = ...;` last, after time/b/mode, lets its store fall into the
  *    final jr's delay slot like the original.
  */
 extern void DrawBleed(TEffectSlot *ef);
@@ -54,48 +51,41 @@ void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     BleedType *param;
     u8 r;
 
     base = EffectSlot;
     idx = EFFECT_CURSOR_;
-    slot = base + idx;
     count = 0;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    count++;
-    if (count > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    slot = &dmy;
 found:
-    param = &ef->param.bleed;
+    param = &slot->param.bleed;
     r = col >> 16;
-    ef->param.bleed.pos = *pos;
-    ef->param.bleed.vec = *vec;
+    slot->param.bleed.pos = *pos;
+    slot->param.bleed.vec = *vec;
     param->r = r;
     param->g = col >> 8;
     param->time = time;
     param->b = col;
     param->mode = 0;
-    ef->proc = DrawBleed;
+    slot->proc = DrawBleed;
 }

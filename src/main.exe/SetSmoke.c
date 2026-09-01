@@ -30,15 +30,15 @@
  * "loop.c invariant motion is a THRESHOLD economy" section, which this
  * function established):
  *  - Same EffectSlot[200] pool search shape as SetExplosion (do{...}while
- *    (count<200), ef=&dmy AFTER the loop, count++ BEFORE the proc test),
+ *    (count<200), slot=&dmy AFTER the loop, count++ BEFORE the proc test),
  *    wrapped in an OUTER `do { ... } while (1);` spawning n particles.
  *  - `base = EffectSlot;` is the FIRST statement of the outer loop body,
  *    BEFORE the `count = 0;` and the guard. Position is load-bearing twice
  *    over: (a) a set of a USER variable inside a loop is only hoistable by
  *    loop.c when it is guaranteed to execute once the loop is entered
  *    (scan_loop's third eligibility case), i.e. it must precede the
- *    conditional `return`; being a user variable it unifies BOTH EffectSlot
- *    uses (`base + idx` and the wrap reset) into one long-lived pseudo whose
+ *    conditional `return`; being a user variable it supplies the indexed
+ *    EffectSlot scan and result address through one long-lived pseudo whose
  *    savings*lifetime clears the move threshold, landing `lui/addiu` in the
  *    prologue with base cached in $s7 for the whole function. (b) The two
  *    moves (high + lo_sum) decay loop.c's move threshold by 3 each
@@ -84,7 +84,6 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     SmokeType *smoke;
     int r;
     int m;
@@ -99,31 +98,28 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
             return;
         }
         idx = EFFECT_CURSOR_;
-        slot = base + idx;
         do
         {
             idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+        if (idx >= N_EFFECT_SLOTS)
             {
-                slot = base;
                 idx = 0;
             }
             count++;
-            if (slot->proc == 0)
+            if (base[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                ef = slot;
+                slot = &base[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);
-        ef = &dmy;
+        slot = &dmy;
     found:
-        smoke = &ef->param.smoke;
+        smoke = &slot->param.smoke;
         r = rand();
         smoke->scale = r % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;
         smoke->rotate = (rand() % 360) * FIXED_ONE;
@@ -139,6 +135,6 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         smoke->sprite = SMOKE_SPRITE_NORMAL;
         m = smoke->time - 1;
         smoke->evtime = m - (time / 2 + r % time);
-        ef->proc = DrawSmoke;
+        slot->proc = DrawSmoke;
     } while (1);
 }

@@ -50,43 +50,36 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     ImpactType *param;
     long pz;
 
     idx = EFFECT_CURSOR_;
     count = 0;
     base = EffectSlot;
-    slot = base + idx;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    count++;
-    if (count > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    slot = &dmy;
 found:
-    ef->proc = DrawImpact;
-    ef->param.impact.px = pos->vx;
-    param = &ef->param.impact;
+    slot->proc = DrawImpact;
+    slot->param.impact.px = pos->vx;
+    param = &slot->param.impact;
     param->py = pos->vy;
     pz = pos->vz;
     param->super = super;

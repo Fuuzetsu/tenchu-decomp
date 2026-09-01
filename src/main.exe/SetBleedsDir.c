@@ -153,51 +153,44 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             TEffectSlot *base;
             TEffectSlot *slot;
             int count;
-            TEffectSlot *ef;
             BleedType *param;
             u8 r;
 
             idx = EFFECT_CURSOR_;
             count = 0;
             base = EffectSlot;
-            slot = base + idx;
-        loop:
-            idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+            do
             {
-                slot = base;
-                idx = 0;
-            }
-            if (slot->proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+                idx++;
+        if (idx >= N_EFFECT_SLOTS)
                 {
-                    EFFECT_CURSOR_ = 0;
+                    idx = 0;
                 }
-                ef = slot;
-                goto found;
-            }
-            count++;
-            if (count > N_EFFECT_SLOTS - 1)
-            {
-                ef = &dmy;
-                goto found;
-            }
-            goto loop;
+                if (base[idx].proc == 0)
+                {
+                    EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+                    {
+                        EFFECT_CURSOR_ = 0;
+                    }
+                    slot = &base[idx];
+                    goto found;
+                }
+                count++;
+            } while (count < N_EFFECT_SLOTS);
+            slot = &dmy;
         found:
             n--;
-            param = &ef->param.bleed;
+            param = &slot->param.bleed;
             r = col >> 16;
-            ef->param.bleed.pos = *pos;
-            ef->param.bleed.vec = work.vector.velocity;
+            slot->param.bleed.pos = *pos;
+            slot->param.bleed.vec = work.vector.velocity;
             param->r = r;
             param->g = col >> 8;
             param->time = time;
             param->b = col;
             param->mode = 0;
-            ef->proc = DrawBleed;
+            slot->proc = DrawBleed;
         }
     } while (1);
 }

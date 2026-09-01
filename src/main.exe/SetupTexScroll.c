@@ -24,10 +24,8 @@
  * page (AddMisc.c passes the just-uploaded TIM's own GsIMAGE plus the two
  * retail scroll velocities). It uses the same round-robin EffectSlot[200]
  * pool search as SetSplash/SetFrame/SetBleed/SetSmoke (see
- * SetSplash.c for the shared idiom writeup — goto loop instead of
- * while(1)+break so loop.c doesn't hoist `&dmy`'s address, idx-computed-
- * before-slot, cursor-update store living inside `if (slot->proc==0)
- * {...break;}` for the right branch polarity).
+ * SetSplash.c for the shared indexed do-while idiom). Loop strength reduction
+ * creates the target's scan pointer from the direct `base[idx]` accesses.
  *
  * The found slot's `texscroll` payload is retail's shortened form of the
  * PSX.SYM TexScroll record: it keeps px/py, vx/vy, x/y, sx/sy, and image,
@@ -80,7 +78,6 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     TexScroll *tscr;
     s16 scrollX;
     short scrollY;
@@ -90,40 +87,34 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
     idx = EFFECT_CURSOR_;
     count = 0;
     base = EffectSlot;
-    slot = base + idx;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    count++;
-    if (count > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    slot = &dmy;
 found:
 {
     u32 scrollYShifted;
     int sx;
     short mask;
 
-    tscr = &ef->param.texscroll;
-    ef->param.texscroll.px = tscr->py = 0;
+    tscr = &slot->param.texscroll;
+    slot->param.texscroll.px = tscr->py = 0;
 
     scrollX = TexScrollX;
     scrollY = TexScrollY;
@@ -160,7 +151,7 @@ found:
     TexScrollY += TEXSCROLL_VRAM_SLOT_STRIDE;
     tscr->vx = vx;
     tscr->vy = vy;
-    ef->proc = UpdateTexScroll;
+    slot->proc = UpdateTexScroll;
     if (TexScrollY > TEXSCROLL_VRAM_Y_LIMIT)
     {
         TexScrollY = TEXSCROLL_VRAM_ORIGIN_Y;

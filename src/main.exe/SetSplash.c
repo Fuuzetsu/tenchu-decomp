@@ -21,14 +21,10 @@
  * END PSX.SYM */
 
 /*
- * Matching notes (see SetFrame.c for the full writeup of the shared
- * EffectSlot pool-search idioms — goto loop instead of while(1)+break so
- * loop.c doesn't hoist &dmy's address, idx-computed-before-slot so idx/slot
- * land in the target's t0/v1 pair, and the cursor-update store living inside
- * `if (slot->proc==0){...break;}` for the right branch polarity):
+ * Matching notes (see SetFrame.c for the shared indexed do-while pool scan):
  *  - splash.px is this struct's offset-ZERO field and is the first one
- *    written, so it goes through a fresh `ef->param.splash.px = ...` recast;
- *    `fp = &ef->param.splash;` is only introduced for the second field
+ *    written, so it goes through a fresh `slot->param.splash.px = ...` recast;
+ *    `fp = &slot->param.splash;` is only introduced for the second field
  *    onward (all nonzero offsets), matching the target's t0-direct first
  *    store followed by a v1=t0+4 computed just before the second.
  */
@@ -41,41 +37,34 @@ void SetSplash(VECTOR *pos, short sx, short sy, int speed)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     SplashType *fp;
 
     idx = EFFECT_CURSOR_;
     count = 0;
     base = EffectSlot;
-    slot = base + idx;
-loop:
-    idx++;
-    slot++;
-    if (idx > N_EFFECT_SLOTS - 1)
+    do
     {
-        slot = base;
-        idx = 0;
-    }
-    if (slot->proc == 0)
-    {
-        EFFECT_CURSOR_ = idx + 1;
-        if (N_EFFECT_SLOTS - 1 < idx + 1)
+        idx++;
+        if (idx >= N_EFFECT_SLOTS)
         {
-            EFFECT_CURSOR_ = 0;
+            idx = 0;
         }
-        ef = slot;
-        goto found;
-    }
-    count++;
-    if (count > N_EFFECT_SLOTS - 1)
-    {
-        ef = &dmy;
-        goto found;
-    }
-    goto loop;
+        if (base[idx].proc == 0)
+        {
+            EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            slot = &base[idx];
+            goto found;
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    slot = &dmy;
 found:
-    ef->param.splash.px = pos->vx;
-    fp = &ef->param.splash;
+    slot->param.splash.px = pos->vx;
+    fp = &slot->param.splash;
     fp->py = pos->vy;
     z = pos->vz;
     fp->mode = SPLASH_MODE_SPAWN;
@@ -83,5 +72,5 @@ found:
     fp->sy = sy;
     fp->speed = speed;
     fp->pz = z;
-    ef->proc = DrawSplash;
+    slot->proc = DrawSplash;
 }

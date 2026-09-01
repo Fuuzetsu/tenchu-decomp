@@ -62,10 +62,9 @@
  *    the rand call precedes the independent Y adjustment without retaining
  *    a copy.  The other random remainders stay inline; reusing one multi-def
  *    temp inserted four target-absent moves after the calls.
- *  - The EffectSlot scan is the established hand-written goto loop.  Its
- *    separate `effect` result is load-bearing even though it always equals
- *    `slot` on success: the transfer at the found edge produces the target's
- *    loop-exit move and restores the idx/count/slot register assignment.
+ *  - The EffectSlot scan directly indexes `base[idx]` in a bottom-tested
+ *    loop. Strength reduction generates the target's pointer walk; `slot`
+ *    carries only the found/fallback result recorded by PSX.SYM.
  *  - ShadowMdl is viewed as ModelType: locate@0, rotate@0x50, and
  *    object@0x64 account for every use.  The chained scl assignment emits
  *    the target's reverse z/y/x stack-store order.
@@ -101,7 +100,6 @@ void DrawShadow(Humanoid *human)
             s32 count;
             TEffectSlot *base;
             TEffectSlot *slot;
-            TEffectSlot *effect;
             SplashType *param;
             s32 z;
 
@@ -122,34 +120,28 @@ void DrawShadow(Humanoid *human)
             idx = EFFECT_CURSOR_;
             count = 0;
             base = EffectSlot;
-            slot = base + idx;
-        loop:
-            idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+            do
             {
-                slot = base;
-                idx = 0;
-            }
-            if (slot->proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+                idx++;
+        if (idx >= N_EFFECT_SLOTS)
                 {
-                    EFFECT_CURSOR_ = 0;
+                    idx = 0;
                 }
-                effect = slot;
-                goto found;
-            }
-            count++;
-            if (count > N_EFFECT_SLOTS - 1)
-            {
-                effect = &dmy;
-                goto found;
-            }
-            goto loop;
+                if (base[idx].proc == 0)
+                {
+                    EFFECT_CURSOR_ = idx + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+                    {
+                        EFFECT_CURSOR_ = 0;
+                    }
+                    slot = &base[idx];
+                    goto found;
+                }
+                count++;
+            } while (count < N_EFFECT_SLOTS);
+            slot = &dmy;
         found:
-            param = &effect->param.splash;
+            param = &slot->param.splash;
             param->px = position->vx;
             param->py = position->vy;
             z = position->vz;
@@ -158,7 +150,7 @@ void DrawShadow(Humanoid *human)
             param->speed = 4;
             param->mode = SPLASH_MODE_SPAWN;
             param->pz = z;
-            effect->proc = DrawSplash;
+            slot->proc = DrawSplash;
         }
     }
     else if (human->map.attrib & MAP_DAMAGE)

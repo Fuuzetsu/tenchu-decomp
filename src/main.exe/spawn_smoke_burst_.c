@@ -15,8 +15,9 @@
  *    explicitly initialized once before the loop.
  *  - The EffectSlot search is the usual bottom-tested do-while. Keeping the
  *    pool-full fallback after it reproduces the target's delay-slot increment
- *    and compensating decrement.
- *  - Compute the first spread width before taking `&ef->param.smoke`, then put
+ *    and compensating decrement. Direct `base[idx]` accesses let loop strength
+ *    reduction generate the target's scan pointer.
+ *  - Compute the first spread width before taking `&slot->param.smoke`, then put
  *    the positive-width body first. This places the pointer formation in the
  *    branch delay slot and gives both spread arms their target layout.
  *  - `pos` is copied as three scalar words, not as a VECTOR aggregate (which
@@ -41,7 +42,6 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
     TEffectSlot *base;
     TEffectSlot *slot;
     int searched;
-    TEffectSlot *ef;
     SmokeType *smoke;
     short vx;
     short vy;
@@ -58,37 +58,32 @@ loop:
         return;
     }
     idx = EFFECT_CURSOR_;
-    /* Offset spelling: byte-required (base + idx flips the addu operand
-         * order; measured — same class as UpdateEvent's walk). */
-        slot = (TEffectSlot *)((idx * sizeof(TEffectSlot)) + (s32)base);
     do
     {
         idx++;
-        slot++;
-        if (idx > N_EFFECT_SLOTS - 1)
+        if (idx >= N_EFFECT_SLOTS)
         {
-            slot = base;
             idx = 0;
         }
-        if (slot->proc == 0)
+        if (base[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (N_EFFECT_SLOTS - 1 < idx + 1)
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            ef = slot;
+            slot = &base[idx];
             goto found;
         }
         searched++;
     } while (searched < N_EFFECT_SLOTS);
-    ef = &dmy;
+    slot = &dmy;
 found:
     {
         int width;
 
         width = (s16)spread * 2;
-        smoke = &ef->param.smoke;
+        smoke = &slot->param.smoke;
         if (width > 0)
         {
             smoke->vec.vx = rand() % width - spread;
@@ -143,6 +138,6 @@ found:
     m = smoke->time - 8;
     smoke->sprite = 1;
     smoke->evtime = m - ((s32)r % 15);
-    ef->proc = DrawSmoke;
+    slot->proc = DrawSmoke;
     goto loop;
 }

@@ -25,23 +25,16 @@
  * END PSX.SYM */
 
 /*
- * MATCHED. Same TU, identical residual/fix as SetBlood: the pool-scan
- * cursor init `slot = base + idx;` needs the INTEGER-SUM spelling —
- *     slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
- * — to get the target's index-first `addu $a0,$v0,$s5` instead of the
- * base-first `addu $a0,$s5,$v0` that plain pointer arithmetic (`base+idx`,
- * `idx+base`, `&base[idx]`) always folds to. See SetBlood.c's header for
- * the full cookbook-rule writeup ("Pointer arithmetic normalises to
- * base+index; only INTEGER addition keeps operand order").
- *
  * Matching notes (all verified against the original bytes):
  *  - Unlike SetBlood in the same TU, retail keeps PSX.SYM's exact
  *    THREE-argument prototype (pos, power, n) — all three registers
  *    ($a0/$a1/$a2) are read at entry and no parameter was dropped.
  *  - Same EffectSlot[200] round-robin search as SetBlood/SetExplosion/
- *    SetImpact (do-while, `ef = &dmy;` sits AFTER the loop). This
+ *    SetImpact (do-while, `slot = &dmy;` sits AFTER the loop). Direct
+ *    `base[idx]` accesses let loop strength reduction generate the target's
+ *    scan pointer instead of exposing that compiler cursor in the source. This
  *    function's own asm has `count = count + 1;` BEFORE the
- *    `if (slot->proc == 0)` test (the "occupied" branch's delay slot
+ *    `if (base[idx].proc == 0)` test (the "occupied" branch's delay slot
  *    unconditionally increments count) — SetExplosion's order, not
  *    SetImpact's.
  *  - The outer "spawn n particles" fill is `while (1) { if (!(i < n)) break;
@@ -75,7 +68,6 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     ExplosionType *param;
     short i;
     int r;
@@ -90,31 +82,28 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         }
         count = 0;
         idx = EFFECT_CURSOR_;
-        slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
         do
         {
             idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+        if (idx >= N_EFFECT_SLOTS)
             {
-                slot = base;
                 idx = 0;
             }
             count++;
-            if (slot->proc == 0)
+            if (base[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                ef = slot;
+                slot = &base[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);
-        ef = &dmy;
+        slot = &dmy;
     found:
-        param = &ef->param.hinoko;
+        param = &slot->param.hinoko;
         param->scale = rand() % FIXED_ONE + FIXED_ONE;
         param->rotate = (rand() % 360) * FIXED_ONE;
         param->pos.vx = pos->vx;
@@ -127,6 +116,6 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         i++;
         param->mode = EXPLOSION_MODE_FLASH;
         param->time = r % 15 + 15;
-        ef->proc = DrawHinoko;
+        slot->proc = DrawHinoko;
     }
 }

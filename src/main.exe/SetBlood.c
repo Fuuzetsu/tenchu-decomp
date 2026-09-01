@@ -28,22 +28,6 @@
  * END PSX.SYM */
 
 /*
- * MATCHED. The pool-scan cursor's initial address computation `slot = base +
- * idx;` needed the INTEGER-SUM spelling, not pointer arithmetic:
- *     slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
- * Plain `base + idx` pointer arithmetic folds to a base-first `addu $a0,
- * $s6,$v0` regardless of source spelling (`base+idx`, `idx+base`,
- * `&base[idx]` all identical post-fold); the target has index-first `addu
- * $a0,$v0,$s6`. Cookbook rule confirmed here: "Pointer arithmetic normalises
- * to base+index; only INTEGER addition keeps operand order" — spelling the
- * same address as an explicit `idx*sizeof + (int)base` integer sum (instead
- * of `base[idx]`/`base+idx`) reaches the index-first `addu` because integer
- * PLUS doesn't get the pointer-arithmetic canonicalization fold does to
- * array/pointer addition. This was previously (wrongly) parked as
- * "permuter-immune, sub-C-level, no source lever" — it had a lever, just not
- * the one tried (reordering statements/loop shape instead of the operand's
- * own type). SetHinoko (same TU, identical residual) fixed the same way.
- *
  * Matching notes (all verified against the original bytes):
  *  - The demo's PSX.SYM records a FOUR-argument prototype (pos, vect, n,
  *    time). Retail's three callers (ActDAMAGE, CVAupdate, DamageControl x2)
@@ -69,11 +53,15 @@
  *    that invariant motion (cookbook: "a top-test loop that never hoists its
  *    invariants is a hand-rolled goto loop, not while(1)+break").
  *  - The inner EffectSlot[200] search is the same round-robin do-while as
- *    SetExplosion/SetImpact (`ef = &dmy;` sits AFTER the loop). Verified
+ *    SetExplosion/SetImpact (`slot = &dmy;` sits AFTER the loop). It is
+ *    expressed as `base[idx]`; loop strength reduction creates the pointer
+ *    walk visible in the target. Keeping that generated cursor out of the C
+ *    source also preserves PSX.SYM's single result pointer, `slot`.
+ *    Verified
  *    from THIS function's own asm (don't assume a sibling's shape): the
  *    "occupied" branch's delay slot unconditionally increments `count`
  *    regardless of outcome, so `count = count + 1;` sits BEFORE the
- *    `if (slot->proc == 0)` test — SetExplosion's order, not SetImpact's.
+ *    `if (base[idx].proc == 0)` test — SetExplosion's order, not SetImpact's.
  *  - Field store order follows Ghidra's own rendering exactly: sprite,
  *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a
  *    brightness halfword store, hint, mode, and `proc` last (it lands in
@@ -92,7 +80,6 @@ void SetBlood(VECTOR *pos, short n, short time)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     BloodType *blood;
     struct AreaNodeType *hint;
     short i;
@@ -112,31 +99,28 @@ outer:
     {
         count = 0;
         idx = EFFECT_CURSOR_;
-        slot = (TEffectSlot *)(idx * sizeof(TEffectSlot) + (int)base);
         do
         {
             idx++;
-            slot++;
-            if (idx > N_EFFECT_SLOTS - 1)
+            if (idx >= N_EFFECT_SLOTS)
             {
-                slot = base;
                 idx = 0;
             }
             count++;
-            if (slot->proc == 0)
+            if (base[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
-                if (N_EFFECT_SLOTS - 1 < idx + 1)
+                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                ef = slot;
+                slot = &base[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);
-        ef = &dmy;
+        slot = &dmy;
     found:
-        blood = &ef->param.blood;
+        blood = &slot->param.blood;
         do
         {
             blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
@@ -162,7 +146,7 @@ outer:
             blood->brightness = 0x80;
             blood->hint = hint;
             blood->mode = BLOOD_MODE_AIRBORNE;
-            ef->proc = DrawBlood;
+            slot->proc = DrawBlood;
         } while (0);
     }
     goto outer;

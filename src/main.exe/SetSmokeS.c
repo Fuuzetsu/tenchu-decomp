@@ -39,7 +39,6 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     TEffectSlot *base;
     TEffectSlot *slot;
     int count;
-    TEffectSlot *ef;
     SmokeType *smoke;
     int r;
     int m;
@@ -47,31 +46,28 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     count = 0;
     base = EffectSlot;
     idx = EFFECT_CURSOR_;
-    slot = base + idx;
     do
     {
         idx++;
-        slot++;
-        if (idx > N_EFFECT_SLOTS - 1)
+        if (idx >= N_EFFECT_SLOTS)
         {
-            slot = base;
             idx = 0;
         }
-        if (slot->proc == 0)
+        if (base[idx].proc == 0)
         {
             EFFECT_CURSOR_ = idx + 1;
-            if (N_EFFECT_SLOTS - 1 < idx + 1)
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
             {
                 EFFECT_CURSOR_ = 0;
             }
-            ef = slot;
+            slot = &base[idx];
             goto found;
         }
         count++;
     } while (count < N_EFFECT_SLOTS);
-    ef = &dmy;
+    slot = &dmy;
 found:
-    smoke = &ef->param.smoke;
+    smoke = &slot->param.smoke;
     smoke->scale = rand() % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;
     smoke->rotate = (rand() % 360) * FIXED_ONE;
     smoke->pos.vx = pos->vx;
@@ -85,5 +81,5 @@ found:
     smoke->sprite = SMOKE_SPRITE_NORMAL;
     m = smoke->time - 1;
     smoke->evtime = m - ((short)time / 2 + r % (short)time);
-    ef->proc = DrawSmoke;
+    slot->proc = DrawSmoke;
 }
