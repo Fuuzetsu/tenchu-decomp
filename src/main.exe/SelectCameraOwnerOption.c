@@ -79,11 +79,17 @@ extern void sprintf(char *s, char *fmt, ...);
 
 void SelectCameraOwnerOption(void)
 {
+    enum
+    {
+        MAX_CAMERA_OWNER_CHOICES = 35,
+        N_CAMERA_OWNER_MENU_ENTRIES = MAX_CAMERA_OWNER_CHOICES + 1,
+        CAMERA_OWNER_LABEL_SIZE = 10
+    };
     int i;
-    TAdtSelect targets[36];
-    u8 msg[35][10];
+    TAdtSelect targets[N_CAMERA_OWNER_MENU_ENTRIES];
+    u8 msg[MAX_CAMERA_OWNER_CHOICES][CAMERA_OWNER_LABEL_SIZE];
 
-    if (Humans < 35)
+    if (Humans < MAX_CAMERA_OWNER_CHOICES)
     {
         for (i = 0; i < Humans; i++)
         {
