@@ -663,11 +663,16 @@ negated. Everything else here is corollaries:
   check (EquipWeapon's documented `- 4`, the briefing cheat switch,
   ActENGAGE's item switch) — measure, then document whichever way it lands.
 - **A hand-labelled loop (top exit test, conditional continue, unconditional
-  backward `goto`) has NO structured spelling**: any real C loop construct
-  gets loop-rotated at -O2 (`duplicate_loop_exit_test` copies the exit test;
-  StageEndScreen's layout scan measured +7 insns as `for(;;)`+`break`) — the
-  label form is the source. Same shape in CVAupdate's slot scans, AfsGetEntry,
-  PutStrain, RestoreItemLayout, SetBleeds/SetBleedsDir, DrawShadow, vmemoryGC.
+  backward `goto`) usually has no structured spelling**: an ordinary bounded
+  loop gets rotated at -O2 (`duplicate_loop_exit_test` copies the exit test;
+  StageEndScreen's layout scan measured +7 insns as `for(;;)`+`break`). Same
+  shape in CVAupdate's slot scans, AfsGetEntry, PutStrain,
+  SetBleeds/SetBleedsDir, DrawShadow, and vmemoryGC. Do still test an infinite
+  loop with an explicit top guard when the CFG has an external entry into its
+  exit: RestoreItemLayout's `search_success` enters the post-body count check,
+  blocks rotation, and preserves the loop-depth weights needed for exact
+  allocation. Reconstructing both enclosing loops this way removed three
+  allocation identities while keeping the target topology exactly.
 - **A shared flag assignment feeding a real multi-predecessor join is an
   allocation lever; followed immediately by its own local return it
   constant-folds** (`return !flag` after `flag = 1` → literal) — keep the
@@ -2240,10 +2245,13 @@ irreducible nest: DrawConstruction's 3.
   separately**.
   Say at the site that it is allocation staging, not arithmetic. But a passing
   removal test does **not** prove the weight itself was source-authored: first
-  split any fused producer/update that feeds the identity. `ProcMiscDoor`'s
-  `t = ratan2(...) + rotation` needed the fence; the natural
-  `t = ratan2(...); t += rotation;` supplies the same allocation boundary and
-  removes both the identity and an invented `wrap` local exactly.
+  split any fused producer/update that feeds the identity, then restore any
+  missing structured loop scopes around it. `ProcMiscDoor`'s `t = ratan2(...) +
+  rotation` needed the fence; the natural `t = ratan2(...); t += rotation;`
+  supplies the same allocation boundary and removes both the identity and an
+  invented `wrap` local exactly. RestoreItemLayout's missing outer and inner
+  infinite-loop scopes had hidden the real loop-depth weights; restoring them
+  removed all three level/x/z identities exactly.
 - **`*(u16 *)&x` on a field that is ALREADY 16 bits is noise; delete it.**
   The reinterpret only means something when it changes the access: it is
   load-bearing when it narrows a wider field (`GsDOBJ2.attribute` and

@@ -27,11 +27,11 @@
  * The decisive reconstruction was aggregate syntax: assigning the 16-byte
  * VECTOR into `tmp.locate` makes cc1 emit the target's batched t1-t4 load/store
  * copy, while the following whole PARAM_ITEM_STAY assignment emits its second
- * batched copy.  The late `search_success` trampoline reproduces the target's
- * success-only vx/vz stores and jump back to the shared k==4 check without
- * cloning ReqItemStay.  Folded unsigned identities at the final level/x/z
- * stores order level, z, x, offs, and k into the target s0-s4 homes while
- * leaving scheduling intact.
+ * batched copy.  The nested infinite loops retain the source loop scopes while
+ * the late `search_success` trampoline reproduces the target's success-only
+ * vx/vz stores and jump back to the shared k==4 check.  That shared exit keeps
+ * one ReqItemStay call and gives level, z, x, offs, and k their target register
+ * order without artificial arithmetic at the final stores.
  */
 
 /* The [4] bound is LOAD-BEARING CODEGEN, not a claim about the table's length:
@@ -94,57 +94,63 @@ void RestoreItemLayout(void *buf)
     level_mode = AREA_LEVEL_STEP_DOWN;
     sentinel = LEVEL_NONE;
     slot = buf;
-loop2:
-    if (i >= MAX_ITEMS)
-        return;
-    if (slot->type != ITEM_NONE)
+    for (;;)
     {
-        PARAM_ITEM_STAY tmp;
-
-        memset(&tmp, 0, sizeof(PARAM_ITEM_STAY));
-        tmp.type = slot->type;
-        tmp.locate = slot->locate;
-        param = tmp;
-
-        level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, level_mode);
-        if (level == sentinel || abs(level - param.locate.vy) >= 1000)
+        if (i >= MAX_ITEMS)
+            return;
+        if (slot->type != ITEM_NONE)
         {
-            s32 k = 0;
-            short *offs = DropOffsets;
+            PARAM_ITEM_STAY tmp;
 
-        searchloop:
-            if (k < 4)
+            memset(&tmp, 0, sizeof(PARAM_ITEM_STAY));
+            tmp.type = slot->type;
+            tmp.locate = slot->locate;
+            param = tmp;
+
+            level = GetAreaMapLevel(GlobalAreaMap, param.locate.vx, param.locate.vy, param.locate.vz, level_mode);
+            if (level == sentinel || abs(level - param.locate.vy) >= 1000)
             {
-                x = param.locate.vx + offs[0] * 1000;
-                z = param.locate.vz + offs[1] * 1000;
-                level = GetAreaMapLevel(GlobalAreaMap, x, param.locate.vy, z, level_mode);
-                if (level == sentinel || abs(level - param.locate.vy) >= 1000)
+                s32 k;
+                short *offs;
+
+                k = 0;
+                offs = DropOffsets;
+                for (;;)
                 {
-                    offs += 2;
-                    k++;
-                    goto searchloop;
+                    if (k < 4)
+                    {
+                        x = param.locate.vx + offs[0] * 1000;
+                        z = param.locate.vz + offs[1] * 1000;
+                        level = GetAreaMapLevel(GlobalAreaMap, x,
+                                                param.locate.vy, z, level_mode);
+                        if (level != sentinel &&
+                            abs(level - param.locate.vy) < 1000)
+                        {
+                            goto search_success;
+                        }
+                        offs += 2;
+                        k++;
+                        continue;
+                    }
+                search_check:
+                    if (k == 4)
+                    {
+                        goto skip_stay;
+                    }
+                    break;
                 }
-                goto search_success;
             }
-        search_check:
-            if (k == 4)
-            {
-                goto skip_stay;
-            }
+            param.locate.vy = level;
+            ReqItemStay(&param);
+        skip_stay:;
         }
-        /* allocation staging: folded after flow -- not recovered arithmetic */
-        param.locate.vy = ((u32)level + (u32)level) - (u32)level;
-        ReqItemStay(&param);
-    skip_stay:;
-    }
-    slot++;
-    i++;
-    goto loop2;
+        slot++;
+        i++;
+        continue;
 
-search_success:
-    /* allocation staging: folded after flow -- not recovered arithmetic */
-    param.locate.vx = ((u32)x + (u32)x) - (u32)x;
-    /* allocation staging: folded after flow -- not recovered arithmetic */
-    param.locate.vz = ((u32)z + (u32)z) - (u32)z;
-    goto search_check;
+    search_success:
+        param.locate.vx = x;
+        param.locate.vz = z;
+        goto search_check;
+    }
 }

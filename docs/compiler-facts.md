@@ -40,6 +40,12 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   update, `t = ratan2(...); t += rotation;`, matches exactly without the
   identity or the invented wrapped-angle local. Test the producer graph before
   declaring an allocation fence irreducible.
+- **Missing loop scopes can masquerade as allocation arithmetic.** GCC 2.8.1
+  weights RTL references by syntactic loop depth. RestoreItemLayout's two
+  hand-labelled cycles therefore needed three fake level/x/z identities even
+  though their CFG matched. Reconstructing them as nested infinite loops—with
+  the success trampoline entering the inner loop's post-body count check—keeps
+  the exact unrotated CFG and supplies the original weights naturally.
 - **ARRAY_REF gate**: `c-typeck.c:1406` builds an ARRAY_REF only when the operand
   has ARRAY_TYPE **and is not an INDIRECT_REF**. A pointer-to-array cast
   `(*(T (*)[N])p)[i]` is an INDIRECT_REF → index-first arithmetic; a one-field
