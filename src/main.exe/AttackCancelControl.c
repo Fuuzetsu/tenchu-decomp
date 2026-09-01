@@ -28,14 +28,14 @@
  * `wpatk` (item.h: s16 @0x8E) is read with the expected signed `lh`.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - **This IS a genuine `switch (wk) { case 2: ...; case 3: ...; case 0:
+ *  - **This IS a genuine `switch (weapon) { case 2: ...; case 3: ...; case 0:
  *    goto no_conflict; default: ...; }`, not an if/goto ladder** — despite
  *    Ghidra rendering it as literal nested if/else-if/goto (which LOOKS
  *    identical in body order) and despite the test sequence NOT resembling
  *    a balanced compare tree at first glance (2, then <3, then ==3). Ghidra's
  *    if/goto form and an explicit `if(wk<3){if(wk==0)goto…;}else if(wk==3)`
  *    ladder both compile to a DIFFERENT, 4-insns-longer shape (cc1 inverts
- *    which side of the `wk<3` test is the fallthrough vs the branch target,
+ *    which side of the `weapon<3` test is the fallthrough vs the branch target,
  *    unpredictably relative to naive if/else codegen) — only spelling it as
  *    a real `switch` reproduces the exact test+body layout. Values {0,2,3}
  *    plus `default` (covering 1 and anything else) is the tell; case 0's
@@ -52,13 +52,13 @@ extern Humanoid *Me_MOTION_C;
 
 void AttackCancelControl(s16 mode)
 {
-    s16 wk;
+    weapon_kind weapon;
     ModelType *model;
 
     if ((mode & ATTACK_CANCEL_CONFLICTS) != 0)
     {
-        wk = Me_MOTION_C->wpatk;
-        switch (wk)
+        weapon = Me_MOTION_C->wpatk;
+        switch (weapon)
         {
         case FIST:
             DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);

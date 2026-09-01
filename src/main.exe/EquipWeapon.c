@@ -25,7 +25,7 @@
  * cleanup flags.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `wp = human->weapon;` (a pointer to weapon[0]) is set up FIRST, before
+ *  - `weapons = human->weapon;` (a pointer to weapon[0]) is set up FIRST, before
  *    the dispose call — matches Ghidra's own statement order and the asm's
  *    `addiu s1,s2,0x94` sitting ahead of the `jal`.
  *  - The if/else is written `if (mode != 0) {set-bit} else {clear-bit}`,
@@ -41,32 +41,34 @@
  *    sll+sra promotion). An earlier draft believed a biased
  *    `idx = wpatk - 4` local was required; that measurement was stale.
  *  - Case-body load/store order follows the raw .s, not Ghidra's SSA
- *    rendering (which reorders loads): the first swap loads wp[0] then
- *    wp[2] then wp[3] (Ghidra shows wp[2] first); the second swap loads
- *    wp[2] then wp[0] (Ghidra shows wp[0] first).
+ *    rendering (which reorders loads): the first swap loads weapons[0] then
+ *    weapons[2] then weapons[3] (Ghidra shows weapons[2] first); the second
+ *    swap loads weapons[2] then weapons[0] (Ghidra shows weapons[0] first).
  *  - The second case group is written LAST (no cases follow it) so it
  *    falls straight into the shared return with no explicit `break`/jump —
  *    matches the raw asm having no `j` after its body, unlike the first
  *    group's explicit `j switchD_8002aa7c__caseD_2`.
  *  - Register tie across the two (mutually exclusive) case bodies: the
- *    wp[0]-holding temp is the SAME C variable (`a`) in both cases, which
- *    ties both to $a0 like the target; the OTHER temp in each case (`b`/`c`
- *    in case 1, `d` in case 2) must stay a variable never referenced by the
- *    other case — reusing one of case 1's non-`a` temps for case 2's other
- *    slot (tried `c`) drags case 1's own allocation off-target too, because
- *    one C variable is one pseudo/one hard reg for the WHOLE function, not
- *    per-occurrence. Pick which name to reuse across cases by matching
- *    ROLE (both are "the wp[0] value"), not just by availability.
+ *    weapons[0]-holding temp is the SAME C variable (`active_weapon`) in
+ *    both cases, which ties both to $a0 like the target; the OTHER temp in
+ *    each case (`inactive_weapon_0`/`inactive_weapon_1` in case 1,
+ *    `single_inactive_weapon` in case 2) must stay a variable never
+ *    referenced by the other case — reusing either of case 1's inactive
+ *    temps for case 2's other slot drags case 1's own allocation off-target
+ *    too, because one C variable is one pseudo/one hard reg for the WHOLE
+ *    function, not per-occurrence. Pick which variable to reuse across
+ *    cases by matching ROLE (both are "the weapons[0] value"), not just by
+ *    availability.
  */
 
 /* WEAPON_DRAWN raises ATTR_ALERT; WEAPON_SHEATHED clears it. */
 void EquipWeapon(Humanoid *human, short mode)
 {
-    OrnamentType **wp;
-    OrnamentType *a, *b, *c;
-    OrnamentType *d;
+    OrnamentType **weapons;
+    OrnamentType *active_weapon, *inactive_weapon_0, *inactive_weapon_1;
+    OrnamentType *single_inactive_weapon;
 
-    wp = human->weapon;
+    weapons = human->weapon;
     dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
     if (mode != WEAPON_SHEATHED)
     {
@@ -90,14 +92,14 @@ void EquipWeapon(Humanoid *human, short mode)
     case JYUTE:
     case EN:
     case KATANA_2:
-        a = wp[WEAPON_SLOT_ACTIVE_0];
-        b = wp[WEAPON_SLOT_INACTIVE_0];
-        c = wp[WEAPON_SLOT_INACTIVE_1];
-        wp[WEAPON_SLOT_INACTIVE_0] = a;
-        a = wp[WEAPON_SLOT_ACTIVE_1];
-        wp[WEAPON_SLOT_ACTIVE_0] = b;
-        wp[WEAPON_SLOT_ACTIVE_1] = c;
-        wp[WEAPON_SLOT_INACTIVE_1] = a;
+        active_weapon = weapons[WEAPON_SLOT_ACTIVE_0];
+        inactive_weapon_0 = weapons[WEAPON_SLOT_INACTIVE_0];
+        inactive_weapon_1 = weapons[WEAPON_SLOT_INACTIVE_1];
+        weapons[WEAPON_SLOT_INACTIVE_0] = active_weapon;
+        active_weapon = weapons[WEAPON_SLOT_ACTIVE_1];
+        weapons[WEAPON_SLOT_ACTIVE_0] = inactive_weapon_0;
+        weapons[WEAPON_SLOT_ACTIVE_1] = inactive_weapon_1;
+        weapons[WEAPON_SLOT_INACTIVE_1] = active_weapon;
         break;
     case KOZUKA:
     case NINJA:
@@ -105,10 +107,10 @@ void EquipWeapon(Humanoid *human, short mode)
     case KATANA_0:
     case HOUTOU:
     case KATANA_1:
-        d = wp[WEAPON_SLOT_INACTIVE_0];
-        a = wp[WEAPON_SLOT_ACTIVE_0];
-        wp[WEAPON_SLOT_ACTIVE_0] = d;
-        wp[WEAPON_SLOT_INACTIVE_0] = a;
+        single_inactive_weapon = weapons[WEAPON_SLOT_INACTIVE_0];
+        active_weapon = weapons[WEAPON_SLOT_ACTIVE_0];
+        weapons[WEAPON_SLOT_ACTIVE_0] = single_inactive_weapon;
+        weapons[WEAPON_SLOT_INACTIVE_0] = active_weapon;
         break;
     }
 }

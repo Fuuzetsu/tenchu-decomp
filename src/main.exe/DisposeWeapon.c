@@ -30,15 +30,15 @@ extern void DisposeOrnament(OrnamentType *objp);
 
 void DisposeWeapon(Humanoid *human)
 {
-    OrnamentType **wp;
+    OrnamentType **weapons;
     short i;
 
-    wp = human->weapon;
+    weapons = human->weapon;
     i = 0;
     do
     {
-        DisposeOrnament(wp[i]);
-        wp[i] = 0;
+        DisposeOrnament(weapons[i]);
+        weapons[i] = 0;
         i++;
     } while (i < N_WEAPON_SLOTS);
 }
