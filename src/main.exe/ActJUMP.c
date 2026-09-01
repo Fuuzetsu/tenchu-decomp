@@ -47,7 +47,7 @@ void ActJUMP(void)
     u16 pad;
     MapVector map;
     SVECTOR spd;
-    short ry;
+    facing_angle ry;
     short i;
     long level;
     long apex_offset;
@@ -68,7 +68,7 @@ void ActJUMP(void)
         }
         ry = RefrectVector[map.vector];
         dtL->vy -= 500;
-        if (ry == -1)
+        if (ry == ANGLE_NONE)
         {
             dtV->vx = -dtV->vx;
             dtV->vz = -dtV->vz;

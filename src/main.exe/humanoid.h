@@ -139,6 +139,9 @@ extern motion_move_mode motMODE;
 #define ANGLE_QUADRANT_MASK 0xc00
 #define ANGLE_HALF_QUADRANT 0x200
 
+typedef s16 facing_angle;
+#define ANGLE_NONE (-1)
+
 /* Request a motion: the pair every Act* state writes to hand a new motion
  * to the shared updater. Macro is reconstruction shorthand (it expands to
  * the identical two statements), but the original almost certainly had a

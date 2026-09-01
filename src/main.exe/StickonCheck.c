@@ -37,14 +37,14 @@
  *
  * PSX.SYM's signed `short rv` and `short RefrectVector[16]` are retained. GCC
  * still chooses the retail `lhu`, keeps the masked use unsigned, and inserts
- * the later signed-short extension for the -1 sentinel test.
+ * the later signed-short extension for the ANGLE_NONE sentinel test.
  */
 extern Humanoid *Me_MOTION_C;
 extern MapVector map;
 
 MapVector *StickonCheck(void)
 {
-    short rv;
+    facing_angle rv;
 
     if ((u16)Me_MOTION_C->type >= 2)
     {
@@ -66,7 +66,7 @@ MapVector *StickonCheck(void)
         {
             return 0;
         }
-        if (rv == -1)
+        if (rv == ANGLE_NONE)
         {
             return 0;
         }

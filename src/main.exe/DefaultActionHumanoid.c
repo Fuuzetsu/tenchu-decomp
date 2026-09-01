@@ -272,7 +272,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
             direction = map->vector;
             ry = RefrectVector[direction];
-            if (ry == -1)
+            if (ry == ANGLE_NONE)
             {
                 if (vector->vx != 0 || vector->vz != 0)
                 {

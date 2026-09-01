@@ -71,7 +71,7 @@ extern VECTOR UnitVector2;
  * away from the coded edge by width*RefrectMove[code]/4. Sibling of
  * RefrectVector below. */
 extern short RefrectMove[N_MAP_PROBE_MASKS][2];
-extern short RefrectVector[N_MAP_PROBE_MASKS];
+extern facing_angle RefrectVector[N_MAP_PROBE_MASKS];
 extern TCameraStatus CamState;
 /* Retail expands the demo's three-entry table to four camera placements. */
 extern TCameraPos CamPosCriticalHit[N_CRITICAL_CAMERA_POSITIONS];
