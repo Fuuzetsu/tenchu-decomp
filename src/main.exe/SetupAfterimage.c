@@ -31,12 +31,13 @@
  * SetupAfterimage (0x80038e9c, 0xfc bytes) — allocate an afterimage-trail
  * effect: two SVECTOR fields seeded from UnitVector (the identity SVECTOR,
  * same convention as UpdateOrnament/InsertConflict), a ring buffer of `len`
- * trail points (`p1`/`p2`, each `len * 4` bytes — matched twin
- * DisposeAfterimage.c frees these same two fields), and a POLY_GT4 sprite
+ * trail points (`p1`/`p2`, each `len * sizeof(GpuScreenPosition)` bytes —
+ * matched twin DisposeAfterimage.c frees these same two fields), and a
+ * POLY_GT4 sprite
  * initialized via SetupImageToPolyGT4/SetSemiTrans. The shared layout is
  * PSX.SYM's original `AfterimageType`, also independently confirmed by
  * Ghidra (reference/ghidra_types.h:4885). `len` is `short`, as recorded by
- * PSX.SYM and the shared API: `size = len * 4` compiles to the
+ * PSX.SYM and the shared API: `size = len * sizeof(*points)` compiles to the
  * sign-extend+scale-by-4 shift pair from the short parameter directly.
  *
  * Matching notes (docs/matching-cookbook.md): store order follows Ghidra's
@@ -57,23 +58,23 @@ AfterimageType *SetupAfterimage(ModelType *model, short len)
 {
     GsIMAGE *image;
     AfterimageType *afi;
-    long *points;
+    GpuScreenPosition *points;
     s32 size;
 
     image = AfterIMG;
     afi = (AfterimageType *)valloc(sizeof(AfterimageType));
-    size = len * 4;
+    size = len * sizeof(*points);
     afi->model = model;
     afi->vector1 = UnitVector;
     afi->vector2 = UnitVector;
     afi->n = 0;
     afi->maxn = len;
-    points = (long *)valloc(size);
+    points = (GpuScreenPosition *)valloc(size);
     afi->p1 = points;
-    points = (long *)valloc(size);
+    points = (GpuScreenPosition *)valloc(size);
     afi->p2 = points;
     afi->sz = 0;
-    SetupImageToPolyGT4(image, &afi->poly, 0, 0);
-    SetSemiTrans(&afi->poly, 1);
+    SetupImageToPolyGT4(image, &afi->poly.packet, 0, 0);
+    SetSemiTrans(&afi->poly.packet, 1);
     return afi;
 }

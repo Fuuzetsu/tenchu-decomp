@@ -3,6 +3,7 @@
 
 #include <psxsdk/libgpu.h>
 #include "item.h"
+#include "gpu_packets.h"
 
 /* EFFECT.C's weapon-trail state. PSX.SYM supplies the complete record and
  * original names; SetupAfterimage, DrawAfterimage, and DisposeAfterimage
@@ -14,10 +15,10 @@ typedef struct AfterimageType
     SVECTOR vector2;  /* 0x0C */
     s16 maxn;         /* 0x14 */
     s16 n;            /* 0x16 */
-    long *p1;         /* 0x18 */
-    long *p2;         /* 0x1C */
+    GpuScreenPosition *p1; /* 0x18: packed trail-edge screen points */
+    GpuScreenPosition *p2; /* 0x1C */
     long sz;          /* 0x20 */
-    POLY_GT4 poly;    /* 0x24 */
+    GpuPolyGT4Packet poly; /* 0x24 */
 } AfterimageType;     /* 0x58 */
 
 extern GsIMAGE *AfterIMG;

@@ -38,20 +38,17 @@
  * (trail fading out) it instead just shrinks `n` (bailing at 0). Either
  * way it then builds a POLY_GT4 strip: each of the `n-1` inner segments is
  * a Gouraud quad between the trail's point `i` and `i-1`'s screen
- * position, red/green/blue ramping from a `(n-i)*127/n` alpha at the far
+ * position, red/green/blue ramping from a `(n-i)*127/n` level at the far
  * (older) edge to a constant 0x7f at the near (newer) edge, sorted by the
  * (shared, single) `afi->sz`-derived OTZ clamp. Returns the new `n`.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `AfterimageType` is the shared PSX.SYM layout
  *    (model/vector1/vector2/maxn/n/p1/p2/sz/poly).
- *  - `POLY_GT4` is the canonical PsyQ LIBGPU record (52 bytes, independently
- *    confirmed by PSX.SYM). `p1`/`p2` entries are `long`s that PACK a screen
- *    (x,y) pair (x
- *    in the low 16 bits, y in the high 16 — RotTransPers's own `sxy`
- *    out-param convention); every `poly->xN/yN` pair is therefore written
- *    as ONE 32-bit store through `*(s32 *)&poly->xN`, matching the
- *    target's single `sw` per pair (never two separate `sh`s).
+ *  - `p1`/`p2` entries and each packet XY slot use GpuScreenPosition: the low
+ *    16 bits are x and the high 16 bits y, matching RotTransPers's packed
+ *    `sxy` convention. Each transfer is consequently one named word copy
+ *    and one target `sw`, never two separate halfword stores.
  *  - The ring-buffer shift is a plain `for (i = afi->n - 1; i > 0; i--) {
  *    p1[i]=p1[i-1]; p2[i]=p2[i-1]; }` — `i` must be `short` for the
  *    fused `(i<<16)>>14` sign-extend+scale addressing of the 4-byte `long`
@@ -64,7 +61,7 @@
  *    `GsGetLs((GsCOORDINATE2 *)afi->model, &mat)`; spelled Ghidra's way
  *    for clarity.
  *  - The `disp!=0`/`disp==0` arms both fall into ONE shared tail (the
- *    `poly->x0`/`x2` seed + the draw loop) — the `disp!=0` arm's own
+ *    first/third packet-screen seed + the draw loop) — the `disp!=0` arm's own
  *    `otz==0` early-`return 0` and the `disp==0` arm's own `n<=0` early-
  *    `return 0` are two INDEPENDENT guard-clause returns, not a shared
  *    variable; the shared tail is reached by plain fallthrough from
@@ -110,7 +107,7 @@
 
 short DrawAfterimage(AfterimageType *afi, short disp)
 {
-    POLY_GT4 *poly;
+    GpuPolyGT4Packet *poly;
     MATRIX mat;
     short i;
     s32 otz;
@@ -134,8 +131,8 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         }
         GsGetLs(&afi->model->locate, &mat);
         GsSetLsMatrix(&mat);
-        RotTransPers(&afi->vector1, afi->p1, 0, 0);
-        RotTransPers(&afi->vector2, afi->p2, 0, 0);
+        RotTransPers(&afi->vector1, (s32 *)afi->p1, 0, 0);
+        RotTransPers(&afi->vector2, (s32 *)afi->p2, 0, 0);
         afi->sz = RotTransPers(&UnitVector, 0, 0, 0);
         if (afi->sz == 0)
         {
@@ -151,8 +148,8 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         afi->n--;
     }
 
-    *(s32 *)&poly->x0 = *afi->p1;
-    *(s32 *)&poly->x2 = *afi->p2;
+    poly->gpu.vertex[0].screen.word = afi->p1[0].word;
+    poly->gpu.vertex[2].screen.word = afi->p2[0].word;
 
     i = 1;
     while (1)
@@ -161,23 +158,23 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         {
             break;
         }
-        *(s32 *)&poly->x1 = *(s32 *)&poly->x0;
-        tmp1 = afi->p1[i];
-        *(s32 *)&poly->x3 = *(s32 *)&poly->x2;
-        *(s32 *)&poly->x0 = tmp1;
-        tmp2 = afi->p2[i];
-        poly->r1 = poly->g1 = poly->b1 = tplv;
-        poly->r3 = poly->g3 = poly->b3 = tplv;
-        *(s32 *)&poly->x2 = tmp2;
+        poly->gpu.vertex[1].screen.word = poly->gpu.vertex[0].screen.word;
+        tmp1 = afi->p1[i].word;
+        poly->gpu.vertex[3].screen.word = poly->gpu.vertex[2].screen.word;
+        poly->gpu.vertex[0].screen.word = tmp1;
+        tmp2 = afi->p2[i].word;
+        poly->packet.r1 = poly->packet.g1 = poly->packet.b1 = tplv;
+        poly->packet.r3 = poly->packet.g3 = poly->packet.b3 = tplv;
+        poly->gpu.vertex[2].screen.word = tmp2;
 
         tplv = ((afi->n - i) * 127) / afi->n;
-        poly->r0 = poly->g0 = poly->b0 = tplv;
-        poly->r2 = poly->g2 = poly->b2 = tplv;
+        poly->packet.r0 = poly->packet.g0 = poly->packet.b0 = tplv;
+        poly->packet.r2 = poly->packet.g2 = poly->packet.b2 = tplv;
 
         otz = afi->sz;
         otz = otz >> 2;
         CLAMP_SORT_DEPTH(pri, otz);
-        GsSortPoly(poly, OTablePt, (u16)pri);
+        GsSortPoly(&poly->packet, OTablePt, (u16)pri);
         i++;
     }
 
