@@ -34,8 +34,8 @@
  *    eight-short, 0x10-byte layout.
  *  - This file requires maspsx --expand-div so rand() % (EngageLevel + 1)
  *    retains cc1's divide guards.
- *  - buttons is s16. u8 destroys the 0x8000/0x2000 values; u16 changes the
- *    target's signed -0x8000 addiu into an ori.
+ *  - buttons is s16. u8 destroys the D-pad bits; u16 changes the target's
+ *    signed PADLleft assignment from an addiu into an ori.
  *  - d = deg is the first statement inside the Distance block. Its independent
  *    sign extension fills the outer guard's delay slot and restores the
  *    otherwise missing instruction.
@@ -93,9 +93,8 @@ in_range:
         buttons |= PADRleft;
         if (Degree < -300)
         {
-            /* PADLleft, spelled negative so the constant fits
-             * addiu's signed immediate (fits-andi/addiu lever). */
-            buttons = -0x8000;
+            /* The signed view keeps PADLleft in addiu's immediate range. */
+            buttons = (s16)PADLleft;
         }
         else
         {

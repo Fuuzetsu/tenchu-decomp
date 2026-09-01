@@ -47,7 +47,7 @@ s16 Think3escape(void)
     }
     if (Degree > 0)
     {
-        result = -0x8000;
+        result = (s16)PADLleft;
     }
     else if (Degree < 0)
     {

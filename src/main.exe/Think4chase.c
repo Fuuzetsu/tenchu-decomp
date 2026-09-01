@@ -27,8 +27,8 @@
 
 /*
  * Turn briefly while no chase point exists, then abandon after 0x5b ticks.
- * During the first 0x1e ticks, override the default 0x1000 command with a
- * directional 0x3000 or -0x7000 command. With a chase point, steer toward
+ * During the first 0x1e ticks, override the default forward command with a
+ * forward-right or forward-left command. With a chase point, steer toward
  * it and clear it after arriving or when actscnt wraps.
  *
  * As in Think4contact, the default pad value must be assigned before the two
@@ -71,10 +71,9 @@ s16 Think4chase(void)
                 }
                 else if (Degree < -Me_THINK_C->turn)
                 {
-                    /* PADLleft | PADLup as a negative constant: fits addiu (the
-             * positive OR needs an ori pair; same lever as
-             * SuccessionAttack's documented spellings). */
-            pad = -0x7000;
+                    /* The signed view keeps this combination in addiu's
+                     * immediate range. */
+                    pad = (s16)(PADLleft | PADLup);
                 }
             }
         }

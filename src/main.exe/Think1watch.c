@@ -24,7 +24,7 @@
  * Think1watch (0x8002f8e8, 0xb0 bytes) — think-handler, same "think" TU as
  * Think1trace.c/Think1sleep.c. The body only runs every 0x80 (128) frames
  * (gated by `actcnt & 0x7f`); while gated it returns a turn signal from
- * actflg (0x2000 if set, else -0x8000), and once actscnt exceeds 10 it
+ * actflg (right if set, otherwise left), and once actscnt exceeds 10 it
  * re-rolls actflg via `rand() & 1`, resets actscnt, and advances actcnt into
  * the next 128-frame cycle. Confirms game_types.h's `actflg` (previously an
  * unnamed placeholder, field53_0x89): Ghidra's own independent decompilation
@@ -49,9 +49,8 @@ s16 Think1watch(void)
     pad = 0;
     if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
     {
-        /* PADLleft as a negative constant: fits addiu (same lever as
-         * SuccessionAttack's documented spellings). */
-        pad = -0x8000;
+        /* The signed view keeps PADLleft in addiu's immediate range. */
+        pad = (s16)PADLleft;
         if (Me_THINK_C->actflg != 0)
         {
             pad = PADLright;

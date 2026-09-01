@@ -29,7 +29,7 @@
  * 5000 units if one exists, else the same random-offset-from-spawn roll as
  * Think1random. On later ticks, steers towards the chase target via
  * turn_towards_player_; when it returns 0 (facing the target already),
- * resets ++Me_THINK_C->actcnt to 0 and forces the pad value to 0x80 instead.
+ * resets ++Me_THINK_C->actcnt to 0 and adds the Square attack button.
  *
  * GetNearestHumanoid uses the shared `Humanoid *` view, matching this TU's
  * `Me_THINK_C` and the character APIs in humanoid.h.
@@ -76,7 +76,7 @@ s16 Think1chase(void)
                                   Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz);
         if ((s16)pad == 0)
         {
-            pad |= 0x80;
+            pad |= PADRleft;
             Me_THINK_C->actcnt = 0;
         }
     }
