@@ -1532,6 +1532,13 @@ enum game_language
 
 #define N_LANGUAGES (LANG_JAPANESE + 1)
 
+typedef u8 sound_output_mode;
+enum sound_output_mode
+{
+    SOUND_MODE_MONO = 0,
+    SOUND_MODE_STEREO = 1
+};
+
 // Offsets proven by BriefingAndInventorySelectionScreen.
 // Splat also names some fields as standalone globals (CHOSEN_CHARACTER = +4,
 // CHOSEN_STAGE = +5, STAGE_LAYOUT_NUMBER = +6, CHOSEN_LANGUAGE = +0x5E,
@@ -1553,7 +1560,7 @@ typedef struct TLinkInfo
                                        *       original demo member name (+0x0D) */
     ScoreStats score_stats;           /* 0x04C current mission counters */
     game_difficulty Nannido;          /* 0x058 gNannido (demo +0x5) */
-    u8 Stereo;                        /* 0x059 gSound: 1 = stereo, 0 = mono
+    sound_output_mode Stereo;         /* 0x059 gSound: stereo/mono selector
                                        *       (InitSoundEffect/InitPersistentState
                                        *       -> SsSetStereo/SsSetMono; demo +0x7) */
     u8 SoundLevel;                    /* 0x05A gSoundLevel: music/CD volume 0..0x7F

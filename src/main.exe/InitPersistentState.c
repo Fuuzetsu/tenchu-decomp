@@ -74,7 +74,7 @@ s32 InitPersistentState(void)
         ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         ps->magic = magic;
         ps->Nannido = 0;
-        ps->Stereo = 1;
+        ps->Stereo = SOUND_MODE_STEREO;
         ps->SoundLevel = SOUND_VOLUME_MAX;
         ps->SELevel = SOUND_VOLUME_MAX;
         ps->fMemory = 0;
@@ -103,7 +103,7 @@ s32 InitPersistentState(void)
         ps->selItem[ITEM_MAKIBISHI] = 5;
         ps->selItem[ITEM_KUSURI] = 2;
         ps->layout = STAGE_LAYOUT_RANDOM;
-        if (ps->Stereo != 0)
+        if (ps->Stereo != SOUND_MODE_MONO)
         {
             SsSetStereo();
         }

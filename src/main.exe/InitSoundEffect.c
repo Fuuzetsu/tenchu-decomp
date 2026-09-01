@@ -42,7 +42,7 @@ void InitSoundEffect(void)
     SsSetTickMode(1);
     SsStart();
     SsSetMVol(MASTER_VOLUME_MAX, MASTER_VOLUME_MAX);
-    if (gSound != 0)
+    if (gSound != SOUND_MODE_MONO)
     {
         SsSetStereo();
     }

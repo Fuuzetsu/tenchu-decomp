@@ -24,7 +24,7 @@ extern int StageID;
 extern AreaMapType *GlobalAreaMap;
 extern MapAttribute FieldAttrib;
 extern game_difficulty gNannido;
-extern unsigned char gSound;
+extern sound_output_mode gSound;
 extern unsigned char gSoundLevel;
 extern unsigned char gSELevel;
 extern unsigned char gfMemory;
