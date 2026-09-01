@@ -47,8 +47,7 @@ void PutItemCursor(s16 x, s16 y, s16 size, s32 rotdif)
 {
     CursorImage.x = x;
     CursorImage.y = y;
-    CursorImage.scalex = size;
-    CursorImage.scaley = size;
+    CursorImage.scaley = CursorImage.scalex = size;
     CursorImage.rotate += rotdif;
     GsSortSprite(&CursorImage, OTablePt, 1);
 }

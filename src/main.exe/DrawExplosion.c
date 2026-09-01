@@ -139,9 +139,7 @@ void DrawExplosion(TEffectSlot *ef)
     spr->locate.coord.t[2] = param->pos.vz;
     spr->scale = param->scale;
     rotate = param->rotate;
-    spr->sprite.r = alfa;
-    spr->sprite.g = alfa;
-    spr->sprite.b = alfa;
+    spr->sprite.b = spr->sprite.g = spr->sprite.r = alfa;
     spr->sprite.rotate = rotate;
     UpdateCoordinate((ModelType *)spr);
     DrawSprite(spr);

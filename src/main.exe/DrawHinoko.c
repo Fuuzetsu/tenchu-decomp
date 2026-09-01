@@ -91,9 +91,7 @@ void DrawHinoko(TEffectSlot *ef)
     spr->locate.coord.t[2] = param->pos.vz;
     spr->scale = param->scale;
     spr->sprite.rotate = param->rotate;
-    spr->sprite.r = alfa;
-    spr->sprite.g = alfa;
-    spr->sprite.b = alfa;
+    spr->sprite.b = spr->sprite.g = spr->sprite.r = alfa;
     UpdateCoordinate((ModelType *)spr);
     DrawSprite(spr);
 }

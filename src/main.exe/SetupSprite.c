@@ -78,11 +78,8 @@ Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
         sprt->scale = FIXED_ONE;
         memset(&sprt->sprite, 0, sizeof(GsSPRITE));
         sprt->sprite.attribute = 0;
-        sprt->sprite.b = 0x80;
-        sprt->sprite.g = 0x80;
-        sprt->sprite.r = 0x80;
-        sprt->sprite.scaley = FIXED_ONE;
-        sprt->sprite.scalex = FIXED_ONE;
+        sprt->sprite.r = sprt->sprite.g = sprt->sprite.b = 0x80;
+        sprt->sprite.scalex = sprt->sprite.scaley = FIXED_ONE;
         if (image != 0)
         {
             tp = *(u16 *)&image->pmode & 3;
