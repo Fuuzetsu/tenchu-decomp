@@ -51,7 +51,7 @@
  * and the offset `$a0`, opposite the target. Name the signed byte offset,
  * then form the pointer through INTEGER addition:
  *
- *     offset = result * 0x88;
+ *     offset = result * sizeof(TEnemyLayout);
  *     e = (TEnemyLayout *)(offset + (s32)enemy);
  *
  * This bypasses ARRAY_REF, emits the full scale chain first into `$v1`,
@@ -91,7 +91,7 @@ enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
 found:
     if (result == ENEMY_LAYOUT_NONE)
         return ENEMY_LAYOUT_NONE;
-    offset = result * 0x88;
+    offset = result * sizeof(*e);
     e = (TEnemyLayout *)(offset + (s32)enemy);
     e->type = (s16)type;
     e->ThinkType = think;

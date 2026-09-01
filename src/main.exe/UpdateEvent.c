@@ -82,7 +82,7 @@ void UpdateEvent(short n, short id)
     s32 offset;
     short i;
 
-    offset = (s16)n * 4;
+    offset = (s16)n * sizeof(Event[0]);
     *(EventSeqType **)(offset + (s32)Event) = 0;
     if (id == EVENT_ID_NONE)
         return;
@@ -94,7 +94,7 @@ void UpdateEvent(short n, short id)
     {
         /* Offset spelling is byte-required (&StageEvent[i] flips the
          * address addu to base-first; measured). */
-        ev = (EventSeqType *)(i * 20 + (s32)StageEvent);
+        ev = (EventSeqType *)(i * sizeof(*StageEvent) + (s32)StageEvent);
         if (ev->header.route.id == id)
         {
             Event[n] = ev;
