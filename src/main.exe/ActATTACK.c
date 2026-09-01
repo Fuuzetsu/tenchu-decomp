@@ -248,7 +248,7 @@ void ActATTACK(void)
 
             if (Me_MOTION_C->life == 0)
             {
-                SET_MOTION(MOT_DEAD, 1);
+                SET_MOTION(MOT_DEAD, MOTION_MOVE_APPLY);
                 return;
             }
             attack_id = GetAttackDBID(Me_MOTION_C, motID);
@@ -385,7 +385,7 @@ dispatch:
             {
                 motID = MOT_ATTACK_SLASH2;
             }
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             i = 0;
             /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
@@ -427,7 +427,7 @@ dispatch:
         {
             short i;
 
-            SET_MOTION(MOT_ATTACK_SLASH3, 1);
+            SET_MOTION(MOT_ATTACK_SLASH3, MOTION_MOVE_APPLY);
             if (MotionUpdateMode != 0)
             {
                 for (i = 0; i < N_CVA_HUMANS; i++)
@@ -456,7 +456,7 @@ dispatch:
         {
             short i;
 
-            SET_MOTION(MOT_ATTACK_SLASH4, 1);
+            SET_MOTION(MOT_ATTACK_SLASH4, MOTION_MOVE_APPLY);
             if (MotionUpdateMode != 0)
             {
                 for (i = 0; i < N_CVA_HUMANS; i++)
@@ -498,7 +498,7 @@ dispatch:
             {
                 motID = MOT_ATTACK_RIGHT2;
             }
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             i = 0;
             /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
@@ -544,7 +544,7 @@ dispatch:
         combo_alt:
             motID = MOT_ATTACK_LEFT2;
         set_combo:
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             i = 0;
             /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
@@ -614,7 +614,7 @@ dispatch:
         }
         if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0)
         {
-            SET_MOTION(MOT_ATTACK_DIVE_LAND, 0);
+            SET_MOTION(MOT_ATTACK_DIVE_LAND, MOTION_MOVE_NONE);
             Sound(Me_MOTION_C, SE_LAND_HEAVY);
             spawn_smoke_burst_(dtL, 300, SMOKE_DRIFT_DIVISOR_DEFAULT, 10);
         }
@@ -627,7 +627,7 @@ dispatch:
             dtM->loop--;
             if (dtM->loop < -30)
             {
-                SET_MOTION(MOT_STATE_FALL, 0);
+                SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
             }
         }
         if (motID != MOT_ATTACK_DIVE)
@@ -657,7 +657,7 @@ dispatch:
         {
             DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
             mmp = dtM;
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             mmp->mask = MOTION_MASK_ALL;
             return;
         }
@@ -679,7 +679,7 @@ dispatch:
         {
             return;
         }
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         return;
     case MOT_ATTACK_STEALTH_BACK:
     case MOT_ATTACK_STEALTH_FRONT:
@@ -728,7 +728,7 @@ dispatch:
             if (UpdateMotion(human->motion, saved_mid) != 0)
             {
                 human->status = saved_mid >> 8;
-                if (apply_movement != 0)
+                if (apply_movement != MOTION_MOVE_NONE)
                 {
                     mot = human->motion->motion;
                     MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
@@ -763,7 +763,7 @@ dispatch:
 
         saved_mid = motID;
         DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         dtM->mask = MOTION_MASK_ALL;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:

@@ -283,8 +283,8 @@ void StateTransition(Humanoid *human)
                 Humanoid *actor;
                 s32 actor_life;
 
-                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
-                if (SetNowMotion(Me_THINK_C, MOT_ACTION_NOTICE, 1) == 0)
+                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
+                if (SetNowMotion(Me_THINK_C, MOT_ACTION_NOTICE, MOTION_MOVE_APPLY) == 0)
                 {
                     Sound(Me_THINK_C, CHAR_VOICE_ALERT);
                 }
@@ -319,7 +319,7 @@ void StateTransition(Humanoid *human)
             {
                 if (EmergencyNotice != 0)
                 {
-                    SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
+                    SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
                     Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
                     Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
                 }
@@ -359,7 +359,7 @@ void StateTransition(Humanoid *human)
             Attrib = base_attrib | PHASE_ALERT;
             if ((Attrib & ATTR_ALERT) == 0)
             {
-                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
+                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
             }
             Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
             Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
@@ -382,7 +382,7 @@ void StateTransition(Humanoid *human)
         {
             if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS)
             {
-                SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, 1);
+                SetNowMotion(Me_THINK_C, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             }
             Attrib = base_attrib;
         }
@@ -414,7 +414,7 @@ void StateTransition(Humanoid *human)
         {
             if ((Attrib & ATTR_ALERT) == 0)
             {
-                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
+                SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
             }
             pad = Think3firstattack();
         }

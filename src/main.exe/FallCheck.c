@@ -89,7 +89,7 @@ fall:
                 RefrectMove[Me_MOTION_C->map.angleH][0]) >> 2;
     dtL->vz += (Me_MOTION_C->width *
                 RefrectMove[Me_MOTION_C->map.angleH][1]) >> 2;
-    motMODE = 0;
+    motMODE = MOTION_MOVE_NONE;
     motID = MOT_STATE_FALL;
     SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:

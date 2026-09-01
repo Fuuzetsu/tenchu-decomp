@@ -110,7 +110,7 @@ void ActKAGI(void)
             target = &CamState.TargetVector;
             dx = target->vx - locate->vx;
             v.vx = dx;
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             dz = target->vz - locate->vz;
             v.vz = dz;
             if (dx == 0 && dz == 0)
@@ -121,11 +121,11 @@ void ActKAGI(void)
                 }
                 if (Me_MOTION_C->attribute & ATTR_ALERT)
                 {
-                    SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                    SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                 }
                 else
                 {
-                    SET_MOTION(0, 1);
+                    SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
                 }
             }
             else
@@ -144,11 +144,11 @@ void ActKAGI(void)
             }
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
             else
             {
-                SET_MOTION(0, 1);
+                SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             }
         }
 
@@ -172,7 +172,7 @@ void ActKAGI(void)
                 model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
             }
             *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
-            SET_MOTION(MOT_SWIM, 1);
+            SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
             dtM->mask = MOTION_MASK_ALL;
         }
         break;
@@ -205,7 +205,7 @@ void ActKAGI(void)
         motID = MOT_KAGI_PULL;
         mmp->mask = MOTION_MASK_NOROOT;
         attrib = human->map.attrib;
-        motMODE = 1;
+        motMODE = MOTION_MOVE_APPLY;
         if (attrib & MAP_WATER)
         {
             Sound(human, SE_WATER_MOVE);
@@ -264,7 +264,7 @@ void ActKAGI(void)
             adjust_root = human->model->object[MODEL_PART_WAIST];
             motID = MOT_STATE_FALL;
             adjust_root->rotate.vy += old_ry - quantized;
-            motMODE = 0;
+            motMODE = MOTION_MOVE_NONE;
             dtM->mask = MOTION_MASK_ALL;
             if (MotionUpdateMode != 0)
             {

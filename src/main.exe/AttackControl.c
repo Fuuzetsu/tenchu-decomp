@@ -150,7 +150,7 @@ void AttackControl(void)
 
                         enemy->rotate->vy = dtR->vy;
                         enemy->locate->vx = dtL->vx;
-                        SET_MOTION(myid, 1);
+                        SET_MOTION(myid, MOTION_MOVE_APPLY);
                         enemy->locate->vz = dtL->vz;
                         enemy->life = 0;
                         if ((enemy->status != STAT_DEAD ||
@@ -176,7 +176,7 @@ void AttackControl(void)
         {
             return;
         }
-        SET_MOTION(MOT_ATTACK_BACK, 1);
+        SET_MOTION(MOT_ATTACK_BACK, MOTION_MOVE_APPLY);
     }
     else if (motID == MOT_SQUAT)
     {
@@ -184,7 +184,7 @@ void AttackControl(void)
         {
             return;
         }
-        SET_MOTION(MOT_ATTACK_CROUCH, 1);
+        SET_MOTION(MOT_ATTACK_CROUCH, MOTION_MOVE_APPLY);
     }
     else if (motID == MOT_CHASE_DASH_FWD)
     {
@@ -192,10 +192,10 @@ void AttackControl(void)
         {
             return;
         }
-        SET_MOTION(MOT_ATTACK, 1);
+        SET_MOTION(MOT_ATTACK, MOTION_MOVE_APPLY);
         if (GetMotionID(dtM, MOT_ATTACK_LUNGE) >= 0)
         {
-            SET_MOTION(MOT_ATTACK_LUNGE, 1);
+            SET_MOTION(MOT_ATTACK_LUNGE, MOTION_MOVE_APPLY);
         }
     }
     else
@@ -216,7 +216,7 @@ void AttackControl(void)
         {
             motID = MOT_ATTACK;
         }
-        motMODE = 1;
+        motMODE = MOTION_MOVE_APPLY;
     }
 
     if (Me_MOTION_C == StagePlayer)

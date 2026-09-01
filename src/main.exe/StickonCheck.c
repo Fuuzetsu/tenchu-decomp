@@ -72,7 +72,7 @@ MapVector *StickonCheck(void)
         }
         if (Me_MOTION_C->status != STAT_STICKON)
         {
-            SET_MOTION(MOT_STICKON, 1);
+            SET_MOTION(MOT_STICKON, MOTION_MOVE_APPLY);
         }
         return &map;
     }

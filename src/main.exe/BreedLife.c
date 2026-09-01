@@ -242,7 +242,7 @@ type_found:
     }
     human->attribute = human->attribute | PHASE_ALERT;
     EquipWeapon(human, WEAPON_DRAWN);
-    SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
+    SetNowMotion(human, MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
     return human;
 high_type:
     human->attribute = human->attribute | ATTR_FLOAT;

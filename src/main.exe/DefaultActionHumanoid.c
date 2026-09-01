@@ -202,7 +202,7 @@ short DefaultActionHumanoid(Humanoid *human)
     ground_motion:
     if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
     {
-        SetNowMotion(human, MOT_DEAD, 1);
+        SetNowMotion(human, MOT_DEAD, MOTION_MOVE_APPLY);
     }
 
     if (map->angleL != 0 || map->angleH != 0)
@@ -435,7 +435,7 @@ short DefaultActionHumanoid(Humanoid *human)
                     {
                         direction = MOT_DAMAGE;
                     }
-                    SetNowMotion(human, direction, 1);
+                    SetNowMotion(human, direction, MOTION_MOVE_APPLY);
                     Sound(human, CHAR_VOICE_HURT);
                 }
 

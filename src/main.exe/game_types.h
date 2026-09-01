@@ -794,7 +794,15 @@ typedef s16 motion_id;
 #define MOTION_FRAME_ANY (-1)
 
 typedef s16 motion_move_mode;
-#define MOTION_MOVE_UNSET (-1)
+enum motion_move_mode
+{
+    /* No motion request is pending in the shared motID/motMODE mailbox. */
+    MOTION_MOVE_UNSET = -1,
+    /* Start the animation without applying its authored root speed. */
+    MOTION_MOVE_NONE = 0,
+    /* Apply orderspd/sidespd once when the animation is started. */
+    MOTION_MOVE_APPLY = 1
+};
 
 /* MOTION.C's keyframe, motion, registry, spline, and playback records. */
 typedef struct MotionElementType MotionElementType;
@@ -1335,6 +1343,9 @@ enum
     MOT_NORMAL_TURN_L = 0x002,
     MOT_ACTION_LOOP = 0x101,      /* AI scripted idle, loops until pad */
     MOT_ACTION_GESTURE = 0x102,   /* AI scripted one-shot */
+    /* Character-specific registration-table variants whose behavior is only
+     * visible in their family handler; main.exe never requests them directly. */
+    MOT_ACTION_VARIANT_3 = 0x103,
     MOT_ACTION_FIDGET_A = 0x104,  /* random standing fidget (coin flip) */
     MOT_ACTION_FIDGET_B = 0x105,
     MOT_ACTION_NOTICE = 0x106,    /* guard spots the player */
@@ -1348,6 +1359,7 @@ enum
     MOT_KAGI_FLY = 0x401,         /* hook in flight */
     MOT_KAGI_PULL = 0x402,        /* reel-in to the wall */
     MOT_ENGAGE_STANCE = 0x501,    /* weapon-drawn alert idle */
+    MOT_ENGAGE_VARIANT_2 = 0x502,
     MOT_ENGAGE_SHEATHE = 0x503,   /* stance exit into MOT_STATE_SHEATHE */
     MOT_ENGAGE_TURN_R = 0x504,
     MOT_ENGAGE_TURN_L = 0x505,
@@ -1381,6 +1393,7 @@ enum
     MOT_ATTACK_STEALTH_FRONT_AYAME = 0x718,
     MOT_ATTACK_STEALTH_SIDE_AYAME = 0x719,
     MOT_STATE_CLIMB = 0x801,
+    MOT_STATE_VARIANT_2 = 0x802,
     MOT_STATE_FALL = 0x803,
     MOT_STATE_LAND = 0x804,
     MOT_STATE_LAND_HEAVY = 0x805,

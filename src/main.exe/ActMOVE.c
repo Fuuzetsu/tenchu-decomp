@@ -44,7 +44,7 @@ void ActMOVE(void)
         }
         if ((dtPAD & PADLup) == 0)
         {
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             break;
         }
         if (Me_MOTION_C->attribute & ATTR_WALL)
@@ -89,7 +89,7 @@ void ActMOVE(void)
         }
         if ((dtPAD & PADLdown) == 0)
         {
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         }
         {
             int current;
@@ -119,7 +119,7 @@ void ActMOVE(void)
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         }
         break;
 
@@ -160,7 +160,7 @@ void ActMOVE(void)
             default:
                 goto item_default;
             }
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             return;
 
         item_sound:
@@ -173,12 +173,12 @@ void ActMOVE(void)
         }
         if (dtPAD & PADRright)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             return;
         }
         if (Me_MOTION_C->pad.trig & PADRleft)
         {
-            SET_MOTION(MOT_STATE_DRAW, 1);
+            SET_MOTION(MOT_STATE_DRAW, MOTION_MOVE_APPLY);
         }
     }
 }

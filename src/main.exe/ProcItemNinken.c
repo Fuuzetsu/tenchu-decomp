@@ -257,7 +257,7 @@ void ProcItemNinken(TItem *item)
         param->slave->model->rotate.vy = item->owner.human->model->rotate.vy;
         param->slave->model->rotate.vz = item->owner.human->model->rotate.vz;
         EquipWeapon(param->slave, WEAPON_SHEATHED);
-        SetNowMotion(param->slave, MOT_STATE_SHEATHE, 1);
+        SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
         param->slave->attribute &= ~ATTR_PHASE;
         param->slave->attribute = 0;
         param->slave->target.archive = item->owner.human->model;
@@ -368,7 +368,7 @@ void ProcItemNinken(TItem *item)
             param->slave->target.archive = target->model;
             param->slave->attribute |= PHASE_ALERT;
             EquipWeapon(param->slave, WEAPON_DRAWN);
-            SetNowMotion(param->slave, MOT_STATE_DRAW, 1);
+            SetNowMotion(param->slave, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
             return;
         }
         else
@@ -378,7 +378,7 @@ void ProcItemNinken(TItem *item)
                 return;
             }
             EquipWeapon(param->slave, WEAPON_SHEATHED);
-            SetNowMotion(param->slave, MOT_STATE_SHEATHE, 1);
+            SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             param->slave->attribute &= ~ATTR_PHASE;
             SetupThinkFunction(param->slave, THINK_MIX_NONE);
             param->slave->target.archive = item->owner.human->model;

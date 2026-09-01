@@ -71,7 +71,7 @@ void ActCHASE(void)
             {
                 short i;
 
-                SET_MOTION(MOT_STATE_CLIMB, 0);
+                SET_MOTION(MOT_STATE_CLIMB, MOTION_MOVE_NONE);
                 if (MotionUpdateMode != 0)
                 {
                     i = 0;
@@ -153,7 +153,7 @@ void ActCHASE(void)
         {
             motID = MOT_ENGAGE_STANCE;
         }
-        motMODE = 1;
+        motMODE = MOTION_MOVE_APPLY;
         break;
     }
 
@@ -166,11 +166,11 @@ void ActCHASE(void)
 
         if ((dtPAD & PADLdown) == 0)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         }
         else if (dtCMD == CMD_LUNGE_BACK)
         {
-            SET_MOTION(MOT_ATTACK_LUNGE_BACK, 1);
+            SET_MOTION(MOT_ATTACK_LUNGE_BACK, MOTION_MOVE_APPLY);
         }
         else if (dtPAD & (PADLleft | PADLright))
         {
@@ -200,10 +200,10 @@ void ActCHASE(void)
         }
         if (Me_MOTION_C->pad.trig & PADRleft)
         {
-            SET_MOTION(MOT_ATTACK_CROUCH, 1);
+            SET_MOTION(MOT_ATTACK_CROUCH, MOTION_MOVE_APPLY);
             return;
         }
-        SET_MOTION(MOT_SQUAT, 1);
+        SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
         break;
     }
 
@@ -231,7 +231,7 @@ void ActCHASE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         }
         return;
     }
@@ -242,7 +242,7 @@ void ActCHASE(void)
 
     if (dtCMD == CMD_FLIP)
     {
-        SET_MOTION(MOT_JUMP_FLIP, 0);
+        SET_MOTION(MOT_JUMP_FLIP, MOTION_MOVE_NONE);
         MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
         return;
     }
@@ -280,7 +280,7 @@ void ActCHASE(void)
         default:
             goto item_default;
         }
-        motMODE = 1;
+        motMODE = MOTION_MOVE_APPLY;
         return;
 
     item_sound:

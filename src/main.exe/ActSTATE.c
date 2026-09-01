@@ -125,7 +125,7 @@ void ActSTATE(void)
                 return;
             }
             motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             return;
 
         }
@@ -154,7 +154,7 @@ void ActSTATE(void)
                 human->chase[HUMANOID_CHASE_Z] = t;
             }
         }
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         return;
 
     case MOT_STATE_SHEATHE: /* stand down: sheathe (hitboxes and afterimage off),
@@ -220,7 +220,7 @@ void ActSTATE(void)
         {
             return;
         }
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         return;
 
     case MOT_STATE_FALL:
@@ -230,7 +230,7 @@ void ActSTATE(void)
         }
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {
-            SET_MOTION(MOT_ATTACK_DIVE, 0);
+            SET_MOTION(MOT_ATTACK_DIVE, MOTION_MOVE_NONE);
         }
         {
             if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0 || Me_MOTION_C->map.height <= 0)
@@ -243,11 +243,11 @@ void ActSTATE(void)
                     }
                     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
                     {
-                        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                     }
                     else
                     {
-                        SET_MOTION(0, 1);
+                        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
                     }
                     Sound(Me_MOTION_C, SE_LAND_LIGHT);
                     return;
@@ -256,18 +256,18 @@ void ActSTATE(void)
                 {
                     if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_GUARD)
                     {
-                        SET_MOTION(MOT_STATE_LAND_HEAVY, 0);
+                        SET_MOTION(MOT_STATE_LAND_HEAVY, MOTION_MOVE_NONE);
                         return;
                     }
                 }
                 else
                 {
-                    SET_MOTION(MOT_STATE_LAND, 0);
+                    SET_MOTION(MOT_STATE_LAND, MOTION_MOVE_NONE);
                     return;
                 }
 
                 {
-                    motMODE = 0;
+                    motMODE = MOTION_MOVE_NONE;
                     motID = (rand() & 1) ? MOT_DAMAGE_SLAM_BACK : MOT_DAMAGE_SLAM_FORE;
                     Me_MOTION_C->life -= 10;
                     if (Me_MOTION_C->life < 0)
@@ -299,7 +299,7 @@ void ActSTATE(void)
         if (dtM->count < 5 && (dtPAD & PADRright) != 0 &&
             (Me_MOTION_C->pad.trig & PADRdown) != 0)
         {
-            SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
+            SET_MOTION(MOT_SQUAT_BACKFLIP, MOTION_MOVE_APPLY);
             dtR->vy += ANGLE_HALF;
         }
         /* fall through */
@@ -362,7 +362,7 @@ void ActSTATE(void)
                 return;
             }
         }
-        SET_MOTION(MOT_CHASE, 1);
+        SET_MOTION(MOT_CHASE, MOTION_MOVE_APPLY);
         if (MotionUpdateMode != 0)
         {
             i = 0;
@@ -400,18 +400,15 @@ void ActSTATE(void)
             break;
         }
     zero_motion:
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         return;
 
     default:
-    /* A hole in the MOT_ enum, between MOT_STATE_CLIMB 0x801 and MOT_STATE_FALL 0x803. It is not in MOTcommon and
-     * nothing in main.exe plays it, so it arrives from a character's own
-     * mtbl and its meaning is not recoverable here -- hence the digit. */
-    case 0x802:
+    case MOT_STATE_VARIANT_2:
         return;
     }
-    motMODE = 1;
+    motMODE = MOTION_MOVE_APPLY;
     return;
 positive_motion:
-    motMODE = 1;
+    motMODE = MOTION_MOVE_APPLY;
 }

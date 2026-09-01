@@ -115,7 +115,7 @@ s16 CVAupdate(void)
                         break;
                 }
                 if (i == N_CVA_HUMANS)
-                    SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
+                    SetNowMotion(human, MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
 
                 human->vector = UnitVector;
                 human->model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_COLLIDE;
@@ -176,7 +176,7 @@ s16 CVAupdate(void)
                     human->life = HUMANOID_LIFE_INACTIVE;
                     human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
                     human->motion->mid = MOTION_ID_NONE;
-                    SetNowMotion(human, 0, 1);
+                    SetNowMotion(human, MOT_NORMAL, MOTION_MOVE_APPLY);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
                 }
@@ -219,7 +219,7 @@ s16 CVAupdate(void)
                     }
 
                     human->motion->mid = MOTION_ID_NONE;
-                    SetNowMotion(human, CVAnow->payload.actor.motion, 1);
+                    SetNowMotion(human, CVAnow->payload.actor.motion, MOTION_MOVE_APPLY);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
                     CVAhuman[i].human = human;

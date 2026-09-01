@@ -36,7 +36,7 @@
  * returned: after `ReqItemDefault(Me_THINK_C, ITEM_KUSURI);` the asm jumps straight
  * to the shared epilogue with NO move into $v0 (a bare `return;`, valid
  * -w-suppressed old-style C for a value-returning function); the final
- * `SetNowMotion(Me_THINK_C, id, 1);` is the LAST statement with no
+ * `SetNowMotion(Me_THINK_C, id, MOTION_MOVE_APPLY);` is the LAST statement with no
  * following `return` at all, so control falls off the end of the function
  * — in both cases $v0 at the epilogue is simply whatever the callee left
  * there, never explicitly set by ItemUse itself (confirmed: neither call
@@ -95,7 +95,7 @@ static s16 ItemUse(void)
     goto end;
 
 do_motion:
-    SetNowMotion(me, id, 1);
+    SetNowMotion(me, id, MOTION_MOVE_APPLY);
     return;
 
 end:

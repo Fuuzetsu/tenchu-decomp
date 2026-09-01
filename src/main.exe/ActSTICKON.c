@@ -110,7 +110,7 @@ void ActSTICKON(void)
             map = StickonCheck();
             if (map == 0)
             {
-                SET_MOTION(MOT_SQUAT, 1);
+                SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
                 dtM->mask = MOTION_MASK_ALL;
                 return;
             }
@@ -168,16 +168,16 @@ void ActSTICKON(void)
             switch (dtCMD)
             {
             case CMD_ROLL_FORWARD:
-                SET_MOTION(MOT_SQUAT_ROLL_F, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_F, MOTION_MOVE_APPLY);
                 break;
             case CMD_ROLL_BACKWARD:
-                SET_MOTION(MOT_SQUAT_ROLL_B, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_B, MOTION_MOVE_APPLY);
                 break;
             case CMD_ROLL_LEFT:
-                SET_MOTION(MOT_SQUAT_ROLL_L, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_L, MOTION_MOVE_APPLY);
                 break;
             case CMD_ROLL_RIGHT:
-                SET_MOTION(MOT_SQUAT_ROLL_R, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_R, MOTION_MOVE_APPLY);
                 break;
             }
 
@@ -297,7 +297,7 @@ void ActSTICKON(void)
 
                 if (pd != 0)
                 {
-                    motMODE = 1;
+                    motMODE = MOTION_MOVE_APPLY;
                     motID = pd;
                     dtM->mask = MOTION_MASK_NOROOT;
                 }
@@ -317,16 +317,16 @@ void ActSTICKON(void)
             switch (dtCMD)
             {
             case CMD_ROLL_FORWARD:
-                SET_MOTION(MOT_SQUAT_ROLL_F, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_F, MOTION_MOVE_APPLY);
                 break;
             case CMD_ROLL_BACKWARD:
-                SET_MOTION(MOT_SQUAT_ROLL_B, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_B, MOTION_MOVE_APPLY);
                 break;
             case CMD_ROLL_LEFT:
-                SET_MOTION(MOT_SQUAT_ROLL_L, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_L, MOTION_MOVE_APPLY);
                 break;
             case CMD_ROLL_RIGHT:
-                SET_MOTION(MOT_SQUAT_ROLL_R, 1);
+                SET_MOTION(MOT_SQUAT_ROLL_R, MOTION_MOVE_APPLY);
                 break;
             }
 
@@ -434,7 +434,7 @@ void ActSTICKON(void)
         break;
 
     slide_no_pad:
-        SET_MOTION(MOT_STICKON, 1);
+        SET_MOTION(MOT_STICKON, MOTION_MOVE_APPLY);
         dtM->mask = MOTION_MASK_ALL;
         break;
     }
@@ -526,7 +526,7 @@ void ActSTICKON(void)
                 break;
             }
         }
-        SET_MOTION(MOT_STICKON, 1);
+        SET_MOTION(MOT_STICKON, MOTION_MOVE_APPLY);
         dtM->mask = MOTION_MASK_ALL;
         return;
     }
@@ -543,11 +543,11 @@ void ActSTICKON(void)
         }
         if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         }
         else
         {
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         }
     }
 }

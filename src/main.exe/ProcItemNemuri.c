@@ -110,7 +110,7 @@ void ProcItemNemuri(TItem *item)
     switch (item->mode)
     {
     case NEMURI_MODE_START:
-        SetNowMotion(item->owner.human, MOT_ITEM_THROW, 1);
+        SetNowMotion(item->owner.human, MOT_ITEM_THROW, MOTION_MOVE_APPLY);
         SoundEx((VECTOR *)item->owner.human->model->locate.coord.t, SE_SLEEP_DART_THROW);
         item->mode++;
         return;
@@ -254,11 +254,11 @@ void ProcItemNemuri(TItem *item)
                         hit_life != inactive_sentinel)
                     {
                         EquipWeapon(hit_human, WEAPON_SHEATHED);
-                        SetNowMotion(hit_human, MOT_STATE_SHEATHE, 1);
+                        SetNowMotion(hit_human, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
                         hit_human->think[0] = Think1sleep;
                         hit_human->attribute &= ~ATTR_PHASE;
                     }
-                    SetNowMotion(hit_human, MOT_ACTION, 1);
+                    SetNowMotion(hit_human, MOT_ACTION, MOTION_MOVE_APPLY);
                     Sound(hit_human, CHAR_VOICE_HURT);
                 }
 

@@ -57,22 +57,22 @@ void ActENGAGE(void)
     {
         if (dtPAD & PADLright)
         {
-            SET_MOTION(MOT_ENGAGE_TURN_R, 0);
+            SET_MOTION(MOT_ENGAGE_TURN_R, MOTION_MOVE_NONE);
             goto engage_case_post;
         }
         if (dtPAD & PADLleft)
         {
-            SET_MOTION(MOT_ENGAGE_TURN_L, 0);
+            SET_MOTION(MOT_ENGAGE_TURN_L, MOTION_MOVE_NONE);
             goto engage_case_post;
         }
         if (dtCMD == CMD_LUNGE_BACK)
         {
-            SET_MOTION(MOT_ATTACK_LUNGE_BACK, 1);
+            SET_MOTION(MOT_ATTACK_LUNGE_BACK, MOTION_MOVE_APPLY);
             goto engage_case_post;
         }
         if (dtCMD == CMD_FLIP)
         {
-            SET_MOTION(MOT_JUMP_FLIP, 0);
+            SET_MOTION(MOT_JUMP_FLIP, MOTION_MOVE_NONE);
             MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
             goto engage_case_post;
         }
@@ -80,18 +80,18 @@ void ActENGAGE(void)
             goto engage_case_post;
         if (rand() % 20 != 0)
             goto engage_case_post;
-        SET_MOTION(MOT_ATTACK_TAUNT, 1);
+        SET_MOTION(MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY);
     engage_case_post:
         if (ActionHalt == ACTION_HALT_STAGE_END && dtM->count == 0)
         {
             registered_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
             if (registered_id < 0)
             {
-                SET_MOTION(MOT_STATE_SHEATHE, 1);
+                SET_MOTION(MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             }
             else
             {
-                SET_MOTION(MOT_ENGAGE_SHEATHE, 1);
+                SET_MOTION(MOT_ENGAGE_SHEATHE, MOTION_MOVE_APPLY);
             }
         }
         break;
@@ -103,7 +103,7 @@ void ActENGAGE(void)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLright) == 0)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         }
         break;
 
@@ -113,7 +113,7 @@ void ActENGAGE(void)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLleft) == 0)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         }
         break;
 
@@ -149,18 +149,18 @@ void ActENGAGE(void)
             switch (dtPAD & PADLdown)
             {
             default:
-                SET_MOTION(MOT_CHASE_BACK, 1);
+                SET_MOTION(MOT_CHASE_BACK, MOTION_MOVE_APPLY);
                 break;
             case 0:
                 if (Me_MOTION_C == StagePlayer)
                     SetCameraMode(CMODE_NORMAL);
                 if (Me_MOTION_C->attribute & ATTR_ALERT)
                 {
-                    SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                    SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                 }
                 else
                 {
-                    SET_MOTION(0, 1);
+                    SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
                 }
                 break;
             }
@@ -176,27 +176,21 @@ void ActENGAGE(void)
             return;
         if (dtM->loop == 0)
             return;
-        SET_MOTION(MOT_STATE_SHEATHE, 1);
+        SET_MOTION(MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
         return;
 
-    /* A hole in the MOT_ enum, between MOT_ENGAGE_STANCE 0x501 and MOT_ENGAGE_SHEATHE 0x503. It is not in MOTcommon and
-
-     * nothing in main.exe plays it, so it arrives from a character's own
-
-     * mtbl and its meaning is not recoverable here -- hence the digit. */
-
-    case 0x502:
+    case MOT_ENGAGE_VARIANT_2:
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)
             return;
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         return;
     }
 
     if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
     {
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         return;
     }
     else if (dtCMD != CMD_NONE)
@@ -204,19 +198,19 @@ void ActENGAGE(void)
         switch (dtCMD)
         {
         case CMD_DASH_FORWARD:
-            SET_MOTION(MOT_CHASE_DASH_FWD, 1);
+            SET_MOTION(MOT_CHASE_DASH_FWD, MOTION_MOVE_APPLY);
             return;
         case CMD_LUNGE:
-            SET_MOTION(MOT_ATTACK_LUNGE, 1);
+            SET_MOTION(MOT_ATTACK_LUNGE, MOTION_MOVE_APPLY);
             return;
         case CMD_DASH_BACKWARD:
-            SET_MOTION(MOT_CHASE_DASH_BACK, 1);
+            SET_MOTION(MOT_CHASE_DASH_BACK, MOTION_MOVE_APPLY);
             return;
         case CMD_DASH_RIGHT:
-            SET_MOTION(MOT_CHASE_DASH_RIGHT, 1);
+            SET_MOTION(MOT_CHASE_DASH_RIGHT, MOTION_MOVE_APPLY);
             return;
         case CMD_DASH_LEFT:
-            SET_MOTION(MOT_CHASE_DASH_LEFT, 1);
+            SET_MOTION(MOT_CHASE_DASH_LEFT, MOTION_MOVE_APPLY);
             return;
         default:
             return;
@@ -235,22 +229,22 @@ void ActENGAGE(void)
             switch (SelectedItem)
             {
             case ITEM_SHURIKEN:
-                SET_MOTION(MOT_SYURI, 1);
+                SET_MOTION(MOT_SYURI, MOTION_MOVE_APPLY);
                 return;
             case ITEM_KAGINAWA:
-                SET_MOTION(MOT_KAGI, 1);
+                SET_MOTION(MOT_KAGI, MOTION_MOVE_APPLY);
                 return;
             case ITEM_MAKIBISHI:
-                SET_MOTION(MOT_ITEM, 1);
+                SET_MOTION(MOT_ITEM, MOTION_MOVE_APPLY);
                 return;
             case ITEM_SMOKE:
-                SET_MOTION(MOT_ITEM_THROW, 1);
+                SET_MOTION(MOT_ITEM_THROW, MOTION_MOVE_APPLY);
                 return;
             case ITEM_FIRE:
-                SET_MOTION(MOT_ITEM_THROW, 1);
+                SET_MOTION(MOT_ITEM_THROW, MOTION_MOVE_APPLY);
                 return;
             case ITEM_JIRAI:
-                SET_MOTION(MOT_ITEM_PLANT, 1);
+                SET_MOTION(MOT_ITEM_PLANT, MOTION_MOVE_APPLY);
                 return;
             case ITEM_NONE:
             case ITEM_KAWARIMI:
@@ -265,10 +259,10 @@ void ActENGAGE(void)
         {
             if (trig & PADRleft)
             {
-                SET_MOTION(MOT_ATTACK_CROUCH, 1);
+                SET_MOTION(MOT_ATTACK_CROUCH, MOTION_MOVE_APPLY);
                 return;
             }
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             return;
         }
         else
@@ -280,12 +274,12 @@ void ActENGAGE(void)
             }
             if (dtPAD & PADLup)
             {
-                SET_MOTION(MOT_CHASE, 1);
+                SET_MOTION(MOT_CHASE, MOTION_MOVE_APPLY);
                 return;
             }
             if ((dtPAD & PADLdown) == 0)
                 return;
-            SET_MOTION(MOT_CHASE_BACK, 1);
+            SET_MOTION(MOT_CHASE_BACK, MOTION_MOVE_APPLY);
         }
     }
 }

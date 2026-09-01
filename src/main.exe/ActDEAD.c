@@ -148,7 +148,7 @@ void ActDEAD(void)
         dtL->vy--;
         motID = MOT_DEAD;
         ActionHalt = 0;
-        motMODE = 1;
+        motMODE = MOTION_MOVE_APPLY;
         if (dtM->count >= 10)
             return;
         PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);

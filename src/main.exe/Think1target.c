@@ -111,7 +111,7 @@ s16 Think1target(void)
 
                     Me_THINK_C->target.archive = StagePlayer->model;
                     Attrib = (Attrib & (u16)~ATTR_PHASE) | PHASE_ALERT;
-                    SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, 1);
+                    SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
                     Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
                     Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
                     Sound(Me_THINK_C, CHAR_VOICE_ALERT);

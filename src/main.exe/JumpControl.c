@@ -84,7 +84,7 @@ void JumpControl(void)
         if (dtM->count < 11 &&
             GetMotionID(dtM, MOT_JUMP_RUN) >= 0)
         {
-            SET_MOTION(MOT_JUMP_RUN, 0);
+            SET_MOTION(MOT_JUMP_RUN, MOTION_MOVE_NONE);
             MoveHumanoid(Me_MOTION_C, RUN_JUMP_SPEED, 0);
             if (Me_MOTION_C == StagePlayer)
             {
@@ -101,13 +101,13 @@ void JumpControl(void)
             dtL->vx = ConflictObject[id].position.vx;
             dtL->vz = ConflictObject[id].position.vz;
         }
-        SET_MOTION(MOT_JUMP, 0);
+        SET_MOTION(MOT_JUMP, MOTION_MOVE_NONE);
         dtV->vy = 0;
         if (dtPAD & PADLup)
         {
             if (GetMotionID(dtM, MOT_JUMP_FORWARD) >= 0)
             {
-                SET_MOTION(MOT_JUMP_FORWARD, 0);
+                SET_MOTION(MOT_JUMP_FORWARD, MOTION_MOVE_NONE);
             }
             MoveHumanoid(Me_MOTION_C, 100, 0);
         }
@@ -115,7 +115,7 @@ void JumpControl(void)
         {
             if (GetMotionID(dtM, MOT_JUMP_BACK) >= 0)
             {
-                SET_MOTION(MOT_JUMP_BACK, 0);
+                SET_MOTION(MOT_JUMP_BACK, MOTION_MOVE_NONE);
             }
             MoveHumanoid(Me_MOTION_C, -100, 0);
         }
@@ -123,7 +123,7 @@ void JumpControl(void)
         {
             if (GetMotionID(dtM, MOT_JUMP_RIGHT) >= 0)
             {
-                SET_MOTION(MOT_JUMP_RIGHT, 0);
+                SET_MOTION(MOT_JUMP_RIGHT, MOTION_MOVE_NONE);
             }
             MoveHumanoid(Me_MOTION_C, 0, -100);
         }
@@ -131,7 +131,7 @@ void JumpControl(void)
         {
             if (GetMotionID(dtM, MOT_JUMP_LEFT) >= 0)
             {
-                SET_MOTION(MOT_JUMP_LEFT, 0);
+                SET_MOTION(MOT_JUMP_LEFT, MOTION_MOVE_NONE);
             }
             MoveHumanoid(Me_MOTION_C, 0, 100);
         }

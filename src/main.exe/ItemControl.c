@@ -50,7 +50,7 @@ void ItemControl(void)
     default:
         goto item_default;
     }
-    motMODE = 1;
+    motMODE = MOTION_MOVE_APPLY;
     return;
 
 item_sound:

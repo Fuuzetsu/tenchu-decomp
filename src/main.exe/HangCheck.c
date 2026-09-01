@@ -183,7 +183,7 @@ short HangCheck(void)
         dtL->vy -= (105 - y);
     }
     motID = MOT_HANG_CATCH;
-    motMODE = 1;
+    motMODE = MOTION_MOVE_APPLY;
     SET_NOW_MOTION_UNLESS_CVA(goto found);
 found:
     Sound(Me_MOTION_C, SE_LEDGE_GRIP);

@@ -111,7 +111,7 @@ void ProcItemShinsoku(TItem *item)
     switch (item->mode)
     {
     case SHINSOKU_MODE_START:
-        SetNowMotion(item->owner.human, MOT_ITEM_SHINSOKU, 1);
+        SetNowMotion(item->owner.human, MOT_ITEM_SHINSOKU, MOTION_MOVE_APPLY);
         Sound(item->owner.human, SE_ITEM_USE);
         item->mode++;
         return;

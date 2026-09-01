@@ -56,7 +56,7 @@ void ActSWIM(void)
     case MOT_SWIM:
         if (SwimCheck() == 0)
         {
-            SET_MOTION(MOT_SWIM_EXIT, 1);
+            SET_MOTION(MOT_SWIM_EXIT, MOTION_MOVE_APPLY);
             break;
         }
         if ((dtPAD & (PADLleft | PADLright)) != 0)
@@ -87,7 +87,7 @@ void ActSWIM(void)
         }
         if ((dtPAD & (PADLdown | PADLup)) == 0)
             break;
-        SET_MOTION(MOT_SWIM_STROKE, 0);
+        SET_MOTION(MOT_SWIM_STROKE, MOTION_MOVE_NONE);
         movement_speed = SWIM_SPEED;
         if (dtPAD & PADLup)
         {
@@ -114,7 +114,7 @@ void ActSWIM(void)
 
             if (SwimCheck() == 0)
             {
-                SET_MOTION(MOT_SWIM_EXIT, 1);
+                SET_MOTION(MOT_SWIM_EXIT, MOTION_MOVE_APPLY);
                 break;
             }
             if ((dtPAD & (PADLleft | PADLright)) != 0)
@@ -176,7 +176,7 @@ void ActSWIM(void)
         break;
 
     set_swim_idle:
-        SET_MOTION(MOT_SWIM, 1);
+        SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
         break;
 
     case MOT_SWIM_EXIT:
@@ -214,10 +214,10 @@ void ActSWIM(void)
                 SetCameraMode(CMODE_NORMAL);
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                 return;
             }
-            SET_MOTION(MOT_NORMAL, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             return;
         }
         if (dtM->count <= SWIM_EXIT_MOVE_FRAME)
@@ -293,7 +293,7 @@ void ActSWIM(void)
     default:
         goto item_default;
     }
-    motMODE = 1;
+    motMODE = MOTION_MOVE_APPLY;
     return;
 
 item_sound:

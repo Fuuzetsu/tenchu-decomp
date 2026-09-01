@@ -166,7 +166,7 @@ run_sequence:
             if ((human->attribute & ATTR_ALERT) == 0 &&
                 (motion = 0, (human->type & PAGE_MASK) == type_class))
                 motion = MOT_STATE_DRAW;
-            SetNowMotion(human, motion, 1);
+            SetNowMotion(human, motion, MOTION_MOVE_APPLY);
         }
     }
 

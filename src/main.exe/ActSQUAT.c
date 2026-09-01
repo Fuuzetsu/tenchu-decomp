@@ -74,27 +74,27 @@ void ActSQUAT(void)
         }
         if (dtPAD & PADLup)
         {
-            SET_MOTION(MOT_SQUAT_WALK_F, 1);
+            SET_MOTION(MOT_SQUAT_WALK_F, MOTION_MOVE_APPLY);
             break;
         }
         if (dtPAD & PADLdown)
         {
-            SET_MOTION(MOT_SQUAT_WALK_B, 1);
+            SET_MOTION(MOT_SQUAT_WALK_B, MOTION_MOVE_APPLY);
             break;
         }
         if (dtPAD & PADLright)
         {
-            SET_MOTION(MOT_SQUAT_WALK_R, 1);
+            SET_MOTION(MOT_SQUAT_WALK_R, MOTION_MOVE_APPLY);
             break;
         }
         if (dtPAD & PADLleft)
         {
-            SET_MOTION(MOT_SQUAT_WALK_L, 1);
+            SET_MOTION(MOT_SQUAT_WALK_L, MOTION_MOVE_APPLY);
             break;
         }
         if (Me_MOTION_C->pad.trig & PADRdown)
         {
-            SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
+            SET_MOTION(MOT_SQUAT_BACKFLIP, MOTION_MOVE_APPLY);
             dtR->vy += ANGLE_HALF;
         }
         break;
@@ -106,11 +106,11 @@ void ActSQUAT(void)
         }
         if ((dtPAD & PADLup) == 0)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
         }
         else if (Me_MOTION_C->pad.trig & PADRdown)
         {
-            SET_MOTION(MOT_SQUAT_BACKFLIP, 1);
+            SET_MOTION(MOT_SQUAT_BACKFLIP, MOTION_MOVE_APPLY);
             dtR->vy += ANGLE_HALF;
         }
         break;
@@ -122,7 +122,7 @@ void ActSQUAT(void)
         }
         if ((dtPAD & PADLdown) == 0)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             break;
         }
         if (dtPAD & (PADLleft | PADLright))
@@ -158,7 +158,7 @@ void ActSQUAT(void)
         }
         if ((dtPAD & PADLright) == 0)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             break;
         }
         if (dtPAD & PADLdown)
@@ -177,7 +177,7 @@ void ActSQUAT(void)
         }
         if ((dtPAD & PADLleft) == 0)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             break;
         }
         if (dtPAD & PADLdown)
@@ -204,7 +204,7 @@ void ActSQUAT(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
         }
         break;
 
@@ -216,7 +216,7 @@ void ActSQUAT(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             return;
         }
         if (dtV->vx == 0 && dtV->vz == 0)
@@ -260,16 +260,16 @@ void ActSQUAT(void)
         switch (dtCMD)
         {
         case CMD_ROLL_FORWARD:
-            SET_MOTION(MOT_SQUAT_ROLL_F, 1);
+            SET_MOTION(MOT_SQUAT_ROLL_F, MOTION_MOVE_APPLY);
             break;
         case CMD_ROLL_BACKWARD:
-            SET_MOTION(MOT_SQUAT_ROLL_B, 1);
+            SET_MOTION(MOT_SQUAT_ROLL_B, MOTION_MOVE_APPLY);
             break;
         case CMD_ROLL_LEFT:
-            SET_MOTION(MOT_SQUAT_ROLL_L, 1);
+            SET_MOTION(MOT_SQUAT_ROLL_L, MOTION_MOVE_APPLY);
             break;
         case CMD_ROLL_RIGHT:
-            SET_MOTION(MOT_SQUAT_ROLL_R, 1);
+            SET_MOTION(MOT_SQUAT_ROLL_R, MOTION_MOVE_APPLY);
             break;
         }
         return;
@@ -308,7 +308,7 @@ void ActSQUAT(void)
         default:
             goto item_default;
         }
-        motMODE = 1;
+        motMODE = MOTION_MOVE_APPLY;
         return;
 
     item_sound:
@@ -328,10 +328,10 @@ void ActSQUAT(void)
         }
         if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             return;
         }
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         return;
     }
     if (PlayerSSR != 0)

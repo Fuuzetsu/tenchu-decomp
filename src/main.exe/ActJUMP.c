@@ -88,7 +88,7 @@ void ActJUMP(void)
                                 AREA_LEVEL_DEFAULT);
         if (dtL->vy < level)
         {
-            SET_MOTION(MOT_STATE_FALL, 0);
+            SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -118,11 +118,11 @@ void ActJUMP(void)
 
             dtR->vy += (*Me_MOTION_C->model->object)->rotate.vy;
             object = *Me_MOTION_C->model->object;
-            SET_MOTION(MOT_STATE_LAND_FLIP, 1);
+            SET_MOTION(MOT_STATE_LAND_FLIP, MOTION_MOVE_APPLY);
             object->rotate.vy = 0;
             return;
         }
-        SET_MOTION(MOT_STATE_LAND, 0);
+        SET_MOTION(MOT_STATE_LAND, MOTION_MOVE_NONE);
         return;
     }
     else
@@ -130,7 +130,7 @@ void ActJUMP(void)
         if (dtM->count == 0 && dtM->loop != 0)
         {
             mid = (u16)motID;
-            SET_MOTION(MOT_STATE_FALL, 0);
+            SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -220,6 +220,6 @@ void ActJUMP(void)
         {
             return;
         }
-        SET_MOTION(MOT_ATTACK_DIVE, 0);
+        SET_MOTION(MOT_ATTACK_DIVE, MOTION_MOVE_NONE);
     }
 }

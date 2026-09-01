@@ -129,7 +129,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
     s32 r;
     s32 i;
 
-    SetNowMotion(p->user.human, MOT_ITEM_THROW, 1);
+    SetNowMotion(p->user.human, MOT_ITEM_THROW, MOTION_MOVE_APPLY);
     i = 0;
     while (1)
     {

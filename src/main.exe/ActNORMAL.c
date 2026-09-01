@@ -44,38 +44,38 @@ void ActNORMAL(void)
         {
             if (dtPAD & PADLdown)
             {
-                SET_MOTION(MOT_ACTION_GESTURE, 1);
+                SET_MOTION(MOT_ACTION_GESTURE, MOTION_MOVE_APPLY);
                 return;
             }
             if (dtPAD & PADLright)
             {
-                SET_MOTION(MOT_ACTION_LOOP, 1);
+                SET_MOTION(MOT_ACTION_LOOP, MOTION_MOVE_APPLY);
                 return;
             }
             if (dtPAD & PADLleft)
             {
-                SET_MOTION(MOT_ACTION_NOTICE, 1);
+                SET_MOTION(MOT_ACTION_NOTICE, MOTION_MOVE_APPLY);
                 return;
             }
             if (dtPAD & PADLup)
             {
-                SET_MOTION(MOT_ACTION, 1);
+                SET_MOTION(MOT_ACTION, MOTION_MOVE_APPLY);
             }
             return;
         }
         if (dtPAD & PADLright)
         {
-            SET_MOTION(MOT_NORMAL_TURN_R, 0);
+            SET_MOTION(MOT_NORMAL_TURN_R, MOTION_MOVE_NONE);
             break;
         }
         if (dtPAD & PADLleft)
         {
-            SET_MOTION(MOT_NORMAL_TURN_L, 0);
+            SET_MOTION(MOT_NORMAL_TURN_L, MOTION_MOVE_NONE);
             break;
         }
         if (dtM->count == 0 && rand() % 100 == 0)
         {
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             motID = (rand() & 1) ? MOT_ACTION_FIDGET_A : MOT_ACTION_FIDGET_B;
         }
         break;
@@ -89,7 +89,7 @@ void ActNORMAL(void)
         }
         else
         {
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         }
         break;
 
@@ -98,7 +98,7 @@ void ActNORMAL(void)
             Sound(Me_MOTION_C, SE_TURN_STEP);
         if ((dtPAD & PADLleft) == 0)
         {
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         }
         else
         {
@@ -111,7 +111,7 @@ void ActNORMAL(void)
     }
     if (Me_MOTION_C->attribute & ATTR_ALERT)
     {
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         return;
     }
 
@@ -140,15 +140,15 @@ void ActNORMAL(void)
         return;
 
     command_1:
-        SET_MOTION(MOT_MOVE_DASH_FWD, 1);
+        SET_MOTION(MOT_MOVE_DASH_FWD, MOTION_MOVE_APPLY);
         return;
 
     command_2:
-        SET_MOTION(MOT_MOVE_DASH_BACK, 1);
+        SET_MOTION(MOT_MOVE_DASH_BACK, MOTION_MOVE_APPLY);
         return;
 
     command_3:
-        SET_MOTION(MOT_MOVE_DASH_LEFT, 1);
+        SET_MOTION(MOT_MOVE_DASH_LEFT, MOTION_MOVE_APPLY);
         return;
 
     command_0:
@@ -191,7 +191,7 @@ void ActNORMAL(void)
             default:
                 goto item_default;
             }
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             return;
 
         item_sound:
@@ -205,28 +205,28 @@ void ActNORMAL(void)
         }
         if (dtPAD & PADRright)
         {
-            SET_MOTION(MOT_SQUAT, 1);
+            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
             return;
         }
         if (dtPAD & PADLup)
         {
-            SET_MOTION(MOT_MOVE, 1);
+            SET_MOTION(MOT_MOVE, MOTION_MOVE_APPLY);
             return;
         }
         if (dtPAD & PADLdown)
         {
-            SET_MOTION(MOT_MOVE_BACK, 1);
+            SET_MOTION(MOT_MOVE_BACK, MOTION_MOVE_APPLY);
             return;
         }
         if (trig & PADRleft)
         {
-            SET_MOTION(MOT_STATE_DRAW, 1);
+            SET_MOTION(MOT_STATE_DRAW, MOTION_MOVE_APPLY);
         }
         return;
     }
 
     command_4:
-        SET_MOTION(MOT_MOVE_DASH_RIGHT, 1);
+        SET_MOTION(MOT_MOVE_DASH_RIGHT, MOTION_MOVE_APPLY);
         return;
     }
 }

@@ -173,7 +173,7 @@ s16 Think3attack(void)
         rand() % 30 == 0 &&
         Me_THINK_C->status == STAT_ENGAGE)
     {
-        SetNowMotion(Me_THINK_C, MOT_ATTACK_TAUNT, 1); /* taunt */
+        SetNowMotion(Me_THINK_C, MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY); /* taunt */
     }
 
     return pad;

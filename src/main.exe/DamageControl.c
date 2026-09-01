@@ -257,13 +257,13 @@ void DamageControl(void)
         ReqLifeBar(Me_MOTION_C);
         if (Me_MOTION_C->life != 0)
         {
-            SET_MOTION(MOT_DAMAGE, 1);
+            SET_MOTION(MOT_DAMAGE, MOTION_MOVE_APPLY);
             Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             reset_alert_duration();
         }
         else
         {
-            SET_MOTION(MOT_DEAD, 1);
+            SET_MOTION(MOT_DEAD, MOTION_MOVE_APPLY);
             if ((Me_MOTION_C->type != NINKEN) &&
                 ((StagePlayer == enemy.human || enemy.tag == CONFLICT_OWNER_ITEM)))
             {
@@ -310,11 +310,11 @@ attack_break:
     }
     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
     }
     else
     {
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
     }
     dtL->vy--;
     return;
@@ -340,7 +340,7 @@ resolve_hit:
             {
             case ITEM_MAKIBISHI:
                 dmg = DMG_MAKIBISHI;
-                SET_MOTION(MOT_DAMAGE_MAKIBISHI, 1);
+                SET_MOTION(MOT_DAMAGE_MAKIBISHI, MOTION_MOVE_APPLY);
                 break;
             case ITEM_SHURIKEN:
                 if (dmg == 0)
@@ -373,7 +373,7 @@ resolve_hit:
                 motID = MOT_DAMAGE;
                 p.vy = dtL->vy - Me_MOTION_C->height / 2;
                 p.vz = dtL->vz;
-                motMODE = 1;
+                motMODE = MOTION_MOVE_APPLY;
                 SetBlood(&p, 5, 90);
                 break;
             case ITEM_NAPALM:
@@ -386,7 +386,7 @@ resolve_hit:
                 {
                     motID = MOT_DAMAGE_FRONT_MID;
                 }
-                motMODE = 1;
+                motMODE = MOTION_MOVE_APPLY;
                 break;
             case ITEM_FIRE:
             case ITEM_JIRAI:
@@ -417,13 +417,13 @@ resolve_hit:
                 }
                 if (abs_direction < ANGLE_QUADRANT)
                 {
-                    SET_MOTION(MOT_DAMAGE_LAUNCH_BACK, 0);
+                    SET_MOTION(MOT_DAMAGE_LAUNCH_BACK, MOTION_MOVE_NONE);
                     dtR->vy += did;
                     MoveHumanoid(Me_MOTION_C, -DAMAGE_LAUNCH_SPEED, 0);
                 }
                 else
                 {
-                    SET_MOTION(MOT_DAMAGE_LAUNCH_FORE, 0);
+                    SET_MOTION(MOT_DAMAGE_LAUNCH_FORE, MOTION_MOVE_NONE);
                     dtR->vy = (ANGLE_HALF + did) + dtR->vy;
                     MoveHumanoid(Me_MOTION_C, DAMAGE_LAUNCH_SPEED, 0);
                 }
@@ -442,7 +442,7 @@ resolve_hit:
                     Me_MOTION_C->life = 0;
                     if (motID != MOT_DAMAGE_LAUNCH_BACK && motID != MOT_DAMAGE_LAUNCH_FORE)
                     {
-                        SET_MOTION(MOT_DEAD, 1);
+                        SET_MOTION(MOT_DEAD, MOTION_MOVE_APPLY);
                     }
                     Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                     {
@@ -696,12 +696,12 @@ resolve_hit:
                     DeadHumanoid = Me_MOTION_C;
                     if (deg != DAMAGE_MOTION_LAUNCH_TIER)
                     {
-                        SET_MOTION(MOT_DEAD, 1);
+                        SET_MOTION(MOT_DEAD, MOTION_MOVE_APPLY);
                         SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
                     death_motion_set:
                         if ((rand() & 1) != 0)
                         {
-                            SET_MOTION(MOT_DEAD_ALT, 1);
+                            SET_MOTION(MOT_DEAD_ALT, MOTION_MOVE_APPLY);
                         }
                     }
                     else
@@ -744,7 +744,7 @@ resolve_hit:
                         deg += DAMAGE_MOTION_FROM_BEHIND_OFFSET;
                     }
                     dtM->mid = MOTION_ID_NONE;
-                    SET_MOTION(damagemotion[deg], 0);
+                    SET_MOTION(damagemotion[deg], MOTION_MOVE_NONE);
                     reset_alert_duration();
                 }
             }
@@ -777,7 +777,7 @@ resolve_hit:
         Me_MOTION_C->life = Me_MOTION_C->lifemax;
         if (motID != MOT_DAMAGE_LAUNCH_BACK && motID != MOT_DAMAGE_LAUNCH_FORE)
         {
-            SET_MOTION(MOT_DAMAGE_FRONT_HEAVY, 1);
+            SET_MOTION(MOT_DAMAGE_FRONT_HEAVY, MOTION_MOVE_APPLY);
         }
     }
     Me_MOTION_C->pad.time = 0;
@@ -793,7 +793,7 @@ resolve_hit:
             motMODE = MOTION_MOVE_UNSET;
             return;
         }
-        SET_MOTION(MOT_DEAD_DROWN, 1);
+        SET_MOTION(MOT_DEAD_DROWN, MOTION_MOVE_APPLY);
     }
     SET_NOW_MOTION_UNLESS_CVA(return);
     return;

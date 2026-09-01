@@ -135,7 +135,7 @@ short CVArun(void)
             }
             else if (human->status != STAT_DEAD)
             {
-                SetNowMotion(human, motid, 1);
+                SetNowMotion(human, motid, MOTION_MOVE_APPLY);
                 CVAhuman[i].human = 0;
             }
         }

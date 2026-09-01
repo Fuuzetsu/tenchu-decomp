@@ -33,10 +33,10 @@ void ReturnNormal(void)
     }
     if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
     {
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
     }
     else
     {
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
     }
 }

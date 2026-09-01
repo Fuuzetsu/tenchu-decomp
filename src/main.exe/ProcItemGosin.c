@@ -89,7 +89,7 @@ void ProcItemGosin(TItem *item)
     switch (item->mode)
     {
     case GOSIN_MODE_START:
-        SetNowMotion(item->owner.human, MOT_ITEM_KAENGEKI, 1);
+        SetNowMotion(item->owner.human, MOT_ITEM_KAENGEKI, MOTION_MOVE_APPLY);
         Sound(item->owner.human, SE_ITEM_USE);
         item->mode++;
         return;

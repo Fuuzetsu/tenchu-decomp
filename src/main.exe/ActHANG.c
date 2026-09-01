@@ -48,10 +48,10 @@
  *    an `lh` (no sll/sra) — wrong shape.
  *  - Case bodies are emitted in SOURCE order; the original's order is the
  *    MEMORY order 0, 2/3, 4, 1 (case 1 last, falling into the shared tail;
- *    its `motID = MOT_HANG; motMODE = 1;` island is the physically-last copy
+ *    its `motID = MOT_HANG; motMODE = MOTION_MOVE_APPLY;` island is the physically-last copy
  *    that case 0's 0xA02/0xA03 stores cross-jump onto, leaving each
  *    predecessor just its own `li` in the branch delay slot).
- *  - `motMODE = 1;` written literally per arm (never hoisted/shared);
+ *  - `motMODE = MOTION_MOVE_APPLY;` written literally per arm (never hoisted/shared);
  *    cc1's cross-jump does all the merging (same rule as ActSYURI.c).
  *  - dtPAD has its recovered signed object type. dtPAD supplies
  *    the case-0 `lhu` mask tests, while case 2/3's plain signed view gives the
@@ -90,33 +90,33 @@ void ActHANG(void)
                 y += 100;
                 dtL->vy = y;
             } while (HangCheck() != 0);
-            SET_MOTION(MOT_STATE_FALL, 0);
+            SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
         }
         else if (dtPAD & PADLright)
         {
-            SET_MOTION(MOT_HANG_SHIMMY_RIGHT, 1);
+            SET_MOTION(MOT_HANG_SHIMMY_RIGHT, MOTION_MOVE_APPLY);
         }
         else if (dtPAD & PADLleft)
         {
-            SET_MOTION(MOT_HANG_SHIMMY_LEFT, 1);
+            SET_MOTION(MOT_HANG_SHIMMY_LEFT, MOTION_MOVE_APPLY);
         }
         else if ((dtPAD & PADLup) &&
                  GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy - 2000,
                                  dtL->vz, AREA_LEVEL_STEP_DOWN) !=
                      (u32)LEVEL_NONE)
         {
-            SET_MOTION(MOT_HANG_PULLUP, 1);
+            SET_MOTION(MOT_HANG_PULLUP, MOTION_MOVE_APPLY);
         }
         break;
     case MOT_HANG_SHIMMY_RIGHT:
     case MOT_HANG_SHIMMY_LEFT:
         if ((dtPAD & (PADLleft | PADLright)) == 0)
         {
-            SET_MOTION(MOT_HANG, 1);
+            SET_MOTION(MOT_HANG, MOTION_MOVE_APPLY);
         }
         else if (HangCheck() == 0)
         {
-            SET_MOTION(MOT_STATE_FALL, 0);
+            SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
         }
         if (dtM->count == 1)
         {
@@ -132,10 +132,10 @@ void ActHANG(void)
             }
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                 return;
             }
-            SET_MOTION(0, 1);
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             return;
         }
         if (dtM->count >= 0)
@@ -150,7 +150,7 @@ void ActHANG(void)
     case MOT_HANG_CATCH:
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(MOT_HANG, 1);
+            SET_MOTION(MOT_HANG, MOTION_MOVE_APPLY);
         }
         break;
     }
@@ -158,6 +158,6 @@ void ActHANG(void)
     {
         /* Shoved by a conflict object while hanging: knocked off. */
         MoveHumanoid(Me_MOTION_C, -10, 0);
-        SET_MOTION(MOT_STATE_FALL, 0);
+        SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
     }
 }

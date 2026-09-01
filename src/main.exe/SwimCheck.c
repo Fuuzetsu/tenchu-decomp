@@ -119,14 +119,14 @@ short SwimCheck(void)
         motion = GetMotionID(dtM, MOT_SWIM);
         if ((s16)motion < 0 || Me_MOTION_C->life == 0)
         {
-            SET_MOTION(MOT_DEAD_DROWN, 1);
+            SET_MOTION(MOT_DEAD_DROWN, MOTION_MOVE_APPLY);
             Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
             Me_MOTION_C->life = 0;
             ReqLifeBar(Me_MOTION_C);
         }
         else
         {
-            SET_MOTION(MOT_SWIM, 1);
+            SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
         }
 
         if (MotionUpdateMode != 0)

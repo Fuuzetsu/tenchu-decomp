@@ -135,7 +135,7 @@ void ProcItemHenshin(TItem *item)
     switch (item->mode)
     {
     case HENSHIN_MODE_START:
-        SetNowMotion(human, MOT_ITEM_KAENGEKI, 1);
+        SetNowMotion(human, MOT_ITEM_KAENGEKI, MOTION_MOVE_APPLY);
         Sound(item->owner.human, SE_ITEM_USE);
         item->mode++;
         return;

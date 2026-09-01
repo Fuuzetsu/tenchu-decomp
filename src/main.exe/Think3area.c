@@ -117,7 +117,7 @@ s16 Think3area(void)
         }
         else if (rand() % 10 == 0)
         {
-            SetNowMotion(Me_THINK_C, MOT_ATTACK_TAUNT, 1); /* taunt */
+            SetNowMotion(Me_THINK_C, MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY); /* taunt */
             Me_THINK_C->actflg = 1;
         }
 

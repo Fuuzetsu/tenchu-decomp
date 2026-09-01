@@ -51,7 +51,7 @@ void ActACTION(void)
             SetCameraMode(CMODE_NORMAL);
         if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
-            SET_MOTION(MOT_ENGAGE_STANCE, 1);
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             return;
         }
         goto set_normal_motion;
@@ -65,11 +65,11 @@ void ActACTION(void)
                 SetCameraMode(CMODE_NORMAL);
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
             else
             {
-                SET_MOTION(0, 1);
+                SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             }
         }
         if (dtM->count == 1)
@@ -82,11 +82,11 @@ void ActACTION(void)
                 SetCameraMode(CMODE_NORMAL);
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
             else
             {
-                SET_MOTION(0, 1);
+                SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             }
         }
         break;
@@ -159,7 +159,7 @@ void ActACTION(void)
         }
         if (dtM->loop == MOTION_LOOP_DISABLED && dtPAD != 0)
         {
-            SET_MOTION(MOT_DAMAGE_GETUP, 1);
+            SET_MOTION(MOT_DAMAGE_GETUP, MOTION_MOVE_APPLY);
             if (MotionUpdateMode != 0)
             {
                 i = 0;
@@ -184,15 +184,12 @@ void ActACTION(void)
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(MOT_STATE_DRAW, 1);
+            SET_MOTION(MOT_STATE_DRAW, MOTION_MOVE_APPLY);
         }
         break;
 
     case MOT_ACTION_GESTURE:
-    /* A hole in the MOT_ enum, between MOT_ACTION_GESTURE 0x102 and MOT_ACTION_FIDGET_A 0x104. It is not in MOTcommon and
-     * nothing in main.exe plays it, so it arrives from a character's own
-     * mtbl and its meaning is not recoverable here -- hence the digit. */
-    case 0x103:
+    case MOT_ACTION_VARIANT_3:
     default:
         if (dtM->count != 0)
             return;
@@ -202,10 +199,10 @@ void ActACTION(void)
             SetCameraMode(CMODE_NORMAL);
         if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
             goto set_normal_motion;
-        SET_MOTION(MOT_ENGAGE_STANCE, 1);
+        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         return;
     set_normal_motion:
-        SET_MOTION(0, 1);
+        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
         return;
     }
 }

@@ -43,7 +43,7 @@
  *    (=1) word store, and all three `motMODE = 1` halfword stores fold
  *    onto it via cse's taken-edge path following. No named variable needed
  *    (PSX.SYM lists only `p` and `item` — consistent).
- *  - `motMODE = 1;` is DUPLICATED into both arms of each motID=0x501/0
+ *  - `motMODE = MOTION_MOVE_APPLY;` is DUPLICATED into both arms of each motID=0x501/0
  *    if/else (the cookbook's "duplicate the shared trailing statement"
  *    shared-tails rule): in E01 sched2 (which runs BEFORE jump2 here) then
  *    hoists the else-arm's `li v0,1` above its store and cross-jump merges
@@ -77,7 +77,7 @@ void ActSYURI(void)
                 return;
             if (dtM->loop == 0)
                 return;
-            SET_MOTION(MOT_SYURI_RECOVER, 1);
+            SET_MOTION(MOT_SYURI_RECOVER, MOTION_MOVE_APPLY);
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -97,7 +97,7 @@ void ActSYURI(void)
         }
         else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
-            SET_MOTION(MOT_SYURI_RECOVER, 1);
+            SET_MOTION(MOT_SYURI_RECOVER, MOTION_MOVE_APPLY);
             Sound(Me_MOTION_C, SE_WEAPON_RECOVER);
         }
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
@@ -109,11 +109,11 @@ void ActSYURI(void)
             }
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
             else
             {
-                SET_MOTION(0, 1);
+                SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             }
         }
         break;
@@ -130,11 +130,11 @@ void ActSYURI(void)
             }
             if (Me_MOTION_C->attribute & ATTR_ALERT)
             {
-                SET_MOTION(MOT_ENGAGE_STANCE, 1);
+                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
             else
             {
-                SET_MOTION(0, 1);
+                SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
             }
         }
         break;

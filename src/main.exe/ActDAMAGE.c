@@ -100,7 +100,7 @@ void ActDAMAGE(void)
         if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
-            SET_MOTION(MOT_DAMAGE_SLAM_BACK, 0);
+            SET_MOTION(MOT_DAMAGE_SLAM_BACK, MOTION_MOVE_NONE);
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 60);
@@ -144,7 +144,7 @@ void ActDAMAGE(void)
         if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) ||
             Me_MOTION_C->map.height < 0)
         {
-            SET_MOTION(MOT_DAMAGE_SLAM_FORE, 0);
+            SET_MOTION(MOT_DAMAGE_SLAM_FORE, MOTION_MOVE_NONE);
         }
         if (dtM->count & 4)
             SetBlood(dtL, 1, 60);
@@ -162,7 +162,7 @@ void ActDAMAGE(void)
         }
         if (dtM->count == 0 && dtM->loop != 0)
         {
-            SET_MOTION(MOT_DAMAGE_DOWNED, 1);
+            SET_MOTION(MOT_DAMAGE_DOWNED, MOTION_MOVE_APPLY);
             break;
         }
         dtV->vx -= (dtV->vx >> 2);
@@ -188,7 +188,7 @@ void ActDAMAGE(void)
         dtM->loop--;
         if (Me_MOTION_C->life - Me_MOTION_C->lifemax >= dtM->loop)
         {
-            SET_MOTION(MOT_DAMAGE_GETUP, 1);
+            SET_MOTION(MOT_DAMAGE_GETUP, MOTION_MOVE_APPLY);
         }
         break;
 
@@ -250,13 +250,13 @@ void ActDAMAGE(void)
         if (Me_MOTION_C->attribute & ATTR_ALERT)
         {
             motID = MOT_ENGAGE_STANCE;
-            motMODE = 1;
+            motMODE = MOTION_MOVE_APPLY;
             Me_MOTION_C->attribute =
                 (Me_MOTION_C->attribute & (u16)~ATTR_PHASE) | PHASE_ALERT;
         }
         else
         {
-            SET_MOTION(MOT_STATE_DRAW, 1);
+            SET_MOTION(MOT_STATE_DRAW, MOTION_MOVE_APPLY);
         }
     }
 }

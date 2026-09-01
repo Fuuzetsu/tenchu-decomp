@@ -148,9 +148,9 @@ typedef s16 facing_angle;
  * one-line spelling: ActENGAGE makes 30 of these requests inside an
  * estimated 63 source lines (tools/verbosity.py), which two lines apiece
  * could not fit. */
-#define SET_MOTION(id, mode)                                                  \
-    motID = (id);                                                             \
-    motMODE = (mode)
+#define SET_MOTION(id_, movement_)                                            \
+    motID = (id_);                                                            \
+    motMODE = (movement_)
 
 /* Attack-animation ids, for the one switch that keys on them (ActATTACK).
  *
