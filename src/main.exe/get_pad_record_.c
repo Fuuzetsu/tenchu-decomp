@@ -10,5 +10,6 @@
  */
 TPadPort *get_pad_record_(s32 arg0)
 {
-    return &PadPort[arg0 >> 4][arg0 & 3];
+    return &PadPort[arg0 >> PAD_PORT_INDEX_SHIFT]
+                   [arg0 & PAD_SLOT_INDEX_MASK];
 }

@@ -31,7 +31,8 @@ extern u8 Anakon;
 
 static inline void PadShockApply(s32 port, s32 p1, s32 p2)
 {
-    TPadPort *p = &PadPort[port >> 4][port & 3];
+    TPadPort *p = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
+                         [port & PAD_SLOT_INDEX_MASK];
     TPadPort *q = p;
 
     if (Anakon != 0)

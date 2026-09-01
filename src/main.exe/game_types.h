@@ -21,6 +21,13 @@
 // The offset-aligned field map is kept for reference:
 // reference/character_state-to-humanoid.tsv.)
 
+/* Pad ids encode the physical port in their high nibble and the multitap
+ * slot in their low two bits. */
+#define PAD_PORT_COUNT 2
+#define PAD_SLOTS_PER_PORT 4
+#define PAD_PORT_INDEX_SHIFT 4
+#define PAD_SLOT_INDEX_MASK (PAD_SLOTS_PER_PORT - 1)
+
 // One controller port's raw state — the official globals and PADCMD.C name
 // this TPadPort (reference/psxsym-globals.h: `struct TPadPort PadPort[2][4]`).
 // Retail inserted `active` at offset 6, making it 14 bytes vs the demo's 12

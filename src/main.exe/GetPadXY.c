@@ -39,7 +39,8 @@ void GetPadXY(short no, short *x, short *y)
     TPadPort *pad;
 
     port = no << 4;
-    pad = &PadPort[port >> 4][port & 3];
+    pad = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
+                  [port & PAD_SLOT_INDEX_MASK];
     *x = (u16)pad->x;
     *y = (u16)pad->y;
 }

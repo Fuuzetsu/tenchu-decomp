@@ -63,14 +63,15 @@ void ComPad(int port, u8 *rxbuf)
 
     if ((rxbuf[1] >> 4) == 8)
     {
-        for (i = 0; i < 4; i++)
+        for (i = 0; i < PAD_SLOTS_PER_PORT; i++)
         {
             ComPad(port + i, rxbuf + 2 + i * 8);
         }
         return;
     }
 
-    pad = &PadPort[port >> 4][port & 3];
+    pad = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
+                  [port & PAD_SLOT_INDEX_MASK];
 
     if (rxbuf[0] != 0)
     {

@@ -37,6 +37,8 @@ short GetPad(short no)
     s32 port;
 
     port = no << 4;
-    button = &PadPort[port >> 4][port & 3].button;
+    button = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
+                     [port & PAD_SLOT_INDEX_MASK]
+                         .button;
     return *button;
 }

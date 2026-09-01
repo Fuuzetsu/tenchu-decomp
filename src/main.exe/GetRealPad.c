@@ -29,6 +29,8 @@ long GetRealPad(int port)
 {
     u16 *button;
     PadProc();
-    button = &PadPort[port >> 4][port & 3].button;
+    button = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
+                     [port & PAD_SLOT_INDEX_MASK]
+                         .button;
     return *button;
 }

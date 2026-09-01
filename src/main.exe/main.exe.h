@@ -50,7 +50,7 @@
 extern void PadProc(void);
 extern void PadShockAR(int port, int pow, int attack, int release);
 extern long GetRealPad(int port);
-extern TPadPort PadPort[2][4];
+extern TPadPort PadPort[PAD_PORT_COUNT][PAD_SLOTS_PER_PORT];
 extern COMMAND *Command[12];
 /* The two standard 34-byte PSY-Q pad receive buffers InitPAD registers. */
 extern unsigned char ComBuf[2][34];
