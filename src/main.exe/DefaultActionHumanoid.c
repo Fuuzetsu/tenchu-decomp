@@ -205,9 +205,7 @@ short DefaultActionHumanoid(Humanoid *human)
         SetNowMotion(human, MOT_DEAD, 1);
     }
 
-    /* One lw covering vector/direct/angleL/angleH; the high half is the
-     * two wall-angle bytes. */
-    if (*(s32 *)&map->vector & (s32)0xffff0000)
+    if (map->angleL != 0 || map->angleH != 0)
     {
         u16 attribute;
 

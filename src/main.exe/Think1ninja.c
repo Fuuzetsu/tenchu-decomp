@@ -19,8 +19,7 @@
  * enemy: does nothing while jumping (status STAT_JUMP); otherwise runs
  * an actscnt-gated (every 31st call, matching Think1watch's/Think1trace's
  * old-actscnt idiom) random-action roll (Think1random) that, specifically
- * while the current motion is 0x200/0 (mid==0x200 && count==0, read as ONE
- * word compare — matches Ghidra's own split-then-recombine rendering),
+ * while the current motion is MOT_MOVE at frame zero,
  * checks whether stepping forward would change the character's area-map
  * level (an edge/stair/ledge check, same GetAreaMapLevel/GlobalAreaMap
  * idiom as turn_towards_player_.c's obstacle probe) and forces a "stop and
@@ -34,12 +33,8 @@
  * Humanoid struct's MapVector at the exact same offset (right after
  * Humanoid's own PADtype pad).
  *
- * `*(s32 *)Me_THINK_C->motion == 0x200` reads
- * BOTH `animation_state_perhaps`(mid, offset 0) and
- * `frames_since_animation_start`(count, offset 2) as one 32-bit compare —
- * the asm's single `lw`+compare (0x200 as a little-endian word is
- * mid=0x200,count=0) — matches Ghidra's own split-field rendering
- * (`iVar5._0_2_`/`iVar5._2_2_`) of the exact same instruction.
+ * The adjacent `mid == MOT_MOVE && count == 0` field checks compile to the
+ * target's single 32-bit load and compare; no packed-word cast is needed.
  *
  * `Think1random` takes ZERO arguments (not `Think1random(Me_THINK_C)` as
  * m2c's naive per-register liveness rendering suggests): $a0 still holds
@@ -85,7 +80,8 @@ s16 Think1ninja(void)
     if (actscnt > 30)
     {
         result = Think1random();
-        if (*(s32 *)Me_THINK_C->motion == 0x200)
+        if (Me_THINK_C->motion->mid == MOT_MOVE &&
+            Me_THINK_C->motion->count == 0)
         {
             SVECTOR move;
             s32 d1;
