@@ -1,0 +1,82 @@
+#ifndef TENCHU_MUSIC_H
+#define TENCHU_MUSIC_H
+
+/* Logical ids stored in event data and MusicIDTable. The names through
+ * STAGE_OPEN8A are the original demo enum; retail adds ids 26, 27, and 30,
+ * whose names did not survive. */
+typedef enum MusicId MusicId;
+enum MusicId
+{
+    MUSIC_ID_STAGE1 = 0,
+    MUSIC_ID_STAGE2 = 1,
+    MUSIC_ID_STAGE3 = 2,
+    MUSIC_ID_STAGE4 = 3,
+    MUSIC_ID_STAGE5 = 4,
+    MUSIC_ID_STAGE6 = 5,
+    MUSIC_ID_STAGE7 = 6,
+    MUSIC_ID_STAGE8 = 7,
+    MUSIC_ID_STAGE9 = 8,
+    MUSIC_ID_GAMEOVER = 9,
+    MUSIC_ID_COMPLETE = 10,
+    MUSIC_ID_KIKI = 11,
+    MUSIC_ID_TITLE = 12,
+    MUSIC_ID_CHARA = 13,
+    MUSIC_ID_BARMAR = 14,
+    MUSIC_ID_MEIOU = 15,
+    MUSIC_ID_STAGE_OPEN1 = 16,
+    MUSIC_ID_STAGE_OPEN2 = 17,
+    MUSIC_ID_STAGE_OPEN3 = 18,
+    MUSIC_ID_STAGE_OPEN4 = 19,
+    MUSIC_ID_STAGE_OPEN5 = 20,
+    MUSIC_ID_STAGE_OPEN6 = 21,
+    MUSIC_ID_STAGE_OPEN7 = 22,
+    MUSIC_ID_STAGE_OPEN8 = 23,
+    MUSIC_ID_STAGE_OPEN7A = 24,
+    MUSIC_ID_STAGE_OPEN8A = 25,
+    MUSIC_ID_RETAIL_26 = 26,
+    MUSIC_ID_RETAIL_27 = 27,
+    MUSIC_ID_RETAIL_30 = 30
+};
+
+/* Physical rows in retail's XA MusicTable. MusicIDTable maps the logical ids
+ * above onto these rows. */
+typedef enum MusicTrack MusicTrack;
+enum MusicTrack
+{
+    MUSIC_TRACK_STAGE1 = 0,
+    MUSIC_TRACK_STAGE2 = 1,
+    MUSIC_TRACK_STAGE3 = 2,
+    MUSIC_TRACK_STAGE4 = 3,
+    MUSIC_TRACK_STAGE5 = 4,
+    MUSIC_TRACK_STAGE6 = 5,
+    MUSIC_TRACK_STAGE7 = 6,
+    MUSIC_TRACK_STAGE8 = 7,
+    MUSIC_TRACK_STAGE9 = 8,
+    MUSIC_TRACK_RETAIL_26 = 9,
+    MUSIC_TRACK_RETAIL_27 = 10,
+    MUSIC_TRACK_GAMEOVER = 11,
+    MUSIC_TRACK_COMPLETE = 12,
+    MUSIC_TRACK_KIKI = 13,
+    MUSIC_TRACK_TITLE = 14,
+    MUSIC_TRACK_CHARA = 15,
+    MUSIC_TRACK_BARMAR = 16,
+    MUSIC_TRACK_MEIOU = 17,
+    MUSIC_TRACK_RETAIL_30 = 18,
+    MUSIC_TRACK_COUNT = 19
+};
+
+/* _PlayMusic also accepts cue numbers outside MusicTable. */
+enum
+{
+    MUSIC_CUE_RESERVED_FIRST = 61,
+    MUSIC_CUE_RESERVED_LAST = 99,
+    MUSIC_CUE_RESERVED_COUNT =
+        MUSIC_CUE_RESERVED_LAST - MUSIC_CUE_RESERVED_FIRST + 1,
+    MUSIC_CUE_EXTENDED_FIRST = 100,
+    MUSIC_VOICE_ID_FIRST = 101,
+    MUSIC_VOICE_ID_OFFSET = MUSIC_VOICE_ID_FIRST - MUSIC_TRACK_COUNT,
+    MUSIC_EXTENDED_VOICE_ID_OFFSET = 100,
+    MUSIC_EVENT_ID_BASE = 100
+};
+
+#endif

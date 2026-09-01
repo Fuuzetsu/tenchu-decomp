@@ -3,6 +3,7 @@
 #include "conflict.h"
 #include "humanoid.h"
 #include "game_globals.h"
+#include "music.h"
 
 /* Commit motID/motMODE to the humanoid -- unless a cutscene (CVA) is
  * currently driving them, in which case the script owns the motion and
@@ -133,17 +134,6 @@ enum
     MODEL_HAPPOU = 0x1C,
     ARC_BLOOD_POOL_MODEL = 0x1F
 };
-
-/* Music ids the code plays by literal — _PlayMusic's argument is the
- * PHYSICAL MusicTable row. Names are official (the demo CHRANIM enum);
- * script data instead uses the demo-era LOGICAL ids, remapped through
- * MusicIDTable by PlayMusicFormID (row = table index whose byte equals
- * id-100): logical 0-8 = MUSIC_STAGE1..9 keep rows 0-8, rows 9/10/18
- * are retail-new themes (logical 26/27/30), and logical 9-15
- * (GAMEOVER, COMPLETE, KIKI, TITLE, CHARA, BARMAR, MEIOU) sit at rows
- * 11-17. */
-#define MUSIC_GAMEOVER 11
-#define MUSIC_COMPLETE 12
 
 /* exec_process_ ids — which PS-X EXE boots next ("bad process id" is
  * the game's own error message; the value names are invented). */

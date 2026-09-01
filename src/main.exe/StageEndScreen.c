@@ -344,7 +344,7 @@ void StageEndScreen(void)
             rank.my = 0;
             LoadTIM(tim);
 
-            _PlayMusic(MUSIC_COMPLETE, CDA_REPEAT);
+            _PlayMusic(MUSIC_TRACK_COMPLETE, CDA_REPEAT);
             second_x = 0x28;
             while (1)
             {

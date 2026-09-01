@@ -225,7 +225,7 @@ void game_over_screen_(void)
 
     DrawSync(0);
     VSync(0);
-    _PlayMusic(MUSIC_GAMEOVER, CDA_ONCE);
+    _PlayMusic(MUSIC_TRACK_GAMEOVER, CDA_ONCE);
 
     /* GCC 2.8 folds this bounded-state identity after flow; its four
      * state reads together preserve the retail saved-register

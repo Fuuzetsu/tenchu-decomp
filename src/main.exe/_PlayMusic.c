@@ -30,11 +30,10 @@
  * STATUS: MATCHING — pure C, all 400 bytes / 100 instructions exact.
  *
  * _PlayMusic (0x8004ed54, 0x190 bytes) — dispatches a music-play request:
- * MusicNo in [0x3D, 0x63] (checked UNSIGNED, `MusicNo-0x3D < 0x27`) or
- * negative is an error (message box + stop CD audio); MusicNo < 0x13 plays
+ * MusicNo in the reserved cue range (checked UNSIGNED) or negative is an
+ * error (message box + stop CD audio); MusicNo below MUSIC_TRACK_COUNT plays
  * a CD-XA track from `MusicTable[MusicNo]`; otherwise it's a synthesized
- * "voice" cue played via `PlayVoice(MusicNo + 0x52)` (`+0x64` instead once
- * MusicNo > 99, so the id space doesn't collide past two digits).
+ * "voice" cue translated into one of PlayVoice's numbered banks.
  *
  * Splat/Ghidra split this one function into 3 pieces
  * (`_PlayMusic`/`play_stage_music__override__prt_8004ed94_...`/
@@ -68,11 +67,11 @@
  * (passed to `set_cda_volume_` twice, identically, exactly as that file
  * does).
  *
- * The MusicNo<100-vs->=100 id offset (`+0x52`/`+0x64`) can be passed as a
- * conditional expression directly to PlayVoice. Likewise, testing CdaPlayXA's
- * return value directly preserves retail's branch. Neither result needs the
- * generic `n` carrier from the first reconstruction, matching PSX.SYM's local
- * inventory as well as the retail instructions.
+ * The two voice-bank offsets can be passed as a conditional expression
+ * directly to PlayVoice. Likewise, testing CdaPlayXA's return value directly
+ * preserves retail's branch. Neither result needs the generic `n` carrier
+ * from the first reconstruction, matching PSX.SYM's local inventory as well
+ * as the retail instructions.
  *
  * Two source identities close the former whole-function cascade. Expressing
  * the synthesized-voice arm before the XA arm reproduces retail's physical
@@ -92,7 +91,7 @@ typedef struct TMusicTable
     u8 endsec;  /* 0x8 */
 } TMusicTable;  /* 0xC */
 
-extern TMusicTable MusicTable[];
+extern TMusicTable MusicTable[MUSIC_TRACK_COUNT];
 extern char msg_bad_music_no[];           /* "bad music no" */
 extern char fmt_xa_path[];                /* "\TENCHU\XA\%s;1" */
 extern char fmt_playmusic_fail_chan_id[]; /* "playmusic fail %s  chan %d  id %d" */
@@ -123,14 +122,19 @@ void _PlayMusic(int MusicNo, int mode)
     u8 min;
     u8 sec;
 
-    if (MusicNo < 0 || (u32)(MusicNo - 0x3D) < 0x27)
+    if (MusicNo < 0 ||
+        (u32)(MusicNo - MUSIC_CUE_RESERVED_FIRST) <
+            MUSIC_CUE_RESERVED_COUNT)
     {
         AdtMessageBox(msg_bad_music_no, MusicNo);
         CdaStop();
     }
-    else if (MusicNo >= 0x13)
+    else if (MusicNo >= MUSIC_TRACK_COUNT)
     {
-        PlayVoice(MusicNo + (MusicNo > 99 ? 100 : 0x52));
+        PlayVoice(MusicNo +
+                  (MusicNo >= MUSIC_CUE_EXTENDED_FIRST
+                       ? MUSIC_EXTENDED_VOICE_ID_OFFSET
+                       : MUSIC_VOICE_ID_OFFSET));
     }
     else
     {

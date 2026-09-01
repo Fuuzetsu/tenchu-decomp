@@ -50,13 +50,13 @@ void PlayMusicFormID(s32 id)
     s16 i;
     s16 j;
 
-    if (id < 100)
+    if (id < MUSIC_EVENT_ID_BASE)
     {
         PlayVoice(id);
         return;
     }
     table_base = MusicIDTable;
-    MusicNo = id - 100;
+    MusicNo = id - MUSIC_EVENT_ID_BASE;
     i = 0;
     first = *table_base;
     /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
