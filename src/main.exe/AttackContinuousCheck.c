@@ -28,15 +28,16 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - Same genuine `switch (wk) { case 2: ...; case 3: ...; case 0: goto...;
  *    default: ...; }` shape as AttackCancelControl — see that file's header.
- *  - The illusion-disposal block is wrapped in `if (mode & 2)`, exactly
- *    AttackCancelControl's parameter test, but here `mode` is a LOCAL that
- *    only ever holds the literal 3 (set on case 0's early exit and again
- *    right after the shared `DeleteConflict(model);`) — never a real
- *    parameter. cc1 doesn't constant-fold `if (3 & 2)` away (that requires
- *    a literal at the expression site, not a variable merely known-constant
- *    by dataflow), so the dead andi+beqz survives in the binary exactly as
- *    Ghidra's own decompilation (which DOES prove it dead and renders a
- *    bare `return 1;`) hides.
+ *  - The illusion-disposal block is wrapped in
+ *    `if (mode & ATTACK_CANCEL_AFTERIMAGES)`, exactly AttackCancelControl's
+ *    parameter test, but here `mode` is a LOCAL that only ever holds
+ *    ATTACK_CANCEL_ALL (set on case 0's early exit and again right after the
+ *    shared `DeleteConflict(model);`) — never a real parameter. cc1 doesn't
+ *    constant-fold the known-true test away (that requires a literal at the
+ *    expression site, not a variable merely known-constant by dataflow), so
+ *    the dead andi+beqz survives in the binary exactly as Ghidra's own
+ *    decompilation (which DOES prove it dead and renders a bare `return 1;`)
+ *    hides.
  *  - `Me_MOTION_C->pad.time = 0;` must be written BEFORE `wk =
  *    Me_MOTION_C->wpatk;`, not after (Ghidra's own literal order). Keeping
  *    the signed field load adjacent to the switch dispatch lets combine
@@ -72,7 +73,7 @@ s16 AttackContinuousCheck(BattleType *battle)
         model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
         break;
     case NO_WEAPON:
-        mode = 3;
+        mode = ATTACK_CANCEL_ALL;
         goto no_conflict;
     default:
         DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
@@ -80,9 +81,9 @@ s16 AttackContinuousCheck(BattleType *battle)
         break;
     }
     DeleteConflict(model);
-    mode = 3;
+    mode = ATTACK_CANCEL_ALL;
 no_conflict:
-    if ((mode & 2) != 0)
+    if ((mode & ATTACK_CANCEL_AFTERIMAGES) != 0)
     {
         if (Me_MOTION_C->illusion[0] != 0)
         {

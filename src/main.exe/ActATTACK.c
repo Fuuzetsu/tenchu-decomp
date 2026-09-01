@@ -94,24 +94,24 @@
             Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);            \
         DeleteConflict(                                                       \
             Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);            \
-        cleanup_guard = 3;                                                    \
+        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
         break;                                                                \
     case JAW:                                                           \
         DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);  \
-        cleanup_guard = 3;                                                    \
+        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
         break;                                                                \
     case NO_WEAPON:                                                            \
-        cleanup_guard = 3;                                                    \
+        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
         break;                                                                \
     default:                                                                  \
         DeleteConflict(                                                       \
             Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);            \
         DeleteConflict(                                                       \
             Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);            \
-        cleanup_guard = 3;                                                    \
+        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
         break;                                                                \
     }                                                                         \
-    if ((cleanup_guard & 2) != 0)                                             \
+    if ((cleanup_guard & ATTACK_CANCEL_AFTERIMAGES) != 0)                     \
     {                                                                         \
         DISPOSE_WEAPON_AFTERIMAGE(0);                                         \
         DISPOSE_WEAPON_AFTERIMAGE(1);                                         \

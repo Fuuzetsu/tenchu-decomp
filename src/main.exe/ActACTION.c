@@ -109,16 +109,16 @@ void ActACTION(void)
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                 break;
             case NO_WEAPON:
-                cleanup_guard = 3;
+                cleanup_guard = ATTACK_CANCEL_ALL;
                 goto skip_afterimage_cleanup;
             default:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                 break;
             }
-            cleanup_guard = 3;
+            cleanup_guard = ATTACK_CANCEL_ALL;
         skip_afterimage_cleanup:
-            if (cleanup_guard & 2)
+            if (cleanup_guard & ATTACK_CANCEL_AFTERIMAGES)
             {
                 if (Me_MOTION_C->illusion[0] != 0)
                 {

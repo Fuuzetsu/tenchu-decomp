@@ -43,9 +43,9 @@
  *    entirely), not a `break`.
  *  - Two DIFFERENT paths reach the SAME `no_conflict` label — case 0's early
  *    `goto` and the outer `mode&1==0` skip — one C label serves both; the
- *    asm's apparent "two entry points" (one recomputing `mode&2` fresh, one
- *    reusing a copy precomputed in the other path's delay slot) falls out
- *    of reorg automatically, not from writing two labels.
+ *    asm's apparent "two entry points" (one recomputing the afterimage bit,
+ *    one reusing a copy precomputed in the other path's delay slot) falls
+ *    out of reorg automatically, not from writing two labels.
  */
 
 extern Humanoid *Me_MOTION_C;
