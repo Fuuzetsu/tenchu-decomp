@@ -200,9 +200,9 @@ typedef struct Humanoid
                                  view of this same offset; AttackPQD
                                  swaps weapon[0] with weapon[2]/[3] to
                                  draw/holster) */
-    void *illusion[N_WEAPON_HANDS]; /* 0xA4 (PSX.SYM's original type; these
-                                 opaque effect pointers are passed to the
-                                 afterimage draw/dispose API) */
+    /* PSX.SYM used void *, but SetupAfterimage is the sole producer and
+     * every consumer uses the afterimage API. */
+    struct AfterimageType *illusion[N_WEAPON_HANDS]; /* 0xA4 */
     s16 sound;                /* 0xAC (PSX.SYM name) SE-bank base: Sound()
                                * ORs category ids < 0x10 into it */
     s16 itmctl;               /* 0xAE (PSX.SYM's item-control field;
@@ -451,7 +451,8 @@ typedef struct param_dokudango
 {
     param_korogari koro; /* 0x00 */
     Humanoid *eater;     /* 0x0C */
-    void *org_think;     /* 0x10 */
+    /* Saved eater->think[0]; PSX.SYM recorded the word as void *. */
+    ThinkFunc org_think; /* 0x10 */
     u16 count;           /* 0x14 (retail accesses it with lhu/sh) */
 } param_dokudango;       /* 0x18 */
 

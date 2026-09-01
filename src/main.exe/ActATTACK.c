@@ -68,7 +68,7 @@
     ilu = SetupAfterimage(hand[hand_], 10);                                   \
     ilu->vector1 = WeaponDB[wid].ilup0;                                       \
     ilu->vector2 = WeaponDB[wid].ilup1;                                       \
-    Me_MOTION_C->illusion[hand_] = (void *)ilu
+    Me_MOTION_C->illusion[hand_] = ilu
 
 #define FIRE_GUN_AT_FRAME(frame_, y_)                                         \
     if (dtM->count == frame_)                                                 \

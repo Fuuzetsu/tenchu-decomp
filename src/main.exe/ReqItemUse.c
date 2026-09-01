@@ -162,11 +162,13 @@
  * The final residual was a pure register permutation in the 19-word
  * lightningbolt end-vector tail. RTL dumps showed that its block-local
  * sz pseudo was claimed by local-alloc before the other values reached
- * global allocation. Reusing three function-scope SImode locals later in
- * the kaginawa case gives global allocation byte-neutral anchors: sz holds
- * the items base ($a1), y the ProcKaginawa address ($v0), and z the scaled
- * item index ($v1). Reusing y/z for the final lightningbolt sums then
- * produces the retail register coloring and instruction order.
+ * global allocation. Reusing three function-scope SImode scratch words later
+ * in the kaginawa case gives global allocation byte-neutral anchors: sz holds
+ * the items base ($a1), scratch the ProcKaginawa address ($v0), and z the
+ * scaled item index ($v1). The typed views of scratch separate its callback
+ * and lightning-end-Y roles without an integer/function-pointer cast. Reusing
+ * scratch/z for the final lightningbolt sums then produces the retail register
+ * coloring and instruction order.
  *
  * Facts proven while matching (all byte-verified):
  *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_LAUNCH layout {TItemType type;
@@ -341,8 +343,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     u8 c;
     ItemRequestWorkspace param; /* @sp+16: per-case request / vector scratch */
     ItemRequestWorkspace work;  /* @sp+56: drop staging / throw vector */
+    union
+    {
+        s32 end_y;
+        void (*proc)(TItem *);
+    } scratch; /* disjoint callback and lightning-vector scratch views */
     s32 sz;
-    s32 y;
     s32 z;
 
     c = p->user.human->item[p->type];
@@ -509,9 +515,9 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             p->end.vz = u;
             u = p->start.vy;
             sx = p->end.vz;
-            y = t + u;
+            scratch.end_y = t + u;
             z = sx + sz;
-            p->end.vy = y;
+            p->end.vy = scratch.end_y;
             p->end.vz = z;
         }
         ReqItemLightningBolt(p);
@@ -571,13 +577,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     found_kaginawa:
         if (it == 0)
             return 0;
-        /* Its two siblings pass the proc straight to SETUP_POOL_ITEM;
-         * this one goes through `y` because `y` is the function-scope
-         * scratch the rope case above also uses as a height, and sharing
-         * that one pseudo is what matches. Passing ProcKaginawa directly
-         * costs 8 lines. */
-        y = (s32)ProcKaginawa;
-        SETUP_POOL_ITEM((void (*)(TItem *))y, object, 0);
+        /* Its two siblings pass the proc straight to SETUP_POOL_ITEM. This
+         * site shares the function-scope scratch used by the lightning-vector
+         * case; keeping that identity is what matches. Passing ProcKaginawa
+         * directly costs 8 lines. */
+        scratch.proc = ProcKaginawa;
+        SETUP_POOL_ITEM(scratch.proc, object, 0);
         it->owner.human->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
