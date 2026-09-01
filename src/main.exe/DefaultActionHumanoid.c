@@ -349,7 +349,7 @@ short DefaultActionHumanoid(Humanoid *human)
     {
         while ((i = GetConflictResult(object, CONFLICT_NONE)) >= 0)
         {
-            if (ConflictObject[i].common == human)
+            if (ConflictObject[i].common.human == human)
             {
                 continue;
             }

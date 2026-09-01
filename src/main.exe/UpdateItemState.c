@@ -94,7 +94,7 @@ loop:
                         object->size.vz = sz;
                         object->size.vy = sz;
                         object->size.vx = sz;
-                        object->common = CONFLICT_OWNER_ITEM;
+                        object->common.tag = CONFLICT_OWNER_ITEM;
                         object->size.pad = mode;
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;

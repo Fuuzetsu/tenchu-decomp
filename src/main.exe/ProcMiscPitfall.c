@@ -101,7 +101,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         ConflictObject[conflict_id].offset.vx = 0;
         ConflictObject[conflict_id].offset.vy = 0;
         ConflictObject[conflict_id].offset.vz = 0;
-        ConflictObject[conflict_id].common = CONFLICT_OWNER_DOOR;
+        ConflictObject[conflict_id].common.tag = CONFLICT_OWNER_DOOR;
         ConflictObject[conflict_id].size.pad = CONFLICT_SOFT;
         ConflictObject[conflict_id].size.vx = w;
         ConflictObject[conflict_id].size.vy =
@@ -132,7 +132,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                         conflict = ConflictObject;
                         conflict_id =
                             GetConflictResult(param->locate, CONFLICT_NONE);
-                        if (conflict[conflict_id].common !=
+                        if (conflict[conflict_id].common.tag !=
                             CONFLICT_OWNER_DOOR)
                         {
                             m->mode.pitfall++;

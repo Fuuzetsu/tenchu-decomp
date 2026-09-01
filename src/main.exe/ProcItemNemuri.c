@@ -212,7 +212,7 @@ void ProcItemNemuri(TItem *item)
         inactive_sentinel = CONFLICT_NONE;
         if (conflict_id != inactive_sentinel)
         {
-            hit_human = (Humanoid *)ConflictObject[conflict_id].common;
+            hit_human = ConflictObject[conflict_id].common.human;
             if (is_humanoid_on_stage_(hit_human) != 0 &&
                 hit_human != item->owner)
             {

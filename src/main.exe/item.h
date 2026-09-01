@@ -515,18 +515,18 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 
 #define MAX_ITEMS 30
 
-/* Register an item's cubic conflict box and mirror it into the item's
- * own collision record — the block every armed item pastes after
+/* Register an item's cubic conflict box and owner tag, then mirror it into
+ * the item's own collision record — the block every armed item pastes after
  * InsertConflict. Macro is reconstruction shorthand (expands to the
  * identical text; register-pinned operands pass through unchanged). */
-#define SET_ITEM_COLLISION(n, sz, owner, cmode)                               \
+#define SET_ITEM_COLLISION(n, sz, owner_tag, cmode)                           \
     ConflictObject[n].offset.vx = 0;                                          \
     ConflictObject[n].offset.vz = 0;                                          \
     ConflictObject[n].offset.vy = 0;                                          \
     ConflictObject[n].size.vz = sz;                                           \
     ConflictObject[n].size.vy = sz;                                           \
     ConflictObject[n].size.vx = sz;                                           \
-    ConflictObject[n].common = owner;                                         \
+    ConflictObject[n].common.tag = owner_tag;                                 \
     ConflictObject[n].size.pad = cmode;                                       \
     item->collision.size = sz;                                                \
     item->collision.ofsY = 0;                                                 \

@@ -150,7 +150,7 @@ void ProcItemNapalm(TItem *item)
         {
             Humanoid *human;
 
-            human = (Humanoid *)ConflictObject[cid].common;
+            human = ConflictObject[cid].common.human;
             if (is_humanoid_on_stage_(human) != 0)
             {
                 ModelType **objects;

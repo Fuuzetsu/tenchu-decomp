@@ -63,15 +63,15 @@ void WeaponHitWeapon(ModelType *hand)
             {
                 continue;
             }
-            if ((Humanoid *)ConflictObject[id].common == Me_MOTION_C)
+            if (ConflictObject[id].common.human == Me_MOTION_C)
             {
                 continue;
             }
 
             MoveHumanoid(Me_MOTION_C, -30, 0);
-            if ((Humanoid *)ConflictObject[id].common != (Humanoid *)CONFLICT_OWNER_ITEM)
+            if (ConflictObject[id].common.tag != CONFLICT_OWNER_ITEM)
             {
-                MoveHumanoid((Humanoid *)ConflictObject[id].common, -30, 0);
+                MoveHumanoid(ConflictObject[id].common.human, -30, 0);
             }
 
             p = &ConflictObject[hand->id].position;

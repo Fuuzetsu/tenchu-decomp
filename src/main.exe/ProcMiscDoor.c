@@ -101,7 +101,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     ConflictObject[cid].offset.vz = 0;
     ConflictObject[cid].offset.vy = -t / 2;
     w = DoorData[param->type].HitSize;
-    ConflictObject[cid].common = CONFLICT_OWNER_DOOR;
+    ConflictObject[cid].common.tag = CONFLICT_OWNER_DOOR;
     ConflictObject[cid].size.pad = CONFLICT_SOFT;
     ConflictObject[cid].size.vy = w;
     w = (w / 3) * 2;
@@ -123,7 +123,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
             s32 cid;
 
             cid = GetConflictResult(param->locate, CONFLICT_NONE);
-            if (ConflictObject[cid].common != CONFLICT_OWNER_DOOR)
+            if (ConflictObject[cid].common.tag != CONFLICT_OWNER_DOOR)
             {
                 s32 t;
                 s32 wrap;

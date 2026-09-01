@@ -133,7 +133,7 @@ void ProcItemHappou(TItem *item)
     else
         i = GetConflictResult(item->locate, CONFLICT_NONE);
     if (i != CONFLICT_NONE &&
-        is_humanoid_on_stage_(ConflictObject[i].common) != 0)
+        is_humanoid_on_stage_(ConflictObject[i].common.human) != 0)
     {
         SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE, 2);
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);

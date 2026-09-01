@@ -143,7 +143,7 @@ void ProcItemDrop(TItem *item)
             i = GetConflictResult(item->locate, CONFLICT_NONE);
         if (i == CONFLICT_NONE)
             return;
-        human = (Humanoid *)ConflictObject[i].common;
+        human = ConflictObject[i].common.human;
         if (is_humanoid_on_stage_(human) == 0)
             return;
         if (human->motion->mid == MOT_STATE_PICKUP)

@@ -26,7 +26,7 @@
  * ProcItemMakibishi.c). If `model` is already registered
  * (id != CONFLICT_NONE) its id is returned unchanged. Otherwise a fresh slot
  * is claimed: abort via SystemOut if the pool is full (> 0x4f live), then
- * store the model, zero `.common`,
+ * store the model, set `.common.tag` to CONFLICT_OWNER_NONE,
  * copy the identity `.position` from UnitVector2 (UnitVector2, a VECTOR) and
  * `.offset`/`.size` from UnitVector (an SVECTOR), memset the result area, and
  * stamp the model's id (= new slot) and attribute (set bit 14, clear bit 15).
@@ -78,7 +78,7 @@ conflict_id InsertConflict(ModelType *model)
     ConflictObjects = cnt + 1;
     idx = (short)cnt;
     ConflictObject[idx].model = model;
-    ConflictObject[idx].common = 0;
+    ConflictObject[idx].common.tag = CONFLICT_OWNER_NONE;
     ConflictObject[idx].position = UnitVector2;
     ConflictObject[idx].offset = UnitVector;
     ConflictObject[idx].size = UnitVector;

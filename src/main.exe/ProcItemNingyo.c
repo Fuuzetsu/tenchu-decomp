@@ -288,7 +288,7 @@ void ProcItemNingyo(TItem *item)
         do
         {
         } while (0);
-        conflict->common = CONFLICT_OWNER_ITEM;
+        conflict->common.tag = CONFLICT_OWNER_ITEM;
         conflict_class = CONFLICT_STAND | CONFLICT_SOFT;
         conflict->offset.vx = 0;
         conflict->offset.vz = 0;

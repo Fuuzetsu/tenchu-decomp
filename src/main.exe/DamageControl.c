@@ -218,7 +218,7 @@ void DamageControl(void)
     }
     if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_BEAST)
     {
-        enemy = (Humanoid *)ConflictObject[(short)id].common;
+        enemy = ConflictObject[(short)id].common.human;
         if (enemy != (Humanoid *)CONFLICT_OWNER_ITEM)
         {
             Sound(enemy, CHAR_SE_IMPACT);
@@ -318,7 +318,7 @@ resolve_hit:
         Humanoid *conflict;
 
         t = id;
-        conflict = (Humanoid *)ConflictObject[t].common;
+        conflict = ConflictObject[t].common.human;
         if (conflict == (Humanoid *)CONFLICT_OWNER_ITEM)
         {
             if (Me_MOTION_C->status == STAT_DAMAGE)

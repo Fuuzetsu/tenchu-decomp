@@ -22,14 +22,11 @@
  *    entry ITEM_MODE_DISPOSE-check's load, matching the switch rule); with no case for
  *    "neither 0 nor 1", falling out of the switch reaches the shared draw
  *    tail directly — the SAME tail case 0/case 1 reach via `break`.
- *  - `1 = 1;` is a real shared variable, not a literal: the
- *    status==KORO_WATER compare needs `1` in a register anyway (MIPS beq has
- *    no immediate
- *    form), and the SAME register then feeds `item->mode + 1`, `.common =
- *    (void *)1`, `.size.pad = 1`, and `item->collision.mode = 1` — five
- *    uses, unmistakably `addu` (register) not `addiu` (immediate) at the
- *    mode-increment, so it must survive as a live variable across the
- *    DeleteConflict/InsertConflict calls (callee-saved, like `ITEM_MODE_DISPOSE`/`m`).
+ *  - The value shared by KORO_WATER, `item->mode + 1`,
+ *    `.common.tag = CONFLICT_OWNER_ITEM`, `.size.pad = CONFLICT_HIT`, and
+ *    `item->collision.mode = CONFLICT_HIT` stays live in one register. The
+ *    mode increment is consequently `addu` (register), not `addiu`
+ *    (immediate), across the DeleteConflict/InsertConflict calls.
  *  - The dispose after status==KORO_WATER and the dispose after mode 1's
  *    conflict-hit are the SAME code written out TWICE (cross-jump merges
  *    from the jalr on): the KORO_WATER path reuses `ITEM_MODE_DISPOSE` (still live,
@@ -37,9 +34,9 @@
  *    ITEM_MODE_DISPOSE value since nothing carries `ITEM_MODE_DISPOSE` that far — same
  *    asymmetry as ProcItemKusuri's mode-2 vs mode-1 dispose.
  *  - Collision box field-store order (offset.vx/vz/vy, then size.vz/vy/vx,
- *    then common, then size.pad) exactly mirrors ProcItemDrop's
+ *    then common.tag, then size.pad) exactly mirrors ProcItemDrop's
  *    KORO_GRAND/KORO_STAY case, just different numbers (100 not 0xb4,
- *    1(1) not m(8)).
+ *    CONFLICT_HIT not CONFLICT_SOFT).
  */
 #include "item.h"
 
@@ -103,7 +100,8 @@ void ProcItemMakibishi(TItem *item)
             item->mode += 1;
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(conflict_id, 100, (void *)1, 1);
+            SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
+                               CONFLICT_HIT);
             break;
 
         case KORO_WATER:
@@ -129,7 +127,7 @@ void ProcItemMakibishi(TItem *item)
         else
             i = GetConflictResult(item->locate, CONFLICT_NONE);
         if (i != CONFLICT_NONE &&
-            is_humanoid_on_stage_(ConflictObject[i].common) != 0)
+            is_humanoid_on_stage_(ConflictObject[i].common.human) != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, RGB24(127, 0, 0));
             SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);

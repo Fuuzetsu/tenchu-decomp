@@ -124,7 +124,8 @@ void ProcItemArrow(TItem *item)
 
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(conflict_id, 300, (void *)1, 1);
+            SET_ITEM_COLLISION(conflict_id, 300, CONFLICT_OWNER_ITEM,
+                               CONFLICT_HIT);
         }
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
@@ -139,7 +140,7 @@ void ProcItemArrow(TItem *item)
         {
             Humanoid *human;
 
-            human = (Humanoid *)ConflictObject[cid].common;
+            human = ConflictObject[cid].common.human;
             if (is_humanoid_on_stage_(human) != 0)
             {
                 if ((ConflictObject[cid].size.pad & CONFLICT_HIT) != 0)
