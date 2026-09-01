@@ -46,11 +46,11 @@ void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
     return;
 
 do_create:
-    m->mode = 0;
+    m->mode.raw = 0;
     return;
 
 do_draw:
-    if (m->mode != 0)
+    if (m->mode.raw != 0)
         return;
 
     frame->r = frame->g = frame->b = (u8)(rand() % 100 + 100);

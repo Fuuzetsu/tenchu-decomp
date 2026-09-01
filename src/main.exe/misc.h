@@ -44,6 +44,36 @@ enum
 
 typedef struct tag_TMisc TMisc;
 
+typedef u8 misc_pause_state;
+enum misc_pause_state
+{
+    MISC_ACTIVE = 0,
+    MISC_PAUSED = 1
+};
+
+typedef u8 door_mode;
+enum door_mode
+{
+    DOOR_MODE_IDLE = 0,
+    DOOR_MODE_OPENING = 1
+};
+
+typedef u8 pitfall_mode;
+enum pitfall_mode
+{
+    PITFALL_MODE_CLOSED = 0,
+    PITFALL_MODE_OPENING = 1,
+    PITFALL_MODE_OPEN = 2
+};
+
+typedef union MiscMode MiscMode;
+union MiscMode
+{
+    u8 raw;
+    door_mode door;
+    pitfall_mode pitfall;
+};
+
 /* The MISC_SPRITE variant of the param union (MISC__181fake's `sprite`
  * member, union MISC__181fake in reference/psxsym-types.h) — a single byte
  * at the union's base offset, reused after CREATE clamps/narrows the raw
@@ -97,8 +127,8 @@ struct tag_TMisc
     s32 y;                               /* 0x08 */
     s32 z;                               /* 0x0C */
     s32 count;                           /* 0x10 */
-    u8 pause;                            /* 0x14 */
-    u8 mode;                             /* 0x15 */
+    misc_pause_state pause;              /* 0x14 */
+    MiscMode mode;                       /* 0x15 */
     union
     {
         struct

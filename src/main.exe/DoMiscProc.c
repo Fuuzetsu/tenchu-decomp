@@ -91,19 +91,19 @@ void DoMiscProc(void)
                     {
                         if (__builtin_abs(view->vrz - p->z) < LEN)
                         {
-                            if (p->pause != 0)
+                            if (p->pause != MISC_ACTIVE)
                             {
                                 proc(p, MM_RESUME);
-                                p->pause = 0;
+                                p->pause = MISC_ACTIVE;
                             }
                             goto next;
                         }
                     }
                 }
-                if (p->pause == 0)
+                if (p->pause == MISC_ACTIVE)
                 {
                     p->proc(p, MM_PAUSE);
-                    p->pause = 1;
+                    p->pause = MISC_PAUSED;
                 }
             }
         next:
@@ -118,7 +118,7 @@ void DoMiscProc(void)
             DrawTMDmode = TMD_BANK_FOG;
             for (i = 0; i < MaxMisc; i++)
             {
-                if (misc[i].proc != 0 && misc[i].pause == 0)
+                if (misc[i].proc != 0 && misc[i].pause == MISC_ACTIVE)
                 {
                     misc[i].proc(&misc[i], MM_DO);
                 }

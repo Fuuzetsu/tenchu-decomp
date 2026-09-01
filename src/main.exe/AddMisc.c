@@ -117,7 +117,7 @@ loop:
     {
         do
         {
-            p->mode = 0;
+            p->mode.raw = 0;
             p->x = x;
             p->y = y;
             p->z = z;
@@ -162,7 +162,7 @@ loop:
                 return;
             }
             p->proc(p, MM_CREATE);
-            p->pause = 1;
+            p->pause = MISC_PAUSED;
         } while (0);
         return;
     }

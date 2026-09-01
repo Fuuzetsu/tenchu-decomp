@@ -103,11 +103,11 @@ reset:
     tmp.sndIdx = *(u8 *)&m->param.init.a;
     tmp.next = GameClock;
     *sched = tmp;
-    m->mode = 0;
+    m->mode.raw = 0;
     return;
 
 normal:
-    if (m->mode != 0)
+    if (m->mode.raw != 0)
         return;
     if (sched->next > GameClock)
         return;

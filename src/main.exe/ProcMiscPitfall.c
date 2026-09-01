@@ -69,7 +69,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
             AdtMessageBox(fmt_unknown_pitfall_type, type);
             type = 0;
         }
-        m->mode = 0;
+        m->mode.pitfall = PITFALL_MODE_CLOSED;
         param->r = 0;
         param->type = type;
         param->locate = LoadModel(0);
@@ -117,14 +117,14 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         int mode;
 
         /* The promoted temporary selects signed slti after the lbu. */
-        mode = m->mode;
+        mode = m->mode.pitfall;
         /* The nested != 1 / < 2 / == 0 tree is byte-required (a flat
          * else-if chain re-shapes the compare tree; measured). */
-        if (mode != 1)
+        if (mode != PITFALL_MODE_OPENING)
         {
-            if (mode < 2)
+            if (mode < PITFALL_MODE_OPEN)
             {
-                if (mode == 0)
+                if (mode == PITFALL_MODE_CLOSED)
                 {
                     if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
                     {
@@ -135,7 +135,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                         if (conflict[conflict_id].common !=
                             CONFLICT_OWNER_DOOR)
                         {
-                            m->mode++;
+                            m->mode.pitfall++;
                             SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);
                         }
                     }
@@ -148,7 +148,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
             if (param->r >= 0x400)
             {
                 param->r = 0x400;
-                m->mode++;
+                m->mode.pitfall++;
             }
         }
 
