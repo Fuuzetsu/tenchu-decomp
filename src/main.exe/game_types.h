@@ -800,6 +800,20 @@ struct WorldType
     ObjectSlotType *top; /* 0x00 */
 }; /* 0x04 */
 
+/* WORLD.C's scratchpad contract between DrawConstruction and IsVisible.
+ * The producer caches the current camera at +0x38. Each visibility test
+ * writes its relative point at +0x10 and leaves the rotated result at +0x00,
+ * whose Z is then reused to choose a construction draw bucket. */
+typedef struct ConstructionVisibilityWorkspace
+    ConstructionVisibilityWorkspace;
+struct ConstructionVisibilityWorkspace
+{
+    VECTOR view_space; /* 0x00: ApplyRotMatrix result */
+    SVECTOR relative;  /* 0x10: world point minus camera position */
+    u8 reserved[0x20]; /* 0x18 */
+    GsRVIEW2 view;     /* 0x38: cached by DrawConstruction */
+}; /* 0x58 */
+
 /* Motion IDs are stored in signed halfwords; -1 means no active motion and
  * terminates motion-registration and battle tables.  Their high byte is the
  * character-status / Act* handler family; the low byte selects a motion

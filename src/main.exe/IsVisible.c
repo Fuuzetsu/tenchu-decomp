@@ -30,21 +30,19 @@
  * IsVisible (0x8003b604, 0x208 bytes) — same TU as GetCenterAndSize.c/
  * leFindEnemy.c (WORLD.C): a cheap frustum-ish visibility test for a
  * construction billboard/effect at world (x,y,z): first a fast axis-aligned
- * box reject against the GTE's cached view position (raw PSX scratchpad RAM
- * @0x1F800000, still holding the last ApplyRotMatrix/perspective-transform
- * inputs from whatever earlier GTE call populated it), then a real
+ * box reject against the camera state DrawConstruction cached in the shared
+ * ConstructionVisibilityWorkspace, then a real
  * perspective test (rotate the delta into view space via ApplyRotMatrix,
  * then compare the projected x/y against a screen-space rectangle scaled by
  * `s`, the object's on-screen half-size).
  *
  * Matching notes:
- *  - `view` (the `0x1F800038`-based scratchpad read) is a genuine CACHED
+ *  - `view` (the workspace's cached-view member) is a genuine CACHED
  *    POINTER kept live in a callee-saved register ACROSS the three `abs()`
  *    calls — matching the "cached pointer across calls" rule — not three
- *    independent raw-literal dereferences. `scratch` (`0x1F800000`, used
- *    after ApplyRotMatrix) gets the SAME treatment for its own 3 reads, but
- *    is a SEPARATE raw literal — cc1 never merges the two hardcoded
- *    constants even though both sit in PSX scratchpad RAM.
+ *    independent member dereferences. `view_space` (the result used
+ *    after ApplyRotMatrix) gets the SAME treatment for its own three reads,
+ *    but its member address is materialized separately.
  *  - All THREE divisions by `z` (a runtime value, not a constant) are
  *    computed EAGERLY, back-to-back, into named temporaries (`q0`, `qs`,
  *    `q2`) — BEFORE either `abs()` call that consumes them. Ghidra's own
@@ -84,8 +82,8 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     {
         NEAR = 150
     };
-    s32 *view;
-    s32 *scratch;
+    GsRVIEW2 *view;
+    VECTOR *view_space;
     s32 dx, dy, dz;
     s32 zs;
     s32 aq;
@@ -93,36 +91,36 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     s32 q0, q2;
     s32 fail;
 
-    view = (s32 *)TENCHU_SCRATCHPAD(0x38);
+    view = CONSTRUCTION_VISIBILITY_VIEW;
 
-    dx = x - view[0];
+    dx = x - view->vpx;
     if (30000 < abs(dx))
         return 0;
 
-    dy = y - view[1];
+    dy = y - view->vpy;
     if (30000 < abs(dy))
         return 0;
 
-    dz = z - view[2];
+    dz = z - view->vpz;
     if (30000 < abs(dz))
         return 0;
 
-    ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vx = (s16)dx;
-    ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vy = (s16)dy;
-    ((SVECTOR *)TENCHU_SCRATCHPAD(0x10))->vz = (s16)dz;
-    ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD(0x10),
-                   (VECTOR *)TENCHU_SCRATCHPAD_ADDRESS);
+    CONSTRUCTION_VISIBILITY_RELATIVE->vx = (s16)dx;
+    CONSTRUCTION_VISIBILITY_RELATIVE->vy = (s16)dy;
+    CONSTRUCTION_VISIBILITY_RELATIVE->vz = (s16)dz;
+    ApplyRotMatrix(CONSTRUCTION_VISIBILITY_RELATIVE,
+                   CONSTRUCTION_VISIBILITY_VIEW_SPACE);
 
-    scratch = (s32 *)TENCHU_SCRATCHPAD_ADDRESS;
-    zs = scratch[2] + s;
+    view_space = CONSTRUCTION_VISIBILITY_VIEW_SPACE;
+    zs = view_space->vz + s;
     if (zs <= NEAR)
         return 0;
-    if (17000 < scratch[2] - s)
+    if (17000 < view_space->vz - s)
         return 0;
 
-    q0 = (scratch[0] * PROJECTION_DISTANCE) / zs;
+    q0 = (view_space->vx * PROJECTION_DISTANCE) / zs;
     qs = (s * PROJECTION_DISTANCE) / zs;
-    q2 = (scratch[1] * PROJECTION_DISTANCE) / zs;
+    q2 = (view_space->vy * PROJECTION_DISTANCE) / zs;
     fail = 0;
     aq = abs(q0);
     if (qs + SXW < aq)

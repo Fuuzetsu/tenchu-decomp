@@ -116,6 +116,19 @@ extern GsRVIEW2 ViewInfo;
 #define SCRATCH_POINT_Z (SCRATCH_POINT + 4)
 #define SCRATCH_RTP_P 0x28                  /* RotTransPers long *p */
 #define SCRATCH_RTP_FLAG 0x2c               /* RotTransPers long *flag */
+
+/* Keep these as independently materialized member addresses: IsVisible
+ * caches the view and rotated-result pointers at different times. */
+#define CONSTRUCTION_VISIBILITY_BYTE_OFFSET(member)                    \
+    ((u32)&((ConstructionVisibilityWorkspace *)0)->member)
+#define CONSTRUCTION_VISIBILITY_ADDRESS(member)                        \
+    TENCHU_SCRATCHPAD(CONSTRUCTION_VISIBILITY_BYTE_OFFSET(member))
+#define CONSTRUCTION_VISIBILITY_VIEW_SPACE                              \
+    ((VECTOR *)CONSTRUCTION_VISIBILITY_ADDRESS(view_space))
+#define CONSTRUCTION_VISIBILITY_RELATIVE                                \
+    ((SVECTOR *)CONSTRUCTION_VISIBILITY_ADDRESS(relative))
+#define CONSTRUCTION_VISIBILITY_VIEW                                    \
+    ((GsRVIEW2 *)CONSTRUCTION_VISIBILITY_ADDRESS(view))
 extern ModelType World;
 extern WorldType WorldMap[WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE];
 #define MAX_ENEMIES 30

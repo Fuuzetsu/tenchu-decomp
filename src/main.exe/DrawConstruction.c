@@ -145,7 +145,7 @@ have_z:
         DrawList[j] = 0;
 
     SetRotMatrix(&GsWSMATRIX);
-    *(GsRVIEW2 *)TENCHU_SCRATCHPAD(0x38) = ViewInfo;
+    *CONSTRUCTION_VISIBILITY_VIEW = ViewInfo;
 
     {
     WorldType(*world_base)[WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE];
@@ -212,9 +212,9 @@ scan_z:
             do
             {
                 signed_size = cur->ModelSize;
-                /* IsVisible left its view-space vector in the
-                 * scratchpad; +0x08 is that vector's z. */
-                bucket = ((*(s32 *)TENCHU_SCRATCHPAD(0x08) -
+                /* IsVisible leaves this object's view-space position behind
+                 * for the depth bucket calculation. */
+                bucket = ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
                            signed_size) >>
                           8) -
                          11;
