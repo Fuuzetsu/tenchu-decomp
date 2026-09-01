@@ -47,6 +47,13 @@ extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
 extern short DrawModel(ModelType *objp);
 
+enum
+{
+    DOOR_ANGLE_STEP = ANGLE_FULL / 64,
+    DOOR_OPEN_ANGLE = ANGLE_QUADRANT - DOOR_ANGLE_STEP,
+    DOOR_OPENING_OFFSET_DIVISOR = 5 * ANGLE_HALF
+};
+
 void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 {
     TDoor *param;
@@ -136,14 +143,14 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
                         param->locate->rotate.vy;
                 /* allocation staging: folded after flow -- not recovered arithmetic */
                 t = ((u32)t + (u32)t) - (u32)t;
-                wrap = t + 0x2000;
+                wrap = t + 2 * ANGLE_FULL;
                 /* dir stages the predicate before the speed: byte-required
                  * (a plain if/else puts the store in a1, not v0; measured). */
                 dir = (wrap % ANGLE_FULL) <= ANGLE_HALF;
                 if (dir != 0)
-                    dir = 0x40;
+                    dir = DOOR_ANGLE_STEP;
                 else
-                    dir = -0x40;
+                    dir = -DOOR_ANGLE_STEP;
                 param->dr = dir;
                 m->mode.door++;
                 if (param->r == 0)
@@ -159,7 +166,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         r = param->r;
         if (r < 0)
             r = -r;
-        if (r < 960)
+        if (r < DOOR_OPEN_ANGLE)
             param->r += param->dr;
         else
             m->mode.door = DOOR_MODE_IDLE;
@@ -171,7 +178,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
 
         w = DoorData[param->type].HitSize;
         r = __builtin_abs(param->r);
-        w -= (w * r) / 0x2800;
+        w -= (w * r) / DOOR_OPENING_OFFSET_DIVISOR;
         model = DoorData[param->type].Model[0];
     }
     if (model.archive_id != MODEL_ARCHIVE_NONE)
