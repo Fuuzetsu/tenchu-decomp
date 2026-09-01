@@ -40,10 +40,9 @@
  *  - Keep the grid's multi-definition `int c = (u8)var`, the shown loop's
  *    `(s16)j` path through grid y, and the digit loop's int `d`/`quo` with
  *    its loop-carried copy at the bottom.
- *  - Spell all seven item indices as the flat byte-walk
- *    `(&ps->gItem[0][0])[idx + (ps->CharType << 5)]` and keep
- *    the grid traversal as a real for loop; both shapes affect expansion and
- *    delay-slot duplication.
+ *  - TLINKINFO_STOCK expands the seven item accesses as a flat byte-walk;
+ *    keep that expansion and the grid traversal as a real for loop because
+ *    both shapes affect delay-slot duplication.
  *    Still true now that gItem is properly
  *    `[N_PLAYABLE_CHARACTERS][SAVE_ITEM_SLOTS]`: the natural
  *    `ps->gItem[ps->CharType][idx]` costs 12 lines at these seven
@@ -247,25 +246,27 @@ void BriefingAndInventorySelectionScreen(void)
         case CHEAT_ITEM_REFILL - 1:
             for (j = ITEM_SHURIKEN; j < ITEM_NEMURI; j++)
             {
-                int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
+                int n = SAVE_ITEM_INDEX(ps->CharType, j);
+                if (TLINKINFO_FLAT_STOCK(ps, n) == ITEM_LOCKED)
                 {
-                    (&ps->gItem[0][0])[n] = 1;
+                    TLINKINFO_FLAT_STOCK(ps, n) = 1;
                 }
                 else
                 {
                     /* The (&arr[0])[i] decay spelling here and below is the
                      * measured addu operand-order lever (plain arr[i]
                      * flips it; same class as PlayMusicFormID). */
-                    (&ps->gItem[0][0])[n] = (&ps->gItem[0][0])[n] + 1;
+                    TLINKINFO_FLAT_STOCK(ps, n) =
+                        TLINKINFO_FLAT_STOCK(ps, n) + 1;
                 }
             }
             for (j = ITEM_NEMURI; j < N_LOADOUT_ITEMS; j++)
             {
-                int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0][0])[n] != ITEM_LOCKED)
+                int n = SAVE_ITEM_INDEX(ps->CharType, j);
+                if (TLINKINFO_FLAT_STOCK(ps, n) != ITEM_LOCKED)
                 {
-                    (&ps->gItem[0][0])[n] = (&ps->gItem[0][0])[n] + 1;
+                    TLINKINFO_FLAT_STOCK(ps, n) =
+                        TLINKINFO_FLAT_STOCK(ps, n) + 1;
                 }
             }
             {
@@ -285,10 +286,10 @@ void BriefingAndInventorySelectionScreen(void)
         case CHEAT_ITEM_UNLOCK - 1:
             for (j = ITEM_NEMURI; j < N_LOADOUT_ITEMS; j++)
             {
-                int n = j + ps->CharType * 0x20;
-                if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
+                int n = SAVE_ITEM_INDEX(ps->CharType, j);
+                if (TLINKINFO_FLAT_STOCK(ps, n) == ITEM_LOCKED)
                 {
-                    (&ps->gItem[0][0])[n] = 1;
+                    TLINKINFO_FLAT_STOCK(ps, n) = 1;
                 }
             }
             break;
@@ -297,7 +298,7 @@ void BriefingAndInventorySelectionScreen(void)
             {
                 u8 already = ps->selItem[ITEM_ARMOUR];
                 if ((already != 0 ||
-                     (&ps->gItem[0][ITEM_ARMOUR])[ps->CharType * 0x20] == 1) &&
+                     TLINKINFO_STOCK(ps, ps->CharType, ITEM_ARMOUR) == 1) &&
                     (s16)selected_kinds < MAX_SELECTED_ITEMS)
                 {
                     if (already == 0)
@@ -306,7 +307,7 @@ void BriefingAndInventorySelectionScreen(void)
                         taken++;
                     }
                     ps->selItem[ITEM_ARMOUR] = ITEM_INFINITE;
-                    (&ps->gItem[0][ITEM_ARMOUR])[ps->CharType * 0x20] = 0;
+                    TLINKINFO_STOCK(ps, ps->CharType, ITEM_ARMOUR) = 0;
                     SoundEx(0, SE_MENU_APPLY);
                 }
             }
@@ -314,7 +315,7 @@ void BriefingAndInventorySelectionScreen(void)
         case CHEAT_QUIT - 1:
             for (j7 = 0; j7 < N_LOADOUT_ITEMS; j7++)
             {
-                (&ps->gItem[0][0])[j7 + (CHOSEN_CHARACTER << 5)] =
+                TLINKINFO_STOCK(ps, CHOSEN_CHARACTER, j7) =
                     (&ps->saveItem[0])[j7];
             }
             FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
@@ -333,7 +334,7 @@ void BriefingAndInventorySelectionScreen(void)
         for (j = 0; j < N_SHOP_ITEMS; j++)
         {
             int n = SHOP_ITEM_DEFAULTS[j].itemIndex;
-            u8 c = (&ps->gItem[0][0])[n + (ps->CharType << 5)];
+            u8 c = TLINKINFO_STOCK(ps, ps->CharType, n);
             if (c != ITEM_LOCKED)
             {
                 x = SHOP_ITEM_DEFAULTS[j].x;
@@ -410,8 +411,8 @@ void BriefingAndInventorySelectionScreen(void)
             {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
                 scale = 0x200;
-                if ((&ps->gItem[0][0])[idx + (ps->CharType << 5)] != 0 &&
-                    (&ps->gItem[0][0])[idx + (ps->CharType << 5)] != ITEM_LOCKED)
+                if (TLINKINFO_STOCK(ps, ps->CharType, idx) != 0 &&
+                    TLINKINFO_STOCK(ps, ps->CharType, idx) != ITEM_LOCKED)
                 {
                     if ((s16)taken < cap)
                     {
@@ -426,7 +427,7 @@ void BriefingAndInventorySelectionScreen(void)
                             {
                                 (&ps->selItem[0])[idx] = cnt + 1;
                                 taken++;
-                                (&ps->gItem[0][0])[idx + (ps->CharType << 5)]--;
+                                TLINKINFO_STOCK(ps, ps->CharType, idx)--;
                             }
                             SoundEx(0, SE_ITEM_TRANSFER);
                         }
@@ -457,13 +458,13 @@ void BriefingAndInventorySelectionScreen(void)
                     if (c == ITEM_INFINITE)
                     {
                         (&ps->selItem[0])[idx] = 0;
-                        (&ps->gItem[0][0])[idx + (ps->CharType << 5)] = 1;
+                        TLINKINFO_STOCK(ps, ps->CharType, idx) = 1;
                         selected_kinds--;
                     }
                     else
                     {
                         (&ps->selItem[0])[idx] = c - 1;
-                        (&ps->gItem[0][0])[idx + (ps->CharType << 5)]++;
+                        TLINKINFO_STOCK(ps, ps->CharType, idx)++;
                         if ((&ps->selItem[0])[idx] == 0)
                         {
                             selected_kinds--;
@@ -480,8 +481,8 @@ void BriefingAndInventorySelectionScreen(void)
             scale += 0xC0;
         }
         if (help == -1 &&
-            (&ps->gItem[0][0])[SHOP_ITEM_DEFAULTS[cursor].itemIndex +
-                            (ps->CharType << 5)] != ITEM_LOCKED)
+            TLINKINFO_STOCK(ps, ps->CharType,
+                            SHOP_ITEM_DEFAULTS[cursor].itemIndex) != ITEM_LOCKED)
         {
             help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
         }

@@ -15,9 +15,9 @@
  *    variables in caller-saved registers; factoring them would change the
  *    control flow.
  *  - The final per-character flag first forms a raw row base and then uses
- *    row[0x41f].  Writing it as state->gItem[chr][0x13] makes cc1 add
- *    0x13 to the index in a separate instruction instead of folding 0x41f
- *    into the lbu/sb memory operands.
+ *    the field-derived gItem[0][ITEM_ARMOUR] displacement. Writing it as
+ *    state->gItem[chr][ITEM_ARMOUR] makes cc1 add the item index separately
+ *    instead of folding the complete displacement into the lbu/sb operands.
  *  - `award_tier` and `remaining` are signed 16-bit values. An unsigned-width
  *    mechanical rewrite happens to restore the instruction count while
  *    replacing the required sll/sra sign extension with andi/sltiu.
@@ -162,9 +162,9 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         }
     }
 
-    row = (u8 *)state + state->CharType * 0x20;
-    if (row[0x41f] != ITEM_LOCKED)
+    row = (u8 *)state + SAVE_ITEM_ROW_OFFSET(state->CharType);
+    if (row[TLINKINFO_BYTE_OFFSET(gItem[0][ITEM_ARMOUR])] != ITEM_LOCKED)
     {
-        row[0x41f] = 1;
+        row[TLINKINFO_BYTE_OFFSET(gItem[0][ITEM_ARMOUR])] = 1;
     }
 }

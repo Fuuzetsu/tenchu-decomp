@@ -35,9 +35,10 @@
  * STATUS: MATCHING — pure C, all 368 bytes / 92 instructions exact.
  *
  * The stock fill spells the target's two induction values directly: `i`
- * counts down while `stockp` walks down, and the fixed 0x40c displacement is
- * retained on the store. Building `stockp` as `0x80010000 | i` yields the
- * target's `lui/or` producer without letting CSE merge it with `ps`.
+ * counts down while `stockp` walks down, and the field-derived gItem
+ * displacement is retained on the store. Building `stockp` as
+ * `0x80010000 | i` yields the target's `lui/or` producer without letting CSE
+ * merge it with `ps`.
  *
  * `magic` and `fill` are named producer values. The empty one-shot boundary
  * after `magic` partitions setup scheduling without changing allocation
@@ -69,7 +70,7 @@ s32 InitPersistentState(void)
         magic = 0x19981110;
 
         fill = ITEM_LOCKED;
-        i = 0x1f;
+        i = SAVE_ITEM_SLOTS - 1;
         stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
         ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         ps->magic = magic;
@@ -83,7 +84,7 @@ s32 InitPersistentState(void)
         ps->StageNoMAX[RIKIMARU_0] = 1;
         do
         {
-            stockp[0x40c] = fill;
+            stockp[TLINKINFO_BYTE_OFFSET(gItem[0][0])] = fill;
             i--;
             stockp--;
         } while (i >= 0);

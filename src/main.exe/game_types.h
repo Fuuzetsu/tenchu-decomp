@@ -1741,10 +1741,14 @@ enum TItemType
 /* Stride of the persistent state's per-character item arrays. It is not
  * the item-kind count (ITEM_N, 0x19) nor the world item-pool size
  * (MAX_ITEMS, 30): it is a padded slot count, 30 in the demo and
- * rounded to 32 in retail -- which is also why the per-character
- * offset can be spelled `CharType << 5`. selItem, saveItem and each
- * gItem row are all this wide. */
-#define SAVE_ITEM_SLOTS 0x20
+ * rounded to 32 in retail -- which is also why SAVE_ITEM_ROW_OFFSET is a
+ * five-bit shift. selItem, saveItem and each gItem row are all this wide. */
+#define SAVE_ITEM_ROW_SHIFT 5
+#define SAVE_ITEM_SLOTS (1 << SAVE_ITEM_ROW_SHIFT)
+#define SAVE_ITEM_ROW_OFFSET(character) \
+    ((character) << SAVE_ITEM_ROW_SHIFT)
+#define SAVE_ITEM_INDEX(character, item) \
+    ((item) + SAVE_ITEM_ROW_OFFSET(character))
 
 /* Rows in SHOP_ITEM_DEFAULTS: the briefing screen and clamp_shop_stock_
  * both walk the whole table. */
@@ -1836,7 +1840,7 @@ typedef struct TLinkInfo
                                                        *       of demo gItem[30];
                                                        *       0xFE = locked,
                                                        *       0xFF = infinite;
-                                                       *       [CharType][0x13] =
+                                                       *       [CharType][ITEM_ARMOUR] =
                                                        *       stage bonus flag */
     compact_character_kind t_char[N_HIGH_SCORES]; /* 0x44C high-score character */
     compact_stage_rank t_dani[N_HIGH_SCORES]; /* 0x451 high-score rank */
@@ -1845,3 +1849,11 @@ typedef struct TLinkInfo
     u32 mission_flags;                /* 0x46C mission completion/unlock bitset
                                        *       (retail-inferred meaning) */
 } TLinkInfo;
+
+/* Raw persistent-state accesses that are required for matching can still
+ * derive their displacements from the canonical layout. */
+#define TLINKINFO_BYTE_OFFSET(member) ((u32)&((TLinkInfo *)0)->member)
+#define TLINKINFO_FLAT_STOCK(state, index) \
+    ((&((state)->gItem[0][0]))[index])
+#define TLINKINFO_STOCK(state, character, item) \
+    TLINKINFO_FLAT_STOCK(state, SAVE_ITEM_INDEX(character, item))

@@ -151,8 +151,10 @@ void game_over_screen_(void)
     /* One-shot fences here: byte-required (collapse measured; see cookbook). */
     do
     {
-        chr_offset = CHOSEN_CHARACTER * 0x20;
-        persistent[0x27 + i] = persistent[(i + chr_offset) + 0x40c];
+        chr_offset = SAVE_ITEM_ROW_OFFSET(CHOSEN_CHARACTER);
+        persistent[TLINKINFO_BYTE_OFFSET(saveItem[0]) + i] =
+            persistent[(i + chr_offset) +
+                       TLINKINFO_BYTE_OFFSET(gItem[0][0])];
         i++;
     } while (i < N_LOADOUT_ITEMS);
 
