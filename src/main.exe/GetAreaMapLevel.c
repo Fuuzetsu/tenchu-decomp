@@ -54,9 +54,10 @@
  *    boundary shape represented here by `mode` and `mode16`.
  *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
  *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
- *  - `row` is a `long *` cursor at &index->index.address; NODE_INDEX_ROW_FIELD
- *    derives the surrounding halfword fields while retaining the cast-based
- *    address shape (the n load at -2($s2) proves it). The row rect tests
+ *  - `row` is an AreaMapReference cursor at &index->index. Its union members
+ *    keep the relocated node-list/subdivision interpretations explicit, while
+ *    NODE_INDEX_ROW_FIELD derives the surrounding halfword fields from the
+ *    same address shape (the n load at -2($s2) proves it). The row rect tests
  *    re-read the same expressions in the division block so cse reuses the
  *    bounds registers.
  *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
@@ -95,7 +96,7 @@ extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
 {
     long n;
-    long *row;
+    AreaMapReference *row;
     NodeIndexType *index;
     AreaNodeType *node;
     AreaNodeType *list;
@@ -154,7 +155,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             }
             if (index->index.address != 0)
             {
-                row = &index->index.address;
+                row = &index->index;
                 first_hit = mode16 & AREA_LEVEL_FIRST_HIT;
             loop:
                 if (yy == (u32)LEVEL_NONE)
@@ -165,7 +166,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                         z <= NODE_INDEX_ROW_FIELD(row, z2))
                     {
                         nn = NODE_INDEX_ROW_FIELD(row, n);
-                        list = (AreaNodeType *)*row;
+                        list = row->nodes;
                         n = 0;
                         if (nn < 0)
                         {
@@ -177,10 +178,10 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                                      AREA_INDEX_AXIS_SIZE /
                                  (NODE_INDEX_ROW_FIELD(row, z2) -
                                   NODE_INDEX_ROW_FIELD(row, z1));
-                            n = ((IndexArrayType *)list)->array[qz][qx];
+                            n = row->subdivision->array[qz][qx];
                             if (n == AREA_NODE_INDEX_NONE)
                                 goto next;
-                            list = ((IndexArrayType *)list)->index.nodes;
+                            list = row->subdivision->index.nodes;
                             nn = -nn;
                         }
                         if (n < nn)
@@ -221,7 +222,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                 next:
                     row += NODE_INDEX_ROW_WORDS;
                     index++;
-                    if (*row != 0)
+                    if (row->address != 0)
                         goto loop;
                 }
             }
