@@ -38,7 +38,7 @@
  * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter is the character's
  * initial — 'R' Rikimaru / 'A' Ayame), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, spanning the screen width — the
- * canonical PsyQ SDK POLY_F4). Stage 10 (+ CHOSEN_CHARACTER==0) only: loads
+ * canonical PsyQ SDK POLY_F4). On STAGE_FREE_PRINCESS as Rikimaru it loads
  * "tanka.tpd" and populates 6 TANKA_SPRITES_ Sprite3D slots.
  * Each slot's `attribute` gets MODEL_ATTR_HIDDEN set,
  * and the embedded GsSPRITE's x/y are

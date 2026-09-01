@@ -170,7 +170,7 @@ void game_over_screen_(void)
     fade_sprite->sprite.attribute |= SPR_TRANS_SUB;
 
     language_state = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    if (CHOSEN_CHARACTER != 0)
+    if (CHOSEN_CHARACTER != RIKIMARU_0)
     {
         suffix = 'a';
     }

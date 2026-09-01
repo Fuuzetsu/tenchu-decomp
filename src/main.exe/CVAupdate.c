@@ -282,7 +282,7 @@ s16 CVAupdate(void)
                                             (char *)CVAdata + CVAnow->id),
                                0);
                     CVAflag = 1;
-                    if (StageID != STAGE_FREE_PRINCESS || CHOSEN_CHARACTER != 0)
+                    if (StageID != STAGE_FREE_PRINCESS || CHOSEN_CHARACTER != RIKIMARU_0)
                         break;
 
                     if ((ctype_tab[TelopText[0]] & 4) == 0)

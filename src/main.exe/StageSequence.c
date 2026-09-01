@@ -271,9 +271,9 @@ s32 StageSequence(void)
                 Event[i] = 0;
                 continue;
             }
-            /* Movie id 0xff means "no movie": fire the event
+            /* EVENT_CVA_NONE means "no movie": fire the event
              * directly without a CVA sequence. */
-            if (ev->event != 0xff)
+            if (ev->event != EVENT_CVA_NONE)
             {
                 sid = ev->event;
                 if (sid == 0 && StageID == STAGE_CURE_PRINCESS)
@@ -292,7 +292,7 @@ s32 StageSequence(void)
             }
             /* Rikimaru watching Hikone's life hit zero reroutes the
              * follow-up to event 100 (his version of the finale). */
-            if (StagePlayer->type == 0 && ev->mode == EVTRIG_LIFE &&
+            if (StagePlayer->type == RIKIMARU_0 && ev->mode == EVTRIG_LIFE &&
                 tgt->type == HIKONE)
             {
                 ev->next1 = 100;

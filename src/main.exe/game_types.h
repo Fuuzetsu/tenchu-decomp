@@ -848,18 +848,23 @@ struct TMakeDifInfo
     SVECTOR bef; /* 0x06 */
 }; /* 0x0E */
 
-/* STAGE.C's stage-event descriptor. */
+/* STAGE.C's stage-event sentinels and descriptor. */
+#define EVENT_TABLE_END (-1)
+#define EVENT_ID_NONE 0xFF
+#define EVENT_CVA_NONE 0xFF
+#define EVENT_TARGET_PLAYER 0xFF
+
 typedef struct EventSeqType EventSeqType;
 struct EventSeqType
 {
-    u8 id;      /* 0x00 sequence id (2-3 = the root scripts; -1 word
-                 *      terminates the table — UpdateEvent) */
-    u8 event;   /* 0x01 CVA sequence to play on trigger (0xff = none;
+    u8 id;      /* 0x00 sequence id (2-3 = the root scripts;
+                 *      EVENT_TABLE_END word terminates the table) */
+    u8 event;   /* 0x01 CVA sequence to play on trigger (EVENT_CVA_NONE;
                  *      0 on the cure-princess stage picks the ending
                  *      movie by grade — StageSequence) */
-    u8 next1;   /* 0x02 successor event for slot 0 */
-    u8 next2;   /* 0x03 successor event for slot 1 */
-    u8 target;  /* 0x04 watched humanoid (eTarget lookup) */
+    u8 next1;   /* 0x02 successor event for slot 0 (EVENT_ID_NONE = stop) */
+    u8 next2;   /* 0x03 successor event for slot 1 (EVENT_ID_NONE = stop) */
+    u8 target;  /* 0x04 watched humanoid (EVENT_TARGET_PLAYER = player) */
     u8 mode;    /* 0x05 EVTRIG_ trigger kind (stage.h) */
     s16 status; /* 0x06 trigger operand (status/motion/life/time/music
                  *      by mode) */

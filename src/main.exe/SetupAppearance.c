@@ -80,7 +80,7 @@ void SetupAppearance(short mode, short stage)
     if (appearance != 0)
     {
         HumanData[0].name = str_rikimaua;
-        HumanData[1].name = appearance != 0xff ? str_ayamea : str_ayames;
+        HumanData[1].name = appearance != ITEM_INFINITE ? str_ayamea : str_ayames;
         /* Wearing the armour consumes it from the mission loadout. The
          * TLinkInfo view stays absolute because `pt` is repurposed below. */
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[ITEM_ARMOUR] = 0;

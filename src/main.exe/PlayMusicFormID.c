@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -62,10 +63,10 @@ void PlayMusicFormID(s32 id)
     do
     {
     } while (0);
-    if (first != 0xFF)
+    if (first != SOUND_TABLE_END)
     {
         p = MusicIDTable;
-        flag = 0xFF;
+        flag = SOUND_TABLE_END;
     search:
         if (*(u8 *)(i + (s32)p) == MusicNo)
         {
@@ -78,7 +79,7 @@ void PlayMusicFormID(s32 id)
             goto search;
         }
     found:
-        if (*(u8 *)(i + (s32)p) != 0xFF)
+        if (*(u8 *)(i + (s32)p) != SOUND_TABLE_END)
         {
             MusicNo = i;
         }

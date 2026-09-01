@@ -1,6 +1,10 @@
 #ifndef TENCHU_SOUND_H
 #define TENCHU_SOUND_H
 
+/* Byte terminator shared by the voice, music-remap, and generic sound-id
+ * tables. */
+#define SOUND_TABLE_END 0xFF
+
 /* Inferred handles for retail sound slots. None of these names survive in
  * PSX.SYM or the game data; they summarize the gameplay role of each known
  * slot. The encoding class is recovered; confidence describes only the

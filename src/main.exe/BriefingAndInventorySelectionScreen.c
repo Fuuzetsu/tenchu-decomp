@@ -337,7 +337,7 @@ void BriefingAndInventorySelectionScreen(void)
             {
                 x = SHOP_ITEM_DEFAULTS[j].x;
                 y = SHOP_ITEM_DEFAULTS[j].y;
-                if (c != 0xFF)
+                if (c != ITEM_INFINITE)
                 {
                     PutNumber(x + 0x1A, y + 8, c);
                 }
@@ -453,7 +453,7 @@ void BriefingAndInventorySelectionScreen(void)
                 scale = 0x1400;
                 if (c != 0)
                 {
-                    if (c == 0xFF)
+                    if (c == ITEM_INFINITE)
                     {
                         (&ps->selItem[0])[idx] = 0;
                         (&ps->gItem[0][0])[idx + (ps->CharType << 5)] = 1;
@@ -550,7 +550,7 @@ void BriefingAndInventorySelectionScreen(void)
             c = (&ps->selItem[0])[y];
             if (c != 0)
             {
-                if (c != 0xFF)
+                if (c != ITEM_INFINITE)
                 {
                     PutNumber(0xA6 - shown * 0x19, 0x62, c);
                 }

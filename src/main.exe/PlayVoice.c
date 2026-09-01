@@ -3,6 +3,7 @@
 #include "main.exe.h"
 #include <psxsdk/libcd.h>
 #include "images.h"
+#include "sound.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -116,10 +117,6 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
  */
 void PlayVoice(int id)
 {
-    enum
-    {
-        VOICE_TABLE_END = 0xFF
-    };
     u8 *FileName;
     TVoiceTable *voice;
     s32 volume;
@@ -158,7 +155,7 @@ void PlayVoice(int id)
             id -= 100;
         }
         match = 0;
-        if (voice->no != VOICE_TABLE_END)
+        if (voice->no != SOUND_TABLE_END)
         {
             do
             {
@@ -176,7 +173,7 @@ void PlayVoice(int id)
                     break;
                 next = cursor + 1;
                 voice = next;
-            } while (next->no != VOICE_TABLE_END);
+            } while (next->no != SOUND_TABLE_END);
             if (id != cursor->no)
                 match = 0;
         }
@@ -198,9 +195,9 @@ void PlayVoice(int id)
         voice = *voice_entry;
         FileName = *filename_entry;
         match = 0;
-        if (voice->no != VOICE_TABLE_END)
+        if (voice->no != SOUND_TABLE_END)
         {
-            end_marker = VOICE_TABLE_END;
+            end_marker = SOUND_TABLE_END;
             cursor = voice;
             do
             {
@@ -231,9 +228,9 @@ found:
     if (match == 0)
     {
         fallback = VoiceCommon;
-        if (fallback->no != VOICE_TABLE_END)
+        if (fallback->no != SOUND_TABLE_END)
         {
-            fallback_end = VOICE_TABLE_END;
+            fallback_end = SOUND_TABLE_END;
             cursor = fallback;
             do
             {

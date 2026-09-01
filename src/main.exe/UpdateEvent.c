@@ -85,10 +85,10 @@ void UpdateEvent(short n, short id)
 
     offset = (s16)n * 4;
     *(EventSeqType **)(offset + (s32)Event) = 0;
-    if (id == 0xFF)
+    if (id == EVENT_ID_NONE)
         return;
     i = 0;
-    if (*(s32 *)&StageEvent[0] == -1)
+    if (*(s32 *)&StageEvent[0] == EVENT_TABLE_END)
         return;
 
     do
@@ -99,7 +99,7 @@ void UpdateEvent(short n, short id)
         if (ev->id == id)
         {
             Event[n] = ev;
-            if (ev->target == 0xFF)
+            if (ev->target == EVENT_TARGET_PLAYER)
             {
                 eTarget[n] = StagePlayer;
             }
@@ -121,5 +121,5 @@ void UpdateEvent(short n, short id)
             return;
         }
         i++;
-    } while (*(s32 *)&StageEvent[i] != -1);
+    } while (*(s32 *)&StageEvent[i] != EVENT_TABLE_END);
 }
