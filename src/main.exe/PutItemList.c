@@ -106,7 +106,7 @@ void PutItemList(void)
     {
         u32 s;
 
-        if (i >= 25)
+        if (i >= ITEM_N)
             break;
 
         s = CamState.Owner->item[i];

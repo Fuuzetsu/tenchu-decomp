@@ -62,7 +62,7 @@ void CheckCheatCodes(s16 *rec, int n)
     s32 sel;
     union
     {
-        TAdtSelect ItemName[25];
+        TAdtSelect ItemName[ITEM_N];
         TAdtSelect Num[4];
     } menu;
 

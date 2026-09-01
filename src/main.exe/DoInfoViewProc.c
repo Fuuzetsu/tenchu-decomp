@@ -115,7 +115,7 @@ static inline void ItemAddMenu(void)
     s32 n;
     union
     {
-        TAdtSelect ItemName[25];
+        TAdtSelect ItemName[ITEM_N];
         TAdtSelect Num[4];
     } menu;
 

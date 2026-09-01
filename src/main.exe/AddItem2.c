@@ -85,7 +85,7 @@ void AddItem2(void)
     ModelArchiveType *pm;
     union
     {
-        TAdtSelect ItemName[25];
+        TAdtSelect ItemName[ITEM_N];
         struct
         {
             PARAM_ITEM_STAY param;
