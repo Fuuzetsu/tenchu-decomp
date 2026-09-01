@@ -137,7 +137,7 @@ void ProcItemFire(TItem *item)
     s32 cid;
     ProcItemFireScratch scratch;
 
-    model = (Sprite3D *)item->model;
+    model = item->model.sprite;
     param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

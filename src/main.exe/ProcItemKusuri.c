@@ -100,7 +100,7 @@ void ProcItemKusuri(TItem *item)
         } bleed;
     } scratch;
 
-    model = (Sprite3D *)item->model;
+    model = item->model.sprite;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = KUSURI_MODE_START;

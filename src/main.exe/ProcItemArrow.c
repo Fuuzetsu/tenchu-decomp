@@ -95,7 +95,7 @@ void ProcItemArrow(TItem *item)
     int rx;
     int ry;
 
-    model = item->model;
+    model = item->model.object;
     param = &item->param.arrow;
     mode_index = item->mode;
     if (mode_index == ITEM_MODE_DISPOSE)

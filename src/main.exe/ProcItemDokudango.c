@@ -81,7 +81,7 @@ void ProcItemDokudango(TItem *item)
     Sprite3D *model;
     param_dokudango *param;
 
-    model = (Sprite3D *)item->model;
+    model = item->model.sprite;
     param = &item->param.dokudango;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

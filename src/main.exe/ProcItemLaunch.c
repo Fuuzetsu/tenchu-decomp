@@ -87,7 +87,7 @@ void ProcItemLaunch(TItem *item)
     PARAM_ITEM_LAUNCH *p;
     PARAM_ITEM_LAUNCH rparam;
 
-    model = item->model;
+    model = item->model.object;
     param = &item->param.launch;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

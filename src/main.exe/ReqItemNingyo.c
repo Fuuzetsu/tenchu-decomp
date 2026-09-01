@@ -114,7 +114,7 @@ int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->model = (ModelType *)ItemImage[item->type];
+        item->model.sprite = ItemImage[item->type];
     }
     {
         param_korogari *param; /* shadows the outer `param`, as PSX.SYM has it;

@@ -183,8 +183,8 @@ void ProcItemNinken(TItem *item)
                 item->mode++;
             }
             UpdateCoordinate(item->locate);
-            item->model->locate = item->locate->locate;
-            DrawSprite((Sprite3D *)item->model);
+            item->model.sprite->locate = item->locate->locate;
+            DrawSprite(item->model.sprite);
             return;
         }
     }

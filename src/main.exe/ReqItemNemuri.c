@@ -96,7 +96,7 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
         UpdateCoordinate(item->locate);
         /* model-then-size, the reverse of every sibling's order, is
          * measured byte-required here (swapping them mismatches). */
-        item->model = (ModelType *)sprSmoke[SMOKE_SPRITE_NORMAL];
+        item->model.sprite = sprSmoke[SMOKE_SPRITE_NORMAL];
         item->collision.size = 0;
     }
     param->vec.vx = p->end.vx;

@@ -109,7 +109,7 @@ void ProcItemSmoke(TItem *item)
     param_smoke *param;
     ProcItemSmokeScratch scratch;
 
-    model = (Sprite3D *)item->model;
+    model = item->model.sprite;
     param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

@@ -275,7 +275,7 @@
     it->owner = 0;                                                            \
     it->proc = 0
 
-#define SETUP_POOL_ITEM(proc_, model_)                                        \
+#define SETUP_POOL_ITEM(proc_, model_kind_, model_)                           \
     us = p->user;                                                             \
     ty = p->type;                                                             \
     it->owner = us;                                                           \
@@ -289,7 +289,7 @@
     it->locate->locate.super = 0;                                             \
     UpdateCoordinate(it->locate);                                             \
     it->collision.size = 0;                                                   \
-    it->model = model_
+    it->model.model_kind_ = model_
 
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
@@ -409,7 +409,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             param = &it->param.launch;
             if (it == 0)
                 return 0;
-        SETUP_POOL_ITEM(ProcSightShot, SyurikenModel);
+        SETUP_POOL_ITEM(ProcSightShot, object, SyurikenModel);
             param->count = 5;
             it->owner->item[ITEM_N] = 1;
         }
@@ -577,7 +577,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
          * that one pseudo is what matches. Passing ProcKaginawa directly
          * costs 8 lines. */
         y = (s32)ProcKaginawa;
-        SETUP_POOL_ITEM((void (*)(TItem *))y, 0);
+        SETUP_POOL_ITEM((void (*)(TItem *))y, object, 0);
         it->owner->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
@@ -618,7 +618,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     found_teleport:
         if (it == 0)
             return 0;
-        SETUP_POOL_ITEM(ProcItemTeleport, 0);
+        SETUP_POOL_ITEM(ProcItemTeleport, object, 0);
         CamState.Mode = CMODE_SIGHT;
         break;
     }
@@ -671,7 +671,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             return 0;
         if ((GameClock & 1) == 0)
             return 0;
-        SETUP_POOL_ITEM(ProcItemNapalm, (ModelType *)sprNapalm);
+        SETUP_POOL_ITEM(ProcItemNapalm, sprite, sprNapalm);
         it->param.napalm.vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;
         pp->vec.vz = p->end.vz - p->start.vz;
