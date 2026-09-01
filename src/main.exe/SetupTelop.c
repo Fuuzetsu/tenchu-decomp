@@ -169,8 +169,7 @@ void SetupTelop(u8 *telop, short line)
         memset(&TelopP, 0xff, sizeof(TelopP));
         final_v = SCREEN_H - line_y;
         u = (u16)rect.x - 0x301;
-        setlen(&TelopP, 9);
-        TelopP.code = 0x2c;
+        setPolyFT4(&TelopP);
         TelopP.u2 = 0;
         TelopP.u0 = 0;
         TelopP.v1 = final_v;

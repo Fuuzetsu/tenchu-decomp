@@ -20,14 +20,15 @@
  * DR_TPAGE command followed by a semi-transparent flat quad.
  *
  *  - `ply->ply.tag`'s top byte (offset+3) is the PsyQ `setlen` length field,
- *    set to 5; `.code` is the primitive code byte, set to '*' (0x2A).
+ *    set to the POLY_F4 payload length; `.code` selects a semi-transparent
+ *    flat quad.
  *  - `ply->tpage.tag`'s top byte is set to 1 (setlen), and `.code[0]`
  *    carries `attrib`'s gpu_blend_mode in the DR_TPAGE blend field.
  */
 void SetPolyXF4(POLY_XF4 *ply, short attrib)
 {
-    setlen(&ply->ply, 5);
-    setcode(&ply->ply, 0x2A);
-    setlen(&ply->tpage, 1);
+    setPolyF4(&ply->ply);
+    setSemiTrans(&ply->ply, 1);
+    setlen(&ply->tpage, GPU_PACKET_LENGTH(DR_TPAGE));
     ply->tpage.code[0] = GPU_DRAWMODE_BLEND(attrib) | GPU_DRAWMODE_DITHER;
 }

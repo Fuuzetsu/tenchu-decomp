@@ -30,9 +30,9 @@ void draw_shade_quad_(u8 *ot, s8 r, s8 g, s8 b)
 
     ply = (POLY_XF4 *)GsGetWorkBase();
     GsSetWorkBase((u8 *)ply + 0xC0);
-    setlen(&ply->ply, 5);
-    setcode(&ply->ply, 0x2A);
-    setlen(&ply->tpage, 1);
+    setPolyF4(&ply->ply);
+    setSemiTrans(&ply->ply, 1);
+    setlen(&ply->tpage, GPU_PACKET_LENGTH(DR_TPAGE));
     ply->ply.x0 = -SCREEN_W / 2;
     ply->tpage.code[0] =
         GPU_DRAWMODE_BLEND(GPU_BLEND_SUBTRACT) | GPU_DRAWMODE_DITHER;

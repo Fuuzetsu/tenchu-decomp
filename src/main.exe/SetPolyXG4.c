@@ -22,8 +22,8 @@
  */
 void SetPolyXG4(POLY_XG4 *ply, short attrib)
 {
-    setlen(&ply->ply, 8);
-    setcode(&ply->ply, 0x3A);
-    setlen(&ply->tpage, 1);
+    setPolyG4(&ply->ply);
+    setSemiTrans(&ply->ply, 1);
+    setlen(&ply->tpage, GPU_PACKET_LENGTH(DR_TPAGE));
     ply->tpage.code[0] = GPU_DRAWMODE_BLEND(attrib) | GPU_DRAWMODE_DITHER;
 }

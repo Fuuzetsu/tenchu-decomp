@@ -63,15 +63,16 @@
  *    0x80038bc4), which is the cookbook's tell for the goto form ("A
  *    top-test loop that never hoists its invariants is a hand-rolled goto
  *    loop"). `time` is the reused PARAMETER (prologue `move $s1,$a0`).
- *  - `packet` (the `&ply` base register, `$v1`) is what makes the
- *    `ply.ply.code` byte take TWO steps in the target — `= 0x28` through
- *    the pointer (`sb v0,0xF(v1)`), then a genuine `lbu`/`ori 2`/`sb` back
- *    at the SAME
+ *  - `packet` (the `&ply` base register, `$v1`) is what keeps the standard
+ *    `setPolyF4` and `setSemiTrans` operations as TWO steps in the target —
+ *    the base opcode store goes through the pointer (`sb v0,0xF(v1)`), then
+ *    the semi-transparency update performs a genuine `lbu`/`ori 2`/`sb` at
+ *    the SAME
  *    field spelled sp-relative (`0xF7(sp)`). The two accesses use different
  *    ADDRESS RTX, and gcc-2.8.1's cse hashes memory by address, so it cannot
- *    forward the stored 0x28 to the reload. Spelling both accesses directly
- *    on the local (`ply.ply.code = 0x28; ply.ply.code |= 2;`) makes both
- *    `0xF7(sp)`, cse forwards, `fold` collapses `0x28|2`, and you get a
+ *    forward the stored base opcode to the reload. Passing the local address
+ *    to both macros makes both accesses `0xF7(sp)`; cse forwards and `fold`
+ *    collapses the two command updates, producing a
  *    single `li v0,0x2A` — one instruction SHORT, which is exactly how the
  *    earlier checkpoint stalled. Note this is cse VALUE FORWARDING, not
  *    dead-store elimination: that draft still emitted the `= 0x28` store.
@@ -81,9 +82,8 @@
  *  - `packet` does not appear in the demo's PSX.SYM local list, which records
  *    register locals for this function (all five params are listed). So the
  *    ORIGINAL almost certainly reached these three bytes through PsyQ's
- *    pointer-taking packet macros (`setlen(&p->ply,5)` / `setcode(&p->ply,
- *    0x28)` / `setlen(&p->tpage,1)`, libgpu.h) rather than a named local;
- *    `packet` is the reconstruction that reproduces their addressing. The
+ *    pointer-taking packet macros rather than a named local; `packet` is the
+ *    reconstruction that reproduces their addressing. The
  *    demo build (a separate compile of the same source, 0x80031fbc) emits
  *    this ply-setup block instruction-for-instruction identically to retail,
  *    proving the shape is source rather than a scheduling accident.
@@ -111,10 +111,9 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     n_draw.ofs[1] = o_disp.disp.y;
     PutDrawEnv(&n_draw);
     packet = &ply;
-    setlen(&packet->ply, 5);
-    packet->ply.code = 0x28;
-    ply.ply.code |= 2;
-    setlen(&packet->tpage, 1);
+    setPolyF4(&packet->ply);
+    setSemiTrans(&ply.ply, 1);
+    setlen(&packet->tpage, GPU_PACKET_LENGTH(DR_TPAGE));
     ply.tpage.code[0] = GPU_DRAWMODE_BLEND(attrib) | GPU_DRAWMODE_DITHER;
     ply.ply.x0 = 0;
     ply.ply.y0 = 0;

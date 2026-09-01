@@ -357,6 +357,32 @@ typedef struct
     u_long *paddr;
 } TIM_IMAGE;
 
+/* GP0 polygon commands share a 0x20 base byte. These bits select
+ * semi-transparency, texturing, four vertices, and Gouraud shading. */
+enum gpu_polygon_command
+{
+    GPU_POLYGON_BASE = 0x20,
+    GPU_POLYGON_SEMITRANS = 0x02,
+    GPU_POLYGON_TEXTURED = 0x04,
+    GPU_POLYGON_QUAD = 0x08,
+    GPU_POLYGON_GOURAUD = 0x10,
+
+    GPU_POLY_F3_CODE = GPU_POLYGON_BASE,
+    GPU_POLY_F4_CODE = GPU_POLYGON_BASE | GPU_POLYGON_QUAD,
+    GPU_POLY_FT4_CODE = GPU_POLYGON_BASE | GPU_POLYGON_TEXTURED |
+                        GPU_POLYGON_QUAD,
+    GPU_POLY_G4_CODE = GPU_POLYGON_BASE | GPU_POLYGON_GOURAUD |
+                       GPU_POLYGON_QUAD,
+    GPU_POLY_GT3_CODE = GPU_POLYGON_BASE | GPU_POLYGON_TEXTURED |
+                        GPU_POLYGON_GOURAUD,
+    GPU_POLY_GT4_CODE = GPU_POLYGON_BASE | GPU_POLYGON_TEXTURED |
+                        GPU_POLYGON_QUAD | GPU_POLYGON_GOURAUD
+};
+
+/* The DMA tag's length excludes the tag word itself. */
+#define GPU_PACKET_WORDS(type) (sizeof(type) / sizeof(u_long))
+#define GPU_PACKET_LENGTH(type) (GPU_PACKET_WORDS(type) - 1)
+
 /* Common LIBGPU macros retain Sony's original comma-expression shape. */
 #define setRECT(r, _x, _y, _w, _h) \
     (r)->x = (_x), (r)->y = (_y), (r)->w = (_w), (r)->h = (_h)
@@ -387,7 +413,19 @@ typedef struct
 
 #define setlen(p, _len) (((P_TAG *)(p))->len = (u_char)(_len))
 #define setcode(p, _code) (((P_TAG *)(p))->code = (u_char)(_code))
-#define setPolyF4(p) setlen((p), 5), setcode((p), 0x28)
+#define getcode(p) ((u_char)((P_TAG *)(p))->code)
+#define setSemiTrans(p, abe)                                                \
+    ((abe) ? setcode((p), getcode(p) | GPU_POLYGON_SEMITRANS)              \
+           : setcode((p), getcode(p) & ~GPU_POLYGON_SEMITRANS))
+#define setPolyF4(p)                                                        \
+    setlen((p), GPU_PACKET_LENGTH(POLY_F4)),                               \
+        setcode((p), GPU_POLY_F4_CODE)
+#define setPolyFT4(p)                                                       \
+    setlen((p), GPU_PACKET_LENGTH(POLY_FT4)),                              \
+        setcode((p), GPU_POLY_FT4_CODE)
+#define setPolyG4(p)                                                        \
+    setlen((p), GPU_PACKET_LENGTH(POLY_G4)),                               \
+        setcode((p), GPU_POLY_G4_CODE)
 
 DISPENV *GetDispEnv(DISPENV *env);
 DISPENV *PutDispEnv(DISPENV *env);
