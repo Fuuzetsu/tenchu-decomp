@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
@@ -119,14 +120,14 @@ s32 setup_card_screen_(s16 mode)
         McardButtons[2]->sprite.mx = (McardButtons[2]->sprite.w >> 1) + 10;
         McardButtons[2]->sprite.x = -0x14;
         McardButtons[2]->sprite.u += 0xf;
-        McardButtons[2]->sprite.attribute |= 0x30000000;
+        McardButtons[2]->sprite.attribute |= SPR_BLEND_ADD_QUARTER;
 
         McardButtons[3] = SetupSprite(McardButtons[0], 0);
         McardButtons[3]->sprite.w = (McardButtons[0]->sprite.w >> 1) - 10;
         McardButtons[3]->sprite.mx = McardButtons[3]->sprite.w >> 1;
         McardButtons[3]->sprite.x = 0x1c;
         McardButtons[3]->sprite.u += ((image.pw >> 1) * 4) + 10;
-        McardButtons[3]->sprite.attribute |= 0x30000000;
+        McardButtons[3]->sprite.attribute |= SPR_BLEND_ADD_QUARTER;
 
         tim = FileRead(path_demo_start_xtoselj_tim);
         GetTIMInfo(tim, &image);

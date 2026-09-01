@@ -142,9 +142,10 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         icon1 = (u8 *)GetArcData(ICON_CARD1);
         icon2 = (u8 *)GetArcData(ICON_CARD2);
         icon3 = (u8 *)GetArcData(ICON_CARD3);
-        __builtin_memcpy(hd->Clut, icon1 + 0x14, sizeof(hd->Clut));
+        __builtin_memcpy(hd->Clut, CARD_ICON_TIM_CLUT(icon1),
+                         sizeof(hd->Clut));
         dst = hd->Icon[0];
-        src = icon1 + 0x40;
+        src = CARD_ICON_TIM_PIXELS(icon1);
         alignment = (u32)src & 3;
         if (alignment)
         {
@@ -155,7 +156,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                     *(SaveSIUnalignedChunk *)src;
                 src += 0x10;
                 dst += 0x10;
-            } while (src != icon1 + 0xc0);
+            } while (src != CARD_ICON_TIM_END(icon1));
         }
         else
         {
@@ -164,11 +165,11 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                 *(SaveSIAlignedChunk *)dst = *(SaveSIAlignedChunk *)src;
                 src += 0x10;
                 dst += 0x10;
-            } while (src != icon1 + 0xc0);
+            } while (src != CARD_ICON_TIM_END(icon1));
         }
 
         dst = hd->Icon[1];
-        src = icon2 + 0x40;
+        src = CARD_ICON_TIM_PIXELS(icon2);
         alignment = (u32)src & 3;
         if (alignment)
         {
@@ -178,7 +179,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                     *(SaveSIUnalignedChunk *)src;
                 src += 0x10;
                 dst += 0x10;
-            } while (src != icon2 + 0xc0);
+            } while (src != CARD_ICON_TIM_END(icon2));
         }
         else
         {
@@ -187,12 +188,12 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
                 *(SaveSIAlignedChunk *)dst = *(SaveSIAlignedChunk *)src;
                 src += 0x10;
                 dst += 0x10;
-            } while (src != icon2 + 0xc0);
+            } while (src != CARD_ICON_TIM_END(icon2));
         }
 
         dst = hd->Icon[2];
-        src = icon3 + 0x40;
-        end = (s32)icon3 + 0xc0;
+        src = CARD_ICON_TIM_PIXELS(icon3);
+        end = (s32)CARD_ICON_TIM_END(icon3);
         alignment = (u32)src & 3;
         if (alignment)
         {

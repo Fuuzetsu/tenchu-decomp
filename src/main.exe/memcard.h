@@ -1,11 +1,50 @@
 #ifndef MEMCARD_H
 #define MEMCARD_H
 
+#include "tim.h"
+
 /* MEMCARD.C's one-card-block size, recovered from PSX.SYM. */
 enum
 {
     BLOCKSIZE = 8192
 };
+
+/* Fixed 16-colour, 16x16 TIM layout used by the three memory-card icon
+ * frames. The concrete payload sizes make the two variable TIM blocks a
+ * fully typed file. */
+typedef struct TCardIconCLUTBlock TCardIconCLUTBlock;
+struct TCardIconCLUTBlock
+{
+    u32 byte_size;
+    TIMBlockPosition position;
+    TIMBlockSize size;
+    u16 colors[CARD_ICON_CLUT_COLORS];
+};
+
+typedef struct TCardIconPixelBlock TCardIconPixelBlock;
+struct TCardIconPixelBlock
+{
+    u32 byte_size;
+    TIMBlockPosition position;
+    TIMBlockSize size;
+    u8 pixels[CARD_ICON_BITMAP_SIZE];
+};
+
+typedef struct TCardIconTIM TCardIconTIM;
+struct TCardIconTIM
+{
+    u32 id;
+    u32 mode;
+    TCardIconCLUTBlock clut;
+    TCardIconPixelBlock image;
+};
+
+#define CARD_ICON_TIM_CLUT(icon) \
+    ((u8 *)((TCardIconTIM *)(icon))->clut.colors)
+#define CARD_ICON_TIM_PIXELS(icon) \
+    ((u8 *)((TCardIconTIM *)(icon))->image.pixels)
+#define CARD_ICON_TIM_END(icon) \
+    ((u8 *)&((TCardIconTIM *)(icon))->image.pixels[CARD_ICON_BITMAP_SIZE])
 
 /* Save UI states shared by update_card_message_ and update_card_screen_. */
 typedef s16 card_state;

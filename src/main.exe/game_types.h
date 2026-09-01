@@ -129,10 +129,21 @@ struct EXEC
     u32 base;   /* 0x38 */
 }; /* 0x3C */
 
-/* MEMCARD.C/INFOVIEW.C's PlayStation memory-card block header. */
-/* TCardHeader.Type: the icon display flag a PSX memory card expects --
- * 0x11, 0x12 or 0x13 for a one-, two- or three-frame animated icon. */
-#define SAVE_ICON_3_FRAMES 0x13
+enum
+{
+    CARD_ICON_TYPE_FLAG = 0x10,
+    CARD_ICON_FRAME_COUNT = 3,
+    CARD_ICON_CLUT_COLORS = 16,
+    CARD_ICON_BITMAP_SIZE = 128
+};
+
+/* TCardHeader.Type combines the icon flag with its animation-frame count. */
+enum card_icon_display
+{
+    SAVE_ICON_1_FRAME = CARD_ICON_TYPE_FLAG | 1,
+    SAVE_ICON_2_FRAMES = CARD_ICON_TYPE_FLAG | 2,
+    SAVE_ICON_3_FRAMES = CARD_ICON_TYPE_FLAG | CARD_ICON_FRAME_COUNT
+};
 
 typedef struct TCardHeader TCardHeader;
 struct TCardHeader
@@ -142,8 +153,8 @@ struct TCardHeader
     u8 BlockEntry;   /* 0x003 */
     u8 Title[64];    /* 0x004 */
     u8 reserve[28];  /* 0x044 */
-    u8 Clut[32];     /* 0x060 */
-    u8 Icon[3][128]; /* 0x080 */
+    u8 Clut[CARD_ICON_CLUT_COLORS * sizeof(u16)]; /* 0x060 */
+    u8 Icon[CARD_ICON_FRAME_COUNT][CARD_ICON_BITMAP_SIZE]; /* 0x080 */
 }; /* 0x200 */
 
 /* IMAGES.C's offset-table archive header. */

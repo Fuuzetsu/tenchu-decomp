@@ -1,12 +1,19 @@
 #ifndef TENCHU_IMAGES_H
 #define TENCHU_IMAGES_H
 
-/* GsSPRITE.attribute semi-transparency field (bit 30 = ABE enable,
- * bits 28-29 = blend rate): the two blends the game uses. Invented
- * names for the composite values. */
-#define SPR_TRANS 0x40000000     /* translucency enable (rate 0: 50%+50%) */
-#define SPR_TRANS_ADD 0x50000000 /* rate 1: back + front (additive) */
-#define SPR_TRANS_SUB 0x60000000 /* rate 2: back - front (subtractive) */
+/* GsSPRITE.attribute semi-transparency protocol: bits 28-29 select the GPU
+ * blend equation and bit 30 enables it. */
+enum gs_sprite_blend_rate
+{
+    SPR_BLEND_AVERAGE = 0x00000000,
+    SPR_BLEND_ADD = 0x10000000,
+    SPR_BLEND_SUBTRACT = 0x20000000,
+    SPR_BLEND_ADD_QUARTER = 0x30000000
+};
+
+#define SPR_TRANS 0x40000000
+#define SPR_TRANS_ADD (SPR_TRANS | SPR_BLEND_ADD)
+#define SPR_TRANS_SUB (SPR_TRANS | SPR_BLEND_SUBTRACT)
 
 /* GetImage slots the code pins, named by what each becomes (invented
  * names): the afterimage texture, the water-splash sprite, the item

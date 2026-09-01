@@ -75,10 +75,13 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
     chan = 0;
     icon3 = (u8 *)GetArcData(ICON_CARD3);
     data = block + sizeof(TCardHeader);
-    __builtin_memcpy(hd->Clut, icon1 + 0x14, sizeof(hd->Clut));
-    __builtin_memcpy(hd->Icon[0], icon1 + 0x40, sizeof(hd->Icon[0]));
-    __builtin_memcpy(hd->Icon[1], icon2 + 0x40, sizeof(hd->Icon[1]));
-    __builtin_memcpy(hd->Icon[2], icon3 + 0x40, sizeof(hd->Icon[2]));
+    __builtin_memcpy(hd->Clut, CARD_ICON_TIM_CLUT(icon1), sizeof(hd->Clut));
+    __builtin_memcpy(hd->Icon[0], CARD_ICON_TIM_PIXELS(icon1),
+                     sizeof(hd->Icon[0]));
+    __builtin_memcpy(hd->Icon[1], CARD_ICON_TIM_PIXELS(icon2),
+                     sizeof(hd->Icon[1]));
+    __builtin_memcpy(hd->Icon[2], CARD_ICON_TIM_PIXELS(icon3),
+                     sizeof(hd->Icon[2]));
 
     sprintf(fn, CardPathFormat, TENCHU_ID, name);
     result = MemCardCreateFile(chan, fn, 1);
