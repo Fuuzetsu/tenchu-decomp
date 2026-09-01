@@ -59,7 +59,7 @@
  *    ROLE (both are "the wp[0] value"), not just by availability.
  */
 
-/* mode 1 draws the weapon (raising ATTR_ALERT), 0 sheathes it. */
+/* WEAPON_DRAWN raises ATTR_ALERT; WEAPON_SHEATHED clears it. */
 void EquipWeapon(Humanoid *human, short mode)
 {
     OrnamentType **wp;
@@ -68,7 +68,7 @@ void EquipWeapon(Humanoid *human, short mode)
 
     wp = human->weapon;
     dispose_weapon_data_of_char_(human, 3);
-    if (mode != 0)
+    if (mode != WEAPON_SHEATHED)
     {
         if ((human->attribute & ATTR_ALERT) != 0)
         {

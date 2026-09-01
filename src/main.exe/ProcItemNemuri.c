@@ -254,7 +254,7 @@ void ProcItemNemuri(TItem *item)
                     if ((hit_human->type & PAGE_MASK) != PAGE_BOSS &&
                         hit_life != inactive_sentinel)
                     {
-                        EquipWeapon(hit_human, 0);
+                        EquipWeapon(hit_human, WEAPON_SHEATHED);
                         SetNowMotion(hit_human, MOT_STATE_SHEATHE, 1);
                         hit_human->think[0] = Think1sleep;
                         hit_human->attribute &= ~ATTR_PHASE;

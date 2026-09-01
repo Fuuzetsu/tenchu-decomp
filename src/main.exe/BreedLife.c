@@ -240,7 +240,7 @@ type_found:
             return human;
     }
     human->attribute = human->attribute | PHASE_ALERT;
-    EquipWeapon(human, 1);
+    EquipWeapon(human, WEAPON_DRAWN);
     SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
     return human;
 high_type:

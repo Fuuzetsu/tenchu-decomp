@@ -244,7 +244,7 @@ s16 think_alarm_reaction_(void)
             think4 = Think4Func[4];
             human->attribute |= ATTR_CUSTOMAI;
             human->think[3] = think4;
-            EquipWeapon(human, 1);
+            EquipWeapon(human, WEAPON_DRAWN);
             SetNowMotion(human, MOT_ENGAGE_STANCE, 1);
             human->actscnt = 0;
             human->actcnt = 1;

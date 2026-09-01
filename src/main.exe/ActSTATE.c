@@ -130,7 +130,7 @@ void ActSTATE(void)
         if (dtM->count == dtM->motion->time / 2)
         {
             Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);
-            EquipWeapon(Me_MOTION_C, 1);
+            EquipWeapon(Me_MOTION_C, WEAPON_DRAWN);
             return;
         }
         if (dtM->count != 0)
@@ -205,7 +205,7 @@ void ActSTATE(void)
         if (dtM->count == dtM->motion->time / 2)
         {
             Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);
-            EquipWeapon(Me_MOTION_C, 0);
+            EquipWeapon(Me_MOTION_C, WEAPON_SHEATHED);
             return;
         }
         if (dtM->count != 0)

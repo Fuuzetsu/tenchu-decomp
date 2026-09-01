@@ -5,6 +5,13 @@
  * reconstructed as several translation units. */
 struct Humanoid;
 
+/* EquipWeapon's requested visible state. */
+enum
+{
+    WEAPON_SHEATHED = 0,
+    WEAPON_DRAWN = 1
+};
+
 /* APPEAR.C-private originally; extern because that source is split here. */
 extern short NowStage;
 

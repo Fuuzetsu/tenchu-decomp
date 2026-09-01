@@ -155,7 +155,7 @@ short Think3callaid(void)
         func = Think4Func[THINK4_CONTACT];
         (Me_THINK_C = newhuman)->attribute |= ATTR_CUSTOMAI;
         newhuman->think[3] = func;
-        EquipWeapon(newhuman, 1);
+        EquipWeapon(newhuman, WEAPON_DRAWN);
         SetNowMotion(Me_THINK_C, MOT_ENGAGE_STANCE, 1);
         Attrib = Me_THINK_C->attribute | PHASE_ALERT;
         ret = 0;
