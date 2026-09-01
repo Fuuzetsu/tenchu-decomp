@@ -282,13 +282,17 @@ typedef u8 MapProbeMask;
 /* WORLD.C's packed four-stage think-function selector. */
 typedef short TThinkType;
 
+/* Character ids are stored as signed halfwords so tables can use -1 as
+ * their end marker; enum character_kind below supplies the named values. */
+typedef s16 character_kind;
+
 /* WORLD.C's editable enemy placement. */
 #define MAX_ENEMY_PATH_POINTS 7
 
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
 {
-    s16 type;             /* 0x00 */
+    character_kind type;  /* 0x00 */
     TThinkType ThinkType; /* 0x02 */
     s16 nPath;            /* 0x04 */
     s32 x;                /* 0x08 */
@@ -981,7 +985,7 @@ struct WeaponModelType
 typedef struct HumanDataType HumanDataType;
 struct HumanDataType
 {
-    s16 type;                      /* 0x00 */
+    character_kind type;           /* 0x00 */
     s16 wepid;                     /* 0x02 */
     s16 turn;                      /* 0x04 */
     s16 life;                      /* 0x06 */
@@ -997,7 +1001,7 @@ typedef struct StageCharType StageCharType;
 struct StageCharType
 {
     s16 stage;        /* 0x00 */
-    s16 chrid;        /* 0x02 */
+    character_kind chrid; /* 0x02 */
     SVECTOR position; /* 0x04 */
     TThinkType think; /* 0x0C */
 }; /* 0x0E */
@@ -1211,7 +1215,6 @@ enum weapon_kind
     END_OF_WEAPON_KIND_MARKER = 0xffff,
 };
 
-typedef enum character_kind character_kind;
 enum character_kind
 {
     RIKIMARU_0 = 0x00,
