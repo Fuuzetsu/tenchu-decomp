@@ -54,14 +54,16 @@
  *    boundary shape represented here by `mode` and `mode16`.
  *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
  *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
- *  - `row` is a `long *` cursor at &index->index; the row fields are reached
- *    as ((short *)row)[-1..5] (the -2($s2) access proves the cast-based
- *    shape) and the row rect tests re-read the same expressions in the
- *    division block so cse reuses the bounds registers.
+ *  - `row` is a `long *` cursor at &index->index; NODE_INDEX_ROW_FIELD
+ *    derives the surrounding halfword fields while retaining the cast-based
+ *    address shape (the n load at -2($s2) proves it). The row rect tests
+ *    re-read the same expressions in the division block so cse reuses the
+ *    bounds registers.
  *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
  *    sign-extend of the short quotient merged with the *2 and *8 array scaling.
- *  - `node = (AreaNodeType *)((n << 4) + (long)list);` — integer + integer
- *    keeps the operand order (addu s0,v0,a2); `list + n` emits addu s0,a2,v0.
+ *  - Forming the node address as a byte count plus an integerized list keeps
+ *    the operand order (addu s0,v0,a2); typed `list + n` emits
+ *    addu s0,a2,v0.
  *  - The tail return-0x80000000 body carries the ret_min label INSIDE the
  *    (`y2` < -1000 && !(mode & 4)) body, and the `yy`==MIN / attribute&2
  *    checks `goto ret_min`: written this way there is exactly ONE
@@ -157,18 +159,24 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             loop:
                 if (yy == (u32)LEVEL_NONE)
                 {
-                    if (((short *)row)[2] <= x && x <= ((short *)row)[4] &&
-                        ((short *)row)[3] <= z && z <= ((short *)row)[5])
+                    if (NODE_INDEX_ROW_FIELD(row, x1) <= x &&
+                        x <= NODE_INDEX_ROW_FIELD(row, x2) &&
+                        NODE_INDEX_ROW_FIELD(row, z1) <= z &&
+                        z <= NODE_INDEX_ROW_FIELD(row, z2))
                     {
-                        nn = ((short *)row)[-1];
+                        nn = NODE_INDEX_ROW_FIELD(row, n);
                         list = (AreaNodeType *)*row;
                         n = 0;
                         if (nn < 0)
                         {
-                            qx = (x - ((short *)row)[2]) * 4 /
-                                 (((short *)row)[4] - ((short *)row)[2]);
-                            qz = (z - ((short *)row)[3]) * 4 /
-                                 (((short *)row)[5] - ((short *)row)[3]);
+                            qx = (x - NODE_INDEX_ROW_FIELD(row, x1)) *
+                                     AREA_INDEX_AXIS_SIZE /
+                                 (NODE_INDEX_ROW_FIELD(row, x2) -
+                                  NODE_INDEX_ROW_FIELD(row, x1));
+                            qz = (z - NODE_INDEX_ROW_FIELD(row, z1)) *
+                                     AREA_INDEX_AXIS_SIZE /
+                                 (NODE_INDEX_ROW_FIELD(row, z2) -
+                                  NODE_INDEX_ROW_FIELD(row, z1));
                             n = ((IndexArrayType *)list)->array[qz][qx];
                             if (n == AREA_NODE_INDEX_NONE)
                                 goto next;
@@ -177,7 +185,8 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                         }
                         if (n < nn)
                         {
-                            node = (AreaNodeType *)((n << 4) + (long)list);
+                            node = (AreaNodeType *)(n * (long)sizeof(AreaNodeType) +
+                                                    (long)list);
                         inner:
                             if (z < node->z1)
                                 goto next;
@@ -210,7 +219,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                         }
                     }
                 next:
-                    row += 4;
+                    row += NODE_INDEX_ROW_WORDS;
                     index++;
                     if (*row != 0)
                         goto loop;
