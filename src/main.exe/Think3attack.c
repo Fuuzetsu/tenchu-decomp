@@ -43,7 +43,7 @@
 extern Humanoid *Me_THINK_C;
 /* Per-range-class engagement distances (retail data: 3000/3500/4000
  * for the melee classes, 20000 for the ranged class — wpatk >> 4). */
-extern s16 atkd[4];
+extern s16 atkd[N_WPATK_CLASSES];
 
 extern s16 SuccessionAttack(s32 dist, s16 degree);
 extern s16 ItemUse(void);
@@ -59,7 +59,7 @@ s16 Think3attack(void)
 
     if (Me_THINK_C->status == STAT_ATTACK)
     {
-        if (idx != 3)
+        if (idx != WPATK_CLASS_RANGED)
         {
             pad = SuccessionAttack(3000, 1500);
         }
@@ -76,16 +76,16 @@ s16 Think3attack(void)
         SR = SR_NONE;
     }
 
-    if ((s16)((4 - idx) * Me_THINK_C->turn) < Degree)
+    if ((s16)((N_WPATK_CLASSES - idx) * Me_THINK_C->turn) < Degree)
     {
         pad = PADLright;
     }
-    else if (Degree < -(s16)((4 - idx) * Me_THINK_C->turn))
+    else if (Degree < -(s16)((N_WPATK_CLASSES - idx) * Me_THINK_C->turn))
     {
         pad = PADLleft;
     }
 
-    if (idx != 3)
+    if (idx != WPATK_CLASS_RANGED)
     {
         rng = atkd[idx] / 2;
     }

@@ -39,7 +39,7 @@
 extern Humanoid *Me_THINK_C;
 /* Per-range-class first-attack distances, indexed by wpatk >> 4
  * (same shape as Think3attack.c's atkd table). */
-extern s16 atkd2[4];
+extern s16 atkd2[N_WPATK_CLASSES];
 /* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
 extern int turn_towards_player_(int x_diff, int z_diff);
 

@@ -11,6 +11,7 @@
  * attack-pattern index in the low nibble. */
 #define WPATK_CLASS(w) ((w) >> 4)
 #define WPATK_CLASS_RANGED 3
+#define N_WPATK_CLASSES (WPATK_CLASS_RANGED + 1)
 
 /* ModelArchiveType.object[] roles proven by the humanoid callers.  The
  * weapon anchors vary with wpatk; the ordinal hand names intentionally do
@@ -109,7 +110,7 @@ extern ThinkFunc Think1Func[10];
 extern ThinkFunc Think2Func[5];
 extern ThinkFunc Think3Func[10];
 extern ThinkFunc Think4Func[6];
-extern ThinkFunc AttackFunc[4];
+extern ThinkFunc AttackFunc[N_WPATK_CLASSES];
 
 /* Think1watch/Think1target act on the ticks where actcnt's low bits are
  * clear, so the character looks around once per this many idle ticks. */
