@@ -197,7 +197,7 @@ draw_done:
     DrawModeSave[VISIBLE_ENEMIES_] = DrawTMDmode;
     VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
     VISIBLE_ENEMIES_++;
-    if (ActionHalt != 0 || human->life <= 0)
+    if (ActionHalt != ACTION_HALT_NONE || human->life <= 0)
     {
         return;
     }

@@ -696,7 +696,7 @@ dispatch:
 
         if (dtM->count == 1)
         {
-            ActionHalt = 1;
+            ActionHalt = ACTION_HALT_ACTIVE;
             SetCameraMode(CMODE_CRITICAL_HIT);
             CamState.snap_pending = 1;
             return;
@@ -706,7 +706,7 @@ dispatch:
             return;
         }
         waist = *Me_MOTION_C->model->object;
-        ActionHalt = 0;
+        ActionHalt = ACTION_HALT_NONE;
         /* Re-walks the chain rather than reading waist->id: byte-required
          * (the second full deref is in the bytes; measured). */
         conflict_id = (int)(*Me_MOTION_C->model->object)->id;

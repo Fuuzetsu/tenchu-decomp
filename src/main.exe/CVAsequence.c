@@ -126,7 +126,7 @@ return_zero:
 
 run_sequence:
     if (ActionHalt != ACTION_HALT_STAGE_END)
-        ActionHalt = 1;
+        ActionHalt = ACTION_HALT_ACTIVE;
     MotionUpdateMode = 1;
     StagePlayer->target.model = 0;
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
@@ -150,7 +150,7 @@ run_sequence:
     } while (CVArun() != 0);
     VoiceMode = 0;
     if (ActionHalt != ACTION_HALT_STAGE_END)
-        ActionHalt = 0;
+        ActionHalt = ACTION_HALT_NONE;
     MotionUpdateMode = 0;
     SetCameraMode(CMODE_NORMAL);
 

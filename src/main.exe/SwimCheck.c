@@ -114,7 +114,7 @@ short SwimCheck(void)
             SetCameraMode(CMODE_SWIM);
             PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX, RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_NONE);
         }
-        ActionHalt = 0;
+        ActionHalt = ACTION_HALT_NONE;
         set_model_hide_(Me_MOTION_C, 1);
         motion = GetMotionID(dtM, MOT_SWIM);
         if ((s16)motion < 0 || Me_MOTION_C->life == 0)

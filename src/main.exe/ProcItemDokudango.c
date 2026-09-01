@@ -300,7 +300,7 @@ void ProcItemDokudango(TItem *item)
             {
                 return;
             }
-            if (ActionHalt == 0)
+            if (ActionHalt == ACTION_HALT_NONE)
             {
                 MotionDataType *motion_data;
 
@@ -446,7 +446,7 @@ void ProcItemDokudango(TItem *item)
             reaction_target = param->eater;
             if ((reaction_target->type & PAGE_MASK) == PAGE_BEAST)
             {
-                if (ActionHalt == 0 && reaction_target->life > 0)
+                if (ActionHalt == ACTION_HALT_NONE && reaction_target->life > 0)
                 {
                     MotionDataType *motion_data;
 
@@ -459,7 +459,7 @@ void ProcItemDokudango(TItem *item)
                                  motion_data->sidespd);
                 }
             }
-            else if (ActionHalt == 0 && reaction_target->life > 0)
+            else if (ActionHalt == ACTION_HALT_NONE && reaction_target->life > 0)
             {
                 MotionDataType *motion_data;
 

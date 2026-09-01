@@ -303,7 +303,7 @@ void DamageControl(void)
 /* motID in the stealth-kill band (MOT_ATTACK_STEALTH_*): the hit
  * cancels the move — reset ActionHalt, pick recover/idle, nudge down */
 attack_break:
-    ActionHalt = 0;
+    ActionHalt = ACTION_HALT_NONE;
     if (Me_MOTION_C == StagePlayer)
     {
         SetCameraMode(CMODE_NORMAL);

@@ -271,7 +271,7 @@ void StartStageSequence(void)
 
     GameClock = 0;
     StageTime = 0;
-    ActionHalt = 0;
+    ActionHalt = ACTION_HALT_NONE;
     AttackActionCount = 0;
     FriendHits = 0;
     Murders = 0;

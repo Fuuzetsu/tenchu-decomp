@@ -115,7 +115,7 @@ void PlayerOption(void)
         break;
     case RESURRECT:
         CamState.Owner->life = CamState.Owner->lifemax;
-        ActionHalt = 0;
+        ActionHalt = ACTION_HALT_NONE;
         CamState.Owner->status = STAT_NORMAL;
         break;
     case RESTART_EVENT:

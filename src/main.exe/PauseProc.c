@@ -137,7 +137,7 @@ void PauseProc(void)
                 dispose_weapon_data_of_char_(CamState.Owner,
                                              ATTACK_CANCEL_ALL);
                 CamState.Owner->status = STAT_NORMAL;
-                ActionHalt = 0;
+                ActionHalt = ACTION_HALT_NONE;
                 Sound(CamState.Owner, SE_ITEM_USE);
                 SetCameraMode(CMODE_NORMAL);
                 Findenemies++;

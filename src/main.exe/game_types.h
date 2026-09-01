@@ -655,7 +655,14 @@ typedef s16 humanoid_life;
 typedef s16 character_status;
 
 typedef s16 action_halt_state;
-#define ACTION_HALT_STAGE_END (-1)
+enum action_halt_state
+{
+    /* Stage completion is a terminal halt that CVAsequence must not clear. */
+    ACTION_HALT_STAGE_END = -1,
+    ACTION_HALT_NONE = 0,
+    /* A cinematic or paired critical-hit animation owns actor control. */
+    ACTION_HALT_ACTIVE = 1
+};
 
 typedef s16 search_result;
 

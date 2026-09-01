@@ -144,7 +144,7 @@ void StateTransition(Humanoid *human)
         return;
     }
 
-    if (ActionHalt != 0)
+    if (ActionHalt != ACTION_HALT_NONE)
     {
         s32 target_dx;
         s32 target_dz;

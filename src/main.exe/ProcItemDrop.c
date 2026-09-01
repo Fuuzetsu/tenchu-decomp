@@ -150,7 +150,7 @@ void ProcItemDrop(TItem *item)
             return;
         if ((human->status != STAT_CHASE) && (human->status != STAT_MOVE))
             return;
-        if (ActionHalt == 0 && human->life > 0)
+        if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
             UpdateMotion(human->motion, MOT_STATE_PICKUP);

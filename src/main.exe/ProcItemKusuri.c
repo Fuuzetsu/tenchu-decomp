@@ -113,7 +113,7 @@ void ProcItemKusuri(TItem *item)
         Humanoid *human;
 
         human = item->owner.human;
-        if (ActionHalt == 0 && human->life > 0)
+        if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             MotionDataType *md;
 
