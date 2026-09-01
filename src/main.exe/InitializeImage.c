@@ -19,11 +19,8 @@
  * FileRead, sanity-check its entry count, then for each of the 0x3e (62)
  * slots fetch the packed TIM via get_tim_from_archive, read its geometry
  * with GetTIMInfo and upload it with LoadTIM, before freeing the archive
- * buffer. Walks Images with a plain pointer increment (`image = image + 1`)
- * — every loop iteration only touches ONE image record via the `image`
- * cursor (no second field of a later element), so no index-vs-pointer bias
- * applies (cookbook Loops: the walking-pointer bias only bites when 2+
- * fields of the SAME element are read through it).
+ * buffer. The source indexes the owning Images[] array directly; GCC turns
+ * that fixed-size indexing into the same advancing cursor used by retail.
  *
  * The bad-file `AdtMessageBox` call and the loop's `i = 0;` init share ONE
  * source statement via the branch's delay slot: reorg hoists `i = 0;` (the
@@ -47,22 +44,17 @@ void InitializeImage(void)
     u_long *pt;
     u_long *adr;
     int i;
-    GsIMAGE *image;
 
     pt = FileRead(path_image_images_arc);
     if (((ArcFile *)pt)->count < N_IMAGES)
     {
         AdtMessageBox(msg_bad_image_file);
     }
-    i = 0;
-    image = Images;
-    do
+    for (i = 0; i < N_IMAGES; i++)
     {
         adr = get_tim_from_archive(pt, i);
-        GetTIMInfo(adr, image);
+        GetTIMInfo(adr, &Images[i]);
         LoadTIM(adr);
-        i++;
-        image++;
-    } while (i < N_IMAGES);
+    }
     vfree(pt);
 }
