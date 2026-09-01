@@ -30,10 +30,9 @@ void DisposeAreaMap(AreaMapType *area)
 {
     if (area == 0)
     {
-        AreaMapType *tmp = GlobalAreaMap;
-        if (tmp != 0)
+        if (GlobalAreaMap != 0)
         {
-            area = tmp;
+            area = GlobalAreaMap;
             GlobalAreaMap = 0;
         }
     }
