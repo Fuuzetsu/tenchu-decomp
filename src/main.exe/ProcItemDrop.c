@@ -140,7 +140,7 @@ void ProcItemDrop(TItem *item)
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             i = -1;
         else
-            i = GetConflictResult(item->locate, -1);
+            i = GetConflictResult(item->locate, CONFLICT_NONE);
         if (i == -1)
             return;
         human = (Humanoid *)ConflictObject[i].common;

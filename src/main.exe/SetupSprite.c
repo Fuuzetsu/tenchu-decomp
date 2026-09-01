@@ -74,7 +74,7 @@ Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
         dim->clip.vz = 0;
         RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
         dim->locate.flg = 0;
-        dim->id = -1;
+        dim->id = CONFLICT_NONE;
         dim->attribute = 0;
         sprt->scale = FIXED_ONE;
         memset(&sprt->sprite, 0, sizeof(GsSPRITE));

@@ -349,7 +349,7 @@ short DefaultActionHumanoid(Humanoid *human)
 
     if (object->attribute & MODEL_ATTR_CONFLICT)
     {
-        while ((i = GetConflictResult(object, -1)) >= 0)
+        while ((i = GetConflictResult(object, CONFLICT_NONE)) >= 0)
         {
             if (ConflictObject[i].common == human)
             {

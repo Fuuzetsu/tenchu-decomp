@@ -23,9 +23,10 @@
 /*
  * InsertConflict (0x8001a444) — append `model` to the ConflictObject conflict pool
  * (the inverse of DeleteConflict.c; the pool is also filled by ProcItem* via
- * ProcItemMakibishi.c). If `model` is already registered (id != -1) its id is
- * returned unchanged. Otherwise a fresh slot is claimed: abort via SystemOut
- * if the pool is full (> 0x4f live), then store the model, zero `.common`,
+ * ProcItemMakibishi.c). If `model` is already registered
+ * (id != CONFLICT_NONE) its id is returned unchanged. Otherwise a fresh slot
+ * is claimed: abort via SystemOut if the pool is full (> 0x4f live), then
+ * store the model, zero `.common`,
  * copy the identity `.position` from UnitVector2 (UnitVector2, a VECTOR) and
  * `.offset`/`.size` from UnitVector (an SVECTOR), memset the result area, and
  * stamp the model's id (= new slot) and attribute (set bit 14, clear bit 15).
@@ -35,8 +36,9 @@
  *    the existing id and the new index through one `int ret` gives `id` a
  *    copy-preference toward the index's callee-saved $s0 (idx is live across
  *    memset), so `id` lands in $s0 too; the target keeps `id` in caller-saved
- *    $v1. `if (id != -1) return id; ... return idx;` breaks that copy-chain so
- *    id's live range never joins the index's. `tools/regalloc.py` named the
+ *    $v1. `if (id != CONFLICT_NONE) return id; ... return idx;` breaks that
+ *    copy-chain so id's live range never joins the index's.
+ *    `tools/regalloc.py` named the
  *    $s0->$v0 return copy-chain; breaking it was a 26-byte -> 0 fix (this was
  *    parked NON_MATCHING before the diagnoser existed).
  *  - ConflictObjects (gp-relative s16) is read TWICE, un-CSE'd: `lh` (signed) for
@@ -57,14 +59,14 @@
 
 extern char msg_conflict_regist_failure[]; /* "CONFLICT REGIST FAILURE" */
 
-short InsertConflict(ModelType *model)
+conflict_id InsertConflict(ModelType *model)
 {
     u16 cnt;
     int idx;
     int id;
 
     id = model->id;
-    if (id != -1)
+    if (id != CONFLICT_NONE)
     {
         return id;
     }

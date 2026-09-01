@@ -57,7 +57,7 @@ ModelType *LoadModel(u_long *adr)
     model->clip.vz = 0;
     RotMatrixYXZ(&model->rotate, &model->locate.coord);
     model->locate.flg = 0;
-    model->id = -1;
+    model->id = CONFLICT_NONE;
     model->attribute = 0;
     return model;
 }

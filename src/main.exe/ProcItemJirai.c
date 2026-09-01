@@ -89,7 +89,6 @@ void ProcItemJirai(TItem *item)
         JIRAI_MODE_ARMED = 1,
         JIRAI_MODE_EXPLODE = 2,
         JIRAI_MODE_BLAST = 3,
-        NO_CONFLICT = -1,
         JIRAI_BLAST_COUNTDOWN_START = 3,
         JIRAI_FRAME_EFFECT_COUNT = 10,
         JIRAI_COUNTDOWN_END = 0xff
@@ -158,13 +157,13 @@ void ProcItemJirai(TItem *item)
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            conflict_id = NO_CONFLICT;
+            conflict_id = CONFLICT_NONE;
         }
         else
         {
-            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
+            conflict_id = GetConflictResult(item->locate, CONFLICT_NONE);
         }
-        if (conflict_id != NO_CONFLICT &&
+        if (conflict_id != CONFLICT_NONE &&
             is_humanoid_on_stage_(
                 (Humanoid *)ConflictObject[conflict_id].common) != 0)
         {
@@ -216,13 +215,13 @@ void ProcItemJirai(TItem *item)
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            conflict_id = NO_CONFLICT;
+            conflict_id = CONFLICT_NONE;
         }
         else
         {
-            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
+            conflict_id = GetConflictResult(item->locate, CONFLICT_NONE);
         }
-        if (conflict_id != NO_CONFLICT)
+        if (conflict_id != CONFLICT_NONE)
         {
             Humanoid *hit_human;
             s32 frame_index;

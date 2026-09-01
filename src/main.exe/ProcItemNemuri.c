@@ -82,7 +82,6 @@ void ProcItemNemuri(TItem *item)
         NEMURI_MODE_THROW = 1,
         NEMURI_MODE_FLY = 2,
         NEMURI_MODE_FINISH = 3,
-        NO_CONFLICT = -1,
         NEMURI_RELEASE_FRAME = 3,
         NEMURI_COLLISION_SIZE = 1000,
         NEMURI_PULSE_STEP = 0x88,
@@ -204,13 +203,13 @@ void ProcItemNemuri(TItem *item)
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            conflict_id = NO_CONFLICT;
+            conflict_id = CONFLICT_NONE;
         }
         else
         {
-            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
+            conflict_id = GetConflictResult(item->locate, CONFLICT_NONE);
         }
-        inactive_sentinel = NO_CONFLICT;
+        inactive_sentinel = CONFLICT_NONE;
         if (conflict_id != inactive_sentinel)
         {
             hit_human = (Humanoid *)ConflictObject[conflict_id].common;

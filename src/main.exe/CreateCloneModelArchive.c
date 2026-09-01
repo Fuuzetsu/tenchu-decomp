@@ -94,7 +94,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad->clip.vz = 0;
     RotMatrixYXZ(&newmad->rotate, &newmad->locate.coord);
     newmad->locate.flg = 0;
-    newmad->id = -1;
+    newmad->id = CONFLICT_NONE;
     newmad->attribute = 0;
     i = 0;
     if (newmad->n > 0)
@@ -117,7 +117,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
             dim->clip.vz = 0;
             RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
             dim->locate.flg = 0;
-            dim->id = -1;
+            dim->id = CONFLICT_NONE;
             dim->attribute = 0;
             if (objp != 0)
             {

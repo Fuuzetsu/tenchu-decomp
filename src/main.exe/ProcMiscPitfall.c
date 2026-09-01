@@ -130,7 +130,8 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                     {
                         /* Preserve the array base across the call. */
                         conflict = ConflictObject;
-                        conflict_id = GetConflictResult(param->locate, -1);
+                        conflict_id =
+                            GetConflictResult(param->locate, CONFLICT_NONE);
                         if (conflict[conflict_id].common !=
                             CONFLICT_OWNER_DOOR)
                         {

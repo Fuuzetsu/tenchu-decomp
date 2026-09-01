@@ -32,22 +32,25 @@
  * caps how many flagged entries may be examined. When `index >= 0` that specific
  * slot is used directly. On a hit the slot is marked consumed (|= 0x40), the
  * inter-model delta is published to ConflictDistance and the other model to
- * ConflictModel, and the slot index is returned; every failure path returns -1.
+ * ConflictModel, and the slot index is returned; every failure path returns
+ * CONFLICT_NONE.
  *
  * Matching notes (docs/matching-cookbook.md; siblings DeleteConflict.c /
  * InsertConflict.c define the conflict-TU conventions). Three former
  * "below-the-C-level" residuals all turned out to be source structure,
  * found by RTL-dump analysis (cc1 -dj/-dc/-dS/-dg/-dl/-dJ/-dR/-dd):
- *  - id-guard is NESTED (`if (id != -1) { ... } return -1;`, DeleteConflict's
- *    own style), NOT an early `return -1;` guard: the final `return -1` is the
- *    id-guard's else path, cse elides its `li v0,-1` along the beq's taken edge
+ *  - id-guard is NESTED (`if (id != CONFLICT_NONE) { ... } return
+ *    CONFLICT_NONE;`, DeleteConflict's own style), NOT an early return guard:
+ *    the final CONFLICT_NONE return is the id-guard's else path; cse elides
+ *    its `li v0,-1` along the beq's taken edge
  *    (v0 still holds the compare's -1; single-predecessor label), leaving a
  *    bare label between the success `return index` and the function end. That
  *    label blocks jump.c's jump-to-next deletion, so the success return stays
  *    a real jump that reorg's make_return_insns converts to its OWN `jr` with
  *    `addu v0,a3` in the delay slot, followed by the bare `jr; nop` island the
- *    id==-1 beq targets. (An early-return spelling instead merges the success
- *    return into the island: shared jr, move outside the slot — 8B off.)
+ *    id==CONFLICT_NONE beq targets. (An early-return spelling instead merges
+ *    the success return into the island: shared jr, move outside the slot —
+ *    8B off.)
  *  - `ConflictModel = ...` is the FIRST store of the publish group (before
  *    .vx/.vy/.vz): sched1 then drops its lw into the vx pair's load-delay slot
  *    and its sw into the vy pair's, and the vz temps allocate to v1/a0 reusing
@@ -89,27 +92,27 @@
  *    delta).
  */
 
-/* index -1 walks the slot's result[] for the next unconsumed overlap,
+/* index CONFLICT_NONE walks the slot's result[] for the next unconsumed overlap,
  * marking it CONFLICT_CONSUMED and returning the partner's slot id —
  * giving up after offset.pad hits (the SVECTOR pad field doubling as
  * the per-wave hit budget). A non-negative index reads that specific
- * partner entry directly (DamageControl). -1 = no slot, conflict
- * inactive, or nothing left. */
-short GetConflictResult(ModelType *model, short index)
+ * partner entry directly (DamageControl). CONFLICT_NONE means no slot,
+ * an inactive conflict, or nothing left. */
+conflict_id GetConflictResult(ModelType *model, conflict_id index)
 {
-    short idx;
+    conflict_id idx;
     int id;
     short i;
     int k;
 
     id = model->id;
     idx = model->id;
-    if (id != -1)
+    if (id != CONFLICT_NONE)
     {
         if ((model->attribute & MODEL_ATTR_COLLIDE) == 0)
         {
         ret_m1:
-            return -1;
+            return CONFLICT_NONE;
         }
         i = 0;
         if (index < 0)
@@ -152,5 +155,5 @@ short GetConflictResult(ModelType *model, short index)
         }
         goto ret_m1;
     }
-    return -1;
+    return CONFLICT_NONE;
 }

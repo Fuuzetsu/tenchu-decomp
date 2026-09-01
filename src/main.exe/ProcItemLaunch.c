@@ -113,10 +113,11 @@ void ProcItemLaunch(TItem *item)
     DrawModel(model);
     DrawAfterimage(param->effect, 1);
     if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
-        cid = -1;
+        cid = CONFLICT_NONE;
     else
-        cid = GetConflictResult(item->locate, -1);
-    if (cid != -1 && is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
+        cid = GetConflictResult(item->locate, CONFLICT_NONE);
+    if (cid != CONFLICT_NONE &&
+        is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
         SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE, 2);
         SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);

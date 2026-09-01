@@ -27,7 +27,8 @@
  * with the last live element, shrink the count, and rewrite the moved
  * element's `.model->id` to its new slot. The matched slot is re-examined
  * (i is NOT advanced on a hit) so duplicates are all removed. Finally the
- * model is marked free (id = -1) and its CONFLICT/COLLIDE attribute bits are cleared.
+ * model is marked free (id = CONFLICT_NONE) and its CONFLICT/COLLIDE
+ * attribute bits are cleared.
  *
  * Matching notes (docs/matching-cookbook.md):
  *  - `ConflictObject[i] = ConflictObject[count];` is a 0x78-byte, word-aligned STRUCT
@@ -53,7 +54,7 @@ void DeleteConflict(ModelType *model)
     short i;
     short count;
 
-    if (model->id != -1)
+    if (model->id != CONFLICT_NONE)
     {
         i = 0;
         while (i < ConflictObjects)
@@ -70,7 +71,7 @@ void DeleteConflict(ModelType *model)
                 i++;
             }
         }
-        model->id = -1;
+        model->id = CONFLICT_NONE;
         model->attribute = model->attribute & ~(MODEL_ATTR_CONFLICT | MODEL_ATTR_COLLIDE);
     }
 }

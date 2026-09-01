@@ -353,6 +353,9 @@ struct ParentingType
 typedef s16 ModelAttribute;
 typedef s16 HumanoidAttribute;
 
+/* A model's signed-halfword index in ConflictObject; -1 is unregistered. */
+typedef s16 conflict_id;
+
 enum model_attribute_flag
 {
     MODEL_ATTR_HIDDEN = 0x0001, /* never draw */
@@ -372,7 +375,7 @@ struct ModelType
 {
     GsCOORDINATE2 locate; /* 0x00 */
     SVECTOR rotate;       /* 0x50 */
-    s16 id;               /* 0x58 */
+    conflict_id id;       /* 0x58 */
     ModelAttribute attribute; /* 0x5A */
     SVECTOR clip;         /* 0x5C */
     GsDOBJ2 object;       /* 0x64 */
@@ -391,7 +394,7 @@ struct ModelArchiveType
 {
     GsCOORDINATE2 locate; /* 0x00 */
     SVECTOR rotate;       /* 0x50 */
-    s16 id;               /* 0x58 */
+    conflict_id id;       /* 0x58 */
     ModelAttribute attribute; /* 0x5A */
     SVECTOR clip;         /* 0x5C */
     s16 n;                /* 0x64 */
@@ -410,7 +413,7 @@ struct OrnamentArchiveType
 {
     GsCOORDINATE2 locate;  /* 0x00 */
     SVECTOR rotate;        /* 0x50 */
-    s16 id;                /* 0x58 */
+    conflict_id id;        /* 0x58 */
     ModelAttribute attribute; /* 0x5A */
     s16 n;                 /* 0x5C */
     OrnamentType **object; /* 0x60 */
@@ -610,7 +613,7 @@ struct Sprite3D
 {
     GsCOORDINATE2 locate; /* 0x00 */
     SVECTOR rotate;       /* 0x50 */
-    s16 id;               /* 0x58 */
+    conflict_id id;       /* 0x58 */
     ModelAttribute attribute; /* 0x5A */
     SVECTOR clip;         /* 0x5C */
     s32 scale;            /* 0x64 */
@@ -628,7 +631,7 @@ struct BackGround
     u32 *work;     /* 0x38 */
     u16 *index;    /* 0x3C */
     u16 sz;        /* 0x40 */
-    s16 id;        /* 0x42 */
+    conflict_id id; /* 0x42 */
     ModelAttribute attribute; /* 0x44 */
 }; /* 0x48 */
 

@@ -49,7 +49,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
         SystemOut((u8 *)msg_no_background_image_data);
 
     bg = (BackGround *)valloc(sizeof(BackGround));
-    bg->id = -1;
+    bg->id = CONFLICT_NONE;
     bg->attribute = 0;
     memset(bg, 0, sizeof(GsBG));
 

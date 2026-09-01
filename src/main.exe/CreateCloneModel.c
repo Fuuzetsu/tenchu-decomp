@@ -52,7 +52,7 @@ ModelType *CreateCloneModel(ModelType *objp)
     model->clip.vz = 0;
     RotMatrixYXZ(&model->rotate, &model->locate.coord);
     model->locate.flg = 0;
-    model->id = -1;
+    model->id = CONFLICT_NONE;
     model->attribute = 0;
     if (objp != 0)
     {

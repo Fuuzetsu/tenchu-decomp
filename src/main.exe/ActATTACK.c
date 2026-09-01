@@ -883,11 +883,11 @@ dispatch:
         }
         if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST))
         {
-            if (hand[WEAPON_HAND_0]->id != -1)
+            if (hand[WEAPON_HAND_0]->id != CONFLICT_NONE)
             {
                 WeaponHitWeapon(hand[WEAPON_HAND_0]);
             }
-            if (hand[WEAPON_HAND_1]->id != -1)
+            if (hand[WEAPON_HAND_1]->id != CONFLICT_NONE)
             {
                 WeaponHitWeapon(hand[WEAPON_HAND_1]);
             }

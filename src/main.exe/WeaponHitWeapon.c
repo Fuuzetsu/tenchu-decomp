@@ -54,7 +54,7 @@ void WeaponHitWeapon(ModelType *hand)
     {
         do
         {
-            id = GetConflictResult(hand, -1);
+            id = GetConflictResult(hand, CONFLICT_NONE);
             if (id < 0)
             {
                 return;

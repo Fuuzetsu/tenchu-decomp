@@ -98,7 +98,7 @@ loop1_end:
     mad->rotate.vz = 0;
     UpdateCoordinate((ModelType *)mad);
     i = 0;
-    mad->id = -1;
+    mad->id = CONFLICT_NONE;
     mad->attribute = 0;
 loop2:
     if (!(i < (count = mad->n)))

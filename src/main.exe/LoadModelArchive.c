@@ -95,7 +95,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             dim->clip.vy = 0;
             dim->clip.vz = 0;
             RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
-            dim->id = -1;
+            dim->id = CONFLICT_NONE;
             dim->locate.flg = 0;
             dim->attribute = 0;
             mad->object[i] = dim;
@@ -119,7 +119,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     RotMatrixYXZ(&mad->rotate, &mad->locate.coord);
     i = 0;
     mad->locate.flg = 0;
-    mad->id = -1;
+    mad->id = CONFLICT_NONE;
     mad->attribute = 0;
     count = mad->n;
     if (mad->n > 0)

@@ -127,7 +127,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         {
             s32 cid;
 
-            cid = GetConflictResult(param->locate, -1);
+            cid = GetConflictResult(param->locate, CONFLICT_NONE);
             if (ConflictObject[cid].common != CONFLICT_OWNER_DOOR)
             {
                 s32 t;

@@ -87,7 +87,6 @@ void ProcItemNingyo(TItem *item)
         NINGYO_MODE_WAIT = 0,
         NINGYO_MODE_GROW = 1,
         NINGYO_MODE_ACTIVE = 2,
-        NO_CONFLICT = -1,
         MAX_ACTIVE_NINGYO = 3,
         ACTIVE_NINGYO_HP = 3,
         APPEAR_SMOKE_COUNT = 10,
@@ -313,11 +312,11 @@ void ProcItemNingyo(TItem *item)
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            conflict_id = NO_CONFLICT;
+            conflict_id = CONFLICT_NONE;
         }
         else
         {
-            conflict_id = GetConflictResult(item->locate, NO_CONFLICT);
+            conflict_id = GetConflictResult(item->locate, CONFLICT_NONE);
         }
 
         retarget_countdown = param->count - 1;
@@ -357,7 +356,7 @@ void ProcItemNingyo(TItem *item)
             }
             param->count = RETARGET_INTERVAL;
         }
-        else if (conflict_id != NO_CONFLICT)
+        else if (conflict_id != CONFLICT_NONE)
         {
             ConflictObjectType *conflict;
             ConflictObjectType *conflict_pool;

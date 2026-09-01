@@ -8,6 +8,10 @@
 #define AREA_LEVEL_FIRST_HIT 0x08
 #define AREA_LEVEL_REUSE_CACHED 0x10
 
+/* ConflictObject slot/result sentinel. ModelType.id stores this value while
+ * the model is not registered in the collision pool. */
+#define CONFLICT_NONE (-1)
+
 /* CONFLICT.C's shared floor query, using the original promoted mode ABI. */
 extern long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
                             int mode);
@@ -15,9 +19,9 @@ extern long GetAreaMapVector(AreaMapType *area, MapVector *mvp,
                              VECTOR *pos, long wide, int mode);
 extern VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos,
                                  SVECTOR *vect, short n);
-extern short InsertConflict(ModelType *model);
+extern conflict_id InsertConflict(ModelType *model);
 extern void DeleteConflict(ModelType *model);
 extern void ComputeAllConflict(void);
-extern short GetConflictResult(ModelType *model, short index);
+extern conflict_id GetConflictResult(ModelType *model, conflict_id index);
 
 #endif

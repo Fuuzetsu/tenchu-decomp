@@ -127,7 +127,7 @@ void ProcItemMakibishi(TItem *item)
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             i = -1;
         else
-            i = GetConflictResult(item->locate, -1);
+            i = GetConflictResult(item->locate, CONFLICT_NONE);
         if (i != -1 && is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, RGB24(127, 0, 0));

@@ -265,13 +265,13 @@ void ProcItemFire(TItem *item)
 
             if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             {
-                cid = -1;
+                cid = CONFLICT_NONE;
             }
             else
             {
-                cid = GetConflictResult(item->locate, -1);
+                cid = GetConflictResult(item->locate, CONFLICT_NONE);
             }
-            if (cid == -1)
+            if (cid == CONFLICT_NONE)
             {
                 return;
             }
@@ -340,13 +340,13 @@ void ProcItemFire(TItem *item)
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            cid = -1;
+            cid = CONFLICT_NONE;
         }
         else
         {
-            cid = GetConflictResult(item->locate, -1);
+            cid = GetConflictResult(item->locate, CONFLICT_NONE);
         }
-        if (cid != -1)
+        if (cid != CONFLICT_NONE)
         {
             Humanoid *human;
 
