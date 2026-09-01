@@ -28,7 +28,7 @@
  *    m2c's basic-block-local view misses it — Ghidra's 4-arg rendering
  *    (bg, bg->work, OTablePt, bg->sz) is the real call (same undercount
  *    pattern as lePackEnemyLayout's memcpy/AdtMessageBox).
- *  - `bg->attribute & 1` is a narrowing (mask-only) use, so cc1 emits `lhu`
+ *  - `bg->attribute & MODEL_ATTR_HIDDEN` is a narrowing (mask-only) use, so cc1 emits `lhu`
  *    even though the field is Ghidra-typed signed `short` (same rule as the
  *    other narrowing field loads).
  *  - OTablePt is %gp_rel in this TU (tools/gpsyms.py --write; Build.hs
@@ -54,7 +54,7 @@ extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 
 short DrawBG(BackGround *bg)
 {
-    if ((bg->attribute & 1) != 0)
+    if ((bg->attribute & MODEL_ATTR_HIDDEN) != 0)
     {
         return 0;
     }

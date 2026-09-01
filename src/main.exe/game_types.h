@@ -343,6 +343,22 @@ struct ParentingType
     u32 index; /* 0x0C */
 }; /* 0x10 */
 
+/* Model and humanoid attributes are signed 16-bit flag words. Keep their
+ * storage types separate from the four-byte enums that name their bits. */
+typedef s16 ModelAttribute;
+typedef s16 HumanoidAttribute;
+
+enum model_attribute_flag
+{
+    MODEL_ATTR_HIDDEN = 0x0001, /* never draw */
+    MODEL_ATTR_NOCULL = 0x0002, /* skip the whole clip-point test */
+    MODEL_ATTR_CULL_BEHIND = 0x0004, /* reject when the clip point is behind */
+    MODEL_ATTR_CULL_SCREEN = 0x0008, /* reject outside the screen bounds */
+    MODEL_ATTR_CULL_FAR = 0x0010, /* reject beyond the depth splice */
+    MODEL_ATTR_COLLIDE = 0x4000, /* conflict slot active */
+    MODEL_ATTR_CONFLICT = 0x8000
+};
+
 /* WORLD.C/3DCTRL.C's shared model and ornament records. PSX.SYM supplies
  * each complete layout; these are used by items, characters, construction,
  * collision, effects, and the world object-slot manager. */
@@ -352,7 +368,7 @@ struct ModelType
     GsCOORDINATE2 locate; /* 0x00 */
     SVECTOR rotate;       /* 0x50 */
     s16 id;               /* 0x58 */
-    s16 attribute;        /* 0x5A */
+    ModelAttribute attribute; /* 0x5A */
     SVECTOR clip;         /* 0x5C */
     GsDOBJ2 object;       /* 0x64 */
 }; /* 0x74 */
@@ -371,7 +387,7 @@ struct ModelArchiveType
     GsCOORDINATE2 locate; /* 0x00 */
     SVECTOR rotate;       /* 0x50 */
     s16 id;               /* 0x58 */
-    s16 attribute;        /* 0x5A */
+    ModelAttribute attribute; /* 0x5A */
     SVECTOR clip;         /* 0x5C */
     s16 n;                /* 0x64 */
     ModelType **object;   /* 0x68 */
@@ -390,7 +406,7 @@ struct OrnamentArchiveType
     GsCOORDINATE2 locate;  /* 0x00 */
     SVECTOR rotate;        /* 0x50 */
     s16 id;                /* 0x58 */
-    s16 attribute;         /* 0x5A */
+    ModelAttribute attribute; /* 0x5A */
     s16 n;                 /* 0x5C */
     OrnamentType **object; /* 0x60 */
     u_long *data;          /* 0x64 */
@@ -574,7 +590,7 @@ struct Sprite3D
     GsCOORDINATE2 locate; /* 0x00 */
     SVECTOR rotate;       /* 0x50 */
     s16 id;               /* 0x58 */
-    s16 attribute;        /* 0x5A */
+    ModelAttribute attribute; /* 0x5A */
     SVECTOR clip;         /* 0x5C */
     s32 scale;            /* 0x64 */
     GsSPRITE sprite;      /* 0x68 */
@@ -592,7 +608,7 @@ struct BackGround
     u16 *index;    /* 0x3C */
     u16 sz;        /* 0x40 */
     s16 id;        /* 0x42 */
-    s16 attribute; /* 0x44 */
+    ModelAttribute attribute; /* 0x44 */
 }; /* 0x48 */
 
 /* CHRANIM.C's character-animation event record — one CVA cutscene

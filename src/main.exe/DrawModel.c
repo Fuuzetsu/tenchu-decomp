@@ -61,7 +61,7 @@ extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 short DrawModel(ModelType *objp)
 {
     MATRIX mat;
-    short atr;
+    ModelAttribute atr;
     long sz;
     s32 iv;
     short rxy[2];

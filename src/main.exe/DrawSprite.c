@@ -109,7 +109,7 @@ short DrawSprite(Sprite3D *sprt)
 {
     MATRIX mat;
     ModelType *objp;
-    short atr;
+    ModelAttribute atr;
     long *xy;
     long sz;
     long result;

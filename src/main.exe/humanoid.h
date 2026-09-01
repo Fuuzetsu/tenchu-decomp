@@ -84,25 +84,32 @@
  *                  Read only inside compound masks — ActJUMP's dive check
  *                  and ActKAGI's any-contact mask. The name is a
  *                  description of that clamp, not a recovered symbol. */
-#define ATTR_PHASE 0x0003
-#define ATTR_CUSTOMAI 0x0004 /* invented name; "non-template AI", see above */
-#define PHASE_CALM 0
-#define PHASE_SUSPICIOUS 1
-#define PHASE_ALERT 2
-#define PHASE_INVESTIGATE 3
-#define ATTR_TRACE 0x0008
-#define ATTR_SEARCH 0x0010
-#define ATTR_FLOAT 0x0020
-#define ATTR_ALERT 0x0040
-#define ATTR_SUSPEND 0x0080
-#define ATTR_FALL 0x0100
-#define ATTR_BUOYANT 0x0200
-#define ATTR_NOFLOOR 0x0800
-#define ATTR_LEDGE 0x1000
-#define ATTR_WALLANGLE 0x2000
-#define ATTR_WALL 0x0400
-#define ATTR_HIT 0x4000
-#define ATTR_PUSH 0x8000
+enum humanoid_attribute_flag
+{
+    ATTR_PHASE = 0x0003,
+    ATTR_CUSTOMAI = 0x0004, /* invented name; "non-template AI", see above */
+    ATTR_TRACE = 0x0008,
+    ATTR_SEARCH = 0x0010,
+    ATTR_FLOAT = 0x0020,
+    ATTR_ALERT = 0x0040,
+    ATTR_SUSPEND = 0x0080,
+    ATTR_FALL = 0x0100,
+    ATTR_BUOYANT = 0x0200,
+    ATTR_WALL = 0x0400,
+    ATTR_NOFLOOR = 0x0800,
+    ATTR_LEDGE = 0x1000,
+    ATTR_WALLANGLE = 0x2000,
+    ATTR_HIT = 0x4000,
+    ATTR_PUSH = 0x8000
+};
+
+enum humanoid_phase
+{
+    PHASE_CALM = 0,
+    PHASE_SUSPICIOUS = 1,
+    PHASE_ALERT = 2,
+    PHASE_INVESTIGATE = 3
+};
 
 struct Humanoid;
 struct TraceLine;

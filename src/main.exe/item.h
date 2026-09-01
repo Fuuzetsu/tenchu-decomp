@@ -54,20 +54,6 @@
  * pad_hold >> 16 and (u8)pad_hold). */
 #define PAD_HOLD(button, frames) (((button) << 16) | (frames))
 
-#define MODEL_ATTR_HIDDEN 0x0001      /* never draw (ActDEAD sinks drowned
-                                         corpses with it) */
-#define MODEL_ATTR_NOCULL 0x0002      /* skip the whole clip-point test */
-#define MODEL_ATTR_CULL_BEHIND 0x0004 /* reject when the clip point is
-                                         behind the camera (sz == 0) */
-#define MODEL_ATTR_CULL_SCREEN 0x0008 /* reject outside the half-screen
-                                         bounds (|x|>=0xf1 or |y|>=0xb5) */
-#define MODEL_ATTR_CULL_FAR 0x0010    /* reject beyond the depth splice
-                                         (sz > 0x4e2) */
-#define MODEL_ATTR_COLLIDE 0x4000     /* conflict slot active (ActivateHumans
-                                         raises it; the conflict queries gate
-                                         on it) */
-#define MODEL_ATTR_CONFLICT 0x8000
-
 /*
  * Shared types + externs of the original item translation unit (ProcItem*,
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
@@ -164,11 +150,10 @@ typedef struct Humanoid
 {
     character_kind type;      /* 0x00 */
     character_status status;  /* 0x02 */
-    s16 attribute; /* 0x04 (the ATTR_* bit word — see humanoid.h. The s16
-                      declaration with per-site *(u16 *)& views is measured:
-                      flipping the field to u16 changes the plain sites'
-                      retail lh loads to lhu — the signed/unsigned mix is
-                      the original's own per-site choice) */
+    HumanoidAttribute attribute; /* 0x04 (the ATTR_* bit word — see humanoid.h.
+                                    Signed storage with per-site *(u16 *)& views
+                                    is measured: flipping it to u16 changes the
+                                    plain sites' retail lh loads to lhu) */
     s16 turn;                 /* 0x06 */
     s16 life;                 /* 0x08 */
     s16 lifemax;              /* 0x0A (PSX.SYM's original signed maximum-life field) */

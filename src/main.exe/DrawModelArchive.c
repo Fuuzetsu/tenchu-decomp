@@ -91,7 +91,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
 {
     MATRIX mat;
     SVECTOR pos; /* unused in retail, but present in the demo symbols */
-    short atr;
+    ModelAttribute atr;
     long sz;
     long result;
     s32 iv;

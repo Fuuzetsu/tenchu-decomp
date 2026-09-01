@@ -52,7 +52,7 @@ extern short StageCitizens;
 extern short StageBosses;
 extern long Distance;
 extern short Degree;
-extern short Attrib;
+extern HumanoidAttribute Attrib;
 /* Raw flag-bit view for THINK.C sites whose retail loads are unsigned. */
 /* SearchTarget result/state code (-2..2), not a distance. The value
  * names are invented from the return contexts: */
