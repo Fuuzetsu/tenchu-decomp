@@ -85,13 +85,13 @@ void AddEnemy(void)
             if (x >= 70)
                 break;
             r = 0;
-            while (StageAppearance[StageID + 1][r] != CHARACTER_KIND_END)
+            while (StageAppearance[STAGE_NUMBER(StageID)][r] != CHARACTER_KIND_END)
             {
-                if (StageAppearance[StageID + 1][r] == HumanData[i].type)
+                if (StageAppearance[STAGE_NUMBER(StageID)][r] == HumanData[i].type)
                     break;
                 r++;
             }
-            if (StageAppearance[StageID + 1][r] != CHARACTER_KIND_END)
+            if (StageAppearance[STAGE_NUMBER(StageID)][r] != CHARACTER_KIND_END)
             {
                 y = 0;
                 while (WeaponModel[y].wid != WEAPON_KIND_END)

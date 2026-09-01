@@ -68,7 +68,7 @@ extern void InitSoundEffect(void);
 extern void DemoPatchInit(void);
 /* Retail's own prototype drift (def: s32 return) -- byte-required: correcting it changes the caller. */
 extern void InitPersistentState(void);
-extern void CreateStage(s32 stage, s32 chr);
+extern void CreateStage(stage_id stage, s32 chr);
 extern void clear_pad_send_(void);
 extern void PadProc(void);
 /* Retail's own prototype drift (def: s32 return) -- byte-required: correcting it changes the caller. */

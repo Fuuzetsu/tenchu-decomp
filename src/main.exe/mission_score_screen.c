@@ -49,7 +49,7 @@ typedef struct
 } MissionScoreSpriteStorage;
 
 extern u8 CHOSEN_CHARACTER;
-extern u8 CHOSEN_STAGE;
+extern compact_stage_id CHOSEN_STAGE;
 extern u8 CHOSEN_LANGUAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 

@@ -23,7 +23,7 @@
 extern ScoreResult STAGE_SCORE_COMPONENTS;
 extern void *memset(void *s, s32 c, u32 n);
 
-ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
+ScoreResult *calculate_score(ScoreStats *stats, packed_stage_id stage)
 {
     ScoreResult *result;
     ScoreResult *early;
@@ -44,8 +44,9 @@ ScoreResult *calculate_score(ScoreStats *stats, s16 stage)
     {
         stealth_base = STEALTH_BASE_SEEN;
     }
-    /* The medicine-herb stage doubles the per-spot penalty. */
-    if (stage == STAGE_CURE_PRINCESS)
+    /* Training doubles the per-spot penalty.  `stage` is a StageConfig id,
+     * not the campaign uid whose value 8 names Cure the Princess. */
+    if (stage == STAGE_ID_TRAINING)
     {
         penalty = spots * (SPOT_PENALTY * 2);
     }

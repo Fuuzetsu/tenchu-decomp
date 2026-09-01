@@ -83,7 +83,7 @@ s16 think_alarm_reaction_(void)
                 }
                 else
                 {
-                    nextState = STAGE_CURE_PRINCESS;
+                    nextState = STAGE_ID_TRAINING;
                     alertTime = StageID;
                     if (alertTime != nextState)
                     {

@@ -313,7 +313,8 @@ s16 CVAupdate(void)
                                                 CVAnow->payload.telop.text_offset),
                                0);
                     CVAflag = 1;
-                    if (StageID != STAGE_FREE_PRINCESS || CHOSEN_CHARACTER != RIKIMARU_0)
+                    if (StageID != STAGE_ID_CORRUPT_MINISTER ||
+                        CHOSEN_CHARACTER != RIKIMARU_0)
                         break;
 
                     if ((ctype_tab[TelopText[0]] & 4) == 0)

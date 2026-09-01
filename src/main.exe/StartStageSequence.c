@@ -92,7 +92,7 @@ void StartStageSequence(void)
     stg = StageChar;
     while (stg->stage != STAGE_CHAR_END)
     {
-        if (stg->stage == StageID + 1)
+        if (stg->stage == STAGE_NUMBER(StageID))
         {
             enum
             {
@@ -256,14 +256,14 @@ void StartStageSequence(void)
 
     switch (StageID)
     {
-    case STAGE_FREE_PRINCESS:
+    case STAGE_ID_CORRUPT_MINISTER:
         StageBosses--;
         StageEnemies--;
         if (StagePlayer->type == AYAME_0)
             break;
         /* fallthrough */
-    case STAGE_SECRET_MESSAGE:
-    case STAGE_CAPTIVE_NINJA:
+    case STAGE_ID_CAPTIVE_NINJA:
+    case STAGE_ID_MANJI_CULT:
         StageBosses--;
         StageEnemies--;
         break;

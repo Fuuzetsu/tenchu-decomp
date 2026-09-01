@@ -27,7 +27,7 @@
  * runs the normal per-frame draw/update pipeline (ComputeAllConflict through
  * draw_visible_characters_, matched — Ghidra's own
  * `FUN_80029368`), then two CVA-specific passes:
- *  1. STAGE_FREE_PRINCESS + RIKIMARU_0 only:
+ *  1. STAGE_ID_CORRUPT_MINISTER + RIKIMARU_0 only:
  *     N_TANKA_SPRITES-entry sprite-fade-and-sort pass — each
  *     slot is a Sprite3D with a "hidden" `attribute` bit and a
  *     three-channel fade in its embedded GsSPRITE. The shared brightness
@@ -97,7 +97,7 @@ short CVArun(void)
     DrawTelop();
     draw_visible_characters_();
 
-    if (StageID == STAGE_FREE_PRINCESS && CHOSEN_CHARACTER == RIKIMARU_0)
+    if (StageID == STAGE_ID_CORRUPT_MINISTER && CHOSEN_CHARACTER == RIKIMARU_0)
     {
         for (i = 0; i < N_TANKA_SPRITES; i++)
         {

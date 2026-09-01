@@ -20,7 +20,7 @@ enum
 };
 
 extern short SkipFrame;
-extern int StageID;
+extern stage_id StageID;
 extern AreaMapType *GlobalAreaMap;
 extern MapAttribute FieldAttrib;
 extern game_difficulty gNannido;

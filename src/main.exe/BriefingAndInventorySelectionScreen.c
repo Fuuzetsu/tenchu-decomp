@@ -168,7 +168,7 @@ void BriefingAndInventorySelectionScreen(void)
     q = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     uid = StageConfig[q->StageNo].uid;
     q->selItem[ITEM_KAGINAWA] = ITEM_INFINITE;
-    if (uid == 0)
+    if (uid == STAGE_UID_TRAINING)
     {
         q->selItem[ITEM_SHURIKEN] = 5;
         return;

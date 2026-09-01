@@ -53,7 +53,8 @@ void SetupStageSequence(void)
     {
         vfree(StageEvent);
     }
-    sprintf((char *)name, fmt_stage_esd, path_anim, StageID + 1);
+    sprintf((char *)name, fmt_stage_esd, path_anim,
+            STAGE_NUMBER(StageID));
     StageEvent = (EventSeqType *)FileRead(name);
     StartStageSequence();
 }

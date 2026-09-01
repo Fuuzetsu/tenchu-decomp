@@ -83,7 +83,7 @@ extern void SetupStageSequence(void);
 /* Only these two read-modify-writes need a localized volatile view to retain
  * the retail instruction schedule; SystemFlag itself is the ordinary shared
  * object used throughout the game. */
-void CreateStage(int StageNo, int CharType)
+void CreateStage(stage_id StageNo, int CharType)
 {
     Humanoid *target;
     POLY_FT4 ply_ten;
@@ -121,7 +121,7 @@ void CreateStage(int StageNo, int CharType)
     stage = &base[StageNo];
     ImagePath = (u8 *)stage->path;
     StageID = StageNo;
-    SetupSoundEffect(CharType, StageNo + 1);
+    SetupSoundEffect(CharType, STAGE_NUMBER(StageNo));
     DoBriefingAndInventorySelection();
 
     __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
@@ -143,7 +143,7 @@ void CreateStage(int StageNo, int CharType)
     EndDrawing(0);
     DisposeBG(bg);
 
-    SetupAppearance(CharType, StageNo + 1);
+    SetupAppearance(CharType, STAGE_NUMBER(StageNo));
     LoadConstruction(PathFileRead(ImagePath, (u8 *)path_stage_con));
     initialise_font();
     InitializeImage();

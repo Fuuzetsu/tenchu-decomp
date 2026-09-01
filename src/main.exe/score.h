@@ -6,6 +6,6 @@ struct ScoreResult;
 
 extern struct ScoreStats *init_score_stats(struct ScoreStats *stats);
 extern struct ScoreResult *calculate_score(struct ScoreStats *stats,
-                                           short stage);
+                                           packed_stage_id stage);
 
 #endif

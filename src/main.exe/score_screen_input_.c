@@ -16,7 +16,7 @@
  */
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-extern s16 StageOrder[];
+extern packed_stage_id StageOrder[];
 /* The definition returns s32; this s16 view is retail's own drift and
  * byte-required (the s32 spelling drops the caller's return narrowing). */
 extern s16 update_card_screen_(s32 input);
@@ -25,7 +25,7 @@ void score_screen_input_(void)
 {
     s32 lastpad;
     s32 result;
-    if (PSTATE->StageNo != StageOrder[0])
+    if (PSTATE->StageNo != StageOrder[STAGE_UID_TRAINING])
     {
         if (PSTATE->StageNoMAX[PSTATE->CharType] <
             StageConfig[PSTATE->StageNo].uid)

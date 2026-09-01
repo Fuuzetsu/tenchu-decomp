@@ -141,7 +141,7 @@ void ActivateHumans(void)
                 active = 1;
                 goto active_done;
             }
-            if (GameClock == 30 || StageID == STAGE_CURE_PRINCESS)
+            if (GameClock == 30 || StageID == STAGE_ID_TRAINING)
             {
                 active = 1;
                 goto active_done;
@@ -204,7 +204,7 @@ void ActivateHumans(void)
                 {
                     ThinkCount++;
                 }
-                else if (StageID == STAGE_CURE_PRINCESS || human->life < 0 || GameClock == 30 ||
+                else if (StageID == STAGE_ID_TRAINING || human->life < 0 || GameClock == 30 ||
                          (ThinkCount < ThinkBudget && distance > ACTIVATE_RADIUS))
                 {
                     human->attribute = (u16)human->attribute & ~ATTR_SUSPEND;
@@ -214,14 +214,15 @@ void ActivateHumans(void)
             }
             else if (((u16)human->attribute & ATTR_SUSPEND) == 0 && human->type != ON)
             {
-                if ((human->type == NINJA_0 && (u32)(StageID - STAGE_MANJI_CULT) <=
-                      STAGE_PIRATES - STAGE_MANJI_CULT /* the && spelling double-reads the global and ripples allocation */) ||
+                if ((human->type == NINJA_0 &&
+                     (u32)(StageID - STAGE_ID_RECLAIM_CASTLE) <=
+                         STAGE_ID_FREE_PRINCESS - STAGE_ID_RECLAIM_CASTLE /* the && spelling double-reads the global and ripples allocation */) ||
                     human->type == GOO)
                 {
                     j = 0;
                     while (StageChar[j].stage != STAGE_CHAR_END)
                     {
-                        if (StageChar[j].stage == StageID + 1 &&
+                        if (StageChar[j].stage == STAGE_NUMBER(StageID) &&
                             StageChar[j].chrid == human->type)
                         {
                             human->model->locate.coord.t[0] = StageChar[j].position.vx * 1000;

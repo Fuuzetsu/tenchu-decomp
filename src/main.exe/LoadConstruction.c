@@ -360,7 +360,7 @@ short LoadConstruction(u_long *data)
                         wlddt[i].real.resource.name);
                 DisposeAreaMap(GlobalAreaMap);
                 GlobalAreaMap = LoadAreaMap(PathFileRead(ImagePath, name));
-                if (StageID == STAGE_CHECKPOINT)
+                if (StageID == STAGE_ID_PIRATES)
                 {
                     BalmaAreaMap = load_balma_area_map_(
                         PathFileRead(ImagePath, (u8 *)path_balmer_acm));

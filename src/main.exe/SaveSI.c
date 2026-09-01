@@ -137,7 +137,7 @@ void SaveSI(s32 target, u8 *name, void *mem, s32 size)
         hd->Magic[1] = 'C';
         hd->Type = SAVE_ICON_3_FRAMES;
         hd->BlockEntry = 1;
-        sprintf(hd->Title, fmt_save_title, StageID + 1, name);
+        sprintf(hd->Title, fmt_save_title, STAGE_NUMBER(StageID), name);
 
         icon1 = (u8 *)GetArcData(ICON_CARD1);
         icon2 = (u8 *)GetArcData(ICON_CARD2);

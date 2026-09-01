@@ -44,9 +44,9 @@
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
-extern u8 CHOSEN_STAGE;
+extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern s16 StageOrder[];
+extern packed_stage_id StageOrder[];
 extern s16 StageItem[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[N_LANGUAGES];
@@ -238,14 +238,14 @@ void StageEndScreen(void)
         TLinkInfo *state;
 
         state = PSTATE;
-        state->mission_flags |= 1 << (item_index - 1);
-        /* Campaign SLOT 7 (not a stage uid) is the final mission. Bit 10
-         * sits in the same bitset as the per-mission bits above; nothing
-         * in main.exe reads it back, so what it unlocks is unknown and it
-         * is left spelled as the bit rather than given a name. */
-        if (state->StageNo == 7 && state->language == LANG_ENGLISH)
+        state->mission_flags |= MISSION_COMPLETION_FLAG(item_index);
+        /* StageConfig id 7 is campaign uid 10, the final mission.  Nothing
+         * in main.exe reads the language-specific flag back, so its eventual
+         * effect remains unknown. */
+        if (state->StageNo == STAGE_ID_FREE_PRINCESS &&
+            state->language == LANG_ENGLISH)
         {
-            state->mission_flags |= 1 << 10;
+            state->mission_flags |= MISSION_FLAG_ENGLISH_FINAL_STAGE;
         }
     }
 
@@ -297,13 +297,14 @@ void StageEndScreen(void)
         {
             best_column.state = PSTATE;
         } while (0);
-        if (best_column.state->StageNo == 7)
+        if (best_column.state->StageNo == STAGE_ID_FREE_PRINCESS)
         {
             do
             {
                 if (best_column.state->language == LANG_ENGLISH)
                 {
-                    best_column.state->mission_flags |= 1 << 10;
+                    best_column.state->mission_flags |=
+                        MISSION_FLAG_ENGLISH_FINAL_STAGE;
                 }
             } while (0);
         }
@@ -587,7 +588,7 @@ void StageEndScreen(void)
     {
     case STAGE_END_ADVANCE:
         PSTATE->GameRetry &= (u8)~GAME_RETRY_REPLAY;
-        if (PSTATE->StageNo == 7)
+        if (PSTATE->StageNo == STAGE_ID_FREE_PRINCESS)
         {
             exec_process_(PROCESS_ENDING);
         }
@@ -597,7 +598,7 @@ void StageEndScreen(void)
 
             layout_base = (u32)&PSTATE->stage_stats;
             PSTATE->StageNo =
-                StageOrder[StageConfig[PSTATE->StageNo].uid + 1];
+                StageOrder[NEXT_STAGE_UID(StageConfig[PSTATE->StageNo].uid)];
             layout_character_offset = (u32)PSTATE->CharType *
                                       sizeof(PSTATE->stage_stats[0]);
             layout_stage_offset =

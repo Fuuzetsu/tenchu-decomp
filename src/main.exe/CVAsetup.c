@@ -38,7 +38,7 @@
  * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter is the character's
  * initial — 'R' Rikimaru / 'A' Ayame), then a fixed
  * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, spanning the screen width — the
- * canonical PsyQ SDK POLY_F4). On STAGE_FREE_PRINCESS as Rikimaru it loads
+ * canonical PsyQ SDK POLY_F4). On STAGE_ID_CORRUPT_MINISTER as Rikimaru it loads
  * "tanka.tpd" and populates the TANKA_SPRITES_ Sprite3D slots.
  * Each slot's `attribute` gets MODEL_ATTR_HIDDEN set,
  * and the embedded GsSPRITE's x/y are
@@ -93,7 +93,8 @@ void CVAsetup(void)
         letter = 'R';
     }
     sprintf((char *)name, fmt_stage_cad,
-            STAGE_ANIMATION_PREFICES[PSTATE->language], StageID + 1, letter);
+            STAGE_ANIMATION_PREFICES[PSTATE->language],
+            STAGE_NUMBER(StageID), letter);
     CVAdata = (CVAType *)FileRead(name);
 
     SetPolyF4(&TelopbgP);
@@ -105,7 +106,8 @@ void CVAsetup(void)
     TelopbgP.x3 = SCREEN_W / 2;
     TelopbgP.x1 = SCREEN_W / 2;
 
-    if (StageID == STAGE_FREE_PRINCESS && PSTATE->CharType == RIKIMARU_0)
+    if (StageID == STAGE_ID_CORRUPT_MINISTER &&
+        PSTATE->CharType == RIKIMARU_0)
     {
         adr = FileRead((u8 *)path_anim_tanka_tpd);
         for (i = 0; i < N_TANKA_SPRITES; i++)

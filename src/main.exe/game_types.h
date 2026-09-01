@@ -1740,27 +1740,72 @@ struct StageCharType
     TThinkType think; /* 0x0C */
 }; /* 0x0E */
 
-/* Stage uids, named from StageConfig's own title strings (retail data
- * @ 0x80011f18). StageNo is the reorderable campaign SLOT (0..7 via
- * StageOrder); these are the per-stage uid values the code compares. */
-enum
+/* Retail has two distinct stage-number spaces.
+ *
+ * stage_id indexes StageConfig and the stage-specific runtime tables.  Its
+ * order is the physical STAGE1..STAGE11 asset order.  stage_uid is the
+ * campaign order stored in TStageConfig.uid and StageNoMAX.  StageOrder is
+ * the inverse map from uid to id:
+ *
+ *   uid:  0  1  2  3  4  5  6  7  8  9 10
+ *   id:   8  0  1  2  9 10  3  4  5  6  7
+ *
+ * The mapping and names come directly from the retail StageOrder table and
+ * StageConfig title/uid fields at 0x8008ea78 and 0x80011f18.  Keeping the two
+ * enums separate prevents a numeric stage_id such as 8 (Training) from being
+ * mislabeled with stage_uid 8's name (Cure the Princess). */
+typedef s32 stage_id;
+typedef u8 compact_stage_id;
+typedef s16 packed_stage_id;
+
+enum stage_id
 {
-    STAGE_TRAINING = 0,
-    STAGE_EVIL_MERCHANT = 1,
-    STAGE_SECRET_MESSAGE = 2,
-    STAGE_CAPTIVE_NINJA = 3,
-    STAGE_CHECKPOINT = 4,
-    STAGE_CORRUPT_MINISTER = 5,
-    STAGE_MANJI_CULT = 6,
-    STAGE_PIRATES = 7,
-    STAGE_CURE_PRINCESS = 8,
-    STAGE_RECLAIM_CASTLE = 9,
-    STAGE_FREE_PRINCESS = 10
+    STAGE_ID_EVIL_MERCHANT = 0,
+    STAGE_ID_SECRET_MESSAGE = 1,
+    STAGE_ID_CAPTIVE_NINJA = 2,
+    STAGE_ID_MANJI_CULT = 3,
+    STAGE_ID_PIRATES = 4,
+    STAGE_ID_CURE_PRINCESS = 5,
+    STAGE_ID_RECLAIM_CASTLE = 6,
+    STAGE_ID_FREE_PRINCESS = 7,
+    STAGE_ID_TRAINING = 8,
+    STAGE_ID_CHECKPOINT = 9,
+    STAGE_ID_CORRUPT_MINISTER = 10,
+    N_STAGE_CONFIGS = STAGE_ID_CORRUPT_MINISTER + 1
 };
 
-/* Number of physical mission configurations indexed by StageNo. Stage uid
- * is a separate ordering used by the score/unlock tables. */
-#define N_STAGE_CONFIGS (STAGE_FREE_PRINCESS + 1)
+typedef u8 stage_uid;
+enum stage_uid
+{
+    STAGE_UID_TRAINING = 0,
+    STAGE_UID_EVIL_MERCHANT = 1,
+    STAGE_UID_SECRET_MESSAGE = 2,
+    STAGE_UID_CAPTIVE_NINJA = 3,
+    STAGE_UID_CHECKPOINT = 4,
+    STAGE_UID_CORRUPT_MINISTER = 5,
+    STAGE_UID_MANJI_CULT = 6,
+    STAGE_UID_PIRATES = 7,
+    STAGE_UID_CURE_PRINCESS = 8,
+    STAGE_UID_RECLAIM_CASTLE = 9,
+    STAGE_UID_FREE_PRINCESS = 10,
+    N_STAGE_UIDS = STAGE_UID_FREE_PRINCESS + 1,
+    N_CAMPAIGN_MISSIONS = N_STAGE_UIDS - 1
+};
+
+/* Asset/table rows with a leading sentinel use the one-based stage number. */
+#define STAGE_NUMBER(id) ((id) + 1)
+#define NEXT_STAGE_UID(uid) ((uid) + 1)
+
+/* mission_flags dedicates one completion bit to each non-training uid.
+ * Retail also raises the following condition-specific bit after finishing
+ * the final stage in English; its consumer lives outside main.exe. */
+typedef u32 mission_progress_flags;
+#define MISSION_COMPLETION_FLAG(uid) \
+    (1 << ((uid) - STAGE_UID_EVIL_MERCHANT))
+enum mission_progress_flag
+{
+    MISSION_FLAG_ENGLISH_FINAL_STAGE = 1 << N_CAMPAIGN_MISSIONS
+};
 
 /* Each stage supplies a two-way reinforcement choice. The alarm reaction
  * indexes it by stage and coin flip; Think3callaid walks the same storage as
@@ -1792,7 +1837,7 @@ union ReinforcementTypeTable
 typedef struct TStageConfig TStageConfig;
 struct TStageConfig
 {
-    u8 uid;   /* 0x00 */
+    stage_uid uid; /* 0x00 campaign order; StageOrder maps it back to an id */
     u8 *name; /* 0x04 */
     u8 *path; /* 0x08 */
     s32 px;   /* 0x0C */
@@ -2316,7 +2361,8 @@ typedef struct TLinkInfo
     u32 magic;                        /* 0x000 0x19981110 (InitPersistentState) */
     compact_character_kind CharType; /* 0x004 CHOSEN_CHARACTER (stock matrix row;
                                        *       demo +0x0, short) */
-    u8 StageNo;                       /* 0x005 CHOSEN_STAGE (demo +0x2) */
+    compact_stage_id StageNo;         /* 0x005 CHOSEN_STAGE: StageConfig id
+                                       *       (demo +0x2) */
     u8 layout;                        /* 0x006 STAGE_LAYOUT_NUMBER */
     u8 selItem[SAVE_ITEM_SLOTS];      /* 0x007 selected count per item;
                                        *       retail expansion of demo selItem[30] */
@@ -2342,9 +2388,10 @@ typedef struct TLinkInfo
                                        *       gate, PadProc; demo +0xE; default 1) */
     game_language language;           /* 0x05E CHOSEN_LANGUAGE (retail-only) */
     u8 control_scheme;                /* 0x05F saved pad-remapping row (retail-only) */
-    u8 StageNoMAX[N_PLAYABLE_CHARACTERS]; /* 0x060 highest stage uid per
-                                           *       character; official demo
-                                           *       member name (demo +0x3) */
+    stage_uid StageNoMAX[N_PLAYABLE_CHARACTERS]; /* 0x060 highest campaign
+                                                  *       uid per character;
+                                                  *       official demo member
+                                                  *       name (demo +0x3) */
     ScoreStats
         stage_stats[N_PLAYABLE_CHARACTERS][13][N_STAGE_LAYOUTS]; /* 0x064 */
     u8 gItem[N_PLAYABLE_CHARACTERS][SAVE_ITEM_SLOTS]; /* 0x40C shop stock,
@@ -2360,8 +2407,9 @@ typedef struct TLinkInfo
     compact_stage_rank t_dani[N_HIGH_SCORES]; /* 0x451 high-score rank */
     long t_time[N_HIGH_SCORES];       /* 0x458 completion time; retail replacement for
                                        *       the demo's t_fun/t_byou byte arrays */
-    u32 mission_flags;                /* 0x46C mission completion/unlock bitset
-                                       *       (retail-inferred meaning) */
+    mission_progress_flags mission_flags; /* 0x46C completion plus the
+                                            *       condition-specific flag
+                                            *       above */
 } TLinkInfo;
 
 /* Raw persistent-state accesses that are required for matching can still

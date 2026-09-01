@@ -136,7 +136,7 @@ s32 StageSequence(void)
 
     if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0 && SkipFrame == 0)
     {
-        FntPrint(fmt_dbg_quad, StageID + 1, STAGE_LAYOUT_NUMBER,
+        FntPrint(fmt_dbg_quad, STAGE_NUMBER(StageID), STAGE_LAYOUT_NUMBER,
                  GameClock / 30, EmergencyNotice);
         FntPrint(fmt_dbg_counts, Findenemies, Murders, Criticals,
                  StageEnemies, StageBosses);
@@ -286,7 +286,7 @@ s32 StageSequence(void)
             if (ev->header.route.event != EVENT_CVA_NONE)
             {
                 sid = ev->header.route.event;
-                if (sid == 0 && StageID == STAGE_CURE_PRINCESS)
+                if (sid == 0 && StageID == STAGE_ID_TRAINING)
                 {
                     ScoreResult *score;
 
