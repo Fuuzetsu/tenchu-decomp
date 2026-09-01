@@ -14,7 +14,7 @@
  *    $v0/$v1 coloring for those two switch arms.
  */
 
-extern u_long DivDepth; /* GsDOBJ2 attribute bits 9..11 */
+extern u_long DivDepth;
 
 extern u_long *adiv_tng4_(u_short *primitive, u_long vertop,
                           u_long *packet, u_short count, u_long shift,
@@ -40,14 +40,14 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
     u_long vertop;
 
     tmd = (struct TMD_STRUCT *)obj->tmd;
-    GsLMODE = obj->attribute >> 3 & 3;
+    GsLMODE = GS_DOBJ_LMODE(obj->attribute);
     prim = (u_short *)tmd->primtop;
     n = tmd->primn;
-    GsLIGNR = obj->attribute >> 5 & 1;
+    GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
     vertop = (u_long)tmd->vertop;
-    GsLIOFF = obj->attribute >> 6 & 1;
-    DivDepth = obj->attribute >> 9 & 7;
-    GsTON = obj->attribute >> 0x1e & 1;
+    GsLIOFF = GS_DOBJ_LIOFF(obj->attribute);
+    DivDepth = GS_DOBJ_DIVISION_DEPTH(obj->attribute);
+    GsTON = GS_DOBJ_TON(obj->attribute);
 
     while (n != 0)
     {

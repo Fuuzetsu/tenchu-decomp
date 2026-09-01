@@ -65,9 +65,9 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
         SystemOut(msg_no_model_archive_data);
     }
     mad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
-    adr++;
-    mad->n = *(short *)adr;
-    adr++;
+    adr = MODEL_ARCHIVE_CURSOR_ADVANCE(adr, signature, count);
+    mad->n = MODEL_ARCHIVE_SIGNED_COUNT(adr);
+    adr = MODEL_ARCHIVE_CURSOR_ADVANCE(adr, count, parenting);
     i = 0;
     mad->object = (ModelType **)valloc(mad->n * sizeof(ModelType *));
     prntp = (ParentingType *)adr;

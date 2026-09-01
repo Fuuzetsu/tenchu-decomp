@@ -18,6 +18,11 @@
 
 #define TENCHU_MAIN_LOAD_ADDRESS              0x80011000
 
+/* MIPS virtual-address regions used by the model cache. */
+#define PSX_ADDRESS_REGION_MASK               0xff000000
+#define PSX_KSEG0_BASE                        0x80000000
+#define PSX_KSEG1_BASE                        0xa0000000
+
 #define TENCHU_PERSISTENT_STATE_ADDRESS       0x80010000
 #define TENCHU_PERSISTENT_STATE_SIZE          0x00000e70
 #define TENCHU_PERSISTENT_RNG_SIZE            0x00000004

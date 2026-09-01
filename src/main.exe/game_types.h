@@ -469,6 +469,36 @@ struct ParentingType
     u32 index; /* 0x0C */
 }; /* 0x10 */
 
+/* On-disk .MAD archive header. The model and ornament loaders use different
+ * load widths for the same count halfword, so retain both views explicitly. */
+typedef union ModelArchiveCount ModelArchiveCount;
+union ModelArchiveCount
+{
+    s16 signed_count;
+    u16 unsigned_count;
+};
+
+typedef struct ModelArchiveFile ModelArchiveFile;
+struct ModelArchiveFile
+{
+    u32 signature;             /* 0x00 */
+    ModelArchiveCount count;   /* 0x04 */
+    u16 reserved;              /* 0x06 */
+    ParentingType parenting[1]; /* 0x08, followed by linked TMD files */
+}; /* 0x18 + variable data */
+
+#define MODEL_ARCHIVE_BYTE_OFFSET(member) \
+    ((s32)&((ModelArchiveFile *)0)->member)
+#define MODEL_ARCHIVE_CURSOR_ADVANCE(cursor, from, to)                      \
+    ((u_long *)((s32)(cursor) + MODEL_ARCHIVE_BYTE_OFFSET(to) -             \
+                MODEL_ARCHIVE_BYTE_OFFSET(from)))
+#define MODEL_ARCHIVE_SIGNED_COUNT(cursor) \
+    (((ModelArchiveCount *)(cursor))->signed_count)
+#define MODEL_ARCHIVE_UNSIGNED_COUNT(cursor) \
+    (((ModelArchiveCount *)(cursor))->unsigned_count)
+#define MODEL_ARCHIVE_PARENTING(file)                                      \
+    ((ParentingType *)((s32)(file) + MODEL_ARCHIVE_BYTE_OFFSET(parenting)))
+
 /* Model and humanoid attributes are signed 16-bit flag words. Keep their
  * storage types separate from the four-byte enums that name their bits. */
 typedef s16 ModelAttribute;
@@ -495,6 +525,34 @@ enum model_attribute_flag
     MODEL_ATTR_COLLIDE = 0x4000, /* conflict slot active */
     MODEL_ATTR_CONFLICT = 0x8000
 };
+
+/* Packed libgs GsDOBJ2.attribute fields consumed by Tenchu's linked-TMD
+ * decoders. */
+enum
+{
+    GS_DOBJ_LMODE_SHIFT = 3,
+    GS_DOBJ_LMODE_MASK = 3,
+    GS_DOBJ_LIGNR_SHIFT = 5,
+    GS_DOBJ_LIOFF_SHIFT = 6,
+    GS_DOBJ_DIVISION_DEPTH_SHIFT = 9,
+    GS_DOBJ_DIVISION_DEPTH_MASK = 7,
+    GS_DOBJ_TON_SHIFT = 30,
+    GS_DOBJ_FLAG_MASK = 1
+};
+
+#define GS_DOBJ_LMODE(attribute) \
+    (((attribute) >> GS_DOBJ_LMODE_SHIFT) & GS_DOBJ_LMODE_MASK)
+#define GS_DOBJ_LIGNR(attribute) \
+    (((attribute) >> GS_DOBJ_LIGNR_SHIFT) & GS_DOBJ_FLAG_MASK)
+#define GS_DOBJ_LIOFF(attribute) \
+    (((attribute) >> GS_DOBJ_LIOFF_SHIFT) & GS_DOBJ_FLAG_MASK)
+#define GS_DOBJ_DIVISION_DEPTH(attribute)                               \
+    (((attribute) >> GS_DOBJ_DIVISION_DEPTH_SHIFT) &                    \
+     GS_DOBJ_DIVISION_DEPTH_MASK)
+#define GS_DOBJ_DIVISION_DEPTH_BITS(depth) \
+    ((depth) << GS_DOBJ_DIVISION_DEPTH_SHIFT)
+#define GS_DOBJ_TON(attribute) \
+    (((attribute) >> GS_DOBJ_TON_SHIFT) & GS_DOBJ_FLAG_MASK)
 
 /* WORLD.C/3DCTRL.C's shared model and ornament records. PSX.SYM supplies
  * each complete layout; these are used by items, characters, construction,

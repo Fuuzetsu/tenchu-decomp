@@ -50,7 +50,7 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     short j;
     OrnamentType *objp;
     ModelType *super;
-    u32 tagMask;
+    u32 uncachedSegment;
     int parent;
     int count;
 
@@ -60,12 +60,13 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     }
     mad = (OrnamentArchiveType *)valloc(sizeof(OrnamentArchiveType));
     mad->data = adr;
-    adr++;
-    mad->n = *(u16 *)adr;
-    adr++;
+    adr = MODEL_ARCHIVE_CURSOR_ADVANCE(adr, signature, count);
+    mad->n = MODEL_ARCHIVE_UNSIGNED_COUNT(adr);
+    adr = MODEL_ARCHIVE_CURSOR_ADVANCE(adr, count, parenting);
     i = 0;
-    tagMask = 0xA0000000;
-    mad->object = (OrnamentType **)valloc(mad->n * 4);
+    uncachedSegment = PSX_KSEG1_BASE;
+    mad->object =
+        (OrnamentType **)valloc(mad->n * sizeof(OrnamentType *));
     prntp = (ParentingType *)adr;
     tmdp = (u8 *)adr;
 
@@ -80,7 +81,7 @@ loop1:
     offset = prntp[idx].index + (u32)prntp - (u32)prntp;
     i++;
     objp = LoadOrnament((u_long *)(tmdp + offset));
-    mad->object[idx] = (OrnamentType *)((u32)objp | tagMask);
+    mad->object[idx] = (OrnamentType *)((u32)objp | uncachedSegment);
 }
     goto loop1;
 loop1_end:
@@ -123,9 +124,7 @@ coordinate_init:
     objp->locate.coord.t[2] = prntp[i].dz;
     UpdateOrnament(objp, 0);
     i++;
-    objp->object.attribute |= 0x400; /* libgs GsDOBJ2 bit 10 — consumed
-                              inside the linked libgs sorter, set
-                              on every loaded world object */
+    objp->object.attribute |= GS_DOBJ_DIVISION_DEPTH_BITS(2);
     goto loop2;
 
 parent_found:

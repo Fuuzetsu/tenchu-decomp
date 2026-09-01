@@ -278,9 +278,10 @@ short LoadConstruction(u_long *data)
             for (i = 0; i < slotman->n; i++)
             {
                 disposeModel = slotman->slot[i].model;
-                /* Only dispose a slot that holds a real cached-RAM
-                 * (KSEG0, 0x80xxxxxx) pointer; the others carry sentinels. */
-                if (((u32)disposeModel & 0xFF000000) == 0x80000000)
+                /* Only dispose a slot that holds a cached KSEG0 pointer;
+                 * the others carry sentinels. */
+                if (((u32)disposeModel & PSX_ADDRESS_REGION_MASK) ==
+                    PSX_KSEG0_BASE)
                     DisposeOrnament(disposeModel);
             }
             vfree(slotman->slot);
@@ -394,7 +395,7 @@ short LoadConstruction(u_long *data)
         vfree(MapModel);
         i = 0;
         MapModel = PathFileRead(ImagePath, name);
-        ix = (ParentingType *)(MapModel + 2);
+        ix = MODEL_ARCHIVE_PARENTING(MapModel);
         mma = LoadOrnamentArchive(MapModel, &World);
 
         while (1)
@@ -424,9 +425,8 @@ short LoadConstruction(u_long *data)
             WORLD_CELL(mma->object[i]->locate.coord.t[1], y);
             WORLD_CELL(mma->object[i]->locate.coord.t[2], z);
 
-            mma->object[i]->object.attribute |= 0x400; /* libgs GsDOBJ2 bit 10 — consumed
-                              inside the linked libgs sorter, set
-                              on every loaded world object */
+            mma->object[i]->object.attribute |=
+                GS_DOBJ_DIVISION_DEPTH_BITS(2);
             UpdateOrnament(mma->object[i], 0);
             slot = (ObjectSlotType **)((z << 2) + ((x << 8) + (y << 5)));
             slot = &((WorldType *)((int)slot + (int)WorldMap))->top;

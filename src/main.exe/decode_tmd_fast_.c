@@ -29,7 +29,7 @@
  *    at 0x80013C20.
  */
 
-extern u_long DivDepth; /* GsDOBJ2 attribute bits 9..11 */
+extern u_long DivDepth;
 
 extern u_long *fast_tng4_(u_short *primitive, u_long vertop, u_long *packet,
                           u_short count, u_long *work);
@@ -49,17 +49,17 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     u_long vertop;
 
     tmd = (struct TMD_STRUCT *)obj->tmd;
-    GsLMODE = obj->attribute >> 3 & 3;
+    GsLMODE = GS_DOBJ_LMODE(obj->attribute);
     prim = (u_short *)tmd->primtop;
     n = tmd->primn;
-    GsLIGNR = obj->attribute >> 5 & 1;
+    GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
     vertop = (u_long)tmd->vertop;
-    GsLIOFF = obj->attribute >> 6 & 1;
+    GsLIOFF = GS_DOBJ_LIOFF(obj->attribute);
     attr = *(volatile u_long *)&obj->attribute;
-    DivDepth = obj->attribute >> 9 & 7;
+    DivDepth = GS_DOBJ_DIVISION_DEPTH(obj->attribute);
     TMD_FAST_WORD(work, shift) = shift;
     TMD_FAST_WORD(work, ot) = ot;
-    GsTON = attr >> 0x1e & 1;
+    GsTON = GS_DOBJ_TON(attr);
     TMD_FAST_WORD(work, clipx0) = -SCREEN_W / 2;
     TMD_FAST_WORD(work, clipx1) = SCREEN_W / 2;
     TMD_FAST_WORD(work, clipy0) = -SCREEN_H / 2;
