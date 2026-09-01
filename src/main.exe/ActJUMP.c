@@ -57,7 +57,7 @@ void ActJUMP(void)
     if ((Me_MOTION_C->pad.trig & PADRdown) != 0 && motID != MOT_JUMP_WALLKICK)
     {
         GetAreaMapVector(GlobalAreaMap, &map, dtL,
-                         Me_MOTION_C->width + 300, 0);
+                         Me_MOTION_C->width + 300, AREA_LEVEL_DEFAULT);
         if (map.vector == 0)
         {
             return;
@@ -84,7 +84,8 @@ void ActJUMP(void)
 
     if ((Me_MOTION_C->attribute & (ATTR_NOFLOOR | ATTR_BUOYANT)) != 0 && dtM->count >= 2)
     {
-        level = GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy, dtL->vz, 0);
+        level = GetAreaMapLevel(GlobalAreaMap, dtL->vx, dtL->vy, dtL->vz,
+                                AREA_LEVEL_DEFAULT);
         if (dtL->vy < level)
         {
             SET_MOTION(MOT_STATE_FALL, 0);

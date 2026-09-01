@@ -73,7 +73,8 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
     param = &item->param.drop;
     if (item == 0)
         return 0;
-    if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz, 0) < p->start.vy)
+    if (GetAreaMapLevel(GlobalAreaMap, p->start.vx, p->start.vy, p->start.vz,
+                        AREA_LEVEL_DEFAULT) < p->start.vy)
         return 0;
     {
         VECTOR *pos;

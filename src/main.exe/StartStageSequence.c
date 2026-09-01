@@ -160,7 +160,7 @@ void StartStageSequence(void)
             human->locate->vy = stg->position.vy * 1000;
             y = GetAreaMapLevel(GlobalAreaMap, human->locate->vx,
                                 human->locate->vy - 1000,
-                                human->locate->vz, 0);
+                                human->locate->vz, AREA_LEVEL_DEFAULT);
             if (y < human->locate->vy)
             {
                 human->locate->vy = y;

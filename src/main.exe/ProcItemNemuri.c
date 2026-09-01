@@ -284,7 +284,8 @@ void ProcItemNemuri(TItem *item)
         if (GetAreaMapLevel(GlobalAreaMap,
                             item->locate->locate.coord.t[0],
                             item->locate->locate.coord.t[1],
-                            item->locate->locate.coord.t[2], 0) ==
+                            item->locate->locate.coord.t[2],
+                            AREA_LEVEL_DEFAULT) ==
             LEVEL_NONE)
         {
             item_proc = item->proc;

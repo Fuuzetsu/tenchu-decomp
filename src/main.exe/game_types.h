@@ -248,11 +248,13 @@ struct AreaNodeType
  * clustered in the caves, which is consistent with its one reader: it
  * drives DefaultActionHumanoid's clamp (kill upward velocity, force
  * height 1), and a bit that did that everywhere would forbid jumping.
- * Still unnamed: 0x2000, on most floor nodes and co-occurring with the
- * slope bits, gating a GetAreaMapLevel path with no other reader.
+ * MAP_RESULT_FINAL marks a node result that ends the current leaf-list scan;
+ * the authored maps commonly set it on every entry except the last, where
+ * reaching the list end already has the same effect.
  * MAP_MATERIAL_MASK is the low block DefaultActionHumanoid wipes when a
  * character comes to rest on top of a conflict object. */
 #define MAP_MATERIAL_MASK 0x007f
+#define MAP_ATTRIBUTE_UNRESOLVED ((MapAttribute)0x0081)
 /* CGetLevel/GetAreaMapLevel/ComputeAreaLevel return this when the probe
  * point is outside the area map ("no floor here"). */
 #define LEVEL_NONE ((s32)0x80000000)
@@ -264,6 +266,7 @@ enum map_attribute_flag
     MAP_WOOD = 0x0008,
     MAP_DAMAGE = 0x0100,
     MAP_DEATH = 0x0200,
+    MAP_RESULT_FINAL = 0x2000,
     MAP_SLOPE_X = 0x4000,
     MAP_SLOPE_Z = 0x8000
 };

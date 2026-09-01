@@ -217,7 +217,8 @@ void DrawBlood(TEffectSlot *ef)
         if (area == 0 || area->y - 200 > sy || sy > area->y ||
             sx < area->x1 || sz < area->z1 || area->x2 < sx || area->z2 < sz)
         {
-            rety = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z, 0);
+            rety = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z,
+                                   AREA_LEVEL_DEFAULT);
             if (y <= rety && FieldArea->division == AREA_DIVISION_ALL)
             {
                 blood->hint = FieldArea;

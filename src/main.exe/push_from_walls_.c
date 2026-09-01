@@ -48,7 +48,7 @@ void push_from_walls_(VECTOR *pos, s32 amount)
     s32 newx;
     s32 newz;
 
-    GetAreaMapVector(GlobalAreaMap, &v1, pos, amount, 0);
+    GetAreaMapVector(GlobalAreaMap, &v1, pos, amount, AREA_LEVEL_DEFAULT);
     if (v1.level == LEVEL_NONE)
     {
         return;
@@ -58,7 +58,7 @@ void push_from_walls_(VECTOR *pos, s32 amount)
         return;
     }
     half = amount / 2;
-    GetAreaMapVector(GlobalAreaMap, &v2, pos, half, 0);
+    GetAreaMapVector(GlobalAreaMap, &v2, pos, half, AREA_LEVEL_DEFAULT);
     vec = v2.vector;
     if (vec == 0)
     {

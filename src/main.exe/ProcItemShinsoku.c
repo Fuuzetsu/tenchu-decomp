@@ -218,7 +218,7 @@ void ProcItemShinsoku(TItem *item)
         scratch.query.pos.vy -= 2000;
         GetAreaMapVector(GlobalAreaMap,
                          &scratch.query.map,
-                         &scratch.query.pos, 500, 0);
+                         &scratch.query.pos, 500, AREA_LEVEL_DEFAULT);
         if (scratch.query.map.level >= apos->vy - 500)
         {
             if (scratch.query.map.level < apos->vy)

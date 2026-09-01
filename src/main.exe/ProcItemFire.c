@@ -241,7 +241,7 @@ void ProcItemFire(TItem *item)
                 scratch.drop.param.start.vy = GetAreaMapLevel(
                     GlobalAreaMap, scratch.drop.param.start.vx,
                     scratch.drop.param.start.vy,
-                    scratch.drop.param.start.vz, 0);
+                    scratch.drop.param.start.vz, AREA_LEVEL_DEFAULT);
                 ReqItemDrop(launch);
                 SetSmokeS(&saved->locate, 0, -100, 0, 10);
                 return;

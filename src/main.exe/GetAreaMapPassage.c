@@ -66,7 +66,8 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
 
     for (;;)
     {
-        y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz, 0);
+        y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz,
+                               AREA_LEVEL_DEFAULT);
         if (y[0] == LEVEL_NONE)
         {
             break;

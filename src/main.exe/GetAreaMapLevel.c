@@ -88,8 +88,8 @@ extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
  * node without the highest-below pick (DrawSnow); 0x10 = same-height
  * fast path reusing the cached FieldArea via AreaMapLastY. Returns
  * 0x80000000 for no floor; a base-material-2 node (the buoyant
- * surface) reports no floor, and a 0x2000 node is recorded but does
- * not stop the scan. */
+ * surface) reports no floor, and MAP_RESULT_FINAL accepts the current
+ * result without examining the rest of that leaf list. */
 long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
 {
     long n;
@@ -109,7 +109,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
 
     index = FieldIndex;
     x = x / 10;
-    FieldAttrib = 0x81;
+    FieldAttrib = MAP_ATTRIBUTE_UNRESOLVED;
     z = z / 10;
     y2 = y / 10;
     yy = LEVEL_NONE;
@@ -199,7 +199,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                                 {
                                     FieldAttrib = FieldArea->attribute;
                                     yy = sy;
-                                    if (FieldAttrib & 0x2000)
+                                    if (FieldAttrib & MAP_RESULT_FINAL)
                                         goto next;
                                 }
                             }

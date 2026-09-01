@@ -66,7 +66,8 @@ void MoveKorogari(TItem *item, param_korogari *param)
         item->locate->locate.coord.t[2] -= param->vz;
 
         GetAreaMapVector(GlobalAreaMap, &mv,
-                         (VECTOR *)item->locate->locate.coord.t, 500, 0);
+                         (VECTOR *)item->locate->locate.coord.t, 500,
+                         AREA_LEVEL_DEFAULT);
         if (param->hint == 0)
         {
             level = CGetLevel((struct AreaNodeType **)&param->hint,
@@ -146,4 +147,3 @@ void MoveKorogari(TItem *item, param_korogari *param)
     param->status = KORO_NORMAL;
     param->vy += 15;
 }
-

@@ -145,7 +145,7 @@ s16 CVAupdate(void)
                     i = CVAnow->y * 1000;
                     human->locate->vy = GetAreaMapLevel(
                         GlobalAreaMap, human->locate->vx, i - 1000,
-                        human->locate->vz, 0);
+                        human->locate->vz, AREA_LEVEL_DEFAULT);
                     if (i < human->locate->vy || human->locate->vy == (long)0x80000000)
                         human->locate->vy = i;
                     human->rotate->vy = CVAnow->p;

@@ -166,7 +166,7 @@ void ProcItemNinken(TItem *item)
             scratch.drop.launch.start.vy = GetAreaMapLevel(
                 GlobalAreaMap, scratch.drop.launch.start.vx,
                 scratch.drop.launch.start.vy,
-                scratch.drop.launch.start.vz, 0);
+                scratch.drop.launch.start.vz, AREA_LEVEL_DEFAULT);
             ReqItemDrop(launch);
             return;
         }
@@ -221,7 +221,7 @@ void ProcItemNinken(TItem *item)
         scratch.spawn.work.query.vy = position->vy;
         scratch.spawn.work.query.vz = position->vz;
         scratch.spawn.work.query.vy -= 2000;
-        GetAreaMapVector(GlobalAreaMap, map, query, 500, 0);
+        GetAreaMapVector(GlobalAreaMap, map, query, 500, AREA_LEVEL_DEFAULT);
 
         if (scratch.spawn.map.level >= position->vy - 500)
         {

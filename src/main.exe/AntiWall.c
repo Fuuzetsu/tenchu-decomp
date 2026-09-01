@@ -82,12 +82,12 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
     lvR = GetAreaMapLevel(GlobalAreaMap,
                           target->vpx + vsR.vx,
                           target->vpy + vsR.vy,
-                          target->vpz + vsR.vz, 0);
+                          target->vpz + vsR.vz, AREA_LEVEL_DEFAULT);
     rmap = 0;
     if (GetAreaMapLevel(GlobalAreaMap,
                         target->vpx + vsL.vx,
                         target->vpy + vsL.vy,
-                        target->vpz + vsL.vz, 0) <= target->vpy)
+                        target->vpz + vsL.vz, AREA_LEVEL_DEFAULT) <= target->vpy)
     {
         rmap = FL;
         FntPrint(str_mark_l);
@@ -125,7 +125,8 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
         if (GetAreaMapLevel(GlobalAreaMap,
                             target->vpx + av.vx + sx,
                             target->vpy + av.vy + sy,
-                            target->vpz + av.vz + sz, 0) <= target->vpy)
+                            target->vpz + av.vz + sz,
+                            AREA_LEVEL_DEFAULT) <= target->vpy)
         {
             av.vx = sx / 2;
             av.vy = sy / 2;

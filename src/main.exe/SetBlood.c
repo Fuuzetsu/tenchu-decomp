@@ -99,7 +99,8 @@ void SetBlood(VECTOR *pos, short n, short time)
     int half;
     int half2;
 
-    GetAreaMapLevel(GlobalAreaMap, pos->vx, pos->vy, pos->vz, 0);
+    GetAreaMapLevel(GlobalAreaMap, pos->vx, pos->vy, pos->vz,
+                    AREA_LEVEL_DEFAULT);
     hint = FieldArea;
     base = EffectSlot;
     i = 0;
