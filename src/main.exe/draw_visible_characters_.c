@@ -56,13 +56,13 @@ void draw_visible_characters_(void)
         {
             DrawOrnament(cs->weapon[WEAPON_SLOT_ACTIVE_1]);
         }
-        if (cs->illusion[0] != 0)
+        if (cs->illusion[WEAPON_HAND_0] != 0)
         {
-            DrawAfterimage(cs->illusion[0], 1);
+            DrawAfterimage(cs->illusion[WEAPON_HAND_0], 1);
         }
-        if (cs->illusion[1] != 0)
+        if (cs->illusion[WEAPON_HAND_1] != 0)
         {
-            DrawAfterimage(cs->illusion[1], 1);
+            DrawAfterimage(cs->illusion[WEAPON_HAND_1], 1);
         }
     }
 }

@@ -229,7 +229,7 @@ void ActATTACK(void)
     ModelType **object;
     ModelType *target;
     BattleType *battle;
-    ModelType *hand[2];
+    ModelType *hand[N_WEAPON_HANDS];
     union
     {
         PARAM_ITEM_LAUNCH item;

@@ -38,7 +38,7 @@ void SetupWeapon(Humanoid *human)
     do
     {
         human->weapon[i++] = 0;
-    } while (i < WEAPON_SLOT_COUNT);
+    } while (i < N_WEAPON_SLOTS);
 
     i = 0;
     while (HumanData[i].type != human->type)

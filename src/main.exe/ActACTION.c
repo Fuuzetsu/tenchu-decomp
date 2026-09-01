@@ -120,15 +120,15 @@ void ActACTION(void)
         skip_afterimage_cleanup:
             if (cleanup_guard & ATTACK_CANCEL_AFTERIMAGES)
             {
-                if (Me_MOTION_C->illusion[0] != 0)
+                if (Me_MOTION_C->illusion[WEAPON_HAND_0] != 0)
                 {
-                    DisposeAfterimage(Me_MOTION_C->illusion[0]);
-                    Me_MOTION_C->illusion[0] = 0;
+                    DisposeAfterimage(Me_MOTION_C->illusion[WEAPON_HAND_0]);
+                    Me_MOTION_C->illusion[WEAPON_HAND_0] = 0;
                 }
-                if (Me_MOTION_C->illusion[1] != 0)
+                if (Me_MOTION_C->illusion[WEAPON_HAND_1] != 0)
                 {
-                    DisposeAfterimage(Me_MOTION_C->illusion[1]);
-                    Me_MOTION_C->illusion[1] = 0;
+                    DisposeAfterimage(Me_MOTION_C->illusion[WEAPON_HAND_1]);
+                    Me_MOTION_C->illusion[WEAPON_HAND_1] = 0;
                 }
             }
             motion = dtM;

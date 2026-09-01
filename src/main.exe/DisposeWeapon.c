@@ -40,5 +40,5 @@ void DisposeWeapon(Humanoid *human)
         DisposeOrnament(wp[i]);
         wp[i] = 0;
         i++;
-    } while (i < 4);
+    } while (i < N_WEAPON_SLOTS);
 }

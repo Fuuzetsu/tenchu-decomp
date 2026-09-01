@@ -30,6 +30,7 @@
 /* The hand index shared by hand[], wepid[], and GetWeaponData's wpid. */
 #define WEAPON_HAND_0 0
 #define WEAPON_HAND_1 1
+#define N_WEAPON_HANDS 2
 #define WEAPON_HAND_NONE (-1)
 
 /* Humanoid.weapon[] holds the two active ornaments followed by their two
@@ -38,7 +39,7 @@
 #define WEAPON_SLOT_ACTIVE_1 1
 #define WEAPON_SLOT_INACTIVE_0 2
 #define WEAPON_SLOT_INACTIVE_1 3
-#define WEAPON_SLOT_COUNT 4
+#define N_WEAPON_SLOTS 4
 #define WEAPON_SLOT_NONE (-1)
 
 /* Components of Humanoid.point (home/spawn point) and chase (AI scratch
@@ -215,18 +216,18 @@ typedef struct Humanoid
                                  pattern field; retail keeps the signed
                                  short and shifts later fields by eight
                                  bytes with the expanded MapVector) */
-    s16 wepid[2];             /* 0x90 (GetWeaponData: `human->wepid[wpid]
+    s16 wepid[N_WEAPON_HANDS]; /* 0x90 (GetWeaponData: `human->wepid[wpid]
                                  = i;`, an `sh` store — proves this field;
                                  Ghidra's own independently-built Humanoid
                                  names it `wepid[2]` too; character_state:
                                  field58_0x90..field61_0x93) */
-    OrnamentType *weapon[4];  /* 0x94 (equipped weapon ornaments — right/
+    OrnamentType *weapon[N_WEAPON_SLOTS]; /* 0x94 (equipped weapon ornaments — right/
                                  left active + right/left inactive per
                                  game_types.h's character_state sibling
                                  view of this same offset; AttackPQD
                                  swaps weapon[0] with weapon[2]/[3] to
                                  draw/holster) */
-    void *illusion[2];        /* 0xA4 (PSX.SYM's original type; these
+    void *illusion[N_WEAPON_HANDS]; /* 0xA4 (PSX.SYM's original type; these
                                  opaque effect pointers are passed to the
                                  afterimage draw/dispose API) */
     s16 sound;                /* 0xAC (PSX.SYM name) SE-bank base: Sound()
