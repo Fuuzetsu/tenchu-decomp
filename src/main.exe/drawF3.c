@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfast.h"
 #include "gte.h"
 
 /*
@@ -63,7 +64,7 @@ INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/drawF3", drawF3);
  * slot: global register variables keep the stores in place. */
 register int code __asm__("$16");
 register int budget __asm__("$14");
-register u_long *packet __asm__("$11");
+register POLY_F3 *packet __asm__("$11");
 
 /* This handler is an assembly original.  Keep its adjacent FLAG read and
  * pending-code clear as the one handwritten unit they were. */
@@ -114,10 +115,10 @@ loop:
     if (code != 0)
     {
         *ot_slot = (u_long)packet;
-        *((u8 *)ot_slot + 3) = 0;
-        gte_strgb_mem(packet[1]);
-        *((u8 *)packet + 7) = (u8)code;
-        packet += 5;
+        setlen(ot_slot, 0);
+        gte_strgb_mem(*(u_long *)&packet->r0);
+        packet->code = (u8)code;
+        packet++;
     }
     READ_FLAG_AND_CLEAR_CODE(flag, code);
     if ((flag & mask) == 0)
@@ -144,11 +145,11 @@ loop:
                     ot_slot = (u_long *)((int)ot_slot + ot_base);
                     mac0 = *ot_slot;
                     gte_dpcs_raw();
-                    *packet = mac0;
-                    mask = 4;
-                    *((u8 *)packet + 3) = mask;
+                    packet->tag = mac0;
+                    mask = GPU_POLY_F3_LENGTH;
+                    setlen(packet, mask);
                     gte_stsxy3_f3(packet);
-                    code = 0x20;
+                    code = GPU_POLY_F3_CODE;
                 }
             }
         }
@@ -163,10 +164,10 @@ loop:
     if (code != 0)
     {
         *ot_slot = (u_long)packet;
-        *((u8 *)ot_slot + 3) = 0;
-        gte_strgb_mem(packet[1]);
-        *((u8 *)packet + 7) = (u8)code;
-        packet += 5;
+        setlen(ot_slot, 0);
+        gte_strgb_mem(*(u_long *)&packet->r0);
+        packet->code = (u8)code;
+        packet++;
     }
 }
 

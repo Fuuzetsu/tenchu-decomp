@@ -211,10 +211,13 @@ typedef struct
 
 enum
 {
+    GPU_POLY_F3_CODE = 0x20,
     GPU_POLY_GT3_CODE = 0x34,
     GPU_POLY_GT4_CODE = 0x3c,
+    GPU_POLY_F3_WORDS = sizeof(POLY_F3) / sizeof(u_long),
     GPU_POLY_GT3_WORDS = sizeof(POLY_GT3) / sizeof(u_long),
     GPU_POLY_GT4_WORDS = sizeof(POLY_GT4) / sizeof(u_long),
+    GPU_POLY_F3_LENGTH = GPU_POLY_F3_WORDS - 1,
     GPU_POLY_GT3_LENGTH = GPU_POLY_GT3_WORDS - 1,
     GPU_POLY_GT4_LENGTH = GPU_POLY_GT4_WORDS - 1,
     GPU_PACKET_LENGTH_BYTE = sizeof(u_long) - 1,
