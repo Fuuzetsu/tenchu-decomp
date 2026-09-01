@@ -57,13 +57,11 @@ void debug_menu_stage_option(void)
         DBGSTAGE_JAPANESE = 6
     };
     TAdtSelect menu[11];
-    s32 sel;
     ScoreStats stats;
     ScoreResult sr;
 
     __builtin_memcpy(menu, DEBUG_MENU_STAGE_OPTIONS, sizeof(menu));
-    sel = AdtSelect(str_stage_option, menu, 0);
-    switch (sel)
+    switch (AdtSelect(str_stage_option, menu, 0))
     {
     case DBGSTAGE_NEXT_STAGE:
         StageEndScreen();

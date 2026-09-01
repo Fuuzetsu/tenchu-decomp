@@ -133,14 +133,12 @@ static inline void ItemLayoutMenu(void)
         ITEM_LAYOUT_SET = 0,
         ITEM_LAYOUT_CLEAR_ALL = 1
     };
-    s32 n;
     TAdtSelect Option[5];
     TAdtSelect OkCancel[3];
 
     __builtin_memcpy(Option, DEBUG_MENU_ITEM_LAYOUT_OPTIONS, sizeof(Option));
     __builtin_memcpy(OkCancel, sel_okcancel2, sizeof(OkCancel));
-    n = AdtSelect(str_item_layout_option, Option, 0);
-    switch (n)
+    switch (AdtSelect(str_item_layout_option, Option, 0))
     {
     case ITEM_LAYOUT_SET:
         AddItem2();
