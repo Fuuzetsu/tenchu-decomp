@@ -103,7 +103,7 @@ void HumanActionControl(Humanoid *human)
     MotionManager *motion;
     SVECTOR *rotate;
     u16 attr;
-    s16 mid;
+    motion_id mid;
 
     dtPAD = human->pad.data;
     Me_MOTION_C = human;

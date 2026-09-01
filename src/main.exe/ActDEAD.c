@@ -89,7 +89,7 @@ void ActDEAD(void)
     short bldo;
     short blds;
     short i;
-    short mid;
+    motion_id mid;
     DeadEvent *pp;
     ActDeadScratch scratch;
 

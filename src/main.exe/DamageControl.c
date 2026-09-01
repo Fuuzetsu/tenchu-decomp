@@ -705,7 +705,7 @@ resolve_hit:
                         {
                             deg += DAMAGE_MOTION_FROM_BEHIND_OFFSET;
                         }
-                        dtM->mid = -1;
+                        dtM->mid = MOTION_ID_NONE;
                         motID = damagemotion[deg];
                     }
                     if (enemy == StagePlayer)
@@ -731,7 +731,7 @@ resolve_hit:
                     {
                         deg += DAMAGE_MOTION_FROM_BEHIND_OFFSET;
                     }
-                    dtM->mid = -1;
+                    dtM->mid = MOTION_ID_NONE;
                     SET_MOTION(damagemotion[deg], 0);
                     reset_alert_duration();
                 }

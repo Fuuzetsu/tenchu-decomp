@@ -117,7 +117,7 @@ struct TracePoint;
 
 /* Shared SEMNG.C, MOTION.C, and HUMAN.C interfaces. */
 extern short dtPAD;
-extern short motID;
+extern motion_id motID;
 extern short motMODE;
 
 /* Facing angles are 12 bits: a full turn is ANGLE_FULL, so a quadrant is
@@ -179,7 +179,7 @@ extern void KillHumanoid(struct Humanoid *human);
 extern short ControlAllHumanoid(void);
 extern void ControlHumanoid(struct Humanoid *human);
 extern short DefaultActionHumanoid(struct Humanoid *human);
-extern short SetNowMotion(struct Humanoid *human, short mid, short move);
+extern short SetNowMotion(struct Humanoid *human, motion_id mid, short move);
 extern short ControlTraceLine(struct Humanoid *human);
 extern struct Humanoid *GetHumanoid(character_kind type);
 extern struct Humanoid *GetNearestHumanoid(struct Humanoid *human, short distance);

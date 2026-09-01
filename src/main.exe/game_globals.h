@@ -36,7 +36,7 @@ extern unsigned char gfMemory;
 #define GAME_RETRY_REPLAY 1
 extern unsigned char GameRetry;
 extern TSystemFlag SystemFlag;
-/* Retail's mid=-1 sentinel is entry 104; the demo table had 78 entries. */
+/* Retail's MOTION_ID_NONE sentinel is entry 104; the demo table had 78. */
 extern BattleType BattleDB[105];
 extern struct Humanoid *StagePlayer;
 extern short Humans;

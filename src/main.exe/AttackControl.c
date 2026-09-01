@@ -54,7 +54,7 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
+extern s16 UpdateMotion(MotionManager *mmp, motion_id mid);
 
 void AttackControl(void)
 {
@@ -125,7 +125,7 @@ void AttackControl(void)
                         (*(u32 *)&Me_MOTION_C->map.vector & 0xffff00ff) == 0)
                     {
                         s16 myid;
-                        s16 emid;
+                        motion_id emid;
 
                         if (__builtin_abs(deg) > 1000 &&
                             __builtin_abs(mydeg) < 1000)

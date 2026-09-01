@@ -17,7 +17,7 @@
 
 /*
  * GetMotionID (0x8001c510, 0x74 bytes) — search mmp's registered-motion
- * table (MotionRegistType[], sentinel mid == -1) for the row whose `mid`
+ * table (MotionRegistType[], sentinel mid == MOTION_ID_NONE) for the row whose `mid`
  * matches the requested id and return that row's `id`; on falling through to
  * the sentinel without a match, returns the sentinel row's own `id` instead.
  * Same search-with-break-then-read-index shape as GetAttackDBID.c (a near-
@@ -26,14 +26,14 @@
  * the loop index at the end.
  */
 
-short GetMotionID(MotionManager *mmp, short mid)
+short GetMotionID(MotionManager *mmp, motion_id mid)
 {
     MotionRegistType *registrations;
     s16 i;
 
     registrations = mmp->motreg;
     i = 0;
-    while (registrations[i].mid != -1)
+    while (registrations[i].mid != MOTION_ID_NONE)
     {
         if (registrations[i].mid == mid)
         {

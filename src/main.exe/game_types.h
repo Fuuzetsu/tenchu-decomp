@@ -448,6 +448,11 @@ struct WorldType
     ObjectSlotType *top; /* 0x00 */
 }; /* 0x04 */
 
+/* Motion IDs are stored in signed halfwords; -1 means no active motion and
+ * terminates motion-registration and battle tables. */
+typedef s16 motion_id;
+#define MOTION_ID_NONE (-1)
+
 /* MOTION.C's keyframe, motion, registry, spline, and playback records. */
 typedef struct MotionElementType MotionElementType;
 struct MotionElementType
@@ -474,7 +479,7 @@ struct MotionDataType
 typedef struct MotionRegistType MotionRegistType;
 struct MotionRegistType
 {
-    s16 mid;                /* 0x00 */
+    motion_id mid;          /* 0x00 */
     s16 id;                 /* 0x02 */
     MotionDataType *motion; /* 0x04 */
 }; /* 0x08 */
@@ -498,7 +503,7 @@ struct SplineControlType
 typedef struct MotionManager MotionManager;
 struct MotionManager
 {
-    s16 mid;                    /* 0x00 */
+    motion_id mid;              /* 0x00 */
     s16 count;                  /* 0x02 */
     s16 loop;                   /* 0x04 */
     s16 n;                      /* 0x06 */
@@ -537,7 +542,7 @@ struct MotionPackType
 typedef struct BattleType BattleType;
 struct BattleType
 {
-    s16 mid;     /* 0x00 */
+    motion_id mid; /* 0x00 */
     s16 power;   /* 0x02 */
     s16 atks;    /* 0x04 */
     s16 atke;    /* 0x06 */
@@ -651,7 +656,7 @@ struct HumanAnimType
 {
     struct Humanoid *human; /* 0x00 */
     s16 loop;               /* 0x04 */
-    s16 motid;              /* 0x06 */
+    motion_id motid;        /* 0x06 */
 }; /* 0x08 */
 
 #define N_CVA_HUMANS 5

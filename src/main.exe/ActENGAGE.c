@@ -48,7 +48,7 @@ extern void AttackControl(void);
 
 void ActENGAGE(void)
 {
-    short motion_id;
+    short registered_id;
     short trig;
 
     switch (dtM->mid)
@@ -84,8 +84,8 @@ void ActENGAGE(void)
     engage_case_post:
         if (ActionHalt == -1 && dtM->count == 0)
         {
-            motion_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
-            if (motion_id < 0)
+            registered_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
+            if (registered_id < 0)
             {
                 SET_MOTION(MOT_STATE_SHEATHE, 1);
             }

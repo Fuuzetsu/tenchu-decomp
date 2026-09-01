@@ -36,7 +36,7 @@ MotionManager *SetupMotionManager(ModelArchiveType *mad, MotionRegistType *mot)
     MotionManager *manager;
 
     manager = (MotionManager *)valloc(sizeof(MotionManager));
-    manager->mid = -1;
+    manager->mid = MOTION_ID_NONE;
     manager->mask = -1;
     manager->loop = 0;
     manager->count = 0;

@@ -34,7 +34,7 @@ extern void JumpControl(void);
 
 void ActNORMAL(void)
 {
-    short mid;
+    motion_id mid;
 
     mid = dtM->mid;
     switch (mid)

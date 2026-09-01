@@ -167,7 +167,7 @@ s16 CVAupdate(void)
                 {
                     human->life = -1;
                     human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
-                    human->motion->mid = -1;
+                    human->motion->mid = MOTION_ID_NONE;
                     SetNowMotion(human, 0, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
@@ -210,7 +210,7 @@ s16 CVAupdate(void)
                             return 0;
                     }
 
-                    human->motion->mid = -1;
+                    human->motion->mid = MOTION_ID_NONE;
                     SetNowMotion(human, CVAnow->x, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;

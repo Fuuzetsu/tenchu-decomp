@@ -211,7 +211,7 @@ extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 extern void WeaponHitWeapon(ModelType *model);
 extern void ReturnNormal(void);
-extern s16 UpdateMotion(MotionManager *mmp, s16 mid);
+extern s16 UpdateMotion(MotionManager *mmp, motion_id mid);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 
 void ActATTACK(void)
@@ -691,7 +691,7 @@ dispatch:
         int conflict_id;
         Humanoid *human;
         ModelType *waist;
-        short saved_mid;
+        motion_id saved_mid;
         short motion_flag;
 
         if (dtM->count == 1)
@@ -757,7 +757,7 @@ dispatch:
     {
         short cleanup_guard;
         short kind;
-        short saved_mid;
+        motion_id saved_mid;
         short i;
 
         saved_mid = motID;

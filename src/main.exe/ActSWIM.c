@@ -47,7 +47,7 @@ void ActSWIM(void)
         SWIM_EXIT_MOVE_FRAME = 40,
         SWIM_EXIT_SPEED = 100
     };
-    short current_motion;
+    motion_id current_motion;
     int movement_speed;
 
     current_motion = dtM->mid;

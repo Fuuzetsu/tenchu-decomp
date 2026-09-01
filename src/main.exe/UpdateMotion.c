@@ -28,7 +28,7 @@
  * UpdateMotion (0x8001b65c, 0x278 bytes) — switch mmp's active motion to
  * `mid`, unless it's already the current motion (returns -1, a no-op).
  * Search mmp's own registered-motion table (mmp->motreg, sentinel
- * mid == -1) for a row matching `mid`; if none has a non-NULL `motion`
+ * mid == MOTION_ID_NONE) for a row matching `mid`; if none has a non-NULL `motion`
  * there, fall back to searching the global common table MOTcommon the same
  * way. If neither table has a usable row, returns 0 (failure). Otherwise
  * installs the found MotionDataType* as mmp->motion, latches mmp->mid,
@@ -63,7 +63,7 @@
  */
 extern void SetupSpline(MotionManager *mmp);
 
-s16 UpdateMotion(MotionManager *mmp, s16 mid)
+s16 UpdateMotion(MotionManager *mmp, motion_id mid)
 {
     MotionRegistType *mrp;
     MotionDataType *md;
@@ -80,7 +80,7 @@ s16 UpdateMotion(MotionManager *mmp, s16 mid)
     i = 0;
     while (mrp[i].mid != mid)
     {
-        if (mrp[i].mid == -1)
+        if (mrp[i].mid == MOTION_ID_NONE)
             break;
         i++;
     }
@@ -90,7 +90,7 @@ s16 UpdateMotion(MotionManager *mmp, s16 mid)
         i = 0;
         while (mrp[i].mid != mid)
         {
-            if (mrp[i].mid == -1)
+            if (mrp[i].mid == MOTION_ID_NONE)
                 break;
             i++;
         }

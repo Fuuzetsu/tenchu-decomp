@@ -36,7 +36,8 @@
  *  2. CVAhuman[N_CVA_HUMANS] reconciliation (proven HumanAnimType:
  *     human/loop/motid):
  *     for each live human whose queued motion has already looped enough
- *     (`CVAhuman[i].loop <= human->motion->loop`), either motid==-1 (stop:
+ *     (`CVAhuman[i].loop <= human->motion->loop`), either
+ *     motid==MOTION_ID_NONE (stop:
  *     set motion->loop to -1 and clear the human's x/z velocity) or (status != DEAD)
  *     start the queued motid via SetNowMotion and clear the slot.
  * Finally advances the CVA frame counter (CVAtime) and, once it reaches
@@ -84,7 +85,7 @@ short CVArun(void)
     MotionManager *mmp;
     Humanoid *human;
     Humanoid *reload;
-    s16 motid;
+    motion_id motid;
 
     ComputeAllConflict();
     StartDrawing();
@@ -123,7 +124,7 @@ short CVArun(void)
         {
             mmp = human->motion;
             motid = CVAhuman[i].motid;
-            if (motid == -1)
+            if (motid == MOTION_ID_NONE)
             {
                 mmp->loop = -1;
                 /* The slot is reloaded for the stores (like the sprite

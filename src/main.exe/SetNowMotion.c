@@ -33,7 +33,7 @@
  *    CSEs the chain to the retail pointer reuse without an invented `md`
  *    source local, matching PSX.SYM's empty local inventory.
  */
-short SetNowMotion(Humanoid *human, short mid, short move)
+short SetNowMotion(Humanoid *human, motion_id mid, short move)
 {
     if (human->status == STAT_DEAD && human->motion->loop == -1)
     {

@@ -22,11 +22,13 @@
 /*
  * GetAttackDBID (0x8002a8ec, 0x8c bytes) — resolves the character's current
  * motion to a row index into the BattleDB attack-pattern table: linear-search
- * BattleDB[].mid for a match against GetMotionID(human->motion, mid), sentinel-terminated by
- * mid == -1. Returns the matching row's index, or (no match before the
+ * BattleDB[].mid for a match against GetMotionID(human->motion, mid),
+ * sentinel-terminated by MOTION_ID_NONE. Returns the matching row's index,
+ * or (no match before the
  * sentinel) the sentinel's own index.
  *
- * Plain `while (BattleDB[i].mid != -1) { if (match) break; i++; }` — jump.c's
+ * Plain `while (BattleDB[i].mid != MOTION_ID_NONE) { if (match) break; i++; }`
+ * — jump.c's
  * duplicate_loop_exit_test copies the condition to the entry using the
  * provable i==0 (a literal offset-0 access, no index register), and again at
  * the loop bottom with the updated i (see the cookbook's bottom-test
@@ -35,13 +37,13 @@
  * separate extend + `sll 4`.
  */
 
-s16 GetAttackDBID(Humanoid *human, s16 mid)
+s16 GetAttackDBID(Humanoid *human, motion_id mid)
 {
     s16 i;
 
     mid = GetMotionID(human->motion, mid);
     i = 0;
-    while (BattleDB[i].mid != -1)
+    while (BattleDB[i].mid != MOTION_ID_NONE)
     {
         if (BattleDB[i].mid == mid)
         {

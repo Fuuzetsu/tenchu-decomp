@@ -38,12 +38,12 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern short UpdateMotion(MotionManager *mmp, short mid);
+extern short UpdateMotion(MotionManager *mmp, motion_id mid);
 
 /* Jump-state motion, collision response, air steering, and landing control. */
 void ActJUMP(void)
 {
-    short mid; /* the motion id saved before SET_MOTION overwrites motID */
+    motion_id mid; /* saved before SET_MOTION overwrites motID */
     u16 pad;
     MapVector map;
     SVECTOR spd;

@@ -494,7 +494,7 @@ struct tag_TItem
 extern void AttackCancelControl(s16 mode);
 /* Sets the motion globals and forwards to AttackCancelControl. */
 extern void dispose_weapon_data_of_char_(Humanoid *h, int mode);
-extern s16 UpdateMotion(MotionManager *m, short id);
+extern s16 UpdateMotion(MotionManager *m, motion_id id);
 extern short DrawSprite(Sprite3D *sprt);
 extern VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);
 extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
