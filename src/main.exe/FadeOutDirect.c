@@ -45,7 +45,7 @@
  *    load-bearing ("without it cc1 hoists `addiu a0,sp,136` early"); that
  *    was true only of THAT draft, where the `while(1)+break` loop below
  *    made loop.c hoist `&ply` and inflated register pressure. With the
- *    goto loop and `pp` in place the fence is not merely unnecessary but
+ *    goto loop and `packet` in place the fence is not merely unnecessary but
  *    HARMFUL: it is worth the last 8 bytes (autorules' `fence-unwrap`
  *    found this). Fences are reconstruction scaffolding, not idiom.
  *  - The quad's four corners: `x0=y0=y1=x2=0`, `x1=x3=o_disp.disp.w`,
@@ -63,9 +63,10 @@
  *    0x80038bc4), which is the cookbook's tell for the goto form ("A
  *    top-test loop that never hoists its invariants is a hand-rolled goto
  *    loop"). `time` is the reused PARAMETER (prologue `move $s1,$a0`).
- *  - `pp` (the `&ply` base register, `$v1`) is what makes the `ply.ply.code`
- *    byte take TWO steps in the target — `= 0x28` through the pointer
- *    (`sb v0,0xF(v1)`), then a genuine `lbu`/`ori 2`/`sb` back at the SAME
+ *  - `packet` (the `&ply` base register, `$v1`) is what makes the
+ *    `ply.ply.code` byte take TWO steps in the target — `= 0x28` through
+ *    the pointer (`sb v0,0xF(v1)`), then a genuine `lbu`/`ori 2`/`sb` back
+ *    at the SAME
  *    field spelled sp-relative (`0xF7(sp)`). The two accesses use different
  *    ADDRESS RTX, and gcc-2.8.1's cse hashes memory by address, so it cannot
  *    forward the stored 0x28 to the reload. Spelling both accesses directly
@@ -74,17 +75,18 @@
  *    single `li v0,0x2A` — one instruction SHORT, which is exactly how the
  *    earlier checkpoint stalled. Note this is cse VALUE FORWARDING, not
  *    dead-store elimination: that draft still emitted the `= 0x28` store.
- *    The pointer offsets decode the target exactly: `&pp->ply.tag+3` -> 11,
- *    `pp->ply.code` -> 15, `&pp->tpage.tag+3` -> 3, all off `$v1 = &ply`.
- *  - `pp` does not appear in the demo's PSX.SYM local list, which records
+ *    The pointer offsets decode the target exactly:
+ *    `&packet->ply.tag+3` -> 11, `packet->ply.code` -> 15,
+ *    `&packet->tpage.tag+3` -> 3, all off `$v1 = &ply`.
+ *  - `packet` does not appear in the demo's PSX.SYM local list, which records
  *    register locals for this function (all five params are listed). So the
  *    ORIGINAL almost certainly reached these three bytes through PsyQ's
  *    pointer-taking packet macros (`setlen(&p->ply,5)` / `setcode(&p->ply,
  *    0x28)` / `setlen(&p->tpage,1)`, libgpu.h) rather than a named local;
- *    `pp` is the reconstruction that reproduces their addressing. That the
+ *    `packet` is the reconstruction that reproduces their addressing. The
  *    demo build (a separate compile of the same source, 0x80031fbc) emits
- *    this ply-setup block instruction-for-instruction identically to retail
- *    is what proves the shape is source, not a scheduling accident.
+ *    this ply-setup block instruction-for-instruction identically to retail,
+ *    proving the shape is source rather than a scheduling accident.
  *  - Sibling SetPolyXF4 (same TU, EFFECT.C:1770) writes these same fields
  *    but takes `POLY_XF4 *ply` as a PARAMETER, so there the direct and the
  *    through-pointer spellings are indistinguishable and it matched with
@@ -99,7 +101,7 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     DRAWENV o_draw;
     DRAWENV n_draw;
     POLY_XF4 ply;
-    POLY_XF4 *pp;
+    POLY_XF4 *packet;
 
     GetDrawEnv(&o_draw);
     GetDispEnv(&o_disp);
@@ -108,11 +110,11 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     n_draw.ofs[0] = o_disp.disp.x;
     n_draw.ofs[1] = o_disp.disp.y;
     PutDrawEnv(&n_draw);
-    pp = &ply;
-    setlen(&pp->ply, 5);
-    pp->ply.code = 0x28;
+    packet = &ply;
+    setlen(&packet->ply, 5);
+    packet->ply.code = 0x28;
     ply.ply.code |= 2;
-    setlen(&pp->tpage, 1);
+    setlen(&packet->tpage, 1);
     ply.tpage.code[0] = ((attrib & 3) << 5) | GPU_DRAWMODE_DITHER;
     ply.ply.x0 = 0;
     ply.ply.y0 = 0;

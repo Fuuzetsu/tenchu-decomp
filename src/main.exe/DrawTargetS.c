@@ -36,11 +36,12 @@
  *    plain `long color >> N`), not Ghidra's `(uint)param_4 >> N` (which
  *    would compile to `srl`). Both truncate to the same byte once stored,
  *    but only the signed spelling reproduces the actual opcode.
- *  - `p`, `ot`, and `callpri` are branch-local call-argument carriers. They
- *    put `&line`, the in-place u16 narrowing, and OTablePt into a0/a2/a1 in
- *    both color arms while leaving the four line-coordinate stores and first
- *    jal shared after the join. Long nearx/neary locals avoid the short
- *    addiu-then-move hops; x/y still update in place as PSX.SYM suggests.
+ *  - `line_ptr`, `ordering_table`, and `priority` are branch-local
+ *    call-argument carriers. They put `&line`, the in-place u16 narrowing,
+ *    and OTablePt into a0/a2/a1 in both color arms while leaving the four
+ *    line-coordinate stores and first jal shared after the join. Long
+ *    nearx/neary locals avoid the short addiu-then-move hops; x/y still
+ *    update in place as PSX.SYM suggests.
  *  - The sign-staged edge forms in both arms (`x = -x; x -= r; x = -x;`
  *    and `neary = r - y; neary = -neary;`) are allocation staging, not
  *    recovered arithmetic: flow counts their mentions, combine folds each
@@ -59,11 +60,11 @@ extern void GsSortLine(GsLINE *p, GsOT *ot, long pri);
 void DrawTargetS(long x, long y, long z, long color)
 {
     GsLINE line;
-    GsLINE *p;
-    GsOT *ot;
+    GsLINE *line_ptr;
+    GsOT *ordering_table;
     long otz;
     long nearx, neary;
-    long callpri;
+    long priority;
 
     z = z >> 2;
     otz = z < 0 ? 0 : (z >= DEPTH_LIMIT ? DEPTH_LIMIT - 1 : z);
@@ -76,32 +77,32 @@ void DrawTargetS(long x, long y, long z, long color)
      * plain adds -- see the header. */
     if (color < 0)
     {
-        p = &line;
+        line_ptr = &line;
         otz = (u16)otz;
-        callpri = otz;
+        priority = otz;
         nearx = x - 20;
         neary = 20 - y;
         neary = -neary;
         x = -x;
         x -= 20;
         x = -x;
-        ot = OTablePt;
+        ordering_table = OTablePt;
         y = -y;
         y -= 20;
         y = -y;
     }
     else
     {
-        p = &line;
+        line_ptr = &line;
         otz = (u16)otz;
-        callpri = otz;
+        priority = otz;
         nearx = x - 2;
         neary = 2 - y;
         neary = -neary;
         x = -x;
         x -= 2;
         x = -x;
-        ot = OTablePt;
+        ordering_table = OTablePt;
         y = -y;
         y -= 2;
         y = -y;
@@ -110,7 +111,7 @@ void DrawTargetS(long x, long y, long z, long color)
     line.y0 = neary;
     line.x1 = x;
     line.y1 = y;
-    GsSortLine(p, ot, callpri);
+    GsSortLine(line_ptr, ordering_table, priority);
     line.x0 = x;
     line.y0 = neary;
     line.x1 = nearx;

@@ -32,10 +32,11 @@
  * GsCOORDINATE2, zeroed translation + RotMatrixYXZ, default grey/full-scale
  * GsSPRITE) and optionally derives the sprite's pixel geometry from `image`
  * — same field-by-field shape and idioms as InitSprite.c (IMAGES.C, matched
- * — this TU's twin): `tp`/`sh` are named locals reused after the GetTPage
- * call, `image->px`/`py` are re-read (fresh loads, GetTPage clobbers the
- * caller-saved copies), and `(u8)image->py` for `.v` is a genuinely separate
- * byte load from the earlier signed `lh` of the same field.
+ * — this TU's twin): `texture_mode`/`width_shift` are named locals reused
+ * after the GetTPage call, `image->px`/`py` are re-read (fresh loads,
+ * GetTPage clobbers the caller-saved copies), and `(u8)image->py` for `.v`
+ * is a genuinely separate byte load from the earlier signed `lh` of the
+ * same field.
  *
  * Sprite3D's complete 0x8C-byte PSX.SYM layout is shared in game_types.h;
  * `sprite` is its trailing GsSPRITE member at +0x68. PSX.SYM's `dim` view
@@ -48,8 +49,8 @@ extern void *memset(void *s, s32 c, u32 n);
 Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
 {
     Sprite3D *sprt;
-    s32 tp;
-    s32 sh;
+    s32 texture_mode;
+    s32 width_shift;
 
     sprt = (Sprite3D *)valloc(sizeof(Sprite3D));
     if (orgsprt != 0)
@@ -82,13 +83,17 @@ Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
         sprt->sprite.scalex = sprt->sprite.scaley = FIXED_ONE;
         if (image != 0)
         {
-            tp = *(u16 *)&image->pmode & 3;
-            sprt->sprite.attribute = sprt->sprite.attribute | (tp << 0x18);
-            sh = 2 - tp;
-            sprt->sprite.w = image->pw << sh;
+            texture_mode = *(u16 *)&image->pmode & 3;
+            sprt->sprite.attribute =
+                sprt->sprite.attribute | (texture_mode << 0x18);
+            width_shift = 2 - texture_mode;
+            sprt->sprite.w = image->pw << width_shift;
             sprt->sprite.h = image->ph;
-            sprt->sprite.tpage = GetTPage(tp, 0, image->px, image->py);
-            sprt->sprite.u = (u8)((image->px << sh) & ((1 << (8 - tp)) - 1));
+            sprt->sprite.tpage =
+                GetTPage(texture_mode, 0, image->px, image->py);
+            sprt->sprite.u =
+                (u8)((image->px << width_shift) &
+                     ((1 << (8 - texture_mode)) - 1));
             sprt->sprite.v = (u8)image->py;
             sprt->sprite.cx = image->cx;
             sprt->sprite.cy = image->cy;

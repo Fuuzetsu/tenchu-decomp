@@ -54,10 +54,10 @@
  *    boundary shape represented here by `mode` and `mode16`.
  *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
  *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
- *  - p is a `long *` cursor at &index->index; the row fields are reached as
- *    ((short *)p)[-1..5] (the -2($s2) access proves the cast-based shape) and
- *    the row rect tests re-read the same expressions in the division block
- *    so cse reuses the bounds registers.
+ *  - `row` is a `long *` cursor at &index->index; the row fields are reached
+ *    as ((short *)row)[-1..5] (the -2($s2) access proves the cast-based
+ *    shape) and the row rect tests re-read the same expressions in the
+ *    division block so cse reuses the bounds registers.
  *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
  *    sign-extend of the short quotient merged with the *2 and *8 array scaling.
  *  - `node = (AreaNodeType *)((n << 4) + (long)list);` — integer + integer
@@ -93,7 +93,7 @@ extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
 {
     long n;
-    long *p;
+    long *row;
     NodeIndexType *index;
     AreaNodeType *node;
     AreaNodeType *list;
@@ -115,9 +115,9 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
     yy = LEVEL_NONE;
     /* The do{}while(0) wrapper is load-bearing: its loop notes double flow.c's
      * loop_depth ref-weighting for everything inside, which is what pushes the
-     * allocation priorities into the original's order (p above index, nn above
-     * y2 -> $s2/$s3/$s7/$fp exactly as in the target); the degenerate loop
-     * itself generates no code. */
+     * allocation priorities into the original's order (row above index, nn
+     * above y2 -> $s2/$s3/$s7/$fp exactly as in the target); the degenerate
+     * loop itself generates no code. */
     do
     {
         if (mode & AREA_LEVEL_STEP_DOWN)
@@ -152,20 +152,23 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
             }
             if (index->index != 0)
             {
-                p = &index->index;
+                row = &index->index;
                 first_hit = mode16 & AREA_LEVEL_FIRST_HIT;
             loop:
                 if (yy == (u32)LEVEL_NONE)
                 {
-                    if (((short *)p)[2] <= x && x <= ((short *)p)[4] && ((short *)p)[3] <= z && z <= ((short *)p)[5])
+                    if (((short *)row)[2] <= x && x <= ((short *)row)[4] &&
+                        ((short *)row)[3] <= z && z <= ((short *)row)[5])
                     {
-                        nn = ((short *)p)[-1];
-                        list = (AreaNodeType *)*p;
+                        nn = ((short *)row)[-1];
+                        list = (AreaNodeType *)*row;
                         n = 0;
                         if (nn < 0)
                         {
-                            qx = (x - ((short *)p)[2]) * 4 / (((short *)p)[4] - ((short *)p)[2]);
-                            qz = (z - ((short *)p)[3]) * 4 / (((short *)p)[5] - ((short *)p)[3]);
+                            qx = (x - ((short *)row)[2]) * 4 /
+                                 (((short *)row)[4] - ((short *)row)[2]);
+                            qz = (z - ((short *)row)[3]) * 4 /
+                                 (((short *)row)[5] - ((short *)row)[3]);
                             n = ((IndexArrayType *)list)->array[qz][qx];
                             if (n == -1)
                                 goto next;
@@ -207,9 +210,9 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                         }
                     }
                 next:
-                    p += 4;
+                    row += 4;
                     index++;
-                    if (*p != 0)
+                    if (*row != 0)
                         goto loop;
                 }
             }

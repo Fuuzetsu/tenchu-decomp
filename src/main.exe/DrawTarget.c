@@ -41,9 +41,10 @@
  *    zero/coordinate stores, unlike the twins.
  *
  * STATUS: MATCHING — exact 204-byte / 51-instruction pure C with the target
- * 0x28 frame. A short-lived `SVECTOR *p = &scr` supplies the RotTransPers
- * SXY argument and the post-call `p->vz` writeback. Because that alias
- * crosses the call, it is cached in `$s0`; `color` consequently takes `$s1`.
+ * 0x28 frame. A short-lived `SVECTOR *projected = &scr` supplies the
+ * RotTransPers SXY argument and the post-call `projected->vz` writeback.
+ * Because that alias crosses the call, it is cached in `$s0`; `color`
+ * consequently takes `$s1`.
  * The DrawTargetS arguments deliberately use direct `scr.vx/vy/vz` member
  * spellings, so the values reload as `lh` from `$sp` after the pointer dies.
  * Using `scr` directly for every access drops the saved pointer and shrinks
@@ -58,7 +59,7 @@ extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 void DrawTarget(s32 x, s32 y, s32 z, s32 color)
 {
     SVECTOR scr;
-    SVECTOR *p;
+    SVECTOR *projected;
 
     *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
     *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
@@ -68,9 +69,10 @@ void DrawTarget(s32 x, s32 y, s32 z, s32 color)
     *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (s16)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
-    p = &scr;
-    p->vz = RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)p,
-                         (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-                         (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+    projected = &scr;
+    projected->vz = RotTransPers(
+        (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)projected,
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
     DrawTargetS(scr.vx, scr.vy, scr.vz - 5, color);
 }

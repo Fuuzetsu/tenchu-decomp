@@ -68,7 +68,7 @@ void DrawBleed(TEffectSlot *ef)
 {
     BleedType *param = &ef->param.bleed;
     SVECTOR scr;
-    SVECTOR *scrp;
+    SVECTOR *projected;
     long x, y, z;
     s32 otz;
     s16 pri;
@@ -105,17 +105,17 @@ void DrawBleed(TEffectSlot *ef)
     *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (short)ViewInfo.vpz;
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
     SetRotMatrix(&GsWSMATRIX);
-    /* `scrp` is not a redundant alias for `&scr`: spelling the address
+    /* `projected` is not a redundant alias for `&scr`: spelling the address
      * directly at its uses costs 57 lines. PSX.SYM records `scr` twice
      * here, once as an SVECTOR and once as a pointer, so the original
      * had them in separate scopes rather than side by side -- but they
      * are simultaneously live in retail's shape, so that is not
      * reachable by renaming. */
-    scrp = &scr;
-    scrp->vz = (s16)RotTransPers((SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT),
-                                 (s32 *)scrp,
-                                 (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-                                 (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+    projected = &scr;
+    projected->vz = (s16)RotTransPers(
+        (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)projected,
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
+        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
 
     otz = scr.vz;
     if (otz > NEAR_DEPTH)
