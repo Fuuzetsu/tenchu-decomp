@@ -959,7 +959,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef28",
-      "source_owner": "ITEM_SEL_SPRITE_PTRS",
+      "source_owner": "ITEM_SELECTION_SCREEN_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013824",
       "target_owner": "path_demo",
@@ -968,7 +968,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef2c",
-      "source_owner": "ITEM_SEL_SPRITE_PTRS",
+      "source_owner": "ITEM_SELECTION_SCREEN_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013800",
       "target_owner": "path_demo",
@@ -977,7 +977,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef30",
-      "source_owner": "ITEM_SEL_SPRITE_PTRS",
+      "source_owner": "ITEM_SELECTION_SCREEN_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800137dc",
       "target_owner": "path_demo",
@@ -986,7 +986,7 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef34",
-      "source_owner": "ITEM_SEL_SPRITE_PTRS",
+      "source_owner": "ITEM_SELECTION_SCREEN_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800137b8",
       "target_owner": "path_demo",
@@ -995,182 +995,182 @@
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef38",
-      "source_owner": "RS_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013968",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "rs_tim_path_english"
+      "target_owner": "stage_result_background_path_english",
+      "symbol": "stage_result_background_path_english"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef3c",
-      "source_owner": "RS_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013948",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "rs_tim_path_french"
+      "target_owner": "stage_result_background_path_french",
+      "symbol": "stage_result_background_path_french"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef40",
-      "source_owner": "RS_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013928",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "rs_tim_path_italian"
+      "target_owner": "stage_result_background_path_italian",
+      "symbol": "stage_result_background_path_italian"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef44",
-      "source_owner": "RS_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013908",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "rs_tim_path_japanese"
+      "target_owner": "stage_result_background_path_japanese",
+      "symbol": "stage_result_background_path_japanese"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef48",
-      "source_owner": "RANK_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800139f4",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_english",
       "symbol": "rank_archive_path_english"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef4c",
-      "source_owner": "RANK_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800139d0",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_french",
       "symbol": "rank_archive_path_french"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef50",
-      "source_owner": "RANK_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800139ac",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_italian",
       "symbol": "rank_archive_path_italian"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef54",
-      "source_owner": "RANK_ARCHIVE_PTRS",
+      "source_owner": "STAGE_RESULT_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013988",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_japanese",
       "symbol": "rank_archive_path_japanese"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef58",
-      "source_owner": "RANKS_ARCHIVE_PTRS",
+      "source_owner": "MISSION_SCORE_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800139f4",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_english",
       "symbol": "rank_archive_path_english"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef5c",
-      "source_owner": "RANKS_ARCHIVE_PTRS",
+      "source_owner": "MISSION_SCORE_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800139d0",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_french",
       "symbol": "rank_archive_path_french"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef60",
-      "source_owner": "RANKS_ARCHIVE_PTRS",
+      "source_owner": "MISSION_SCORE_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x800139ac",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_italian",
       "symbol": "rank_archive_path_italian"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef64",
-      "source_owner": "RANKS_ARCHIVE_PTRS",
+      "source_owner": "MISSION_SCORE_RANK_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013988",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
+      "target_owner": "rank_archive_path_japanese",
       "symbol": "rank_archive_path_japanese"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef68",
-      "source_owner": "TRN_SPRITE_PTRS",
+      "source_owner": "MISSION_SCORE_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013a84",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "trn_sprite_path_english"
+      "target_owner": "mission_score_background_path_english",
+      "symbol": "mission_score_background_path_english"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef6c",
-      "source_owner": "TRN_SPRITE_PTRS",
+      "source_owner": "MISSION_SCORE_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013a60",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "trn_sprite_path_french"
+      "target_owner": "mission_score_background_path_french",
+      "symbol": "mission_score_background_path_french"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef70",
-      "source_owner": "TRN_SPRITE_PTRS",
+      "source_owner": "MISSION_SCORE_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013a3c",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "trn_sprite_path_italian"
+      "target_owner": "mission_score_background_path_italian",
+      "symbol": "mission_score_background_path_italian"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef74",
-      "source_owner": "TRN_SPRITE_PTRS",
+      "source_owner": "MISSION_SCORE_BACKGROUND_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013a18",
-      "target_owner": "ITEM_HELP_TIM_PATHS",
-      "symbol": "trn_sprite_path_japanese"
+      "target_owner": "mission_score_background_path_japanese",
+      "symbol": "mission_score_background_path_japanese"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef88",
-      "source_owner": "GOV_ARCHIVE_PTRS",
+      "source_owner": "GAME_OVER_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013af0",
-      "target_owner": "path_font_tim",
-      "symbol": "gov_archive_name_english"
+      "target_owner": "game_over_archive_name_english",
+      "symbol": "game_over_archive_name_english"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef8c",
-      "source_owner": "GOV_ARCHIVE_PTRS",
+      "source_owner": "GAME_OVER_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013ae4",
-      "target_owner": "path_font_tim",
-      "symbol": "gov_archive_name_french"
+      "target_owner": "game_over_archive_name_french",
+      "symbol": "game_over_archive_name_french"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef90",
-      "source_owner": "GOV_ARCHIVE_PTRS",
+      "source_owner": "GAME_OVER_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013ad8",
-      "target_owner": "path_font_tim",
-      "symbol": "gov_archive_name_italian"
+      "target_owner": "game_over_archive_name_italian",
+      "symbol": "game_over_archive_name_italian"
     },
     {
       "source_file": "75F64.data.s",
       "source_address": "0x8008ef94",
-      "source_owner": "GOV_ARCHIVE_PTRS",
+      "source_owner": "GAME_OVER_ARCHIVE_PATHS",
       "target_file": "2EB0.data.s",
       "target_address": "0x80013acc",
-      "target_owner": "path_font_tim",
-      "symbol": "gov_archive_name_japanese"
+      "target_owner": "game_over_archive_name_japanese",
+      "symbol": "game_over_archive_name_japanese"
     },
     {
       "source_file": "75F64.data.s",

@@ -54,8 +54,6 @@ extern u8 CHOSEN_LANGUAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 
 extern char NUMBER_TIM_PATH[];
-extern char *RANKS_ARCHIVE_PTRS[N_LANGUAGES];
-extern char *TRN_SPRITE_PTRS[N_LANGUAGES];
 extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
@@ -238,7 +236,8 @@ void mission_score_screen(void)
     {
         register u32 attributeMask;
 
-        archive = FileRead(RANKS_ARCHIVE_PTRS[CHOSEN_LANGUAGE]);
+        archive = FileRead(
+            MISSION_SCORE_RANK_ARCHIVE_PATHS[CHOSEN_LANGUAGE]);
         attributeMask = GS_ATTR_SEMITRANS_ADD;
     score_rank_sprite_init_loop:
     {
@@ -282,7 +281,7 @@ void mission_score_screen(void)
         u32 width;
         u32 height;
 
-        tim = get_tim_from_archive(archive, i + N_STAGE_RANKS);
+        tim = get_tim_from_archive(archive, i + RANK_ARCHIVE_RIKIMARU);
         initSprite = (GsSPRITE *)((u8 *)&storage +
                                   i * sizeof(GsSPRITE));
         initSprite = (GsSPRITE *)((u8 *)initSprite +
@@ -306,12 +305,12 @@ void mission_score_screen(void)
         LoadTIM(tim);
     }
         i++;
-        if (i < 2)
+        if (i < N_PLAYABLE_CHARACTERS)
             goto score_character_sprite_init_loop;
     }
     vfree(archive);
 
-    tim = FileRead(TRN_SPRITE_PTRS[CHOSEN_LANGUAGE]);
+    tim = FileRead(MISSION_SCORE_BACKGROUND_PATHS[CHOSEN_LANGUAGE]);
     tail.background = load_background_(tim);
     vfree(tim);
 

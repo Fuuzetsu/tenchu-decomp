@@ -195,7 +195,11 @@
 #define FALL_SPEED_MAX 400    /* terminal fall speed */
 #define DEATH_FALL_HEIGHT 25000 /* a MAP_DEATH floor farther than this kills */
 
-/* Loadout: how many item stacks fit in the mission inventory. */
+/* Loadout limits. The kind counter includes the permanent grappling hook and
+ * is incremented before the normal selection guard, hence its exclusive
+ * bound of six implements the localized "four kinds" rule. */
+#define NORMAL_ITEM_CARRY_LIMIT 15
+#define CHEAT_ITEM_CARRY_LIMIT 30
 #define MAX_SELECTED_ITEMS 6
 
 /* End-of-stage scoring (calculate_score / mission_score_screen). */

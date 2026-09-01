@@ -312,16 +312,6 @@ struct ArcFile
 
 #define ARC_ENTRY_TABLE_OFFSET ((s32)&((ArcFile *)0)->entry)
 
-/* Retail's inventory-shop presentation and stock-limit record. */
-typedef struct ShopItemDefault ShopItemDefault;
-struct ShopItemDefault
-{
-    s16 x;         /* 0x00: grid position */
-    s16 y;         /* 0x02 */
-    s32 itemIndex; /* 0x04 */
-    u8 maxStock;   /* 0x08 */
-}; /* 0x0C */
-
 /* Retail's end-of-stage counters and calculated score components. Penalties
  * and totals are signed because they are negative before their clamps. */
 typedef struct ScoreStats ScoreStats;
@@ -2509,6 +2499,18 @@ enum TItemType
 /* The pre-mission shop and carried loadout stop at armour. The five item
  * kinds after it are combat/projectile effects, not selectable stock. */
 #define N_LOADOUT_ITEMS (ITEM_ARMOUR + 1)
+
+/* Retail's inventory-shop presentation and stock-limit record.  The word at
+ * +4 is an item kind, not an unstructured integer; keeping the enum here also
+ * makes the archive mapping in images.h explicit. */
+typedef struct ShopItemDefault ShopItemDefault;
+struct ShopItemDefault
+{
+    s16 x;               /* 0x00: grid position */
+    s16 y;               /* 0x02 */
+    TItemType itemIndex; /* 0x04 */
+    u8 maxStock;         /* 0x08 */
+}; /* 0x0C */
 
 /* Stock markers shared by TLinkInfo.gItem and Humanoid.item[]: a locked
  * (not yet earned) special item, and the infinite-ammo count. */

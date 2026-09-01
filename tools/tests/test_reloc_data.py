@@ -99,12 +99,12 @@ class RewriteTests(unittest.TestCase):
                 "STAGE_SOUND_PREFICES",
                 "STAGE_ANIMATION_PREFICES",
                 "BriefingAssets",
-                "ITEM_SEL_SPRITE_PTRS",
-                "RS_ARCHIVE_PTRS",
-                "RANK_ARCHIVE_PTRS",
-                "RANKS_ARCHIVE_PTRS",
-                "TRN_SPRITE_PTRS",
-                "GOV_ARCHIVE_PTRS",
+                "ITEM_SELECTION_SCREEN_PATHS",
+                "STAGE_RESULT_BACKGROUND_PATHS",
+                "STAGE_RESULT_RANK_ARCHIVE_PATHS",
+                "MISSION_SCORE_RANK_ARCHIVE_PATHS",
+                "MISSION_SCORE_BACKGROUND_PATHS",
+                "GAME_OVER_ARCHIVE_PATHS",
                 "HumanData",
                 "WeaponModel",
                 "ThinkDB",
@@ -133,8 +133,14 @@ class RewriteTests(unittest.TestCase):
                 "fmt_stage_vab",
                 "D_800136B0",
                 "path_demo",
-                "ITEM_HELP_TIM_PATHS",
-                "path_font_tim",
+                *(f"stage_result_background_path_{language}" for language in
+                  ("english", "french", "italian", "japanese")),
+                *(f"rank_archive_path_{language}" for language in
+                  ("english", "french", "italian", "japanese")),
+                *(f"mission_score_background_path_{language}" for language in
+                  ("english", "french", "italian", "japanese")),
+                *(f"game_over_archive_name_{language}" for language in
+                  ("english", "french", "italian", "japanese")),
                 "msg_no_trace_point",
                 "D_80011960",
                 "D_80012C68",
@@ -285,12 +291,12 @@ class RewriteTests(unittest.TestCase):
                 4,
             )
         archive_owners = {
-            "ITEM_SEL_SPRITE_PTRS",
-            "RS_ARCHIVE_PTRS",
-            "RANK_ARCHIVE_PTRS",
-            "RANKS_ARCHIVE_PTRS",
-            "TRN_SPRITE_PTRS",
-            "GOV_ARCHIVE_PTRS",
+            "ITEM_SELECTION_SCREEN_PATHS",
+            "STAGE_RESULT_BACKGROUND_PATHS",
+            "STAGE_RESULT_RANK_ARCHIVE_PATHS",
+            "MISSION_SCORE_RANK_ARCHIVE_PATHS",
+            "MISSION_SCORE_BACKGROUND_PATHS",
+            "GAME_OVER_ARCHIVE_PATHS",
         }
         new_symbols = {
             entry.symbol for entry in entries if entry.source_owner in archive_owners
@@ -300,13 +306,13 @@ class RewriteTests(unittest.TestCase):
             {
                 *(f"item_selection_sprite_path_{language}" for language in
                   ("english", "french", "italian", "japanese")),
-                *(f"rs_tim_path_{language}" for language in
+                *(f"stage_result_background_path_{language}" for language in
                   ("english", "french", "italian", "japanese")),
                 *(f"rank_archive_path_{language}" for language in
                   ("english", "french", "italian", "japanese")),
-                *(f"trn_sprite_path_{language}" for language in
+                *(f"mission_score_background_path_{language}" for language in
                   ("english", "french", "italian", "japanese")),
-                *(f"gov_archive_name_{language}" for language in
+                *(f"game_over_archive_name_{language}" for language in
                   ("english", "french", "italian", "japanese")),
             },
         )

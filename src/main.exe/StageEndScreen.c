@@ -49,8 +49,6 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern packed_stage_id StageOrder[];
 extern s16 StageItem[];
 extern char NUMBER_TIM_PATH[];
-extern char *RS_ARCHIVE_PTRS[N_LANGUAGES];
-extern char *RANK_ARCHIVE_PTRS[N_LANGUAGES];
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern void mission_score_screen(s32 stage);
@@ -330,11 +328,13 @@ void StageEndScreen(void)
                 digit.w = 12;
             }
 
-            tim = FileRead(RS_ARCHIVE_PTRS[best_column.state->language]);
+            tim = FileRead(STAGE_RESULT_BACKGROUND_PATHS[
+                best_column.state->language]);
             ui.background = load_background_(tim);
             vfree(tim);
             rank_archive =
-                FileRead(RANK_ARCHIVE_PTRS[best_column.state->language]);
+                FileRead(STAGE_RESULT_RANK_ARCHIVE_PATHS[
+                    best_column.state->language]);
             tim = get_tim_from_archive(rank_archive,
                                        current.grade);
             best_column.x = 0x7f;

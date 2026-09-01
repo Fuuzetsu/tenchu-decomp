@@ -68,9 +68,6 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
 extern char fmt_arc[];                    /* %s%s%c.Arc */
 extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
-extern char *GOV_RESOURCE_PREFIX_PTRS[N_LANGUAGES];
-extern char *GOV_ARCHIVE_PTRS[N_LANGUAGES];
-
 extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern s32 VSync(s32 mode);
@@ -176,15 +173,16 @@ void game_over_screen_(void)
         suffix = 'a';
     }
     resource_root = path_demo;
-    prefix_entry = &GOV_RESOURCE_PREFIX_PTRS[language_state->language];
+    prefix_entry = &GAME_OVER_FADE_PREFIXES[language_state->language];
     sprintf(archive_path, fmt_arc, resource_root, *prefix_entry, suffix);
     fade_archive = FileRead(archive_path);
-    tim = get_tim_from_archive(fade_archive, 0);
+    tim = get_tim_from_archive(fade_archive, GAME_OVER_FADE_BACKGROUND);
     background = load_background_(tim);
     gov_archive = PathFileRead(resource_root,
-                               GOV_ARCHIVE_PTRS[language_state->language]);
+                               GAME_OVER_ARCHIVE_PATHS[
+                                   language_state->language]);
     setup_brightness = 0x80;
-    tim = get_tim_from_archive(gov_archive, 0);
+    tim = get_tim_from_archive(gov_archive, GAME_OVER_TITLE_IMAGE);
     StartDemoInitSprite(tim, &image, &gov_title);
     gov_title.y = -40;
     gov_title.x = 0;
@@ -196,7 +194,7 @@ void game_over_screen_(void)
     gov_title.my = gov_title.h >> 1;
     LoadTIM(tim);
 
-    tim = get_tim_from_archive(gov_archive, 1);
+    tim = get_tim_from_archive(gov_archive, GAME_OVER_PROMPT_IMAGE);
     StartDemoInitSprite(tim, &image, &gov_prompt);
     increment = *(volatile u32 *)&gov_prompt.attribute;
     gov_prompt.y = 95;
@@ -208,7 +206,7 @@ void game_over_screen_(void)
     gov_prompt.my = gov_prompt.h >> 1;
     LoadTIM(tim);
 
-    tim = get_tim_from_archive(fade_archive, 1);
+    tim = get_tim_from_archive(fade_archive, GAME_OVER_FADE_LINE_1);
     StartDemoInitSprite(tim, &image, &archive_line_1);
     archive_line_1.x = 0;
     archive_line_1.y = 0;
@@ -220,9 +218,9 @@ void game_over_screen_(void)
     archive_line_1.my = archive_line_1.h >> 1;
     LoadTIM(tim);
 
-    INIT_ARCHIVE_LINE(archive_line_2, 2, 20);
+    INIT_ARCHIVE_LINE(archive_line_2, GAME_OVER_FADE_LINE_2, 20);
 
-    INIT_ARCHIVE_LINE(archive_line_3, 3, 40);
+    INIT_ARCHIVE_LINE(archive_line_3, GAME_OVER_FADE_LINE_3, 40);
 
     DrawSync(0);
     VSync(0);

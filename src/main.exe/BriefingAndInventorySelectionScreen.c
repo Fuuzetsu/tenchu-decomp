@@ -65,9 +65,7 @@ extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 ARMOUR_USED; /* persistent blob 0x1a: blocks re-buying ITEM_ARMOUR */
 extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
-extern char *ITEM_SEL_SPRITE_PTRS[N_LANGUAGES];
 extern char NUMBER_TIM_PATH[];
-extern u8 *ITEM_HELP_TIM_PATHS[N_LANGUAGES];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
 extern int rand(void);
@@ -101,7 +99,7 @@ static inline u_long *LoadHelpArchive(TLinkInfo *q)
 {
     u8 *paths[N_LANGUAGES];
 
-    __builtin_memcpy(paths, ITEM_HELP_TIM_PATHS, sizeof(paths));
+    __builtin_memcpy(paths, ITEM_HELP_ARCHIVE_PATHS, sizeof(paths));
     return FileRead(paths[q->language]);
 }
 
@@ -128,7 +126,7 @@ void BriefingAndInventorySelectionScreen(void)
     BackGround *bg;
     u_long *harc;
     GsSPRITE *p;
-    int help;
+    ItemHelpImageId help_image;
     TLinkInfo *q;
     TLinkInfo *ps;
     GsSPRITE *dsp;
@@ -152,10 +150,10 @@ void BriefingAndInventorySelectionScreen(void)
     s16 cheat;
 
     pad.s = -1;
-    cap = 15;
+    cap = NORMAL_ITEM_CARRY_LIMIT;
     cursor = 0;
     taken = 0;
-    help = -1;
+    help_image = ITEM_HELP_NONE;
 
     for (i = 0; i < N_LOADOUT_ITEMS; i++)
     {
@@ -179,7 +177,7 @@ void BriefingAndInventorySelectionScreen(void)
     }
     bounce = 0;
     scale = FIXED_ONE;
-    buf = FileRead(ITEM_SEL_SPRITE_PTRS[q->language]);
+    buf = FileRead(ITEM_SELECTION_SCREEN_PATHS[q->language]);
     bg = load_background_(buf);
     vfree(buf);
     buf = FileRead(NUMBER_TIM_PATH);
@@ -240,7 +238,7 @@ void BriefingAndInventorySelectionScreen(void)
             if (CARRY_30_ITEMS_CHEAT_APPLIED == 0)
             {
                 CARRY_30_ITEMS_CHEAT_APPLIED = 1;
-                cap = 30;
+                cap = CHEAT_ITEM_CARRY_LIMIT;
             }
             break;
         case CHEAT_ITEM_REFILL - 1:
@@ -402,7 +400,7 @@ void BriefingAndInventorySelectionScreen(void)
         if ((newpress & (PADLup | PADLright | PADLdown | PADLleft)) != 0)
         {
             SoundEx(0, SE_UI_CURSOR);
-            help = -1;
+            help_image = ITEM_HELP_NONE;
         }
         if (newpress != 0 && pad.s == PADRright)
         {
@@ -434,14 +432,14 @@ void BriefingAndInventorySelectionScreen(void)
                         else
                         {
                             SoundEx(0, SE_ITEM_UNAVAILABLE);
-                            help = 0x14;
+                            help_image = ITEM_HELP_KIND_LIMIT_REACHED;
                             selected_kinds--;
                         }
                     }
                     else
                     {
                         SoundEx(0, SE_ITEM_UNAVAILABLE);
-                        help = 0x13;
+                        help_image = ITEM_HELP_ITEM_LIMIT_REACHED;
                     }
                 }
             }
@@ -474,21 +472,22 @@ void BriefingAndInventorySelectionScreen(void)
                     SoundEx(0, SE_WEAPON_RECOVER);
                 }
             }
-            help = -1;
+            help_image = ITEM_HELP_NONE;
         }
         if ((s16)scale < FIXED_ONE)
         {
             scale += 0xC0;
         }
-        if (help == -1 &&
+        if (help_image == ITEM_HELP_NONE &&
             TLINKINFO_STOCK(ps, ps->CharType,
                             SHOP_ITEM_DEFAULTS[cursor].itemIndex) != ITEM_LOCKED)
         {
-            help = SHOP_ITEM_DEFAULTS[cursor].itemIndex - 1;
+            help_image =
+                ITEM_HELP_FOR_ITEM(SHOP_ITEM_DEFAULTS[cursor].itemIndex);
         }
-        if (help != -1)
+        if (help_image != ITEM_HELP_NONE)
         {
-            buf = get_tim_from_archive(harc, help);
+            buf = get_tim_from_archive(harc, help_image);
             TimToSprite(buf, &hspr);
             hspr.x = -160;
             hspr.y = -120;
