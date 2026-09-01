@@ -10,7 +10,7 @@
  * non-NULL it goes through the GsGetLs/SetLsMatrix/RotTransPers path (same
  * scratchpad idiom as DrawOrnament/DrawModel — install `coord`'s local
  * system as the GTE's matrix, then rotate-translate-perspective the
- * (x,y,z) point written into the scratchpad SVECTOR @ 0x1F800020);
+ * (x,y,z) point written into the ScreenProjectionWorkspace input vector);
  * otherwise it falls back to GetScreenPosition (the already-matched
  * camera-relative-transform + RotTransPers helper). Either path leaves the
  * projected (x,y) and OTZ in one local SVECTOR `scr` (x,y from the
@@ -52,13 +52,13 @@ void draw_sprite_coord_(GsSPRITE *sp, s32 x, s32 y, s32 z, s32 size, GsCOORDINAT
 
     if (coord != 0)
     {
-        SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT);
+        SVECTOR *sv = SCREEN_PROJECTION_POINT;
         setVector(sv, x, y, z);
-        GsGetLs(coord, (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        GsGetLs(coord, SCREEN_PROJECTION_MATRIX);
+        GsSetLsMatrix(SCREEN_PROJECTION_MATRIX);
         scr.vz = (s16)RotTransPers(
-            sv, (s32 *)&scr, (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+            sv, (s32 *)&scr, SCREEN_PROJECTION_PERSPECTIVE,
+            SCREEN_PROJECTION_FLAG);
     }
     else
     {

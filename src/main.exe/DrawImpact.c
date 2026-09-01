@@ -110,16 +110,14 @@ void DrawImpact(TEffectSlot *ef)
     inverse = param->pz;
     if (work.super != 0)
     {
-        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = end;
-        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = start2;
-        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = inverse;
-        GsGetLs(work.super,
-                (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        *SCREEN_PROJECTION_POINT_X = end;
+        *SCREEN_PROJECTION_POINT_Y = start2;
+        *SCREEN_PROJECTION_POINT_Z = inverse;
+        GsGetLs(work.super, SCREEN_PROJECTION_MATRIX);
+        GsSetLsMatrix(SCREEN_PROJECTION_MATRIX);
         scr.vz = (s16)RotTransPers(
-            (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)&scr,
-            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+            SCREEN_PROJECTION_POINT, (s32 *)&scr,
+            SCREEN_PROJECTION_PERSPECTIVE, SCREEN_PROJECTION_FLAG);
     }
     else
     {

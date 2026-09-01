@@ -814,6 +814,18 @@ struct ConstructionVisibilityWorkspace
     GsRVIEW2 view;     /* 0x38: cached by DrawConstruction */
 }; /* 0x58 */
 
+/* EFFECT.C and several sprite helpers borrow this common scratchpad frame to
+ * project one point: the GTE local-screen matrix, its input vector, and the
+ * two auxiliary outputs written by RotTransPers. */
+typedef struct ScreenProjectionWorkspace ScreenProjectionWorkspace;
+struct ScreenProjectionWorkspace
+{
+    MATRIX local_screen; /* 0x00 */
+    SVECTOR point;       /* 0x20 */
+    s32 perspective;     /* 0x28: RotTransPers `p` output */
+    s32 flag;            /* 0x2C: RotTransPers `flag` output */
+}; /* 0x30 */
+
 /* Motion IDs are stored in signed halfwords; -1 means no active motion and
  * terminates motion-registration and battle tables.  Their high byte is the
  * character-status / Act* handler family; the low byte selects a motion

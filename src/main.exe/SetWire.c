@@ -77,8 +77,8 @@ extern short DrawModel(ModelType *objp);
 static inline void GetWireScreenPosition(long x, long y, long z,
                                          SVECTOR *screen)
 {
-    MATRIX *matrix = (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS;
-    SVECTOR *vector = (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT);
+    MATRIX *matrix = SCREEN_PROJECTION_MATRIX;
+    SVECTOR *vector = SCREEN_PROJECTION_POINT;
 
     matrix->t[0] = 0;
     matrix->t[1] = 0;
@@ -86,9 +86,9 @@ static inline void GetWireScreenPosition(long x, long y, long z,
     setVector(vector, x - ViewInfo.vpx, y - ViewInfo.vpy, z - ViewInfo.vpz);
     SetTransMatrix(matrix);
     SetRotMatrix(&GsWSMATRIX);
-    screen->vz = (s16)RotTransPers(
-        vector, (s32 *)screen, (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+    screen->vz = (s16)RotTransPers(vector, (s32 *)screen,
+                                   SCREEN_PROJECTION_PERSPECTIVE,
+                                   SCREEN_PROJECTION_FLAG);
 }
 
 static inline void GetWireRotation(VECTOR *start, VECTOR *end, int *rx,

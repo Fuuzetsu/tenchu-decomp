@@ -86,9 +86,9 @@
  *    between them, are source temps" rule (also lets `hint`/`size` survive
  *    the RotTransPers/GetScreenPosition call in a callee-saved register without
  *    a fresh reload after).
- *  - The scratchpad `px/py/pz` store is the FLAT `*(s16*)0x1F8000xx = ...`
- *    per-store macro cast (DrawTarget's idiom), NOT a named `SVECTOR *sv`
- *    pointer local (draw_sprite_coord_'s idiom) — even though the shape looks
+ *  - The scratchpad `px/py/pz` stores use separately materialized
+ *    ScreenProjectionWorkspace member addresses (DrawTarget's idiom), NOT a
+ *    named `SVECTOR *sv` pointer local (draw_sprite_coord_'s idiom) — even though the shape looks
  *    identical to draw_sprite_coord_ otherwise (same hint-vs-camera-relative
  *    dispatch, same RotTransPers call reusing the pointer): a named `sv`
  *    here combines the three stores through one materialized base register
@@ -157,15 +157,14 @@ void DrawFrame(TEffectSlot *ef)
 
     if (hint != 0)
     {
-        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = px;
-        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = py;
-        *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = pz;
-        GsGetLs(hint, (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+        *SCREEN_PROJECTION_POINT_X = px;
+        *SCREEN_PROJECTION_POINT_Y = py;
+        *SCREEN_PROJECTION_POINT_Z = pz;
+        GsGetLs(hint, SCREEN_PROJECTION_MATRIX);
+        GsSetLsMatrix(SCREEN_PROJECTION_MATRIX);
         scr.vz = (s16)RotTransPers(
-            (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)&scr,
-            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-            (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+            SCREEN_PROJECTION_POINT, (s32 *)&scr,
+            SCREEN_PROJECTION_PERSPECTIVE, SCREEN_PROJECTION_FLAG);
     }
     else
     {

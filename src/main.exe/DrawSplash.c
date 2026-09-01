@@ -63,13 +63,13 @@ void DrawSplash(TEffectSlot *ef)
     y = *(s32 *)&param->py;
     z = *(s32 *)&param->pz;
 
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TZ) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = x - (s16)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = y - (s16)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (s16)ViewInfo.vpz;
-    SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+    *SCREEN_PROJECTION_TRANSLATION_X = 0;
+    *SCREEN_PROJECTION_TRANSLATION_Y = 0;
+    *SCREEN_PROJECTION_TRANSLATION_Z = 0;
+    *SCREEN_PROJECTION_POINT_X = x - (s16)ViewInfo.vpx;
+    *SCREEN_PROJECTION_POINT_Y = y - (s16)ViewInfo.vpy;
+    *SCREEN_PROJECTION_POINT_Z = z - (s16)ViewInfo.vpz;
+    SetTransMatrix(SCREEN_PROJECTION_MATRIX);
     SetRotMatrix(&GsWSMATRIX);
     /* `projected` is not a redundant alias for `&scr`: spelling the address
      * directly at its uses costs 8 lines. PSX.SYM records `scr` twice
@@ -79,9 +79,8 @@ void DrawSplash(TEffectSlot *ef)
      * reachable by renaming. */
     projected = &scr;
     projected->vz = (s16)RotTransPers(
-        (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)projected,
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+        SCREEN_PROJECTION_POINT, (s32 *)projected,
+        SCREEN_PROJECTION_PERSPECTIVE, SCREEN_PROJECTION_FLAG);
     {
         s32 z;
 

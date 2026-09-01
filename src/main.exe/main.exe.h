@@ -97,25 +97,34 @@ enum gpu_blend_mode
 
 extern GsRVIEW2 ViewInfo;
 
-/* Every routine that projects a single world point borrows the same corner of
- * the scratchpad for its GTE work frame: a MATRIX at 0 whose rotation comes
- * from GsWSMATRIX and whose translation is zeroed, the view-relative SVECTOR
- * fed through it, and RotTransPers's two long out-params. Other functions
- * borrow other corners for unrelated temporaries -- the pad is a scratch
- * arena, not one shared struct. These stay separate integer constants rather
- * than members of a MATRIX/SVECTOR because retail materialises each address
- * as its own lui+ori; a struct spelling folds them into load displacements
- * and does not match (ram_layout.h records the measurement). */
-#define SCRATCH_LS 0x00                     /* MATRIX ls */
-#define SCRATCH_LS_TX (SCRATCH_LS + 0x14)   /* its long t[3] translation */
-#define SCRATCH_LS_TY (SCRATCH_LS + 0x18)
-#define SCRATCH_LS_TZ (SCRATCH_LS + 0x1c)
-#define SCRATCH_POINT 0x20                  /* the SVECTOR fed through it */
-#define SCRATCH_POINT_X (SCRATCH_POINT + 0)
-#define SCRATCH_POINT_Y (SCRATCH_POINT + 2)
-#define SCRATCH_POINT_Z (SCRATCH_POINT + 4)
-#define SCRATCH_RTP_P 0x28                  /* RotTransPers long *p */
-#define SCRATCH_RTP_FLAG 0x2c               /* RotTransPers long *flag */
+/* Keep each point-projection member address independently materialized.
+ * Directly caching one ScreenProjectionWorkspace pointer makes cc1 fold later
+ * members into load displacements, unlike retail's repeated absolute
+ * scratchpad addresses. */
+#define SCREEN_PROJECTION_BYTE_OFFSET(member)                         \
+    ((u32)&((ScreenProjectionWorkspace *)0)->member)
+#define SCREEN_PROJECTION_ADDRESS(member)                             \
+    TENCHU_SCRATCHPAD(SCREEN_PROJECTION_BYTE_OFFSET(member))
+#define SCREEN_PROJECTION_MATRIX                                      \
+    ((MATRIX *)SCREEN_PROJECTION_ADDRESS(local_screen))
+#define SCREEN_PROJECTION_TRANSLATION_X                               \
+    ((s32 *)SCREEN_PROJECTION_ADDRESS(local_screen.t[0]))
+#define SCREEN_PROJECTION_TRANSLATION_Y                               \
+    ((s32 *)SCREEN_PROJECTION_ADDRESS(local_screen.t[1]))
+#define SCREEN_PROJECTION_TRANSLATION_Z                               \
+    ((s32 *)SCREEN_PROJECTION_ADDRESS(local_screen.t[2]))
+#define SCREEN_PROJECTION_POINT                                       \
+    ((SVECTOR *)SCREEN_PROJECTION_ADDRESS(point))
+#define SCREEN_PROJECTION_POINT_X                                     \
+    ((s16 *)SCREEN_PROJECTION_ADDRESS(point.vx))
+#define SCREEN_PROJECTION_POINT_Y                                     \
+    ((s16 *)SCREEN_PROJECTION_ADDRESS(point.vy))
+#define SCREEN_PROJECTION_POINT_Z                                     \
+    ((s16 *)SCREEN_PROJECTION_ADDRESS(point.vz))
+#define SCREEN_PROJECTION_PERSPECTIVE                                 \
+    ((s32 *)SCREEN_PROJECTION_ADDRESS(perspective))
+#define SCREEN_PROJECTION_FLAG                                        \
+    ((s32 *)SCREEN_PROJECTION_ADDRESS(flag))
 
 /* Keep these as independently materialized member addresses: IsVisible
  * caches the view and rotated-result pointers at different times. */

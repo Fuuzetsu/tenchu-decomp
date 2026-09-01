@@ -18,16 +18,16 @@
 
 /*
  * GetScreenPosition (0x800396c0, 0x9c bytes) — camera-relative coordinate
- * transform + perspective project: zeroes the GTE scratchpad MATRIX's
- * translation vector (fixed PS1 scratchpad RAM at 0x1F800000, same
- * `MATRIX *m` idiom as PrepareGetScreenPositionS.c's t[0..2] @ 0x14/0x18/0x1c), writes
- * (x,y,z) - ViewInfo.(vpx,vpy,vpz) into a scratchpad SVECTOR @ 0x1F800020
+ * transform + perspective project: zeroes the point-projection workspace's
+ * GTE matrix translation (fixed PS1 scratchpad RAM at 0x1F800000, same
+ * `MATRIX *m` idiom as PrepareGetScreenPositionS.c), writes
+ * (x,y,z) - ViewInfo.(vpx,vpy,vpz) into its input SVECTOR
  * (same idiom as the twin GetScreenPositionS.c's sv @ 0x1F800080), installs the
  * (all-zero) translation and the global world-space rotation matrix
  * GsWSMATRIX, then calls RotTransPers (GTE perspective-transform library
  * wrapper, 0x80078704 > 0x80060000, precompiled) with that SVECTOR, the
- * caller's own output pointer `scr` (passed through unmodified), and two more
- * scratchpad slots (+0x28/+0x2c). RotTransPers's returned OTZ (depth) is
+ * caller's own output pointer `scr` (passed through unmodified), and the
+ * workspace's perspective/flag outputs. RotTransPers's returned OTZ (depth) is
  * written to `scr->vz` at +4 bytes — identical tail
  * to the twin.
  *
@@ -43,17 +43,17 @@
  *  - `x - (short)ViewInfo.vpx` is a NARROWING use (the result stores into
  *    a scratchpad s16 field) of a s32 global's LOW HALF — cc1 emits `lhu`
  *    for it, same rule as the twin.
- *  - Raw scratchpad addresses are plain integer-literal pointer casts,
- *    never a shared "Scratchpad + offset" symbol (PrepareGetScreenPositionS.c/
- *    GetScreenPositionS.c precedent).
+ *  - Each ScreenProjectionWorkspace pointer macro resolves to its own absolute
+ *    scratchpad address, never a shared "Scratchpad + offset" symbol
+ *    (PrepareGetScreenPositionS.c/GetScreenPositionS.c precedent).
  */
 
 extern MATRIX GsWSMATRIX;
 
 void GetScreenPosition(long x, long y, long z, SVECTOR *scr)
 {
-    MATRIX *m = (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS;
-    SVECTOR *sv = (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT);
+    MATRIX *m = SCREEN_PROJECTION_MATRIX;
+    SVECTOR *sv = SCREEN_PROJECTION_POINT;
 
     m->t[0] = 0;
     m->t[1] = 0;
@@ -63,7 +63,6 @@ void GetScreenPosition(long x, long y, long z, SVECTOR *scr)
     sv->vz = z - (short)ViewInfo.vpz;
     SetTransMatrix(m);
     SetRotMatrix(&GsWSMATRIX);
-    scr->vz = RotTransPers(sv, (s32 *)scr,
-                           (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-                           (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+    scr->vz = RotTransPers(sv, (s32 *)scr, SCREEN_PROJECTION_PERSPECTIVE,
+                           SCREEN_PROJECTION_FLAG);
 }

@@ -97,13 +97,13 @@ void DrawBleed(TEffectSlot *ef)
     z = *(s32 *)&param->pos.vz;
     param->time--;
 
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TZ) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = x - (short)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = y - (short)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (short)ViewInfo.vpz;
-    SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+    *SCREEN_PROJECTION_TRANSLATION_X = 0;
+    *SCREEN_PROJECTION_TRANSLATION_Y = 0;
+    *SCREEN_PROJECTION_TRANSLATION_Z = 0;
+    *SCREEN_PROJECTION_POINT_X = x - (short)ViewInfo.vpx;
+    *SCREEN_PROJECTION_POINT_Y = y - (short)ViewInfo.vpy;
+    *SCREEN_PROJECTION_POINT_Z = z - (short)ViewInfo.vpz;
+    SetTransMatrix(SCREEN_PROJECTION_MATRIX);
     SetRotMatrix(&GsWSMATRIX);
     /* `projected` is not a redundant alias for `&scr`: spelling the address
      * directly at its uses costs 57 lines. PSX.SYM records `scr` twice
@@ -113,9 +113,8 @@ void DrawBleed(TEffectSlot *ef)
      * reachable by renaming. */
     projected = &scr;
     projected->vz = (s16)RotTransPers(
-        (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)projected,
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+        SCREEN_PROJECTION_POINT, (s32 *)projected,
+        SCREEN_PROJECTION_PERSPECTIVE, SCREEN_PROJECTION_FLAG);
 
     otz = scr.vz;
     if (otz > NEAR_DEPTH)

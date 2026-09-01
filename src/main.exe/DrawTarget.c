@@ -33,9 +33,9 @@
  *    address-taken `SVECTOR scr`; its return value is stored into `scr.vz`.
  *    This is the original PSX.SYM local and legally explains the adjacent
  *    stack shorts plus the later independent `lh` readbacks.
- *  - Scratchpad zero/coordinate stores are FLAT `*(s32/s16 *)0x1F8000xx`
- *    casts, one macro expansion each (repeated fresh `lui $at,0x1F80` per
- *    store) — NOT a shared cached `MATRIX *`/`SVECTOR *` local like
+ *  - Scratchpad zero/coordinate stores use independently materialized
+ *    ScreenProjectionWorkspace member addresses (repeated fresh
+ *    `lui $at,0x1F80` per store) — NOT a shared cached `MATRIX *`/`SVECTOR *` local like
  *    GetScreenPosition.c/PrepareGetScreenPositionS.c use for the same scratchpad region: this
  *    function's asm never reuses one register across the individual
  *    zero/coordinate stores, unlike the twins.
@@ -61,18 +61,17 @@ void DrawTarget(s32 x, s32 y, s32 z, s32 color)
     SVECTOR scr;
     SVECTOR *projected;
 
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TX) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TY) = 0;
-    *(s32 *)TENCHU_SCRATCHPAD(SCRATCH_LS_TZ) = 0;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = x - (s16)ViewInfo.vpx;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = y - (s16)ViewInfo.vpy;
-    *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = z - (s16)ViewInfo.vpz;
-    SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+    *SCREEN_PROJECTION_TRANSLATION_X = 0;
+    *SCREEN_PROJECTION_TRANSLATION_Y = 0;
+    *SCREEN_PROJECTION_TRANSLATION_Z = 0;
+    *SCREEN_PROJECTION_POINT_X = x - (s16)ViewInfo.vpx;
+    *SCREEN_PROJECTION_POINT_Y = y - (s16)ViewInfo.vpy;
+    *SCREEN_PROJECTION_POINT_Z = z - (s16)ViewInfo.vpz;
+    SetTransMatrix(SCREEN_PROJECTION_MATRIX);
     SetRotMatrix(&GsWSMATRIX);
     projected = &scr;
     projected->vz = RotTransPers(
-        (SVECTOR *)TENCHU_SCRATCHPAD(SCRATCH_POINT), (s32 *)projected,
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_P),
-        (s32 *)TENCHU_SCRATCHPAD(SCRATCH_RTP_FLAG));
+        SCREEN_PROJECTION_POINT, (s32 *)projected,
+        SCREEN_PROJECTION_PERSPECTIVE, SCREEN_PROJECTION_FLAG);
     DrawTargetS(scr.vx, scr.vy, scr.vz - 5, color);
 }
