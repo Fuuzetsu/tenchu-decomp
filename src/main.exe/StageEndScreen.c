@@ -36,6 +36,9 @@
  * transfer and the later persistent-state byte load. Splitting those uses into
  * semantic block locals changes six instruction bytes; spelling the latter as
  * a direct volatile load grows the function by four bytes.
+ * `best_column` similarly exposes the one reused word as a state pointer while
+ * the archives are selected and as the best-score X coordinate while drawing,
+ * avoiding the old pointer-through-integer casts.
  */
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
@@ -140,7 +143,7 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
         sprite = &digit;                               \
         value = (value_);                              \
         signed_value = (s16)value;                     \
-        sprite->x = best_x;                            \
+        sprite->x = best_column.x;                     \
         sprite->y = 0x38;                              \
         negative = 0;                                  \
         if (signed_value < 0)                          \
@@ -208,7 +211,11 @@ void StageEndScreen(void)
     u32 layout_stage_offset;
     s32 top_y;
     s16 second_x;
-    s32 best_x;
+    union
+    {
+        TLinkInfo *state;
+        s32 x;
+    } best_column;
     s16 item_index;
     u16 pad;
     u16 pressed;
@@ -283,20 +290,20 @@ void StageEndScreen(void)
     }
 
     {
-        /* Weight fence: best_x needs +3 weighted refs — 1 here plus 2 on
+        /* Weight fence: best_column needs +3 weighted refs — 1 here plus 2 on
          * the language test below (both fences load-bearing; the old
          * depth-2 nest here was the only overshoot and is halved). */
         do
         {
-            best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
+            best_column.state = PSTATE;
         } while (0);
-        if (((TLinkInfo *)best_x)->StageNo == 7)
+        if (best_column.state->StageNo == 7)
         {
             do
             {
-                if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)
+                if (best_column.state->language == LANG_ENGLISH)
                 {
-                    ((TLinkInfo *)best_x)->mission_flags |= 1 << 10;
+                    best_column.state->mission_flags |= 1 << 10;
                 }
             } while (0);
         }
@@ -323,14 +330,14 @@ void StageEndScreen(void)
                 digit.w = 12;
             }
 
-            tim = FileRead(RS_ARCHIVE_PTRS[((TLinkInfo *)best_x)->language]);
+            tim = FileRead(RS_ARCHIVE_PTRS[best_column.state->language]);
             ui.background = load_background_(tim);
             vfree(tim);
             rank_archive =
-                FileRead(RANK_ARCHIVE_PTRS[((TLinkInfo *)best_x)->language]);
+                FileRead(RANK_ARCHIVE_PTRS[best_column.state->language]);
             tim = get_tim_from_archive(rank_archive,
                                        current.grade);
-            best_x = 0x7f;
+            best_column.x = 0x7f;
             StageEndInitSprite(tim, &image, &rank);
             rank.x = -160;
             rank.y = -120;
@@ -441,7 +448,8 @@ void StageEndScreen(void)
                     x = 0x52;
                     DRAW_SCORE_NUMBER(current.criticalScore, s16, 0, x, top_y);
                 }
-                DRAW_SCORE_NUMBER(best.criticalScore, s16, 0, best_x, top_y);
+                DRAW_SCORE_NUMBER(best.criticalScore, s16, 0, best_column.x,
+                                  top_y);
 
                 DRAW_SCORE_NUMBER(stats.murders, s32, 1, 10, -0x1a);
                 DRAW_SCORE_NUMBER(stats.stageEnemies, s32, 1, 0x28, -0x1a);
@@ -451,7 +459,8 @@ void StageEndScreen(void)
                     x = 0x52;
                     DRAW_SCORE_NUMBER(current.murderScore, s16, 1, x, -0x1a);
                 }
-                DRAW_SCORE_NUMBER(best.murderScore, s16, 1, best_x, -0x1a);
+                DRAW_SCORE_NUMBER(best.murderScore, s16, 1, best_column.x,
+                                  -0x1a);
 
                 DRAW_SCORE_NUMBER(stats.findEnemies, s32, 1, 0x1c, 1);
                 {
@@ -460,7 +469,8 @@ void StageEndScreen(void)
                     x = 0x52;
                     DRAW_SCORE_NUMBER((u16)current.spottedScore, s16, 1, x, 1);
                 }
-                DRAW_SCORE_NUMBER((u16)best.spottedScore, s16, 1, best_x, 1);
+                DRAW_SCORE_NUMBER((u16)best.spottedScore, s16, 1,
+                                  best_column.x, 1);
 
                 DRAW_SCORE_NUMBER(stats.friendHits, s32, 1, 0x1c, 0x1a);
                 {
@@ -469,7 +479,8 @@ void StageEndScreen(void)
                     x = 0x52;
                     DRAW_SCORE_NUMBER((u16)current.friendPenalty, s16, 1, x, 0x1a);
                 }
-                DRAW_SCORE_NUMBER((u16)best.friendPenalty, s16, 1, best_x, 0x1a);
+                DRAW_SCORE_NUMBER((u16)best.friendPenalty, s16, 1,
+                                  best_column.x, 0x1a);
 
                 {
                     s32 x;

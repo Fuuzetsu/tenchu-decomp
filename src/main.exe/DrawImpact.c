@@ -23,8 +23,9 @@
  * The final 4-byte residual was not a conflict-free local-alloc floor.  The
  * target itself uses $a0 for three disjoint roles: red's interpolation work,
  * the green/blue start-colour inputs, and the later coordinate pointer.  One
- * ordinary reusable `work` local for the latter two roles gives those loads
- * the pointer call's $a0 preference and reproduces all four register fields.
+ * reusable `work` union for the colour and coordinate-parent roles gives
+ * those loads the pointer call's $a0 preference and reproduces all four
+ * register fields without converting the pointer through an integer.
  * The colour-lerp locals end/start2/inverse are reused the same way for
  * the px/py/pz captures (and start2 a third time for the OT depth) —
  * same shared-role lever.
@@ -49,7 +50,11 @@ void DrawImpact(TEffectSlot *ef)
     s32 end_raw;
     s32 size;
     s32 priority;
-    s32 work;
+    union
+    {
+        s32 color;
+        GsCOORDINATE2 *super;
+    } work;
 
     param = &ef->param.impact;
     ratio = (param->count << 12) / param->time;
@@ -75,8 +80,8 @@ void DrawImpact(TEffectSlot *ef)
     }
     spr->r = (start >> 12) + (end_raw * ratio) / FIXED_ONE;
 
-    work = param->start_color.channel.g;
-    start2 = work * inverse;
+    work.color = param->start_color.channel.g;
+    start2 = work.color * inverse;
     end_raw = param->end_color.channel.g;
     if (start2 < 0)
     {
@@ -85,8 +90,8 @@ void DrawImpact(TEffectSlot *ef)
     start2 = start2 >> 12;
     spr->g = start2 + (end_raw * ratio) / FIXED_ONE;
 
-    work = param->start_color.channel.b;
-    start2 = work * inverse;
+    work.color = param->start_color.channel.b;
+    start2 = work.color * inverse;
     end_raw = param->end_color.channel.b;
     if (start2 < 0)
     {
@@ -101,14 +106,14 @@ void DrawImpact(TEffectSlot *ef)
     {
     } while (0);
     start2 = param->py;
-    work = (s32)param->super;
+    work.super = param->super;
     inverse = param->pz;
-    if (work != 0)
+    if (work.super != 0)
     {
         *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_X) = end;
         *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Y) = start2;
         *(s16 *)TENCHU_SCRATCHPAD(SCRATCH_POINT_Z) = inverse;
-        GsGetLs((GsCOORDINATE2 *)work,
+        GsGetLs(work.super,
                 (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
         scr.vz = (s16)RotTransPers(
