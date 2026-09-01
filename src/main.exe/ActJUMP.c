@@ -216,7 +216,7 @@ void ActJUMP(void)
         {
             return;
         }
-        if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
+        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) == 0)
         {
             return;
         }

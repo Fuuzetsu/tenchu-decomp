@@ -392,7 +392,7 @@ void ProcItemDokudango(TItem *item)
                 item->mode++;
                 return;
             }
-            if ((eater->attribute & ATTR_ALERT) != 0 &&
+            if ((eater->attribute & ATTR_WEAPON_DRAWN) != 0 &&
                 (eater->type & PAGE_MASK) != PAGE_BEAST)
             {
                 NowReturnNormal(eater);

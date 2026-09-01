@@ -357,7 +357,7 @@ void StateTransition(Humanoid *human)
         if (SR == SR_SEEN || ((Attrib & ATTR_HIT) != 0 && SR > 0))
         {
             Attrib = base_attrib | PHASE_ALERT;
-            if ((Attrib & ATTR_ALERT) == 0)
+            if ((Attrib & ATTR_WEAPON_DRAWN) == 0)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
             }
@@ -390,7 +390,7 @@ void StateTransition(Humanoid *human)
 
     case PHASE_ALERT:
     {
-        if (Attrib & ATTR_ALERT)
+        if (Attrib & ATTR_WEAPON_DRAWN)
         {
             if (Me_THINK_C->target.archive == StagePlayer->model)
             {
@@ -412,7 +412,7 @@ void StateTransition(Humanoid *human)
         }
         else
         {
-            if ((Attrib & ATTR_ALERT) == 0)
+            if ((Attrib & ATTR_WEAPON_DRAWN) == 0)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
             }

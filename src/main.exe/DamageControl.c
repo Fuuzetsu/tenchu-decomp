@@ -30,7 +30,8 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
     {                                                                         \
         FriendHits++;                                                         \
     }                                                                         \
-    else if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)      \
+    else if ((Me_MOTION_C->attribute &                                       \
+              (ATTR_WEAPON_DRAWN | PHASE_ALERT)) == 0)                       \
     {                                                                         \
         Criticals++;                                                          \
     }                                                                         \
@@ -235,7 +236,7 @@ void DamageControl(void)
 
                 hp = (u16)Me_MOTION_C->life - (u16)BattleDB[deg].power;
                 Me_MOTION_C->life = hp;
-                if (hp < 0 || (Me_MOTION_C->attribute & ATTR_ALERT) == 0)
+                if (hp < 0 || (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) == 0)
                 {
                     Me_MOTION_C->life = 0;
                 }
@@ -267,7 +268,7 @@ void DamageControl(void)
             if ((Me_MOTION_C->type != NINKEN) &&
                 ((StagePlayer == enemy.human || enemy.tag == CONFLICT_OWNER_ITEM)))
             {
-                if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
+                if ((Me_MOTION_C->attribute & (ATTR_WEAPON_DRAWN | PHASE_ALERT)) == 0)
                 {
                     Criticals++;
                 }
@@ -276,7 +277,7 @@ void DamageControl(void)
                     Murders++;
                 }
             }
-            if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
+            if ((Me_MOTION_C->attribute & (ATTR_WEAPON_DRAWN | PHASE_ALERT)) != 0)
             {
                 Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                 reset_alert_duration();
@@ -308,7 +309,7 @@ attack_break:
     {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+    if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
     {
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
     }
@@ -510,7 +511,7 @@ resolve_hit:
                 deg = GetAttackDBID(enemy.human, enemy.human->motion->mid);
                 if (Me_MOTION_C != StagePlayer &&
                     Me_MOTION_C->status != STAT_ATTACK &&
-                    (Me_MOTION_C->attribute & ATTR_ALERT) != 0 &&
+                    (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0 &&
                     Me_MOTION_C->map.height == 0 &&
                     gNannido != DIFFICULTY_EASY)
                 {
@@ -615,7 +616,7 @@ resolve_hit:
             {
                 goto npc_attack;
             }
-            if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+            if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
             {
                 goto difficulty_bonus;
             }
@@ -724,7 +725,7 @@ resolve_hit:
                     {
                         RECORD_PLAYER_KILL();
                     }
-                    if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) != 0)
+                    if ((Me_MOTION_C->attribute & (ATTR_WEAPON_DRAWN | PHASE_ALERT)) != 0)
                     {
                         Sound(Me_MOTION_C, CHAR_VOICE_HURT_HEAVY);
                         reset_alert_duration();

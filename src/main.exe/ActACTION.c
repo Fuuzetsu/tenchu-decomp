@@ -20,7 +20,7 @@
  * ActACTION (0x8001fb98) — controls action-motion cleanup and completion,
  * including weapon/afterimage teardown, replay transitions, sounds, and the
  * return to the normal motion, or to the weapon-drawn engage stance
- * (0x501) when ATTR_ALERT is up.
+ * (0x501) when ATTR_WEAPON_DRAWN is up.
  *
  * Matching notes (1,392 bytes / 348 instructions):
  *  - The one-shot loop around the dtM/Me_MOTION_C loads and mask store leaves
@@ -49,7 +49,7 @@ void ActACTION(void)
             return;
         if (Me_MOTION_C == StagePlayer)
             SetCameraMode(CMODE_NORMAL);
-        if (Me_MOTION_C->attribute & ATTR_ALERT)
+        if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
         {
             SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             return;
@@ -63,7 +63,7 @@ void ActACTION(void)
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);
-            if (Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
@@ -80,7 +80,7 @@ void ActACTION(void)
         {
             if (Me_MOTION_C == StagePlayer)
                 SetCameraMode(CMODE_NORMAL);
-            if (Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
@@ -197,7 +197,7 @@ void ActACTION(void)
             return;
         if (Me_MOTION_C == StagePlayer)
             SetCameraMode(CMODE_NORMAL);
-        if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
+        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) == 0)
             goto set_normal_motion;
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         return;

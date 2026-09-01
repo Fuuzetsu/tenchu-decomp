@@ -31,7 +31,7 @@ void ReturnNormal(void)
     {
         SetCameraMode(CMODE_NORMAL);
     }
-    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+    if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
     {
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
     }

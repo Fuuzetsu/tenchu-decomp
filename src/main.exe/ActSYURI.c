@@ -31,7 +31,7 @@
  * drops to recover when it runs out or the player cancels via pad.trig &
  * (PADRleft | PADRdown | PADRright); MOT_SYURI_RECOVER restocks the AI's
  * shuriken (ReqItemDefault) and returns to motion 0 or the weapon-drawn
- * engage stance (MOT_ENGAGE_STANCE, attribute & ATTR_ALERT) when the
+ * engage stance (MOT_ENGAGE_STANCE, attribute & ATTR_WEAPON_DRAWN) when the
  * motion runs out.
  *
  * Matching notes (docs/matching-cookbook.md):
@@ -107,7 +107,7 @@ void ActSYURI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }
@@ -128,7 +128,7 @@ void ActSYURI(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             }

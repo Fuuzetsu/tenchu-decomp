@@ -36,7 +36,7 @@
  * when the motion runs out; 0xA02/0xA03 (shimmy) keep moving while the
  * direction is held else return to 0xA00, falling (0x803) if the grip
  * breaks; 0xA04 (pull-up) ends in stand (0) or the weapon-drawn engage
- * stance (0x501, attribute & ATTR_ALERT) and RETURNS
+ * stance (0x501, attribute & ATTR_WEAPON_DRAWN) and RETURNS
  * (skipping the shared tail). Shared tail: ATTR_PUSH (shoved off the ledge)
  * knocks the character off the wall.
  *
@@ -130,7 +130,7 @@ void ActHANG(void)
             {
                 SetCameraMode(CMODE_NORMAL);
             }
-            if (Me_MOTION_C->attribute & ATTR_ALERT)
+            if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
             {
                 SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                 return;

@@ -326,7 +326,7 @@ void ActSQUAT(void)
         {
             SetCameraMode(CMODE_NORMAL);
         }
-        if (Me_MOTION_C->attribute & ATTR_ALERT)
+        if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
         {
             SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             return;

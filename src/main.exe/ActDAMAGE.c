@@ -247,7 +247,7 @@ void ActDAMAGE(void)
     }
     if (done)
     {
-        if (Me_MOTION_C->attribute & ATTR_ALERT)
+        if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
         {
             motID = MOT_ENGAGE_STANCE;
             motMODE = MOTION_MOVE_APPLY;

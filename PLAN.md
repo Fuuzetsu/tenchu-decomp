@@ -265,7 +265,7 @@ FINAL WAVE (2026-08-27, user-directed "keep going until done"):
    bulletproof evidence, and the runtime lane RAN: tools/
    pcsx_attrbits.py (new; rebuilt the stale pcsx-redux checkout to do
    it) observed 332 attribute/status transitions in a live retail
-   mission and settled ATTR_ALERT (0x40, raised at the alarm on
+   mission and settled ATTR_WEAPON_DRAWN (0x40, raised at the alarm on
    fighters and civilians, clears with EmergencyNotice — confirming
    the stealth-kill scoring gate) and ATTR_SUSPEND (0x80, the
    ActivateHumans think-budget suspension flag). humanoid.h's bit map

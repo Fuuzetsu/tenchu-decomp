@@ -61,7 +61,7 @@
  *    availability.
  */
 
-/* WEAPON_DRAWN raises ATTR_ALERT; WEAPON_SHEATHED clears it. */
+/* WEAPON_DRAWN raises ATTR_WEAPON_DRAWN; WEAPON_SHEATHED clears it. */
 void EquipWeapon(Humanoid *human, short mode)
 {
     OrnamentType **weapons;
@@ -72,19 +72,19 @@ void EquipWeapon(Humanoid *human, short mode)
     dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
     if (mode != WEAPON_SHEATHED)
     {
-        if ((human->attribute & ATTR_ALERT) != 0)
+        if ((human->attribute & ATTR_WEAPON_DRAWN) != 0)
         {
             return;
         }
-        human->attribute = human->attribute | ATTR_ALERT;
+        human->attribute = human->attribute | ATTR_WEAPON_DRAWN;
     }
     else
     {
-        if ((human->attribute & ATTR_ALERT) == 0)
+        if ((human->attribute & ATTR_WEAPON_DRAWN) == 0)
         {
             return;
         }
-        human->attribute = human->attribute & ~ATTR_ALERT;
+        human->attribute = human->attribute & ~ATTR_WEAPON_DRAWN;
     }
     switch (human->wpatk)
     {

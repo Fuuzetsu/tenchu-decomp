@@ -107,7 +107,7 @@ void ActSTATE(void)
                         SetCameraMode(CMODE_NORMAL);
                     }
                     {
-                        if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
                         {
                             t = MOT_ENGAGE_STANCE;
                         }
@@ -120,7 +120,7 @@ void ActSTATE(void)
                     break;
                 }
             }
-            if ((Me_MOTION_C->attribute & ATTR_ALERT) == 0)
+            if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) == 0)
             {
                 return;
             }
@@ -199,7 +199,7 @@ void ActSTATE(void)
                 }
             }
             dtM->mask = MOTION_MASK_ALL;
-            if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+            if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
             {
                 return;
             }
@@ -241,7 +241,7 @@ void ActSTATE(void)
                     {
                         SetCameraMode(CMODE_NORMAL);
                     }
-                    if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                    if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
                     {
                         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
                     }
@@ -334,7 +334,7 @@ void ActSTATE(void)
                 SetCameraMode(CMODE_NORMAL);
             }
             {
-                if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+                if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
                 {
                     t = MOT_ENGAGE_STANCE;
                 }
@@ -394,7 +394,7 @@ void ActSTATE(void)
         {
             SetCameraMode(CMODE_NORMAL);
         }
-        if ((Me_MOTION_C->attribute & ATTR_ALERT) != 0)
+        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
         {
             motID = MOT_ENGAGE_STANCE;
             break;

@@ -163,7 +163,7 @@ run_sequence:
         if (human != 0 && human->status != STAT_DEAD)
         {
             motion = MOT_ENGAGE_STANCE;
-            if ((human->attribute & ATTR_ALERT) == 0 &&
+            if ((human->attribute & ATTR_WEAPON_DRAWN) == 0 &&
                 (motion = 0, (human->type & PAGE_MASK) == type_class))
                 motion = MOT_STATE_DRAW;
             SetNowMotion(human, motion, MOTION_MOVE_APPLY);
