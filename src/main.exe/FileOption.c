@@ -46,9 +46,9 @@
  * with case 1 laid out before case 0, the shared 7000-byte work area, split-
  * address (lui+lo_sum) symbol accesses [-msplit-addresses is ON in this cc1:
  * TARGET_DEFAULT includes MASK_SPLIT_ADDR — non-small extern symbols split,
- * small (≤ -G8) ones stay one-line macros], the case-9 terminator's base-first
- * addu via a byte-cast shift index, the cross-jumped editor rebuild tail,
- * and this TU's gp-relative SystemFlag accesses.
+ * small (≤ -G8) ones stay one-line macros], the case-9 terminator's named
+ * pointer, the cross-jumped editor rebuild tail, and this TU's gp-relative
+ * SystemFlag accesses.
  *
  * The final scheduler tie closes by passing the byte that was just stored:
  * `load_layout(STAGE_LAYOUT_NUMBER[0])`.  cc1 store-forwards that read to the
@@ -205,10 +205,11 @@ void FileOption(void)
             targets[i].name = messages[i];
             targets[i].value = i;
         }
-        /* The byte-walk spelling of targets[i].name is the measured
-         * operand-order lever (plain indexing flips the addu; same class
-         * as PlayMusicFormID's probes). */
-        ((TAdtSelect *)((u8 *)targets + (i << 3)))->name = 0;
+        {
+            TAdtSelect *terminator = targets + i;
+
+            terminator->name = 0;
+        }
         PlayMusicFormID(AdtSelect(
             str_select_music, (TAdtSelect *)Buf.bytes, 0));
         break;
