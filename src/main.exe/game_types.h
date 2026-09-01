@@ -1837,15 +1837,6 @@ enum stage_uid
     N_CAMPAIGN_MISSIONS = N_STAGE_UIDS - 1
 };
 
-/* Retail's StageOrder table is the inverse map described above. Giving the
- * array a direction-bearing member prevents a campaign uid from looking like
- * an interchangeable stage index at its call sites. */
-typedef struct StageOrderTable StageOrderTable;
-struct StageOrderTable
-{
-    packed_stage_id by_uid[N_STAGE_UIDS];
-}; /* 0x16 */
-
 /* Asset/table rows with a leading sentinel use the one-based stage number. */
 #define STAGE_NUMBER(id) ((id) + 1)
 #define NEXT_STAGE_UID(uid) ((uid) + 1)
@@ -2341,14 +2332,6 @@ enum TItemType
      * retail item ids diverge from 0x08 up). */
     ITEM_N = 0x19,
 };
-
-/* One signed-halfword reward item per runtime stage id. The retail rows are
- * all ordinary TItemType values; item_selection retains their on-disc width. */
-typedef struct StageRewardItemTable StageRewardItemTable;
-struct StageRewardItemTable
-{
-    item_selection by_stage[N_STAGE_CONFIGS];
-}; /* 0x16 */
 
 /* Item-kind storage plus the system/aiming flag kept at item[ITEM_N]. */
 #define N_ITEM_SLOTS (ITEM_N + 1)

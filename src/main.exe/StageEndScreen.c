@@ -46,6 +46,8 @@
 extern u8 CHOSEN_CHARACTER;
 extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
+extern packed_stage_id StageOrder[];
+extern s16 StageItem[];
 extern char NUMBER_TIM_PATH[];
 extern char *RS_ARCHIVE_PTRS[N_LANGUAGES];
 extern char *RANK_ARCHIVE_PTRS[N_LANGUAGES];
@@ -228,7 +230,7 @@ void StageEndScreen(void)
     clear_screen_();
 
     item_index = 0;
-    while (StageOrder.by_uid[item_index] != CHOSEN_STAGE)
+    while (StageOrder[item_index] != CHOSEN_STAGE)
     {
         item_index++;
     }
@@ -511,7 +513,7 @@ void StageEndScreen(void)
 
                 if (current.grade == RANK_GRAND_MASTER)
                 {
-                    icon = &ItemImage[StageItem.by_stage[CHOSEN_STAGE]]->sprite;
+                    icon = &ItemImage[StageItem[CHOSEN_STAGE]]->sprite;
                     icon->x = -120;
                     icon->y = 0x38;
                     icon->scalex = FIXED_ONE;
@@ -596,8 +598,7 @@ void StageEndScreen(void)
 
             layout_base = (u32)&PSTATE->stage_stats;
             PSTATE->StageNo =
-                StageOrder.by_uid[
-                    NEXT_STAGE_UID(StageConfig[PSTATE->StageNo].uid)];
+                StageOrder[NEXT_STAGE_UID(StageConfig[PSTATE->StageNo].uid)];
             layout_character_offset = (u32)PSTATE->CharType *
                                       sizeof(PSTATE->stage_stats[0]);
             layout_stage_offset =

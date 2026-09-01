@@ -23,6 +23,7 @@
  *    replacing the required sll/sra sign extension with andi/sltiu.
  */
 
+extern s16 StageItem[];
 extern s32 rand(void);
 
 void award_stage_items_(TLinkInfo *state, ScoreResult *result)
@@ -154,7 +155,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             i++;
         }
 
-        i = StageItem.by_stage[state->StageNo];
+        i = StageItem[state->StageNo];
         if (state->gItem[state->CharType][i] == ITEM_LOCKED)
         {
             state->gItem[state->CharType][i] += 3;
