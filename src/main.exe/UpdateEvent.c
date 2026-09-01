@@ -38,12 +38,9 @@
  * own references; gp-vs-absolute is a per-object codegen choice, not a
  * property of the shared symbol.
  *
- * `StageEvent[i].id/.event/.next1/.next2` (the first 4 packed `u8` fields)
- * are read and compared to -1 as ONE `s32` — a `0xFFFFFFFF` terminator
- * sentinel across all four bytes at once, both for the initial "list
- * empty" guard and the loop's own exit test. Ghidra's per-byte
- * `._0_1_`/`._1_1_` rendering is exactly this union read; write it as a
- * direct `*(s32 *)&StageEvent[i]` cast, matching the raw `lw`+`-1` compare.
+ * EventHeader overlays `id/event/next1/next2` with the table-marker word.
+ * The initial empty-list guard and loop exit can therefore use `header.word`
+ * for the target's single `lw`/`-1` comparison without an aliasing cast.
  *
  * The status/motion guard (`if (h->status==STAT_DEAD &&
  * h->motion->loop==MOTION_LOOP_DISABLED)
@@ -90,7 +87,7 @@ void UpdateEvent(short n, short id)
     if (id == EVENT_ID_NONE)
         return;
     i = 0;
-    if (*(s32 *)&StageEvent[0] == EVENT_TABLE_END)
+    if (StageEvent[0].header.word == EVENT_TABLE_END)
         return;
 
     do
@@ -98,7 +95,7 @@ void UpdateEvent(short n, short id)
         /* Offset spelling is byte-required (&StageEvent[i] flips the
          * address addu to base-first; measured). */
         ev = (EventSeqType *)(i * 20 + (s32)StageEvent);
-        if (ev->id == id)
+        if (ev->header.route.id == id)
         {
             Event[n] = ev;
             if (ev->target == EVENT_TARGET_PLAYER)
@@ -123,5 +120,5 @@ void UpdateEvent(short n, short id)
             return;
         }
         i++;
-    } while (*(s32 *)&StageEvent[i] != EVENT_TABLE_END);
+    } while (StageEvent[i].header.word != EVENT_TABLE_END);
 }

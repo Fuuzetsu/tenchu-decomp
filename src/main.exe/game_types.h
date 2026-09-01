@@ -985,15 +985,25 @@ struct TMakeDifInfo
 typedef struct EventSeqType EventSeqType;
 typedef u8 event_trigger_kind;
 
+typedef struct EventRoute EventRoute;
+struct EventRoute
+{
+    u8 id;    /* sequence id (2-3 = the root scripts) */
+    u8 event; /* CVA sequence (EVENT_CVA_NONE = none) */
+    u8 next1; /* slot-0 successor (EVENT_ID_NONE = stop) */
+    u8 next2; /* slot-1 successor (EVENT_ID_NONE = stop) */
+};
+
+typedef union EventHeader EventHeader;
+union EventHeader
+{
+    EventRoute route;
+    s32 word; /* EVENT_TABLE_END terminates the table */
+};
+
 struct EventSeqType
 {
-    u8 id;      /* 0x00 sequence id (2-3 = the root scripts;
-                 *      EVENT_TABLE_END word terminates the table) */
-    u8 event;   /* 0x01 CVA sequence to play on trigger (EVENT_CVA_NONE;
-                 *      0 on the cure-princess stage picks the ending
-                 *      movie by grade — StageSequence) */
-    u8 next1;   /* 0x02 successor event for slot 0 (EVENT_ID_NONE = stop) */
-    u8 next2;   /* 0x03 successor event for slot 1 (EVENT_ID_NONE = stop) */
+    EventHeader header; /* 0x00 */
     u8 target;  /* 0x04 watched humanoid (EVENT_TARGET_PLAYER = player) */
     event_trigger_kind mode; /* 0x05 EVTRIG_ trigger kind (stage.h) */
     s16 status; /* 0x06 trigger operand (status/motion/life/time/music

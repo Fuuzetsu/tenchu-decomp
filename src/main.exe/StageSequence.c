@@ -143,11 +143,11 @@ s32 StageSequence(void)
         FntPrint(fmt_num_paren, FriendHits, StageCitizens);
         if (Event[0] != 0)
         {
-            FntPrint(fmt_num_bracket, Event[0]->id);
+            FntPrint(fmt_num_bracket, Event[0]->header.route.id);
         }
         if (Event[1] != 0)
         {
-            FntPrint(fmt_num_bracket, Event[1]->id);
+            FntPrint(fmt_num_bracket, Event[1]->header.route.id);
         }
         FntPrint(str_newline_3);
     }
@@ -163,7 +163,8 @@ s32 StageSequence(void)
         /* Only the root sequences keep running once the player
          * is dead; the single-read range trick avoids an allocation
          * ripple (see briefing_screen_'s note). */
-        if ((u8)(ev->id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS &&
+        if ((u8)(ev->header.route.id - EVENT_ROOT_FIRST) >=
+                N_STAGE_EVENT_SLOTS &&
             StagePlayer->life == 0)
         {
             continue;
@@ -177,7 +178,8 @@ s32 StageSequence(void)
             break;
 
         case EVTRIG_ZONE:
-            if ((u8)(ev->id - EVENT_ROOT_FIRST) < N_STAGE_EVENT_SLOTS)
+            if ((u8)(ev->header.route.id - EVENT_ROOT_FIRST) <
+                N_STAGE_EVENT_SLOTS)
             {
                 tgt = StagePlayer;
             }
@@ -266,7 +268,8 @@ s32 StageSequence(void)
         {
             gc = GameClock;
             flag = 0;
-            if ((u8)(ev->id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS &&
+            if ((u8)(ev->header.route.id - EVENT_ROOT_FIRST) >=
+                    N_STAGE_EVENT_SLOTS &&
                 StagePlayer->life == 0)
             {
                 Event[i] = 0;
@@ -274,9 +277,9 @@ s32 StageSequence(void)
             }
             /* EVENT_CVA_NONE means "no movie": fire the event
              * directly without a CVA sequence. */
-            if (ev->event != EVENT_CVA_NONE)
+            if (ev->header.route.event != EVENT_CVA_NONE)
             {
-                sid = ev->event;
+                sid = ev->header.route.event;
                 if (sid == 0 && StageID == STAGE_CURE_PRINCESS)
                 {
                     ScoreResult *score;
@@ -296,13 +299,13 @@ s32 StageSequence(void)
             if (StagePlayer->type == RIKIMARU_0 && ev->mode == EVTRIG_LIFE &&
                 tgt->type == HIKONE)
             {
-                ev->next1 = 100;
+                ev->header.route.next1 = EVENT_RIKIMARU_FINALE;
             }
             StageTime = 0;
             GameClock = gc;
-            UpdateEvent(0, ev->next1);
-            UpdateEvent(1, ev->next2);
-            if ((u8)(ev->id - 1) < 3)
+            UpdateEvent(0, ev->header.route.next1);
+            UpdateEvent(1, ev->header.route.next2);
+            if ((u8)(ev->header.route.id - 1) < 3)
             {
                 return 1;
             }
