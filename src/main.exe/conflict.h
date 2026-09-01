@@ -19,6 +19,8 @@ enum area_level_mode_flag
 /* CONFLICT.C's shared floor query, using the original promoted mode ABI. */
 extern long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
                             int mode);
+extern long CGetLevel(AreaNodeType **hint, long x, long y, long z,
+                      unsigned long flag);
 extern long GetAreaMapVector(AreaMapType *area, MapVector *mvp,
                              VECTOR *pos, long wide, int mode);
 extern VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos,

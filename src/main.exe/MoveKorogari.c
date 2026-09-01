@@ -38,8 +38,6 @@
 
 extern SVECTOR svec_y_n20[]; /* {0,-20,0} */
 
-extern s32 CGetLevel(struct AreaNodeType **hint, s32 x, s32 y, s32 z, u32 flag);
-
 void MoveKorogari(TItem *item, param_korogari *param)
 {
     MapVector mv;
@@ -55,7 +53,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
     item->locate->locate.coord.t[1] += param->vy;
     item->locate->locate.coord.t[2] += param->vz;
 
-    level = CGetLevel((struct AreaNodeType **)&param->hint,
+    level = CGetLevel(&param->hint,
                       item->locate->locate.coord.t[0],
                       item->locate->locate.coord.t[1],
                       item->locate->locate.coord.t[2], 0);
@@ -70,7 +68,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                          AREA_LEVEL_DEFAULT);
         if (param->hint == 0)
         {
-            level = CGetLevel((struct AreaNodeType **)&param->hint,
+            level = CGetLevel(&param->hint,
                               item->locate->locate.coord.t[0],
                               item->locate->locate.coord.t[1],
                               item->locate->locate.coord.t[2], 0);

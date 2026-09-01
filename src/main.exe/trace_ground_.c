@@ -60,7 +60,6 @@
  */
 
 extern s32 GetVectorLength(s32 dx, s32 dy, s32 dz);
-extern s32 CGetLevel(AreaNodeType **hint, s32 x, s32 y, s32 z, u32 flag);
 
 s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
 {
