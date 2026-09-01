@@ -23,9 +23,8 @@
  * AttackFire (0x80027730, 0xe8 bytes) — the animation-frame callback for a
  * fire/napalm-throwing attack: only fires while the currently-armed motion
  * trigger (dtM->count) is within [sfrm, efrm], plays a sound on the
- * FIRST matching frame (count == sfrm), then spawns a napalm item flying
- * from the wielded weapon's tip (Me_MOTION_C->model->object[2]) towards a
- * fixed-speed target point — near-twin of
+ * FIRST matching frame (count == sfrm), then spawns a napalm item from the
+ * character's head/mouth anchor towards a fixed-speed target point — near-twin of
  * launch_lightning_bolt_.c (same item-TU Humanoid/
  * ModelArchiveType, same dtM/dtR pair), but a frame RANGE instead of a
  * single frame, a plain literal move speed instead of a randomized one, and
@@ -72,7 +71,8 @@ void AttackFire(s16 sfrm, s16 efrm)
         }
         item.type = ITEM_NAPALM;
         item.user.human = Me_MOTION_C;
-        start_pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, -100, -300);
+        start_pos = GetAbsolutePosition(
+            Me_MOTION_C->model->object[MODEL_PART_HEAD], 0, -100, -300);
         item.start.vx = start_pos->vx;
         item.start.vy = start_pos->vy;
         item.start.vz = start_pos->vz;

@@ -144,8 +144,8 @@ void ActSTICKON(void)
             }
 
             dtR->vy += (t - dtR->vy) / -dtM->count;
-            dtM->motion->rotate[0].keyframes->y = rv;
-            rotation = dtM->motion->rotate[2].keyframes;
+            dtM->motion->rotate[MODEL_PART_WAIST].keyframes->y = rv;
+            rotation = dtM->motion->rotate[MODEL_PART_HEAD].keyframes;
             if (rv & ANGLE_QUADRANT)
             {
                 rotation->y = -rv;
@@ -466,8 +466,9 @@ void ActSTICKON(void)
         item.user.human = Me_MOTION_C;
         item.type = StickonItem;
         Me_MOTION_C->item[StickonItem]--;
-        position = GetAbsolutePosition(Me_MOTION_C->model->object[pd + 0xD] /* 13/14: L/R hand */,
-                                       0, 0, 0);
+        position = GetAbsolutePosition(
+            Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0 + pd],
+            0, 0, 0);
         angle = (s16)angle;
         position->vx -= (rsin(angle) * 500) >> 12;
         position->vz -= (rcos(angle) * 500) >> 12;

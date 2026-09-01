@@ -88,7 +88,8 @@ void ActITEM(void)
     if (flag)
     {
         item.user.human = Me_MOTION_C;
-        p = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, 0, 0);
+        p = GetAbsolutePosition(
+            Me_MOTION_C->model->object[MODEL_PART_HEAD], 0, 0, 0);
         item.start.vx = p->vx;
         item.start.vy = p->vy;
         item.start.vz = p->vz;

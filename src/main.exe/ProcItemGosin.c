@@ -136,7 +136,10 @@ void ProcItemGosin(TItem *item)
         if (mot->loop == 0)
             return;
         NowReturnNormal(item->owner.human);
-        SetBleeds(GetAbsolutePosition(item->owner.human->model->object[1], 0, 0, 0), 600, 100, 20, 15, RGB24(180, 140, 30));
+        SetBleeds(
+            GetAbsolutePosition(
+                item->owner.human->model->object[MODEL_PART_TORSO], 0, 0, 0),
+            600, 100, 20, 15, RGB24(180, 140, 30));
         item->owner.human->itmctl = item->type;
         item->param.gosin.count = GOSIN_DURATION;
         item->mode++;

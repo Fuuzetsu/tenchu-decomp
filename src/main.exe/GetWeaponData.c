@@ -101,7 +101,8 @@ static inline void FindWeaponId(Humanoid *human, weapon_kind wid, s16 wpid)
     }
 }
 
-void GetWeaponData(Humanoid *human, s16 body, weapon_kind wid, s16 wpid,
+void GetWeaponData(Humanoid *human, model_part_index body, weapon_kind wid,
+                   s16 wpid,
                    int wep)
 {
     s16 w;

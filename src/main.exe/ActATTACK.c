@@ -348,7 +348,9 @@ dispatch:
                 }
                 item.type = ITEM_NAPALM;
                 item.user.human = Me_MOTION_C;
-                pos = GetAbsolutePosition(Me_MOTION_C->model->object[2], 0, -100, -300);
+                pos = GetAbsolutePosition(
+                    Me_MOTION_C->model->object[MODEL_PART_HEAD], 0, -100,
+                    -300);
                 item.start.vx = pos->vx;
                 item.start.vy = pos->vy;
                 item.start.vz = pos->vz;
@@ -768,10 +770,10 @@ dispatch:
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:
         dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy -
-                    dtM->motion->rotate[0].keyframes->y);
+                    dtM->motion->rotate[MODEL_PART_WAIST].keyframes->y);
         is_player = Me_MOTION_C == StagePlayer;
         ((*Me_MOTION_C->model->object)->rotate).vy =
-            dtM->motion->rotate[0].keyframes->y;
+            dtM->motion->rotate[MODEL_PART_WAIST].keyframes->y;
         if (is_player)
         {
             SetCameraMode(CMODE_NORMAL);

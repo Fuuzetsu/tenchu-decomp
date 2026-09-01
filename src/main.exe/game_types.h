@@ -570,6 +570,26 @@ struct ThinkDBtype
 typedef s16 character_kind;
 typedef u8 compact_character_kind;
 
+/* ModelArchiveType.object[] and MotionDataType.rotate[] share this skeleton
+ * index space.  Some specialized skeletons reuse indices (the beast's first
+ * striking limb is at the ordinary humanoid head index).  The weapon anchors
+ * vary with wpatk; the ordinal hand names intentionally do not claim left or
+ * right. */
+typedef s16 model_part_index;
+enum model_part_index
+{
+    MODEL_PART_WAIST = 0,
+    MODEL_PART_TORSO = 1,
+    MODEL_PART_HEAD = 2,
+    MODEL_PART_BEAST_HAND_0 = MODEL_PART_HEAD,
+    MODEL_PART_BEAST_HAND_1 = MODEL_PART_TORSO,
+    MODEL_PART_ONININ_HAND_0 = 8,
+    MODEL_PART_ONININ_HAND_1 = 0x0B,
+    MODEL_PART_WEAPON_HAND_0 = 0x0D,
+    MODEL_PART_WEAPON_HAND_1 = 0x0E
+};
+#define N_NINJA_MODEL_PARTS (MODEL_PART_WEAPON_HAND_1 + 1)
+
 /* WORLD.C's editable enemy placement. */
 #define MAX_ENEMY_PATH_POINTS 7
 typedef s32 enemy_layout_index;

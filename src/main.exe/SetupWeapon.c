@@ -94,7 +94,7 @@ void SetupWeapon(Humanoid *human)
     case KEITOU:
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, KEITOU,
                       WEAPON_HAND_0, WEAPON_SLOT_INACTIVE_0);
-        GetWeaponData(human, 1, KEITOUB,
+        GetWeaponData(human, MODEL_PART_TORSO, KEITOUB,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_0);
         break;
     case KATANAL:
@@ -141,7 +141,7 @@ void SetupWeapon(Humanoid *human)
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_0, human->wpatk,
                       human->wpatk == KATAYUMI ? WEAPON_HAND_0 : WEAPON_HAND_NONE,
                       WEAPON_SLOT_ACTIVE_0);
-        GetWeaponData(human, 1, human->wpatk + 2,
+        GetWeaponData(human, MODEL_PART_TORSO, human->wpatk + 2,
                       WEAPON_HAND_NONE, WEAPON_SLOT_ACTIVE_1);
         GetWeaponData(human, MODEL_PART_WEAPON_HAND_1, human->wpatk + 1,
                       WEAPON_HAND_NONE, WEAPON_SLOT_INACTIVE_0);

@@ -54,15 +54,18 @@ short SweepMotion(MotionManager *mmp)
              object->locate.coord.t[1]) /
             count;
         object->rotate.vx +=
-            (mot->rotate[0].keyframes->x - object->rotate.vx) / count;
+            (mot->rotate[MODEL_PART_WAIST].keyframes->x - object->rotate.vx) /
+            count;
         object->rotate.vy +=
-            (mot->rotate[0].keyframes->y - object->rotate.vy) / count;
+            (mot->rotate[MODEL_PART_WAIST].keyframes->y - object->rotate.vy) /
+            count;
         object->rotate.vz +=
-            (mot->rotate[0].keyframes->z - object->rotate.vz) / count;
+            (mot->rotate[MODEL_PART_WAIST].keyframes->z - object->rotate.vz) /
+            count;
         UpdateCoordinate(object);
     }
 
-    for (i = 1; i < mmp->n; i++)
+    for (i = MODEL_PART_TORSO; i < mmp->n; i++)
     {
         if (MOTION_PART_ENABLED(mmp->mask, i))
         {

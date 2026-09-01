@@ -217,7 +217,8 @@ draw_done:
             {
                 return;
             }
-            rotation = human->motion->motion->rotate[2].keyframes;
+            rotation =
+                human->motion->motion->rotate[MODEL_PART_HEAD].keyframes;
             if (head->rotate.vx == rotation->x &&
                 head->rotate.vy == rotation->y)
             {
@@ -227,14 +228,14 @@ draw_done:
             /* The re-walked chain (not rotation->y) is byte-required (the
              * fresh loads are in the bytes; measured). */
             head->rotate.vy =
-                human->motion->motion->rotate[2].keyframes->y;
+                human->motion->motion->rotate[MODEL_PART_HEAD].keyframes->y;
             UpdateCoordinate(head);
             return;
         }
         else
         {
             rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
-                            human->model->object[1]->rotate.vy;
+                            human->model->object[MODEL_PART_TORSO]->rotate.vy;
             {
                 s32 magnitude;
 
@@ -275,7 +276,7 @@ draw_done:
     }
 
     rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
-                    human->model->object[1]->rotate.vy +
+                    human->model->object[MODEL_PART_TORSO]->rotate.vy +
                     human->rotate->vy;
     direction = GetDirection(
         human->target.model->locate.coord.t[0] - human->locate->vx,
