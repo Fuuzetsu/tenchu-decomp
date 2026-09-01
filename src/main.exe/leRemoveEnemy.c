@@ -17,7 +17,7 @@
  * leResetPath.c for TEnemyLayout, recovered from the Ghidra type export):
  * finds the currently-latched enemy slot (leFindEnemy) and, if one is
  * latched, marks its type dead (`CHARACTER_KIND_END`) and relays out the
- * enemy set (leLayoutEnemy(0)); otherwise does nothing.
+ * enemy set in editor mode; otherwise does nothing.
  *
  * The not-found path explicitly returns zero. The found path calls the
  * original void leLayoutEnemy API and then falls off the end, leaving that
@@ -46,5 +46,5 @@ int leRemoveEnemy(void)
         return 0;
     }
     enemy[idx].type = CHARACTER_KIND_END;
-    leLayoutEnemy(0);
+    leLayoutEnemy(ENEMY_LAYOUT_EDIT);
 }

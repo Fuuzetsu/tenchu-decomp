@@ -31,7 +31,7 @@
  *   RESET            — warp Owner to StageConfig[]'s start coords and reset
  *                      the cached area-map node/index
  *   JUMP_POSITION    — debug_menu_player_jump()
- *   RESTART_EVENT    — leLayoutEnemy(1) + StartStageSequence()
+ *   RESTART_EVENT    — gameplay enemy rebuild + StartStageSequence()
  *   RESURRECT        — full-heal + clear ActionHalt + status
  * (table indices 4 "" and 5 "cancel" are inert: no case matches them, no
  * default).
@@ -119,7 +119,7 @@ void PlayerOption(void)
         CamState.Owner->status = STAT_NORMAL;
         break;
     case RESTART_EVENT:
-        leLayoutEnemy(1);
+        leLayoutEnemy(ENEMY_LAYOUT_GAMEPLAY);
         StartStageSequence();
         break;
     }

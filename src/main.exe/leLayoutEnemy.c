@@ -56,7 +56,7 @@ extern void vfree(void *ptr);
  *  - Direct `tp[i]` indexing gives the target's single induction value;
  *    a walking TracePoint pointer introduces a second one.
  */
-void leLayoutEnemy(int mode)
+void leLayoutEnemy(enemy_layout_mode mode)
 {
     s32 i;
     Humanoid *target;
@@ -115,7 +115,7 @@ void leLayoutEnemy(int mode)
             human->attribute |= ATTR_SUSPEND;
             human->target.archive = owner_model;
             human->model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_COLLIDE;
-            if (mode == 1)
+            if (mode == ENEMY_LAYOUT_GAMEPLAY)
             {
                 SetupThinkFunction(human, en->ThinkType);
                 if (en->nPath != 0)

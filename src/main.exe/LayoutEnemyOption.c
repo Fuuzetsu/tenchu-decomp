@@ -110,10 +110,10 @@ void LayoutEnemyOption(void)
             leRemoveEnemy();
             break;
         case RESET:
-            leLayoutEnemy(0);
+            leLayoutEnemy(ENEMY_LAYOUT_EDIT);
             break;
         case GO:
-            leLayoutEnemy(1);
+            leLayoutEnemy(ENEMY_LAYOUT_GAMEPLAY);
             break;
         case CLEAR:
             if (AdtSelect(msg_clear_ok_2, OkCancel, 1) == 1)

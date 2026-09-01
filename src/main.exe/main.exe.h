@@ -282,7 +282,7 @@ extern void eval_spline_gte_(SVECTOR *out, SplineControlType *spc,
                              SVECTOR *basis);
 extern long GetTargetDistance(struct Humanoid *human, short *deg);
 extern enemy_layout_index leFindEnemy(void);
-extern void leLayoutEnemy(int mode);
+extern void leLayoutEnemy(enemy_layout_mode mode);
 extern int leRemoveEnemy(void);
 
 extern u_long *FileRead(u8 *filename);

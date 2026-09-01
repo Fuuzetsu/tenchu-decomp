@@ -173,7 +173,7 @@ void CreateStage(stage_id StageNo, int CharType)
         *(volatile TSystemFlag *)&SystemFlag &= ~SYSFLAG_RANDOM_LAYOUT;
     }
     load_layout(STAGE_LAYOUT_NUMBER);
-    leLayoutEnemy(1);
+    leLayoutEnemy(ENEMY_LAYOUT_GAMEPLAY);
 
     px = StageConfig[StageNo].px;
     py = StageConfig[StageNo].py;

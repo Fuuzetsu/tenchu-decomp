@@ -17,7 +17,7 @@
  * of leResetEnemyLayout.c: clears the whole enemy-layout table by marking
  * every slot's type CHARACTER_KIND_END, counting down from the last slot to
  * the first (a real `for`, per the strength-reduced walking pointer in the
- * asm), then re-lays-out the enemy table via leLayoutEnemy(0).
+ * asm), then rebuilds the empty enemy table in editor mode.
  *
  * Matching notes (docs/matching-cookbook.md): identical loop-invariant
  * lever to leResetEnemyLayout - the loop-invariant CHARACTER_KIND_END store
@@ -37,5 +37,5 @@ void leClearLayout(void)
     {
         enemy[i].type = dead;
     }
-    leLayoutEnemy(0);
+    leLayoutEnemy(ENEMY_LAYOUT_EDIT);
 }

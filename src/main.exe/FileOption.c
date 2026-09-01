@@ -47,7 +47,7 @@
  * address (lui+lo_sum) symbol accesses [-msplit-addresses is ON in this cc1:
  * TARGET_DEFAULT includes MASK_SPLIT_ADDR — non-small extern symbols split,
  * small (≤ -G8) ones stay one-line macros], the case-9 terminator's base-first
- * addu via a byte-cast shift index, the cross-jumped leLayoutEnemy(0) tail,
+ * addu via a byte-cast shift index, the cross-jumped editor rebuild tail,
  * and this TU's gp-relative SystemFlag accesses.
  *
  * The final scheduler tie closes by passing the byte that was just stored:
@@ -159,7 +159,7 @@ void FileOption(void)
         /* The caller-side mask is in the bytes (the callee masks again;
          * the SAVE twin passes storage unmasked): retail's own. */
         load_save_slot_(storage & 0xFF, fname);
-        leLayoutEnemy(0);
+        leLayoutEnemy(ENEMY_LAYOUT_EDIT);
         break;
     case SAVE:
         storage = AdtSelect(msg_save_ok, SelectIO, 3);
@@ -235,7 +235,7 @@ void FileOption(void)
         STAGE_LAYOUT_NUMBER[0] = k;
         SystemFlag &= ~SYSFLAG_RANDOM_LAYOUT;
         load_layout(STAGE_LAYOUT_NUMBER[0]);
-        leLayoutEnemy(0);
+        leLayoutEnemy(ENEMY_LAYOUT_EDIT);
         break;
     }
 }

@@ -15,7 +15,7 @@
  * differently), then restores the enemy layout and item layout out of it
  * and frees the buffer; reports an error via AdtMessageBox on a NULL
  * buffer (same shape as load_save_slot_). Unlike load_save_slot_, this always
- * re-lays-out the enemy table via leLayoutEnemy(1) at the end, even on a
+ * rebuilds the enemy table for gameplay at the end, even on a
  * failed load.
  */
 extern void leRestoreEnemyLayout(void *buf);
@@ -42,5 +42,5 @@ void load_layout(s32 index)
         RestoreItemLayout(layout->items);
         vfree(layout);
     }
-    leLayoutEnemy(1);
+    leLayoutEnemy(ENEMY_LAYOUT_GAMEPLAY);
 }

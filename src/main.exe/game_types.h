@@ -595,6 +595,16 @@ enum model_part_index
 typedef s32 enemy_layout_index;
 #define ENEMY_LAYOUT_NONE (-1)
 
+/* Rebuilding the editor's placement table can either leave the spawned
+ * actors as inert layout markers, or install their AI and patrol routes for
+ * gameplay.  The debug menu exposes both policies as RESET and GO. */
+typedef enum enemy_layout_mode enemy_layout_mode;
+enum enemy_layout_mode
+{
+    ENEMY_LAYOUT_EDIT = 0,
+    ENEMY_LAYOUT_GAMEPLAY = 1
+};
+
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout
 {
