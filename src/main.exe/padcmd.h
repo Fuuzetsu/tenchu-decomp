@@ -3,6 +3,13 @@
 
 struct PADtype;
 
+enum
+{
+    BUTTONS_PER_CONTROL_SCHEME = 8,
+    N_CONTROL_SCHEMES = 4,
+    N_BUTTON_ASSIGNMENTS = N_CONTROL_SCHEMES * BUTTONS_PER_CONTROL_SCHEME
+};
+
 /* Command[] tags for SetCommand — each entry streams a canned input
  * sequence into the pad (decoded from the retail table @ 0x8008686c):
  * the low nibble is the direction (1 up, 2 down, 3 left, 4 right), the
