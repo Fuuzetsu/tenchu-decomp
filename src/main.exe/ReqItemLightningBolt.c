@@ -44,13 +44,13 @@
  * with `.vz` cleared.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - The inlined allocator keeps `slot` separate from PSX.SYM's outer
- *    `item`, as in ReqItemMakibishi: `slot = items + ic;` in the
- *    loop/dispose block, with `item = slot;`
+ *  - The inlined allocator keeps PSX.SYM's `ret` separate from the outer
+ *    `item`, as in ReqItemMakibishi: `ret = items + ic;` in the
+ *    loop/dispose block, with `item = ret;`
  *    assigned once in the early-exit branch and once before the dispose
  *    block's final owner/proc zeroing — this function's register pressure
  *    (stack rotation outputs + param + item + p all live around the tail)
- *    pushes `slot`/`item` to different hard registers, making the transfer a real
+ *    pushes `ret`/`item` to different hard registers, making the transfer a real
  *    `move` (see the cookbook rule this pair of functions taught).
  *  - `param = &item->param.lightningbolt;` sits BEFORE the null check, same
  *    lever as the other twins (addiu fills the beqz delay slot).
@@ -72,7 +72,7 @@ extern void ProcItemLightningBolt(TItem *item);
 int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
-    TItem *slot;
+    TItem *ret;
     param_lightningbolt *param;
     int rx;
     int ry;

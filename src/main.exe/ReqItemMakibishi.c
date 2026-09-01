@@ -43,15 +43,15 @@
  * plays a sound (SoundEx) at the drop origin before returning.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - The inlined allocator uses a SEPARATE `slot` pointer from PSX.SYM's
- *    outer `item`: `slot = items + ic;` in the loop/dispose block, then
- *    `item = slot;` assigned exactly twice — once inside the early-exit
- *    `if (slot->proc==0)`
+ *  - The inlined allocator uses PSX.SYM's SEPARATE `ret` pointer from the
+ *    outer `item`: `ret = items + ic;` in the loop/dispose block, then
+ *    `item = ret;` assigned exactly twice — once inside the early-exit
+ *    `if (ret->proc==0)`
  *    (paired with the `goto found;`), once right before the dispose block's
  *    final `item->owner=0; item->proc=0;`. Unlike the other twins (where the
  *    SAME `item` serves the whole function), this function's longer tail (`pos`
  *    surviving to the final SoundEx call) raises register pressure enough
- *    that global-alloc gives `slot`/`item` DIFFERENT hard registers ($s0/$s1),
+ *    that global-alloc gives `ret`/`item` DIFFERENT hard registers ($s0/$s1),
  *    making the assignment a real `move` instruction (confirmed: dropping
  *    the two-variable split and reusing one `item` throughout compiles 2
  *    instructions / 8 bytes SHORT — both `move` sites vanish as dead
@@ -82,7 +82,7 @@ extern void ProcItemMakibishi(TItem *item);
 int ReqItemMakibishi(PARAM_ITEM_DROP *p)
 {
     TItem *item;
-    TItem *slot;
+    TItem *ret;
     param_drop *param;
     VECTOR *pos;
     s32 x;

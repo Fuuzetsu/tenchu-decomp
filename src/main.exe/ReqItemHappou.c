@@ -37,7 +37,7 @@
  * projectiles fanned out by a random jitter on the aim direction). Twin of
  * ReqItemArrow/ReqItemLaunch (same item TU, same pool round-robin on
  * ic, same dispose-on-exhaustion block, same
- * slot/item two-pseudo pool search, same SetupFly+SetupAfterimage tail as
+ * ret/item two-pseudo pool search, same SetupFly+SetupAfterimage tail as
  * ReqItemLaunch); unlike every other twin the OUTER shape is a
  * while(1)+break loop firing the whole allocate-and-launch sequence 8 times
  * (SetNowMotion once up front, Sound once after all 8, `p->end` reused as
@@ -55,10 +55,10 @@
  *    condjump-first shape here keeps the top test AND still gets invariant
  *    hoisting: `items + ic`'s `&items[0]` half is
  *    hoisted all the way past BOTH loop levels (computed once, before the
- *    outer loop, from the same unmodified `slot = items + COUNTER...;`
+ *    outer loop, from the same unmodified `ret = items + COUNTER...;`
  *    expression the single-shot twins use — no separate cached-base
  *    variable needed in source).
- *  - The inlined allocator keeps `slot` separate from PSX.SYM's outer
+ *  - The inlined allocator keeps PSX.SYM's `ret` separate from the outer
  *    `item`, with the stub-jump early-exit pattern confirmed in the raw .s.
  *    Its block-scoped `i` shadows the exact outer volley counter `i`, just
  *    as the two PSX.SYM local records do.
@@ -118,7 +118,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         R = 256
     };
     TItem *item;
-    TItem *slot;
+    TItem *ret;
     param_launch *param;
     VECTOR *pos;
     VECTOR *en;
@@ -144,24 +144,24 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
                 ic++;
                 if (ic >= MAX_ITEMS)
                     ic = 0;
-                slot = items + ic;
-                if (slot->proc == 0)
+                ret = items + ic;
+                if (ret->proc == 0)
                 {
-                    item = slot;
+                    item = ret;
                     goto found;
                 }
                 i++;
             } while (i < MAX_ITEMS - 1);
 
             /* pool exhausted: force-dispose the slot the counter landed on */
-            slot->mode = ITEM_MODE_DISPOSE;
-            slot->proc(slot);
-            DeleteConflict(slot->locate);
-            if (slot->mode != 0)
+            ret->mode = ITEM_MODE_DISPOSE;
+            ret->proc(ret);
+            DeleteConflict(ret->locate);
+            if (ret->mode != 0)
             {
-                AdtMessageBox(msg_item_dispose_fail, slot->type, (u32)slot->mode);
+                AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);
             }
-            item = slot;
+            item = ret;
             item->owner = 0;
             item->proc = 0;
         }

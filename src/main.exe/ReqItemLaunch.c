@@ -52,9 +52,9 @@
  * .s when they disagree; here m2c (which showed 6 params) was right.
  *
  * Matching notes (see docs/matching-cookbook.md):
- *  - The inlined allocator keeps `slot` separate from PSX.SYM's outer
+ *  - The inlined allocator keeps PSX.SYM's `ret` separate from the outer
  *    `item`, as in ReqItemMakibishi/ReqItemLightningBolt:
- *    `slot = items + ic;` in the loop/dispose block, with `item = slot;`
+ *    `ret = items + ic;` in the loop/dispose block, with `item = ret;`
  *    once in the early-exit branch and once before owner/proc zeroing (`pos`
  *    surviving to the SetupFly call raises register pressure here too).
  *  - `param = &item->param.launch;` sits BEFORE the null check, same
@@ -95,7 +95,7 @@ extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
-    TItem *slot;
+    TItem *ret;
     param_launch *param;
     VECTOR *pos;
     AfterimageType *ai;

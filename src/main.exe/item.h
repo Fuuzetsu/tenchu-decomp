@@ -563,12 +563,11 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     DISPOSE_ITEM(item);                                                       \
                                                                               \
 found:
-/* The same launcher preamble, in the variant four ReqItem* use: the scan
- * keeps its own `slot` cursor and only publishes `item` once, which gives
- * cc1 two pseudos where TAKE_ITEM_SLOT() gives it one (adopting the
- * single-variable macro in those files costs 40 diff lines). Macro is
- * reconstruction shorthand for the copy-paste (expands to the identical
- * text). */
+/* The same launcher preamble, in the cursor variant some ReqItem* use: the
+ * scan keeps its recovered `ret` cursor and only publishes `item` once.
+ * This gives cc1 two pseudos where TAKE_ITEM_SLOT() gives it one (adopting
+ * the single-variable macro in those files costs 40 diff lines). Macro is
+ * reconstruction shorthand for the copy-paste (expands to identical text). */
 #define TAKE_ITEM_SLOT_VIA_CURSOR()                                           \
     i = 0;                                                                    \
     do                                                                        \
@@ -576,24 +575,24 @@ found:
         ic++;                                                                 \
         if (ic >= MAX_ITEMS)                                                  \
             ic = 0;                                                           \
-        slot = items + ic;                                                    \
-        if (slot->proc == 0)                                                  \
+        ret = items + ic;                                                     \
+        if (ret->proc == 0)                                                   \
         {                                                                     \
-            item = slot;                                                      \
+            item = ret;                                                       \
             goto found;                                                       \
         }                                                                     \
         i++;                                                                  \
     } while (i < MAX_ITEMS - 1);                                              \
                                                                               \
     /* pool exhausted: force-dispose the slot the counter landed on */        \
-    slot->mode = ITEM_MODE_DISPOSE;                                           \
-    slot->proc(slot);                                                         \
-    DeleteConflict(slot->locate);                                             \
-    if (slot->mode != 0)                                                      \
+    ret->mode = ITEM_MODE_DISPOSE;                                            \
+    ret->proc(ret);                                                           \
+    DeleteConflict(ret->locate);                                              \
+    if (ret->mode != 0)                                                       \
     {                                                                         \
-        AdtMessageBox(msg_item_dispose_fail, slot->type, (u32)slot->mode);    \
+        AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);      \
     }                                                                         \
-    item = slot;                                                              \
+    item = ret;                                                               \
     item->owner = 0;                                                          \
     item->proc = 0;                                                           \
                                                                               \

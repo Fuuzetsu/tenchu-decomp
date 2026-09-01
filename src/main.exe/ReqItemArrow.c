@@ -56,9 +56,9 @@
  *  - GetVectorRotation's recovered `int *` signature gives `rx` and `ry`
  *    adjacent four-byte stack slots. GCC narrows their later assignments to
  *    the SVECTOR fields to low-halfword loads, matching the retail code.
- *  - The inlined allocator keeps a separate `slot` pseudo from the outer
- *    PSX.SYM `item`: `slot = items + COUNTER...;` is used throughout the
- *    loop/dispose block, and `item = slot;` is assigned exactly twice
+ *  - The inlined allocator keeps PSX.SYM's `ret` cursor separate from the
+ *    outer `item`: `ret = items + COUNTER...;` is used throughout the
+ *    loop/dispose block, and `item = ret;` is assigned exactly twice
  *    (the early-exit branch and right before the dispose block falls into
  *    `found:`) — the heavier tail (p/pos/param all needing registers across
  *    SetupFly) raises pressure the same way ReqItemLaunch's does.
@@ -83,7 +83,7 @@ extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
-    TItem *slot;
+    TItem *ret;
     param_arrow *param;
     VECTOR *pos;
     SVECTOR dir;
