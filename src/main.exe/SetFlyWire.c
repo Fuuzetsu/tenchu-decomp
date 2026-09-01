@@ -72,11 +72,10 @@ found:
 
     {
         VECTOR *v1;
-        long dz;
-        long dy;
         long dx;
+        long dy;
+        long dz;
         int big;
-        long v;
         long root;
         long base_x;
         long base_y;
@@ -98,29 +97,9 @@ found:
         }
         if (big)
         {
-            /* The whole hand-spelled /0x100 cluster through `v` is
-             * byte-required (the complete plain `/= 0x100` graph is 32
-             * lines; unlike the SetWire/SetLightningI twins). `big` and
-             * `root` are separately 72 and 4 lines, or 74 together. */
-            v = dx;
-            if (dx < 0)
-            {
-                v = dx + 0xff;
-            }
-            dx = v >> 8;
-            /* Folded after flow to replace the former dy allocation weight. */
-            v = ((u32)dy + (u32)dy) - (u32)dy;
-            if (dy < 0)
-            {
-                v = dy + 0xff;
-            }
-            dy = v >> 8;
-            v = dz;
-            if (dz < 0)
-            {
-                v = dz + 0xff;
-            }
-            dz = v >> 8;
+            dx /= 0x100;
+            dy /= 0x100;
+            dz /= 0x100;
             root = SquareRoot0(dx * dx + dy * dy + dz * dz) << 8;
         }
         else
@@ -135,15 +114,7 @@ found:
         param->time = dist / 1000;
 
         dist /= 16;
-        /* empty one-shot: a sched1 region fence (an emptied debug print
-         * reads the same way -- see DefaultActionHumanoid's header). */
-        do
-        {
-        } while (0);
 
-        /* The branch-arm carriers remain real scheduling boundaries. Removing
-         * base_x/y/z costs 7 lines each; removing value_x/y/z costs 17/10/9;
-         * the complete direct center graph is 81 lines. */
         base_x = param->NCenter.vx;
         if (dist * 2 > 0)
         {

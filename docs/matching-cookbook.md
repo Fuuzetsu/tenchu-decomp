@@ -597,10 +597,13 @@ negated. Everything else here is corollaries:
   previously-undocumented `do{}while(0)` across ten files (AfsGetEntry,
   CreateStage, SetFlyWire, game_over_screen_, SaveSI, ProcItemDokudango,
   subdivide_quad_, draw_time_, SetupImageToPolyGT4, AttackLong) broke
-  every one — the ONLY removable scaffold found in the whole sweep was
-  one twin-arm pair (SaveSI's icon3 twin). Before re-trying any of
-  these, check the file's notes for the measurement; add one if you run
-  a new experiment.
+  every one — the ONLY removable scaffold found in that sweep was one
+  twin-arm pair (SaveSI's icon3 twin). These verdicts are graph-relative:
+  SetFlyWire's fence later became removable after its EffectSlot scan was
+  restored as direct indexing; ordering `dx,dy,dz` naturally then also made
+  plain signed `/= 0x100` reproduce the three hand-expanded corrections.
+  Before re-trying another site, check whether its surrounding dataflow has
+  materially changed and record the new measurement.
 - **Humanising direction — think-layer literals are synthesized PAD
   words**: every Think*/Attack*-family return value flows into the
   humanoid's pad word, so its hex literals are button masks — spell them

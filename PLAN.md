@@ -642,9 +642,9 @@ fences were balancing, unlocking further removals (ActivateHumans'
 razor 471-vs-481 race closed itself two rounds after its sibling
 fences fell). Landed so far: ActivateHumans FENCE-FREE (all 4);
 PlayMusicFormID fence-free after restoring its direct sentinel loop;
-leLayoutEnemy fence
-removed; statement fences converted to bare empty barriers in
-ProcItemNingyo, SetFlyWire, ActATTACK(x3), Briefing(x4 incl. its
+SetFlyWire fence-free after restoring its indexed pool scan and ordinary
+signed divisions; leLayoutEnemy fence removed; statement fences converted to
+bare empty barriers in ProcItemNingyo, ActATTACK(x3), Briefing(x4 incl. its
 182-diff region fence), mission_score(x2 + 3 stale layers),
 StageEndScreen(x2 + a halved nest), ProcItemJirai, PAD_init, InitPAD,
 valloc, draw_time_, draw_digits_, PutNumber, ProcItemSmoke, LoadSI,
@@ -659,7 +659,7 @@ AttackGeneral(197), StateTransition, SetupSpline, SetBlood,
 PutStrain, ProcMiscDoor, GetAreaMapLevel(108, region), AttackLong
 (155), AttackIndirect(2, cse constant-carrier), update_card(2+12),
 vmemoryGC, AfsGetEntry, AddMisc, RestoreItemLayout, decode_tmd_adiv_,
-SetFlyWire(1 left), mission_score(rest). Load-bearing EMPTY barriers
+mission_score(rest). Load-bearing EMPTY barriers
 (honest, DBG-readable) stay: LoadTIMpack, set_boot_exec_,
 SetupImageToPolyGT4/FT4, SearchTarget(85!), PlayVoice, ComPad,
 AttackShort(262!).
