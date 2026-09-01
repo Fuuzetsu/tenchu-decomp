@@ -242,7 +242,7 @@ segments:
       - [0x1db90, c, DisposeWeapon]
       - [0x1dbf8, c, EquipWeapon]
       - [0x1dce8, c, FUN_8002e4e8]
-      - [0x1eba8, c, turn_towards_player_]
+      - [0x1eba8, c, GotoPosition]
       - [0x1ed88, c, ChasetoTarget]
       - [0x1eed0, c, FUN_8002f6d0]
       - [0x1f5f0, c, Think1random]

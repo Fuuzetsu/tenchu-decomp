@@ -130,7 +130,7 @@
 0x8002e304	140	GetAttackDBID	main	-
 0x8002e390	104	DisposeWeapon	main	-
 0x8002e3f8	240	EquipWeapon	main	-
-0x8002f3a8	480	turn_towards_player_	main	-
+0x8002f3a8	480	GotoPosition	main	-
 0x8002f588	328	ChasetoTarget	main	-
 0x8002fdf0	372	Think1random	main	-
 0x8002ff64	356	Think1ninja	main	-

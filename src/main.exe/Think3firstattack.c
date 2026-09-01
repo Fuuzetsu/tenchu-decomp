@@ -41,7 +41,7 @@ extern Humanoid *Me_THINK_C;
  * (same shape as Think3attack.c's atkd table). */
 extern s16 atkd2[N_WEAPON_ATTACK_CLASSES];
 /* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
-extern int turn_towards_player_(int x_diff, int z_diff);
+extern int GotoPosition(int vx, int vz);
 
 s16 Think3firstattack(void)
 {
@@ -49,7 +49,7 @@ s16 Think3firstattack(void)
     weapon_attack_class idx;
     s32 degree;
 
-    pad = turn_towards_player_(0, 0);
+    pad = GotoPosition(0, 0);
     if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;

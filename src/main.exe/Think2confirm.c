@@ -12,7 +12,7 @@
 /*
  * Think2confirm (0x8002fa24, 0x30 bytes) — think-handler, same "think" TU as
  * Think1sleep.c/ThinkBasicHuman2.c (s16 return convention; shared
- * turn_towards_player_ extern from main.exe.h).
+ * GotoPosition extern from main.exe.h).
  *
  * The mask is semantically the PADLleft|PADLright turn-only filter used by
  * Think1sleep/AttackAnimal/StateTransition, but signedness picks the
@@ -23,5 +23,5 @@
 
 s16 Think2confirm(void)
 {
-    return turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED;
+    return GotoPosition(0, 0) & PAD_TURN_BUTTONS_SIGNED;
 }

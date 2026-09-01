@@ -195,7 +195,7 @@
 0x8002e390	104	DisposeWeapon
 0x8002e3f8	240	EquipWeapon
 0x8002e4e8	3776	FUN_8002e4e8
-0x8002f3a8	480	turn_towards_player_
+0x8002f3a8	480	GotoPosition
 0x8002f588	328	ChasetoTarget
 0x8002f6d0	1824	FUN_8002f6d0
 0x8002fdf0	372	Think1random

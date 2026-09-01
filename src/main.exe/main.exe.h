@@ -57,7 +57,7 @@ extern PadCommandSequence *Command[N_PAD_COMMAND_TABLE_ENTRIES];
 extern unsigned char ComBuf[PAD_PORT_COUNT][PAD_REPORT_BUFFER_SIZE];
 extern PadArrangeType PadArrange;
 
-extern int turn_towards_player_(int x_diff, int z_diff);
+extern int GotoPosition(int vx, int vz);
 extern struct Humanoid *Me_THINK_C;
 /* Retail permits 40 actors and reserves 0xA0 bytes before the next global. */
 #define MAX_HUMANS 40

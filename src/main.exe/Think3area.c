@@ -34,7 +34,7 @@
  *  - The already-acting callback arm is written before the longer steering
  *    arm.  This matches retail's physical fallthrough layout, the same shape
  *    used by Think3hitaway.
- *  - This THINK_3.C caller sees turn_towards_player_ returning s16.  Declaring
+ *  - This THINK_3.C caller sees GotoPosition returning s16.  Declaring
  *    it s32 adds a deferred result copy and makes the function one instruction
  *    long; the original-width prototype keeps the return in $v0 until reorg
  *    moves it into `pad` in the following Attrib branch's delay slot.
@@ -47,7 +47,7 @@ extern Humanoid *Me_THINK_C;
 
 extern s16 SuccessionAttack(s32 dist, s16 deg);
 extern s16 Think3attack(void);
-extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GotoPosition(s32 vx, s32 vz);
 
 s16 Think3area(void)
 {
@@ -140,7 +140,7 @@ s16 Think3area(void)
         goto return_pad;
     }
 
-    pad = turn_towards_player_(xx, zz);
+    pad = GotoPosition(xx, zz);
     if ((Attrib & ATTR_WALL) != 0)
     {
         Me_THINK_C->actflg = 1;

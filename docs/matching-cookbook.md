@@ -428,7 +428,7 @@ Hard regs: 0 zero, 1 at, 2 v0, 3 v1, 4–7 a0–a3, 8–15 t0–t7, 16–23 s0�
    reachable source structure the dumps name outright. There is no target RTL —
    target ASM is the spec; our RTL explains our wrong bytes; we mutate C only.
 
-Worked examples: vrealloc, vfree, valloc, Sound, turn_towards_player_,
+Worked examples: vrealloc, vfree, valloc, Sound, GotoPosition,
 UpdateMotion, HangCheck, GetConflictResult, SetSmoke — headers carry the
 dump-to-source reasoning.
 
@@ -710,7 +710,7 @@ negated. Everything else here is corollaries:
   `return`** (sched2 runs before jump2 — compiler-facts): the extra return's
   CODE_LABEL pins the truncation above the loads, cross-jump erases the
   duplicate body for free. Constraint: the early-return site must not sit
-  between two blocks sharing a cse'd value (turn_towards_player_'s unique safe
+  between two blocks sharing a cse'd value (GotoPosition's unique safe
   site). rtlguide names it `shared-return-extension-schedule`;
   `shared-return-split` / `terminal-call-return` mechanise the goto→return and
   terminal-call edges (Think3attack 10 bytes; Think3hitaway 14 — try the edge
@@ -2433,7 +2433,7 @@ LUID, barriers). The levers:
   defined in that test's own block — nested ifs with a goto to the shared else,
   not one `&&` (vrealloc's 0x80000000). An "unconditional" post-compare move is
   reorg stealing a fallthrough head whose register is dead on the taken path —
-  NOT a comma expression (turn_towards_player_). A delay-slot insn can be
+  NOT a comma expression (GotoPosition). A delay-slot insn can be
   pulled BACKWARD across calls (ReqItemHappou's `j++`). A dependency-free
   constant as the first statement floats above `sw ra` — write the
   load-bearing statement first, or wrap a no-load body in a fence

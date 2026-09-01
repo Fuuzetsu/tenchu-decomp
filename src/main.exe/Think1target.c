@@ -41,7 +41,7 @@ extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
 
 extern int rand(void);
-extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GotoPosition(s32 vx, s32 vz);
 
 s16 Think1target(void)
 {
@@ -136,7 +136,7 @@ s16 Think1target(void)
 
         if (dy <= 2000)
         {
-            return turn_towards_player_(vx, vz);
+            return GotoPosition(vx, vz);
         }
         {
 
@@ -162,5 +162,5 @@ s16 Think1target(void)
             return pad;
         }
     }
-    return turn_towards_player_(vx, vz);
+    return GotoPosition(vx, vz);
 }

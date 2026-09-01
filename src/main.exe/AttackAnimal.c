@@ -25,7 +25,7 @@
  * jumping (status 7/9) it resets `actmode` and returns 0. Close AND
  * already facing the player (Distance < 2000, |Degree| < 200) it bites —
  * a plain Square press (PADRleft) without touching `actmode`. Otherwise
- * it bumps `actmode`, steers via turn_towards_player_, and escalates by
+ * it bumps `actmode`, steers via GotoPosition, and escalates by
  * `actmode`'s run length: an early roll (<30) forces plain forward
  * (PADLup), the 30th call plays a warning Sound, up to 90 it masks the
  * steer to turn-only (PADLleft|PADLright), beyond that returns the full
@@ -45,9 +45,9 @@
  *    longer; `s32 deg` operates in place on the `lh`'s already-sign-
  *    extended register with no truncation needed until the caller compares
  *    it (which never narrows it further here).
- *  - `pad` (the `turn_towards_player_` result, later the function's return
+ *  - `pad` (the `GotoPosition` result, later the function's return
  *    value) must ALSO be `s32`, not `s16`: main.exe.h's own prototype for
- *    `turn_towards_player_` returns `int` (disagreeing with the defining
+ *    `GotoPosition` returns `int` (disagreeing with the defining
  *    TU's actual `s16` — the "caller-side extern's return type is an
  *    extension-position lever" rule), so an `s16 pad` truncates the result
  *    immediately at the call (extra `move`+truncate pair), while `s32 pad`
@@ -58,7 +58,7 @@
  *    independently-built Humanoid names this exact offset `actmode`,
  *    right before the already-proven actflg/actcnt/actscnt run — replaces
  *    game_types.h's placeholder `field52_0x88`).
- *  - `pad` doubles as the `turn_towards_player_` result AND the eventual
+ *  - `pad` doubles as the `GotoPosition` result AND the eventual
  *    return value (matches $s0's dual role, callee-saved across the Sound
  *    call): a "default-then-override" ladder overrides it in 2 of 3
  *    branches and leaves it alone in the other 2 (the `== 0x1e` Sound
@@ -92,7 +92,7 @@ short AttackAnimal(void)
         }
     }
     Me_THINK_C->actmode++;
-    pad = turn_towards_player_(0, 0);
+    pad = GotoPosition(0, 0);
     am = Me_THINK_C->actmode;
     if (am < ANIMAL_ATTACK_NOTICE_FRAME)
     {

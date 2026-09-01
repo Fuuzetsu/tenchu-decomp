@@ -28,7 +28,7 @@
 /*
  * Think helper: steer toward the target through a persistent random flank
  * offset (chase[0]/chase[1], re-rolled at `length` radius when cleared or
- * when the hit/push contact bits are up), returning turn_towards_player_'s command,
+ * when the hit/push contact bits are up), returning GotoPosition's command,
  * or 0 when there is no target, the offset point is nearly reached, the
  * wall-contact bit is set, or the target is already close.
  */
@@ -70,5 +70,5 @@ short ChasetoTarget(long length)
         vz = rsin(deg) * length >> FIXED_SHIFT;
         chase[HUMANOID_CHASE_Z] = vz;
     }
-    return turn_towards_player_(xx, zz);
+    return GotoPosition(xx, zz);
 }

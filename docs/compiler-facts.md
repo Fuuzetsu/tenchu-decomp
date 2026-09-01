@@ -576,7 +576,7 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   prologue ordering questions live ONLY in sched2 (`schedtrace --pass sched2`).
   sched2 runs BEFORE jump2 (the `.jump2` dump already carries sched2's lists) —
   a second `return` pins an epilogue `sra` above the restores
-  (turn_towards_player_).
+  (GotoPosition).
 - **An argument-register move is LUID-last** (calls.c:1632 precomputes all
   register parameters before filling any hard reg) — but **argmoves are NOT
   pinned to priority 1** (the old "permanent scheduling floor — park on sight"

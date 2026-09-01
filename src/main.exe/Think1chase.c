@@ -28,7 +28,7 @@
  * rolls to 1), picks the chase target: the nearest other Humanoid within
  * 5000 units if one exists, else the same random-offset-from-spawn roll as
  * Think1random. On later ticks, steers towards the chase target via
- * turn_towards_player_; when it returns 0 (facing the target already),
+ * GotoPosition; when it returns 0 (facing the target already),
  * resets ++Me_THINK_C->actcnt to 0 and adds the Square attack button.
  *
  * GetNearestHumanoid uses the shared `Humanoid *` view, matching this TU's
@@ -72,7 +72,7 @@ s16 Think1chase(void)
     }
     else
     {
-        pad = turn_towards_player_(Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx,
+        pad = GotoPosition(Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx,
                                   Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz);
         if ((s16)pad == 0)
         {

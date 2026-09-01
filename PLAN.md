@@ -43,7 +43,7 @@ byte-identical `main.exe`.
   residuals still include
   the named **`la` address-materialization tie** (`%hi` in a temp vs the target
   reg — `PrepareAccess`, `cd_open`, `PlayMusicFromID`, `spare_item_slot_`),
-  goto-merge copy-chains (`turn_towards_player_`, `Think3chase`), and the
+  goto-merge copy-chains (`GotoPosition`, `Think3chase`), and the
   big-handler flag/frame ties. The permuter is often immune to these late-pass
   decisions, so fresh compiler dumps, demo homologs, original types/macros, and
   a different human source identity take priority over local byte shaving.

@@ -336,7 +336,7 @@ segments:
       - [0x1A178, c, DisposeWeapon]
       - [0x1A1E0, c, EquipWeapon]
       - [0x1A2D0, c, StateTransition]
-      - [0x1B190, c, turn_towards_player_]
+      - [0x1B190, c, GotoPosition]
       - [0x1B370, c, ChasetoTarget]
       - [0x1B4B8, c, register_character_death]
       - [0x1B7EC, c, Think1trace]

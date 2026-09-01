@@ -346,7 +346,7 @@ GP_EXTERNS = {
     "is_humanoid_on_stage_": ["Humans"],
     "Think2contact": ["Attrib", "Me_THINK_C", "Degree"],
     "draw_visible_characters_": ["VISIBLE_ENEMIES_"],
-    "turn_towards_player_": ["Me_THINK_C", "Degree", "Attrib", "ProbeLevelLow"],
+    "GotoPosition": ["Me_THINK_C", "Degree", "Attrib", "ProbeLevelLow"],
     "Think1trace": ["Me_THINK_C", "Degree", "Attrib"],
     "Think3chase": ["Distance", "SR", "EngageLevel", "AttackActionCount", "Degree", "Me_THINK_C"],
     "launch_lightning_bolt_": ["dtM", "Me_MOTION_C", "dtR"],

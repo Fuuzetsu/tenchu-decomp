@@ -92,7 +92,7 @@ extern void reset_alert_duration(void);
 extern s16 Think2confirm(void);
 extern s16 think_alarm_reaction_(void);
 extern s16 Think3firstattack(void);
-extern s16 turn_towards_player_(s32 x, s32 z);
+extern s16 GotoPosition(s32 vx, s32 vz);
 /* Retail's own prototype drift (def: u16 pressed) -- byte-required. */
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
 extern s16 Think1ninja(void);
@@ -480,7 +480,7 @@ void StateTransition(Humanoid *human)
                 ((ProbeAttrib[FORWARD_PROBE] & (MAP_DEATH | MAP_WATER)) ||
                  ProbeLevelLow > DANGER_PROBE_DELTA))
             {
-                pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
+                pad = GotoPosition(0, 0) & (PADLleft | PADLright);
             }
             if (StagePlayer->motion->mid == MOT_SYURI_RECOVER &&
                 (rand() % (EngageLevel + 1) == 0 ||

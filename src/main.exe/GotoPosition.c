@@ -10,18 +10,27 @@
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
+ * short GotoPosition(long vx, long vz);
+ *     THINK.C:254, 11 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
  *
- * PSX.SYM suggests this may be `GotoPosition` (LOW confidence, THINK.C) — NOT
- * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
+ * Demo-build parameters and locals (evidence, not a retail spec —
+ * see docs/psx-sym.md):
+ *     param $a0       long vx
+ *     param $a1       long vz
  * END PSX.SYM */
 
 /*
- * turn_towards_player_ (0x8002b990, 0x1E0 bytes) — the shared "which way to
- * turn, and is it safe to step" helper called by nearly every AI think
- * handler in this TU (Think1sleep/Think2confirm/think_setting_go_towards_-
- * player and many unmatched Think* siblings). Result is a bitmask of
+ * GotoPosition (0x8002b990, 0x1E0 bytes) — steer toward an x/z offset and
+ * decide whether it is safe to step. It is called by nearly every AI think
+ * handler in this TU (Think1sleep/Think2confirm/Think2contact and many
+ * unmatched Think* siblings). Result is a bitmask of
  * button-like turn/walk bits (PADLup "close enough to stop turning",
  * PADLright/PADLleft for turning) truncated to s16 on return.
+ *
+ * The original name and `long vx, long vz` contract come from the demo's
+ * THINK.C symbols. Its smaller body occupies the same StateTransition / this /
+ * ChasetoTarget source slot and implements this function's direction, turn,
+ * and pad-selection core; retail extends it with the obstacle probe below.
  *
  * Attrib and Degree keep their recovered signed object types.  This function's
  * `lhu` flag reads use the shared `Attrib` view, while the raw-angle path
@@ -52,7 +61,7 @@
  *    fresh or-temp of the compound-expression form is colored by local-alloc
  *    before the (longer-lived) Me_THINK_C pointer temp, stealing $v0 and
  *    pushing Me to $v1, which then pushes d2 off $v1 entirely (to $a0).
- *  - The `if (cached != (u32)LEVEL_NONE) return result;` guard is a LITERAL EARLY
+ *  - The `if (cached != LEVEL_NONE) return result;` guard is a LITERAL EARLY
  *    RETURN, and it is load-bearing for the epilogue schedule: a second
  *    `return` statement makes expand emit a jump to return_label, so at
  *    sched2 time (which runs BEFORE jump2/cross-jump in this cc1 — verified
@@ -71,7 +80,7 @@
 extern Humanoid *Me_THINK_C;
 extern s32 ProbeLevelLow;
 
-s16 turn_towards_player_(s32 x_diff, s32 z_diff)
+s16 GotoPosition(s32 vx, s32 vz)
 {
     u16 dir;
     s32 turn;
@@ -79,9 +88,9 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     s32 adir;
 
     result = 0;
-    if (x_diff != 0 || z_diff != 0)
+    if (vx != 0 || vz != 0)
     {
-        dir = GetDirection(x_diff, z_diff,
+        dir = GetDirection(vx, vz,
                            Me_THINK_C->rotate->vy);
     }
     else
@@ -106,14 +115,14 @@ s16 turn_towards_player_(s32 x_diff, s32 z_diff)
     {
         result |= PADLup;
     }
-    if (!(Attrib & 3))
+    if (!(Attrib & ATTR_PHASE))
     {
         if (Attrib & ATTR_WALL)
         {
             s32 cached;
 
             cached = ProbeLevelLow;
-            if (cached != 0x80000000)
+            if (cached != LEVEL_NONE)
             {
                 return result;
             }

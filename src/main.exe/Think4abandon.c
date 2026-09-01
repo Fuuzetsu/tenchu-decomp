@@ -70,7 +70,7 @@
 
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
-extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GotoPosition(s32 vx, s32 vz);
 extern int rand(void);
 
 s16 Think4abandon(void)
@@ -97,7 +97,7 @@ s16 Think4abandon(void)
                 }
             }
         }
-        return (turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED);
+        return (GotoPosition(0, 0) & PAD_TURN_BUTTONS_SIGNED);
     }
     else if (EmergencyNotice != 0)
     {
@@ -105,13 +105,13 @@ s16 Think4abandon(void)
         {
             Attrib = cleared | PHASE_ALERT;
         }
-        return (turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED);
+        return (GotoPosition(0, 0) & PAD_TURN_BUTTONS_SIGNED);
     }
     else
     {
         if (Me_THINK_C->think[3] == Think4abandon)
         {
-            pad = (turn_towards_player_(0, 0) & PAD_TURN_BUTTONS_SIGNED);
+            pad = (GotoPosition(0, 0) & PAD_TURN_BUTTONS_SIGNED);
             if (pad != 0)
             {
                 return pad;

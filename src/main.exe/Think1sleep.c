@@ -37,7 +37,7 @@ s16 Think1sleep(void)
     }
     if ((EmergencyNotice != 0) || ((Attrib & ATTR_PUSH) != 0))
     {
-        pad = turn_towards_player_(0, 0);
+        pad = GotoPosition(0, 0);
         pad = pad & (PADLleft | PADLright);
     }
     return pad;

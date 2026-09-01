@@ -49,7 +49,7 @@
 
 extern Humanoid *Me_THINK_C;
 
-extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GotoPosition(s32 vx, s32 vz);
 extern s16 ItemUse(void);
 
 short AttackIndirect(void)
@@ -134,7 +134,7 @@ short AttackIndirect(void)
             goto close_not_aimed;
         }
 
-        pad = turn_towards_player_(0, 0) & (PADLleft | PADLright);
+        pad = GotoPosition(0, 0) & (PADLleft | PADLright);
         if ((u32)(Distance - 1000) > 3000 - 1000)
         {
             pad |= PADLdown;
@@ -171,7 +171,7 @@ short AttackIndirect(void)
 
     if (Distance > 15000)
     {
-        pad = turn_towards_player_(0, 0);
+        pad = GotoPosition(0, 0);
     }
     else if (Degree > 200)
     {

@@ -22,7 +22,7 @@
  * while the current motion is MOT_MOVE at frame zero,
  * checks whether stepping forward would change the character's area-map
  * level (an edge/stair/ledge check, same GetAreaMapLevel/GlobalAreaMap
- * idiom as turn_towards_player_.c's obstacle probe) and forces a "stop and
+ * idiom as GotoPosition.c's obstacle probe) and forces a "stop and
  * turn" result (0x1040) if so, or if the forward area-level probe itself is
  * far enough away (> 0x17D4); otherwise returns the random roll. ALL
  * BYTE-PROVEN except the residual below.
@@ -48,9 +48,9 @@
  *
  * `field6_0xc` (already-named placeholder, offset 0xC) is also read here as
  * a move-speed magnitude input (`field6_0xc * 5`) — the SAME field
- * turn_towards_player_.c passes to GetMoveSpeed's `width` parameter at the
+ * GotoPosition.c passes to GetMoveSpeed's `width` parameter at the
  * same offset (cross-function corroboration; not renamed here since
- * turn_towards_player_.c — outside this batch — already references it by
+ * GotoPosition.c — outside this batch — already references it by
  * this name).
  *
  * The `abs_d2 < 500` branch jumps DIRECTLY past the `d2 <= 0x17D4` check to

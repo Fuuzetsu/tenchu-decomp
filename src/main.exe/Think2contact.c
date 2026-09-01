@@ -19,14 +19,14 @@
  * per-frame handler like Think1sleep/Think2confirm, not an installer): if
  * currently in the "0x400" attrib state and the AI pad hold is unset,
  * arm it (0x80000008, or 0x20000008 if Degree > 0), then just forward to
- * turn_towards_player_(0, 0). Same TU as Think1sleep.c/Think2confirm.c.  The
+ * GotoPosition(0, 0). Same TU as Think1sleep.c/Think2confirm.c.  The
  * recovered Attrib object is a signed `short`; this retail site reads its raw
  * flag bits with `lhu`, so it uses the shared `Attrib` view while signed
  * consumers use `Attrib` directly.
  */
 extern Humanoid *Me_THINK_C;
 /* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
-extern int turn_towards_player_(int x_diff, int z_diff);
+extern int GotoPosition(int vx, int vz);
 
 s16 Think2contact(void)
 {
@@ -41,5 +41,5 @@ s16 Think2contact(void)
         }
         Me_THINK_C->pad_hold = hint;
     }
-    return turn_towards_player_(0, 0);
+    return GotoPosition(0, 0);
 }

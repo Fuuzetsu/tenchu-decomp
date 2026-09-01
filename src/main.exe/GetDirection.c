@@ -20,7 +20,7 @@
  * GetDirection (0x8002972c, 0x68 bytes) — angle-difference-to-target,
  * corrected as written: `0x1000 - diff` reflects the high side, `diff + 0x1000` wraps the low side (a 0x1000/4096 = one full turn representation,
  * same units as SVECTOR rotation components). Same "Humanoid control" TU as
- * is_humanoid_on_stage_.c; called by turn_towards_player_.
+ * is_humanoid_on_stage_.c; called by GotoPosition.
  *
  * Retail widened the demo's `short roty` parameter to s32. Giving the retail
  * definition a short parameter adds an absent sign-extension pair in the

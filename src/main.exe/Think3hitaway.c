@@ -29,7 +29,7 @@ extern Humanoid *Me_THINK_C;
 extern s32 rand(void);
 extern s16 ChasetoTarget(s32 length);
 extern s16 SuccessionAttack(s32 dist, s16 deg);
-extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GotoPosition(s32 vx, s32 vz);
 
 /*
  * Think3hitaway (0x8002d984) — think-handler, same "think" TU as
@@ -41,7 +41,7 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  * zero out `chase[0]`/`chase[1]` (Ghidra's `some_other_x_position`/
  * `some_other_z_position`), and SuccessionAttack(3000, 1500) for the result.
  * Else if not already acting (actflg == 0): if aim is close
- * (abs(Degree) < 1000) keep only the turn bits from turn_towards_player_
+ * (abs(Degree) < 1000) keep only the turn bits from GotoPosition
  * and force PADLdown (back away), else ChasetoTarget(5000); roll a
  * 1-in-30 chance (Distance <
  * 2000) to press PADRdown (jump); arm actflg once far enough away
@@ -91,7 +91,7 @@ s16 Think3hitaway(void)
     {
         if (__builtin_abs(Degree) < 1000)
         {
-            pad = turn_towards_player_(0, 0);
+            pad = GotoPosition(0, 0);
             pad = (pad & (PADLleft | PADLdown | PADLright)) | PADLdown;
         }
         else

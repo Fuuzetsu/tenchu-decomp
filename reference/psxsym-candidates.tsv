@@ -5,5 +5,4 @@
 # before adopting one.
 #addr	current	candidate	source	confidence	tu	retail_size	demo_size
 800188d8	LoadTIMpackAndFree	ViewAdjustBG	symmatch	LOW	3DCTRL.C	44	60
-8002b990	turn_towards_player_	GotoPosition	symmatch	LOW	THINK.C	480	188
 8003d768	FUN_8003d768	RequestItem	symmatch	LOW	ITEM.C	672	204

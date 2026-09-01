@@ -325,7 +325,7 @@
 8002a978	104	DisposeWeapon
 8002a9e0	240	EquipWeapon
 8002aad0	3776	StateTransition
-8002b990	480	turn_towards_player_
+8002b990	480	GotoPosition
 8002bb70	328	ChasetoTarget
 8002bcb8	820	register_character_death
 8002bfec	216	Think1trace

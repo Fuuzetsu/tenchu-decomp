@@ -14,6 +14,7 @@
 80027688	FUN_80027688	AttackPQD	xbuild	LOOSE
 80027730	FUN_80027730	AttackFire	callmatch+prototype+semantic	two-frame range; PARAM_ITEM_LAUNCH/SVECTOR locals; fire/napalm request
 80027818	FUN_80027818	ItemControl	xbuild	LOOSE
+8002b990	turn_towards_player_	GotoPosition	callmatch+prototype+ordinal+semantic	100% demo-callee coverage; same StateTransition/ChasetoTarget slot and matching direction/turn/pad core
 8002d638	think_setting_weapon_logic1_	Think3area	symmatch	HIGH/THINK_3.C
 8002fa54	think_setting_go_towards_player	Think2contact	symmatch+semantic	adjacent to Think2confirm; matching contact-facing behavior
 8003250c	FUN_8003250c	DrawTargetS	symmatch	HIGH/EFFECT.C

@@ -32,7 +32,7 @@
  * chase coordinate, locate coordinate, and pad value into extra scratch roles
  * changes global allocation and delay-slot scheduling. Keeping vx/vz as the
  * actual chase-minus-locate values yields the target load order, preserves
- * them in $a0/$a1 for turn_towards_player_, and leaves each absolute value
+ * them in $a0/$a1 for GotoPosition, and leaves each absolute value
  * in a separate $v0 temporary.
  */
 
@@ -61,7 +61,7 @@ s16 Think1random(void)
         }
         else
         {
-            pad = turn_towards_player_(vx, vz);
+            pad = GotoPosition(vx, vz);
         }
     }
     return pad;

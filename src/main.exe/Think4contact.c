@@ -74,7 +74,7 @@ s16 Think4contact(void)
         Me_THINK_C->actscnt++;
         dx = Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
         dz = Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
-        pad = turn_towards_player_(dx, dz);
+        pad = GotoPosition(dx, dz);
         if (SquareRoot0(dx * dx + dz * dz) < 1000 || Me_THINK_C->actscnt == 0)
         {
             Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;

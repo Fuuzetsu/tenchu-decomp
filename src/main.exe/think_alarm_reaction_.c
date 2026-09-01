@@ -18,7 +18,7 @@
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
 extern ReinforcementTypeTable AIDHumanType;
-extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
+extern s16 GotoPosition(s32 vx, s32 vz);
 extern int rand(void);
 
 /* actscnt belongs to whichever Think* handler is active.  In this handler it
@@ -58,7 +58,7 @@ s16 think_alarm_reaction_(void)
     {
         s32 distance;
 
-        result = turn_towards_player_(x_diff, z_diff);
+        result = GotoPosition(x_diff, z_diff);
         distance = SquareRoot0(x_diff * x_diff + z_diff * z_diff);
         if (distance < 2000 || (Attrib & ATTR_WALL))
         {
