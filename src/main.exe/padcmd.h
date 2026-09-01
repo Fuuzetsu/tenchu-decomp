@@ -42,6 +42,16 @@ enum
 /* Each CHEAT_COMMANDS_ stream is {result code, presses NEWEST-first,
  * -1}: pattern[0] compares against the latest press, so the code is
  * ENTERED in reverse of the stored order below (retail data). */
+enum
+{
+    N_CHEAT_COMMANDS = 7,
+    N_CHEAT_COMMAND_TABLE_ENTRIES = N_CHEAT_COMMANDS + 1,
+    N_CHEAT_HISTORY_ENTRIES = 12
+};
+
+extern short *CHEAT_COMMANDS_[N_CHEAT_COMMAND_TABLE_ENTRIES];
+extern unsigned short PAD_HISTORY_[N_CHEAT_HISTORY_ENTRIES];
+
 #define CHEAT_ITEM_CAP 0x1    /* Tri+Left Tri+Down Tri+Right Tri+Up
                                * R1+Tri L1+Tri */
 #define CHEAT_ITEM_REFILL 0x2 /* Tri+Left Tri+Right Tri+Down Tri+Up

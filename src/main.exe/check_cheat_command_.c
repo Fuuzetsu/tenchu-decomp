@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "padcmd.h"
 
 /*
  * MATCH.
@@ -14,9 +15,6 @@
  * pointer cursor emits the same three instructions and registers in the wrong
  * schedule order (the former 12-byte residual).
  */
-extern s16 *CHEAT_COMMANDS_[7];
-extern u16 PAD_HISTORY_[12];
-
 s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
 {
     u16 *history;
@@ -31,7 +29,7 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
 
     if (newly_pressed != 0)
     {
-        i = 11;
+        i = N_CHEAT_HISTORY_ENTRIES - 1;
         do
         {
             PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
@@ -85,7 +83,7 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
                 if ((u16)pattern_start[i] == outer_end)
                 {
                 matched:
-                    i = 11;
+                    i = N_CHEAT_HISTORY_ENTRIES - 1;
                     do
                     {
                         PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
