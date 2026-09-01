@@ -11,6 +11,6 @@ typedef struct
 } TIMPackIndex;
 
 #define TIM_PACK_IMAGE(offset_base, offset_entry)                  \
-    TIM_FILE_IMAGE((int)(offset_base) + *(offset_entry))
+    TIM_FILE_IMAGE((u8 *)(offset_base) + *(offset_entry))
 
 #endif

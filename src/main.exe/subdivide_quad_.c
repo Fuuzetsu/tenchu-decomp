@@ -112,7 +112,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     ADIV_WORK *work;
     short s;
     u16 u;
-    int tail;
+    u_long *tail;
     int zA;
     int zB;
     int zC;
@@ -297,7 +297,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         *otp & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT4;
                     *(u32 *)work->otp =
                         (u32)work->out & GPU_DMA_ADDRESS_MASK;
-                    tail = (int)work->out + sizeof(POLY_GT4);
+                    tail = work->out + sizeof(POLY_GT4) / sizeof(*work->out);
                 }
                 else
                 {
@@ -410,10 +410,10 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         *(u32 *)pk =
                             *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;
                         *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;
-                        tail = (int)(work->out + GPU_POLY_GT3_WORDS);
+                        tail = work->out + GPU_POLY_GT3_WORDS;
                     }
                 }
-                work->out = (u_long *)tail;
+                work->out = tail;
             }
         }
     }
