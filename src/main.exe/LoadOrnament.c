@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "tmdfile.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -38,9 +39,9 @@ OrnamentType *LoadOrnament(u_long *adr)
     ornament = (OrnamentType *)valloc(sizeof(OrnamentType));
     if (adr != 0)
     {
-        adr++;
+        adr = TMD_FILE_DATA(adr);
         GsMapModelingData(adr);
-        GsLinkObject4((u_long)(adr + 2), &ornament->object, 0);
+        GsLinkObject4((u_long)TMD_DATA_OBJECTS(adr), &ornament->object, 0);
     }
     ornament->object.coord2 = &ornament->locate;
     ornament->object.attribute = 0;

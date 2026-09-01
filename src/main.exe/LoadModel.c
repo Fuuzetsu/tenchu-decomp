@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "tmdfile.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -27,8 +28,7 @@
  * the model data in from `adr` (when non-null) via GsMapModelingData/
  * GsLinkObject4 - the same "reassign the pointer parameter in place, then
  * use a smaller residual offset for the second call" idiom as
- * LoadOrnament.c (`adr = adr + 1; GsMapModelingData(adr);
- * GsLinkObject4((u_long)(adr + 2), &model->object, 0);`).
+ * LoadOrnament.c (`TMD_FILE_DATA` followed by `TMD_DATA_OBJECTS`).
  */
 extern void *valloc(u32 size);
 
@@ -39,9 +39,9 @@ ModelType *LoadModel(u_long *adr)
     model = (ModelType *)valloc(sizeof(ModelType));
     if (adr != 0)
     {
-        adr++;
+        adr = TMD_FILE_DATA(adr);
         GsMapModelingData(adr);
-        GsLinkObject4((u_long)(adr + 2), &model->object, 0);
+        GsLinkObject4((u_long)TMD_DATA_OBJECTS(adr), &model->object, 0);
     }
     model->object.coord2 = &model->locate;
     model->object.attribute = 0;

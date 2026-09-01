@@ -29,6 +29,7 @@
  * END PSX.SYM */
 
 #include "item.h"
+#include "tmdfile.h"
 
 /*
  * STATUS: MATCHING — pure C, all 760 bytes / 190 instructions exact.
@@ -79,8 +80,8 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
             dim = (ModelType *)valloc(sizeof(ModelType));
             if (dtmd != 0)
             {
-                GsMapModelingData((u_long *)(dtmd + 4));
-                GsLinkObject4(dtmd + 0xc, &dim->object, 0);
+                GsMapModelingData(TMD_FILE_DATA(dtmd));
+                GsLinkObject4((u_long)TMD_FILE_OBJECTS(dtmd), &dim->object, 0);
             }
             dim->object.coord2 = (GsCOORDINATE2 *)dim;
             dim->object.attribute = 0;
