@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "layout_save.h"
 
 /*
  * load_save_slot_ (0x8003cd04, 0x58 bytes) — file-menu load handler: loads a
@@ -23,17 +24,17 @@ extern char msg_load_layout_error[]; /* load layout error */
 
 void load_save_slot_(s32 target, u8 *name)
 {
-    void *buf;
+    LayoutSaveData *layout;
 
-    buf = LoadSI(target & 0xFF, name);
-    if (buf == 0)
+    layout = LoadSI(target & 0xFF, name);
+    if (layout == 0)
     {
         AdtMessageBox(msg_load_layout_error);
     }
     else
     {
-        leRestoreEnemyLayout(buf);
-        RestoreItemLayout((u8 *)buf + ENESIZE);
-        vfree(buf);
+        leRestoreEnemyLayout(layout->enemies);
+        RestoreItemLayout(layout->items);
+        vfree(layout);
     }
 }

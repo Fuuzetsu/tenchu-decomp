@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "layout_save.h"
 
 /*
  * load_layout (0x8003cc78, 0x8c bytes) - sibling of load_save_slot_ (the very
@@ -26,20 +27,20 @@ extern u8 *LayoutNames[N_STAGE_LAYOUTS];
 
 void load_layout(s32 index)
 {
-    void *buf;
+    LayoutSaveData *layout;
     u8 *names[N_STAGE_LAYOUTS];
 
     __builtin_memcpy(names, LayoutNames, sizeof(names));
-    buf = LoadSI(0, names[index]);
-    if (buf == 0)
+    layout = LoadSI(0, names[index]);
+    if (layout == 0)
     {
         AdtMessageBox(msg_load_layout_error);
     }
     else
     {
-        leRestoreEnemyLayout(buf);
-        RestoreItemLayout((u8 *)buf + ENESIZE);
-        vfree(buf);
+        leRestoreEnemyLayout(layout->enemies);
+        RestoreItemLayout(layout->items);
+        vfree(layout);
     }
     leLayoutEnemy(1);
 }

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "infoview.h"
+#include "layout_save.h"
 
 #define N_MUSIC_IDS 161
 #define FILE_SLOT_INITIAL_SELECTION 16
@@ -118,7 +119,8 @@ void FileOption(void)
     };
     typedef union FileOptionWork
     {
-        u8 bytes[ENESIZE + ITEMSIZE];
+        LayoutSaveData layout;
+        u8 bytes[sizeof(LayoutSaveData)];
         s32 music_by_stage[N_STAGE_CONFIGS];
         struct
         {
@@ -167,9 +169,9 @@ void FileOption(void)
                                     FILE_SLOT_INITIAL_SELECTION);
             if (fname != (u8 *)ADT_SELECT_CANCEL)
             {
-                lePackEnemyLayout(Buf.bytes, ENESIZE);
-                PackItemLayout(Buf.bytes + ENESIZE, ITEMSIZE);
-                SaveSI(TargetIO, fname, Buf.bytes, ENESIZE + ITEMSIZE);
+                lePackEnemyLayout(Buf.layout.enemies, ENESIZE);
+                PackItemLayout(Buf.layout.items, ITEMSIZE);
+                SaveSI(TargetIO, fname, &Buf.layout, sizeof(Buf.layout));
             }
         }
         break;

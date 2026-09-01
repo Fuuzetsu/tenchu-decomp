@@ -86,9 +86,10 @@ void PackItemLayout(void *buf, s32 size)
     TItemLayout *slot;
     VECTOR *locate;
 
-    if ((u32)size < 600)
+    if ((u32)size < sizeof(TItemLayout) * MAX_ITEMS)
     {
-        AdtMessageBox(fmt_item_storing_size_too, size, 600);
+        AdtMessageBox(fmt_item_storing_size_too, size,
+                      sizeof(TItemLayout) * MAX_ITEMS);
     }
     else
     {
