@@ -114,10 +114,9 @@ s32 StageSequence(void)
             }
             return result;
         }
-        /* Boot the stage's two root sequences (ids 2 and 3) — the master
-         * scripts that keep running even through player death. */
-        UpdateEvent(0, 2);
-        UpdateEvent(1, 3);
+        /* Boot the two master scripts that keep running through player death. */
+        UpdateEvent(0, EVENT_ROOT_FIRST);
+        UpdateEvent(1, EVENT_ROOT_LAST);
         StagePlayer->status = STAT_ACTION;
         if ((s16)StageSequence() != 0)
         {
@@ -154,17 +153,18 @@ s32 StageSequence(void)
     }
 
     StageTime++;
-    for (i = 0; i < 2; i++)
+    for (i = 0; i < N_STAGE_EVENT_SLOTS; i++)
     {
         ev = Event[i];
         if (ev == 0)
         {
             continue;
         }
-        /* Only the root sequences (ids 2-3) keep running once the player
+        /* Only the root sequences keep running once the player
          * is dead; the single-read range trick avoids an allocation
          * ripple (see briefing_screen_'s note). */
-        if ((u8)(ev->id - 2) >= 2 && StagePlayer->life == 0)
+        if ((u8)(ev->id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS &&
+            StagePlayer->life == 0)
         {
             continue;
         }
@@ -177,7 +177,7 @@ s32 StageSequence(void)
             break;
 
         case EVTRIG_ZONE:
-            if ((u8)(ev->id - 2) < 2)
+            if ((u8)(ev->id - EVENT_ROOT_FIRST) < N_STAGE_EVENT_SLOTS)
             {
                 tgt = StagePlayer;
             }
@@ -266,7 +266,8 @@ s32 StageSequence(void)
         {
             gc = GameClock;
             flag = 0;
-            if ((u8)(ev->id - 2) >= 2 && StagePlayer->life == 0)
+            if ((u8)(ev->id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS &&
+                StagePlayer->life == 0)
             {
                 Event[i] = 0;
                 continue;

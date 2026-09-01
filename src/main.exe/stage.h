@@ -23,9 +23,19 @@ enum
     EVTRIG_TIME = 7,
     EVTRIG_MUSIC = 8
 };
+
+/* Two event sequences run in parallel. Event IDs 2 and 3 are their root
+ * scripts and continue even while the player is dead. */
+enum
+{
+    N_STAGE_EVENT_SLOTS = 2,
+    EVENT_ROOT_FIRST = 2,
+    EVENT_ROOT_LAST = EVENT_ROOT_FIRST + N_STAGE_EVENT_SLOTS - 1
+};
+
 struct Humanoid;
 extern struct EventSeqType *StageEvent;
-extern struct EventSeqType *Event[2];
-extern struct Humanoid *eTarget[2];
+extern struct EventSeqType *Event[N_STAGE_EVENT_SLOTS];
+extern struct Humanoid *eTarget[N_STAGE_EVENT_SLOTS];
 
 #endif

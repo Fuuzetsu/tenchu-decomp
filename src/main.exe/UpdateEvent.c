@@ -60,10 +60,11 @@
  * struct than Ghidra's raw `*(int*)+0x5c` pointer-then-offset-4 rendering
  * suggests by name).
  *
- * `(u16)(id - 2) < 2` (id==2 or id==3) recomputes `id - 2` FRESH on each
- * incoming path (the guard-taken path and the guard-skipped path both
- * materialize their own `addiu`) rather than sharing one register — plain
- * repeated inline `id - 2` reproduces this (no named temp).
+ * The EVENT_ROOT_FIRST..EVENT_ROOT_LAST range check recomputes
+ * `id - EVENT_ROOT_FIRST` FRESH on each incoming path (the guard-taken path
+ * and the guard-skipped path both materialize their own `addiu`) rather than
+ * sharing one register — plain repeated inline subtraction reproduces this
+ * (no named temp).
  *
  * Matching notes:
  *  - A named byte offset keeps the short sign-extension/scale chain
@@ -111,7 +112,7 @@ void UpdateEvent(short n, short id)
                 !(eTarget[n]->status == STAT_DEAD &&
                   eTarget[n]->motion->loop == -1))
             {
-                if ((u16)(id - 2) >= 2 ||
+                if ((u16)(id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS ||
                     (*(Humanoid *volatile *)&eTarget[n])->life > 0)
                 {
                     return;
