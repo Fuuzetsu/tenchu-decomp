@@ -136,7 +136,8 @@ void GetWeaponData(Humanoid *human, model_part_index body, weapon_kind wid,
             }
             base = LoadOrnament(WeaponModel[i].model);
             human->weapon[w] = base;
-            GsInitCoordinate2((GsCOORDINATE2 *)human->model->object[body], &base->locate);
+            GsInitCoordinate2(&human->model->object[body]->locate,
+                              &base->locate);
         }
     }
 }

@@ -267,7 +267,7 @@ void ProcItemJirai(TItem *item)
                         scratch.frame.random_position_build;
                     SetFrame(&scratch.frame.position, 3 * FIXED_ONE,
                              rand() % 60 + 60,
-                             (GsCOORDINATE2 *)model);
+                             &model->locate);
                 }
             }
         }

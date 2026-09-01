@@ -82,7 +82,7 @@ void InitGraphicsSystem(void)
     GsInitGraph(SCREEN_W, SCREEN_H, 0x34, 1, 0);
     GsDefDispBuff(0, 0, 0, SCREEN_H);
     GsInit3D();
-    GsInitCoordinate2((GsCOORDINATE2 *)0, &World.locate);
+    GsInitCoordinate2(NULL, &World.locate);
     UpdateCoordinate(&World);
     DrawTMDmode = TMD_BANK_PLAIN;
     SetDepthQ(FOG_DQA, FOG_DQB);

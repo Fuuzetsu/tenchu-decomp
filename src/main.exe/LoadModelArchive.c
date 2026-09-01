@@ -56,7 +56,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     u16 count;
     ModelType *dim;
     ModelType *objp;
-    ModelType *super;
+    GsCOORDINATE2 *super;
     int dtmd;
     int parent;
 
@@ -83,9 +83,9 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
                 GsMapModelingData(TMD_FILE_DATA(dtmd));
                 GsLinkObject4((u_long)TMD_FILE_OBJECTS(dtmd), &dim->object, 0);
             }
-            dim->object.coord2 = (GsCOORDINATE2 *)dim;
+            dim->object.coord2 = &dim->locate;
             dim->object.attribute = 0;
-            GsInitCoordinate2(&World.locate, (GsCOORDINATE2 *)dim);
+            GsInitCoordinate2(&World.locate, &dim->locate);
             dim->locate.coord.t[0] = 0;
             dim->locate.coord.t[1] = 0;
             dim->locate.coord.t[2] = 0;
@@ -105,9 +105,9 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     }
     if (prnt == 0)
     {
-        prnt = (ModelType *)&World;
+        prnt = &World;
     }
-    GsInitCoordinate2(&prnt->locate, (GsCOORDINATE2 *)mad);
+    GsInitCoordinate2(&prnt->locate, &mad->locate);
     mad->locate.coord.t[0] = 0;
     mad->locate.coord.t[1] = 0;
     mad->locate.coord.t[2] = 0;
@@ -128,7 +128,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
         do
         {
             objp = mad->object[i];
-            super = (ModelType *)mad;
+            super = &mad->locate;
             if (prntp[i].np >= 0 && (j = 0, (s16)count > 0))
             {
                 parent = prntp[i].np;
@@ -137,14 +137,14 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
                 {
                     if (parent == prntp[j].nc)
                     {
-                        super = mad->object[j];
+                        super = &mad->object[j]->locate;
                         goto coordinate_init;
                     }
                     j++;
                 } while (j < limit);
             }
         coordinate_init:
-            GsInitCoordinate2(&super->locate, &objp->locate);
+            GsInitCoordinate2(super, &objp->locate);
             objp->locate.coord.t[0] = prntp[i].dx;
             objp->locate.coord.t[1] = prntp[i].dy;
             objp->locate.coord.t[2] = prntp[i].dz;

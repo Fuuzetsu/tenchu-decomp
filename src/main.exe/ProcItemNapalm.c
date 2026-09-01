@@ -170,7 +170,7 @@ void ProcItemNapalm(TItem *item)
                 random_pos.vz = rand() % 200 - 100;
                 pos = random_pos;
                 SetFrame(&pos, 3 * FIXED_ONE, 60,
-                         (GsCOORDINATE2 *)model);
+                         &model->locate);
             }
         }
 

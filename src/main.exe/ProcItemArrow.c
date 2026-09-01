@@ -182,7 +182,7 @@ void ProcItemArrow(TItem *item)
                                        &item->locate->locate.coord);
                     item->locate->locate.flg = 0;
                     item->locate->locate.super =
-                        (GsCOORDINATE2 *)model;
+                        &model->locate;
                     item->locate->locate.coord.t[0] = 0;
                     item->locate->locate.coord.t[1] = 0;
                     item->locate->locate.coord.t[2] = 0;

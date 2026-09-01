@@ -169,7 +169,7 @@ do_draw:
     {
         s32 clip;
 
-        GsGetLs((GsCOORDINATE2 *)model, &mat);
+        GsGetLs(&model->locate, &mat);
         GsSetLsMatrix(&mat);
         clip = DrawClip((ModelType *)model, 0);
         m = 0;

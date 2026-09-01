@@ -49,7 +49,7 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     short i;
     short j;
     OrnamentType *objp;
-    ModelType *super;
+    GsCOORDINATE2 *super;
     u32 uncachedSegment;
     int parent;
     int count;
@@ -90,7 +90,7 @@ loop1_end:
     {
         prnt = &World;
     }
-    GsInitCoordinate2((GsCOORDINATE2 *)prnt, (GsCOORDINATE2 *)mad);
+    GsInitCoordinate2(&prnt->locate, &mad->locate);
     mad->locate.coord.t[0] = 0;
     mad->locate.coord.t[1] = 0;
     mad->locate.coord.t[2] = 0;
@@ -105,7 +105,7 @@ loop2:
     if (!(i < (count = mad->n)))
         goto loop2_end;
     objp = mad->object[i];
-    super = (ModelType *)mad;
+    super = &mad->locate;
     if (prntp[i].np >= 0 && count > 0)
     {
         j = 0;
@@ -118,7 +118,7 @@ loop2:
             goto parent_loop;
     }
 coordinate_init:
-    GsInitCoordinate2((GsCOORDINATE2 *)super, &objp->locate);
+    GsInitCoordinate2(super, &objp->locate);
     objp->locate.coord.t[0] = prntp[i].dx;
     objp->locate.coord.t[1] = prntp[i].dy;
     objp->locate.coord.t[2] = prntp[i].dz;
@@ -128,7 +128,7 @@ coordinate_init:
     goto loop2;
 
 parent_found:
-    super = (ModelType *)mad->object[j];
+    super = &mad->object[j]->locate;
     goto coordinate_init;
 loop2_end:
 

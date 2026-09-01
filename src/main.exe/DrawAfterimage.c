@@ -56,10 +56,8 @@
  *    reduction, same family as DrawModelArchive's `mad->object[i]` loop);
  *    cc1's own loop rotation supplies the entry-duplicated `<=0` guard for
  *    free, no hand-written outer `if` needed.
- *  - `GsGetLs(&afi->model->locate, &mat);` — `model->locate` is
- *    `ModelType`'s own offset-0 field, so this is byte-identical to
- *    `GsGetLs((GsCOORDINATE2 *)afi->model, &mat)`; spelled Ghidra's way
- *    for clarity.
+ *  - `GsGetLs` receives `&afi->model->locate`, the model's actual
+ *    offset-zero coordinate member.
  *  - The `disp!=0`/`disp==0` arms both fall into ONE shared tail (the
  *    first/third packet-screen seed + the draw loop) — the `disp!=0` arm's own
  *    `otz==0` early-`return 0` and the `disp==0` arm's own `n<=0` early-
