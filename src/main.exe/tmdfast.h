@@ -40,6 +40,7 @@ enum
 
 #include "common.h"
 #include "gpu_packets.h"
+#include "tmdfile.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libgs.h>
 
@@ -113,7 +114,6 @@ union TmdTexturedGouraudQuadRecord
  * selects the concrete PsyQ record layout.  Keep the generic header and all
  * supported record views together so the decoders do not have to turn an
  * untyped halfword cursor into a different pointer type in every arm. */
-typedef union TmdPrimitiveRecord TmdPrimitiveRecord;
 union TmdPrimitiveRecord
 {
     TmdPrimitiveBatch batch;

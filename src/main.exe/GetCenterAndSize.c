@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfile.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -27,10 +28,9 @@
 
 /*
  * GetCenterAndSize (0x8003a9bc, 0x1a4 bytes) — same TU as leFindEnemy.c/
- * IsVisible.c (WORLD.C): given a TMD model's vertex table (`tmd[0]` the
- * vertex array pointer, `tmd[1]` the vertex count), finds the bounding box
- * over x/y/z, writes its center to `*center` and half of its largest axis
- * extent to `*size`.
+ * IsVisible.c (WORLD.C): given a mapped TMD object, walks its linked vertex
+ * table to find the x/y/z bounding box, writes its center to `*center`, and
+ * returns half of its largest axis extent through `*size`.
  *
  * Matching notes:
  *  - Each axis is `if (max < v) max = v; else if (v < min) min = v;` — an
@@ -64,9 +64,9 @@
  *    short dm` local exactly.
  */
 
-static void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size)
+static void GetCenterAndSize(TmdObjectRecord *tmd, SVECTOR *center, int *size)
 {
-    SVECTOR *vert;
+    VERT *vert;
     int nVert;
     int i;
     short minx, miny, minz, maxx, maxy, maxz;
@@ -82,8 +82,8 @@ static void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size)
     maxy = minx;
     maxz = minx;
 
-    nVert = (int)tmd[1];
-    vert = (SVECTOR *)tmd[0];
+    nVert = tmd->linked.vertex_count;
+    vert = tmd->linked.vertices;
 
     for (i = 0; i < nVert; i++)
     {

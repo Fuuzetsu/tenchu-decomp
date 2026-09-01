@@ -4,12 +4,33 @@
 #include "common.h"
 #include <psxsdk/libgs.h>
 
+typedef union TmdPrimitiveRecord TmdPrimitiveRecord;
+
+/* Sony declares a TMD object's three links as untyped words. They are file
+ * offsets before GsMapModelingData and concrete tables afterward. Keep the
+ * SDK view for relocation and expose the linked tables to game renderers. */
+typedef union TmdObjectRecord TmdObjectRecord;
+union TmdObjectRecord
+{
+    struct TMD_STRUCT sdk;
+    struct
+    {
+        VERT *vertices;
+        u_long vertex_count;
+        SVECTOR *normals;
+        u_long normal_count;
+        TmdPrimitiveRecord *primitives;
+        u_long primitive_count;
+        u_long scale;
+    } linked;
+}; /* 0x1C */
+
 /* Mapped linked-TMD header and the ID-prefixed file wrapper used by archives. */
 typedef struct
 {
     u_long flags;
     u_long object_count;
-    struct TMD_STRUCT objects[1];
+    TmdObjectRecord objects[1];
 } TMDData;
 
 typedef struct
@@ -21,7 +42,7 @@ typedef struct
 enum
 {
     TMD_FLAG_MAPPED = 1,
-    TMD_OBJECT_WORDS = sizeof(struct TMD_STRUCT) / sizeof(u_long)
+    TMD_OBJECT_WORDS = sizeof(TmdObjectRecord) / sizeof(u_long)
 };
 
 #define TMD_FILE_BYTE_OFFSET(member) ((u_long)&((TMDFile *)0)->member)

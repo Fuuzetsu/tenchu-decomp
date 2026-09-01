@@ -38,17 +38,17 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
 {
     int step;
     int count;
-    struct TMD_STRUCT *tmd;
+    TmdObjectRecord *tmd;
     TmdPrimitiveRecord *prim;
     int n;
     VERT *vertices;
 
-    tmd = (struct TMD_STRUCT *)obj->tmd;
+    tmd = (TmdObjectRecord *)obj->tmd;
     GsLMODE = GS_DOBJ_LMODE(obj->attribute);
-    prim = (TmdPrimitiveRecord *)tmd->primtop;
-    n = tmd->primn;
+    prim = tmd->linked.primitives;
+    n = tmd->linked.primitive_count;
     GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
-    vertices = (VERT *)tmd->vertop;
+    vertices = tmd->linked.vertices;
     GsLIOFF = GS_DOBJ_LIOFF(obj->attribute);
     DivDepth = GS_DOBJ_DIVISION_DEPTH(obj->attribute);
     GsTON = GS_DOBJ_TON(obj->attribute);

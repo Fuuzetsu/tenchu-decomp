@@ -6,7 +6,7 @@
  * pointers, once (bit 0 of the header marks it already mapped). */
 void GsMapModelingData(unsigned long *model)
 {
-    struct TMD_STRUCT *object;
+    TmdObjectRecord *object;
     int count;
     int i;
 
@@ -23,13 +23,16 @@ void GsMapModelingData(unsigned long *model)
     {
         do
         {
-            object = (struct TMD_STRUCT *)(model + i * TMD_OBJECT_WORDS);
-            object->vertop = (unsigned long *)((unsigned long)object->vertop +
-                                               (unsigned long)model);
-            object->nortop = (unsigned long *)((unsigned long)object->nortop +
-                                               (unsigned long)model);
-            object->primtop = (unsigned long *)((unsigned long)object->primtop +
-                                                (unsigned long)model);
+            object = (TmdObjectRecord *)(model + i * TMD_OBJECT_WORDS);
+            object->sdk.vertop =
+                (unsigned long *)((unsigned long)object->sdk.vertop +
+                                  (unsigned long)model);
+            object->sdk.nortop =
+                (unsigned long *)((unsigned long)object->sdk.nortop +
+                                  (unsigned long)model);
+            object->sdk.primtop =
+                (unsigned long *)((unsigned long)object->sdk.primtop +
+                                  (unsigned long)model);
             ++i;
         } while (i < count);
     }

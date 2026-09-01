@@ -3,6 +3,7 @@
 #include "appear.h"
 #include "item.h"
 #include "misc.h"
+#include "tmdfile.h"
 #include "vmemory.h"
 
 /* Map a world coordinate to its WorldMap cell index (floor division by the
@@ -255,7 +256,7 @@ extern OrnamentArchiveType *LoadOrnamentArchive(u_long *data, ModelType *parent)
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
 extern AreaMapType *load_balma_area_map_(AreaMapType *data);
 extern void UpdateOrnament(OrnamentType *model, s16 ry);
-extern void GetCenterAndSize(u_long *tmd, SVECTOR *center, int *size);
+extern void GetCenterAndSize(TmdObjectRecord *tmd, SVECTOR *center, int *size);
 extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
 extern void jt_init4(void);
 
@@ -400,7 +401,8 @@ short LoadConstruction(u_long *data)
                 WORLD_CELL(wlddt[i].real.object.transform.y, y);
                 WORLD_CELL(wlddt[i].real.object.transform.z, z);
 
-                GetCenterAndSize(model->object.tmd, &center, &size);
+                GetCenterAndSize((TmdObjectRecord *)model->object.tmd,
+                                 &center, &size);
                 nModel = (z << 2) + ((x << 8) + (y << 5));
                 nModel += (int)WorldMap;
                 slotman = &ModelSlot;

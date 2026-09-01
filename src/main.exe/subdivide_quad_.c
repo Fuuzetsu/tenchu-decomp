@@ -310,7 +310,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     a = fp->vp[2];
                     b = fp->vp[3];
                     INTERPOLATE_ADIV_VERTEX(fp->mid[2], m23, a, b);
-                    gte_ldv3((SVECTOR *)m01, (SVECTOR *)m02, (SVECTOR *)m23);
+                    gte_ldv3(&m01->pos, &m02->pos, &m23->pos);
                     gte_rtpt();
                     a = fp->vp[3];
                     b = fp->vp[1];
@@ -332,24 +332,23 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         (u8)((a->texture.component.u +
                               b->texture.component.u) >>
                              1);
-                    m23sxy = (u_long *)&fp->mid[2].screen.word;
+                    m23sxy = &fp->mid[2].screen.word;
                     m03->texture.component.v =
                         (u8)((a->texture.component.v +
                               b->texture.component.v) >>
                              1);
-                    gte_stsxy3((u_long *)&fp->mid[0].screen.word,
-                               (u_long *)&fp->mid[1].screen.word, m23sxy);
+                    gte_stsxy3(&fp->mid[0].screen.word,
+                               &fp->mid[1].screen.word, m23sxy);
                     gte_stsz3((u_long *)&fp->mid[0].sz, (u_long *)&fp->mid[1].sz, (u_long *)&fp->mid[2].sz);
-                    gte_ldv3((SVECTOR *)m23, (SVECTOR *)m31, (SVECTOR *)m03);
+                    gte_ldv3(&m23->pos, &m31->pos, &m03->pos);
                     gte_rtpt();
                     pv = fp->vp[0];
                     nf->vp[1] = m01;
                     nf->vp[2] = m02;
                     nf->vp[3] = m03;
                     nf->vp[0] = pv;
-                    gte_stsxy3(m23sxy,
-                               (u_long *)&fp->mid[3].screen.word,
-                               (u_long *)&fp->mid[4].screen.word);
+                    gte_stsxy3(m23sxy, &fp->mid[3].screen.word,
+                               &fp->mid[4].screen.word);
                     gte_stsz3((u_long *)&fp->mid[2].sz, (u_long *)&fp->mid[3].sz, (u_long *)&fp->mid[4].sz);
                     depth++;
                     subdivide_quad_(next, work, depth);
