@@ -936,11 +936,15 @@ struct WeaponType
 }; /* 0x18 */
 
 /* APPEAR.C's weapon-model database row. */
+/* Weapon kinds use signed halfword storage so -1 can terminate the APPEAR
+ * tables; enum weapon_kind below supplies the named values. */
+typedef s16 weapon_kind;
+
 typedef struct WeaponModelType WeaponModelType;
 struct WeaponModelType
 {
     u8 *name;      /* 0x00 */
-    s16 wid;       /* 0x04 */
+    weapon_kind wid; /* 0x04 */
     u_long *model; /* 0x08 */
 }; /* 0x0C */
 
@@ -986,7 +990,7 @@ typedef struct HumanDataType HumanDataType;
 struct HumanDataType
 {
     character_kind type;           /* 0x00 */
-    s16 wepid;                     /* 0x02 */
+    weapon_kind wepid;             /* 0x02 */
     s16 turn;                      /* 0x04 */
     s16 life;                      /* 0x06 */
     s16 width;                     /* 0x08 */
@@ -1156,8 +1160,6 @@ struct POLY_XG4
     DR_TPAGE tpage; /* 0x00 */
     POLY_G4 ply;    /* 0x08 */
 }; /* 0x2C */
-
-typedef enum weapon_kind weapon_kind;
 
 enum weapon_kind
 {

@@ -211,7 +211,7 @@ typedef struct Humanoid
     u8 actcnt;                /* 0x8A */
     u8 actscnt;               /* 0x8B */
     s16 warid;                /* 0x8C */
-    s16 wpatk;                /* 0x8E (PSX.SYM's original weapon-attack
+    weapon_kind wpatk;        /* 0x8E (PSX.SYM's original weapon-attack
                                  pattern field; retail keeps the signed
                                  short and shifts later fields by eight
                                  bytes with the expanded MapVector) */
