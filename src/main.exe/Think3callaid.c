@@ -59,10 +59,9 @@
  * same expression that installs Me_THINK_C, preserving the target load/store
  * schedule.
  *
- * `AIDHumanType[StageID * 2 + r % 2]` is a signed `s16` table (`lh`,
- * unlike the item-TU's usual unsigned tables) — passed to BreedLife's
- * `short type` parameter directly, no narrowing cast needed since the array
- * element is already the right width.
+ * `AIDHumanType.stage[StageID].type[r % 2]` is a signed character-kind
+ * table (`lh`, unlike the item-TU's usual unsigned tables), so its entries
+ * pass to BreedLife without narrowing.
  *
  * The `rand() % 2` "coin flip" is a four-instruction srl+addu+sra+sll signed
  * remainder-by-2 idiom (rounding toward zero) — automatic codegen for a
@@ -79,17 +78,18 @@
  *    `return Think3escape();` (early, inside the if) and a second,
  *    branch-LOCAL `s16 ret;` returned at the end of the else block fixed
  *    this (the InsertConflict/DrawBG "two early returns" cookbook rule).
- *  - `s16 *aid = AIDHumanType;` declared and assigned BEFORE `rand()` (not
- *    `AIDHumanType[...]` indexed inline after the call) is required for the
- *    table base address to be computed EARLY and survive in a
+ *  - `character_kind *aid = AIDHumanType.flat;` declared and assigned BEFORE
+ *    `rand()` (not indexed inline after the call) is required for the table
+ *    base address to be computed EARLY and survive in a
  *    callee-saved register across the call, matching target's
  *    `lui/addiu` into $s0 interleaved with `SR = SR_UNSEEN;` before the `jal rand`
  *    (the "table lookup gets its own named local pointer" cookbook rule).
- *  - Keep a second `s16 *type_ptr` for the selected table entry, then load the
- *    PSX.SYM-proven `s16 type` in a separate statement. Folding those two
- *    identities into one dereference lets local allocation reuse $a0 for both
- *    the address and value; the explicit pointer restores retail's address in
- *    $v0, `type` in $a0, StageID offset in $v1, and Me_THINK_C base in $a2.
+ *  - Keep a second `character_kind *type_ptr` for the selected table entry,
+ *    then load the signed-halfword `type` in a separate statement. Folding
+ *    those two identities into one dereference lets local allocation reuse
+ *    $a0 for both the address and value; the explicit pointer restores
+ *    retail's address in $v0, `type` in $a0, StageID offset in $v1, and
+ *    Me_THINK_C base in $a2.
  *  - Keep possession and the attribute flag as one assignment-expression
  *    lvalue: `(Me_THINK_C = newhuman)->... |= ATTR_CUSTOMAI`. Splitting
  *    this through Ghidra's `uVar1` or into an independent global assignment
@@ -108,7 +108,7 @@ extern Humanoid *Me_THINK_C;
 /* Per-stage reinforcement pair (StageID*2 + coin flip) — the stage's
  * own guard faction (retail data): rouban/rounin, ninja A+B, rouban,
  * Manji cultists, pirates, tengu, oni, kabane, kerai, asigaru, sisi. */
-extern s16 AIDHumanType[]; /* [][2] in think_alarm_reaction_.c; flat here for the required pointer idiom above */
+extern ReinforcementTypeTable AIDHumanType;
 extern int rand(void);
 extern s16 Think3escape(void);
 
@@ -129,16 +129,19 @@ short Think3callaid(void)
     else
     {
         s16 ret;
-        s16 *aid = AIDHumanType;
-        s16 *type_ptr;
-        s16 type;
+        character_kind *aid = AIDHumanType.flat;
+        character_kind *type_ptr;
+        character_kind type;
         ThinkFunc func;
 
         SR = SR_UNSEEN;
         r = rand();
-        /* Byte-offset spelling: byte-required (plain indexing recolors the
-         * base register; measured). */
-        type_ptr = (s16 *)((u8 *)aid + ((r % 2) * 2 + StageID * 4));
+        /* The flat byte-offset view retains the target's index-first address
+         * expression; ordinary structured indexing recolors the table base. */
+        type_ptr = (character_kind *)(
+            (u8 *)aid +
+            ((r % N_STAGE_REINFORCEMENT_CHOICES) * sizeof(character_kind) +
+             StageID * sizeof(StageReinforcementTypes)));
         type = *type_ptr;
         newhuman = BreedLife(type,
                              Me_THINK_C->locate->vx,

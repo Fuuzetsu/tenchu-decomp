@@ -17,7 +17,7 @@
  */
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
-extern s16 AIDHumanType[][2];
+extern ReinforcementTypeTable AIDHumanType;
 extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
 extern int rand(void);
 
@@ -226,7 +226,8 @@ s16 think_alarm_reaction_(void)
             }
             Sound(Me_THINK_C, soundId);
 
-            type = AIDHumanType[StageID][rand() % 2];
+            type = AIDHumanType.stage[StageID].type[
+                rand() % N_STAGE_REINFORCEMENT_CHOICES];
             rotation = Me_THINK_C->rotate;
             newRotation = rotation->vy + direction;
             /* Staged locate read straddling the vy store: byte-required
