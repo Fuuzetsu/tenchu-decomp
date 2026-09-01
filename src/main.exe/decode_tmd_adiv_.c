@@ -99,6 +99,6 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
         default:
             return;
         }
-        prim = (TmdPrimitiveRecord *)((int)prim + step);
+        prim = (TmdPrimitiveRecord *)((u8 *)prim + step);
     }
 }

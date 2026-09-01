@@ -138,7 +138,7 @@ union TmdPrimitiveRecord
 #define TMD_MEMBER_WORDS(primitive, member) \
     ((int)(sizeof((primitive)->member) / sizeof(u_long)))
 #define TMD_NEXT_BATCH(primitive, member)                            \
-    ((TmdPrimitiveRecord *)((int)(primitive) +                       \
+    ((TmdPrimitiveRecord *)((u8 *)(primitive) +                      \
                             TMD_BATCH_COUNT(primitive) *              \
                                 TMD_MEMBER_BYTES(primitive, member)))
 
