@@ -60,8 +60,8 @@
  *                  (ActATTACK's swing, the gun/launcher/happou/napalm
  *                  projectiles), and the resolver saves the slot index in
  *                  vector.pad. StateTransition reacts with the startle
- *                  motion and engage promotion; AttackShort activates
- *                  actmode
+ *                  motion and engage promotion; AttackShort enters
+ *                  MELEE_ATTACK_ENGAGED
  *   ATTR_PUSH     0x8000 — being pushed out of a solid conflict object
  *                  (an earlier note called this the spotted-the-player
  *                  trigger — wrong: the only setter is the object-collision

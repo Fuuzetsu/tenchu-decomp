@@ -76,7 +76,7 @@ short AttackAnimal(void)
 
     if (Me_THINK_C->status == STAT_ATTACK || Me_THINK_C->status == STAT_JUMP)
     {
-        Me_THINK_C->actmode = 0;
+        Me_THINK_C->actmode = ANIMAL_ATTACK_TIMER_RESET;
         return 0;
     }
     if (Distance < 2000)
@@ -94,15 +94,15 @@ short AttackAnimal(void)
     Me_THINK_C->actmode++;
     pad = turn_towards_player_(0, 0);
     am = Me_THINK_C->actmode;
-    if (am < 30)
+    if (am < ANIMAL_ATTACK_NOTICE_FRAME)
     {
         pad = PADLup;
     }
-    else if (am == 30)
+    else if (am == ANIMAL_ATTACK_NOTICE_FRAME)
     {
         Sound(Me_THINK_C, CHAR_VOICE_NOTICE);
     }
-    else if (am < 90)
+    else if (am < ANIMAL_ATTACK_FULL_STEER_FRAME)
     {
         pad = pad & (PADLleft | PADLright);
     }

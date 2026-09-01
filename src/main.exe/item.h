@@ -54,6 +54,22 @@
  * pad_hold >> 16 and (u8)pad_hold). */
 #define PAD_HOLD(button, frames) (((button) << 16) | (frames))
 
+/* The three melee Attack* controllers share actmode as a two-phase latch:
+ * close on the target until contact, then run the in-range combat policy.
+ * AttackAnimal reuses the byte as a pursuit timer instead. */
+enum melee_attack_phase
+{
+    MELEE_ATTACK_CLOSING = 0,
+    MELEE_ATTACK_ENGAGED = 1
+};
+
+enum animal_attack_timing
+{
+    ANIMAL_ATTACK_TIMER_RESET = 0,
+    ANIMAL_ATTACK_NOTICE_FRAME = 30,
+    ANIMAL_ATTACK_FULL_STEER_FRAME = 90
+};
+
 /*
  * Shared types + externs of the original item translation unit (ProcItem*,
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
@@ -174,7 +190,7 @@ typedef struct Humanoid
     s32 chase[2];             /* 0x80: AI scratch — the chase/flank point
                                  (ChasetoTarget, Think*chase), reused as
                                  the blood-pool timer and death spot */
-    u8 actmode;               /* 0x88 */
+    u8 actmode;               /* 0x88: melee phase / animal pursuit timer */
     u8 actflg;                /* 0x89 */
     /* Free-running idle counter for the Think1* wander states. It only
      * advances while the character is NOT acting: the act phase is the
