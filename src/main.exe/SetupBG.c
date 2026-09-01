@@ -57,7 +57,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
 
     raw_pmode = image->pmode;
     bg->hundle.r = bg->hundle.g = bg->hundle.b = 0x80;
-    bg->hundle.scalex = bg->hundle.scaley = 0x1000;
+    bg->hundle.scalex = bg->hundle.scaley = FIXED_ONE;
     bg->hundle.w = w;
     bg->hundle.h = h;
     bg->hundle.map = &bg->map;

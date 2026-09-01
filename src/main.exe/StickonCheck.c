@@ -59,10 +59,11 @@ MapVector *StickonCheck(void)
     if ((map.attrib & (MAP_SLOPE_X | MAP_SLOPE_Z)) == 0)
     {
         rv = RefrectVector[map.vector];
-        /* Bit 0x200 is set exactly on the DIAGONAL wall angles (odd
-         * multiples of 512): a stick already in progress may continue
-         * around a corner, but a new one cannot start there. */
-        if (Me_MOTION_C->status != STAT_STICKON && (rv & 0x200) != 0)
+        /* The half-quadrant bit is set exactly on diagonal wall angles: a
+         * stick already in progress may continue around a corner, but a new
+         * one cannot start there. */
+        if (Me_MOTION_C->status != STAT_STICKON &&
+            (rv & ANGLE_HALF_QUADRANT) != 0)
         {
             return 0;
         }

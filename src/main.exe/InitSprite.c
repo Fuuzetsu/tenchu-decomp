@@ -56,8 +56,8 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     sprite->g = 0x80;
     sprite->r = 0x80;
     sprite->attribute = 0;
-    sprite->scaley = 0x1000;
-    sprite->scalex = 0x1000;
+    sprite->scaley = FIXED_ONE;
+    sprite->scalex = FIXED_ONE;
     if (image != 0)
     {
         texture_mode = TIM_PIXEL_MODE(*(u16 *)&image->pmode);

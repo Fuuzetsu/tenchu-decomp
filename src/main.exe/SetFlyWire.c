@@ -101,7 +101,8 @@ found:
         dz = param->start.vz - v1->vz;
 
         big = 0;
-        if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+        if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+            abs(dz) > FIXED_ONE)
         {
             big = 1;
         }

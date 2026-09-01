@@ -112,7 +112,7 @@ short ControlTraceLine(Humanoid *human)
         if (trcl->point[trcl->index].pad == TRACE_POINT_END)
         {
             trcl->index = 0;
-            return -0x1000;
+            return (s16)PAD_DIRECTION_BUTTONS;
         }
         pad |= trcl->point[trcl->index].pad;
     }

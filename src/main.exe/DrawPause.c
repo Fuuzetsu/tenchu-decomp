@@ -51,7 +51,8 @@
  *    `n_draw.ofs[0]/[1] = o_disp.disp.x/y;` stay two plain scalar copies
  *    (ofs is a separate 2-`s16` array, not part of the RECT copy).
  *  - The frame-based wobble angle `(s16)frame * 0x44` is computed ONCE into
- *    a named temp and reused for both `rsin` calls (`t` and `t + 0x200`,
+ *    a named temp and reused for both `rsin` calls (`t` and
+ *    `t + ANGLE_HALF_QUADRANT`,
  *    an eighth-turn (45 degrees) apart) — m2c's own `temp_s0` shows this shared value.
  *  - RECT/DRAWENV/DISPENV and POLY_GT4 use their canonical PsyQ layouts,
  *    independently confirmed by reference/psxsym-types.h.
@@ -101,7 +102,7 @@ void DrawPause(int frame)
         } while (0);
         bias = 0x80;
         far_col = rsin(t) * 125 / FIXED_ONE + bias;
-        ply.r0 = rsin(t + 0x200) * 125 / FIXED_ONE + bias;
+        ply.r0 = rsin(t + ANGLE_HALF_QUADRANT) * 125 / FIXED_ONE + bias;
         ply.g0 = ply.r0;
         ply.b0 = ply.r0;
         ply.r1 = ply.r0;

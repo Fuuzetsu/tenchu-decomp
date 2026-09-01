@@ -146,9 +146,9 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         else
         {
             param->r += 0xaa;
-            if (param->r >= 0x400)
+            if (param->r >= ANGLE_QUADRANT)
             {
-                param->r = 0x400;
+                param->r = ANGLE_QUADRANT;
                 m->mode.pitfall++;
             }
         }

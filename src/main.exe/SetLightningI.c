@@ -139,7 +139,8 @@ void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short 
             dx = v1->vx - v2->vx;
             dy = v1->vy - v2->vy;
             dz = v1->vz - v2->vz;
-            if (abs(dx) > 0x1000 || abs(dy) > 0x1000 || abs(dz) > 0x1000)
+            if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+                abs(dz) > FIXED_ONE)
             {
                 large = 1;
             }
