@@ -42,19 +42,6 @@
 
 extern void Camera(void);
 
-enum CameraPanTag
-{
-    CAMERA_PAN_DISABLED = 0,
-    CAMERA_PAN_NORMAL_CAMERA = 1,
-    CAMERA_PAN_ORBIT_ANGLE_INCREASE = 2,
-    CAMERA_PAN_ORBIT_ANGLE_DECREASE = 3,
-    CAMERA_PAN_UP = 4,
-    CAMERA_PAN_DOWN = 5,
-    CAMERA_PAN_ZOOM_IN = 6,
-    CAMERA_PAN_ZOOM_OUT = 7,
-    CAMERA_PAN_TRACK_TARGET = 8
-};
-
 void AVCameraControl(void)
 {
     SVECTOR vect;

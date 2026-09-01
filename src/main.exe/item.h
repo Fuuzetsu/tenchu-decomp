@@ -282,7 +282,8 @@ typedef struct TItemLayout
 /* Rolling-item states from ITEM.C's anonymous enum. Retail adds state 5
  * (entered when CGetLevel reports the item left the map); its name is not
  * in the demo symbols, so KORO_OUT is our invention. */
-enum
+typedef u8 korogari_status;
+enum korogari_status
 {
     KORO_NORMAL = 0,
     KORO_WATER = 1,
@@ -307,7 +308,7 @@ typedef struct param_korogari
     s16 vx;                    /* 0x4 */
     s16 vy;                    /* 0x6 */
     s16 vz;                    /* 0x8 */
-    u8 status;                 /* 0xA */
+    korogari_status status;    /* 0xA */
 } param_korogari;              /* 0xC */
 
 /* ITEM.C's flying-item trajectory. The union allows a projectile to switch

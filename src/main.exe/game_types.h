@@ -602,10 +602,12 @@ struct BackGround
  * high byte with x/z also giving a *1000 teleport and p a facing (or
  * -1); the camera rows use x/y/z *100 and p as the retarget human;
  * AVCameraSetup sub-dispatches on a camera row's id. */
+typedef s16 cva_command;
+
 typedef struct CVAType CVAType;
 struct CVAType
 {
-    s16 mode; /* 0x00 CVA_CMD_ row type; 1 ends a batch, -1 the table */
+    cva_command mode; /* 0x00 CVA_CMD_ row type; 1 ends a batch, -1 the table */
     s16 id;   /* 0x02 */
     s16 x;    /* 0x04 */
     s16 y;    /* 0x06 */
@@ -912,6 +914,8 @@ struct TMakeDifInfo
 #define EVENT_TARGET_PLAYER 0xFF
 
 typedef struct EventSeqType EventSeqType;
+typedef u8 event_trigger_kind;
+
 struct EventSeqType
 {
     u8 id;      /* 0x00 sequence id (2-3 = the root scripts;
@@ -922,7 +926,7 @@ struct EventSeqType
     u8 next1;   /* 0x02 successor event for slot 0 (EVENT_ID_NONE = stop) */
     u8 next2;   /* 0x03 successor event for slot 1 (EVENT_ID_NONE = stop) */
     u8 target;  /* 0x04 watched humanoid (EVENT_TARGET_PLAYER = player) */
-    u8 mode;    /* 0x05 EVTRIG_ trigger kind (stage.h) */
+    event_trigger_kind mode; /* 0x05 EVTRIG_ trigger kind (stage.h) */
     s16 status; /* 0x06 trigger operand (status/motion/life/time/music
                  *      by mode) */
     s16 x[2];   /* 0x08 EVTRIG_ZONE bounds, kilometre grid */
@@ -1028,7 +1032,7 @@ struct StageCharType
  * p = the CD track to play, -1 = silence) and then runs batches of
  * command rows separated by WAIT markers (id = frame count; a zero-length
  * wait ends the sequence). mode -1 terminates the whole table. */
-enum
+enum cva_command
 {
     CVA_CMD_SEQUENCE = 0,
     CVA_CMD_WAIT = 1,
@@ -1491,7 +1495,8 @@ enum TItemType
 // PersistentState — the demo names only the type, not the retail instance.
 /* Language ids (TLinkInfo.language) — values and names from the game's
  * own debug language menu (DEBUG_MENU_LANGUAGE_CHOICES). */
-enum
+typedef u8 game_language;
+enum game_language
 {
     LANG_ENGLISH = 0,
     LANG_FRENCH = 1,
@@ -1535,7 +1540,7 @@ typedef struct TLinkInfo
                                        *       save UI; demo +0xC) */
     u8 Anakon;                        /* 0x05D analog pad / rumble enabled (PadShock
                                        *       gate, PadProc; demo +0xE; default 1) */
-    u8 language;                      /* 0x05E CHOSEN_LANGUAGE (retail-only) */
+    game_language language;           /* 0x05E CHOSEN_LANGUAGE (retail-only) */
     u8 control_scheme;                /* 0x05F saved pad-remapping row (retail-only) */
     u8 StageNoMAX[N_PLAYABLE_CHARACTERS]; /* 0x060 highest stage uid per
                                            *       character; official demo

@@ -11,7 +11,7 @@ struct EventSeqType;
  * inside a km-grid zone, attribute mask set, status equals, motion
  * equals, life at or below, player within 2000 of the target, stage
  * time reached, and play-music-now. */
-enum
+enum event_trigger_kind
 {
     EVTRIG_ALWAYS = 0,
     EVTRIG_ZONE = 1,
