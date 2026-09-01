@@ -53,15 +53,15 @@
         Humanoid *owner;                                                      \
         short conflict_size;                                                  \
                                                                               \
-        n = InsertConflict(hand[hand_]);                                      \
-        ConflictObject[n].offset = WeaponDB[wid].confp;                       \
+        conflict_id = InsertConflict(hand[hand_]);                            \
+        ConflictObject[conflict_id].offset = WeaponDB[wid].confp;             \
         conflict_size = WeaponDB[wid].confp.pad;                              \
         owner = Me_MOTION_C;                                                  \
-        ConflictObject[n].size.pad = CONFLICT_HIT;                            \
-        ConflictObject[n].size.vz = conflict_size;                            \
-        ConflictObject[n].size.vy = conflict_size;                            \
-        ConflictObject[n].size.vx = conflict_size;                            \
-        ConflictObject[n].common = (void *)owner;                             \
+        ConflictObject[conflict_id].size.pad = CONFLICT_HIT;                  \
+        ConflictObject[conflict_id].size.vz = conflict_size;                  \
+        ConflictObject[conflict_id].size.vy = conflict_size;                  \
+        ConflictObject[conflict_id].size.vx = conflict_size;                  \
+        ConflictObject[conflict_id].common = (void *)owner;                   \
     }
 
 #define SETUP_WEAPON_AFTERIMAGE(hand_)                                        \
@@ -221,7 +221,7 @@ void ActATTACK(void)
     MotionManager *mmp;
     short warid;
     short t;
-    short n;
+    short conflict_id;
     MotionDataType *mot;
     VECTOR *pos;
     int wid;

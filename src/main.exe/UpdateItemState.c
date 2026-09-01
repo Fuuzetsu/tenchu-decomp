@@ -56,7 +56,7 @@ static void UpdateItemState(void)
     s32 hit;
     s32 sz, ofsY;
     s32 mode;
-    s16 idx;
+    s16 conflict_id;
 
     i = 0;
     view = &ViewInfo;
@@ -84,8 +84,10 @@ loop:
                         ofsY = item->collision.ofsY;
                         mode = item->collision.mode;
                         DeleteConflict(item->locate);
-                        idx = InsertConflict(item->locate);
-                        object = (ConflictObjectType *)((s32)idx * sizeof(*object) + (u32)conflicts);
+                        conflict_id = InsertConflict(item->locate);
+                        object = (ConflictObjectType *)(
+                            (s32)conflict_id * sizeof(*object) +
+                            (u32)conflicts);
                         object->offset.vx = 0;
                         object->offset.vz = 0;
                         object->offset.vy = ofsY;

@@ -94,17 +94,18 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
     case MM_RESUME:
     {
-        int r;
+        int conflict_id;
 
         w = PitfallData[param->type].HitSize;
-        r = InsertConflict(param->locate);
-        ConflictObject[r].offset.vx = 0;
-        ConflictObject[r].offset.vy = 0;
-        ConflictObject[r].offset.vz = 0;
-        ConflictObject[r].common = CONFLICT_OWNER_DOOR;
-        ConflictObject[r].size.pad = CONFLICT_SOFT;
-        ConflictObject[r].size.vx = w;
-        ConflictObject[r].size.vy = ConflictObject[r].size.vz = (w / 3) * 2;
+        conflict_id = InsertConflict(param->locate);
+        ConflictObject[conflict_id].offset.vx = 0;
+        ConflictObject[conflict_id].offset.vy = 0;
+        ConflictObject[conflict_id].offset.vz = 0;
+        ConflictObject[conflict_id].common = CONFLICT_OWNER_DOOR;
+        ConflictObject[conflict_id].size.pad = CONFLICT_SOFT;
+        ConflictObject[conflict_id].size.vx = w;
+        ConflictObject[conflict_id].size.vy =
+            ConflictObject[conflict_id].size.vz = (w / 3) * 2;
     }
         return;
 
@@ -112,7 +113,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
     {
         ModelType *model;
         ConflictObjectType *conflict;
-        int r;
+        int conflict_id;
         int mode;
 
         /* The promoted temporary selects signed slti after the lbu. */
@@ -129,8 +130,9 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                     {
                         /* Preserve the array base across the call. */
                         conflict = ConflictObject;
-                        r = GetConflictResult(param->locate, -1);
-                        if (conflict[r].common != CONFLICT_OWNER_DOOR)
+                        conflict_id = GetConflictResult(param->locate, -1);
+                        if (conflict[conflict_id].common !=
+                            CONFLICT_OWNER_DOOR)
                         {
                             m->mode++;
                             SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);

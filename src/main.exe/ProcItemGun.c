@@ -15,7 +15,8 @@
  *
  * Matching notes (all verified against the original bytes; shares
  * ProcItemKawarimi's dispatch/dispose shape and ProcItemLightningBolt's
- * conflict-box insert block — same store order, `n = InsertConflict` as s32):
+ * conflict-box insert block — same store order,
+ * `conflict_id = InsertConflict` as s32):
  *  - `param = &item->param.gun;` + `ITEM_MODE_DISPOSE = ITEM_MODE_DISPOSE;` before the
  *    entry test:
  *    param's addiu fills the entry branch's delay slot, and BOTH stay

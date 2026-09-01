@@ -36,8 +36,9 @@
  *
  * THE THREE-FACTOR SCHEDULING FIX (this cost four rounds — read before editing):
  * After InsertConflict the block holds two independent chains that both feed
- * `ConflictObject[idx].size.vy = half`:
- *   A (address): sll/sra sign-extend idx, *120 (sll4/subu/sll3), addu base
+ * `ConflictObject[conflict_id].size.vy = half`:
+ *   A (address): sll/sra sign-extend conflict_id, *120
+ *                (sll4/subu/sll3), addu base
  *   B (value)  : lhu height, sll/sra resign, srl/addu/sra signed /2
  * The target completes A first, then loads height into the load-delay slot.
  * Three edits are each INDIVIDUALLY INERT (or worse) and only work TOGETHER:
@@ -82,16 +83,16 @@
  *    produces the asm's `negu`. `half` and `nhalf` coalesce onto one hard
  *    register (gcc-2.8.1 has no coalescing pass; non-conflicting allocnos simply
  *    land together), so the split costs nothing.
- *  - `ConflictObject[idx].common = human;` sits BETWEEN reading `width` and
- *    computing its half — matches the store scheduled between the `lhu` and the
- *    resign/divide chain.
+ *  - `ConflictObject[conflict_id].common = human;` sits BETWEEN reading
+ *    `width` and computing its half — matches the store scheduled between the
+ *    `lhu` and the resign/divide chain.
  *  - `oldHumans = Humans; Humans = Humans + 1; HumanGroup[oldHumans] = human;` —
  *    Humans captured into a named temp BEFORE the increment; `HumanGroup[Humans++]`
  *    instead computes the array address before the increment, one instruction off.
- *  - `s16 idx` is correct: the target's sign-extend belongs to the SUBSCRIPT USE,
- *    not the assignment (`s32 idx` hoists it to 0x80027a08 and scores 53). The
- *    repeated ARRAY_REF is also correct — a `ConflictObjectType *co` local sinks
- *    the `lui/addiu` and scores 52.
+ *  - `s16 conflict_id` is correct: the target's sign-extend belongs to the
+ *    SUBSCRIPT USE, not the assignment (`s32 conflict_id` hoists it to
+ *    0x80027a08 and scores 53). The repeated ARRAY_REF is also correct — a
+ *    `ConflictObjectType *co` local sinks the `lui/addiu` and scores 52.
  */
 extern void *vcalloc(u32 size, u8 c);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
@@ -102,7 +103,7 @@ extern char msg_human_overflow[]; /* HUMAN OVERFLOW */
 Humanoid *CreateHumanoid(short type, unsigned long *mad)
 {
     Humanoid *human;
-    s16 idx;
+    s16 conflict_id;
     u16 hh;
     u16 hh2;
     u16 ww;
@@ -131,19 +132,21 @@ Humanoid *CreateHumanoid(short type, unsigned long *mad)
     GetAreaMapVector(GlobalAreaMap, &human->map, human->locate, human->width,
                      AREA_LEVEL_STEP_DOWN);
     SetupWeapon(human);
-    idx = InsertConflict(human->model->object[MODEL_PART_WAIST]);
+    conflict_id = InsertConflict(human->model->object[MODEL_PART_WAIST]);
     hh2 = human->height;
-    ConflictObject[idx].size.vy = half = (s16)hh2 / 2;
+    ConflictObject[conflict_id].size.vy = half = (s16)hh2 / 2;
     nhalf = -half;
-    ConflictObject[idx].offset.vy = nhalf - human->model->rotate.pad;
+    ConflictObject[conflict_id].offset.vy =
+        nhalf - human->model->rotate.pad;
     ww = human->width;
-    ConflictObject[idx].common = human;
-    ConflictObject[idx].size.vx = ConflictObject[idx].size.vz =
+    ConflictObject[conflict_id].common = human;
+    ConflictObject[conflict_id].size.vx =
+        ConflictObject[conflict_id].size.vz =
         (s16)ww / 2;
     if (type == KUMA_0 || type == KUMA_1)
     {
-        ConflictObject[idx].offset.vy = -0x1C5;
-        ConflictObject[idx].offset.vz = 0xC0;
+        ConflictObject[conflict_id].offset.vy = -0x1C5;
+        ConflictObject[conflict_id].offset.vz = 0xC0;
     }
     oldHumans = Humans;
     Humans++;
