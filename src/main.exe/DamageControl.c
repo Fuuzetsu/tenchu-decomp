@@ -40,12 +40,12 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
     }
 
 #define RECOIL_ATTACKER(rumble_power_, rumble_release_)                      \
-    if (enemy->status == STAT_ATTACK)                                         \
+    if (enemy.human->status == STAT_ATTACK)                                   \
     {                                                                         \
-        enemy->motion->loop = dmg / -3 - 1;                                  \
-        enemy->vector.vz = 0;                                                 \
-        enemy->vector.vx = 0;                                                 \
-        if (StagePlayer == enemy)                                             \
+        enemy.human->motion->loop = dmg / -3 - 1;                            \
+        enemy.human->vector.vz = 0;                                           \
+        enemy.human->vector.vx = 0;                                           \
+        if (StagePlayer == enemy.human)                                       \
         {                                                                     \
             PadShockAR(PAD_PORT_1, rumble_power_, RUMBLE_ATTACK_NORMAL,                \
                        rumble_release_);                                      \
@@ -60,7 +60,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
         {                                                                     \
             PadShockAR(PAD_PORT_1, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL,            \
                        rumble_release_);                                      \
-            who = enemy;                                                      \
+            who = enemy.human;                                                \
         }                                                                     \
         else                                                                  \
         {                                                                     \
@@ -139,6 +139,11 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    StagePlayer / dtR / dtV; the per-region CSE temps then land in
  *    $a0/$v1 as retail has them. Function-spanning caches were what made
  *    earlier drafts look like they had unreachable "hard conflicts".
+ *  - `enemy` is a ConflictOwner because collision owners use the same word
+ *    for a Humanoid pointer and the ownerless-item tag. The short-lived
+ *    `conflict` pointer is overlaid with `conflict_owner` before testing that
+ *    tag; retaining the pointer identity keeps retail's $a0 load and later
+ *    $s3 copy, while removing the fake `(Humanoid *)1` comparisons.
  *  - The 0x602 engage block has one NPC/state/difficulty eligibility guard.
  *    Inside it, the random if/else remains intact, while ninja-kind and its
  *    coin flip are one short-circuit condition. Cross-jump plus eager delay
@@ -146,7 +151,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *    `li 0x602` in the delay slots. ITEM_NAPALM is likewise
  *    a plain `if ((rand() & 1) == 0) motID = 0x1003; else motID = 0x1001;`
  *    (no staging temp), and ITEM_MAKIBISHI stores motID/motMODE directly.
- *  - Both ReqLifeBar sites are if/else (`who = enemy` in the taken arm,
+ *  - Both ReqLifeBar sites are if/else (`who = enemy.human` in the taken arm,
  *    else `who = Me_MOTION_C`), so `who` coalesces with the Me load in $a0
  *    and the else arm compiles to nothing.
  *  - The passage halving is a real `while` loop. Its loop notes weight the
@@ -157,7 +162,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  * Expressions
  *  - `-(x / 3) - 1` must be spelled `x / -3 - 1`: a negative divisor makes
  *    expmed emit the reversed magic-division subtract with a plain addiu -1.
- *  - Under `enemy->itmctl == ITEM_GOSIN`, the doubling is
+ *  - Under `enemy.human->itmctl == ITEM_GOSIN`, the doubling is
  *    `(u32)(dmg << 0x10) >> 0xf` (sll 16 / srl 15). Spelling it through the
  *    short lvalue truncates to zero -- a real behaviour bug, not a match.
  *  - The armour block computes deg BEFORE the knockback
@@ -192,7 +197,7 @@ void DamageControl(void)
     short t;
     short newvy;
     int abs_direction;
-    Humanoid *enemy;
+    ConflictOwner enemy;
     int id;
     short dmg;
     SVECTOR dir;
@@ -219,12 +224,12 @@ void DamageControl(void)
     }
     if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_BEAST)
     {
-        enemy = ConflictObject[(short)id].common.human;
-        if (enemy != (Humanoid *)CONFLICT_OWNER_ITEM)
+        enemy.human = ConflictObject[(short)id].common.human;
+        if (enemy.tag != CONFLICT_OWNER_ITEM)
         {
-            Sound(enemy, CHAR_SE_IMPACT);
+            Sound(enemy.human, CHAR_SE_IMPACT);
             DeleteConflict(ConflictObject[(short)id].model);
-            deg = GetAttackDBID(enemy, enemy->motion->mid);
+            deg = GetAttackDBID(enemy.human, enemy.human->motion->mid);
             {
                 s16 hp;
 
@@ -239,7 +244,7 @@ void DamageControl(void)
             p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
             SetImpact(&p, 6 * FIXED_ONE, IMPACT_SPRITE_HIT);
-            if (StagePlayer == enemy)
+            if (StagePlayer == enemy.human)
             {
                 PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
                            RUMBLE_ATTACK_NORMAL, RUMBLE_RELEASE_SHORT);
@@ -260,7 +265,7 @@ void DamageControl(void)
         {
             SET_MOTION(MOT_DEAD, 1);
             if ((Me_MOTION_C->type != NINKEN) &&
-                ((StagePlayer == enemy || (enemy == (Humanoid *)CONFLICT_OWNER_ITEM))))
+                ((StagePlayer == enemy.human || enemy.tag == CONFLICT_OWNER_ITEM)))
             {
                 if ((Me_MOTION_C->attribute & (ATTR_ALERT | PHASE_ALERT)) == 0)
                 {
@@ -318,10 +323,12 @@ resolve_hit:
     AttackCancelControl(ATTACK_CANCEL_ALL);
     {
         Humanoid *conflict;
+        ConflictOwner conflict_owner;
 
         t = id;
         conflict = ConflictObject[t].common.human;
-        if (conflict == (Humanoid *)CONFLICT_OWNER_ITEM)
+        conflict_owner.human = conflict;
+        if (conflict_owner.tag == CONFLICT_OWNER_ITEM)
         {
             if (Me_MOTION_C->status == STAT_DAMAGE)
             {
@@ -470,15 +477,16 @@ resolve_hit:
         }
         else
         {
-            enemy = conflict;
-            if (((Me_MOTION_C->type & PAGE_MASK) == PAGE_BOSS) && (enemy != StagePlayer))
+            enemy.human = conflict;
+            if (((Me_MOTION_C->type & PAGE_MASK) == PAGE_BOSS) &&
+                (enemy.human != StagePlayer))
             {
                 return;
             }
             t = 1;
-            dir.vx = enemy->locate->vx - dtL->vx;
-            dir.vy = enemy->locate->vy - dtL->vy;
-            dir.vz = enemy->locate->vz - dtL->vz;
+            dir.vx = enemy.human->locate->vx - dtL->vx;
+            dir.vy = enemy.human->locate->vy - dtL->vy;
+            dir.vz = enemy.human->locate->vz - dtL->vz;
             while (__builtin_abs(dir.vx) > 100 || __builtin_abs(dir.vy) > 100 ||
                    __builtin_abs(dir.vz) > 100)
             {
@@ -496,9 +504,10 @@ resolve_hit:
             {
                 int abs_direction;
 
-                did = GetDirection(enemy->locate->vx - dtL->vx,
-                                   enemy->locate->vz - dtL->vz, dtR->vy);
-                deg = GetAttackDBID(enemy, enemy->motion->mid);
+                did = GetDirection(enemy.human->locate->vx - dtL->vx,
+                                   enemy.human->locate->vz - dtL->vz,
+                                   dtR->vy);
+                deg = GetAttackDBID(enemy.human, enemy.human->motion->mid);
                 if (Me_MOTION_C != StagePlayer &&
                     Me_MOTION_C->status != STAT_ATTACK &&
                     (Me_MOTION_C->attribute & ATTR_ALERT) != 0 &&
@@ -588,7 +597,7 @@ resolve_hit:
                     {
                         Sound(Me_MOTION_C, CHAR_VOICE_ACTION_B);
                     }
-                    if ((enemy->type & PAGE_MASK) != PAGE_BEAST)
+                    if ((enemy.human->type & PAGE_MASK) != PAGE_BEAST)
                     {
                         Sound(Me_MOTION_C, CHAR_SE_ATTACK_ALT);
                     }
@@ -602,7 +611,7 @@ resolve_hit:
                 SNAP_TO_WAIST_CONFLICT(conflict_id);
             }
             dmg = (u16)BattleDB[deg].power;
-            if (enemy != StagePlayer)
+            if (enemy.human != StagePlayer)
             {
                 goto npc_attack;
             }
@@ -618,14 +627,14 @@ resolve_hit:
                 dmg = dmg / 3;
             }
         recheck_attacker:
-            if (enemy != StagePlayer)
+            if (enemy.human != StagePlayer)
             {
                 goto apply_multipliers;
             }
         difficulty_bonus:
             dmg -= ((u8)gNannido - DIFFICULTY_HARD);
         apply_multipliers:
-            if (enemy->type == NINKEN)
+            if (enemy.human->type == NINKEN)
             {
                 dmg = dmg * 6;
             }
@@ -633,7 +642,7 @@ resolve_hit:
             {
                 dmg = dmg / 3;
             }
-            if (enemy->itmctl == ITEM_GOSIN)
+            if (enemy.human->itmctl == ITEM_GOSIN)
             {
                 dmg = (u32)(dmg << 0x10) >> 0xf;
             }
@@ -711,7 +720,7 @@ resolve_hit:
                         dtM->mid = MOTION_ID_NONE;
                         motID = damagemotion[deg];
                     }
-                    if (enemy == StagePlayer)
+                    if (enemy.human == StagePlayer)
                     {
                         RECORD_PLAYER_KILL();
                     }
@@ -758,7 +767,7 @@ resolve_hit:
                 {
                     sound_id = CHAR_SE_SPECIAL;
                 }
-                Sound(enemy, sound_id);
+                Sound(enemy.human, sound_id);
             }
         }
     }
