@@ -30,9 +30,9 @@ extern void *memset(void *s, int c, u32 n);
 
 void *vcalloc(u32 size, u8 c)
 {
-    void *p;
+    void *allocation;
 
-    p = valloc(size);
-    memset(p, c, size);
-    return p;
+    allocation = valloc(size);
+    memset(allocation, c, size);
+    return allocation;
 }

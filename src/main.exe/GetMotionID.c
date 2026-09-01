@@ -28,18 +28,18 @@
 
 short GetMotionID(MotionManager *mmp, short mid)
 {
-    MotionRegistType *reg;
+    MotionRegistType *registrations;
     s16 i;
 
-    reg = mmp->motreg;
+    registrations = mmp->motreg;
     i = 0;
-    while (reg[i].mid != -1)
+    while (registrations[i].mid != -1)
     {
-        if (reg[i].mid == mid)
+        if (registrations[i].mid == mid)
         {
             break;
         }
         i++;
     }
-    return reg[i].id;
+    return registrations[i].id;
 }

@@ -37,11 +37,11 @@
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
 {
-    GsSPRITE *spr = &ItemImage[ItemID]->sprite;
+    GsSPRITE *sprite = &ItemImage[ItemID]->sprite;
 
-    spr->x = x;
-    spr->y = y;
-    spr->scalex = scale;
-    spr->scaley = scale;
-    GsSortSprite(spr, OTablePt, 0);
+    sprite->x = x;
+    sprite->y = y;
+    sprite->scalex = scale;
+    sprite->scaley = scale;
+    GsSortSprite(sprite, OTablePt, 0);
 }

@@ -46,7 +46,7 @@
  *  - StageMotion can be tested and freed directly; the earlier neutral
  *    `resource` alias was reconstruction residue. In contrast, rereading the
  *    armour selection for the second comparison instead of caching it in
- *    `appearance` grows the function by four bytes, so that byte remains a
+ *    `armour` grows the function by four bytes, so that byte remains a
  *    measured retail scheduling input.
  */
 extern s16 ARMOUR_EQUIPPED_;
@@ -69,16 +69,16 @@ void SetupAppearance(short mode, short stage)
     short j;
     u8 name[100];
     u8 *pt;
-    u8 appearance;
+    u8 armour;
 
     NowStage = stage;
     pt = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
     EngageLevel = 3 - ((TLinkInfo *)pt)->Nannido;
-    appearance = ((TLinkInfo *)pt)->selItem[ITEM_ARMOUR];
-    if (appearance != 0)
+    armour = ((TLinkInfo *)pt)->selItem[ITEM_ARMOUR];
+    if (armour != 0)
     {
         HumanData[0].name = str_rikimaua;
-        HumanData[1].name = appearance != ITEM_INFINITE ? str_ayamea : str_ayames;
+        HumanData[1].name = armour != ITEM_INFINITE ? str_ayamea : str_ayames;
         /* Wearing the armour consumes it from the mission loadout. The
          * TLinkInfo view stays absolute because `pt` is repurposed below. */
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[ITEM_ARMOUR] = 0;

@@ -27,31 +27,31 @@
  * Ghidra renders `if (mad == 0) n=2; else n=mad->n;`, but the object lays the
  * mad->n body out FIRST (fallthrough of a `beqz mad,ELSE` testing mad==0,
  * i.e. the source condition is `mad != 0`), each branch storing directly to
- * `mmp->n` (no shared temp/join store).
+ * `manager->n` (no shared temp/join store).
  */
 extern void *valloc(u32 size);
 
 MotionManager *SetupMotionManager(ModelArchiveType *mad, MotionRegistType *mot)
 {
-    MotionManager *mmp;
+    MotionManager *manager;
 
-    mmp = (MotionManager *)valloc(sizeof(MotionManager));
-    mmp->mid = -1;
-    mmp->mask = -1;
-    mmp->loop = 0;
-    mmp->count = 0;
-    mmp->mode = 0;
+    manager = (MotionManager *)valloc(sizeof(MotionManager));
+    manager->mid = -1;
+    manager->mask = -1;
+    manager->loop = 0;
+    manager->count = 0;
+    manager->mode = 0;
     if (mad != 0)
     {
-        mmp->n = mad->n;
+        manager->n = mad->n;
     }
     else
     {
-        mmp->n = 2;
+        manager->n = 2;
     }
-    mmp->motion = 0;
-    mmp->model = mad;
-    mmp->motreg = mot;
-    mmp->control = valloc((mmp->n + 1) * 0x18);
-    return mmp;
+    manager->motion = 0;
+    manager->model = mad;
+    manager->motreg = mot;
+    manager->control = valloc((manager->n + 1) * 0x18);
+    return manager;
 }

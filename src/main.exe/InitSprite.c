@@ -22,17 +22,17 @@
  * AddXG4.c/StartDrawing.c (same TU, all matched).
  *
  * Matching notes:
- *  - `tp = image->pmode & 3` reads only the LOW HALFWORD of the 4-byte
+ *  - `texture_mode = image->pmode & 3` reads only the LOW HALFWORD of the 4-byte
  *    pmode field (lhu at offset 0) — GsIMAGE's real layout (proven
  *    elsewhere, e.g. LoadTIM.c's full-word `im.pmode`) keeps pmode a
  *    u_long; this call site narrows via an explicit pointer cast rather
  *    than through the field, same idiom as a param-union's divergent
  *    access width (cookbook Expressions: reach it via an explicit offset
  *    cast off the SAME proven pointer).
- *  - `sh = 2 - tp` is a named local: it's read again AFTER the GetTPage
- *    call (for the `u` mask), so its live range crosses the call and it
- *    needs a callee-saved register — matches if declared once and reused
- *    for both the `w` shift and the `u` mask.
+ *  - `width_shift = 2 - texture_mode` is a named local: it's read again
+ *    AFTER the GetTPage call (for the `u` mask), so its live range crosses
+ *    the call and it needs a callee-saved register — matches if declared
+ *    once and reused for both the `w` shift and the `u` mask.
  *  - `image->px`/`image->py` are re-read (fresh loads) after the
  *    GetTPage call rather than cached, since the call clobbers the
  *    caller-saved copies (same "reload across an intervening call"
@@ -46,8 +46,8 @@ extern void *memset(void *s, s32 c, u32 n);
 
 void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
 {
-    s32 tp;
-    s32 sh;
+    s32 texture_mode;
+    s32 width_shift;
 
     memset(sprite, 0, sizeof(GsSPRITE));
     sprite->b = 0x80;
@@ -58,13 +58,14 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     sprite->scalex = 0x1000;
     if (image != 0)
     {
-        tp = *(u16 *)&image->pmode & 3;
-        sprite->attribute = sprite->attribute | (tp << 0x18);
-        sh = 2 - tp;
-        sprite->w = image->pw << sh;
+        texture_mode = *(u16 *)&image->pmode & 3;
+        sprite->attribute = sprite->attribute | (texture_mode << 0x18);
+        width_shift = 2 - texture_mode;
+        sprite->w = image->pw << width_shift;
         sprite->h = image->ph;
-        sprite->tpage = GetTPage(tp, 0, image->px, image->py);
-        sprite->u = (u8)((image->px << sh) & ((1 << (8 - tp)) - 1));
+        sprite->tpage = GetTPage(texture_mode, 0, image->px, image->py);
+        sprite->u = (u8)((image->px << width_shift) &
+                          ((1 << (8 - texture_mode)) - 1));
         sprite->v = (u8)image->py;
         sprite->cx = image->cx;
         sprite->cy = image->cy;

@@ -37,29 +37,29 @@ extern Humanoid *Me_MOTION_C;
 
 short NowReturnNormal(Humanoid *human)
 {
-    Humanoid *h;
-    MotionDataType *md;
-    short mid;
-    short move;
+    Humanoid *current;
+    MotionDataType *motion;
+    short motion_id;
+    short apply_movement;
 
     Me_MOTION_C = human;
     ReturnNormal();
-    h = Me_MOTION_C;
-    mid = motID;
-    move = motMODE;
-    if (h->status == STAT_DEAD && h->motion->loop == -1)
+    current = Me_MOTION_C;
+    motion_id = motID;
+    apply_movement = motMODE;
+    if (current->status == STAT_DEAD && current->motion->loop == -1)
     {
         return 0;
     }
-    if (UpdateMotion(h->motion, mid) == 0)
+    if (UpdateMotion(current->motion, motion_id) == 0)
     {
         return 0;
     }
-    h->status = (s8)(mid >> 8);
-    if (move != 0)
+    current->status = (s8)(motion_id >> 8);
+    if (apply_movement != 0)
     {
-        md = h->motion->motion;
-        MoveHumanoid(h, md->orderspd, md->sidespd);
+        motion = current->motion->motion;
+        MoveHumanoid(current, motion->orderspd, motion->sidespd);
     }
     return 1;
 }
