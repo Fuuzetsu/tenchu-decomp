@@ -33,7 +33,7 @@
  * The duplicated Degree assignment is an intentional cc1 2.8.1 input.
  * jump2 erases the condition and identical arms, but their dependency keeps
  * the mask ahead of the Degree load. That preserves the target's two delay
- * nops and register allocation. Keeping result and masked in SImode likewise
+ * nops and register allocation. Keeping pad and masked in SImode likewise
  * defers the function's s16 conversion to the shared return tail.
  */
 extern Humanoid *Me_THINK_C;
@@ -45,11 +45,11 @@ extern int turn_towards_player_(int x_diff, int z_diff);
 
 s16 Think3firstattack(void)
 {
-    s32 result;
+    s32 pad;
     s16 idx;
     s32 degree;
 
-    result = turn_towards_player_(0, 0);
+    pad = turn_towards_player_(0, 0);
     if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
@@ -63,7 +63,7 @@ s16 Think3firstattack(void)
     {
         s32 masked;
 
-        masked = result & ~0x5FFF;
+        masked = pad & ~0x5FFF;
         /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
         do
         {
@@ -77,12 +77,12 @@ s16 Think3firstattack(void)
         {
             return masked;
         }
-        result = masked;
+        pad = masked;
     }
     if (Distance < atkd2[idx])
     {
-        result |= PADRleft;
+        pad |= PADRleft;
         Attrib |= ATTR_SEARCH;
     }
-    return result;
+    return pad;
 }

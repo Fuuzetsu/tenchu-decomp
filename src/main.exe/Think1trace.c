@@ -46,7 +46,7 @@
  * values. The later `self->actscnt < 30` check is a fresh reload of
  * the (already-incremented) field, not old_actscnt again.
  *
- * `result` carries the handler's signed-short pad command on every path; the
+ * `pad` carries the handler's signed-short command on every path; the
  * final return performs the one shared normalization.
  *
  * The `self`/`turn`/`degree`/`abs_degree` block reproduces the target's
@@ -59,7 +59,7 @@
  * Splitting the block into two front-end basic blocks changes cc1's
  * pseudo/CSE numbering enough to pick this schedule; the single
  * straight-line version (no if/else) compiles 8 bytes longer with a stray
- * load-delay nop and puts `result` in $a1 instead of $a2. Likewise
+ * load-delay nop and puts `pad` in $a1 instead of $a2. Likewise
  * `abs_degree = -abs_degree;` (not `-degree`) picks `negu v0,v0` over
  * `negu v0,a1` for the same reason (the negate should read the value
  * already copied into abs_degree's register, not re-read degree's).
@@ -69,9 +69,9 @@ extern Humanoid *Me_THINK_C;
 
 s16 Think1trace(void)
 {
-    s16 result;
+    s16 pad;
 
-    result = 0;
+    pad = 0;
     if (Me_THINK_C->actcnt == 0)
     {
         u8 old_actscnt;
@@ -107,10 +107,10 @@ s16 Think1trace(void)
             {
                 if (self->actscnt < 30)
                 {
-                    result = -PADLleft;
+                    pad = -PADLleft;
                     if (turn < degree)
                     {
-                        result = PADLright;
+                        pad = PADLright;
                     }
                 }
             }
@@ -126,8 +126,8 @@ s16 Think1trace(void)
         Me_THINK_C->actcnt++;
         if (Attrib & ATTR_TRACE)
         {
-            result = ControlTraceLine(Me_THINK_C);
+            pad = ControlTraceLine(Me_THINK_C);
         }
     }
-    return result;
+    return pad;
 }

@@ -45,20 +45,20 @@
  *    longer; `s32 deg` operates in place on the `lh`'s already-sign-
  *    extended register with no truncation needed until the caller compares
  *    it (which never narrows it further here).
- *  - `ret` (the `turn_towards_player_` result, later the function's return
+ *  - `pad` (the `turn_towards_player_` result, later the function's return
  *    value) must ALSO be `s32`, not `s16`: main.exe.h's own prototype for
  *    `turn_towards_player_` returns `int` (disagreeing with the defining
  *    TU's actual `s16` — the "caller-side extern's return type is an
- *    extension-position lever" rule), so an `s16 ret` truncates the result
- *    immediately at the call (extra `move`+truncate pair), while `s32 ret`
+ *    extension-position lever" rule), so an `s16 pad` truncates the result
+ *    immediately at the call (extra `move`+truncate pair), while `s32 pad`
  *    copies it straight into $s0 untruncated, truncating only once, at the
- *    final `return ret;` (matching the single trailing `sll`/`sra`).
+ *    final `return pad;` (matching the single trailing `sll`/`sra`).
  *  - `Me_THINK_C->actmode` (game_types.h, NEW field @0x88 — proven here by
  *    the raw `lbu`/`sb` and the `+1` arithmetic; Ghidra's own
  *    independently-built Humanoid names this exact offset `actmode`,
  *    right before the already-proven actflg/actcnt/actscnt run — replaces
  *    game_types.h's placeholder `field52_0x88`).
- *  - `ret` doubles as the `turn_towards_player_` result AND the eventual
+ *  - `pad` doubles as the `turn_towards_player_` result AND the eventual
  *    return value (matches $s0's dual role, callee-saved across the Sound
  *    call): a "default-then-override" ladder overrides it in 2 of 3
  *    branches and leaves it alone in the other 2 (the `== 0x1e` Sound
@@ -71,7 +71,7 @@
 short AttackAnimal(void)
 {
     s32 deg;
-    s32 ret;
+    s32 pad;
     u8 am;
 
     if (Me_THINK_C->status == STAT_ATTACK || Me_THINK_C->status == STAT_JUMP)
@@ -92,11 +92,11 @@ short AttackAnimal(void)
         }
     }
     Me_THINK_C->actmode++;
-    ret = turn_towards_player_(0, 0);
+    pad = turn_towards_player_(0, 0);
     am = Me_THINK_C->actmode;
     if (am < 30)
     {
-        ret = PADLup;
+        pad = PADLup;
     }
     else if (am == 30)
     {
@@ -104,7 +104,7 @@ short AttackAnimal(void)
     }
     else if (am < 90)
     {
-        ret = ret & (PADLleft | PADLright);
+        pad = pad & (PADLleft | PADLright);
     }
-    return ret;
+    return pad;
 }

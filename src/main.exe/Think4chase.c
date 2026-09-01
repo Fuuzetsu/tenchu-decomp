@@ -31,7 +31,7 @@
  * directional 0x3000 or -0x7000 command. With a chase point, steer toward
  * it and clear it after arriving or when actscnt wraps.
  *
- * As in Think4contact, the default result must be assigned before the two
+ * As in Think4contact, the default pad value must be assigned before the two
  * comparisons and the nonzero outcomes expressed only as overrides. This
  * preserves the target's fallthrough bodies, explicit jumps, and inline
  * return-conversion delay slot.
@@ -45,7 +45,7 @@ extern s16 Think4abandon(void);
 
 s16 Think4chase(void)
 {
-    s32 result;
+    s32 pad;
 
     if (SR == SR_SEEN)
     {
@@ -62,19 +62,19 @@ s16 Think4chase(void)
         else
         {
             Me_THINK_C->actcnt++;
-            result = PADLup;
+            pad = PADLup;
             if (Me_THINK_C->actcnt < 30)
             {
                 if (Degree > Me_THINK_C->turn)
                 {
-                    result = PADLup | PADLright;
+                    pad = PADLup | PADLright;
                 }
                 else if (Degree < -Me_THINK_C->turn)
                 {
                     /* PADLleft | PADLup as a negative constant: fits addiu (the
              * positive OR needs an ori pair; same lever as
              * SuccessionAttack's documented spellings). */
-            result = -0x7000;
+            pad = -0x7000;
                 }
             }
         }
@@ -86,7 +86,7 @@ s16 Think4chase(void)
         Me_THINK_C->actscnt++;
         dx = Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
         dz = Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
-        result = turn_towards_player_(dx, dz);
+        pad = turn_towards_player_(dx, dz);
         if (SquareRoot0(dx * dx + dz * dz) < 1000 || Me_THINK_C->actscnt == 0)
         {
             Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
@@ -94,5 +94,5 @@ s16 Think4chase(void)
             Me_THINK_C->actcnt = 0;
         }
     }
-    return result;
+    return pad;
 }

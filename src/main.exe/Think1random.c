@@ -29,7 +29,7 @@
  * unless Attrib blocks the action.
  *
  * The direct vx/vz difference expressions are intentional. Splitting each
- * chase coordinate, locate coordinate, and result into extra scratch roles
+ * chase coordinate, locate coordinate, and pad value into extra scratch roles
  * changes global allocation and delay-slot scheduling. Keeping vx/vz as the
  * actual chase-minus-locate values yields the target load order, preserves
  * them in $a0/$a1 for turn_towards_player_, and leaves each absolute value
@@ -38,8 +38,8 @@
 
 s16 Think1random(void)
 {
-    s32 result;
-    result = 0;
+    s32 pad;
+    pad = 0;
     if (++Me_THINK_C->actcnt == 1)
     {
         Me_THINK_C->chase[HUMANOID_CHASE_X] = Me_THINK_C->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
@@ -61,8 +61,8 @@ s16 Think1random(void)
         }
         else
         {
-            result = turn_towards_player_(vx, vz);
+            pad = turn_towards_player_(vx, vz);
         }
     }
-    return result;
+    return pad;
 }

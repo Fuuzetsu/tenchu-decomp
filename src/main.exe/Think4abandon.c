@@ -76,7 +76,7 @@ extern int rand(void);
 s16 Think4abandon(void)
 {
     u16 cleared;
-    s16 result;
+    s16 pad;
 
     cleared = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
     Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
@@ -111,10 +111,10 @@ s16 Think4abandon(void)
     {
         if (Me_THINK_C->think[3] == Think4abandon)
         {
-            result = (turn_towards_player_(0, 0) & ~0x5FFF);
-            if (result != 0)
+            pad = (turn_towards_player_(0, 0) & ~0x5FFF);
+            if (pad != 0)
             {
-                return result;
+                return pad;
             }
         }
         if (SR == SR_SEEN)

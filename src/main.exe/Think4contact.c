@@ -30,7 +30,7 @@
  * then abandon after 0x5b ticks. With a chase point, steer toward it and
  * clear it after arriving or when actscnt wraps.
  *
- * The default result assignment belongs before the two turn comparisons.
+ * The default pad assignment belongs before the two turn comparisons.
  * Besides expressing the three-way choice directly, it gives cc1 the
  * target's zero-valued delay-slot move and keeps the two nonzero outcomes
  * as fallthrough bodies with explicit jumps to the shared return conversion.
@@ -39,7 +39,7 @@ extern s16 Think4abandon(void);
 
 s16 Think4contact(void)
 {
-    s32 result;
+    s32 pad;
 
     if (SR == SR_SEEN)
     {
@@ -56,14 +56,14 @@ s16 Think4contact(void)
         else
         {
             Me_THINK_C->actcnt++;
-            result = 0;
+            pad = 0;
             if (Me_THINK_C->turn < Degree)
             {
-                result = PADLright;
+                pad = PADLright;
             }
             else if (Degree < -Me_THINK_C->turn)
             {
-                result = -PADLleft;
+                pad = -PADLleft;
             }
         }
     }
@@ -74,7 +74,7 @@ s16 Think4contact(void)
         Me_THINK_C->actscnt++;
         dx = Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
         dz = Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
-        result = turn_towards_player_(dx, dz);
+        pad = turn_towards_player_(dx, dz);
         if (SquareRoot0(dx * dx + dz * dz) < 1000 || Me_THINK_C->actscnt == 0)
         {
             Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
@@ -82,5 +82,5 @@ s16 Think4contact(void)
             Me_THINK_C->actcnt = 0;
         }
     }
-    return result;
+    return pad;
 }

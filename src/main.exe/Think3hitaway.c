@@ -65,12 +65,12 @@ extern s16 turn_towards_player_(s32 x_diff, s32 z_diff);
  *    lever, not specific to this function.
  *  - The hit-status arm returns SuccessionAttack directly. This leaves its
  *    result in $v0 and lets the jump delay slot start the s16 conversion;
- *    assigning it to the shared result would add an unnecessary $s0 copy
+ *    assigning it to the shared pad would add an unnecessary $s0 copy
  *    and move the conversion below the epilogue restores.
  */
 s16 Think3hitaway(void)
 {
-    u16 result;
+    u16 pad;
     s32 degree;
 
     if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
@@ -86,7 +86,7 @@ s16 Think3hitaway(void)
     }
     else if (Me_THINK_C->actflg != 0)
     {
-        result = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
+        pad = AttackFunc[WPATK_CLASS(Me_THINK_C->wpatk)]();
     }
     else
     {
@@ -97,18 +97,18 @@ s16 Think3hitaway(void)
         }
         if (degree < 1000)
         {
-            result = turn_towards_player_(0, 0);
-            result = (result & (PADLleft | PADLdown | PADLright)) | PADLdown;
+            pad = turn_towards_player_(0, 0);
+            pad = (pad & (PADLleft | PADLdown | PADLright)) | PADLdown;
         }
         else
         {
-            result = ChasetoTarget(5000);
+            pad = ChasetoTarget(5000);
         }
         if (Distance < 2000)
         {
             if (rand() % 30 == 0)
             {
-                result |= PADRdown;
+                pad |= PADRdown;
             }
         }
         if (Distance > 4000 || (Attrib & ATTR_WALL))
@@ -116,5 +116,5 @@ s16 Think3hitaway(void)
             Me_THINK_C->actflg = 1;
         }
     }
-    return result;
+    return pad;
 }

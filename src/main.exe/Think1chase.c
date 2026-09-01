@@ -29,7 +29,7 @@
  * 5000 units if one exists, else the same random-offset-from-spawn roll as
  * Think1random. On later ticks, steers towards the chase target via
  * turn_towards_player_; when it returns 0 (facing the target already),
- * resets ++Me_THINK_C->actcnt to 0 and forces the result to 0x80 instead.
+ * resets ++Me_THINK_C->actcnt to 0 and forces the pad value to 0x80 instead.
  *
  * GetNearestHumanoid uses the shared `Humanoid *` view, matching this TU's
  * `Me_THINK_C` and the character APIs in humanoid.h.
@@ -42,18 +42,18 @@
  * (not the null-guard-with-two-returns exception: this is a plain
  * side-effecting if/else with a shared join, not two returns).
  *
- * `result` (Ghidra's `sVar2`) is a WIDE s32 local even though the function
+ * `pad` (Ghidra's `sVar2`) is a WIDE s32 local even though the function
  * returns `s16`: the call result is `move`d straight from $v0 with no
  * immediate sll/sra, and the SAME register also gets `ori $s1,$s1,0x80` in
  * the guard branch's delay slot (the "reset" block's own first statement,
- * hoisted) — only ONE truncation happens, at the shared `return result;`
+ * hoisted) — only ONE truncation happens, at the shared `return pad;`
  * (same "Ghidra's short-typed call-result variable can be int in source"
  * rule as ThinkBasicHuman1's pad).
  */
 s16 Think1chase(void)
 {
-    s32 result;
-    result = 0;
+    s32 pad;
+    pad = 0;
     if (++Me_THINK_C->actcnt == 1)
     {
         Humanoid *enemy;
@@ -72,13 +72,13 @@ s16 Think1chase(void)
     }
     else
     {
-        result = turn_towards_player_(Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx,
-                                      Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz);
-        if ((s16)result == 0)
+        pad = turn_towards_player_(Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx,
+                                  Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz);
+        if ((s16)pad == 0)
         {
-            result |= 0x80;
+            pad |= 0x80;
             Me_THINK_C->actcnt = 0;
         }
     }
-    return result;
+    return pad;
 }
