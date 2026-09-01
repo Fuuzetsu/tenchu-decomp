@@ -113,6 +113,6 @@ do_tick:
         posRaw.vy = ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN);
         posRaw.vz = ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE);
         pos = posRaw;
-        SetSnow(&pos, &vel, FIXED_ONE, 0);
+        SetSnow(&pos, &vel, FIXED_ONE, SNOW_SPRITE_DEFAULT);
     }
 }

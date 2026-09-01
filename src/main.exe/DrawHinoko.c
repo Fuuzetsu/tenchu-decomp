@@ -24,7 +24,8 @@
  * MATCH.
  *
  * DrawHinoko advances the spark/explosion state, integrates its velocity,
- * copies the result to sprBomb[2], and draws it. `ef->param.hinoko` has the
+ * copies the result to sprBomb[BOMB_SPRITE_HINOKO], and draws it.
+ * `ef->param.hinoko` has the
  * ExplosionType layout: vec@0x0, pos@0x8, rotate@0x18, scale@0x1c,
  * time@0x20, and mode@0x21.
  *
@@ -59,7 +60,7 @@ void DrawHinoko(TEffectSlot *ef)
     u8 alfa;
 
     param = &ef->param.hinoko;
-    spr = sprBomb[2];
+    spr = sprBomb[BOMB_SPRITE_HINOKO];
     alfa = 0x80;
     switch (param->mode)
     {

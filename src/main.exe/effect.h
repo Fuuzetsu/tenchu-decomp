@@ -279,9 +279,26 @@ typedef struct tag_EffectSlot /* size 76 */
 extern TEffectSlot EffectSlot[N_EFFECT_SLOTS];
 extern int EFFECT_CURSOR_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy;                                     /* pool-full fallback write target, discarded */
+
+/* Retail's sprite selector banks initialized together in InitEffect. */
+enum
+{
+    N_AIRBORNE_BLOOD_SPRITES = 2,
+    N_BLOOD_SPRITES = N_AIRBORNE_BLOOD_SPRITES * 2,
+    SMOKE_SPRITE_NORMAL = 0,
+    SMOKE_SPRITE_ALT = 1,
+    N_SMOKE_SPRITES = SMOKE_SPRITE_ALT + 1,
+    BOMB_SPRITE_FLASH = 0,
+    BOMB_SPRITE_EXPANDED = 1,
+    BOMB_SPRITE_HINOKO = 2,
+    N_EXPLOSION_SPRITES = BOMB_SPRITE_HINOKO + 1,
+    SNOW_SPRITE_DEFAULT = 0,
+    N_SNOW_SPRITES = SNOW_SPRITE_DEFAULT + 1
+};
+
 /* Retail expands the demo's singleton blood sprites into four variants. */
-extern GsSPRITE sprBlood[4];
-extern GsSPRITE sprBloodStay[4];
+extern GsSPRITE sprBlood[N_BLOOD_SPRITES];
+extern GsSPRITE sprBloodStay[N_BLOOD_SPRITES];
 extern GsSPRITE sprFrame[MaxFrames];
 extern GsSPRITE sprSplash;
 /* Retail replaces the demo's three Sprite3D pointers with five GsSPRITEs. */
@@ -291,10 +308,10 @@ extern GsSPRITE sprSplash;
 extern GsSPRITE sprImpact[MaxImpacts];
 extern POLY_F4 plyBleed;
 /* Retail stores two smoke sprites before the next global. */
-extern Sprite3D *sprSmoke[2];
-extern Sprite3D *sprBomb[3];
+extern Sprite3D *sprSmoke[N_SMOKE_SPRITES];
+extern Sprite3D *sprBomb[N_EXPLOSION_SPRITES];
 /* Retail keeps the original SpriteSnow name as a one-entry selector table. */
-extern Sprite3D *SpriteSnow[1];
+extern Sprite3D *SpriteSnow[N_SNOW_SPRITES];
 extern ModelType *ModelHook;
 extern ModelType *ShadowMdl;
 extern void DrawGore(TEffectSlot *ef);

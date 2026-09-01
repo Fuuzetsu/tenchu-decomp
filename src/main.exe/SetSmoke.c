@@ -136,7 +136,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         smoke->time = time + rand() % 160;
         r = rand();
         i++;
-        smoke->sprite = 0;
+        smoke->sprite = SMOKE_SPRITE_NORMAL;
         m = smoke->time - 1;
         smoke->evtime = m - (time / 2 + r % time);
         ef->proc = (void (*)())DrawSmoke;

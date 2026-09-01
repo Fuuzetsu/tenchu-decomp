@@ -48,7 +48,6 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
 {
     enum
     {
-        AIRBORNE_GORE_SPRITE_COUNT = 2,
         GORE_INITIAL_SCALE = 2 * FIXED_ONE,
         GORE_TIME_SPREAD = 15,
         GORE_TIME_MIN = 10,
@@ -106,7 +105,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         gore_effect = &dmy;
     gore_found:
         gore = &gore_effect->param.blood;
-        gore->sprite = rand() % AIRBORNE_GORE_SPRITE_COUNT;
+        gore->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
         gore->scale = GORE_INITIAL_SCALE;
         gore->rotate = (rand() % 360) * FIXED_ONE;
         gore->px = world_position.vx;

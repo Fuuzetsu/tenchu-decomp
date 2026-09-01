@@ -11,8 +11,8 @@
  * writeup), filling the slot straight from its 4 caller-supplied parameters
  * (a raw "spawn exactly as told" setter, no randomization) and handing it
  * to DrawSnow — a DIFFERENT draw callback from DrawBlood/DrawImpact,
- * (`SetSnow(&pos, &vel, 0x1000, 0);`) — a falling-snowflake
- * spawner, not blood.
+ * (`SetSnow(&pos, &vel, FIXED_ONE, SNOW_SPRITE_DEFAULT);`) — a
+ * falling-snowflake spawner, not blood.
  *
  * SetSnow and DrawSnow jointly prove the shared SnowParticleType fields:
  * position, ground/sample height, draw size, velocity, and sprite selector.

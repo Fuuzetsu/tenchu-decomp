@@ -230,7 +230,7 @@ void DrawGore(TEffectSlot *ef)
                 param->vy = rand() % 8 + 8;
                 param->rotate = 0;
                 scale_random = rand();
-                param->sprite += 2;
+                param->sprite += N_AIRBORNE_BLOOD_SPRITES;
                 /* random scale in [1/3, 1/2) of 4.12 one */
                 param->scale = scale_random % 0x2ab + 0x555;
             }

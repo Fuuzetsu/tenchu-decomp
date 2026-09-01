@@ -63,14 +63,14 @@
 
 typedef struct
 {
-    u8 image[8];
+    u8 image[N_BLOOD_SPRITES * 2];
 } BloodImageIds;
 
 /* "\n"; +4 is an independent effect-pool cursor, and the image table starts at +8. */
 extern char str_newline[];
 /* Retail extends EFFECT.C's original three-entry static image-ID table. */
 extern u8 Effect_img[MaxImpacts];
-extern s32 EffectImages[3];
+extern s32 EffectImages[N_EXPLOSION_SPRITES];
 extern s32 pat[MaxFrames];
 
 extern ModelType *BLOOD_POOL_MODEL_;
@@ -87,9 +87,9 @@ void InitEffect(void)
     BloodImageIds blood_images;
     BloodImageIds *bloodp;
     BloodImageIds *blood_src;
-    s32 smoke_images[2];
+    s32 smoke_images[N_SMOKE_SPRITES];
     s32 smoke_id;
-    s32 img[3];
+    s32 img[N_EXPLOSION_SPRITES];
     POLY_F4 *poly;
     GsIMAGE *image;
     s16 i;
@@ -98,7 +98,7 @@ void InitEffect(void)
     blood_images = *blood_src;
     i = 0;
     bloodp = &blood_images;
-    for (; i < 4; i++)
+    for (; i < N_BLOOD_SPRITES; i++)
     {
         /* Not a flattened image[4][2]: the target recomputes the index and
          * re-adds the base for the second element (addu/addu/lbu 0), where a
@@ -150,16 +150,17 @@ void InitEffect(void)
         i = 0;
         while (1)
         {
-            if (i >= 2)
+            if (i >= N_SMOKE_SPRITES)
                 break;
             smoke_id = IMG_SMOKE;
-            smoke_images[1] = (smoke_offset = i * 4, IMG_SMOKE_ALT);
+            smoke_images[SMOKE_SPRITE_ALT] =
+                (smoke_offset = i * 4, IMG_SMOKE_ALT);
             /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do
             {
             } while (0);
             smoke_address = (u8 *)smoke_images + smoke_offset;
-            smoke_images[0] = smoke_id;
+            smoke_images[SMOKE_SPRITE_NORMAL] = smoke_id;
             image = GetImage(*(s32 *)smoke_address);
             sprite = SetupSprite((Sprite3D *)0, image);
             sprSmoke[i] = sprite;
@@ -174,7 +175,7 @@ void InitEffect(void)
         i = 0;
         while (1)
         {
-            if (i >= 3)
+            if (i >= N_EXPLOSION_SPRITES)
                 break;
             __builtin_memcpy(img, EffectImages, sizeof(img));
             image = GetImage(img[i]);
@@ -201,7 +202,7 @@ void InitEffect(void)
             SpriteSnow[i] = sprite;
             sprite->sprite.attribute = SPR_TRANS_ADD;
             i++;
-        } while (i < 1);
+        } while (i < N_SNOW_SPRITES);
     }
 
     TexScrollX = 0x340;

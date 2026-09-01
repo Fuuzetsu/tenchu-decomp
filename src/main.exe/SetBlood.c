@@ -138,7 +138,7 @@ outer:
         blood = &ef->param.blood;
         do
         {
-            blood->sprite = rand() % 2;
+            blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
             blood->scale = rand() % 4096 + 0x2000;
             blood->rotate = (rand() % 360) * 4096;
             blood->px = pos->vx;
