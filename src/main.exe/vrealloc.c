@@ -39,9 +39,10 @@
  *     WORDS but vsize() in BYTES — retail's own unit mix (it undercopies
  *     to a quarter), preserved as-is.
  *   - else (already fits): clear the in-use flag, and if the leftover slack
- *     is big enough (>= 0x13 words) split off a fresh free tail block,
+ *     is big enough (>= VMEM_MIN_SPLIT_SLACK words) split off a fresh free
+ *     tail block,
  *     itself absorbing `vhp`'s ORIGINAL next block if that one is also
- *     free. If the slack is small (< 0x13), the function returns with the
+ *     free. If the slack is smaller, the function returns with the
  *     in-use flag left CLEARED — a quirk (or latent bug) of the original,
  *     confirmed by both the raw asm and Ghidra's own decompilation, not a
  *     transcription error here.
@@ -49,9 +50,8 @@
  * Matching notes (the last 74 bytes were a register-allocation knot, solved
  * with cc1 -dg/-dl RTL dumps run standalone — not by respelling the C):
  *  - The grow-coalesce SPLIT tail's size is the raw excess (no `-2`); the
- *    shrink SPLIT tail's size is `excess - 2`. Different constants (0x11 vs
- *    0x13) gate the two splits too — read the raw immediate in each branch,
- *    don't assume they're the same threshold.
+ *    shrink SPLIT tail excludes VMEM_HEADER_WORDS. The grow and shrink paths
+ *    also use distinct named split thresholds.
  *  - Locate either split header in allocator words: cast `vhp` to `u32 *`,
  *    add `size`, then add `sizeof(*vhp) / sizeof(u32)`. The left-associated
  *    form preserves retail's base-plus-payload-plus-header address order.
@@ -69,11 +69,11 @@
  *  - The grow branch's `mask` is a real variable assigned BETWEEN the
  *    `svhp != 0` and `svhp->size >= 0` tests — hence the nested-if +
  *    `goto giveup` shape instead of one `&&` chain. That places the
- *    `li 0x80000000` in the second test's basic block: sched1 slots it
+ *    `li VMEM_BLOCK_IN_USE` in the second test's basic block: sched1 slots it
  *    into the `lw svhp->size` load-delay stall, reorg then pulls it into
  *    the `bltz` delay slot, and the assembler re-inserts the load-use
  *    hazard nop — reproducing the target's `lw / nop / bltz / lui` exactly.
- *    A literal 0x80000000 in each arm instead compiles TWO `lui`s (cse's
+ *    An inline literal in each arm instead compiles TWO `lui`s (cse's
  *    path-following cannot unify constants across the divergent split/
  *    absorb arms) — one instruction long.
  *  - `mask` is ALSO the give-up path's memcpy-length temp (one variable,
@@ -114,23 +114,23 @@ void *vrealloc(void *pt, u32 size)
 
     if ((u32)vhp->size >= size)
     {
-        vhp->size = vhp->size & 0x7fffffff;
+        vhp->size = vhp->size & VMEM_BLOCK_SIZE_MASK;
         size2 = (u32)vhp->size - size;
-        if (size2 >= 0x13)
+        if (size2 >= VMEM_MIN_SPLIT_SLACK)
         {
             struct VMhead *nb;
 
-            vh.size = size2 - 2;
+            vh.size = size2 - VMEM_HEADER_WORDS;
             vh.next = vhp->next;
-            vhp->size = size | 0x80000000;
+            vhp->size = size | VMEM_BLOCK_IN_USE;
             nb = (struct VMhead *)((u32 *)vhp + size +
                                    sizeof(*vhp) / sizeof(u32));
             vhp->next = nb;
             /* Byte-required spelling: the not-and differs from line 144's
              * (s32)size >= 0 form of the same in-use test (measured). */
-            if (svhp != 0 && (~svhp->size & 0x80000000) != 0)
+            if (svhp != 0 && (~svhp->size & VMEM_BLOCK_IN_USE) != 0)
             {
-                vh.size += (svhp->size + 2);
+                vh.size += (svhp->size + VMEM_HEADER_WORDS);
                 vh.next = svhp->next;
             }
             *vhp->next = vh;
@@ -140,15 +140,17 @@ void *vrealloc(void *pt, u32 size)
     {
         if (svhp != 0)
         {
-            mask = 0x80000000;
+            mask = VMEM_BLOCK_IN_USE;
             if ((s32)svhp->size >= 0 &&
-                (u32)(vhp->size & 0x7fffffff) + (u32)svhp->size + 2 >= size)
+                (u32)(vhp->size & VMEM_BLOCK_SIZE_MASK) +
+                        (u32)svhp->size + VMEM_HEADER_WORDS >= size)
             {
-                vhp->size = vhp->size & 0x7fffffff;
+                vhp->size = vhp->size & VMEM_BLOCK_SIZE_MASK;
                 size2 = ((u32)vhp->size + svhp->size) - size;
-                if (size2 < 0x11)
+                if (size2 < VMEM_MIN_GROW_SPLIT_SLACK)
                 {
-                    vhp->size = (vhp->size + svhp->size + 2) | mask;
+                    vhp->size =
+                        (vhp->size + svhp->size + VMEM_HEADER_WORDS) | mask;
                     vhp->next = svhp->next;
                 }
                 else

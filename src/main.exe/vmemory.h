@@ -11,6 +11,11 @@ struct VMhead
 };
 typedef struct VMhead VMheadType;
 
+#define VMEM_BLOCK_IN_USE 0x80000000u
+#define VMEM_BLOCK_SIZE_MASK (~VMEM_BLOCK_IN_USE)
+#define VMEM_HEADER_WORDS (sizeof(struct VMhead) / sizeof(u32))
+#define VMEM_HEADER_BYTES sizeof(struct VMhead)
+
 extern u_long *virtual_memory_pool;
 extern unsigned long vgetmaxsize(void);
 extern unsigned long vgetfreesize(void);
@@ -28,5 +33,7 @@ extern unsigned long vsize(void *pt);
 /* valloc: leftover slack smaller than this many words is not worth
  * splitting off as a free block. */
 #define VMEM_MIN_SPLIT_SLACK 0x13
+#define VMEM_MIN_GROW_SPLIT_SLACK \
+    (VMEM_MIN_SPLIT_SLACK - VMEM_HEADER_WORDS)
 
 #endif /* TENCHU_VMEMORY_H */

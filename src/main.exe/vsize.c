@@ -24,5 +24,5 @@
 
 unsigned long vsize(void *pt)
 {
-    return (((struct VMhead *)pt) - 1)->size << 2;
+    return ((((struct VMhead *)pt) - 1)->size & VMEM_BLOCK_SIZE_MASK) << 2;
 }

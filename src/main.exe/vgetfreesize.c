@@ -29,7 +29,7 @@ unsigned long vgetfreesize(void)
     sum = 0;
     for (p = (struct VMhead *)virtual_memory_pool; p != 0; p = p->next)
     {
-        if (!(p->size & 0x80000000))
+        if (!(p->size & VMEM_BLOCK_IN_USE))
             sum += p->size;
     }
     return sum << 2;

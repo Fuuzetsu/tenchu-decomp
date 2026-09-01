@@ -43,11 +43,12 @@
  *    robust (the demo build allocates identically). Diagnosed by reading
  *    priorities from `-dl` ("Register N used X times across Y insns") and
  *    the allocation order from `-dg`'s "regs to allocate" line.
- *  - Both coalescing sums must be spelled `A + (B + 2)` (or equivalently
- *    `+=`): fold-const canonicalizes `A + (B + 2)` to `(A + 2) + B`, which
+ *  - Both coalescing sums must be spelled
+ *    `A + (B + VMEM_HEADER_WORDS)` (or equivalently `+=`): fold-const puts
+ *    the header-size addition before B, which
  *    puts the `addiu A,2` first (it lands in the guard's delay slot) and
  *    ties the addu's DEST to A's dying register (dest = op0). The previous
- *    draft's `B + 2 + A` spelling mirrored the operand order and moved the
+ *    draft's reversed spelling mirrored the operand order and moved the
  *    tail sum from $v1 to $v0.
  *  - The header address `(struct VMhead *)pt - 1` is computed unconditionally
  *    in the null-guard branch's delay slot but only used once the guard
@@ -62,8 +63,8 @@
  *    do-while KEYWORD form emits an extra unconditional `j`; the label/goto
  *    form reproduces the straight fall-through into the loop body).
  *  - The forward-merge "is next free" test needs the LITERAL `(~s & mask)`
- *    spelling with `mask` a NAMED VARIABLE, not the inline literal
- *    0x80000000 — an inline literal constant-folds the whole test back
+ *    spelling with `mask` a NAMED VARIABLE, rather than testing
+ *    VMEM_BLOCK_IN_USE inline. The latter constant-folds the whole test back
  *    into a signed branch, losing the real `nor+and` instructions.
  *  - `mask`'s use in the double-release guard (`(header->size & mask)
  *    == 0`, which combine still folds to `bltz`) is what tips cc1 into
@@ -94,11 +95,11 @@ void vfree(void *pt)
         return;
 
     header = (struct VMhead *)pt - 1;
-    mask = 0x80000000;
+    mask = VMEM_BLOCK_IN_USE;
     if ((header->size & mask) == 0)
         SystemOut(msg_double_memory_release);
 
-    sz = header->size & 0x7fffffff;
+    sz = header->size & VMEM_BLOCK_SIZE_MASK;
     header->size = sz;
 
     next = header->next;
@@ -107,7 +108,7 @@ void vfree(void *pt)
         s = next->size;
         if ((~s & mask) != 0)
         {
-            header->size = sz + (s + 2);
+            header->size = sz + (s + VMEM_HEADER_WORDS);
             header->next = next->next;
         }
     }
@@ -129,7 +130,7 @@ void vfree(void *pt)
             s = prev->size;
             if (s >= 0)
             {
-                prev->size = s + (header->size + 2);
+                prev->size = s + (header->size + VMEM_HEADER_WORDS);
                 prev->next = header->next;
             }
         }

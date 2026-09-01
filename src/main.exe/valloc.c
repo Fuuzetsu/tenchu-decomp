@@ -31,8 +31,9 @@
  * Same TU as vinit.c/vfree.c/vcalloc.c/vgetmaxsize.c/vgetfreesize.c
  * (VALLOC.C). Lazily self-initializes the pool the way vinit(0,0) would,
  * rounds the request up to words, then walks the free list for the first
- * fit: exact-or-near (slack < 0x13 words) is marked in-use whole, bigger is
- * split (the tail becomes a fresh free block). On failure it walks the list
+ * fit: exact-or-near (slack < VMEM_MIN_SPLIT_SLACK words) is marked in-use
+ * whole, while a bigger block is split (the tail becomes a fresh free
+ * block). On failure it walks the list
  * twice more (max free block, total free) to format the fatal "OUT OF
  * MEMORY" diagnostic for SystemOut, then returns the (NULL) cursor.
  *
@@ -126,8 +127,8 @@ void *valloc(u32 size)
     vmpt = (u32 *)virtual_memory_pool;
     if (vmpt != 0)
     {
-        off = (size << 2) + 8;
-        mask = 0x80000000;
+        off = (size << 2) + VMEM_HEADER_BYTES;
+        mask = VMEM_BLOCK_IN_USE;
         tag = size | mask;
         do
         {
@@ -144,7 +145,7 @@ void *valloc(u32 size)
                      * FRESH loads (lw/subu/addiu) like the target instead
                      * of CSE reusing the test's loaded value/slack. */
                     vmpt[0] = vmpt[0] | mask;
-                    vmpt = vmpt + 2;
+                    vmpt = vmpt + VMEM_HEADER_WORDS;
                     goto search_done;
                     /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                     do
@@ -181,7 +182,8 @@ void *valloc(u32 size)
             for (vhp = (struct VMhead *)virtual_memory_pool; vhp != 0;
                  vhp = vhp->next)
             {
-                if (!(vhp->size & 0x80000000) && maxsize < (u32)vhp->size)
+                if (!(vhp->size & VMEM_BLOCK_IN_USE) &&
+                    maxsize < (u32)vhp->size)
                     maxsize = vhp->size;
             }
         }
@@ -194,7 +196,7 @@ void *valloc(u32 size)
             for (vhp = (struct VMhead *)virtual_memory_pool; vhp != 0;
                  vhp = vhp->next)
             {
-                if (!(vhp->size & 0x80000000))
+                if (!(vhp->size & VMEM_BLOCK_IN_USE))
                     freesize += vhp->size;
             }
         }

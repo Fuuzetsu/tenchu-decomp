@@ -50,7 +50,7 @@ static inline void free_block(void *pt, u32 cmask)
     {
         header = (struct VMhead *)pt - 1;
     } while (0);
-    mask = 0x80000000;
+    mask = VMEM_BLOCK_IN_USE;
     if ((header->size & mask) == 0)
         SystemOut(msg_double_memory_release);
 
@@ -63,7 +63,7 @@ static inline void free_block(void *pt, u32 cmask)
         s = next->size;
         if ((~s & mask) != 0)
         {
-            header->size = sz + (s + 2);
+            header->size = sz + (s + VMEM_HEADER_WORDS);
             header->next = next->next;
         }
     }
@@ -84,7 +84,7 @@ static inline void free_block(void *pt, u32 cmask)
             s = prev->size;
             if (s >= 0)
             {
-                prev->size = s + (header->size + 2);
+                prev->size = s + (header->size + VMEM_HEADER_WORDS);
                 prev->next = header->next;
             }
         }
@@ -129,10 +129,12 @@ static inline void free_block(void *pt, u32 cmask)
  *    around the final `vh.size` sum, previously believed to resolve a two-byte
  *    caller-register tie, was re-tested at MATCH and is NOT load-bearing --
  *    removed.
- *  - Parenthesizing the final offset as `base + ((hsz << 2) + 8)` selects the
- *    target addiu-before-addu tree (24 to 16 bytes); reusing `prev` after the
+ *  - Parenthesizing the final offset as
+ *    `base + ((hsz << 2) + VMEM_HEADER_BYTES)` selects the target
+ *    addiu-before-addu tree (24 to 16 bytes); reusing `prev` after the
  *    call for `vh.next` closes the final $a0->$a3 tail (16 to 12 bytes).
- *  - Both coalescing sums are vfree.c's proven `A + (B + 2)` spelling.
+ *  - Both coalescing sums are vfree.c's proven
+ *    `A + (B + VMEM_HEADER_WORDS)` spelling.
  *  - Each free-list search keeps only its label backedge. Inverting the
  *    found test lets success fall into coalescing and removes the acyclic
  *    `found` edge without adding LOOP notes.
@@ -168,7 +170,7 @@ void *vmemoryGC(void *pt)
     u32 size;
     u32 *vmpt;
 
-    cmask = 0x7fffffff;
+    cmask = VMEM_BLOCK_SIZE_MASK;
     header = (struct VMhead *)pt - 1;
     size = (header->size & cmask) << 2;
     vmpt = valloc(size);
@@ -211,12 +213,13 @@ void *vmemoryGC(void *pt)
                 {
                     do
                     {
-                        mask = 0x80000000;
+                        mask = VMEM_BLOCK_IN_USE;
                     } while (0);
                     newpt = (void *)(prev + 1);
                     vh.size = sz;
                     vh.next = header->next;
-                    vmpt = (u32 *)((u8 *)prev + ((header->size << 2) + 8));
+                    vmpt = (u32 *)((u8 *)prev +
+                                   ((header->size << 2) + VMEM_HEADER_BYTES));
                     prev->size = header->size;
                     prev->next = (struct VMhead *)vmpt;
                     memcpy(newpt, pt, size);
@@ -224,7 +227,7 @@ void *vmemoryGC(void *pt)
                     prev = vh.next;
                     if (prev != 0 && (~prev->size & mask) != 0)
                     {
-                        vh.size += (prev->size + 2);
+                        vh.size += (prev->size + VMEM_HEADER_WORDS);
                         vh.next = prev->next;
                     }
                     *(struct VMhead *)vmpt = vh;

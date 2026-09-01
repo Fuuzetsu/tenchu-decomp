@@ -31,7 +31,7 @@ unsigned long vgetmaxsize(void)
     for (p = (struct VMhead *)virtual_memory_pool; p != 0; p = p->next)
     {
         size = p->size;
-        if (!(size & 0x80000000) && max < size)
+        if (!(size & VMEM_BLOCK_IN_USE) && max < size)
         {
             max = size;
         }
