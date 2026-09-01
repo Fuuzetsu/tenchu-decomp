@@ -49,7 +49,7 @@
 extern SVECTOR svec_y_n100[]; /* {0,-100,0} */
 extern void *memset(void *s, s32 c, u32 n);
 
-void leAddPath(s32 id, s32 x, s32 y, s32 z)
+void leAddPath(enemy_layout_index id, s32 x, s32 y, s32 z)
 {
     TEnemyLayout *e;
     VECTOR pos;

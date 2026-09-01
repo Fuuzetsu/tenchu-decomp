@@ -308,6 +308,8 @@ typedef u8 compact_character_kind;
 
 /* WORLD.C's editable enemy placement. */
 #define MAX_ENEMY_PATH_POINTS 7
+typedef s32 enemy_layout_index;
+#define ENEMY_LAYOUT_NONE (-1)
 
 typedef struct TEnemyLayout TEnemyLayout;
 struct TEnemyLayout

@@ -38,10 +38,10 @@
 
 int leRemoveEnemy(void)
 {
-    int idx;
+    enemy_layout_index idx;
 
     idx = leFindEnemy();
-    if (idx == -1)
+    if (idx == ENEMY_LAYOUT_NONE)
     {
         return 0;
     }

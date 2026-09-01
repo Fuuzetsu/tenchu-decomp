@@ -27,7 +27,7 @@
  * finds the first dead slot (type == CHARACTER_KIND_END) in the enemy-layout
  * table and, if
  * one exists, fills it in from the six parameters and returns its index;
- * returns -1 if the table is full.
+ * returns ENEMY_LAYOUT_NONE if the table is full.
  *
  * Matching notes (see docs/matching-cookbook.md):
  *  - The search loop is a plain do-while with an early `goto found` (cc1
@@ -40,10 +40,10 @@
  *    (rather than CSE-ing the loop's own -1 sentinel register), fixing a
  *    4-byte/1-instruction length gap.
  *  - The guard-clause-with-two-returns exception applies in its LITERAL
- *    `== -1` sense here (`if (result == -1) return -1;` first, success
- *    falls through to its own `return result;` at the very end) — the
- *    opposite (Ghidra's literal `if (result != -1) {...} return -1;`)
- *    relocates the success block to a branch target and is 79 bytes off.
+ *    `== ENEMY_LAYOUT_NONE` sense here (`if (result == ENEMY_LAYOUT_NONE)
+ *    return ENEMY_LAYOUT_NONE;` first, success falls through to its own
+ *    `return result;` at the very end) — the opposite guard relocates the
+ *    success block to a branch target and is 79 bytes off.
  *
  * STATUS: MATCHING — exact 140-byte pure C. The final 33-byte base/offset
  * swap came from top-level `enemy[result]`: ARRAY_REF expands the symbol
@@ -69,10 +69,11 @@
  * exactly.
  */
 
-s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s16 r)
+enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
+                              s32 z, s16 r)
 {
-    s32 idx;
-    s32 result;
+    enemy_layout_index idx;
+    enemy_layout_index result;
     s32 offset;
     TEnemyLayout *e;
 
@@ -86,10 +87,10 @@ s32 leSetEnemy(s32 type, TThinkType think, s32 x, s32 y, s32 z, s16 r)
         }
         idx++;
     } while (idx < MAX_ENEMIES);
-    result = -1;
+    result = ENEMY_LAYOUT_NONE;
 found:
-    if (result == -1)
-        return -1;
+    if (result == ENEMY_LAYOUT_NONE)
+        return ENEMY_LAYOUT_NONE;
     offset = result * 0x88;
     e = (TEnemyLayout *)(offset + (s32)enemy);
     e->type = (s16)type;

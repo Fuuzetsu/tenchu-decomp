@@ -178,7 +178,7 @@ enum
 };
 
 extern unsigned char PutMapMode;
-extern int CurrentEnemyID; /* enemy[] index latched by leFindEnemy */
+extern enemy_layout_index CurrentEnemyID; /* enemy[] index latched by leFindEnemy */
 extern GsSPRITE CursorImage;
 extern GsSPRITE NumberImage;
 /* Retail groups the demo's three named Kehai sprites with one new state. */
@@ -274,7 +274,7 @@ extern short NowReturnNormal(struct Humanoid *human);
 extern short GetMotionID(MotionManager *mmp, motion_id mid);
 extern short ActiveMotion(MotionManager *mmp);
 extern long GetTargetDistance(struct Humanoid *human, short *deg);
-extern int leFindEnemy(void);
+extern enemy_layout_index leFindEnemy(void);
 extern void leLayoutEnemy(int mode);
 extern int leRemoveEnemy(void);
 

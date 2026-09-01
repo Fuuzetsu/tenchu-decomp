@@ -26,7 +26,7 @@
  * touched here.
  */
 
-void leResetPath(s32 id)
+void leResetPath(enemy_layout_index id)
 {
     if ((u32)id < MAX_ENEMIES)
     {

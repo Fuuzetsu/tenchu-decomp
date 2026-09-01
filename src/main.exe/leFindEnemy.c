@@ -31,11 +31,10 @@
  * leAddPath.c/leResetPath.c for TEnemyLayout): scans the 30-slot `enemy[]`
  * table for the live (`type != CHARACTER_KIND_END`) entry nearest
  * CamState.Owner's model
- * position, returning its index (or -1 if none is closer than the initial
- * 2000-unit cutoff). On a hit, spawns the same marker explosion effect as
- * leAddPath (SetExplosion with the pooled {0,-100,0} direction vector
- * and the found enemy's own
- * x/y/z) at the found enemy's position.
+ * position, returning its index (or ENEMY_LAYOUT_NONE if none is closer than
+ * the initial 2000-unit cutoff). On a hit, spawns the same marker explosion
+ * effect as leAddPath (SetExplosion with the pooled {0,-100,0} direction
+ * vector and the found enemy's own x/y/z) at the found enemy's position.
  *
  * Matching notes:
  *  - `pow = svec_y_n100[0];` (the whole-SVECTOR copy) is computed BEFORE
@@ -59,11 +58,11 @@ extern SVECTOR svec_y_n100[]; /* {0,-100,0} */
 
 extern void *memset(void *s, s32 c, u32 n);
 
-int leFindEnemy(void)
+enemy_layout_index leFindEnemy(void)
 {
     int i;
     s32 px, py, pz;
-    int find;
+    enemy_layout_index find;
     int r;
     int rr;
     int dx, dy, dz;
@@ -71,7 +70,7 @@ int leFindEnemy(void)
     VECTOR pos;
     VECTOR epos;
 
-    find = -1;
+    find = ENEMY_LAYOUT_NONE;
     r = 2000;
     px = CamState.Owner->model->locate.coord.t[0];
     py = CamState.Owner->model->locate.coord.t[1];
@@ -97,7 +96,7 @@ int leFindEnemy(void)
         i++;
     }
 
-    if (find != -1)
+    if (find != ENEMY_LAYOUT_NONE)
     {
         pow = svec_y_n100[0];
         memset(&epos, 0, sizeof(epos));

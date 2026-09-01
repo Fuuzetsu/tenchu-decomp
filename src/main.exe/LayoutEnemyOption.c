@@ -67,8 +67,8 @@ extern char fmt_layout_enemies[]; /* "layout %d enemies" */
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
 extern void leClearLayout(void);
-extern void leAddPath(s32 n, s32 x, s32 y, s32 z);
-extern void leResetPath(s32 n);
+extern void leAddPath(enemy_layout_index id, s32 x, s32 y, s32 z);
+extern void leResetPath(enemy_layout_index id);
 extern void SelectCameraOwnerOption(void); /* AdtMessageBox comes from item.h */
 
 void LayoutEnemyOption(void)
