@@ -51,44 +51,43 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, u_long ot, u_long shift,
 
     while (n != 0)
     {
-        switch (*(u_char *)((int)prim + TMD_PRIMITIVE_MODE_BYTE) &
-                TMD_PRIMITIVE_MODE_MASK)
+        switch (TMD_BATCH_MODE(prim) & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = adiv_tng4_(prim, vertop, GsOUT_PACKET_P,
-                                        *prim, shift, ot,
+                                        TMD_BATCH_COUNT(prim), shift, ot,
                                         work);
-            n -= *prim;
-            step = *prim * 0xb;
+            n -= TMD_BATCH_COUNT(prim);
+            step = TMD_BATCH_COUNT(prim) * TMD_RECORD_WORDS(TMD_P_TNG4);
             step <<= 2;
             break;
         case TMD_PRIM_FT4:
             GsOUT_PACKET_P = adiv_tnf4_(prim, vertop, GsOUT_PACKET_P,
-                                        *prim, shift, ot,
+                                        TMD_BATCH_COUNT(prim), shift, ot,
                                         work);
-            n -= *prim;
-            step = *prim << 5;
+            n -= TMD_BATCH_COUNT(prim);
+            step = TMD_BATCH_COUNT(prim) * TMD_RECORD_BYTES(TMD_P_TNF4);
             break;
         case TMD_PRIM_FT3:
             GsOUT_PACKET_P = GsTMDfastTNF3(prim, vertop, GsOUT_PACKET_P,
-                                           *prim, shift, ot,
+                                           TMD_BATCH_COUNT(prim), shift, ot,
                                            work);
             /* The named count (here and in case 0x35) replaced two weight
              * fences: it re-orders the local v0/v1 quantities the fences
              * pinned. The other arms need the plain *prim spelling
              * (measured). */
-            count = *prim;
+            count = TMD_BATCH_COUNT(prim);
             n -= count;
-            step = count * 7;
+            step = count * TMD_RECORD_WORDS(TMD_P_TNF3);
             step <<= 2;
             break;
         case TMD_PRIM_GT3:
             GsOUT_PACKET_P = GsTMDfastTNG3(prim, vertop, GsOUT_PACKET_P,
-                                           *prim, shift, ot,
+                                           TMD_BATCH_COUNT(prim), shift, ot,
                                            work);
-            count = *prim;
+            count = TMD_BATCH_COUNT(prim);
             n -= count;
-            step = count * 9;
+            step = count * TMD_RECORD_WORDS(TMD_P_TNG3);
             step <<= 2;
             break;
         default:

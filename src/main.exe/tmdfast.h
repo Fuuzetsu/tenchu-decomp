@@ -35,13 +35,32 @@ extern tmd_renderer_bank DrawTMDmode;
 
 enum
 {
-    TMD_PRIMITIVE_MODE_BYTE = 3,
     TMD_PRIMITIVE_MODE_MASK = 0xfd
 };
 
 #include "common.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libgs.h>
+
+/* Header of one same-format run in the linked primitive stream. */
+typedef struct
+{
+    u16 count;
+    u8 dummy;
+    tmd_primitive_mode mode;
+} TmdPrimitiveBatch;
+
+#define TMD_BATCH_BYTE_OFFSET(member) \
+    ((u_long)&((TmdPrimitiveBatch *)0)->member)
+#define TMD_BATCH_COUNT(primitive)                                  \
+    (*(u_short *)((int)(primitive) + TMD_BATCH_BYTE_OFFSET(count)))
+#define TMD_BATCH_MODE(primitive)                                  \
+    (*(u_char *)((int)(primitive) + TMD_BATCH_BYTE_OFFSET(mode)))
+#define TMD_RECORD_BYTES(type) ((int)sizeof(type))
+#define TMD_RECORD_WORDS(type) ((int)(sizeof(type) / sizeof(u_long)))
+#define TMD_NEXT_BATCH(primitive, type)                              \
+    ((u_short *)((int)(primitive) + TMD_BATCH_COUNT(primitive) *     \
+                                        TMD_RECORD_BYTES(type)))
 
 /*
  * Tenchu's own modified copies of the libgs linked-TMD renderers live in game

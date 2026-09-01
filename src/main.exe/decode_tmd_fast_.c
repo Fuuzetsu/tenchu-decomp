@@ -68,41 +68,44 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     TMD_FAST_WORD(work, fogz) = TMD_FAST_FOG_Z;
     while (n != 0)
     {
-        switch (*(u_char *)((int)prim + TMD_PRIMITIVE_MODE_BYTE) &
-                TMD_PRIMITIVE_MODE_MASK)
+        switch (TMD_BATCH_MODE(prim) & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
-            GsOUT_PACKET_P = fast_tng4_(prim, vertop, GsOUT_PACKET_P, *prim, work);
-            n -= *prim;
-            prim = (u_short *)((int)prim + *prim * 0x2c);
+            GsOUT_PACKET_P = fast_tng4_(prim, vertop, GsOUT_PACKET_P,
+                                        TMD_BATCH_COUNT(prim), work);
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_TNG4);
             continue;
         case TMD_PRIM_FT4:
-            GsOUT_PACKET_P = fast_tnf4_(prim, vertop, GsOUT_PACKET_P, *prim, work);
-            n -= *prim;
-            prim = (u_short *)((int)prim + (*prim << 5));
+            GsOUT_PACKET_P = fast_tnf4_(prim, vertop, GsOUT_PACKET_P,
+                                        TMD_BATCH_COUNT(prim), work);
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_TNF4);
             continue;
         case TMD_PRIM_FT3:
-            GsOUT_PACKET_P = fast_tnf3_(prim, vertop, GsOUT_PACKET_P, *prim, work);
-            n -= *prim;
-            prim = (u_short *)((int)prim + *prim * 0x1c);
+            GsOUT_PACKET_P = fast_tnf3_(prim, vertop, GsOUT_PACKET_P,
+                                        TMD_BATCH_COUNT(prim), work);
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_TNF3);
             continue;
         case TMD_PRIM_GT3:
-            GsOUT_PACKET_P = fast_tng3_(prim, vertop, GsOUT_PACKET_P, *prim, work);
-            n -= *prim;
-            prim = (u_short *)((int)prim + *prim * 0x24);
+            GsOUT_PACKET_P = fast_tng3_(prim, vertop, GsOUT_PACKET_P,
+                                        TMD_BATCH_COUNT(prim), work);
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_TNG3);
             continue;
         case TMD_PRIM_G4:
-            n -= *prim;
-            prim = (u_short *)((int)prim + *prim * 0x1c);
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_NG4);
             continue;
         case TMD_PRIM_G3:
-            n -= *prim;
-            prim = (u_short *)((int)prim + *prim * 0x18);
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_NG3);
             continue;
         case TMD_PRIM_F3:
         case TMD_PRIM_F4:
-            n -= *prim;
-            prim = (u_short *)((int)prim + (*prim << 4));
+            n -= TMD_BATCH_COUNT(prim);
+            prim = TMD_NEXT_BATCH(prim, TMD_P_NF3);
             continue;
         default:
             return;
