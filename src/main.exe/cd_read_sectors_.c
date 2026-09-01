@@ -1,9 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-#include <psxsdk/libcd.h>
-
-#define CD_SECTOR_SUBHEADER_SIZE 12
-#define CD_SECTOR_PAYLOAD_SIZE 2048
+#include "filesystem.h"
 
 /*
  * MATCHED: cd_read_sectors_ (0x8005f380, 0x1d8 bytes) reads `length`
@@ -13,10 +10,11 @@
  * callees are libcd primitives, the address is below the 0x80060000 PsyQ/CRT
  * boundary, so this is game-TU code.
  *
- * The DMA buffer is one 0x810-byte object: a 12-byte raw-sector subheader plus
- * 2048 payload bytes. Ghidra's adjacent CdlLOC[3]/byte-array locals are two
- * views of that object. The separate 8-byte `param` and CdlLOC[2] `loc` slots
- * complete the exact 0x858-byte frame; only param[0] and loc[0] are used.
+ * The DMA buffer is one CdDataSector: a 12-byte raw-sector header plus a
+ * 2048-byte payload. Its 0x80c-byte value receives a 0x810-byte rounded stack
+ * slot. Ghidra's adjacent CdlLOC[3]/byte-array locals are two views of this
+ * record. The separate 8-byte `param` and CdlLOC[2] `loc` slots complete the
+ * exact 0x858-byte frame; only param[0] and loc[0] are used.
  *
  * Matching constraints:
  *  - `dst`, `curSector`, `remaining`, and `off` initialize once immediately
@@ -40,11 +38,11 @@ extern int VSync(int mode);
 
 void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
 {
-    u8 sectorBuf[0x810];
+    CdDataSector sectorBuf;
     u8 param[8];
     CdlLOC loc[2];
-    u8 *raw;
-    u8 *data;
+    CdDataSector *sector_view;
+    u8 *payload;
     u8 *dst;
     u8 *src;
     s32 curSector;
@@ -55,8 +53,8 @@ void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
     s32 chunk;
     s32 i;
 
-    raw = sectorBuf;
-    data = sectorBuf + CD_SECTOR_SUBHEADER_SIZE;
+    sector_view = &sectorBuf;
+    payload = sectorBuf.payload;
 
     if (length < 1)
         return;
@@ -88,13 +86,11 @@ full_retry:
         n = CdReady(0, 0);
         if (n != 1)
             goto full_retry;
-        n = CdGetSector(sectorBuf,
-                        (CD_SECTOR_SUBHEADER_SIZE + CD_SECTOR_PAYLOAD_SIZE) /
-                            sizeof(u32));
+        n = CdGetSector(&sectorBuf, sizeof(sectorBuf) / sizeof(u32));
         if (n == 0)
             goto full_retry;
 
-        n = CdPosToInt((CdlLOC *)raw);
+        n = CdPosToInt(&sector_view->location);
         if (n != curSector)
         {
             CdIntToPos(curSector, loc);
@@ -106,12 +102,12 @@ full_retry:
         else
         {
             chunk = off + remaining;
-            if (chunk > CD_SECTOR_PAYLOAD_SIZE)
-                chunk = CD_SECTOR_PAYLOAD_SIZE;
+            if (chunk > CD_DATA_SECTOR_PAYLOAD_SIZE)
+                chunk = CD_DATA_SECTOR_PAYLOAD_SIZE;
             chunk -= off;
             for (i = 0; i < chunk; i++)
             {
-                src = data + off;
+                src = payload + off;
                 dst[i] = src[i];
             }
             dst += chunk;

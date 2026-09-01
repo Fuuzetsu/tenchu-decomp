@@ -34,6 +34,24 @@ enum
     MEMORY_DISK_SCRATCH_SIZE = 0x8000
 };
 
+enum
+{
+    CD_DATA_SECTOR_PAYLOAD_SIZE = 2048,
+    CD_DATA_SECTOR_HEADER_TAIL_SIZE = 8
+};
+
+/* Prefix requested from a CdlModeSize1 sector by cd_read_sectors_. The raw
+ * sector begins with the three BCD location bytes consumed by CdPosToInt;
+ * the fourth CdlLOC byte and the remaining header bytes are not interpreted
+ * by the file reader, which copies the following 2048-byte payload. */
+typedef struct CdDataSector CdDataSector;
+struct CdDataSector
+{
+    CdlLOC location;                                      /* 0x000 */
+    u8 header_tail[CD_DATA_SECTOR_HEADER_TAIL_SIZE];      /* 0x004 */
+    u8 payload[CD_DATA_SECTOR_PAYLOAD_SIZE];              /* 0x00C */
+}; /* 0x80C */
+
 /* FILEIO's original seek-origin type from PSX.SYM. */
 typedef enum TSeekMode TSeekMode;
 enum TSeekMode
