@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "font.h"
 
 /*
  * draw_telop_line_ (0x800570b8, 0x160 bytes) — the telop (on-screen caption)
@@ -13,9 +14,8 @@
  * walks `str`, drawing one glyph per byte via draw_glyph_ (still asm;
  * takes the same org/x/y/char signature) at a cursor that resets to the
  * start-of-line X on '\n' and otherwise advances by each glyph's width out
- * of the per-glyph table FontWidth[] (the SAME SJIS-code-to-glyph-index
- * remap as telop_text_width_: 0x92->0x27, -0x20 if >=0x20, an extra -0x40 for
- * the upper half-width-kana block >=0xC0). No confirmed original name.
+ * of the per-glyph table FontWidth[] (the same font-block remap as
+ * telop_text_width_). No confirmed original name.
  *
  * STATUS: MATCHING — exact 352-byte / 88-instruction pure-C body.  Separate
  * cursor, Y-position, and text-pointer aliases recover the original prologue
@@ -49,34 +49,34 @@ void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
         }
         TelopP.x0 = TelopP.x2 = cursor;
         TelopP.y0 = TelopP.y1 = ypos;
-        TelopP.y2 = TelopP.y3 = ypos + 0xf;
+        TelopP.y2 = TelopP.y3 = ypos + FONT_GLYPH_HEIGHT - 1;
         TelopP.x1 = TelopP.x3 = cursor + (TelopP.u1 - TelopP.u0);
         GsSortPoly(&TelopP, OTablePt, 0);
         goto end;
     charloop:
         do
         {
-            if (*text == 10)
+            if (*text == '\n')
             {
                 cursor = x;
-                ypos += 0x10;
+                ypos += FONT_GLYPH_HEIGHT;
             }
             else
             {
                 draw_glyph_(org, cursor, ypos, *text);
                 ch = *text;
-                if (ch == 0x92)
+                if (ch == FONT_REMAP_CODE)
                 {
-                    ch = 0x27;
+                    ch = FONT_REMAP_TARGET;
                 }
                 index = ch;
-                if (index > 0x1f)
+                if (index >= FONT_PRINTABLE_FIRST)
                 {
-                    index -= 0x20;
+                    index -= FONT_PRINTABLE_FIRST;
                 }
-                if (ch > 0xbf)
+                if (ch >= FONT_UPPER_BLOCK_FIRST)
                 {
-                    index -= 0x40;
+                    index -= FONT_UPPER_BLOCK_OFFSET;
                 }
                 cursor += FontWidth[index];
             }

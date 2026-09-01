@@ -1,0 +1,32 @@
+#ifndef TENCHU_FONT_H
+#define TENCHU_FONT_H
+
+enum font_character_code
+{
+    FONT_PRINTABLE_FIRST = 0x20,
+    FONT_REMAP_TARGET = 0x27,
+    FONT_REMAP_CODE = 0x92,
+    FONT_UPPER_BLOCK_FIRST = 0xC0,
+    FONT_NUDGE_EXEMPT = 0xC7,
+    FONT_EXTENDED_BLOCK_FIRST = 0xE0,
+    FONT_RAISED_CODE = 0xE7
+};
+
+enum font_layout_constant
+{
+    FONT_CODE_BLOCK_SIZE = 0x20,
+    FONT_UPPER_BLOCK_OFFSET = 0x40,
+    FONT_ATLAS_COLUMNS = 16,
+    FONT_GLYPH_WIDTH = 3,
+    FONT_GLYPH_HEIGHT = 16
+};
+
+enum font_vertical_nudge
+{
+    FONT_NUDGE_UPPER = -4,
+    FONT_NUDGE_EXTENDED = -2,
+    FONT_NUDGE_NONE = 0,
+    FONT_NUDGE_RAISED = 3
+};
+
+#endif

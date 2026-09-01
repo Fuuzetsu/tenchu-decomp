@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "font.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -8,27 +9,21 @@
  * draw_glyph_ (0x8005778c, 0x184 bytes) — draws a bitmap-font glyph: grabs
  * a POLY_GT4 from the work base (and advances it, like draw_shade_quad_'s
  * siblings), remaps the raw character code `code` to a cell index in the
- * FONT_IMAGE_ sheet (0x92 is special-cased to 0x27, then codes >=0x20/>=0xc0
- * fold down by 0x20/0x40 — a half-width-kana-style remap), copies the whole
+ * FONT_IMAGE_ sheet (FONT_REMAP_CODE is translated first, then the printable
+ * and upper blocks fold down to contiguous indices), copies the whole
  * FONT_IMAGE_ GsIMAGE descriptor onto the stack (one struct assignment —
  * see load_font_image_into_global.c for the identical 7-word unroll), slides
- * its px/py by the cell's (col,row) within the sheet (3 px wide, 0x10 px
- * tall cells), computes an extra y-nudge `nudge` for a handful of special
- * codes (0xc7/0xe7 get -4/-2/3, everything else in [0xc0,0xdf) or
- * [0xe0,0xff) gets 0), then calls SetupImageToPolyGT4/AddPrim exactly like
+ * its px/py by the cell's (col,row) within the sheet, computes the glyph's
+ * vertical nudge, then calls SetupImageToPolyGT4/AddPrim exactly like
  * draw_shade_quad_'s neighbours.
  *
  * Matching notes:
  *  - `img = FONT_IMAGE_;` (a plain GsIMAGE struct assignment) is the
  *    proven load_font_image_into_global.c idiom, reused here in the other
  *    direction (global -> stack).
- *  - The `nudge` nudge is Ghidra's literal `if ((0x1f < (uint)(code -
- *    0xc0)) || (nudge = -4, code == 199)) {...}` — an `||` whose SECOND
- *    operand is a comma expression that unconditionally sets `nudge = -4`
- *    before testing `== 199`. Writing it as C's own short-circuit `||`
- *    reproduces the control flow directly: transcribe literally, don't
- *    "simplify" the comma away (the -4 must survive to the join point even
- *    on the branch where the equality test fails).
+ *  - The upper-band nudge assigns -4 before testing its exempt code, then
+ *    jumps to the shared join. This keeps the assignment in the target
+ *    branch delay slot without relying on a decompiler-style comma operand.
  *  - Preserve three full-width identities through the two-stage fold:
  *    `c0` is the unadjusted code, `t1` is the arithmetic working copy,
  *    and `t2` is the final result. That gives the target its visible
@@ -39,10 +34,10 @@
  *    s0 copy in the target prologue while placing `andi s0,s0,0xff` after
  *    the calls; an in-place mask either rotates the saved-argument stores
  *    or folds the copy and mask into one instruction.
- *  - Update px before the signed row adjustment and let py's assignment
- *    perform the final narrowing. The source order and full-width shift
- *    reproduce the target's independent column arithmetic before its
- *    `bgez`, followed by `sra`/`sll` for the row.
+ *  - Compute the signed atlas row before writing pw/ph, then let py's
+ *    assignment perform the final narrowing. The scheduler separates the
+ *    division's sign bias from its shift around those independent stores,
+ *    reproducing the target's `bgez`/`sra`/`sll` sequence.
  *  - The local `short y` truncates `y0 + nudge` after the addition.
  *    This old caller has no prototype in scope, so its `short` coordinates
  *    receive C's default integer promotions. The typed IMAGES.C API lives in
@@ -63,6 +58,7 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
     s32 c0;
     s32 t1;
     s32 t2;
+    s32 row;
     u32 raw;
     u8 narrow;
     GsIMAGE img;
@@ -72,45 +68,48 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
     GsSetWorkBase(ply + 1);
     raw = narrow;
     c0 = raw;
-    if (raw == 0x92)
+    if (raw == FONT_REMAP_CODE)
     {
-        c0 = 0x27;
+        c0 = FONT_REMAP_TARGET;
     }
     t1 = c0;
-    if (t1 > 0x1f)
+    if (t1 >= FONT_PRINTABLE_FIRST)
     {
-        t1 -= 0x20;
+        t1 -= FONT_PRINTABLE_FIRST;
     }
-    if (c0 > 0xbf)
+    if (c0 >= FONT_UPPER_BLOCK_FIRST)
     {
-        t1 -= 0x40;
+        t1 -= FONT_UPPER_BLOCK_OFFSET;
     }
     t2 = t1;
     cell = (u16)t2;
     img = FONT_IMAGE_;
-    img.px += (cell & 0xf) * 3;
-    if (t2 < 0)
+    img.px += (cell & (FONT_ATLAS_COLUMNS - 1)) * FONT_GLYPH_WIDTH;
+    row = t2 / FONT_ATLAS_COLUMNS;
+    img.pw = FONT_GLYPH_WIDTH;
+    img.ph = FONT_GLYPH_HEIGHT;
+    img.py += row * FONT_GLYPH_HEIGHT;
+    if (raw - FONT_UPPER_BLOCK_FIRST < FONT_CODE_BLOCK_SIZE)
     {
-        t2 += 0xf;
-    }
-    img.pw = 3;
-    img.ph = 0x10;
-    img.py += (t2 >> 4) * 0x10;
-    if ((0x1f < raw - 0xc0) || (nudge = -4, raw == 199))
-    {
-        if (raw - 0xe0 < 0x20)
+        nudge = FONT_NUDGE_UPPER;
+        if (raw != FONT_NUDGE_EXEMPT)
         {
-            nudge = -2;
-            if (raw == 0xe7)
-            {
-                nudge = 3;
-            }
-        }
-        else
-        {
-            nudge = 0;
+            goto nudge_done;
         }
     }
+    if (raw - FONT_EXTENDED_BLOCK_FIRST < FONT_CODE_BLOCK_SIZE)
+    {
+        nudge = FONT_NUDGE_EXTENDED;
+        if (raw == FONT_RAISED_CODE)
+        {
+            nudge = FONT_NUDGE_RAISED;
+        }
+    }
+    else
+    {
+        nudge = FONT_NUDGE_NONE;
+    }
+nudge_done:
     {
         short y = y0 + nudge;
         s32 y_arg = y;
