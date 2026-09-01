@@ -549,14 +549,14 @@ void StageEndScreen(void)
         }
         PSTATE->selItem[item_index] = 0;
         item_index++;
-    } while (item_index < 0x14);
+    } while (item_index < N_LOADOUT_ITEMS);
 
     i = 0;
     do
     {
         PSTATE->saveItem[i] = PSTATE->gItem[CHOSEN_CHARACTER][i];
         i++;
-    } while (i < 0x14);
+    } while (i < N_LOADOUT_ITEMS);
 
     if (gfMemory != 0)
     {

@@ -143,7 +143,7 @@ void briefing_screen_(void)
 
         if ((pad & (PADstart | PADselect)) == (PADstart | PADselect))
         {
-            for (i = 0; i < 0x14; i++)
+            for (i = 0; i < N_LOADOUT_ITEMS; i++)
             {
                 PSTATE->gItem[CHOSEN_CHARACTER][i] =
                     PSTATE->saveItem[i];

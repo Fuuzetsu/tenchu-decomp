@@ -76,7 +76,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             state->gItem[state->CharType][i]++;
             i++;
         } while (i < 9);
-        while (i < 0x14)
+        while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
             {
@@ -97,7 +97,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             state->gItem[state->CharType][i]++;
             i++;
         } while (i < 9);
-        while (i < 0x14)
+        while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
             {
@@ -138,7 +138,7 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
             state->gItem[state->CharType][i] += 2;
             i++;
         } while (i < 9);
-        while (i < 0x14)
+        while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
             {

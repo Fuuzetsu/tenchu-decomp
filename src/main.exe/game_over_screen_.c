@@ -154,7 +154,7 @@ void game_over_screen_(void)
         chr_offset = CHOSEN_CHARACTER * 0x20;
         persistent[0x27 + i] = persistent[(i + chr_offset) + 0x40c];
         i++;
-    } while (i < 0x14);
+    } while (i < N_LOADOUT_ITEMS);
 
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();

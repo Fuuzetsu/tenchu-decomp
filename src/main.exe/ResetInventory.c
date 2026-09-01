@@ -4,8 +4,8 @@
 /*
  * ResetInventory (0x8005663c, 0x84 bytes) — resets the per-run selected-item
  * purchase counts (TLinkInfo.selItem, splat's SELECTED_ITEM_COUNTS):
- * item 0 (the starting weapon slot) to 0xff (infinite/preselected), items
- * 1..8 to 0 (available, not yet bought), items 9..0x13 to 0xfe (locked).
+ * ITEM_KAGINAWA to infinite/preselected, items 1..8 to available, and the
+ * remaining selectable stock through ITEM_ARMOUR to locked.
  * Called by DoBriefingAndInventorySelection.
  *
  * Matching notes: the raw .s reaches the array through a bare
@@ -41,7 +41,7 @@ void ResetInventory(void)
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i] = 0;
         i++;
     } while (i < 9);
-    while (i < 0x14)
+    while (i < N_LOADOUT_ITEMS)
     {
         ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i] = ITEM_LOCKED;
         i++;

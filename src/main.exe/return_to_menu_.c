@@ -58,7 +58,7 @@ void return_to_menu_(void)
         idx = (s16)i;
         PSTATE->gItem[PSTATE->CharType][idx] = PSTATE->saveItem[idx];
         i++;
-    } while ((s16)i < 0x14);
+    } while ((s16)i < N_LOADOUT_ITEMS);
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_MODE, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     PSTATE->layout = STAGE_LAYOUT_RANDOM;

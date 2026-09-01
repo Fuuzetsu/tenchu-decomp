@@ -110,7 +110,7 @@ loop1:
     (*slot)->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
                          MODEL_ATTR_CULL_FAR;
     slot++;
-    if (++i < 0x14)
+    if (++i < N_LOADOUT_ITEMS)
         goto loop1;
     if (i < 0x1A)
     {

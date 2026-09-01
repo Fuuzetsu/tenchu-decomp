@@ -157,11 +157,11 @@ void BriefingAndInventorySelectionScreen(void)
     taken = 0;
     help = -1;
 
-    for (i = 0; i < 0x14; i++)
+    for (i = 0; i < N_LOADOUT_ITEMS; i++)
     {
         PSTATE->saveItem[i] = PSTATE->gItem[CHOSEN_CHARACTER][i];
     }
-    for (j = 0; j < 0x14; j++)
+    for (j = 0; j < N_LOADOUT_ITEMS; j++)
     {
         PSTATE->selItem[j] = 0;
     }
@@ -259,7 +259,7 @@ void BriefingAndInventorySelectionScreen(void)
                     (&ps->gItem[0][0])[n] = (&ps->gItem[0][0])[n] + 1;
                 }
             }
-            for (j = 9; j < 0x14; j++)
+            for (j = 9; j < N_LOADOUT_ITEMS; j++)
             {
                 int n = j + ps->CharType * 0x20;
                 if ((&ps->gItem[0][0])[n] != ITEM_LOCKED)
@@ -282,7 +282,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
             break;
         case CHEAT_ITEM_UNLOCK - 1:
-            for (j = 9; j < 0x14; j++)
+            for (j = 9; j < N_LOADOUT_ITEMS; j++)
             {
                 int n = j + ps->CharType * 0x20;
                 if ((&ps->gItem[0][0])[n] == ITEM_LOCKED)
@@ -311,7 +311,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
             break;
         case CHEAT_QUIT - 1:
-            for (j7 = 0; j7 < 0x14; j7++)
+            for (j7 = 0; j7 < N_LOADOUT_ITEMS; j7++)
             {
                 (&ps->gItem[0][0])[j7 + (CHOSEN_CHARACTER << 5)] =
                     (&ps->saveItem[0])[j7];
@@ -543,7 +543,7 @@ void BriefingAndInventorySelectionScreen(void)
             }
         }
         shown = 0;
-        for (j = 0; j < 0x14; j++)
+        for (j = 0; j < N_LOADOUT_ITEMS; j++)
         {
             u8 c;
             y = (s16)j;

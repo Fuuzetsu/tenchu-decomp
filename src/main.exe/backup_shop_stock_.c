@@ -14,7 +14,7 @@
  * cc1's cse folds all of them onto the ONE `lui %hi` it materializes for
  * the pointer constant — reading CharType via the separate CHOSEN_CHARACTER
  * symbol instead forces a second lui/lbu pair (verified: costs 4 bytes).
- * The `for` loop's initial 0 < 0x14 test folds away at compile time,
+ * The `for` loop's initial 0 < N_LOADOUT_ITEMS test folds away at compile time,
  * leaving the standard bottom-test do-while shape (jump.c
  * duplicate_loop_exit_test).
  */
@@ -24,7 +24,7 @@ void backup_shop_stock_(void)
 {
     int i;
 
-    for (i = 0; i < 0x14; i++)
+    for (i = 0; i < N_LOADOUT_ITEMS; i++)
     {
         PSTATE->saveItem[i] = PSTATE->gItem[PSTATE->CharType][i];
     }

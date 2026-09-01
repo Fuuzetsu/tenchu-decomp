@@ -1378,6 +1378,10 @@ enum TItemType
     ITEM_N = 0x19,
 };
 
+/* The pre-mission shop and carried loadout stop at armour. The five item
+ * kinds after it are combat/projectile effects, not selectable stock. */
+#define N_LOADOUT_ITEMS (ITEM_ARMOUR + 1)
+
 /* Stock markers shared by TLinkInfo.gItem and Humanoid.item[]: a locked
  * (not yet earned) special item, and the infinite-ammo count. */
 /* Stride of the persistent state's per-character item arrays. It is not

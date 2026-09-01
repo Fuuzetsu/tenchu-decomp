@@ -159,7 +159,7 @@ void CreateStage(int StageNo, int CharType)
     human->model->rotate.vz = 0;
     CamState.Owner = human;
 
-    for (i = 0; i < 20; i++)
+    for (i = 0; i < N_LOADOUT_ITEMS; i++)
         human->item[i] =
             ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->selItem[i];
 
