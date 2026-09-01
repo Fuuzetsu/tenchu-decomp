@@ -200,6 +200,14 @@ typedef unsigned long AreaMapType;
  * query result both carry a signed short. */
 typedef s16 MapAttribute;
 
+/* AreaNodeType.division is a 4x4 cell-enable mask. -1 enables all cells. */
+typedef s16 AreaDivisionMask;
+#define AREA_DIVISION_ALL (-1)
+
+/* Each signed grid cell selects a node subset; -1 means no subset. */
+typedef s16 area_node_index;
+#define AREA_NODE_INDEX_NONE (-1)
+
 /* CONFLICT.C's area-map cell. */
 typedef struct AreaNodeType AreaNodeType;
 struct AreaNodeType
@@ -211,7 +219,7 @@ struct AreaNodeType
     s16 x2;        /* 0x08 */
     s16 z2;        /* 0x0A */
     MapAttribute attribute; /* 0x0C */
-    s16 division;  /* 0x0E */
+    AreaDivisionMask division; /* 0x0E */
 }; /* 0x10 */
 
 /* Area/terrain attribute bits — shared vocabulary of
@@ -277,8 +285,8 @@ struct NodeIndexType
 typedef struct IndexArrayType IndexArrayType;
 struct IndexArrayType
 {
-    long index;      /* 0x00 */
-    s16 array[4][4]; /* 0x04 */
+    long index;                  /* 0x00 */
+    area_node_index array[4][4]; /* 0x04 */
 }; /* 0x24 */
 
 /* GetAreaMapVector packs its four horizontal neighbour probes into a mask;
@@ -980,7 +988,8 @@ struct EventSeqType
  * hitbox size — ActATTACK), and ilup0/ilup1 are the two ILlUsion
  * Points the afterimage trail (BattleType's ilus/ilue window)
  * stretches between — blade root and tip. ilup1.pad doubles as the
- * row's weapon id, -1 terminating the table (GetWeaponData). */
+ * row's weapon id, with WEAPON_KIND_END terminating the table
+ * (GetWeaponData). */
 typedef struct WeaponType WeaponType;
 struct WeaponType
 {
@@ -1193,14 +1202,18 @@ struct TLifeBarStyle
  * range is the arrival radius, and pad holds extra PAD buttons OR'd
  * into the synthesized input from that point on (ControlTraceLine —
  * how patrol routes make a guard crouch or run on a segment);
- * pad == -1 terminates the list and restarts the patrol at index 0. */
+ * TRACE_POINT_END terminates the list and restarts the patrol at
+ * index 0. */
+typedef s16 trace_pad;
+#define TRACE_POINT_END (-1)
+
 typedef struct TracePoint TracePoint;
 struct TracePoint
 {
-    s32 x;     /* 0x00 */
-    s32 z;     /* 0x04 */
-    s16 range; /* 0x08 */
-    s16 pad;   /* 0x0A */
+    s32 x;        /* 0x00 */
+    s32 z;        /* 0x04 */
+    s16 range;    /* 0x08 */
+    trace_pad pad; /* 0x0A */
 }; /* 0x0C */
 
 typedef struct TraceLine TraceLine;

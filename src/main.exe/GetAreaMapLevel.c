@@ -170,7 +170,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                             qz = (z - ((short *)row)[3]) * 4 /
                                  (((short *)row)[5] - ((short *)row)[3]);
                             n = ((IndexArrayType *)list)->array[qz][qx];
-                            if (n == -1)
+                            if (n == AREA_NODE_INDEX_NONE)
                                 goto next;
                             list = (AreaNodeType *)((IndexArrayType *)list)->index;
                             nn = -nn;
@@ -187,7 +187,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                                 FieldArea = node;
                                 if (first_hit)
                                 {
-                                    if (node->division == -1)
+                                    if (node->division == AREA_DIVISION_ALL)
                                         yy = node->y;
                                     else
                                         yy = ComputeAreaLevel(node, x, z);

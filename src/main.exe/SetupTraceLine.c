@@ -18,15 +18,16 @@
 
 /*
  * SetupTraceLine (0x800299d0) — allocate a TraceLine, seed it from the
- * (sentinel-terminated, `pad == -1`) TracePoint array `point`: walk to the
- * last point, stamp its world position (from human->locate) and its range
- * (locate->vy / 100), then install the new TraceLine on human->trace.
+ * (sentinel-terminated, `pad == TRACE_POINT_END`) TracePoint array `point`:
+ * walk to the last point, stamp its world position (from human->locate) and
+ * its range (locate->vy / 100), then install the new TraceLine on
+ * human->trace.
  * SystemOut("NO TRACE POINT") (does not return) if point is null.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - The plain `while (point->pad != -1) point++;` scan emits the target's
- *    entry guard and bottom test, with the increment in the backjump delay
- *    slot. No copied `pad` value is needed.
+ *  - The plain `while (point->pad != TRACE_POINT_END) point++;` scan emits
+ *    the target's entry guard and bottom test, with the increment in the
+ *    backjump delay slot. No copied `pad` value is needed.
  *  - `point->x`/`point->z`/`point->range` are each reloaded from
  *    `human->locate` FRESH (three separate `lw human->locate`), not cached
  *    in one pointer local — matches the raw asm's three reloads.
@@ -48,7 +49,7 @@ TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
     trcl->count = 0;
     trcl->index = 0;
     trcl->point = point;
-    while (point->pad != -1)
+    while (point->pad != TRACE_POINT_END)
     {
         point++;
     }

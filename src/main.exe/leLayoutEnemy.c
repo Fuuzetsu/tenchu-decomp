@@ -131,7 +131,7 @@ void leLayoutEnemy(int mode)
                         tp[i].range = 1500;
                         tp[i].pad = 0;
                     }
-                    tp[i].pad = -1;
+                    tp[i].pad = TRACE_POINT_END;
                     SetupTraceLine(human, tp);
                 }
                 if (human->trace != 0)

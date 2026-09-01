@@ -197,7 +197,7 @@ void DrawGore(TEffectSlot *ef)
             node->z2 < z10)
         {
             level = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z, 0);
-            if (y <= level && FieldArea->division == -1)
+            if (y <= level && FieldArea->division == AREA_DIVISION_ALL)
             {
                 param->hint = FieldArea;
             }

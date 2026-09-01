@@ -26,8 +26,8 @@
 
 /*
  * Steer a humanoid toward the current trace point. The current point controls
- * the turn-pad result; reaching it advances to the next point, with pad == -1
- * marking the end of the trace.
+ * the turn-pad result; reaching it advances to the next point, with
+ * TRACE_POINT_END marking the end of the trace.
  *
  * The direct tail is important. PSX.SYM records no idx/sentinel temporaries,
  * and the human-shaped field increment, sentinel test, then normal-path OR
@@ -44,7 +44,7 @@ short ControlTraceLine(Humanoid *human)
     s32 dx, dz;
     s32 dist;
     s16 cnt;
-    s16 pad;
+    trace_pad pad;
     u16 roty;
     s32 ang;
     short t;
@@ -109,7 +109,7 @@ short ControlTraceLine(Humanoid *human)
     if (dist <= point->range)
     {
         trcl->index++;
-        if (trcl->point[trcl->index].pad == -1)
+        if (trcl->point[trcl->index].pad == TRACE_POINT_END)
         {
             trcl->index = 0;
             return -0x1000;

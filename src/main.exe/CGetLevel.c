@@ -90,7 +90,7 @@ long CGetLevel(AreaNodeType **hint, long x, long y, long z, unsigned long flag)
         z10 < node->z1 || node->x2 < x10 || node->z2 < z10)
     {
         ret = GetAreaMapLevel(GlobalAreaMap, x, y - 300, z, (short)flag);
-        if (y <= ret && FieldArea->division == -1)
+        if (y <= ret && FieldArea->division == AREA_DIVISION_ALL)
         {
             *hint = FieldArea;
         }

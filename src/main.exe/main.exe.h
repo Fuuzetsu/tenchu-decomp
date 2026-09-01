@@ -61,7 +61,7 @@ extern struct Humanoid *Me_THINK_C;
 /* Retail permits 40 actors and reserves 0xA0 bytes before the next global. */
 #define MAX_HUMANS 40
 extern struct Humanoid *HumanGroup[MAX_HUMANS];
-/* Retail's type=-1 sentinel is entry 77; the demo table had 63 entries. */
+/* Retail's CHARACTER_KIND_END row is entry 77; the demo table had 63. */
 extern HumanDataType HumanData[78];
 extern HumanAnimType CVAhuman[N_CVA_HUMANS];
 extern SVECTOR UnitVector;
@@ -206,9 +206,9 @@ extern GsFOGPARAM Fog;
 extern short DrawingPage;
 /* Retail's draw-mode object is word-sized; one caller snapshots its low half. */
 extern s32 DrawTMDmode;
-/* Retail's ilup1.pad=-1 sentinel is entry 30; the demo table had 28. */
+/* Retail's WEAPON_KIND_END row is entry 30; the demo table had 28. */
 extern WeaponType WeaponDB[31];
-/* Retail's wid=-1 sentinel is entry 47; the demo table had 41 entries. */
+/* Retail's WEAPON_KIND_END row is entry 47; the demo table had 41. */
 extern WeaponModelType WeaponModel[48];
 extern MotionRegistType MOTcommon[41];
 extern MotionPackType *MotionPack;
