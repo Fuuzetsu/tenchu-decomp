@@ -80,7 +80,8 @@ s16 CVAsequence(s16 sid)
     end_mode = CVA_CMD_END;
 scan_event:
     event = CVAnow;
-    if (event->mode == CVA_CMD_SEQUENCE && event->id == wanted)
+    if (event->mode == CVA_CMD_SEQUENCE &&
+        event->payload.sequence.id == wanted)
         goto event_found;
     CVAnow = event + 1;
     if (event[1].mode != end_mode)
@@ -93,7 +94,7 @@ event_found:
 
     memset(CVAhuman, 0, sizeof(CVAhuman));
     cursor = CVAnow;
-    sound = cursor->p;
+    sound = cursor->payload.sequence.music;
     i = 0;
     CameraTarget = StagePlayer;
     cursor++;

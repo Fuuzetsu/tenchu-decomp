@@ -41,9 +41,8 @@
  *     set motion->loop to -1 and clear the human's x/z velocity) or (status != DEAD)
  *     start the queued motid via SetNowMotion and clear the slot.
  * Finally advances the CVA frame counter (CVAtime) and, once it reaches
- * the current event's own duration (CVAnow->id,
- * the same field AVCameraSetup dispatches on — the event record doubles as
- * a duration when read this way), advances to the next 12-byte event
+ * the current WAIT event's own duration (CVAnow->payload.wait.frames,
+ * the +2 payload halfword), advances to the next 12-byte event
  * record and calls CVAupdate for the new one; returns 1 while still
  * running the current event, else CVAupdate's own continue/stop flag.
  *
@@ -143,7 +142,7 @@ short CVArun(void)
     }
 
     CVAtime++;
-    if (CVAtime >= CVAnow->id)
+    if (CVAtime >= CVAnow->payload.wait.frames)
     {
         CVAnow++;
         return CVAupdate();

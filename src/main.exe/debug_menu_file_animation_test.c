@@ -10,7 +10,7 @@
  * MATCHED (65/65 instructions, complete 260-byte carve). Matching notes:
  *  - `text[0x100]` at sp+0x10 followed by `menu[64]` at sp+0x110 fills the
  *    exact 0x300-byte working window and produces the target's 0x328 frame.
- *  - Walking a 12-byte CVAType pointer while using both mode and id lets
+ *  - Walking a 12-byte CVAType pointer while using both mode and sequence id lets
  *    loop.c retain parallel s2/s0 induction cursors. A natural `while`
  *    supplies the target's entry guard and conditional bottom back-edge.
  *  - CVAdata is gp-relative in this TU. The format string at 0x80097cd0
@@ -46,9 +46,9 @@ void debug_menu_file_animation_test(void)
     {
         if (event->mode == CVA_CMD_SEQUENCE)
         {
-            sprintf((char *)buffer, fmt_num, event->id);
+            sprintf((char *)buffer, fmt_num, event->payload.sequence.id);
             menu[count].name = buffer;
-            menu[count].value = event->id;
+            menu[count].value = event->payload.sequence.id;
             count++;
             buffer += strlen((char *)buffer) + 1;
         }

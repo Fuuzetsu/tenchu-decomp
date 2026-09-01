@@ -38,7 +38,8 @@
  *
  * Four source-shape constraints remain; each is a cc1-2.8.1 mechanism worth
  * knowing (see the commits for the RTL/pinned-source evidence):
- *   - `y = CVAnow->y * 1000`: a dedicated `y` local made the last shift write a
+ *   - the motion row's y position scaled by 1000: a dedicated `y` local made
+ *     the last shift write a
  *     BLOCK-LOCAL temp whose copy to `y` sched1 sank past the GetAreaMapLevel
  *     call, so local-alloc's combine_regs tied the whole x1000 chain into one
  *     call-crossing quantity and forced it callee-saved. combine_regs refuses to
@@ -91,14 +92,14 @@ s16 CVAupdate(void)
             switch (cursor->mode)
             {
             case CVA_CMD_SEQUENCE:
-                /* A chained header mid-stream: p re-selects the CD
+                /* A chained header mid-stream: music re-selects the CD
                  * track, and CVA_MUSIC_STOP silences it. */
-                if (CVAnow->p == CVA_MUSIC_STOP)
+                if (CVAnow->payload.sequence.music == CVA_MUSIC_STOP)
                     CdaStop();
                 break;
 
             case CVA_CMD_MOTION:
-                human = GetHumanoid(CVAnow->id);
+                human = GetHumanoid(CVAnow->payload.motion.actor);
                 if (human == 0)
                     return 0;
                 i = 0;
@@ -136,19 +137,25 @@ s16 CVAupdate(void)
                     human->life = human->lifemax;
                 }
 
-                if (CVAnow->p != CVA_MOTION_NO_REPOSITION)
+                if (CVAnow->payload.motion.facing !=
+                    CVA_MOTION_NO_REPOSITION)
                 {
                     human->locate->vx = human->point[HUMANOID_HOME_X] =
-                        CVAnow->x * 1000;
+                        CVAnow->payload.motion.position.x *
+                        CVA_WORLD_POSITION_SCALE;
                     human->locate->vz = human->point[HUMANOID_HOME_Z] =
-                        CVAnow->z * 1000;
-                    i = CVAnow->y * 1000;
+                        CVAnow->payload.motion.position.z *
+                        CVA_WORLD_POSITION_SCALE;
+                    i = CVAnow->payload.motion.position.y *
+                        CVA_WORLD_POSITION_SCALE;
                     human->locate->vy = GetAreaMapLevel(
-                        GlobalAreaMap, human->locate->vx, i - 1000,
+                        GlobalAreaMap, human->locate->vx,
+                        i - CVA_WORLD_POSITION_SCALE,
                         human->locate->vz, AREA_LEVEL_DEFAULT);
-                    if (i < human->locate->vy || human->locate->vy == (long)0x80000000)
+                    if (i < human->locate->vy ||
+                        human->locate->vy == LEVEL_NONE)
                         human->locate->vy = i;
-                    human->rotate->vy = CVAnow->p;
+                    human->rotate->vy = CVAnow->payload.motion.facing;
                     UpdateCoordinate((ModelType *)human->model);
                     if (__builtin_abs(human->locate->vy -
                                       StagePlayer->locate->vy) > 20000)
@@ -157,14 +164,14 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_ACTOR:
-                human = GetHumanoid(CVAnow->id);
+                human = GetHumanoid(CVAnow->payload.actor.actor);
                 if (human == 0)
                     return 0;
 
                 /* For ACTOR commands the signed x slot packs two bytes.  The
                  * direct invalid test and arithmetic >>8 still share the
                  * target's one shift after the animation scans are indexed. */
-                if (CVAnow->x == CVA_ACTOR_DESPAWN)
+                if (CVAnow->payload.actor.motion == CVA_ACTOR_DESPAWN)
                 {
                     human->life = HUMANOID_LIFE_INACTIVE;
                     human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
@@ -175,7 +182,7 @@ s16 CVAupdate(void)
                 }
                 else
                 {
-                    i = CVAnow->x >> 8;
+                    i = CVAnow->payload.actor.motion >> 8;
                     if (human->status == STAT_DEAD && (u32)(i - (MOT_DAMAGE >> 8)) > 1)
                         return 0;
                     if (human->life > 0)
@@ -212,17 +219,22 @@ s16 CVAupdate(void)
                     }
 
                     human->motion->mid = MOTION_ID_NONE;
-                    SetNowMotion(human, CVAnow->x, 1);
+                    SetNowMotion(human, CVAnow->payload.actor.motion, 1);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
                     CVAhuman[i].human = human;
 
-                    CVAhuman[i].loop = CVAnow->y < 1 ? MOTION_LOOP_FOREVER : CVAnow->y;
-                    CVAhuman[i].motid = CVAnow->z == 0
-                                             ? MOT_ENGAGE_STANCE
-                                             : CVAnow->z;
+                    CVAhuman[i].loop =
+                        CVAnow->payload.actor.loop < 1
+                            ? MOTION_LOOP_FOREVER
+                            : CVAnow->payload.actor.loop;
+                    CVAhuman[i].motid =
+                        CVAnow->payload.actor.next_motion == 0
+                            ? MOT_ENGAGE_STANCE
+                            : CVAnow->payload.actor.next_motion;
 
-                    if (human->type == S2 && CVAnow->x == MOT_DEAD)
+                    if (human->type == S2 &&
+                        CVAnow->payload.actor.motion == MOT_DEAD)
                         SoundEx(0, SE_CUTSCENE_DEATH);
                 }
                 break;
@@ -233,19 +245,28 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_CAMERA_POSE:
-                if (CVAnow->id == 0)
+                if (CVAnow->payload.camera_pose.kind ==
+                    CVA_CAMERA_POSE_FIXED_REFERENCE)
                 {
-                    ViewInfo.vrx = CVAnow->x * 100;
-                    ViewInfo.vry = CVAnow->y * 100;
-                    ViewInfo.vrz = CVAnow->z * 100;
+                    ViewInfo.vrx =
+                        CVAnow->payload.camera_pose.reference.fixed.position.x *
+                        CVA_CAMERA_POSITION_SCALE;
+                    ViewInfo.vry =
+                        CVAnow->payload.camera_pose.reference.fixed.position.y *
+                        CVA_CAMERA_POSITION_SCALE;
+                    ViewInfo.vrz =
+                        CVAnow->payload.camera_pose.reference.fixed.position.z *
+                        CVA_CAMERA_POSITION_SCALE;
                 }
                 else
                 {
-                    human = GetHumanoid(CVAnow->p);
+                    human = GetHumanoid(
+                        CVAnow->payload.camera_pose.reference.humanoid.actor);
                     if (human == 0)
                         return 0;
                     ViewInfo.vrx = human->locate->vx;
-                    ViewInfo.vry = human->locate->vy - human->height + 300;
+                    ViewInfo.vry = human->locate->vy - human->height +
+                                   CVA_CAMERA_TARGET_HEIGHT_OFFSET;
                     ViewInfo.vrz = human->locate->vz;
                     CameraTarget = human;
                 }
@@ -253,34 +274,43 @@ s16 CVAupdate(void)
                 break;
 
             case CVA_CMD_CAMERA_PAN:
-                CameraPanMode = CVAnow->id;
-                pan_value = 20;
-                if (CVAnow->p != 0)
-                    pan_value = CVAnow->p;
+                CameraPanMode = CVAnow->payload.camera_pan.mode;
+                pan_value = CVA_CAMERA_DEFAULT_PAN_SPEED;
+                if (CVAnow->payload.camera_pan.speed != 0)
+                    pan_value = CVAnow->payload.camera_pan.speed;
                 CameraSpeed = pan_value;
                 break;
 
             case CVA_CMD_EFFECT:
-                vect.vx = CVAnow->x * 10;
-                vect.vy = CVAnow->y * 10;
-                vect.vz = CVAnow->z * 10;
-                switch (CVAnow->id)
+                vect.vx = CVAnow->payload.effect.parameters.raw.x *
+                          CVA_EFFECT_POSITION_SCALE;
+                vect.vy = CVAnow->payload.effect.parameters.raw.y *
+                          CVA_EFFECT_POSITION_SCALE;
+                vect.vz = CVAnow->payload.effect.parameters.raw.z *
+                          CVA_EFFECT_POSITION_SCALE;
+                switch (CVAnow->payload.effect.kind)
                 {
                 case CVA_EFFECT_BLOOD:
-                    SetBlood(&vect, CVAnow->p, 30);
+                    SetBlood(&vect,
+                             CVAnow->payload.effect.parameters.blood.count,
+                             CVA_BLOOD_DURATION);
                     break;
                 case CVA_EFFECT_FADE:
-                    set_fade_((u8)CVAnow->x, (u8)CVAnow->y,
-                              (u8)CVAnow->z, CVAnow->p);
+                    set_fade_(
+                        (u8)CVAnow->payload.effect.parameters.fade.red,
+                        (u8)CVAnow->payload.effect.parameters.fade.green,
+                        (u8)CVAnow->payload.effect.parameters.fade.blue,
+                        CVAnow->payload.effect.parameters.fade.frames);
                     break;
                 }
                 break;
 
             case CVA_CMD_TELOP:
-                if (CVAnow->id != CVA_TELOP_CLEAR)
+                if (CVAnow->payload.telop.text_offset != CVA_TELOP_CLEAR)
                 {
                     SetupTelop((u8 *)strcpy((char *)TelopText,
-                                            (char *)CVAdata + CVAnow->id),
+                                            (char *)CVAdata +
+                                                CVAnow->payload.telop.text_offset),
                                0);
                     CVAflag = 1;
                     if (StageID != STAGE_FREE_PRINCESS || CHOSEN_CHARACTER != RIKIMARU_0)
@@ -312,5 +342,5 @@ s16 CVAupdate(void)
         } while (cursor->mode != CVA_CMD_WAIT);
     }
 
-    return CVAnow->id != 0;
+    return CVAnow->payload.wait.frames != 0;
 }

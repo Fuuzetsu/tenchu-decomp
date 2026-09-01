@@ -859,25 +859,257 @@ struct BackGround
     ModelAttribute attribute; /* 0x44 */
 }; /* 0x48 */
 
-/* CHRANIM.C's character-animation event record — one CVA cutscene
- * script row (see the CVA_CMD_ grammar). The fields are per-command:
- * a SEQUENCE header's id is the sequence id and p the CD track; a
- * WAIT's id is the frame count; MOTION packs the motion id into x's
- * high byte with x/z also giving a *1000 teleport and p a facing (or
- * -1); the camera rows use x/y/z *100 and p as the retarget human;
- * AVCameraSetup sub-dispatches on a camera row's id. */
+/* CHRANIM.C's 12-byte CVA cutscene-script grammar. A sequence opens with a
+ * SEQUENCE header and then runs batches of command rows separated by WAIT
+ * markers. A zero-frame wait ends the sequence; CVA_CMD_END terminates the
+ * complete table. */
 typedef s16 cva_command;
+enum cva_command
+{
+    CVA_CMD_END = -1,
+    CVA_CMD_SEQUENCE = 0,
+    CVA_CMD_WAIT = 1,
+    CVA_CMD_MOTION = 2,
+    CVA_CMD_ACTOR = 3,
+    CVA_CMD_CAMERA_CUT = 4,
+    CVA_CMD_CAMERA_POSE = 5,
+    CVA_CMD_CAMERA_PAN = 6,
+    CVA_CMD_EFFECT = 7,
+    CVA_CMD_TELOP = 8
+};
+
+/* Command-specific sentinels stored in the shared payload halfwords. */
+enum
+{
+    CVA_MUSIC_STOP = -1,
+    CVA_MOTION_NO_REPOSITION = -1,
+    CVA_ACTOR_DESPAWN = -1,
+    CVA_TELOP_CLEAR = -1
+};
+
+typedef s16 cva_camera_cut_kind;
+enum cva_camera_cut_kind
+{
+    CVA_CAMERA_CUT_TARGET_RELATIVE_BASE = 0,
+    CVA_CAMERA_CUT_TARGET_RELATIVE_QUARTER_TURN = 1,
+    CVA_CAMERA_CUT_TARGET_RELATIVE_HALF_TURN = 2,
+    CVA_CAMERA_CUT_TARGET_RELATIVE_THREE_QUARTER_TURN = 3,
+    CVA_CAMERA_CUT_FIXED_POSITION = 4,
+    CVA_CAMERA_CUT_HUMANOID_POSITION = 5
+};
+
+typedef s16 cva_camera_pose_kind;
+enum cva_camera_pose_kind
+{
+    CVA_CAMERA_POSE_FIXED_REFERENCE = 0,
+    CVA_CAMERA_POSE_HUMANOID_REFERENCE = 1
+};
+
+typedef s16 camera_pan_mode;
+enum camera_pan_mode
+{
+    CAMERA_PAN_DISABLED = 0,
+    CAMERA_PAN_NORMAL_CAMERA = 1,
+    CAMERA_PAN_ORBIT_ANGLE_INCREASE = 2,
+    CAMERA_PAN_ORBIT_ANGLE_DECREASE = 3,
+    CAMERA_PAN_UP = 4,
+    CAMERA_PAN_DOWN = 5,
+    CAMERA_PAN_ZOOM_IN = 6,
+    CAMERA_PAN_ZOOM_OUT = 7,
+    CAMERA_PAN_TRACK_TARGET = 8,
+    CAMERA_PAN_REFRESH_VIEW = 20
+};
+
+typedef s16 cva_effect_kind;
+enum cva_effect_kind
+{
+    CVA_EFFECT_BLOOD = 1,
+    CVA_EFFECT_FADE = 3
+};
+
+enum cva_format_constant
+{
+    CVA_WORLD_POSITION_SCALE = 1000,
+    CVA_CAMERA_POSITION_SCALE = 100,
+    CVA_EFFECT_POSITION_SCALE = 10,
+    CVA_CAMERA_DEFAULT_ORBIT_DISTANCE = 3000,
+    CVA_CAMERA_DEFAULT_PAN_SPEED = 20,
+    CVA_CAMERA_TARGET_HEIGHT_OFFSET = 300,
+    CVA_BLOOD_DURATION = 30
+};
+
+typedef struct CVACoordinates CVACoordinates;
+struct CVACoordinates
+{
+    s16 x;
+    s16 y;
+    s16 z;
+}; /* 0x06 */
+
+/* The raw member names are the original CVAType fields recorded by PSX.SYM.
+ * The other views name the same five payload halfwords according to the row
+ * tag that owns them. */
+typedef struct CVARawPayload CVARawPayload;
+struct CVARawPayload
+{
+    s16 id; /* 0x00 */
+    s16 x;  /* 0x02 */
+    s16 y;  /* 0x04 */
+    s16 z;  /* 0x06 */
+    s16 p;  /* 0x08 */
+}; /* 0x0A */
+
+typedef struct CVASequencePayload CVASequencePayload;
+struct CVASequencePayload
+{
+    s16 id;
+    s16 reserved[3];
+    s16 music;
+}; /* 0x0A */
+
+typedef struct CVAWaitPayload CVAWaitPayload;
+struct CVAWaitPayload
+{
+    s16 frames;
+    s16 reserved[4];
+}; /* 0x0A */
+
+typedef struct CVAMotionPayload CVAMotionPayload;
+struct CVAMotionPayload
+{
+    character_kind actor;
+    CVACoordinates position;
+    s16 facing;
+}; /* 0x0A */
+
+typedef struct CVAActorPayload CVAActorPayload;
+struct CVAActorPayload
+{
+    character_kind actor;
+    motion_id motion;
+    motion_loop_count loop;
+    motion_id next_motion;
+    s16 reserved;
+}; /* 0x0A */
+
+typedef struct CVACameraOrbitParameters CVACameraOrbitParameters;
+struct CVACameraOrbitParameters
+{
+    s16 reserved[3];
+    s16 distance;
+}; /* 0x08 */
+
+typedef struct CVACameraFixedParameters CVACameraFixedParameters;
+struct CVACameraFixedParameters
+{
+    CVACoordinates position;
+    s16 reserved;
+}; /* 0x08 */
+
+typedef struct CVACameraActorParameters CVACameraActorParameters;
+struct CVACameraActorParameters
+{
+    s16 reserved[3];
+    character_kind actor;
+}; /* 0x08 */
+
+typedef union CVACameraParameters CVACameraParameters;
+union CVACameraParameters
+{
+    CVACameraOrbitParameters orbit;
+    CVACameraFixedParameters fixed;
+    CVACameraActorParameters humanoid;
+}; /* 0x08 */
+
+typedef struct CVACameraCutPayload CVACameraCutPayload;
+struct CVACameraCutPayload
+{
+    cva_camera_cut_kind kind;
+    CVACameraParameters parameters;
+}; /* 0x0A */
+
+typedef struct CVACameraPosePayload CVACameraPosePayload;
+struct CVACameraPosePayload
+{
+    cva_camera_pose_kind kind;
+    CVACameraParameters reference;
+}; /* 0x0A */
+
+typedef struct CVACameraPanPayload CVACameraPanPayload;
+struct CVACameraPanPayload
+{
+    camera_pan_mode mode;
+    s16 reserved[3];
+    s16 speed;
+}; /* 0x0A */
+
+typedef struct CVAEffectRawParameters CVAEffectRawParameters;
+struct CVAEffectRawParameters
+{
+    s16 x;
+    s16 y;
+    s16 z;
+    s16 p;
+}; /* 0x08 */
+
+typedef struct CVABloodParameters CVABloodParameters;
+struct CVABloodParameters
+{
+    CVACoordinates position;
+    s16 count;
+}; /* 0x08 */
+
+typedef struct CVAFadeParameters CVAFadeParameters;
+struct CVAFadeParameters
+{
+    s16 red;
+    s16 green;
+    s16 blue;
+    s16 frames;
+}; /* 0x08 */
+
+typedef union CVAEffectParameters CVAEffectParameters;
+union CVAEffectParameters
+{
+    CVAEffectRawParameters raw;
+    CVABloodParameters blood;
+    CVAFadeParameters fade;
+}; /* 0x08 */
+
+typedef struct CVAEffectPayload CVAEffectPayload;
+struct CVAEffectPayload
+{
+    cva_effect_kind kind;
+    CVAEffectParameters parameters;
+}; /* 0x0A */
+
+typedef struct CVATelopPayload CVATelopPayload;
+struct CVATelopPayload
+{
+    s16 text_offset;
+    s16 reserved[4];
+}; /* 0x0A */
+
+typedef union CVACommandPayload CVACommandPayload;
+union CVACommandPayload
+{
+    CVARawPayload raw;
+    CVASequencePayload sequence;
+    CVAWaitPayload wait;
+    CVAMotionPayload motion;
+    CVAActorPayload actor;
+    CVACameraCutPayload camera_cut;
+    CVACameraPosePayload camera_pose;
+    CVACameraPanPayload camera_pan;
+    CVAEffectPayload effect;
+    CVATelopPayload telop;
+}; /* 0x0A */
 
 typedef struct CVAType CVAType;
 struct CVAType
 {
-    cva_command mode; /* 0x00 CVA_CMD_ row type; WAIT ends a batch,
-                       *      CVA_CMD_END terminates the table */
-    s16 id;   /* 0x02 */
-    s16 x;    /* 0x04 */
-    s16 y;    /* 0x06 */
-    s16 z;    /* 0x08 */
-    s16 p;    /* 0x0A */
+    cva_command mode;          /* 0x00 */
+    CVACommandPayload payload; /* 0x02 */
 }; /* 0x0C */
 
 /* CHRANIM.C's queued character-motion slot. */
@@ -1308,45 +1540,6 @@ struct StageCharType
     SVECTOR position; /* 0x04 */
     TThinkType think; /* 0x0C */
 }; /* 0x0E */
-
-/* CVA cutscene-script opcodes (the CVAupdate event dispatch; invented
- * names, read off each case's behavior): music/CD control, forcing an
- * actor's motion, setting or despawning an actor, camera cut/pose/pan,
- * point effects (blood, screen fade), and subtitles. */
-/* CVA cutscene-script row types (the 12-byte CVAType). A sequence opens
- * with a SEQUENCE header (id = the sequence id CVAsequence scans for,
- * p = the CD track to play, -1 = silence) and then runs batches of
- * command rows separated by WAIT markers (id = frame count; a zero-length
- * wait ends the sequence). CVA_CMD_END terminates the whole table. */
-enum cva_command
-{
-    CVA_CMD_END = -1,
-    CVA_CMD_SEQUENCE = 0,
-    CVA_CMD_WAIT = 1,
-    CVA_CMD_MOTION = 2,
-    CVA_CMD_ACTOR = 3,
-    CVA_CMD_CAMERA_CUT = 4,
-    CVA_CMD_CAMERA_POSE = 5,
-    CVA_CMD_CAMERA_PAN = 6,
-    CVA_CMD_EFFECT = 7,
-    CVA_CMD_TELOP = 8
-};
-
-/* Command-specific sentinels stored in CVAType's shared payload fields. */
-enum
-{
-    CVA_MUSIC_STOP = -1,
-    CVA_MOTION_NO_REPOSITION = -1,
-    CVA_ACTOR_DESPAWN = -1,
-    CVA_TELOP_CLEAR = -1
-};
-
-/* Subcommands carried in CVA_CMD_EFFECT rows. */
-enum
-{
-    CVA_EFFECT_BLOOD = 1,
-    CVA_EFFECT_FADE = 3
-};
 
 /* Stage uids, named from StageConfig's own title strings (retail data
  * @ 0x80011f18). StageNo is the reorderable campaign SLOT (0..7 via

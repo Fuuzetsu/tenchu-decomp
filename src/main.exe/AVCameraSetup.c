@@ -24,7 +24,8 @@
 /*
  * AVCameraSetup (0x80051074, 0x1b4 bytes) — sets ViewInfo's target position
  * (vpx/vpy/vpz) from a camera-command CVA row (read through CVAnow, the
- * CVA script cursor) whose `.id`@0x2 sub-dispatches: 4 = fixed point (x/y/z@0x4/0x6/0x8, scaled *100);
+ * CVA script cursor) whose camera-cut kind sub-dispatches: fixed point uses
+ * position x/y/z@0x4/0x6/0x8, scaled *100;
  * 0..3 = orbit CameraTarget (the active camera-owner Humanoid, set by
  * CVAsequence to StagePlayer) at a computed angle via GetMoveSpeed, offset
  * by CameraTarget->locate; 5 = re-target a NEW humanoid (GetHumanoid(event's
@@ -33,8 +34,8 @@
  * height@0xE) accounts for every field read here.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `event->id` is read ONCE and reused across the whole dispatch (no
- *    reload) — a plain repeated `event->id` dereference CSEs to one load
+ *  - `event->payload.camera_cut.kind` is read ONCE and reused across the
+ *    whole dispatch (no reload) — plain repeated member access CSEs to one load
  *    within the function's single extended basic block, no named local
  *    needed (matches PSX.SYM listing no such local).
  *  - Dispatch body order differs from test order: the tests fire 4, <5,
@@ -52,23 +53,14 @@
  *    call ARGUMENT itself**, not a preceding `ordr = cond ? a : b;`
  *    statement (even though the value is used nowhere else): assigning it
  *    to a named local first — whether via if/else, a temp read of
- *    `event->p`, or a ternary — makes cc1 read `event->p` a
+ *    `event->payload.camera_cut.parameters.orbit.distance`, or a ternary —
+ *    makes cc1 read it a
  *    SECOND time (an extra unsigned `lhu`, since a bare argument pass
  *    doesn't need sign extension) instead of reusing the first (signed)
  *    read from the zero-test, costing 3 extra instructions and shuffling
  *    the whole function's register colors. Folding the ternary directly
  *    into the call's 3rd argument position fixed it in one edit.
  */
-
-enum CVACameraCutTag
-{
-    CVA_CAMERA_CUT_TARGET_RELATIVE_BASE = 0,
-    CVA_CAMERA_CUT_TARGET_RELATIVE_QUARTER_TURN = 1,
-    CVA_CAMERA_CUT_TARGET_RELATIVE_HALF_TURN = 2,
-    CVA_CAMERA_CUT_TARGET_RELATIVE_THREE_QUARTER_TURN = 3,
-    CVA_CAMERA_CUT_FIXED_POSITION = 4,
-    CVA_CAMERA_CUT_HUMANOID_POSITION = 5
-};
 
 void AVCameraSetup(void)
 {
@@ -78,34 +70,45 @@ void AVCameraSetup(void)
     s32 ry;
 
     event = CVAnow;
-    switch (event->id)
+    switch (event->payload.camera_cut.kind)
     {
     case CVA_CAMERA_CUT_TARGET_RELATIVE_BASE:
     case CVA_CAMERA_CUT_TARGET_RELATIVE_QUARTER_TURN:
     case CVA_CAMERA_CUT_TARGET_RELATIVE_HALF_TURN:
     case CVA_CAMERA_CUT_TARGET_RELATIVE_THREE_QUARTER_TURN:
-        ry = (u16)CameraTarget->rotate->vy + event->id * ANGLE_QUADRANT;
+        ry = (u16)CameraTarget->rotate->vy +
+             event->payload.camera_cut.kind * ANGLE_QUADRANT;
         vect.pad = (s16)ry;
-        GetMoveSpeed(&vect, (s16)ry, (event->p != 0) ? event->p : 3000, 0);
+        GetMoveSpeed(&vect, (s16)ry,
+                     (event->payload.camera_cut.parameters.orbit.distance != 0)
+                         ? event->payload.camera_cut.parameters.orbit.distance
+                         : CVA_CAMERA_DEFAULT_ORBIT_DISTANCE,
+                     0);
         ViewInfo.vpx = CameraTarget->locate->vx + vect.vx;
-        ViewInfo.vpy = (CameraTarget->locate->vy - CameraTarget->height) + 300;
+        ViewInfo.vpy = (CameraTarget->locate->vy - CameraTarget->height) +
+                       CVA_CAMERA_TARGET_HEIGHT_OFFSET;
         ViewInfo.vpz = CameraTarget->locate->vz + vect.vz;
         break;
 
     case CVA_CAMERA_CUT_FIXED_POSITION:
-        ViewInfo.vpx = event->x * 100;
-        ViewInfo.vpy = event->y * 100;
-        ViewInfo.vpz = event->z * 100;
+        ViewInfo.vpx = event->payload.camera_cut.parameters.fixed.position.x *
+                       CVA_CAMERA_POSITION_SCALE;
+        ViewInfo.vpy = event->payload.camera_cut.parameters.fixed.position.y *
+                       CVA_CAMERA_POSITION_SCALE;
+        ViewInfo.vpz = event->payload.camera_cut.parameters.fixed.position.z *
+                       CVA_CAMERA_POSITION_SCALE;
         break;
 
     case CVA_CAMERA_CUT_HUMANOID_POSITION:
-        human = GetHumanoid(event->p);
+        human = GetHumanoid(
+            event->payload.camera_cut.parameters.humanoid.actor);
         if (human == 0)
         {
             return;
         }
         ViewInfo.vpx = human->locate->vx;
-        ViewInfo.vpy = (human->locate->vy - human->height) + 300;
+        ViewInfo.vpy = (human->locate->vy - human->height) +
+                       CVA_CAMERA_TARGET_HEIGHT_OFFSET;
         ViewInfo.vpz = human->locate->vz;
         CameraTarget = human;
         break;
