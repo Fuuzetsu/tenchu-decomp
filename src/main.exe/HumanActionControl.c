@@ -36,47 +36,11 @@
  * finally runs MotionAndMove() unless the dispatched handler left
  * `motMODE` at MOTION_MOVE_UNSET.
  *
- * THREE struct-field reads in this TU are UNSIGNED (`lhu`) against fields
- * item.h already proves SIGNED (`s16`) in other TUs: `human->attribute`
- * (@0x4), `human->map.attrib` (@0x28), and `human->motion->mid` (MotionManager
- * @0x0). A value-level `(u16)` cast does NOT change the load width — only
- * re-typing the memory operand itself does. But the TWO spellings that do
- * that are NOT interchangeable, and picking the wrong one costs 11 bytes:
- *
- *   - `field` is an INDIRECT_REF: it clears the RTL memory
- *     operand's MEM_IN_STRUCT_P (`/s`) marker.
- *   - `((View *)p)->field` stays a COMPONENT_REF: it KEEPS `/s`.
- *
- * `/s` is load-bearing here because gcc 2.8.1 `sched.c`'s `anti_dependence()`
- * dismisses a load->store dependence only when the LOAD is in-struct with a
- * varying address and the STORE is a non-struct fixed address. All five
- * d-global stores are non-struct fixed-address (`sw v0,%gp_rel(dtV)`), so a
- * `/s` load never pins them, but a cast load does. `mid` is read BEFORE the
- * `dtV` store, so spelling it `motion->mid` hands insn `sw dtV` a
- * REG_DEP_ANTI on the mid load, which (a) forbids the store from issuing
- * above it and (b) raises the store's sched priority from 3 to 4, tying it
- * with the `andi` — and sched.c's equal-priority `potential_hazard` tiebreak
- * then hands the slot to the memory-unit store. The MotionManagerU view kills
- * that anti-dep. Only `sw dtV` is demoted by this: dtL/dtR/dtM each consume a
- * *load* result (load-use cost 2 -> priority 4 regardless), while dtV consumes
- * the `addiu`'s result (cost 1 -> priority 3). See docs/matching-cookbook.md,
- * "Reading cc1's RTL dumps".
- *
- * `attribute`/`attrib` are read but never stored, so their `/s` marker is
- * measured NEUTRAL (a struct view for `attr` also matches); they keep the
- * cheaper cast spelling rather than invent a padded Humanoid view. Only
- * `mid` — the one cast load that precedes a d-global store — is load-bearing.
+ * Matching note: populate the shared d-globals directly in this order. Reading
+ * `mid` back through the freshly assigned `dtM` keeps the motion pointer live
+ * and gives the retail unsigned halfword transfer without a cast-only struct
+ * view or any invented locals.
  */
-
-/* TU-local UNSIGNED view of MotionManager's leading `mid` (item.h keeps the
- * field `s16`: every other TU reads it signed, e.g. `(short)(dtM->mid - MOT_HANG)`
- * in ActHANG.c). Reading through this view is what gives MOTION.C's `lhu`
- * while keeping the access a COMPONENT_REF — see the note above; the
- * `motion->mid` cast spelling costs 11 bytes. */
-typedef struct
-{
-    u16 mid; /* 0x0 */
-} MotionManagerU;
 
 extern Humanoid *Me_MOTION_C;
 extern void (*ActionFunc[N_CHARACTER_STATUSES])(void);
@@ -86,40 +50,18 @@ extern short SwimCheck(void);
 extern void DamageControl(void);
 extern short MotionAndMove(void);
 
-/*
- * The `locate`/`motion`/`rotate`/`mid`/`attr`/`dtV` STATEMENT ORDER below is
- * load-bearing: it reproduces the target's register-coloring shape. The base
- * pointer reload lands in the SAME hard reg as the just-consumed `GetCommand`
- * return value (reused, not a fresh register) and survives through
- * locate/motion/rotate/attr to be overwritten IN PLACE by the `dtV` address
- * computation, exactly like the target's `addiu v0,v0,64`. Moving the `dtV`
- * assignment above `mid` also fixes the schedule but lengthens the base's live
- * range past the `addiu` (sched1 then sinks `rotate` below the store), which
- * breaks that coalesce and costs 31 bytes.
- */
 void HumanActionControl(Humanoid *human)
 {
-    VECTOR *locate;
-    MotionManager *motion;
-    SVECTOR *rotate;
-    u16 attr;
-    motion_id mid;
-
     dtPAD = human->pad.data;
     Me_MOTION_C = human;
     dtCMD = GetCommand(&human->pad);
     motMODE = MOTION_MOVE_UNSET;
-    locate = Me_MOTION_C->locate;
-    motion = Me_MOTION_C->motion;
-    rotate = Me_MOTION_C->rotate;
-    mid = ((MotionManagerU *)motion)->mid;
-    attr = Me_MOTION_C->attribute;
     dtV = &Me_MOTION_C->vector;
-    dtL = locate;
-    dtR = rotate;
-    dtM = motion;
-    motID = mid;
-    if ((attr & ATTR_HIT) != 0)
+    dtL = Me_MOTION_C->locate;
+    dtR = Me_MOTION_C->rotate;
+    dtM = Me_MOTION_C->motion;
+    motID = dtM->mid;
+    if ((Me_MOTION_C->attribute & ATTR_HIT) != 0)
     {
         DamageControl();
     }
