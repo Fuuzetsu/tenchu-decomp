@@ -150,9 +150,10 @@ GUIDANCE = [
     "read even though cc1 can CSE the earlier pointer, use a site-local volatile "
     "view of the SLOT: `(*(T *volatile *)&Array[i])->field`. Do not make `T` or "
     "the shared extern globally volatile; require the target's reload+nop evidence "
-    "(UpdateEvent). If an index-first integer pointer sum still interleaves its "
-    "narrow sll/sra with `%hi/%lo`, name the scaled byte offset in an s32 statement "
-    "before the sum.",
+    "(UpdateEvent). Before introducing an index-first integer pointer sum, remove "
+    "cached element helpers and try the direct array expression across the whole "
+    "region; only then name a scaled s32 byte offset if its sll/sra still "
+    "interleaves with `%hi/%lo`.",
     "If a single-use stack parameter is load-sunk but the target reads it once at "
     "entry and keeps the value across calls, an ordinary local copy may collapse. "
     "Qualify the parameter object and copy it once instead: `volatile int mode`, "

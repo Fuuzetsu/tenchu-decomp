@@ -641,7 +641,8 @@ REMOVALS CASCADE - each landed fence change shifts the races other
 fences were balancing, unlocking further removals (ActivateHumans'
 razor 471-vs-481 race closed itself two rounds after its sibling
 fences fell). Landed so far: ActivateHumans FENCE-FREE (all 4);
-PlayMusicFormID down to one honest barrier; leLayoutEnemy fence
+PlayMusicFormID fence-free after restoring its direct sentinel loop;
+leLayoutEnemy fence
 removed; statement fences converted to bare empty barriers in
 ProcItemNingyo, SetFlyWire, ActATTACK(x3), Briefing(x4 incl. its
 182-diff region fence), mission_score(x2 + 3 stale layers),
@@ -771,14 +772,15 @@ written to preserve the target's physical body order (though
 ActNORMAL's 1,2,3,0,4 ladder still resists at 67 lines, and
 Think4abandon's at 18 — the lever is not automatic).
 
-CONTROL-FLOW FINDING (2026-08-31): goto-shaped loops in this codebase
-are usually byte-load-bearing. Converting them to real loop syntax
-adds NOTE_INSN_LOOP_BEG/END, which multiplies flow.c's loop_depth ref
+CONTROL-FLOW FINDING (2026-08-31, corrected 2026-09-02): goto-shaped loops
+in this codebase are often byte-load-bearing. Converting them to real loop
+syntax adds NOTE_INSN_LOOP_BEG/END, which multiplies flow.c's loop_depth ref
 weighting for the whole body - the same mechanism the fence campaign
-exploited. Measured: PlayMusicFormID's 3-goto table search fails
-identically (43 lines) under all five natural spellings (while+break,
-hoisted increment, for, two do/while forms); GetAreaMapLevel's inner
-and outer hand-rotated loops fail at 216/196. Corollary worth
+exploited. But test the WHOLE dataflow graph: PlayMusicFormID's natural loops
+looked 43 lines wrong only while invented table aliases, a pointer-sum helper,
+and an empty fence remained; removing all of them makes the direct sentinel
+`while` exact. GetAreaMapLevel's inner and outer hand-rotated loops still fail
+at 216/196. Corollary worth
 remembering: a goto->loop conversion can REPLACE a weight fence,
 since the loop notes ARE the fence.
 

@@ -65,10 +65,10 @@
  * (no named temp).
  *
  * Matching notes:
- *  - A named byte offset keeps the short sign-extension/scale chain
- *    together before the first array base is materialized. Writing both
- *    pointer sums with the scaled integer first also selects the target's
- *    commutative `addu` operand order.
+ *  - Both tables are accessed directly as `Event[n]` and `StageEvent[i]`.
+ *    CSE and loop strength reduction create the cached addresses visible in
+ *    the target; neither the byte offset nor the event cursor is a source
+ *    local (matching PSX.SYM's declaration list).
  *  - Initializing `i` before the empty-list sentinel makes its zero value
  *    fill that guard's delay slot; the cached event-slot pointer follows it.
  *  - The final life test deliberately reads the pointer slot through a
@@ -78,12 +78,9 @@
  */
 void UpdateEvent(short n, short id)
 {
-    EventSeqType *ev;
-    s32 offset;
     short i;
 
-    offset = (s16)n * sizeof(Event[0]);
-    *(EventSeqType **)(offset + (s32)Event) = 0;
+    Event[n] = 0;
     if (id == EVENT_ID_NONE)
         return;
     i = 0;
@@ -92,19 +89,16 @@ void UpdateEvent(short n, short id)
 
     do
     {
-        /* Offset spelling is byte-required (&StageEvent[i] flips the
-         * address addu to base-first; measured). */
-        ev = (EventSeqType *)(i * sizeof(*StageEvent) + (s32)StageEvent);
-        if (ev->header.route.id == id)
+        if (StageEvent[i].header.route.id == id)
         {
-            Event[n] = ev;
-            if (ev->target == EVENT_TARGET_PLAYER)
+            Event[n] = &StageEvent[i];
+            if (StageEvent[i].target == EVENT_TARGET_PLAYER)
             {
                 eTarget[n] = StagePlayer;
             }
             else
             {
-                eTarget[n] = GetHumanoid(ev->target);
+                eTarget[n] = GetHumanoid(StageEvent[i].target);
             }
             if (eTarget[n] != 0 &&
                 !(eTarget[n]->status == STAT_DEAD &&

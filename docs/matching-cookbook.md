@@ -948,9 +948,12 @@ decides notes, hoisting, rotation, and delay-slot fills:**
 - **Humanising gotos: try ACYCLIC guard inversion before any goto->loop
   conversion** (round-7 doctrine, 2026-08-31, 10 gotos + 10 labels removed
   across four files). Converting a goto loop into `while`/`for`/`do` adds
-  NOTE_INSN_LOOP_BEG/END and re-weights every ref in the body (measured:
-  PlayMusicFormID 43 lines under all five spellings, GetAreaMapLevel
-  216/196) — but the same labels often come off with no loop at all:
+  NOTE_INSN_LOOP_BEG/END and re-weights every ref in the body (GetAreaMapLevel
+  remains 216/196). Always test the whole graph, though: PlayMusicFormID's
+  five natural loop forms looked 43 lines wrong only while its invented table
+  aliases, integer-address helper, and fence remained; removing those together
+  makes the direct sentinel `while` exact. The same labels often come off with
+  no loop at all:
   * a `goto` into the statement right after an `else` usually removes by
     closing the preceding block and falling through;
   * a two-arm ladder becomes an ordinary diamond — NEGATE the condition
@@ -2057,9 +2060,13 @@ irreducible nest: DrawConstruction's 3.
   works only through a POINTER (no effect on top-level externs — leSetEnemy);
   the wrapper-struct COMPONENT_REF (`((Wrap *)p)->a[i]`) is the base-first form
   that avoids frame rematerialisation (pointer-to-array casts are DEAD ON
-  ARRIVAL — INDIRECT_REF, compiler-facts); a top-level extern needs the named
-  byte-offset + integer-sum form (`offset = idx * (s32)sizeof(T); entry =
-  (T *)(offset + (s32)arr);` — leSetEnemy 33 bytes; `ptr-index-sum`); multi-dim
+  ARRIVAL — INDIRECT_REF, compiler-facts). Before using a named byte-offset +
+  integer-sum on a top-level extern, remove any cached element/helper and repeat
+  the direct `arr[i]` expression through the whole region: UpdateEvent and
+  PlayMusicFormID both produce index-first target addresses that way. Some
+  isolated pointer tails still need the integer form (`offset = idx *
+  (s32)sizeof(T); entry = (T *)(offset + (s32)arr);` — leSetEnemy 33 bytes;
+  `ptr-index-sum`). Multi-dim
   needs the innermost-first grouped integer form (`(z<<2) + ((x<<8) + (y<<5)) +
   (int)WorldMap` — LoadConstruction −21). **TOOL TICKET (arrayref-int-sum
   autorule)**: needs declared dimensions to derive strides. A pointer local vs
@@ -2347,9 +2354,10 @@ irreducible nest: DrawConstruction's 3.
   indices first (think_alarm_reaction_). Build a dynamic
   row base BEFORE a large constant field displacement when retail folds the
   displacement onto a register (`row = (u8 *)state + chr * stride;
-  row[field]` — award_stage_items_). Name a scaled byte offset in its own `s32`
-  statement when the target completes the extension/scale before an
-  independent `%hi` base materialisation (UpdateEvent).
+  row[field]` — award_stage_items_). When the target completes an extension or
+  scale before an independent `%hi` base materialisation, first repeat the
+  direct indexed expression across the full region; UpdateEvent proved that a
+  named byte offset was an artifact of its invented element cursor.
 - Adjacent tables are separate symbols, not one array with a folded offset
   (Think3firstattack's atkd2); serialized scratchpad access is small-extern
   SYMBOL access, not flat casts (SetCameraMode — MEM_IN_STRUCT_P
