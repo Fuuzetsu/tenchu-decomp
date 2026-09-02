@@ -22,11 +22,12 @@
 /*
  * AttackAnimal (0x8002f170, 0xe4 bytes) — animal-enemy attack-decision
  * think-helper, returning a synthesized pad word: while attacking or
- * jumping (status 7/9) it resets `actmode` and returns 0. Close AND
+ * jumping (status 7/9) it resets `actmode.animal_timer` and returns 0.
+ * Close AND
  * already facing the player (Distance < 2000, |Degree| < 200) it bites —
- * a plain Square press (PADRleft) without touching `actmode`. Otherwise
- * it bumps `actmode`, steers via GotoPosition, and escalates by
- * `actmode`'s run length: an early roll (<30) forces plain forward
+ * a plain Square press (PADRleft) without touching the timer. Otherwise
+ * it bumps the timer, steers via GotoPosition, and escalates by its run
+ * length: an early roll (<30) forces plain forward
  * (PADLup), the 30th call plays a warning Sound, up to 90 it masks the
  * steer to turn-only (PADLleft|PADLright), beyond that returns the full
  * steer word.
@@ -72,11 +73,11 @@ short AttackAnimal(void)
 {
     s32 deg;
     s32 pad;
-    u8 am;
+    animal_attack_timer am;
 
     if (Me_THINK_C->status == STAT_ATTACK || Me_THINK_C->status == STAT_JUMP)
     {
-        Me_THINK_C->actmode = ANIMAL_ATTACK_TIMER_RESET;
+        Me_THINK_C->actmode.animal_timer = ANIMAL_ATTACK_TIMER_RESET;
         return 0;
     }
     if (Distance < 2000)
@@ -91,9 +92,9 @@ short AttackAnimal(void)
             return PADRleft; /* bite */
         }
     }
-    Me_THINK_C->actmode++;
+    Me_THINK_C->actmode.animal_timer++;
     pad = GotoPosition(0, 0);
-    am = Me_THINK_C->actmode;
+    am = Me_THINK_C->actmode.animal_timer;
     if (am < ANIMAL_ATTACK_NOTICE_FRAME)
     {
         pad = PADLup;
