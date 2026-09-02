@@ -41,9 +41,9 @@
  *    `v` — no srange/jitter step for it at all (that's the whole "Dir"
  *    distinction from SetBleeds, which jitters both).
  *  - Stack layout: npos@sp+0x10, v@sp+0x20, scratch t@sp+0x28. Position
- *    jitter spans both short-vector halves of BleedSpawnVectors after a
- *    16-byte memset, then is block-copied into npos. The direction is built
- *    in the upper half after an 8-byte memset and copied into the lower.
+ *    jitter fills the 16-byte work vector, which is block-copied into npos.
+ *    The direction is then built in its upper short-vector half after an
+ *    8-byte memset and copied into the lower half.
  *    This gives
  *    the target's two throwaway-scratch copies and the exact 0x58 frame.
  *  - The `time` split's DIVISOR is 8 here, not 2 like SetBleeds' half-split:
@@ -90,7 +90,7 @@ extern int rand(void);
 void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, long col)
 {
     VECTOR npos;
-    BleedSpawnVectors work;
+    VECTOR work;
     long b;
     int btime;
 
@@ -104,39 +104,39 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         b = pos->vx;
         if (grange * 2 > 0)
         {
-            work.position.vx =
+            work.vx =
                 b + (rand() % (grange * 2) - grange);
         }
         else
         {
-            work.position.vx = b - grange;
+            work.vx = b - grange;
         }
         b = pos->vy;
         if (grange * 2 > 0)
         {
-            work.position.vy =
+            work.vy =
                 b + (rand() % (grange * 2) - grange);
         }
         else
         {
-            work.position.vy = b - grange;
+            work.vy = b - grange;
         }
         b = pos->vz;
         if (grange * 2 > 0)
         {
-            work.position.vz =
+            work.vz =
                 b + (rand() % (grange * 2) - grange);
         }
         else
         {
-            work.position.vz = b - grange;
+            work.vz = b - grange;
         }
-        npos = work.position;
-        memset(&work.vector.temporary, 0, sizeof(SVECTOR));
-        work.vector.temporary.vx = vec->vx;
-        work.vector.temporary.vy = vec->vy;
-        work.vector.temporary.vz = vec->vz;
-        work.vector.velocity = work.vector.temporary;
+        npos = work;
+        memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
+        ((SVECTOR *)&work)[1].vx = vec->vx;
+        ((SVECTOR *)&work)[1].vy = vec->vy;
+        ((SVECTOR *)&work)[1].vz = vec->vz;
+        *(SVECTOR *)&work = ((SVECTOR *)&work)[1];
 
         if (time - time / 8 > 0)
         {
@@ -182,7 +182,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             param = &slot->param.bleed;
             r = col >> 16;
             slot->param.bleed.pos = *pos;
-            slot->param.bleed.vec = work.vector.velocity;
+            slot->param.bleed.vec = *(SVECTOR *)&work;
             param->r = r;
             param->g = col >> 8;
             param->time = time;

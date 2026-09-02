@@ -38,11 +38,10 @@
  *  - Outer loop is `do { if (n <= 0) return; ...; } while (1);` (the guard
  *    INSIDE, unconditional back-jump) — same rule as SetSmoke's outer loop.
  *  - STACK LAYOUT is the whole game (frame 0x58): npos@sp+0x10, v@sp+0x20,
- *    scratch SVECTOR t@sp+0x28 — and the position jitter spans both short
- *    vectors as one VECTOR (sp+0x20..0x2F, with a 16-byte memset), then is
- *    copied out to npos. The velocity jitter is built in the upper half and
- *    copied to the lower half (the second, lwl/lwr unaligned 8-byte copy).
- *    BleedSpawnVectors names that shared storage without pointer punning.
+ *    scratch SVECTOR t@sp+0x28 — and the 16-byte work vector at
+ *    sp+0x20..0x2f is first copied out to npos. Its upper short-vector half
+ *    then builds the velocity and is copied to the lower half (the second,
+ *    lwl/lwr unaligned 8-byte copy).
  *    This overlap reproduces the "compute
  *    into throwaway stack scratch + second block-copy" residual both parked
  *    drafts fought: the values are STORED to stack per-arm and never need
@@ -98,7 +97,7 @@ extern void *memset(void *s, int c, u32 n);
 void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col)
 {
     VECTOR npos;
-    BleedSpawnVectors work;
+    VECTOR work;
     int grange2;
     long b;
     int g;
@@ -121,57 +120,57 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
         b = pos->vx;
         if (grange2 > 0)
         {
-            work.position.vx = b + (rand() % grange2 - g);
+            work.vx = b + (rand() % grange2 - g);
         }
         else
         {
-            work.position.vx = b - g;
+            work.vx = b - g;
         }
         b = pos->vy;
         if (grange2 > 0)
         {
-            work.position.vy = b + (rand() % grange2 - g);
+            work.vy = b + (rand() % grange2 - g);
         }
         else
         {
-            work.position.vy = b - g;
+            work.vy = b - g;
         }
         b = pos->vz;
         if (grange2 > 0)
         {
-            work.position.vz = b + (rand() % grange2 - g);
+            work.vz = b + (rand() % grange2 - g);
         }
         else
         {
-            work.position.vz = b - g;
+            work.vz = b - g;
         }
-        npos = work.position;
-        memset(&work.vector.temporary, 0, sizeof(SVECTOR));
+        npos = work;
+        memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
         if (srange * 2 > 0)
         {
-            work.vector.temporary.vx = rand() % (srange * 2) - srange;
+            ((SVECTOR *)&work)[1].vx = rand() % (srange * 2) - srange;
         }
         else
         {
-            work.vector.temporary.vx = -srange;
-        }
-        if (srange * 2 > 0)
-        {
-            work.vector.temporary.vy = rand() % (srange * 2) - srange;
-        }
-        else
-        {
-            work.vector.temporary.vy = z2 - srange;
+            ((SVECTOR *)&work)[1].vx = -srange;
         }
         if (srange * 2 > 0)
         {
-            work.vector.temporary.vz = rand() % (srange * 2) - srange;
+            ((SVECTOR *)&work)[1].vy = rand() % (srange * 2) - srange;
         }
         else
         {
-            work.vector.temporary.vz = z3 - srange;
+            ((SVECTOR *)&work)[1].vy = z2 - srange;
         }
-        work.vector.velocity = work.vector.temporary;
+        if (srange * 2 > 0)
+        {
+            ((SVECTOR *)&work)[1].vz = rand() % (srange * 2) - srange;
+        }
+        else
+        {
+            ((SVECTOR *)&work)[1].vz = z3 - srange;
+        }
+        *(SVECTOR *)&work = ((SVECTOR *)&work)[1];
         half = time / 2;
         rem = time - half;
         if (rem > 0)
@@ -218,7 +217,7 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
             param = &slot->param.bleed;
             r = col >> 16;
             slot->param.bleed.pos = *pos;
-            slot->param.bleed.vec = work.vector.velocity;
+            slot->param.bleed.vec = *(SVECTOR *)&work;
             param->r = r;
             param->g = col >> 8;
             param->time = time;

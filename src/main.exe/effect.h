@@ -172,19 +172,6 @@ struct BleedType /* size 32 */
     u8 mode;     /* +0x1c */
 };
 
-/* SetBleeds and SetBleedsDir build a 16-byte position, then reuse the same
- * storage as two adjacent short vectors while preparing the particle. */
-typedef union BleedSpawnVectors BleedSpawnVectors;
-union BleedSpawnVectors
-{
-    VECTOR position;
-    struct
-    {
-        SVECTOR velocity;
-        SVECTOR temporary;
-    } vector;
-};
-
 /* SplashType.mode: the first frame spawns the droplet burst, then the
  * column rises over `speed` frames and collapses again over another. */
 typedef u8 splash_mode;
