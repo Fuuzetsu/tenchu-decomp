@@ -42,27 +42,23 @@
  *    `hint = FieldArea;` is a separate global read right after, not
  *    GetAreaMapLevel's result. Ghidra drops GetAreaMapLevel's stack-passed
  *    5th arg (the `0` mode flag) — cookbook: Ghidra undercounts stack args.
- *  - The whole per-particle fill (spawn `n` particles) is a HAND-ROLLED
- *    `outer: if (!(i < n)) goto end; ...; i++; goto outer; end:` — not a
- *    real while/for and not even while(1)+break. A genuine loop here lets
- *    loop.c hoist the shared %120/%60 magic-multiply constant AND the
- *    `time/2` split (both loop-invariant across outer iterations, neither
- *    depends on `i`) all the way to the function's prologue; the target
- *    recomputes both fresh every outer iteration, right where they're first
- *    used. Only the hand-rolled goto form (no loop notes at all) suppresses
- *    that invariant motion (cookbook: "a top-test loop that never hoists its
- *    invariants is a hand-rolled goto loop, not while(1)+break").
+ *  - The per-particle fill uses the same guarded outer `do { ... } while (1)`
+ *    shape as SetSmoke. A plain `while (i < n)` lets loop.c hoist the shared
+ *    %120/%60 magic-multiply constant and the `time/2` split, adding four
+ *    instructions. The complete outer-loop/direct-array graph below keeps
+ *    both computations at their source use sites without a hand-written
+ *    back edge or an artificial inner one-shot scope.
  *  - The inner EffectSlot[200] search is the same round-robin do-while as
- *    SetExplosion/SetImpact (`slot = &dmy;` sits AFTER the loop). It is
- *    expressed as `base[idx]`; loop strength reduction creates the pointer
- *    walk visible in the target. Keeping that generated cursor out of the C
- *    source also preserves PSX.SYM's single result pointer, `slot`.
- *    Verified
+ *    SetExplosion/SetImpact (`slot = &dmy;` sits AFTER the loop). Direct
+ *    `EffectSlot[idx]` expressions let loop strength reduction create the
+ *    pointer walk visible in the target while preserving PSX.SYM's single
+ *    result pointer, `slot`. Verified
  *    from THIS function's own asm (don't assume a sibling's shape): the
  *    "occupied" branch's delay slot unconditionally increments `count`
  *    regardless of outcome, so `count = count + 1;` sits BEFORE the
- *    `if (base[idx].proc == 0)` test — SetExplosion's order, not SetImpact's.
- *  - Field store order follows Ghidra's own rendering exactly: sprite,
+ *    `if (EffectSlot[idx].proc == 0)` test — SetExplosion's order, not
+ *    SetImpact's.
+ *  - The per-particle initializer stores sprite,
  *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a
  *    brightness halfword store, hint, mode, and `proc` last (it lands in
  *    the closing loop-jump's delay slot).
@@ -77,7 +73,6 @@ extern void DrawBlood(TEffectSlot *ef);
 void SetBlood(VECTOR *pos, short n, short time)
 {
     int idx;
-    TEffectSlot *base;
     TEffectSlot *slot;
     int count;
     BloodType *blood;
@@ -89,14 +84,13 @@ void SetBlood(VECTOR *pos, short n, short time)
     GetAreaMapLevel(GlobalAreaMap, pos->vx, pos->vy, pos->vz,
                     AREA_LEVEL_DEFAULT);
     hint = FieldArea;
-    base = EffectSlot;
     i = 0;
-outer:
-    if (i >= n)
+    do
     {
-        goto end;
-    }
-    {
+        if (i >= n)
+        {
+            return;
+        }
         count = 0;
         idx = EFFECT_CURSOR_;
         do
@@ -107,49 +101,43 @@ outer:
                 idx = 0;
             }
             count++;
-            if (base[idx].proc == 0)
+            if (EffectSlot[idx].proc == 0)
             {
                 EFFECT_CURSOR_ = idx + 1;
                 if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
                 {
                     EFFECT_CURSOR_ = 0;
                 }
-                slot = &base[idx];
+                slot = &EffectSlot[idx];
                 goto found;
             }
         } while (count < N_EFFECT_SLOTS);
         slot = &dmy;
     found:
         blood = &slot->param.blood;
-        do
+        blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
+        blood->scale = rand() % FIXED_ONE + 2 * FIXED_ONE;
+        blood->rotate = (rand() % 360) * FIXED_ONE;
+        blood->px = pos->vx;
+        blood->py = pos->vy;
+        blood->pz = pos->vz;
+        blood->vx = rand() % 120 - 60;
+        blood->vy = rand() % 60 - 120;
+        blood->vz = rand() % 120 - 60;
+        half = time / 2;
+        half2 = time - half;
+        if (half2 > 0)
         {
-            blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
-            blood->scale = rand() % FIXED_ONE + 2 * FIXED_ONE;
-            blood->rotate = (rand() % 360) * FIXED_ONE;
-            blood->px = pos->vx;
-            blood->py = pos->vy;
-            blood->pz = pos->vz;
-            blood->vx = rand() % 120 - 60;
-            blood->vy = rand() % 60 - 120;
-            blood->vz = rand() % 120 - 60;
-            half = time / 2;
-            half2 = time - half;
-            if (half2 > 0)
-            {
-                blood->time = rand() % half2 + half;
-            }
-            else
-            {
-                blood->time = half;
-            }
-            i++;
-            blood->brightness = 0x80;
-            blood->hint = hint;
-            blood->mode = BLOOD_MODE_AIRBORNE;
-            slot->proc = DrawBlood;
-        } while (0);
-    }
-    goto outer;
-end:
-    return;
+            blood->time = rand() % half2 + half;
+        }
+        else
+        {
+            blood->time = half;
+        }
+        i++;
+        blood->brightness = 0x80;
+        blood->hint = hint;
+        blood->mode = BLOOD_MODE_AIRBORNE;
+        slot->proc = DrawBlood;
+    } while (1);
 }

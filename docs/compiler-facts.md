@@ -71,13 +71,15 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   pointer induction variable: an indexed initial address, `addiu pointer,stride`
   on the back edge, and a base reset on index wrap. All 22 round-robin
   EffectSlot scans in the 21 pool-spawning functions reproduce that machine
-  lockstep exactly from indexing. Twenty-one scans go all the way back to direct
+  lockstep exactly from indexing. All 22 scans go all the way back to direct
   `EffectSlot[i]` expressions (`SetGore` and `SetupTexScroll` are representative).
   `spawn_smoke_burst_` initially appeared to be an exception only because its
   outer infinite loop had been flattened to a hand-written goto; restoring the
   complete `SetSmoke` sibling shape made direct indexing exact and removed a
-  fake identical-arm allocation fence. Only `SetBlood` still needs a cached
-  base across its outer control flow. An explicit source scan pointer can hide
+  fake identical-arm allocation fence. `SetBlood` likewise became exact only
+  when direct indexing, its guarded outer infinite loop, and removal of an
+  artificial inner one-shot wrapper were tested together. An explicit source
+  scan pointer can hide
   the ARRAY_REF and force ugly integer address arithmetic merely to recover an
   `addu` operand order that the indexed loop produces naturally.
 - **Test a complete indexed field graph before naming its element address.**

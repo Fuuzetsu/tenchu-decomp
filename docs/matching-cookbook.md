@@ -2158,20 +2158,23 @@ irreducible nest: DrawConstruction's 3.
 - **An EffectSlot `idx`/pointer lockstep in assembly can be strength
   reduction, not two source locals.** The decisive experiment is the WHOLE
   scan: keep `idx`, test `EffectSlot[idx].proc`, and assign
-  `slot = &EffectSlot[idx]` only on success. Across 21 of the 22 EffectSlot
-  allocator scans, loop.c recreates the
-  target's initialized pointer,
+  `slot = &EffectSlot[idx]` only on success. Across all 22 EffectSlot
+  allocator scans, loop.c recreates the target's initialized pointer,
   stride increment, and wrap reset exactly. This also removes the invented
   `ef`/`found_slot` result alias and the cached pool base. Testing only
   `slot = base + idx` while leaving
   the rest of the transcribed cursor graph in place led to the false conclusion
   that an integer pointer sum was required. Hand-written goto scanners are a
   separate case: without real loop notes, their explicit pointer walk may be
-  source-authored. `SetBlood` is the remaining measured exception.
-  `spawn_smoke_burst_` looked like a second one only while its outer loop was a
-  hand-written goto: restoring the complete `do { ... } while (1)` form from
+  source-authored. `spawn_smoke_burst_` looked like an exception only while its
+  outer loop was a hand-written goto: restoring the complete
+  `do { ... } while (1)` form from
   its PSX.SYM-backed `SetSmoke` sibling simultaneously made direct indexing
   exact and removed the fake identical-arm reference that had pinned `pos`.
+  `SetBlood` was the final apparent exception: direct array access becomes
+  exact when its guarded outer infinite loop and removal of an artificial
+  inner one-shot wrapper are applied at the same time. Partial edits had
+  falsely made both cached bases look necessary.
 - **The same whole-graph rule applies to a run of fields, not just a loop.**
   If decompiled C computes `element = (T *)(index * sizeof(T) + (u32)base)`
   and then touches several `element->field`s, replace the entire run with

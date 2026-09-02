@@ -1022,12 +1022,14 @@ not compile to the right bytes, so this is the queue. Worked examples:
 `SetBlood`'s old `(TEffectSlot *)(idx * sizeof(...) + (int)base)` existed
 only because we transcribed loop.c's generated scan pointer into the C;
 the indexed loop is exact and retains only the result `slot`. A second
-whole-graph pass went further: 21 of the 22 scans now spell the source array
-directly as `EffectSlot[idx]`, with no invented base alias either. The last
-breakthrough was `spawn_smoke_burst_`: restoring the complete outer
+whole-graph pass went further: all 22 scans now spell the source array directly
+as `EffectSlot[idx]`, with no invented base alias either. One breakthrough was
+`spawn_smoke_burst_`: restoring the complete outer
 `do { ... } while (1)` shape from its PSX.SYM-backed `SetSmoke` sibling made
 the direct array graph exact and removed both a hand-written back edge and an
-identical-arm allocation fence;
+identical-arm allocation fence. `SetBlood` then proved the same whole-graph
+rule from the other direction: direct indexing plus its guarded infinite loop
+only becomes exact when the artificial inner one-shot wrapper is removed too;
 `SetupImageToPoly{FT4,GT4}` recovered the original's `tx`/`ty`/`th`, one
 of which is a single variable advanced in place where we had two.
 Bare, the tool audits GLOBAL declarations the same way. Method that
