@@ -46,6 +46,11 @@ enum melee_attack_phase
     MELEE_ATTACK_ENGAGED = 1
 };
 
+enum melee_attack_timing
+{
+    MELEE_ATTACK_DECISION_PERIOD = 16
+};
+
 typedef u8 animal_attack_timer;
 enum animal_attack_timing
 {
@@ -111,6 +116,15 @@ extern ThinkFunc AttackFunc[N_WEAPON_ATTACK_CLASSES];
 /* Think1watch/Think1target act on the ticks where actcnt's low bits are
  * clear, so the character looks around once per this many idle ticks. */
 #define THINK_IDLE_PERIOD 0x80
+
+/* Think4contact and Think4chase share the same investigation lifetime and
+ * arrival rule. Think4chase actively steers only at the start of that wait. */
+enum think4_search_timing
+{
+    THINK4_INITIAL_STEER_TICKS = 30,
+    THINK4_ABANDON_TICKS = 91,
+    THINK4_ARRIVAL_DISTANCE = 1000
+};
 
 /* The henshin disguise's saved model state. PSX.SYM recovers the original
  * field names and its fifteen-part capacity; retail keeps the same layout. */

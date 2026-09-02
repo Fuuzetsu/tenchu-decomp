@@ -152,7 +152,8 @@ short AttackGeneral(void)
         return pad;
     }
 
-    if ((Me_THINK_C->motion->count & 0xf) != 0)
+    if ((Me_THINK_C->motion->count &
+         (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
     {
         s32 d;
         s32 deg;

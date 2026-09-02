@@ -2423,6 +2423,17 @@ enum stage_rank
     RANK_GRAND_MASTER = 0x04,
 };
 
+/* award_stage_items_ reverses the displayed rank so the best award is zero
+ * and the two random-award tiers form the high end of the range. */
+enum stage_award_tier
+{
+    STAGE_AWARD_GRAND_MASTER = RANK_GRAND_MASTER - RANK_GRAND_MASTER,
+    STAGE_AWARD_MASTER_NINJA = RANK_GRAND_MASTER - RANK_MASTER_NINJA,
+    STAGE_AWARD_NINJA = RANK_GRAND_MASTER - RANK_NINJA,
+    STAGE_AWARD_NOVICE = RANK_GRAND_MASTER - RANK_NOVICE,
+    STAGE_AWARD_THUG = RANK_GRAND_MASTER - RANK_THUG
+};
+
 #define N_STAGE_RANKS (RANK_GRAND_MASTER + 1)
 #define N_HIGH_SCORES 5 /* leaderboard rows, independently also five */
 

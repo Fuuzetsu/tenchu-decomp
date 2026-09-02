@@ -26,9 +26,9 @@
  * END PSX.SYM */
 
 /*
- * On clear sight escalate to PHASE_ALERT, turn briefly while no chase point exists,
- * then abandon after 0x5b ticks. With a chase point, steer toward it and
- * clear it after arriving or when actscnt wraps.
+ * On clear sight escalate to PHASE_ALERT, turn briefly while no chase point
+ * exists, then abandon when the investigation wait expires. With a chase
+ * point, steer toward it and clear it after arriving or when actscnt wraps.
  *
  * The default pad assignment belongs before the two turn comparisons.
  * Besides expressing the three-way choice directly, it gives cc1 the
@@ -49,7 +49,7 @@ s16 Think4contact(void)
 
     if (Me_THINK_C->chase.point[HUMANOID_CHASE_X] == 0 && Me_THINK_C->chase.point[HUMANOID_CHASE_Z] == 0)
     {
-        if (Me_THINK_C->actcnt >= 0x5B)
+        if (Me_THINK_C->actcnt >= THINK4_ABANDON_TICKS)
         {
             return Think4abandon();
         }
@@ -75,7 +75,8 @@ s16 Think4contact(void)
         dx = Me_THINK_C->chase.point[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
         dz = Me_THINK_C->chase.point[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
         pad = GotoPosition(dx, dz);
-        if (SquareRoot0(dx * dx + dz * dz) < 1000 || Me_THINK_C->actscnt == 0)
+        if (SquareRoot0(dx * dx + dz * dz) < THINK4_ARRIVAL_DISTANCE ||
+            Me_THINK_C->actscnt == 0)
         {
             Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
             Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;

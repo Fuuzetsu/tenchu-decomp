@@ -175,7 +175,8 @@ short AttackShort(void)
             degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
             if (degree < 1500)
             {
-                if ((motion->count & 0xf) != 0)
+                if ((motion->count &
+                     (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
                 {
                     return 0;
                 }
@@ -217,7 +218,7 @@ short AttackShort(void)
         goto return_pad;
     }
 
-    if ((motion->count & 0xf) != 0)
+    if ((motion->count & (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
     {
         s32 raw_degree;
         s32 degree;

@@ -26,8 +26,9 @@
  * END PSX.SYM */
 
 /*
- * Turn briefly while no chase point exists, then abandon after 0x5b ticks.
- * During the first 0x1e ticks, override the default forward command with a
+ * Turn briefly while no chase point exists, then abandon when the
+ * investigation wait expires. During the initial steering interval,
+ * override the default forward command with a
  * forward-right or forward-left command. With a chase point, steer toward
  * it and clear it after arriving or when actscnt wraps.
  *
@@ -55,7 +56,7 @@ s16 Think4chase(void)
 
     if (Me_THINK_C->chase.point[HUMANOID_CHASE_X] == 0 && Me_THINK_C->chase.point[HUMANOID_CHASE_Z] == 0)
     {
-        if (Me_THINK_C->actcnt >= 0x5B)
+        if (Me_THINK_C->actcnt >= THINK4_ABANDON_TICKS)
         {
             return Think4abandon();
         }
@@ -63,7 +64,7 @@ s16 Think4chase(void)
         {
             Me_THINK_C->actcnt++;
             pad = PADLup;
-            if (Me_THINK_C->actcnt < 30)
+            if (Me_THINK_C->actcnt < THINK4_INITIAL_STEER_TICKS)
             {
                 if (Degree > Me_THINK_C->turn)
                 {
@@ -86,7 +87,8 @@ s16 Think4chase(void)
         dx = Me_THINK_C->chase.point[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
         dz = Me_THINK_C->chase.point[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
         pad = GotoPosition(dx, dz);
-        if (SquareRoot0(dx * dx + dz * dz) < 1000 || Me_THINK_C->actscnt == 0)
+        if (SquareRoot0(dx * dx + dz * dz) < THINK4_ARRIVAL_DISTANCE ||
+            Me_THINK_C->actscnt == 0)
         {
             Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
             Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;
