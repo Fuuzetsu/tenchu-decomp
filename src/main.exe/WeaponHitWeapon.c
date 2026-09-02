@@ -59,7 +59,7 @@ void WeaponHitWeapon(ModelType *hand)
             {
                 return;
             }
-            if ((ConflictObject[id].size.components.class_flags &
+            if ((ConflictObject[id].size.pad &
                  CONFLICT_HIT) == 0)
             {
                 continue;

@@ -81,8 +81,8 @@ conflict_id InsertConflict(ModelType *model)
     ConflictObject[idx].model = model;
     ConflictObject[idx].common = (void *)CONFLICT_OWNER_NONE;
     ConflictObject[idx].position = UnitVector2;
-    ConflictObject[idx].offset.vector = UnitVector;
-    ConflictObject[idx].size.vector = UnitVector;
+    ConflictObject[idx].offset = UnitVector;
+    ConflictObject[idx].size = UnitVector;
     memset(ConflictObject[idx].result, 0, sizeof(ConflictObject[idx].result));
     model->id = cnt;
     model->attribute = (model->attribute | MODEL_ATTR_COLLIDE) & ~MODEL_ATTR_CONFLICT;

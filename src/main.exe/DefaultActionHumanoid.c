@@ -353,7 +353,7 @@ short DefaultActionHumanoid(Humanoid *human)
             {
                 continue;
             }
-            if (ConflictObject[i].size.components.class_flags & CONFLICT_HIT)
+            if (ConflictObject[i].size.pad & CONFLICT_HIT)
             {
                 if (human->status != STAT_DEAD)
                 {
@@ -365,7 +365,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 }
                 continue;
             }
-            if ((ConflictObject[i].size.components.class_flags &
+            if ((ConflictObject[i].size.pad &
                  CONFLICT_SOFT) == 0 &&
                 (human->attribute & ATTR_FLOAT) == 0)
             {
@@ -393,7 +393,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 DBG(("deleted debug print (text lost)\n"));
                 object_id = object->id;
                 DBG(("deleted debug print (text lost)\n"));
-                size_y = conflict->size.components.y;
+                size_y = conflict->size.vy;
                 yy = conflict->position.vy;
                 DBG(("deleted debug print (text lost)\n"));
                 object_y = ConflictObject[object_id].position.vy;
@@ -402,7 +402,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 {
                     locate->vx = xx;
                     locate->vz = zz;
-                    if (conflict->size.components.class_flags &
+                    if (conflict->size.pad &
                         CONFLICT_STAND)
                     {
                         vector->vy = 0;

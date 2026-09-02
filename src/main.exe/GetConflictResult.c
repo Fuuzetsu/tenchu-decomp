@@ -72,7 +72,7 @@
  *    continue-point (`addiu v0,a2,1` twice); a do-while has no VTOP, the EQ
  *    heuristic predicts not-taken, and the fills come from the fallthrough.
  *  - The result-count cap is
- *    `i > ConflictObject[id].offset.components.result_count` (`i` FIRST):
+ *    `i > ConflictObject[id].offset.pad` (`i` FIRST):
  *    expand evaluates op0 first, putting the short `i` sll before the
  *    lh of result_count (spelling it `result_count < i` loads first — not a sched
  *    tie).
@@ -127,7 +127,7 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
                 if (ConflictObject[id].result[index] != 0)
                 {
                     i++;
-                    if (i > ConflictObject[id].offset.components.result_count)
+                    if (i > ConflictObject[id].offset.pad)
                     {
                         goto ret_m1;
                     }

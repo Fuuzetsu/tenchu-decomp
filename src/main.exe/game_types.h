@@ -1092,43 +1092,13 @@ enum conflict_result_flag
 };
 #define N_CONFLICT_OBJECTS 80
 
-/* The original fields were declared as SVECTORs, but CONFLICT.C gives each
- * fourth halfword a domain value instead of treating it as padding. Keep the
- * vector views for the original aggregate resets and RotTrans call while
- * exposing the live metadata to ordinary field accesses. */
-typedef union ConflictOffset ConflictOffset;
-union ConflictOffset
-{
-    SVECTOR vector;
-    struct
-    {
-        s16 x;
-        s16 y;
-        s16 z;
-        s16 result_count;
-    } components;
-}; /* 0x08 */
-
-typedef union ConflictSize ConflictSize;
-union ConflictSize
-{
-    SVECTOR vector;
-    struct
-    {
-        s16 x;
-        s16 y;
-        s16 z;
-        s16 class_flags; /* enum conflict_class in halfword storage */
-    } components;
-}; /* 0x08 */
-
 typedef struct ConflictObjectType ConflictObjectType;
 struct ConflictObjectType
 {
     struct ModelType *model; /* 0x00 */
     VECTOR position;         /* 0x04 */
-    ConflictOffset offset;   /* 0x14 */
-    ConflictSize size;       /* 0x1C */
+    SVECTOR offset;          /* 0x14: pad stores the result count */
+    SVECTOR size;            /* 0x1C: pad stores conflict_class flags */
     void *common;             /* 0x24 */
     u8 result[N_CONFLICT_OBJECTS]; /* 0x28 */
 }; /* 0x78 */

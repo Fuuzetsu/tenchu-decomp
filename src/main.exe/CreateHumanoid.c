@@ -36,13 +36,13 @@
  *
  * THE THREE-FACTOR SCHEDULING FIX (this cost four rounds — read before editing):
  * After InsertConflict the block holds two independent chains that both feed
- * `ConflictObject[conflict_id].size.components.y = half`:
+ * `ConflictObject[conflict_id].size.vy = half`:
  *   A (address): sll/sra sign-extend conflict_id, *120
  *                (sll4/subu/sll3), addu base
  *   B (value)  : lhu height, sll/sra resign, srl/addu/sra signed /2
  * The target completes A first, then loads height into the load-delay slot.
  * Three edits are each INDIVIDUALLY INERT (or worse) and only work TOGETHER:
- *   1. FOLD the divide into the store: `... .size.components.y = half = (s16)hh2 / 2;`
+ *   1. FOLD the divide into the store: `... .size.vy = half = (s16)hh2 / 2;`
  *      expand_assignment is LHS-first, so chain A is generated FIRST and gets
  *      the LOWER LUID. Alone: a nullcheck NO-OP (sched1 reorders it back).
  *   2. SPLIT `half` (`half` / `nhalf`) so each is SET ONCE. sched1's
@@ -78,7 +78,7 @@
  *    for the signed divide-by-2 (the sll/sra + srl-bias/sra idiom cc1 emits for
  *    a provably-possibly-negative dividend — proves the cast, not a field-type
  *    change).
- *  - `nhalf = -half;` then `.offset.components.y = nhalf - model->rotate.pad;` — negating
+ *  - `nhalf = -half;` then `.offset.vy = nhalf - model->rotate.pad;` — negating
  *    the just-stored value (not a fresh negate of the reloaded pad) is what
  *    produces the asm's `negu`. `half` and `nhalf` coalesce onto one hard
  *    register (gcc-2.8.1 has no coalescing pass; non-conflicting allocnos simply
@@ -134,19 +134,19 @@ Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
     SetupWeapon(human);
     conflict_id = InsertConflict(human->model->object[MODEL_PART_WAIST]);
     hh2 = human->height;
-    ConflictObject[conflict_id].size.components.y = half = (s16)hh2 / 2;
+    ConflictObject[conflict_id].size.vy = half = (s16)hh2 / 2;
     nhalf = -half;
-    ConflictObject[conflict_id].offset.components.y =
+    ConflictObject[conflict_id].offset.vy =
         nhalf - human->model->rotate.pad;
     ww = human->width;
     ConflictObject[conflict_id].common = human;
-    ConflictObject[conflict_id].size.components.x =
-        ConflictObject[conflict_id].size.components.z =
+    ConflictObject[conflict_id].size.vx =
+        ConflictObject[conflict_id].size.vz =
         (s16)ww / 2;
     if (type == KUMA_0 || type == KUMA_1)
     {
-        ConflictObject[conflict_id].offset.components.y = -0x1C5;
-        ConflictObject[conflict_id].offset.components.z = 0xC0;
+        ConflictObject[conflict_id].offset.vy = -0x1C5;
+        ConflictObject[conflict_id].offset.vz = 0xC0;
     }
     oldHumans = Humans;
     Humans++;

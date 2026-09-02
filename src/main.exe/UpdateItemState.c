@@ -87,15 +87,15 @@ loop:
                         mode = item->collision.mode;
                         DeleteConflict(item->locate);
                         conflict_id = InsertConflict(item->locate);
-                        conflicts[conflict_id].offset.components.x = 0;
-                        conflicts[conflict_id].offset.components.z = 0;
-                        conflicts[conflict_id].offset.components.y = ofsY;
-                        conflicts[conflict_id].size.components.z = sz;
-                        conflicts[conflict_id].size.components.y = sz;
-                        conflicts[conflict_id].size.components.x = sz;
+                        conflicts[conflict_id].offset.vx = 0;
+                        conflicts[conflict_id].offset.vz = 0;
+                        conflicts[conflict_id].offset.vy = ofsY;
+                        conflicts[conflict_id].size.vz = sz;
+                        conflicts[conflict_id].size.vy = sz;
+                        conflicts[conflict_id].size.vx = sz;
                         conflicts[conflict_id].common =
                             (void *)CONFLICT_OWNER_ITEM;
-                        conflicts[conflict_id].size.components.class_flags =
+                        conflicts[conflict_id].size.pad =
                             mode;
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;

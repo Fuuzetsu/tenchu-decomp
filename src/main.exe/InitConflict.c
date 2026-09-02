@@ -50,8 +50,8 @@ void InitConflict(void)
         ConflictObject[i].model = 0;
         ConflictObject[i].common = (void *)CONFLICT_OWNER_NONE;
         ConflictObject[i].position = UnitVector2;
-        ConflictObject[i].offset.vector = UnitVector;
-        ConflictObject[i].size.vector = UnitVector;
+        ConflictObject[i].offset = UnitVector;
+        ConflictObject[i].size = UnitVector;
         memset(ConflictObject[i].result, 0, sizeof(ConflictObject[i].result));
     }
     ConflictModel = 0;

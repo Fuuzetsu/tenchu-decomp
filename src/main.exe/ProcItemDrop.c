@@ -59,7 +59,7 @@
  *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
  *    slot. Plain nested switches produce all of it — no source trick.
  *  - `collision_mode = CONFLICT_SOFT` feeding BOTH
- *    `size.components.class_flags` (sh) and `collision.mode` (sw) is
+ *    `size.pad` (sh) and `collision.mode` (sw) is
  *    load-bearing: written as literals, the class flag's 8 becomes an HImode
  *    pseudo and
  *    a separate collision.mode literal becomes a second SImode pseudo (two

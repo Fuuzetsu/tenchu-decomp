@@ -253,7 +253,7 @@ void ProcItemNingyo(TItem *item)
             INITIALIZE_CONFLICT_OBJECT(
                 conflict, collision_size, collision_offset_y,
                 CONFLICT_OWNER_ITEM, CONFLICT_STAND | CONFLICT_SOFT);
-            item->collision.mode = conflict->size.components.class_flags;
+            item->collision.mode = conflict->size.pad;
             item->collision.size = collision_size;
             item->collision.ofsY = collision_offset_y;
             item->collision.pause = 0;
@@ -318,7 +318,7 @@ void ProcItemNingyo(TItem *item)
 
             conflict_pool = ConflictObject;
             conflict = &conflict_pool[conflict_id];
-            conflict_class = conflict->size.components.class_flags;
+            conflict_class = conflict->size.pad;
             if (conflict_class == CONFLICT_HIT)
             {
                 if (param->hp == 0)
