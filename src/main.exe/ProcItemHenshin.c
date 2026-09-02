@@ -94,24 +94,8 @@ void ProcItemHenshin(TItem *item)
             s32 part_index;
             HenshinModelSnapshot *snapshot;
 
-            part_index = 0;
             snapshot = &Item_save;
-            archive->rotate.pad = (s16)snapshot->waist;
-            if (archive->n > 0)
-            {
-                do
-                {
-                    archive->object[part_index]->object.tmd =
-                        snapshot->p[part_index].tmd;
-                    archive->object[part_index]->locate.coord.t[0] =
-                        snapshot->p[part_index].x;
-                    archive->object[part_index]->locate.coord.t[1] =
-                        snapshot->p[part_index].y;
-                    archive->object[part_index]->locate.coord.t[2] =
-                        snapshot->p[part_index].z;
-                    part_index++;
-                } while (part_index < archive->n);
-            }
+            APPLY_HENSHIN_MODEL(snapshot, archive, part_index);
             if (item->owner->status == STAT_SQUAT)
             {
                 NowReturnNormal(item->owner);
@@ -197,24 +181,8 @@ void ProcItemHenshin(TItem *item)
         Humanoid *disguise_owner;
         u16 itemID;
 
-        part_index = 0;
         snapshot = &HenshinSnapshot;
-        archive->rotate.pad = (s16)snapshot->waist;
-        if (archive->n > 0)
-        {
-            do
-            {
-                archive->object[part_index]->object.tmd =
-                    snapshot->p[part_index].tmd;
-                archive->object[part_index]->locate.coord.t[0] =
-                    snapshot->p[part_index].x;
-                archive->object[part_index]->locate.coord.t[1] =
-                    snapshot->p[part_index].y;
-                archive->object[part_index]->locate.coord.t[2] =
-                    snapshot->p[part_index].z;
-                part_index++;
-            } while (part_index < archive->n);
-        }
+        APPLY_HENSHIN_MODEL(snapshot, archive, part_index);
         item->mode++;
         HenshinCount = HENSHIN_DURATION;
         disguise_owner = *(Humanoid *volatile *)&item->owner;

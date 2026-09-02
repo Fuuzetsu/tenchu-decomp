@@ -139,6 +139,38 @@ struct HenshinModelSnapshot
     HenshinModelPart p[N_NINJA_MODEL_PARTS]; /* 0x04 */
 }; /* 0xB8 */
 
+/* Copy a character model to and from the snapshots used by the disguise
+ * item. */
+#define CAPTURE_HENSHIN_MODEL(snapshot, model, part)                         \
+    part = 0;                                                               \
+    snapshot->waist = model->rotate.pad;                                    \
+    if (model->n > 0)                                                       \
+    {                                                                        \
+        do                                                                   \
+        {                                                                    \
+            snapshot->p[part].tmd = model->object[part]->object.tmd;         \
+            snapshot->p[part].x = model->object[part]->locate.coord.t[0];    \
+            snapshot->p[part].y = model->object[part]->locate.coord.t[1];    \
+            snapshot->p[part].z = model->object[part]->locate.coord.t[2];    \
+            part++;                                                         \
+        } while (part < model->n);                                          \
+    }
+
+#define APPLY_HENSHIN_MODEL(snapshot, model, part)                           \
+    part = 0;                                                               \
+    model->rotate.pad = (s16)snapshot->waist;                               \
+    if (model->n > 0)                                                       \
+    {                                                                        \
+        do                                                                   \
+        {                                                                    \
+            model->object[part]->object.tmd = snapshot->p[part].tmd;         \
+            model->object[part]->locate.coord.t[0] = snapshot->p[part].x;    \
+            model->object[part]->locate.coord.t[1] = snapshot->p[part].y;    \
+            model->object[part]->locate.coord.t[2] = snapshot->p[part].z;    \
+            part++;                                                         \
+        } while (part < model->n);                                          \
+    }
+
 /* ITEM.C's original disguise snapshot. Retail adds a second snapshot for
  * the disguise target model; no original name for that addition is known. */
 extern HenshinModelSnapshot Item_save;
