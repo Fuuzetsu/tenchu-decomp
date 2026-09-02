@@ -30,8 +30,11 @@
  * Matching notes (1,680 bytes / 420 instructions):
  *  - The explicit splash/event/ordinary labels preserve the target's
  *    dispatch-chain-first layout and its otherwise-elided jump over splash.
- *  - The 0x28 scratch layout fixes the VECTOR at sp+0x10 and the two
- *    SVECTORs at sp+0x28/sp+0x30 while keeping the source aggregates typed.
+ *  - `p` and `v` are the original PSX.SYM locals. Retail no longer reads or
+ *    writes `v`, but GCC still reserves its eight-byte aggregate slot at
+ *    sp+0x20. The later gore position and velocity then land naturally at
+ *    sp+0x28/sp+0x30, accounting for the complete frame without padding or a
+ *    synthetic scratch aggregate.
  *  - svec_y_n200_z_n240 is an unknown-sized SVECTOR array so its [0] copy retains
  *    the target's split high/low address materialization.
  *  - The event scan keeps count and the sentinel live across its backedge;
@@ -83,14 +86,6 @@ typedef struct
 #define DEATH_GORE_VELOCITY_Y(velocity) ((velocity) & 0xff)
 #define DEATH_GORE_VELOCITY_Z(velocity) ((velocity) >> 8)
 
-typedef struct
-{
-    VECTOR p;
-    u8 pad[8];
-    SVECTOR position;
-    SVECTOR vector;
-} ActDeadScratch;
-
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *DeadHumanoid;
 extern DeadEvent *DeadEvents[N_STEALTH_DEATH_MOTIONS];
@@ -110,7 +105,10 @@ void ActDEAD(void)
     short i;
     motion_id mid;
     DeadEvent *pp;
-    ActDeadScratch scratch;
+    VECTOR p;
+    SVECTOR v;
+    SVECTOR gore_position;
+    SVECTOR gore_velocity;
 
     model = Me_MOTION_C->model;
     blood = -1;
@@ -196,7 +194,7 @@ splash_dead:
 {
     if (rand() % 20 == 0)
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
-    scratch.p.vy = Me_MOTION_C->map.level;
+    p.vy = Me_MOTION_C->map.level;
     if ((rand() & 5) == 0)
     {
         i = 0;
@@ -207,11 +205,11 @@ splash_dead:
 
             r = rand();
             width = Me_MOTION_C->width;
-            scratch.p.vx = dtL->vx + (r % width) * 2 - width;
+            p.vx = dtL->vx + (r % width) * 2 - width;
             r = rand();
             width = Me_MOTION_C->width;
-            scratch.p.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&scratch.p, (rand() & 7) << FIXED_SHIFT,
+            p.vz = dtL->vz + (r % width) * 2 - width;
+            SetSplash(&p, (rand() & 7) << FIXED_SHIFT,
                       (rand() & 7) << FIXED_SHIFT, 6);
             i++;
         } while (i < 5);
@@ -290,23 +288,23 @@ ordinary_dead:
 blood_effect:
     if ((dtM->count & 4) && blood != -1)
     {
-        scratch.position = svec_y_n200_z_n240[0];
-        memset(&scratch.vector, 0, sizeof(scratch.vector));
-        scratch.vector.vy = -blds;
-        scratch.vector.vz = -bldo;
+        gore_position = svec_y_n200_z_n240[0];
+        memset(&gore_velocity, 0, sizeof(gore_velocity));
+        gore_velocity.vy = -blds;
+        gore_velocity.vz = -bldo;
         if (blds == 0)
         {
-            scratch.position.vx = 0;
-            scratch.position.vy = -200;
-            scratch.position.vz = -240;
+            gore_position.vx = 0;
+            gore_position.vy = -200;
+            gore_position.vz = -240;
         }
         else
         {
-            scratch.position.vx = 0;
-            scratch.position.vy = -410;
-            scratch.position.vz = 0;
+            gore_position.vx = 0;
+            gore_position.vy = -410;
+            gore_position.vz = 0;
         }
         SetGore(&Me_MOTION_C->model->object[blood]->locate,
-                &scratch.position, &scratch.vector);
+                &gore_position, &gore_velocity);
     }
 }

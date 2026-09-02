@@ -702,6 +702,13 @@ the target's single narrowing, common-tail cross-jump, and saved-register
 allocation naturally. The result is exact with ordinary field assignments
 and no one-shot scopes or arithmetic identities.
 
+ACTDEAD STACK LOCALS RECOVERED (2026-09-02): the fabricated `ActDeadScratch`
+and its explicit eight-byte padding are gone. PSX.SYM records the original
+`VECTOR p` and `SVECTOR v`; GCC retains the now-unused aggregate `v`, which
+naturally occupies retail's sp+0x20 gap before the later gore position and
+velocity SVECTORs at sp+0x28/sp+0x30. Four ordinary locals preserve all 1,680
+bytes without a synthetic layout carrier.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
