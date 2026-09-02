@@ -13,10 +13,12 @@
  * Matching notes:
  *  - Each output buffer has the saved `waist` value followed by ordinary
  *    12-byte model-part snapshots (`tmd`, `x`, `y`, and `z`).
- *  - The two model-copy phases need separate block-scoped model, saved, and
- *    index locals. Reusing one set across both phases joins their pseudos,
- *    rotates the caller-saved registers, and fills three target load-delay
- *    nops; distinct source identities reproduce the exact allocation.
+ *  - The two model-copy phases need separate block-scoped model and saved
+ *    pointers. CaptureHenshinModel's index is likewise cloned into each
+ *    inline expansion. Reusing one set across both phases joins their
+ *    pseudos, rotates the caller-saved registers, and fills three target
+ *    load-delay nops; distinct source identities reproduce the exact
+ *    allocation.
  *  - The selected character model is read through the recovered shared
  *    `CamState.Owner` field.
  */
@@ -30,18 +32,16 @@ void create_ninken_character_(s16 type, s32 stage)
     {
         ModelArchiveType *model;
         HenshinModelSnapshot *saved;
-        s32 i;
 
         model = CamState.Owner->model;
         saved = &Item_save;
-        CAPTURE_HENSHIN_MODEL(saved, model, i);
+        CaptureHenshinModel(saved, model);
     }
 
     {
         Humanoid *human;
         ModelArchiveType *model;
         HenshinModelSnapshot *saved;
-        s32 i;
         s32 flag;
 
         flag = (type == AYAME_0);
@@ -49,7 +49,7 @@ void create_ninken_character_(s16 type, s32 stage)
                           NINKEN_PARK_POS, NINKEN_PARK_POS, NINKEN_PARK_POS, 0);
         model = human->model;
         saved = &HenshinSnapshot;
-        CAPTURE_HENSHIN_MODEL(saved, model, i);
+        CaptureHenshinModel(saved, model);
         KillHumanoid(human);
     }
 }

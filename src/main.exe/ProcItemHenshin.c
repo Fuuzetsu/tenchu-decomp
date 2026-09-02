@@ -70,16 +70,21 @@ extern TItem *HenshinItem;
 extern u16 HenshinCount;
 extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
+enum henshin_mode
+{
+    HENSHIN_MODE_START = 0,
+    HENSHIN_MODE_WAIT = 1,
+    HENSHIN_MODE_TRANSFORM = 2,
+    HENSHIN_MODE_ACTIVE = 3
+};
+
+enum
+{
+    HENSHIN_DURATION = 600
+};
+
 void ProcItemHenshin(TItem *item)
 {
-    enum
-    {
-        HENSHIN_MODE_START = 0,
-        HENSHIN_MODE_WAIT = 1,
-        HENSHIN_MODE_TRANSFORM = 2,
-        HENSHIN_MODE_ACTIVE = 3,
-        HENSHIN_DURATION = 600
-    };
     ModelArchiveType *archive;
     PARAM_ITEM_LAUNCH drop_request;
 
@@ -89,11 +94,10 @@ void ProcItemHenshin(TItem *item)
     {
         if (item == HenshinItem)
         {
-            s32 part_index;
             HenshinModelSnapshot *snapshot;
 
             snapshot = &Item_save;
-            APPLY_HENSHIN_MODEL(snapshot, archive, part_index);
+            ApplyHenshinModel(snapshot, archive);
             if (item->owner->status == STAT_SQUAT)
             {
                 NowReturnNormal(item->owner);
@@ -176,13 +180,12 @@ void ProcItemHenshin(TItem *item)
 
     case HENSHIN_MODE_TRANSFORM:
     {
-        s32 part_index;
         HenshinModelSnapshot *snapshot;
         Humanoid *disguise_owner;
         u16 itemID;
 
         snapshot = &HenshinSnapshot;
-        APPLY_HENSHIN_MODEL(snapshot, archive, part_index);
+        ApplyHenshinModel(snapshot, archive);
         item->mode++;
         HenshinCount = HENSHIN_DURATION;
         disguise_owner = *(Humanoid *volatile *)&item->owner;
