@@ -33,10 +33,9 @@
  * Matching notes (all verified against the bytes; see
  * docs/matching-cookbook.md):
  *  - PSX.SYM places ItemName and param at the same sp+24 stack slot, with
- *    vec after param's 24-byte compiler stack slot at sp+48. The local union
- *    exposes those exact original names and types while preserving that
- *    overlap; stack_slot_tail represents the four bytes between the 20-byte
- *    PARAM_ITEM_STAY and the next compiler slot.
+ *    vec after param's 24-byte compiler stack slot at sp+48. Their nested
+ *    scopes preserve that original lifetime overlap; the compiler naturally
+ *    rounds the 20-byte PARAM_ITEM_STAY before allocating vec.
  *    ItemName's fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS remains
  *    the target's 16-bytes-per-iteration word-block copy with an 8-byte tail,
  *    while vec's align-2 copy remains lwl/lwr + swl/swr.
@@ -83,44 +82,46 @@ void AddItem2(void)
     s32 x, y, z;
     s32 h;
     ModelArchiveType *pm;
-    union
+
     {
-        TAdtSelect ItemName[ITEM_N];
-        struct
         {
-            PARAM_ITEM_STAY param;
-            u8 stack_slot_tail[4];
-            SVECTOR vec;
-        } spawn;
-    } work;
+            TAdtSelect ItemName[ITEM_N];
 
-    __builtin_memcpy(work.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
-                     sizeof(work.ItemName));
-    n = AdtSelect(str_select_item, work.ItemName, 0);
-    memset(&work.spawn.param, 0, sizeof(work.spawn.param));
-    work.spawn.param.type = n;
+            __builtin_memcpy(ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+                             sizeof(ItemName));
+            n = AdtSelect(str_select_item, ItemName, 0);
+        }
+    }
 
-    sx = rsin(CamState.Owner->model->rotate.vy) * 1000;
-    pm = CamState.Owner->model;
-    /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
-     * fold back to `sx / FIXED_ONE` -- sx is still live for the x term below,
-     * so the schedule differs (64 lines). Its sibling below does. */
-    if (sx < 0)
-        sx += FIXED_TRUNC_BIAS;
-    h = pm->locate.coord.t[1];
-    y = h;
-    x = pm->locate.coord.t[0] - (sx >> FIXED_SHIFT);
-    cx = rcos(pm->rotate.vy) * 1000;
-    pm = CamState.Owner->model;
-    z = pm->locate.coord.t[2] - (cx / FIXED_ONE);
-    h = GetAreaMapLevel(GlobalAreaMap, x, y, z, AREA_LEVEL_STEP_DOWN);
-    if (h != LEVEL_NONE)
     {
-        work.spawn.param.locate.vx = x;
-        work.spawn.param.locate.vy = h;
-        work.spawn.param.locate.vz = z;
-        ReqItemStay(&work.spawn.param);
-        work.spawn.vec = svec_y_n600[0];
-        SetSmoke(&work.spawn.param.locate, &work.spawn.vec, 3, 10);
+        PARAM_ITEM_STAY param;
+        SVECTOR vec;
+
+        memset(&param, 0, sizeof(param));
+        param.type = n;
+
+        sx = rsin(CamState.Owner->model->rotate.vy) * 1000;
+        pm = CamState.Owner->model;
+        /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
+         * fold back to `sx / FIXED_ONE` -- sx is still live for the x term below,
+         * so the schedule differs (64 lines). Its sibling below does. */
+        if (sx < 0)
+            sx += FIXED_TRUNC_BIAS;
+        h = pm->locate.coord.t[1];
+        y = h;
+        x = pm->locate.coord.t[0] - (sx >> FIXED_SHIFT);
+        cx = rcos(pm->rotate.vy) * 1000;
+        pm = CamState.Owner->model;
+        z = pm->locate.coord.t[2] - (cx / FIXED_ONE);
+        h = GetAreaMapLevel(GlobalAreaMap, x, y, z, AREA_LEVEL_STEP_DOWN);
+        if (h != LEVEL_NONE)
+        {
+            param.locate.vx = x;
+            param.locate.vy = h;
+            param.locate.vz = z;
+            ReqItemStay(&param);
+            vec = svec_y_n600[0];
+            SetSmoke(&param.locate, &vec, 3, 10);
+        }
     }
 }
