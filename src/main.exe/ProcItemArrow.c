@@ -152,16 +152,7 @@ void ProcItemArrow(TItem *item)
                     {
                         return;
                     }
-                    item->mode = ITEM_MODE_DISPOSE;
-                    item->proc(item);
-                    DeleteConflict(item->locate);
-                    if (item->mode != ARROW_MODE_FLY)
-                    {
-                        AdtMessageBox(msg_item_dispose_fail, item->type,
-                                      (u32)item->mode);
-                    }
-                    item->owner = 0;
-                    item->proc = 0;
+                    DISPOSE_ITEM(item);
                     return;
                 }
                 else
@@ -206,16 +197,7 @@ void ProcItemArrow(TItem *item)
                         {
                             return;
                         }
-                        item->mode = ITEM_MODE_DISPOSE;
-                        item->proc(item);
-                        DeleteConflict(item->locate);
-                        if (item->mode != ARROW_MODE_FLY)
-                        {
-                            AdtMessageBox(msg_item_dispose_fail, item->type,
-                                          (u32)item->mode);
-                        }
-                        item->owner = 0;
-                        item->proc = 0;
+                        DISPOSE_ITEM(item);
                         return;
                     }
                     SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
@@ -273,15 +255,7 @@ void ProcItemArrow(TItem *item)
             {
                 return;
             }
-            item->mode = ITEM_MODE_DISPOSE;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != ARROW_MODE_FLY)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
         if ((count & 1) != 0)
