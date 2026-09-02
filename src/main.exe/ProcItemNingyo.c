@@ -4,25 +4,6 @@
 #include "item.h"
 #include "sound.h"
 
-typedef union
-{
-    struct
-    {
-        SVECTOR smoke_velocity;
-        PARAM_ITEM_LAUNCH request;
-    } drop;
-    struct
-    {
-        VECTOR scale;
-        VECTOR source_scale;
-    } growth;
-    struct
-    {
-        VECTOR position;
-        VECTOR source_position;
-    } impact;
-} ProcItemNingyoScratch;
-
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 extern u8 NingyoCount;
 
@@ -106,7 +87,6 @@ void ProcItemNingyo(TItem *item)
     param_ningyo *param;
     s32 conflict_id;
     s32 dispose_mode;
-    ProcItemNingyoScratch scratch;
 
     param = &item->param.ningyo;
     dispose_mode = ITEM_MODE_DISPOSE;
@@ -142,125 +122,134 @@ void ProcItemNingyo(TItem *item)
     {
     case NINGYO_MODE_WAIT:
     {
-        s32 activation_countdown;
-
-        activation_countdown = param->count - 1;
-        param->count = activation_countdown;
-        if ((u8)activation_countdown == 0)
         {
-            param->count = 0;
-            item->mode++;
-            scratch.drop.smoke_velocity = svec_y_n25[0];
-            SetSmoke(MODEL_POSITION(item->locate),
-                     &scratch.drop.smoke_velocity,
-                     APPEAR_SMOKE_COUNT, APPEAR_SMOKE_TIME);
-            SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
-            if (NingyoCount < MAX_ACTIVE_NINGYO)
+            s32 activation_countdown;
+
+            activation_countdown = param->count - 1;
+            param->count = activation_countdown;
+            if ((u8)activation_countdown == 0)
             {
-                param->hp = ACTIVE_NINGYO_HP;
-                NingyoCount++;
-                goto draw_mode0;
+                SVECTOR smoke_velocity;
+
+                param->count = 0;
+                item->mode++;
+                smoke_velocity = svec_y_n25[0];
+                SetSmoke(MODEL_POSITION(item->locate),
+                         &smoke_velocity,
+                         APPEAR_SMOKE_COUNT, APPEAR_SMOKE_TIME);
+                SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
+                if (NingyoCount < MAX_ACTIVE_NINGYO)
+                {
+                    param->hp = ACTIVE_NINGYO_HP;
+                    NingyoCount++;
+                    goto draw_mode0;
+                }
+                else
+                {
+                    Humanoid *owner;
+                    s32 item_type;
+                    ModelType *model;
+                    PARAM_ITEM_LAUNCH *request;
+                    PARAM_ITEM_LAUNCH launch_request;
+
+                    owner = item->owner;
+                    item_type = item->type;
+                    model = item->locate;
+                    request = &launch_request;
+                    memset(request, 0, sizeof(PARAM_ITEM_LAUNCH));
+                    request = 0;
+                    launch_request.type = item_type;
+                    launch_request.user = owner;
+                    {
+                        VECTOR *position;
+
+                        position = MODEL_POSITION(model);
+                        launch_request.start.vx = position->vx;
+                        launch_request.start.vy = position->vy;
+                        launch_request.start.vz = position->vz;
+                    }
+                    launch_request.end.vx =
+                        rand() % DROP_HORIZONTAL_SPREAD -
+                        DROP_HORIZONTAL_SPREAD / 2;
+                    launch_request.end.vy =
+                        rand() % DROP_VERTICAL_SPREAD - DROP_UPWARD_SPEED;
+                    launch_request.end.vz =
+                        rand() % DROP_HORIZONTAL_SPREAD -
+                        DROP_HORIZONTAL_SPREAD / 2;
+                    ReqItemDrop(&launch_request);
+                }
             }
             else
             {
-                Humanoid *owner;
-                s32 item_type;
-                ModelType *model;
-                PARAM_ITEM_LAUNCH *request;
-
-                owner = item->owner;
-                item_type = item->type;
-                model = item->locate;
-                request = &scratch.drop.request;
-                memset(request, 0, sizeof(PARAM_ITEM_LAUNCH));
-                request = 0;
-                scratch.drop.request.type = item_type;
-                scratch.drop.request.user = owner;
-                {
-                    VECTOR *position;
-
-                    position = MODEL_POSITION(model);
-                    scratch.drop.request.start.vx = position->vx;
-                    scratch.drop.request.start.vy = position->vy;
-                    scratch.drop.request.start.vz = position->vz;
-                }
-                scratch.drop.request.end.vx =
-                    rand() % DROP_HORIZONTAL_SPREAD -
-                    DROP_HORIZONTAL_SPREAD / 2;
-                scratch.drop.request.end.vy =
-                    rand() % DROP_VERTICAL_SPREAD - DROP_UPWARD_SPEED;
-                scratch.drop.request.end.vz =
-                    rand() % DROP_HORIZONTAL_SPREAD -
-                    DROP_HORIZONTAL_SPREAD / 2;
-                ReqItemDrop(&scratch.drop.request);
+                goto draw_mode0;
             }
-        }
-        else
-        {
-            goto draw_mode0;
-        }
 
-    dispose:
-        if (item->proc == 0)
-        {
+        dispose:
+            if (item->proc == 0)
+            {
+                return;
+            }
+            DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
+            return;
+
+        draw_mode0:
+            UpdateCoordinate(item->locate);
+            item->model->locate = item->locate->locate;
+            DrawSprite((Sprite3D *)item->model);
             return;
         }
-        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
-        return;
-
-    draw_mode0:
-        UpdateCoordinate(item->locate);
-        item->model->locate = item->locate->locate;
-        DrawSprite((Sprite3D *)item->model);
-        return;
     }
 
     case NINGYO_MODE_GROW:
     {
-        s32 new_conflict_id;
-        ConflictObjectType *conflict_pool;
-        ConflictObjectType *conflict;
-
-        param->count++;
-        memset(&scratch.growth.source_scale, 0, sizeof(VECTOR));
-        scratch.growth.source_scale.vx =
-            param->count << GROWTH_SCALE_SHIFT;
-        scratch.growth.source_scale.vy =
-            param->count << GROWTH_SCALE_SHIFT;
-        scratch.growth.source_scale.vz =
-            param->count << GROWTH_SCALE_SHIFT;
-        scratch.growth.scale = scratch.growth.source_scale;
-        RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
-        ScaleMatrix(&item->locate->locate.coord, &scratch.growth.scale);
-        item->locate->locate.flg = 0;
-        NingyoModel->locate = item->locate->locate;
-        DrawModel(NingyoModel);
-        if (param->count < GROWTH_FRAMES)
         {
+            s32 new_conflict_id;
+            ConflictObjectType *conflict_pool;
+            ConflictObjectType *conflict;
+            VECTOR scale;
+            VECTOR source_scale;
+
+            param->count++;
+            memset(&source_scale, 0, sizeof(VECTOR));
+            source_scale.vx =
+                param->count << GROWTH_SCALE_SHIFT;
+            source_scale.vy =
+                param->count << GROWTH_SCALE_SHIFT;
+            source_scale.vz =
+                param->count << GROWTH_SCALE_SHIFT;
+            scale = source_scale;
+            RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
+            ScaleMatrix(&item->locate->locate.coord, &scale);
+            item->locate->locate.flg = 0;
+            NingyoModel->locate = item->locate->locate;
+            DrawModel(NingyoModel);
+            if (param->count < GROWTH_FRAMES)
+            {
+                return;
+            }
+
+            DeleteConflict(item->locate);
+            new_conflict_id = InsertConflict(item->locate);
+            conflict_pool = ConflictObject;
+            conflict = conflict_pool + new_conflict_id;
+            {
+                s32 collision_size;
+                s32 collision_offset_y;
+
+                collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
+                collision_size = NINGYO_COLLISION_SIZE;
+                INITIALIZE_CONFLICT_OBJECT(
+                    conflict, collision_size, collision_offset_y,
+                    CONFLICT_OWNER_ITEM, CONFLICT_STAND | CONFLICT_SOFT);
+                item->collision.mode = conflict->size.pad;
+                item->collision.size = collision_size;
+                item->collision.ofsY = collision_offset_y;
+                item->collision.pause = 0;
+            }
+            param->count = FIRST_RETARGET_DELAY;
+            item->mode++;
             return;
         }
-
-        DeleteConflict(item->locate);
-        new_conflict_id = InsertConflict(item->locate);
-        conflict_pool = ConflictObject;
-        conflict = conflict_pool + new_conflict_id;
-        {
-            s32 collision_size;
-            s32 collision_offset_y;
-
-            collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
-            collision_size = NINGYO_COLLISION_SIZE;
-            INITIALIZE_CONFLICT_OBJECT(
-                conflict, collision_size, collision_offset_y,
-                CONFLICT_OWNER_ITEM, CONFLICT_STAND | CONFLICT_SOFT);
-            item->collision.mode = conflict->size.pad;
-            item->collision.size = collision_size;
-            item->collision.ofsY = collision_offset_y;
-            item->collision.pause = 0;
-        }
-        param->count = FIRST_RETARGET_DELAY;
-        item->mode++;
-        return;
     }
 
     case NINGYO_MODE_ACTIVE:
@@ -337,13 +326,14 @@ void ProcItemNingyo(TItem *item)
                 {
                     s32 knockback_x;
                     s32 knockback_z;
+                    VECTOR position;
+                    VECTOR source_position;
 
-                    memset(&scratch.impact.source_position, 0,
-                           sizeof(VECTOR));
-                    scratch.impact.source_position.vx = conflict->position.vx;
-                    scratch.impact.source_position.vy = conflict->position.vy;
-                    scratch.impact.source_position.vz = conflict->position.vz;
-                    scratch.impact.position = scratch.impact.source_position;
+                    memset(&source_position, 0, sizeof(VECTOR));
+                    source_position.vx = conflict->position.vx;
+                    source_position.vy = conflict->position.vy;
+                    source_position.vz = conflict->position.vz;
+                    position = source_position;
                     knockback_x = -ConflictDistance.vx / 16;
                     knockback_z = -ConflictDistance.vz / 16;
                     param->koro.vx = knockback_x;
