@@ -98,7 +98,7 @@ void proc_misc_sound_(TMisc *m, TMiscMessage msg)
 reset:
     tmp.min_delay = m->param.sound_init.min_delay;
     tmp.max_delay = m->param.sound_init.max_delay;
-    tmp.sound_index = m->param.sound_init.sound.index;
+    tmp.sound_index = (u8)m->param.sound_init.sound;
     tmp.next = GameClock;
     *sched = tmp;
     m->mode = 0;

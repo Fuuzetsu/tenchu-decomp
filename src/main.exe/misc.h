@@ -132,21 +132,14 @@ struct MiscBonfireParameters
     s32 reserved[2]; /* 0x4 */
 }; /* 0xC */
 
-/* A sound-emitter row arrives as three words.  MM_CREATE repacks those same
- * twelve bytes in place into the runtime deadline/range view below. */
-typedef union MiscSoundIndexWord MiscSoundIndexWord;
-union MiscSoundIndexWord
-{
-    s32 word;
-    u8 index;
-}; /* 0x4 */
-
+/* A sound-emitter row arrives as three words. MM_CREATE narrows the first
+ * word to a sound-table index while repacking the row as the runtime view. */
 typedef struct MiscSoundInitParameters MiscSoundInitParameters;
 struct MiscSoundInitParameters
 {
-    MiscSoundIndexWord sound; /* 0x0 */
-    s32 min_delay;            /* 0x4 */
-    s32 max_delay;            /* 0x8 */
+    s32 sound;     /* 0x0 */
+    s32 min_delay; /* 0x4 */
+    s32 max_delay; /* 0x8 */
 }; /* 0xC */
 
 typedef struct MiscSoundSchedule MiscSoundSchedule;
