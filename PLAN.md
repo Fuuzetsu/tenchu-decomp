@@ -709,6 +709,12 @@ naturally occupies retail's sp+0x20 gap before the later gore position and
 velocity SVECTORs at sp+0x28/sp+0x30. Four ordinary locals preserve all 1,680
 bytes without a synthetic layout carrier.
 
+DRAWBLOOD LOCALS RECOVERED (2026-09-02): removed the outer
+`DrawBloodScratch` layout wrapper. The PSX.SYM-backed `scr` and `pos` are
+ordinary locals again; only the sp+0x30 object remains a union, because its
+randomized VECTOR lifetime genuinely precedes an SVECTOR velocity in the same
+storage. The resulting source is still exact across all 2,160 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

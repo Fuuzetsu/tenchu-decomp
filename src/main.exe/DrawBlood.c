@@ -54,11 +54,12 @@
  *  - The state dispatch is a switch whose physical source body order is
  *    3, 2, 1, default.  cc1's balanced comparison tree still tests state 2
  *    first, while retaining that body layout.
- *  - `DrawBloodScratch` spells the exact stack overlay mechanically reported
- *    by stackplan: scr@sp+0x18, pos@sp+0x20, and a reusable aggregate scratch
- *    at sp+0x30. The `temp` union gives that workspace explicit VECTOR and
- *    SVECTOR views; building through one view and assigning it out reproduces
- *    the target's word and unaligned aggregate copies without casts.
+ *  - The frame consists of the original `scr` SVECTOR, `pos` VECTOR, and a
+ *    reusable aggregate at sp+0x30. Only that last object needs an overlay:
+ *    its randomized VECTOR dies before the same storage becomes a velocity
+ *    SVECTOR. Keeping that relationship as a local union reproduces the
+ *    target's word and unaligned aggregate copies without casts or an outer
+ *    scratch-layout struct.
  *  - The default terrain path is CGetLevel's matched guard shape inlined.
  *    Computing `sy` before loading/computing `z` is load-bearing: it gives the
  *    target x/y/z divide schedule and t2/s0/a3 register assignment.
@@ -78,17 +79,6 @@
  *    maspsx `--expand-div` in both Build.hs and permute.py.
  */
 
-typedef struct DrawBloodScratch
-{
-    SVECTOR scr;
-    VECTOR pos;
-    union
-    {
-        VECTOR position;
-        SVECTOR velocity;
-    } temp;
-} DrawBloodScratch;
-
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
 extern void *memset(void *dst, int value, u32 size);
 
@@ -101,7 +91,13 @@ void DrawBlood(TEffectSlot *ef)
     BloodType *blood;
     GsSPRITE *spr;
     GsSPRITE *sprt;
-    DrawBloodScratch scratch;
+    SVECTOR scr;
+    VECTOR pos;
+    union
+    {
+        VECTOR position;
+        SVECTOR velocity;
+    } temp;
     s32 brightness;
 
     blood = &ef->param.blood;
@@ -129,8 +125,8 @@ void DrawBlood(TEffectSlot *ef)
         blood->py += blood->vy;
         rotate = blood->rotate;
         brightness = (s16)blood->brightness;
-        GetScreenPosition(blood->px, blood->py, blood->pz, &scratch.scr);
-        otz = scratch.scr.vz;
+        GetScreenPosition(blood->px, blood->py, blood->pz, &scr);
+        otz = scr.vz;
         if (otz <= NEAR_DEPTH)
         {
             return;
@@ -139,8 +135,8 @@ void DrawBlood(TEffectSlot *ef)
             (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
         spr->rotate = rotate;
         sprt->rotate = rotate;
-        sprt->x = spr->x = scratch.scr.vx;
-        sprt->y = spr->y = scratch.scr.vy;
+        sprt->x = spr->x = scr.vx;
+        sprt->y = spr->y = scr.vy;
         spr->r = (u8)brightness;
         spr->g = (u8)brightness;
         spr->b = (u8)brightness;
@@ -148,11 +144,11 @@ void DrawBlood(TEffectSlot *ef)
         sprt->g = (u8)(brightness / 2);
         sprt->b = (u8)(brightness / 2);
 
-        sort_depth = (s16)(u16)scratch.scr.vz >> 2;
+        sort_depth = (s16)(u16)scr.vz >> 2;
         CLAMP_SORT_DEPTH(priority, sort_depth);
         GsSortSprite(spr, OTablePt, (u16)priority);
 
-        sort_depth = (s16)(u16)scratch.scr.vz >> 2;
+        sort_depth = (s16)(u16)scr.vz >> 2;
         CLAMP_SORT_DEPTH(priority, sort_depth);
         GsSortSprite(sprt, OTablePt, (u16)priority);
         return;
@@ -269,26 +265,26 @@ void DrawBlood(TEffectSlot *ef)
 
         if (GameClock & 1)
         {
-            memset(&scratch.temp.position, 0, sizeof(VECTOR));
+            memset(&temp.position, 0, sizeof(VECTOR));
             random_x = rand();
             base_x = blood->px - JITTER_RADIUS;
-            scratch.temp.position.vx =
+            temp.position.vx =
                 base_x + random_x % (JITTER_RADIUS * 2);
             random_y = rand();
             base_y = blood->py - JITTER_RADIUS;
-            scratch.temp.position.vy =
+            temp.position.vy =
                 base_y + random_y % (JITTER_RADIUS * 2);
             random_z = rand();
             base_z = blood->pz - JITTER_RADIUS;
-            scratch.temp.position.vz =
+            temp.position.vz =
                 base_z + random_z % (JITTER_RADIUS * 2);
-            scratch.pos = scratch.temp.position;
-            memset(&scratch.temp.velocity, 0, sizeof(SVECTOR));
-            scratch.temp.velocity.vx = blood->vx / 2;
-            scratch.temp.velocity.vy = blood->vy / 2;
-            scratch.temp.velocity.vz = blood->vz / 2;
-            scratch.scr = scratch.temp.velocity;
-            SetBleed(&scratch.pos, &scratch.scr, rand() % 10 + 10,
+            pos = temp.position;
+            memset(&temp.velocity, 0, sizeof(SVECTOR));
+            temp.velocity.vx = blood->vx / 2;
+            temp.velocity.vy = blood->vy / 2;
+            temp.velocity.vz = blood->vz / 2;
+            scr = temp.velocity;
+            SetBleed(&pos, &scr, rand() % 10 + 10,
                      RGB24(127, 16, 23));
         }
         break;
@@ -309,17 +305,17 @@ void DrawBlood(TEffectSlot *ef)
     spr->g = blood->brightness;
     spr->b = blood->brightness;
     scale = blood->scale;
-    GetScreenPosition(blood->px, blood->py, blood->pz, &scratch.scr);
-    otz = scratch.scr.vz;
+    GetScreenPosition(blood->px, blood->py, blood->pz, &scr);
+    otz = scr.vz;
     if (otz <= NEAR_DEPTH)
     {
         return;
     }
     spr->scalex = spr->scaley =
         (s16)((scale * PROJECTION_DISTANCE) / otz) + 1;
-    spr->x = scratch.scr.vx;
-    spr->y = scratch.scr.vy;
-    sort_depth = (s16)(u16)scratch.scr.vz >> 2;
+    spr->x = scr.vx;
+    spr->y = scr.vy;
+    sort_depth = (s16)(u16)scr.vz >> 2;
     CLAMP_SORT_DEPTH(priority, sort_depth);
     GsSortSprite(spr, OTablePt, (u16)priority);
 }
