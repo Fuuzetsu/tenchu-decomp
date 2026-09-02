@@ -14,10 +14,6 @@
  *    emits the target's repeated blocks and keeps their s16 induction
  *    variables in caller-saved registers; factoring them would change the
  *    control flow.
- *  - The final per-character flag first forms a raw row base and then uses
- *    the field-derived gItem[0][ITEM_ARMOUR] displacement. Writing it as
- *    state->gItem[chr][ITEM_ARMOUR] makes cc1 add the item index separately
- *    instead of folding the complete displacement into the lbu/sb operands.
  *  - `award_tier` and `remaining` are signed 16-bit values. An unsigned-width
  *    mechanical rewrite happens to restore the instruction count while
  *    replacing the required sll/sra sign extension with andi/sltiu.
@@ -34,7 +30,6 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     stage_award_tier award_tier;
     s16 i;
     s16 remaining;
-    u8 *row;
 
     /* The selector runs in reverse rank order. A locked ordinary item takes
      * +2 before the common +1 so 0xFE wraps to exactly 1; the Grand Master
@@ -156,9 +151,8 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
         }
     }
 
-    row = (u8 *)state + SAVE_ITEM_ROW_OFFSET(state->CharType);
-    if (row[TLINKINFO_BYTE_OFFSET(gItem[0][ITEM_ARMOUR])] != ITEM_LOCKED)
+    if (state->gItem[state->CharType][ITEM_ARMOUR] != ITEM_LOCKED)
     {
-        row[TLINKINFO_BYTE_OFFSET(gItem[0][ITEM_ARMOUR])] = 1;
+        state->gItem[state->CharType][ITEM_ARMOUR] = 1;
     }
 }
