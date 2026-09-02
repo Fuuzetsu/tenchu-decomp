@@ -44,10 +44,18 @@
  *    `lui` too early; fencing the store put the `sw` before the cursor add.
  */
 
+#define BOOT_EXEC_MAGIC 0xDEF0C0DEu
+
+enum
+{
+    BOOT_EXEC_CDROM_PREFIX_SIZE = 6,
+    BOOT_EXEC_NAME_CAPACITY = 0x50
+};
+
 typedef struct
 {
-    u32 magic;       /* 0x00 = 0xDEF0C0DE */
-    char name[0x50]; /* 0x04 */
+    u32 magic;       /* 0x00 = BOOT_EXEC_MAGIC */
+    char name[BOOT_EXEC_NAME_CAPACITY]; /* 0x04 */
     u32 s_addr;      /* 0x54 */
     u32 s_size;      /* 0x58 */
 } BootExecRecord;
@@ -58,13 +66,13 @@ void set_boot_exec_(u8 *file, u32 stack, u32 size)
     u32 magic;
     BootExecRecord *rec;
 
-    magic = 0xDEF0C0DE;
+    magic = BOOT_EXEC_MAGIC;
     /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
     do
     {
     } while (0);
     rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
-    file += 6;
+    file += BOOT_EXEC_CDROM_PREFIX_SIZE;
     rec->magic = magic;
     i = 0;
     if (*file != 0)
