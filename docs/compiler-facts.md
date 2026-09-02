@@ -56,7 +56,9 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   statement scope also replaces an empty scheduling fence.  The score screen's
   complete rank-icon operation behaves the same way: putting its seven setup/
   draw statements back into DRAW_SCORE_RANK removes a folded bank-pointer
-  identity without changing the emitted code.
+  identity without changing the emitted code.  game_over_screen_'s nested
+  title-entry/fade-reset operation and its exit-input operation likewise
+  replace a four-read state identity with the state machine's real scopes.
 - **ARRAY_REF gate**: `c-typeck.c:1406` builds an ARRAY_REF only when the operand
   has ARRAY_TYPE **and is not an INDIRECT_REF**. A pointer-to-array cast
   `(*(T (*)[N])p)[i]` is an INDIRECT_REF → index-first arithmetic; a one-field

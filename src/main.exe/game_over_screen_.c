@@ -5,6 +5,17 @@
 #include <psxsdk/libgpu.h>
 #include "images.h"
 
+/* Fade up from black, hold on the title, let the player page to the archive
+ * text, then fade back down to either a retry or the menu. */
+enum game_over_state
+{
+    GAMEOVER_FADE_IN = 1,
+    GAMEOVER_TITLE = 2,
+    GAMEOVER_ARCHIVE = 3,
+    GAMEOVER_FADE_TO_RETRY = 4,
+    GAMEOVER_FADE_TO_MENU = 5
+};
+
 /* Fade one caption line in: from its start frame, ramp the sprite's
  * flat colour up to 0x80 and sort it. Pasted per line in retail; macro
  * is reconstruction shorthand (expands to the identical text). */
@@ -37,6 +48,38 @@
     spr.my = spr.h >> 1;                                                      \
     LoadTIM(tim);
 
+#define RESET_GAME_OVER_TITLE_FADE(state_, shade_)                            \
+    do                                                                        \
+    {                                                                         \
+        (state_) = GAMEOVER_TITLE;                                            \
+        (shade_) = 0;                                                         \
+    } while (0)
+
+#define ENTER_GAME_OVER_TITLE(state_, shade_, rect_)                          \
+    do                                                                        \
+    {                                                                         \
+        RESET_GAME_OVER_TITLE_FADE(state_, shade_);                           \
+        (rect_).x = 0x280;                                                    \
+        (rect_).y = 360;                                                      \
+        (rect_).w = 0x100;                                                    \
+        GameClock = 0;                                                        \
+        (rect_).h = 0x28;                                                     \
+    } while (0)
+
+#define HANDLE_GAME_OVER_EXIT_INPUT(state_, new_press_)                       \
+    do                                                                        \
+    {                                                                         \
+        if (((new_press_) & PADRright) != 0)                                  \
+        {                                                                     \
+            (state_) = GAMEOVER_FADE_TO_RETRY;                                \
+        }                                                                     \
+        if (((new_press_) & PADstart) != 0 ||                                 \
+            GameClock >= GAME_OVER_TIMEOUT)                                   \
+        {                                                                     \
+            (state_) = GAMEOVER_FADE_TO_MENU;                                 \
+        }                                                                     \
+    } while (0)
+
 
 /*
  * game_over_screen_ (0x80055d64) — the mission-failed screen (invented
@@ -56,11 +99,13 @@
  * register. The dead prompt-attribute read is assigned to `increment`, which
  * is overwritten before any use, reproducing retail's retained v1 load.
  *
- * The zero-trip wrappers on three state transitions are load-bearing compiler
- * shape, plausibly left by statement-macro expansion: their four extra loop
- * depths raise the state allocno from 11 to 15 weighted references (priority
- * 939 versus the fade sprite's 930). Plain assignments rotate s6/s7/fp even
- * though the emitted transition instructions are otherwise identical.
+ * The screen phases use their own enum, and the compound transitions are safe
+ * statement operations.  ENTER_GAME_OVER_TITLE nests the phase/fade reset
+ * inside the viewport/timer setup; HANDLE_GAME_OVER_EXIT_INPUT owns both exit
+ * choices.  Those real operation scopes provide the four loop-depth-weighted
+ * state references needed for retail's saved-register order.  Flattening the
+ * operations rotates s6/s7/fp even though their runtime assignments are the
+ * same.
  */
 
 extern u8 CHOSEN_CHARACTER;
@@ -112,18 +157,7 @@ void game_over_screen_(void)
     u16 previous_pad;
     u16 new_press;
     s16 shade;
-    /* Fade up from black, hold on the title, let the player page to the
-     * archive text, then fade back down -- to a retry or to the menu,
-     * which is the only difference between the last two. */
-    enum
-    {
-        GAMEOVER_FADE_IN = 1,
-        GAMEOVER_TITLE = 2,
-        GAMEOVER_ARCHIVE = 3,
-        GAMEOVER_FADE_TO_RETRY = 4,
-        GAMEOVER_FADE_TO_MENU = 5
-    };
-    s32 state;
+    enum game_over_state state;
     s32 title_brightness;
     s32 setup_brightness;
     u32 color;
@@ -226,10 +260,6 @@ void game_over_screen_(void)
     VSync(0);
     _PlayMusic(MUSIC_TRACK_GAMEOVER, CDA_ONCE);
 
-    /* GCC 2.8 folds this bounded-state identity after flow; its four
-     * state reads together preserve the retail saved-register
-     * permutation (allocation staging, not recovered game logic). */
-    state = ((state + state) - state) & state;
     while (1)
     {
         StartDrawing();
@@ -241,13 +271,7 @@ void game_over_screen_(void)
             shade -= 2;
             if (shade <= 0)
             {
-                state = GAMEOVER_TITLE;
-                shade = 0;
-                clear_rect.x = 0x280;
-                clear_rect.y = 360;
-                clear_rect.w = 0x100;
-                GameClock = 0;
-                clear_rect.h = 0x28;
+                ENTER_GAME_OVER_TITLE(state, shade, clear_rect);
             }
             tile_sprite_(fade_sprite, shade);
             break;
@@ -305,14 +329,7 @@ void game_over_screen_(void)
             GsSortSprite(&archive_line_3, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
         sort_prompt_and_handle_input:
             GsSortSprite(&gov_prompt, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);
-            if ((new_press & PADRright) != 0)
-            {
-                state = GAMEOVER_FADE_TO_RETRY;
-            }
-            if ((new_press & PADstart) != 0 || GameClock >= GAME_OVER_TIMEOUT)
-            {
-                state = GAMEOVER_FADE_TO_MENU;
-            }
+            HANDLE_GAME_OVER_EXIT_INPUT(state, new_press);
             break;
 
         case GAMEOVER_FADE_TO_RETRY:
@@ -349,3 +366,6 @@ void game_over_screen_(void)
         EndDrawing(0);
     }
 }
+#undef HANDLE_GAME_OVER_EXIT_INPUT
+#undef ENTER_GAME_OVER_TITLE
+#undef RESET_GAME_OVER_TITLE_FADE
