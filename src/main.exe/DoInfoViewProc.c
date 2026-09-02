@@ -46,6 +46,9 @@
  *
  * Matching notes (all verified against the original bytes; see
  * docs/matching-cookbook.md):
+ *  - ItemAddMenu uses one ITEM_N-entry options buffer for both prompts; the
+ *    four quantity entries overwrite its prefix after the item is chosen.
+ *    No union is needed to express two sequential populations of one array.
  *  - The debug-menu case bodies are STATIC INLINE HELPERS — see the comment
  *    at the helpers below; this is what makes the menu-buffer addresses
  *    rematerialize per call and the buffers overlap (temp-slot reuse).
@@ -114,17 +117,13 @@ extern void PutMap(void);
 static inline void ItemAddMenu(void)
 {
     s32 n;
-    union
-    {
-        TAdtSelect ItemName[ITEM_N];
-        TAdtSelect Num[4];
-    } menu;
+    TAdtSelect menu_options[ITEM_N];
 
-    __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+    __builtin_memcpy(menu_options, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                      sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
-    n = AdtSelect(str_select_item, menu.ItemName, 0);
-    __builtin_memcpy(menu.Num, sel_quantity, sizeof(sel_quantity));
-    CamState.Owner->item[n] += AdtSelect(str_number_of, menu.Num, 0);
+    n = AdtSelect(str_select_item, menu_options, 0);
+    __builtin_memcpy(menu_options, sel_quantity, sizeof(sel_quantity));
+    CamState.Owner->item[n] += AdtSelect(str_number_of, menu_options, 0);
 }
 
 static inline void ItemLayoutMenu(void)

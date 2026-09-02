@@ -787,6 +787,12 @@ its item-name and quantity tables in an invented union. They are the same
 then four quantity choices at the same base. One ordinary maximum-sized array
 expresses that reuse and preserves all 364 bytes.
 
+DEBUG ITEM MENU BUFFER RECOVERED (2026-09-02): `DoInfoViewProc`'s inlined
+item-grant menu had the same invented item-name/quantity union. It too is one
+ITEM_N-entry `TAdtSelect` array repopulated for the second prompt. Removing the
+variant facade preserves all 1,352 bytes and the helper's required stack-slot
+reuse.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
