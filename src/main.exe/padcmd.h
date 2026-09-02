@@ -3,9 +3,9 @@
 
 struct PADtype;
 
-/* Saved/control-global values select one of four authored button maps. Row
- * zero is the canonical physical layout and is also the input side of every
- * remap operation. */
+/* Saved/control-global values select one of four authored button maps. The
+ * first eight-byte run is the canonical physical layout and is also the input
+ * side of every remap operation. */
 typedef s16 control_scheme;
 enum control_scheme
 {
@@ -16,9 +16,9 @@ enum control_scheme
     N_CONTROL_SCHEMES = 4
 };
 
-/* Column identities proven by ButtonAssign's default row. It contains
+/* Slot identities proven by ButtonAssign's default run. It contains
  * PADRdown, PADRleft, PADRup, PADRright, PADR1, PADR2, PADL1, and PADL2 in
- * this order; every alternate row is a permutation of those low-byte masks. */
+ * this order; every alternate run is a permutation of those low-byte masks. */
 enum control_remap_slot
 {
     CONTROL_REMAP_CROSS = 0,
@@ -29,11 +29,12 @@ enum control_remap_slot
     CONTROL_REMAP_R2 = 5,
     CONTROL_REMAP_L1 = 6,
     CONTROL_REMAP_L2 = 7,
-    BUTTONS_PER_CONTROL_SCHEME = 8
+    BUTTONS_PER_CONTROL_SCHEME = 8,
+    N_BUTTON_ASSIGNMENTS = N_CONTROL_SCHEMES * BUTTONS_PER_CONTROL_SCHEME
 };
 
-/* Each row maps the canonical button order above to one selectable layout. */
-extern u8 ButtonAssign[N_CONTROL_SCHEMES][BUTTONS_PER_CONTROL_SCHEME];
+/* Consecutive eight-byte runs map the canonical order to each layout. */
+extern u8 ButtonAssign[N_BUTTON_ASSIGNMENTS];
 extern control_scheme ControlScheme;
 
 /* game_types.h's pad_command values tag Command[] rows for SetCommand. Each
