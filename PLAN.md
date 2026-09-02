@@ -775,6 +775,12 @@ separate unsigned table captures remain because they explain the retail `lhu`
 loads; their identical x-conversion arms are still an explicit audit target,
 not a model for ordinary source.
 
+ENGAGE STANCE CONTROL FLOW RECOVERED (2026-09-02): `ActENGAGE`'s ordered turn,
+command, flip, and occasional-taunt selection is now one ordinary `if`/`else
+if` chain. Its common stage-end transition follows directly, while GCC emits
+the same shared join as retail. This removes six forward gotos and their label
+without changing any of the function's 1,388 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

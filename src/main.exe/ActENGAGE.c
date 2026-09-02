@@ -31,6 +31,9 @@
  * the next command, jump, attack, or item-use motion.
  *
  * Matching notes (1,388 bytes / 347 instructions):
+ *  - The engage-stance input priority is an ordinary `if`/`else if` chain.
+ *    Its common stage-end transition follows the chain directly; GCC emits
+ *    retail's shared join without source labels or gotos.
  *  - The successful command and item arms repeat the complete
  *    motID/motMODE/return tail.  jump2 merges the stores onto the final
  *    0x602 arm while retaining the target's separate constant-load islands.
@@ -59,30 +62,24 @@ void ActENGAGE(void)
         if (dtPAD & PADLright)
         {
             SET_MOTION(MOT_ENGAGE_TURN_R, MOTION_MOVE_NONE);
-            goto engage_case_post;
         }
-        if (dtPAD & PADLleft)
+        else if (dtPAD & PADLleft)
         {
             SET_MOTION(MOT_ENGAGE_TURN_L, MOTION_MOVE_NONE);
-            goto engage_case_post;
         }
-        if (dtCMD == CMD_LUNGE_BACK)
+        else if (dtCMD == CMD_LUNGE_BACK)
         {
             SET_MOTION(MOT_ATTACK_LUNGE_BACK, MOTION_MOVE_APPLY);
-            goto engage_case_post;
         }
-        if (dtCMD == CMD_FLIP)
+        else if (dtCMD == CMD_FLIP)
         {
             SET_MOTION(MOT_JUMP_FLIP, MOTION_MOVE_NONE);
             MoveHumanoid(Me_MOTION_C, CHASE_WALK_SPEED, 0);
-            goto engage_case_post;
         }
-        if (dtM->count != 0)
-            goto engage_case_post;
-        if (rand() % 20 != 0)
-            goto engage_case_post;
-        SET_MOTION(MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY);
-    engage_case_post:
+        else if (dtM->count == 0 && rand() % 20 == 0)
+        {
+            SET_MOTION(MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY);
+        }
         if (ActionHalt == ACTION_HALT_STAGE_END && dtM->count == 0)
         {
             registered_id = GetMotionID(dtM, MOT_ENGAGE_SHEATHE);
