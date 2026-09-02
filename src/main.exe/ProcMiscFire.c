@@ -61,12 +61,12 @@ void ProcMiscFire(TMisc *m, TMiscMessage msg)
     return;
 
 do_create:
-    m->mode.raw = 0;
+    m->mode = 0;
     m->count = 10;
     return;
 
 do_check:
-    if (m->mode.raw != 0)
+    if (m->mode != 0)
         return;
     m->count--;
     if (m->count < 1)

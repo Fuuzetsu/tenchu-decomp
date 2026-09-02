@@ -89,7 +89,7 @@ do_create:
 
     w = ((volatile TSnowfall *)&m->param.snowfall)->w;
     h = ((volatile TSnowfall *)&m->param.snowfall)->h;
-    m->mode.raw = 0;
+    m->mode = 0;
     param->h = h;
 }
     return;

@@ -75,7 +75,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         AdtMessageBox(fmt_unknown_door_type, type);
         type = 0;
     }
-    m->mode.door = DOOR_MODE_IDLE;
+    m->mode = DOOR_MODE_IDLE;
     param->r = 0;
     param->type = type;
     param->locate = LoadModel(0);
@@ -125,7 +125,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     s32 w;
     MiscModelReference model;
 
-    switch (m->mode.door)
+    switch (m->mode)
     {
     case DOOR_MODE_IDLE:
         if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
@@ -152,7 +152,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
                 else
                     dir = -DOOR_ANGLE_STEP;
                 param->dr = dir;
-                m->mode.door++;
+                m->mode++;
                 if (param->r == 0)
                     SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);
             }
@@ -169,7 +169,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         if (r < DOOR_OPEN_ANGLE)
             param->r += param->dr;
         else
-            m->mode.door = DOOR_MODE_IDLE;
+            m->mode = DOOR_MODE_IDLE;
     }
     break;
     }

@@ -76,14 +76,6 @@ enum pitfall_mode
     PITFALL_MODE_OPEN = 2
 };
 
-typedef union MiscMode MiscMode;
-union MiscMode
-{
-    u8 raw;
-    door_mode door;
-    pitfall_mode pitfall;
-};
-
 /* The MISC_SPRITE variant of the param union (MISC__181fake's `sprite`
  * member, union MISC__181fake in reference/psxsym-types.h) — a single byte
  * at the union's base offset, reused after CREATE clamps/narrows the raw
@@ -217,7 +209,7 @@ struct tag_TMisc
     s32 z;                               /* 0x0C */
     s32 count;                           /* 0x10 */
     misc_pause_state pause;              /* 0x14 */
-    MiscMode mode;                       /* 0x15 */
+    u8 mode;                             /* 0x15 (PSX.SYM's original type) */
     MiscParameters param;                /* 0x18 */
 }; /* 0x24 */
 

@@ -70,11 +70,11 @@ void proc_misc_puff_(TMisc *m, TMiscMessage msg)
     return;
 
 reset:
-    m->mode.raw = 0;
+    m->mode = 0;
     return;
 
 normal:
-    if (m->mode.raw != 0)
+    if (m->mode != 0)
         return;
 
     x = m->x;

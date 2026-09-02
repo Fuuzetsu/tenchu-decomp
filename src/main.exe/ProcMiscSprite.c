@@ -73,7 +73,7 @@ do_create:
         AdtMessageBox(msg_unknown_sprite_type);
         type = 0;
     }
-    m->mode.raw = 0;
+    m->mode = 0;
     m->param.sprite.type = (u8)type;
     return;
 

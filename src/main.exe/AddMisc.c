@@ -113,7 +113,7 @@ loop:
     {
         do
         {
-            p->mode.raw = 0;
+            p->mode = 0;
             p->x = x;
             p->y = y;
             p->z = z;

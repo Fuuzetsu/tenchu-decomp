@@ -101,11 +101,11 @@ reset:
     tmp.sound_index = m->param.sound_init.sound.index;
     tmp.next = GameClock;
     *sched = tmp;
-    m->mode.raw = 0;
+    m->mode = 0;
     return;
 
 normal:
-    if (m->mode.raw != 0)
+    if (m->mode != 0)
         return;
     if (sched->next > GameClock)
         return;
