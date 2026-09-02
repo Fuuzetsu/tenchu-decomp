@@ -64,7 +64,7 @@ void AttackControl(void)
     {
         Humanoid *enemy;
 
-        if ((u16)Me_MOTION_C->type < 2)
+        if ((u16)Me_MOTION_C->type < N_PLAYABLE_CHARACTERS)
         {
             enemy = GetNearestHumanoid(Me_MOTION_C, Me_MOTION_C->width + 1000);
             if (enemy != NULL)

@@ -4,7 +4,7 @@
 
 /*
  * get_henshin_type_ (0x8004a598, 0x34 bytes) — 2-column byte-table lookup:
- * row = idx, column = (chr == 1). No direct (jal) callers found
+ * row = idx, column = (chr == AYAME_0). No direct (jal) callers found
  * (tools/xref.py); reached indirectly (proc pointer or similar).
  *
  * Matching notes (docs/matching-cookbook.md):
@@ -15,7 +15,7 @@
  *    (a plain `int` index would need only a single `sll 1`). Both params
  *    are `short` in source.
  *  - The column flag needs its OWN earlier statement (`flag = (chr ==
- *    1);` before the return) — inlined into the array subscript directly
+ *    AYAME_0);` before the return) — inlined into the array subscript directly
  *    it either mismerges into the row term or (added as a raw `+` operand)
  *    materializes via a branch instead of the target's `xori`+`sltiu`.
  *  - That flag temp must be `int`, not `short`: with `short flag` the la
@@ -30,6 +30,6 @@ u8 get_henshin_type_(short chr, short idx)
 {
     int flag;
 
-    flag = (chr == 1);
+    flag = (chr == AYAME_0);
     return HensinT[idx].type[flag];
 }

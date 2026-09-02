@@ -46,7 +46,7 @@ MapVector *StickonCheck(void)
 {
     facing_angle rv;
 
-    if ((u16)Me_MOTION_C->type >= 2)
+    if ((u16)Me_MOTION_C->type >= N_PLAYABLE_CHARACTERS)
     {
         return 0;
     }

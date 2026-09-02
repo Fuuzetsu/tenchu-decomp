@@ -93,7 +93,7 @@ Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
 
     idx = -1;
     /* (u16): the sltiu range test is in the bytes. */
-    if ((u16)type > 1)
+    if ((u16)type >= N_PLAYABLE_CHARACTERS)
     {
         idtbl = StageAppearance[NowStage];
         idx = 0;
