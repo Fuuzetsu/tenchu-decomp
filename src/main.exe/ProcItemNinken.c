@@ -28,10 +28,9 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-/* Retail reuses the spawn query slot for the case-1 smoke vector. The inner
- * union makes that lifetime overlap explicit and restores PSX.SYM's `vec`
- * name without casting a VECTOR. The case-2 `vec` is a separate block local
- * in the original source and shares the outer frame slot here. */
+/* Retail reuses the completed spawn-query vector for the case-1 smoke
+ * direction. The case-2 `vec` is a separate block local in the original
+ * source and shares the outer frame slot here. */
 typedef union
 {
     struct
@@ -45,11 +44,7 @@ typedef union
     struct
     {
         VECTOR pos;
-        union
-        {
-            VECTOR query;
-            SVECTOR vec;
-        } work;
+        VECTOR work;
         MapVector map;
     } spawn;
     SVECTOR vec;
@@ -212,15 +207,15 @@ void ProcItemNinken(TItem *item)
         }
 
         position = &scratch.spawn.pos;
-        query = &scratch.spawn.work.query;
+        query = &scratch.spawn.work;
         map = &scratch.spawn.map;
         scratch.spawn.pos.vx = item->locate->locate.coord.t[0];
         scratch.spawn.pos.vy = item->locate->locate.coord.t[1];
         scratch.spawn.pos.vz = item->locate->locate.coord.t[2];
-        scratch.spawn.work.query.vx = position->vx;
-        scratch.spawn.work.query.vy = position->vy;
-        scratch.spawn.work.query.vz = position->vz;
-        scratch.spawn.work.query.vy -= 2000;
+        scratch.spawn.work.vx = position->vx;
+        scratch.spawn.work.vy = position->vy;
+        scratch.spawn.work.vz = position->vz;
+        scratch.spawn.work.vy -= 2000;
         GetAreaMapVector(GlobalAreaMap, map, query, 500, AREA_LEVEL_DEFAULT);
 
         if (scratch.spawn.map.level >= position->vy - 500)
@@ -243,8 +238,8 @@ void ProcItemNinken(TItem *item)
             return;
         }
 
-        scratch.spawn.work.vec = svec_y_n50[0];
-        SetSmoke(&scratch.spawn.pos, &scratch.spawn.work.vec, 10, 6);
+        *(SVECTOR *)&scratch.spawn.work = svec_y_n50[0];
+        SetSmoke(&scratch.spawn.pos, (SVECTOR *)&scratch.spawn.work, 10, 6);
         SoundEx(&scratch.spawn.pos, SE_SMOKE_PUFF);
         param->slave = NINKEN_CHARACTER_PTR;
         NINKEN_CHARACTER_PTR->status = STAT_NORMAL;
