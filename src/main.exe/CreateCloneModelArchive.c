@@ -83,20 +83,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
     newmad->n = mad->n;
     newmad->object = (ModelType **)valloc(newmad->n * sizeof(ModelType *));
-    GsInitCoordinate2(mad->locate.super, &newmad->locate);
-    newmad->locate.coord.t[0] = 0;
-    newmad->locate.coord.t[1] = 0;
-    newmad->locate.coord.t[2] = 0;
-    newmad->rotate.vx = 0;
-    newmad->rotate.vy = 0;
-    newmad->rotate.vz = 0;
-    newmad->clip.vx = 0;
-    newmad->clip.vy = 0;
-    newmad->clip.vz = 0;
-    RotMatrixYXZ(&newmad->rotate, &newmad->locate.coord);
-    newmad->locate.flg = 0;
-    newmad->id = CONFLICT_NONE;
-    newmad->attribute = 0;
+    INITIALIZE_MODEL_ARCHIVE(newmad, mad->locate.super);
     i = 0;
     if (newmad->n > 0)
     {

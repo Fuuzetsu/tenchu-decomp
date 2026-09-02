@@ -34,4 +34,22 @@
         (ornament_)->locate.flg = 0;                                         \
     }
 
+#define INITIALIZE_MODEL_ARCHIVE(archive_, parent_)                          \
+    {                                                                         \
+        GsInitCoordinate2((parent_), &(archive_)->locate);                    \
+        (archive_)->locate.coord.t[0] = 0;                                   \
+        (archive_)->locate.coord.t[1] = 0;                                   \
+        (archive_)->locate.coord.t[2] = 0;                                   \
+        (archive_)->rotate.vx = 0;                                           \
+        (archive_)->rotate.vy = 0;                                           \
+        (archive_)->rotate.vz = 0;                                           \
+        (archive_)->clip.vx = 0;                                             \
+        (archive_)->clip.vy = 0;                                             \
+        (archive_)->clip.vz = 0;                                             \
+        RotMatrixYXZ(&(archive_)->rotate, &(archive_)->locate.coord);         \
+        (archive_)->locate.flg = 0;                                          \
+        (archive_)->id = CONFLICT_NONE;                                      \
+        (archive_)->attribute = 0;                                           \
+    }
+
 #endif

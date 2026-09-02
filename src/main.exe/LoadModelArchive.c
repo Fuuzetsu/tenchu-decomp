@@ -93,21 +93,8 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     {
         prnt = &World;
     }
-    GsInitCoordinate2(&prnt->locate, &mad->locate);
-    mad->locate.coord.t[0] = 0;
-    mad->locate.coord.t[1] = 0;
-    mad->locate.coord.t[2] = 0;
-    mad->rotate.vx = 0;
-    mad->rotate.vy = 0;
-    mad->rotate.vz = 0;
-    mad->clip.vx = 0;
-    mad->clip.vy = 0;
-    mad->clip.vz = 0;
-    RotMatrixYXZ(&mad->rotate, &mad->locate.coord);
+    INITIALIZE_MODEL_ARCHIVE(mad, &prnt->locate);
     i = 0;
-    mad->locate.flg = 0;
-    mad->id = CONFLICT_NONE;
-    mad->attribute = 0;
     count = mad->n;
     if (mad->n > 0)
     {
