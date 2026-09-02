@@ -4,10 +4,8 @@
 
 /*
  * set_model_hide_ (0x800270f8, 0x118 bytes) — toggles bit 0 of ModelType.attribute
- * (item.h: proven s16 field, read/written here as u16 through an offset cast
- * off the same proven Humanoid->model->object[] pointer — the divergent-width
- * cast the cookbook documents for a TU that treats a sibling TU's proven
- * signed field as a bit-flag) across a Humanoid's model part list: always
+ * (a proven s16 field, read/written by item.h's shared body-part macros
+ * through their u16 flag view) across a Humanoid's model part list: always
  * part 0 (root), plus parts 7..min(model->n,13)-1 when that range is
  * non-empty. `hide` (param_2, Ghidra's naming) selects clear-bit0 (0) vs
  * set-bit0 (nonzero). Callers ProcItemNinken and SwimCheck suggest this
@@ -27,18 +25,20 @@
  *    AWAY to the `hide == 0` (clear-bit) body — write `if (hide != 0) {
  *    ...; return; } ...` (both fixes verified against matchdiff).
  *  - The clear-bit AND uses a register mask (`li $t0,-2; and`), not `andi
- *    0xfffe`, ONLY inside the loop — this is what a plain (non-truncating)
- *    `int attr = *(u16*)&...; attr = attr & ~MODEL_ATTR_HIDDEN; *(u16*)&... = attr;` produces
- *    (the truncating compound form `x &= ~1;`/`x &= 0xfffe;` folds the mask
+ *    0xfffe`, ONLY inside the loop. SHOW_HUMANOID_BODY_PARTS keeps the
+ *    loaded u16 promoted to int, which produces that non-truncating form
+ *    (the compound form `x &= ~1;`/`x &= 0xfffe;` folds the mask
  *    to 16 bits and emits andi instead) — the one-shot "entry 0" epilogue
  *    store, by contrast, DOES want the plain truncating `&= 0xfffe;` form
  *    (andi). Both confirmed against matchdiff.
  *
  *  - `model->object[i++]` is the narrow postincremented subscript that makes
  *    cc1 preserve the target's explicit working copy of `i` around the scale.
- *  - The pointer and value temporaries are block-local to EACH loop. Sharing
- *    them across the two disjoint loops merges their allocnos, raises the
- *    value's priority, and swaps the target's pointer `$a0` / value `$v0`.
+ *  - SHOW_HUMANOID_BODY_PARTS and HIDE_HUMANOID_BODY_PARTS deliberately
+ *    declare their pointer and value temporaries inside each expansion.
+ *    Sharing them across the two disjoint loops merges their allocnos,
+ *    raises the value's priority, and swaps the target's pointer `$a0` /
+ *    value `$v0`.
  */
 
 void set_model_hide_(Humanoid *human, s16 hide)
@@ -58,30 +58,8 @@ void set_model_hide_(Humanoid *human, s16 hide)
     }
     if (hide != 0)
     {
-        i = 7;
-        while (i <= last)
-        {
-            u16 *attribute;
-            int attr;
-
-            attribute = (u16 *)&model->object[i++]->attribute;
-            attr = *attribute;
-            attr = attr | MODEL_ATTR_HIDDEN;
-            *attribute = attr;
-        }
-        model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
+        HIDE_HUMANOID_BODY_PARTS(model, last, i);
         return;
     }
-    i = 7;
-    while (i <= last)
-    {
-        u16 *attribute;
-        int attr;
-
-        attribute = (u16 *)&model->object[i++]->attribute;
-        attr = *attribute;
-        attr = attr & ~MODEL_ATTR_HIDDEN;
-        *attribute = attr;
-    }
-    model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+    SHOW_HUMANOID_BODY_PARTS(model, last, i);
 }

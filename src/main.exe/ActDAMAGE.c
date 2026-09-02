@@ -76,18 +76,7 @@ void ActDAMAGE(void)
                 last = 12;
             else
                 last = model->n - 1;
-            i = 7;
-            while (i <= last)
-            {
-                u16 *attribute;
-                int attr;
-
-                attribute = (u16 *)&model->object[i++]->attribute;
-                attr = *attribute;
-                attr = attr & ~MODEL_ATTR_HIDDEN;
-                *attribute = attr;
-            }
-            model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+            SHOW_HUMANOID_BODY_PARTS(model, last, i);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -120,18 +109,7 @@ void ActDAMAGE(void)
                 last = 12;
             else
                 last = model->n - 1;
-            i = 7;
-            while (i <= last)
-            {
-                u16 *attribute;
-                int attr;
-
-                attribute = (u16 *)&model->object[i++]->attribute;
-                attr = *attribute;
-                attr = attr & ~MODEL_ATTR_HIDDEN;
-                *attribute = attr;
-            }
-            model->object[MODEL_PART_WAIST]->attribute &= ~MODEL_ATTR_HIDDEN;
+            SHOW_HUMANOID_BODY_PARTS(model, last, i);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {

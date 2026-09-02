@@ -42,7 +42,6 @@ void ActSWIM(void)
 {
     enum
     {
-        FIRST_SWIM_HIDDEN_PART = 7,
         LAST_SWIM_HIDDEN_PART = 12,
         SWIM_EXIT_MOVE_FRAME = 40,
         SWIM_EXIT_SPEED = 100
@@ -191,20 +190,7 @@ void ActSWIM(void)
                 last_exit_part = LAST_SWIM_HIDDEN_PART;
             else
                 last_exit_part = exit_model->n - 1;
-            exit_part = FIRST_SWIM_HIDDEN_PART;
-            while (exit_part <= last_exit_part)
-            {
-                u16 *part_attribute;
-                int visible_attribute;
-
-                part_attribute =
-                    (u16 *)&exit_model->object[exit_part++]->attribute;
-                visible_attribute = *part_attribute;
-                visible_attribute = visible_attribute & ~MODEL_ATTR_HIDDEN;
-                *part_attribute = visible_attribute;
-            }
-            *(u16 *)&exit_model->object[MODEL_PART_WAIST]->attribute &=
-                ~MODEL_ATTR_HIDDEN;
+            SHOW_HUMANOID_BODY_PARTS(exit_model, last_exit_part, exit_part);
             Sound(Me_MOTION_C, SE_WATER_MOVE);
             return;
         }
@@ -251,20 +237,7 @@ void ActSWIM(void)
             last_item_part = LAST_SWIM_HIDDEN_PART;
         else
             last_item_part = item_model->n - 1;
-        item_part = FIRST_SWIM_HIDDEN_PART;
-        while (item_part <= last_item_part)
-        {
-            u16 *part_attribute;
-            int visible_attribute;
-
-            part_attribute =
-                (u16 *)&item_model->object[item_part++]->attribute;
-            visible_attribute = *part_attribute;
-            visible_attribute = visible_attribute & ~MODEL_ATTR_HIDDEN;
-            *part_attribute = visible_attribute;
-        }
-        *(u16 *)&item_model->object[MODEL_PART_WAIST]->attribute &=
-            ~MODEL_ATTR_HIDDEN;
+        SHOW_HUMANOID_BODY_PARTS(item_model, last_item_part, item_part);
     }
 
     switch (SelectedItem)

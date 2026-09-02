@@ -258,6 +258,40 @@ typedef struct Humanoid
                                * DoInfoViewProc's cursor wraps at ITEM_N) */
 } Humanoid;
 
+/* Shared source operations for the repeated model-part visibility loops in
+ * ActDAMAGE, ActKAGI, ActSWIM, and set_model_hide_. `last_` is the caller's
+ * model-size-clamped final index and `part_` remains caller-owned so the
+ * original narrow induction variable and control-flow shape are preserved. */
+#define SHOW_HUMANOID_BODY_PARTS(model_, last_, part_)                       \
+    (part_) = 7;                                                              \
+    while ((part_) <= (last_))                                                \
+    {                                                                         \
+        u16 *attribute_;                                                      \
+        int visible_attribute_;                                               \
+                                                                              \
+        attribute_ = (u16 *)&(model_)->object[(part_)++]->attribute;           \
+        visible_attribute_ = *attribute_;                                     \
+        visible_attribute_ &= ~MODEL_ATTR_HIDDEN;                             \
+        *attribute_ = visible_attribute_;                                     \
+    }                                                                         \
+    *(u16 *)&(model_)->object[MODEL_PART_WAIST]->attribute &=                  \
+        ~MODEL_ATTR_HIDDEN
+
+#define HIDE_HUMANOID_BODY_PARTS(model_, last_, part_)                        \
+    (part_) = 7;                                                              \
+    while ((part_) <= (last_))                                                \
+    {                                                                         \
+        u16 *attribute_;                                                      \
+        int hidden_attribute_;                                                \
+                                                                              \
+        attribute_ = (u16 *)&(model_)->object[(part_)++]->attribute;           \
+        hidden_attribute_ = *attribute_;                                      \
+        hidden_attribute_ |= MODEL_ATTR_HIDDEN;                               \
+        *attribute_ = hidden_attribute_;                                      \
+    }                                                                         \
+    *(u16 *)&(model_)->object[MODEL_PART_WAIST]->attribute |=                  \
+        MODEL_ATTR_HIDDEN
+
 /* An item owner is normally the Humanoid that launched or placed it.  World
  * items use the same word as an owner tag instead. */
 typedef union ItemOwnerReference ItemOwnerReference;

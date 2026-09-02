@@ -166,12 +166,7 @@ void ActKAGI(void)
             {
                 ry = model->n - 1;
             }
-            i = 7;
-            while (i <= ry)
-            {
-                model->object[i++]->attribute |= MODEL_ATTR_HIDDEN;
-            }
-            *(u16 *)&model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_HIDDEN;
+            HIDE_HUMANOID_BODY_PARTS(model, ry, i);
             SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
             dtM->mask = MOTION_MASK_ALL;
         }
