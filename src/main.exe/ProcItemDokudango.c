@@ -49,6 +49,36 @@ extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1target(void);
 
+static inline void restore_dokudango_target(TItem *item,
+                                             param_dokudango *param)
+{
+    param_dokudango *restore_param;
+
+    restore_param = param;
+    if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
+        restore_param->org_think != 0)
+    {
+        restore_param->eater->think[0] = restore_param->org_think;
+        restore_param->eater->target = &item->owner->model->locate;
+    }
+    restore_param->eater = 0;
+}
+
+static inline void apply_dokudango_reaction(Humanoid *human,
+                                             motion_id reaction_motion)
+{
+    if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
+    {
+        MotionDataType *motion_data;
+
+        dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
+        UpdateMotion(human->motion, reaction_motion);
+        human->status = STAT_ITEM;
+        motion_data = human->motion->motion;
+        MoveHumanoid(human, motion_data->orderspd, motion_data->sidespd);
+    }
+}
+
 /*
  * Matching notes (2,468 bytes / 617 instructions):
  *  - The entry comparison and fast disposal use ITEM_MODE_DISPOSE, allowing
@@ -61,6 +91,10 @@ extern s16 Think1target(void);
  *  - The search indexes HumanGroup[] directly; PSX.SYM records its index and
  *    candidate but no cursor.  The one-shot candidate assignment is a required
  *    scheduling boundary: flattening it swaps the search and roster registers.
+ *  - The target-restoration and poison-reaction helpers inline at every use.
+ *    The former retains its internal `restore_param` alias because retail has
+ *    the corresponding register copy; the latter specializes its motion
+ *    argument at each branch and leaves the duplicated call layout intact.
  *  - Cleanup remains at each semantic exit so late cross-jumping can choose
  *    the target copies. DISPOSE_ITEM is exact at the two later exits, but its
  *    statement scope changes the fast path's s0/s1 priority, so that first
@@ -90,17 +124,7 @@ void ProcItemDokudango(TItem *item)
     param = &item->param.dokudango;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        param_dokudango *restore_param;
-
-        restore_param = param;
-        if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
-            restore_param->org_think != 0)
-        {
-            restore_param->eater->think[0] = restore_param->org_think;
-            restore_param->eater->target =
-                &item->owner->model->locate;
-        }
-        restore_param->eater = 0;
+        restore_dokudango_target(item, param);
         item->mode = DOKUDANGO_MODE_ROLL;
         return;
     }
@@ -264,19 +288,7 @@ void ProcItemDokudango(TItem *item)
             {
                 return;
             }
-            {
-                param_dokudango *restore_param;
-
-                restore_param = &item->param.dokudango;
-                if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
-                    restore_param->org_think != 0)
-                {
-                    restore_param->eater->think[0] = restore_param->org_think;
-                    restore_param->eater->target =
-                        &item->owner->model->locate;
-                }
-                restore_param->eater = 0;
-            }
+            restore_dokudango_target(item, &item->param.dokudango);
             param->eater = nearest_target;
             if (nearest_target->target ==
                 &item->owner->model->locate &&
@@ -375,18 +387,9 @@ void ProcItemDokudango(TItem *item)
             if (eating_motion->count == DOKUDANGO_EAT_FRAME)
             {
                 Humanoid *saved_eater;
-                param_dokudango *restore_param;
 
                 saved_eater = eater;
-                restore_param = &item->param.dokudango;
-                if (is_humanoid_on_stage_(restore_param->eater) != 0 &&
-                    restore_param->org_think != 0)
-                {
-                    restore_param->eater->think[0] = restore_param->org_think;
-                    restore_param->eater->target =
-                        &item->owner->model->locate;
-                }
-                restore_param->eater = 0;
+                restore_dokudango_target(item, &item->param.dokudango);
                 param->eater = saved_eater;
                 NowReturnNormal(saved_eater);
                 param->count = DOKUDANGO_POISON_DURATION;
@@ -447,30 +450,11 @@ void ProcItemDokudango(TItem *item)
             reaction_target = param->eater;
             if ((reaction_target->type & PAGE_MASK) == PAGE_BEAST)
             {
-                if (ActionHalt == ACTION_HALT_NONE && reaction_target->life > 0)
-                {
-                    MotionDataType *motion_data;
-
-                    dispose_weapon_data_of_char_(reaction_target,
-                                                 ATTACK_CANCEL_ALL);
-                    UpdateMotion(reaction_target->motion, MOT_DAMAGE);
-                    reaction_target->status = STAT_ITEM;
-                    motion_data = reaction_target->motion->motion;
-                    MoveHumanoid(reaction_target, motion_data->orderspd,
-                                 motion_data->sidespd);
-                }
+                apply_dokudango_reaction(reaction_target, MOT_DAMAGE);
             }
-            else if (ActionHalt == ACTION_HALT_NONE && reaction_target->life > 0)
+            else
             {
-                MotionDataType *motion_data;
-
-                dispose_weapon_data_of_char_(reaction_target,
-                                             ATTACK_CANCEL_ALL);
-                UpdateMotion(reaction_target->motion, MOT_DAMAGE_CHOKE);
-                reaction_target->status = STAT_ITEM;
-                motion_data = reaction_target->motion->motion;
-                MoveHumanoid(reaction_target, motion_data->orderspd,
-                             motion_data->sidespd);
+                apply_dokudango_reaction(reaction_target, MOT_DAMAGE_CHOKE);
             }
             Sound(param->eater, CHAR_VOICE_HURT);
             return;
