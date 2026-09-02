@@ -20,67 +20,81 @@ extern void reset_alert_duration(void);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 
-#define RECORD_PLAYER_KILL()                                                 \
-    if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_CIVILIAN)                    \
-    {                                                                         \
-        FriendHits++;                                                         \
-    }                                                                         \
-    else if ((Me_MOTION_C->attribute &                                       \
-              (ATTR_WEAPON_DRAWN | PHASE_ALERT)) == 0)                       \
-    {                                                                         \
-        Criticals++;                                                          \
-    }                                                                         \
-    else                                                                      \
-    {                                                                         \
-        Murders++;                                                            \
+static inline void RecordPlayerKill(Humanoid *victim)
+{
+    if ((victim->type & PAGE_MASK) == PAGE_CIVILIAN)
+    {
+        FriendHits++;
     }
-
-#define RECOIL_ATTACKER(rumble_power_, rumble_release_)                      \
-    if (enemy->status == STAT_ATTACK)                                   \
-    {                                                                         \
-        enemy->motion->loop = dmg / -3 - 1;                            \
-        enemy->vector.vz = 0;                                           \
-        enemy->vector.vx = 0;                                           \
-        if (StagePlayer == enemy)                                       \
-        {                                                                     \
-            PadShockAR(PAD_PORT_1, rumble_power_, RUMBLE_ATTACK_NORMAL,                \
-                       rumble_release_);                                      \
-        }                                                                     \
+    else if ((victim->attribute & (ATTR_WEAPON_DRAWN | PHASE_ALERT)) == 0)
+    {
+        Criticals++;
     }
-
-#define REQUEST_DAMAGE_FEEDBACK(rumble_release_)                             \
-    {                                                                         \
-        Humanoid *who;                                                        \
-                                                                              \
-        if (StagePlayer == Me_MOTION_C)                                       \
-        {                                                                     \
-            PadShockAR(PAD_PORT_1, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL,            \
-                       rumble_release_);                                      \
-            who = enemy;                                                \
-        }                                                                     \
-        else                                                                  \
-        {                                                                     \
-            who = Me_MOTION_C;                                                \
-        }                                                                     \
-        ReqLifeBar(who);                                                      \
+    else
+    {
+        Murders++;
     }
+}
 
-#define PLAY_RANDOM_HURT_VOICE(random_, sound_)                              \
-    random_ = rand();                                                         \
-    sound_ = CHAR_VOICE_HURT_ALT;                                             \
-    if ((random_ & 1) != 0)                                                   \
-    {                                                                         \
-        sound_ = CHAR_VOICE_HURT;                                             \
-    }                                                                         \
-    Sound(Me_MOTION_C, sound_)
-
-#define SNAP_TO_WAIST_CONFLICT(conflict_id_)                                 \
-    conflict_id_ = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;          \
-    if (conflict_id_ >= 0)                                                    \
-    {                                                                         \
-        dtL->vx = ConflictObject[conflict_id_].position.vx;                   \
-        dtL->vz = ConflictObject[conflict_id_].position.vz;                   \
+static inline void RecoilAttacker(Humanoid *attacker, short damage,
+                                  int rumble_power, int rumble_release)
+{
+    if (attacker->status == STAT_ATTACK)
+    {
+        attacker->motion->loop = damage / -3 - 1;
+        attacker->vector.vz = 0;
+        attacker->vector.vx = 0;
+        if (StagePlayer == attacker)
+        {
+            PadShockAR(PAD_PORT_1, rumble_power, RUMBLE_ATTACK_NORMAL,
+                       rumble_release);
+        }
     }
+}
+
+static inline void RequestDamageFeedback(Humanoid *attacker,
+                                         int rumble_release)
+{
+    Humanoid *who;
+
+    if (StagePlayer == Me_MOTION_C)
+    {
+        PadShockAR(PAD_PORT_1, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NORMAL,
+                   rumble_release);
+        who = attacker;
+    }
+    else
+    {
+        who = Me_MOTION_C;
+    }
+    ReqLifeBar(who);
+}
+
+static inline void PlayRandomHurtVoice(void)
+{
+    int random;
+    short sound;
+
+    random = rand();
+    sound = CHAR_VOICE_HURT_ALT;
+    if ((random & 1) != 0)
+    {
+        sound = CHAR_VOICE_HURT;
+    }
+    Sound(Me_MOTION_C, sound);
+}
+
+static inline void SnapToWaistConflict(void)
+{
+    int conflict_id;
+
+    conflict_id = Me_MOTION_C->model->object[MODEL_PART_WAIST]->id;
+    if (conflict_id >= 0)
+    {
+        dtL->vx = ConflictObject[conflict_id].position.vx;
+        dtL->vz = ConflictObject[conflict_id].position.vz;
+    }
+}
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -436,16 +450,13 @@ resolve_hit:
                         if ((item_type < ITEM_GUN) ||
                             (item_type > ITEM_ARROW && item_type != ITEM_LIGHTNINGBOLT))
                         {
-                            RECORD_PLAYER_KILL();
+                            RecordPlayerKill(Me_MOTION_C);
                         }
                     }
                 }
                 else
                 {
-                    int r;
-                    short sound_id;
-
-                    PLAY_RANDOM_HURT_VOICE(r, sound_id);
+                    PlayRandomHurtVoice();
                 }
             }
             if (StagePlayer == Me_MOTION_C)
@@ -543,11 +554,10 @@ resolve_hit:
                 }
                 if (UpdateMotion(dtM, MOT_ENGAGE) != 0)
                 {
-                    int conflict_id;
                     /* the blood/impact spawn point */
                     VECTOR *pp;
 
-                    SNAP_TO_WAIST_CONFLICT(conflict_id);
+                    SnapToWaistConflict();
                     mmp = dtM;
                     dtR->vy += did;
                     Me_MOTION_C->status = STAT_ENGAGE;
@@ -556,7 +566,8 @@ resolve_hit:
                     dmg = (u16)BattleDB[deg].power;
                     dtM->loop = -dmg - 8;
                     MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
-                    RECOIL_ATTACKER(RUMBLE_POWER_HALF, RUMBLE_RELEASE_NONE);
+                    RecoilAttacker(enemy, dmg, RUMBLE_POWER_HALF,
+                                   RUMBLE_RELEASE_NONE);
                     DeleteConflict(ConflictObject[(short)id].model);
                     pp = GetAbsolutePosition(
                         Me_MOTION_C->model->object[MODEL_PART_HEAD], 0,
@@ -570,7 +581,7 @@ resolve_hit:
                         SetBleed(pp, &pv, rand() % 20 + 20, COLOR_YELLOW);
                         t++;
                     } while (t < 10);
-                    REQUEST_DAMAGE_FEEDBACK(RUMBLE_RELEASE_NONE);
+                    RequestDamageFeedback(enemy, RUMBLE_RELEASE_NONE);
                     {
                         s16 r;
 
@@ -590,9 +601,7 @@ resolve_hit:
             }
         take_damage:
             {
-                int conflict_id;
-
-                SNAP_TO_WAIST_CONFLICT(conflict_id);
+                SnapToWaistConflict();
             }
             dmg = (u16)BattleDB[deg].power;
             if (enemy != StagePlayer)
@@ -706,7 +715,7 @@ resolve_hit:
                     }
                     if (enemy == StagePlayer)
                     {
-                        RECORD_PLAYER_KILL();
+                        RecordPlayerKill(Me_MOTION_C);
                     }
                     if ((Me_MOTION_C->attribute & (ATTR_WEAPON_DRAWN | PHASE_ALERT)) != 0)
                     {
@@ -732,19 +741,20 @@ resolve_hit:
                     reset_alert_duration();
                 }
             }
-            RECOIL_ATTACKER(RUMBLE_POWER_MAX, RUMBLE_RELEASE_SHORT);
+            RecoilAttacker(enemy, dmg, RUMBLE_POWER_MAX,
+                           RUMBLE_RELEASE_SHORT);
             DeleteConflict(ConflictObject[(short)id].model);
             p.vx = dtL->vx;
             p.vy = dtL->vy - Me_MOTION_C->height / 2;
             p.vz = dtL->vz;
             SetBlood(&p, 5, 120);
             SetImpact(&p, 6 * FIXED_ONE, IMPACT_SPRITE_HIT);
-            REQUEST_DAMAGE_FEEDBACK(RUMBLE_RELEASE_LONG);
+            RequestDamageFeedback(enemy, RUMBLE_RELEASE_LONG);
             {
                 int r;
                 short sound_id;
 
-                PLAY_RANDOM_HURT_VOICE(r, sound_id);
+                PlayRandomHurtVoice();
                 r = rand();
                 sound_id = CHAR_SE_IMPACT;
                 if ((r & 1) == 0 && Me_MOTION_C->life == 0)
@@ -782,8 +792,3 @@ resolve_hit:
     SET_NOW_MOTION_UNLESS_CVA(return);
     return;
 }
-#undef SNAP_TO_WAIST_CONFLICT
-#undef PLAY_RANDOM_HURT_VOICE
-#undef REQUEST_DAMAGE_FEEDBACK
-#undef RECOIL_ATTACKER
-#undef RECORD_PLAYER_KILL
