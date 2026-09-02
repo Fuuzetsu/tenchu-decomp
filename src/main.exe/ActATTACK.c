@@ -161,7 +161,6 @@ extern Humanoid *Me_MOTION_C;
 extern void DeleteConflict();
 
 extern void launch_lightning_bolt_(s16 frame);
-extern void AttackBowControl(s16 n);
 extern s16 AttackContinuousCheck(BattleType *battle);
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
@@ -323,7 +322,7 @@ dispatch:
             break;
         case ATTACK_MOTID_YUMI:
         case ATTACK_MOTID_KATAYUMI:
-            AttackBowControl(0);
+            AttackBowControl(BOW_TIMING_OPENING);
             break;
         }
         if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
@@ -378,7 +377,7 @@ dispatch:
         }
         else if (t == KATAYUMI)
         {
-            AttackBowControl(1);
+            AttackBowControl(BOW_TIMING_COMBO);
         }
         if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
             AttackContinuousCheck(battle) != 0)
@@ -407,7 +406,7 @@ dispatch:
         }
         else if (Me_MOTION_C->wpatk == KATAYUMI)
         {
-            AttackBowControl(1);
+            AttackBowControl(BOW_TIMING_COMBO);
         }
         if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
             AttackContinuousCheck(battle) != 0)

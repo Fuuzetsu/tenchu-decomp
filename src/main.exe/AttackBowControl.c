@@ -24,7 +24,7 @@
  * AttackBowControl (0x8001f5a8, 0x110 bytes) — bow attack-frame callback.
  * PSX.SYM's demo build took NO parameters at all (and never touched
  * FieldIndex/MotionUpdateMode); retail's `.s` proves a real `s16 n` PARAMETER
- * (the `(n<<16)>>14` fused sign-extend+×4-scale on the raw incoming $a0,
+ * (the `(timing_window<<16)>>14` fused sign-extend+×4-scale on the raw incoming $a0,
  * before anything is stored) selecting a `{min,max}` trigger-frame window —
  * ActATTACK's own (still-unmatched) call sites don't show an argument either
  * (same earlier-build/retail signature drift, on both ends of the call).
@@ -37,7 +37,7 @@
  * (`BowTiming`) in config/symbols.main.exe.txt since this was its only
  * `.s` referencer.
  *
- * `n` (the parameter) survives THREE calls (Sound/UpdateOrnament/
+ * `timing_window` survives THREE calls (Sound/UpdateOrnament/
  * DrawOrnament) in the first half, so it's cached into a callee-saved
  * register at entry and re-read (re-extended via the same shift pair) both
  * inside the first if/else and again for the wholly separate second
@@ -88,24 +88,17 @@
  *    order) all plateaued at exactly 15 — the copy is the only lever.
  */
 
-typedef struct BowTimingEntry
-{
-    s16 min;
-    s16 max;
-} BowTimingEntry;
-
-extern BowTimingEntry BowTiming[];
 extern Humanoid *Me_MOTION_C;
 extern void bow_shoot_logic(s16 kind, VECTOR *start);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern short DrawOrnament(OrnamentType *objp);
 
-static inline const BowTimingEntry *BowTimingFromByteOffset(s32 byte_offset)
+static inline const struct BowTimingEntry *BowTimingFromByteOffset(s32 byte_offset)
 {
-    return (const BowTimingEntry *)((const u8 *)BowTiming + byte_offset);
+    return (const struct BowTimingEntry *)((const u8 *)BowTiming + byte_offset);
 }
 
-void AttackBowControl(s16 n)
+void AttackBowControl(s16 timing_window)
 {
     s16 count;
     VECTOR *pos;
@@ -114,9 +107,9 @@ void AttackBowControl(s16 n)
                             AttackGunControl; item.h's proven 0x28-byte struct) */
     SVECTOR vect;           /* PSX.SYM's "struct SVECTOR vect" (also unused) */
     s32 byte_offset;
-    const BowTimingEntry *p;
+    const struct BowTimingEntry *p;
     s32 byte_offset2;
-    const BowTimingEntry *p2;
+    const struct BowTimingEntry *p2;
 
     count = dtM->count;
     if (count == 1)
@@ -125,7 +118,7 @@ void AttackBowControl(s16 n)
     }
     else
     {
-        byte_offset = n << 2;
+        byte_offset = timing_window << 2;
         p = BowTimingFromByteOffset(byte_offset);
         if (p->min <= count && count < p->max)
         {
@@ -133,7 +126,7 @@ void AttackBowControl(s16 n)
             DrawOrnament(Me_MOTION_C->weapon[WEAPON_SLOT_INACTIVE_0]);
         }
     }
-    byte_offset2 = n;
+    byte_offset2 = timing_window;
     byte_offset2 = (s16)byte_offset2 << 2;
     p2 = BowTimingFromByteOffset(byte_offset2);
     if (dtM->count == p2->max)

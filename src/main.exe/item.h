@@ -81,6 +81,25 @@ enum melee_attack_timing
     MELEE_ATTACK_DECISION_PERIOD = 16
 };
 
+/* AttackBowControl selects one of the two consecutive frame ranges stored at
+ * BowTiming. The first range is used by the opening attack motion; chained
+ * bow attacks share the second range. */
+enum bow_timing_window
+{
+    BOW_TIMING_OPENING = 0,
+    BOW_TIMING_COMBO = 1,
+    N_BOW_TIMING_WINDOWS = 2
+};
+
+struct BowTimingEntry
+{
+    s16 min;
+    s16 max;
+};
+
+extern struct BowTimingEntry BowTiming[N_BOW_TIMING_WINDOWS];
+extern void AttackBowControl(s16 timing_window);
+
 /* PSX.SYM maps this whole expansion to one source line in AttackGeneral and
  * AttackLong. AttackIndirect gained the same continuation policy in retail.
  * The one-shot region and result carrier preserve retail's separate zero and
