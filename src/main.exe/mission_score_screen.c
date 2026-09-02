@@ -25,6 +25,9 @@
  * call only DRAW_SCORE_DIGITS.  Their enclosing do/block shapes remain
  * load-bearing.  MissionScoreSpriteStorage likewise expresses the contiguous
  * result/rank/character stack-bank layout directly.
+ * DRAW_SCORE_RANK owns the complete high-score rank-icon operation.  Its safe
+ * statement scope gives the rank bank its natural loop weight; flattening the
+ * operation had required a folded self-cancellation on rankSpriteBase.
  * The dead rowScore declaration is also load-bearing: deleting its lexical
  * block lets GCC retain the 0x80010000 row base in s2 and makes the function
  * one instruction short, instead of rematerializing the base like retail.
@@ -150,6 +153,18 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         }                                                           \
         DRAW_SCORE_DIGITS(sprite_, value, negative);                 \
     }
+
+#define DRAW_SCORE_RANK(bank_, index_)                                      \
+    do                                                                        \
+    {                                                                         \
+        register GsSPRITE *rankSprite =                                       \
+            &(bank_)[SCORE_STATE->t_dani[index_]];                            \
+        rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;                 \
+        rankSprite->scalex = rankSprite->scaley = 0xB33;                      \
+        rankSprite->x = -0x2F;                                                \
+        rankSprite->y = index_ * SCORE_ROW_SPACING + SCORE_ROW_SPACING;       \
+        GsSortSprite(rankSprite, OTablePt, 1);                                \
+    } while (0)
 
 #define SCORE_SPRITE_AT(bank_, index_)                               \
     ((GsSPRITE *)((u8 *)(bank_) + (index_) * sizeof(GsSPRITE)))
@@ -530,10 +545,7 @@ void mission_score_screen(void)
 
             i = 0;
             rowSprite = &number;
-            /* Allocation carrier: keep rankSpriteBase above the shared divisor. */
             rankSpriteBase = rankSprites;
-            /* allocation staging: folded after flow -- not recovered arithmetic */
-            rankSpriteBase = (GsSPRITE *)(((u32)rankSpriteBase + (u32)rankSpriteBase) - (u32)rankSpriteBase);
         do
         {
             s32 dividend;
@@ -599,15 +611,7 @@ void mission_score_screen(void)
             } while (0);
             GsSortSprite(sprite, OTablePt, 1);
 
-            {
-                register GsSPRITE *rankSprite =
-                    &rankSpriteBase[SCORE_STATE->t_dani[i]];
-                rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;
-                rankSprite->scalex = rankSprite->scaley = 0xB33;
-                rankSprite->x = -0x2F;
-                rankSprite->y = i * SCORE_ROW_SPACING + SCORE_ROW_SPACING;
-                GsSortSprite(rankSprite, OTablePt, 1);
-            }
+            DRAW_SCORE_RANK(rankSpriteBase, i);
             i++;
         } while (i < 3);
         }
@@ -659,6 +663,7 @@ void mission_score_screen(void)
     }
 }
 #undef SCORE_SPRITE_AT
+#undef DRAW_SCORE_RANK
 #undef DRAW_SCORE_NUMBER
 #undef DRAW_SCORE_COLON
 #undef DRAW_SCORE_DIGITS

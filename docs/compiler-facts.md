@@ -53,7 +53,10 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   ProcItemNingyo's flattened teardown needed a fake item-pointer identity to
   recover its s3/s4/s5 priority. Restoring the safe DISPOSE_ITEM statement
   scope supplies that weight with ordinary source; its collision initializer's
-  statement scope also replaces an empty scheduling fence.
+  statement scope also replaces an empty scheduling fence.  The score screen's
+  complete rank-icon operation behaves the same way: putting its seven setup/
+  draw statements back into DRAW_SCORE_RANK removes a folded bank-pointer
+  identity without changing the emitted code.
 - **ARRAY_REF gate**: `c-typeck.c:1406` builds an ARRAY_REF only when the operand
   has ARRAY_TYPE **and is not an INDIRECT_REF**. A pointer-to-array cast
   `(*(T (*)[N])p)[i]` is an INDIRECT_REF → index-first arithmetic; a one-field

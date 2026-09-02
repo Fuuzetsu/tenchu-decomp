@@ -2261,7 +2261,10 @@ irreducible nest: DrawConstruction's 3.
   initialization operation replaced the adjacent empty one-shot fence.
   LoadOrnamentArchive's two flattened archive passes hid the same loop-depth
   signal; rebuilding them as pre-tested infinite loops, with an ordinary
-  nested parent search, removed its `prntp` pointer cancellation exactly.
+  nested parent search, removed its `prntp` pointer cancellation exactly.  In
+  mission_score_screen, restoring the complete rank-icon statement macro did
+  the same for `rankSpriteBase`; operation-sized macros are worth testing
+  before accepting a fake consumer on one of their inputs.
 - **`*(u16 *)&x` on a field that is ALREADY 16 bits is noise; delete it.**
   The reinterpret only means something when it changes the access: it is
   load-bearing when it narrows a wider field (`GsDOBJ2.attribute` and
