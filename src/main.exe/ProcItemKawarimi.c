@@ -55,10 +55,9 @@
 
 #include "item.h"
 
-/* PSX.SYM names the particle output `pos` and `vec`. The output position is
- * an ordinary VECTOR; the adjacent work union records the genuine reuse in
- * which the temporary position is overwritten by two SVECTOR values used to
- * build and submit the output velocity. */
+/* PSX.SYM names the particle output `pos` and `vec`. The temporary position
+ * is copied out before its storage is reused as two short vectors for the
+ * velocity build. */
 void ProcItemKawarimi(TItem *item)
 {
     enum
@@ -71,15 +70,7 @@ void ProcItemKawarimi(TItem *item)
     param_drop *param;
     s32 particle_index;
     VECTOR position;
-    union
-    {
-        VECTOR position_build;
-        struct
-        {
-            SVECTOR velocity;
-            SVECTOR velocity_build;
-        } vectors;
-    } work;
+    VECTOR work;
 
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -100,21 +91,21 @@ void ProcItemKawarimi(TItem *item)
         {
             if (particle_index >= 0x14)
                 break;
-            memset(&work.position_build, 0, sizeof(VECTOR));
-            work.position_build.vx =
+            memset(&work, 0, sizeof(VECTOR));
+            work.vx =
                 item->owner->model->locate.coord.t[0] +
                 (rand() % 1000 - 500);
-            work.position_build.vy =
+            work.vy =
                 item->owner->model->locate.coord.t[1] +
                 (rand() % 1000 - 1200);
-            work.position_build.vz =
+            work.vz =
                 item->owner->model->locate.coord.t[2] +
                 (rand() % 1000 - 500);
-            position = work.position_build;
-            memset(&work.vectors.velocity_build, 0, sizeof(SVECTOR));
-            work.vectors.velocity_build.vy = rand() % 10 - 30;
-            work.vectors.velocity = work.vectors.velocity_build;
-            SetBleed(&position, &work.vectors.velocity,
+            position = work;
+            memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
+            ((SVECTOR *)&work)[1].vy = rand() % 10 - 30;
+            ((SVECTOR *)&work)[0] = ((SVECTOR *)&work)[1];
+            SetBleed(&position, (SVECTOR *)&work,
                      rand() % 16 + 15, RGB24(100, 200, 220));
             particle_index++;
         }
