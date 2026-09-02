@@ -38,7 +38,7 @@ extern s16 GotoPosition(s32 vx, s32 vz);
  *
  * If close (Distance < 10000) and not already in the "-2" SR state, clear
  * SR. While in the attack state (STAT_ATTACK): clear actflg,
- * zero out `chase.point[0]`/`chase.point[1]` (Ghidra's `some_other_x_position`/
+ * zero out `chase[0]`/`chase[1]` (Ghidra's `some_other_x_position`/
  * `some_other_z_position`), and SuccessionAttack(3000, 1500) for the result.
  * Else if not already acting (actflg == 0): if aim is close
  * (abs(Degree) < 1000) keep only the turn bits from GotoPosition
@@ -79,8 +79,8 @@ s16 Think3hitaway(void)
     if (Me_THINK_C->status == STAT_ATTACK)
     {
         Me_THINK_C->actflg = 0;
-        Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
-        Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;
+        Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+        Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
         return SuccessionAttack(3000, 1500);
     }
     else if (Me_THINK_C->actflg != 0)

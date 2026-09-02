@@ -27,7 +27,7 @@
 
 /*
  * Think helper: steer toward the target through a persistent random flank
- * offset (chase.point[0]/chase.point[1], re-rolled at `length` radius when
+ * offset (chase[0]/chase[1], re-rolled at `length` radius when
  * cleared or when the hit/push contact bits are up), returning
  * GotoPosition's command, or 0 when there is no target, the offset point is
  * nearly reached, the wall-contact bit is set, or the target is already close.
@@ -45,14 +45,16 @@ short ChasetoTarget(long length)
     me = Me_THINK_C;
     /* chase is formed before the target guard: byte-required (the addiu
      * fills the branch's delay slot; measured). */
-    chase = &me->chase.point[HUMANOID_CHASE_X];
+    chase = &me->chase[HUMANOID_CHASE_X];
     if (me->target == 0)
     {
         return 0;
     }
 
-    xx = me->target->locate.coord.t[0] + me->chase.point[HUMANOID_CHASE_X] - me->locate->vx;
-    zz = me->target->locate.coord.t[2] + chase[HUMANOID_CHASE_Z] - me->locate->vz;
+    xx = me->target->locate.coord.t[0] +
+         me->chase[HUMANOID_CHASE_X] - me->locate->vx;
+    zz = me->target->locate.coord.t[2] +
+         chase[HUMANOID_CHASE_Z] - me->locate->vz;
 
     if (((xx >= 0 ? xx : -xx) < 500 &&
          (zz >= 0 ? zz : -zz) < 500) ||
@@ -62,11 +64,11 @@ short ChasetoTarget(long length)
     }
 
     if ((Attrib & (ATTR_HIT | ATTR_PUSH)) != 0 ||
-        (me->chase.point[HUMANOID_CHASE_X] | chase[HUMANOID_CHASE_Z]) == 0)
+        (me->chase[HUMANOID_CHASE_X] | chase[HUMANOID_CHASE_Z]) == 0)
     {
         deg = rand();
         vx = rcos(deg) * length >> FIXED_SHIFT;
-        me->chase.point[HUMANOID_CHASE_X] = vx;
+        me->chase[HUMANOID_CHASE_X] = vx;
         vz = rsin(deg) * length >> FIXED_SHIFT;
         chase[HUMANOID_CHASE_Z] = vz;
     }

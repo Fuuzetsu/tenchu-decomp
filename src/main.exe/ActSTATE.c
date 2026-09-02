@@ -148,10 +148,10 @@ void ActSTATE(void)
             if ((human->attribute & ATTR_PHASE) == 0)
             {
                 human->attribute |= ATTR_SEARCH | PHASE_ALERT;
-                human->chase.point[HUMANOID_CHASE_X] = StagePlayer->locate->vx;
+                human->chase[HUMANOID_CHASE_X] = StagePlayer->locate->vx;
                 t = StagePlayer->locate->vz;
                 human->actscnt = 1;
-                human->chase.point[HUMANOID_CHASE_Z] = t;
+                human->chase[HUMANOID_CHASE_Z] = t;
             }
         }
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);

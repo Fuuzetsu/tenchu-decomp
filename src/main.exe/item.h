@@ -24,7 +24,7 @@
 #define N_WEAPON_SLOTS 4
 #define WEAPON_SLOT_NONE (-1)
 
-/* Components of Humanoid.point (home/spawn point) and chase.point (the
+/* Components of Humanoid.point (home/spawn point) and chase (the
  * current AI navigation point). */
 #define HUMANOID_HOME_X 0
 #define HUMANOID_HOME_Z 1
@@ -151,19 +151,6 @@ extern struct
     compact_character_kind type[N_PLAYABLE_CHARACTERS];
 } HensinT[N_HENSHIN_STAGE_ROWS];
 
-/* Target tracking only needs the common ModelType transform prefix. Character
- * model archives share that prefix and are cast when installed as targets. */
-
-/* THINK handlers use these two words as an X/Z navigation point. A dead
- * humanoid no longer navigates, so spread_blood_pool_ reuses the first word
- * as its pool-growth timer. */
-typedef union HumanoidChaseState HumanoidChaseState;
-union HumanoidChaseState
-{
-    s32 point[2];
-    s32 blood_pool_timer;
-}; /* 0x08 */
-
 typedef struct Humanoid
 {
     character_kind type;      /* 0x00 */
@@ -192,13 +179,16 @@ typedef struct Humanoid
     TraceLine *trace;         /* 0x70 (SetupTraceLine/ControlTraceLine;
                                  Ghidra's own independently-built Humanoid
                                  also names this exact offset `trace`) */
-    ModelType *target;        /* 0x74 (PSX.SYM's original field type) */
+    ModelType *target;        /* 0x74: PSX.SYM's original field type; character
+                                 archives share its transform prefix and are
+                                 cast when installed as targets */
     s32 point[2];             /* 0x78 (ground X/Z spawn position --
                                  BreedLife: point[0]=x via `sw a1,0x78(s0)`,
                                  point[1]=z via `sw s4,0x7C(s0)`; matches
                                  Ghidra's own independently-built Humanoid's
                                  `long point[2]` at this offset) */
-    HumanoidChaseState chase; /* 0x80: navigation point / blood-pool timer */
+    s32 chase[2];            /* 0x80: X/Z navigation point; element zero is
+                               reused as the blood-pool timer after death */
     u8 actmode;                /* 0x88: controller-specific progress */
     u8 actflg;                /* 0x89 */
     /* Free-running idle counter for the Think1* wander states. It only

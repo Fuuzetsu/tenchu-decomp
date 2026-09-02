@@ -47,7 +47,7 @@ s16 Think4contact(void)
         return 0;
     }
 
-    if (Me_THINK_C->chase.point[HUMANOID_CHASE_X] == 0 && Me_THINK_C->chase.point[HUMANOID_CHASE_Z] == 0)
+    if (Me_THINK_C->chase[HUMANOID_CHASE_X] == 0 && Me_THINK_C->chase[HUMANOID_CHASE_Z] == 0)
     {
         if (Me_THINK_C->actcnt >= THINK4_ABANDON_TICKS)
         {
@@ -72,14 +72,14 @@ s16 Think4contact(void)
         s32 dx, dz;
 
         Me_THINK_C->actscnt++;
-        dx = Me_THINK_C->chase.point[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
-        dz = Me_THINK_C->chase.point[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
+        dx = Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx;
+        dz = Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz;
         pad = GotoPosition(dx, dz);
         if (SquareRoot0(dx * dx + dz * dz) < THINK4_ARRIVAL_DISTANCE ||
             Me_THINK_C->actscnt == 0)
         {
-            Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
-            Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;
+            Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+            Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
             Me_THINK_C->actcnt = 0;
         }
     }

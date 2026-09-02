@@ -54,9 +54,9 @@ s16 think_alarm_reaction_(void)
     Humanoid *self;
 
     result = 0;
-    x_diff = Me_THINK_C->chase.point[HUMANOID_CHASE_X] -
+    x_diff = Me_THINK_C->chase[HUMANOID_CHASE_X] -
              Me_THINK_C->locate->vx;
-    z_diff = Me_THINK_C->chase.point[HUMANOID_CHASE_Z] -
+    z_diff = Me_THINK_C->chase[HUMANOID_CHASE_Z] -
              Me_THINK_C->locate->vz;
     state = Me_THINK_C->actscnt;
 
@@ -257,9 +257,9 @@ s16 think_alarm_reaction_(void)
             human->actcnt = 1;
             human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
 
-            human->chase.point[HUMANOID_CHASE_X] = Me_THINK_C->chase.point[HUMANOID_CHASE_X] +
+            human->chase[HUMANOID_CHASE_X] = Me_THINK_C->chase[HUMANOID_CHASE_X] +
                               (rand() % 5 - 2) * 500;
-            human->chase.point[HUMANOID_CHASE_Z] = Me_THINK_C->chase.point[HUMANOID_CHASE_Z] +
+            human->chase[HUMANOID_CHASE_Z] = Me_THINK_C->chase[HUMANOID_CHASE_Z] +
                               (rand() % 5 - 2) * 500;
             randomValue = rand();
             soundId = CHAR_VOICE_ACTION_B;

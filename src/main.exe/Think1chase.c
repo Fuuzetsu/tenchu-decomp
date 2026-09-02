@@ -61,19 +61,22 @@ s16 Think1chase(void)
         enemy = GetNearestHumanoid(Me_THINK_C, 5000);
         if (enemy != 0)
         {
-            Me_THINK_C->chase.point[HUMANOID_CHASE_X] = enemy->locate->vx;
-            Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = enemy->locate->vz;
+            Me_THINK_C->chase[HUMANOID_CHASE_X] = enemy->locate->vx;
+            Me_THINK_C->chase[HUMANOID_CHASE_Z] = enemy->locate->vz;
         }
         else
         {
-            Me_THINK_C->chase.point[HUMANOID_CHASE_X] = Me_THINK_C->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
-            Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = Me_THINK_C->point[HUMANOID_HOME_Z] + rand() % 10000 - 5000;
+            Me_THINK_C->chase[HUMANOID_CHASE_X] =
+                Me_THINK_C->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
+            Me_THINK_C->chase[HUMANOID_CHASE_Z] =
+                Me_THINK_C->point[HUMANOID_HOME_Z] + rand() % 10000 - 5000;
         }
     }
     else
     {
-        pad = GotoPosition(Me_THINK_C->chase.point[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx,
-                                  Me_THINK_C->chase.point[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz);
+        pad = GotoPosition(
+            Me_THINK_C->chase[HUMANOID_CHASE_X] - Me_THINK_C->locate->vx,
+            Me_THINK_C->chase[HUMANOID_CHASE_Z] - Me_THINK_C->locate->vz);
         if ((s16)pad == 0)
         {
             pad |= PADRleft;

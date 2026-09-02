@@ -64,7 +64,7 @@
  *    the same struct as item.h's `MotionManager` under this TU's own
  *    (weaker) name — `frames_since_animation_start`@0x2 is `count`.
  *    `some_other_x_position`/`some_other_z_position` (0x80/0x84) are
- *    item.h Humanoid's `chase.point[0]`/`chase.point[1]` under this TU's
+ *    item.h Humanoid's `chase[0]`/`chase[1]` under this TU's
  *    name (first function to prove the point through the Humanoid view).
  */
 
@@ -79,8 +79,8 @@ s16 Think4abandon(void)
     s16 pad;
 
     cleared = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
-    Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
-    Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;
+    Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+    Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
     if ((Me_THINK_C->type & PAGE_MASK) == PAGE_BOSS)
     {
         if ((u16)(SR - 1) < 2)

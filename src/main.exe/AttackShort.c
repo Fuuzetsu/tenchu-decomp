@@ -257,8 +257,8 @@ short AttackShort(void)
 
         Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
         me = Me_THINK_C;
-        Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
-        me->chase.point[HUMANOID_CHASE_X] = 0;
+        Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
+        me->chase[HUMANOID_CHASE_X] = 0;
         ItemUse();
         if (Distance > 5000)
         {
