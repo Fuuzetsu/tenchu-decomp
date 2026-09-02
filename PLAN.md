@@ -726,6 +726,13 @@ VECTOR again, while the adjacent union remains to describe the real reuse of
 the position-building storage as two velocity SVECTORs. All 784 bytes remain
 exact.
 
+SAVE ICON BLOCKS RECOVERED (2026-09-02): `SaveSI` no longer uses one-field
+array-wrapper structs to steer its 16-byte icon copies. The aligned and packed
+unaligned transfer records now expose the four words actually copied by each
+loop. Plain builtin memcpy was measured and rejected because GCC loses the
+aligned branch's pointee alignment; the four-word aggregate form remains exact
+across all 1,320 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

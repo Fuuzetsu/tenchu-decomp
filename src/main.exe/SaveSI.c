@@ -46,18 +46,23 @@
  */
 typedef struct
 {
-    u8 bytes[0x10];
-} SaveSIUnalignedChunk;
+    u32 word0;
+    u32 word1;
+    u32 word2;
+    u32 word3;
+} SaveSIAlignedChunk;
 
 typedef struct
 {
-    u32 words[4];
-} SaveSIAlignedChunk;
+    u32 word0;
+    u32 word1;
+    u32 word2;
+    u32 word3;
+} __attribute__((packed)) SaveSIUnalignedChunk;
 
-/* The icon loops keep distinct potentially-unaligned and aligned chunk
- * types so cc1 selects the retail load/store forms and register allocation.
- * A single fixed-size built-in copy changes that allocation in this larger
- * function; Clut's short copy does not need the distinction. */
+/* The icon-copy branches distinguish a word-aligned source from a potentially
+ * unaligned one. Whole-chunk assignments let cc1 emit the corresponding
+ * four-word block move in each branch. */
 
 extern char fmt_concat[];         /* "%s%s" */
 extern char fmt_card_name[];      /* "%s%d_%s" */
