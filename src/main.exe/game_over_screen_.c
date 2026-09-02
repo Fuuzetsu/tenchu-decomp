@@ -96,8 +96,9 @@ enum game_over_state
  * value) gives GCC 2.8.1 the target local-allocation and sprintf argument
  * schedule. The setup brightness and the later literal 0x80 intentionally
  * remain separate source values; GCC hoists the latter into its own saved
- * register. The dead prompt-attribute read is assigned to `increment`, which
- * is overwritten before any use, reproducing retail's retained v1 load.
+ * register. The prompt initializer snapshots and restores its attribute while
+ * filling the other fields. GCC removes the same-value store but retains the
+ * retail v1 load; `increment` is then reused by the fade loop.
  *
  * The screen phases use their own enum, and the compound transitions are safe
  * statement operations.  ENTER_GAME_OVER_TITLE nests the phase/fade reset
@@ -230,12 +231,13 @@ void game_over_screen_(void)
 
     tim = get_tim_from_archive(gov_archive, GAME_OVER_PROMPT_IMAGE);
     StartDemoInitSprite(tim, &image, &gov_prompt);
-    increment = *(volatile u32 *)&gov_prompt.attribute;
+    increment = gov_prompt.attribute;
     gov_prompt.y = 95;
     gov_prompt.x = 0;
     gov_prompt.r = setup_brightness;
     gov_prompt.g = setup_brightness;
     gov_prompt.b = setup_brightness;
+    gov_prompt.attribute = increment;
     gov_prompt.mx = gov_prompt.w >> 1;
     gov_prompt.my = gov_prompt.h >> 1;
     LoadTIM(tim);

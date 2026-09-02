@@ -13,12 +13,10 @@
  * STATUS: MATCHING — pure C, all 4636 bytes (1159 instructions) exact.
  *
  * The rank and character sprite initializers intentionally share the
- * function-scope `attribute` temporary.  The rank loop updates that value
- * before storing it, while the copied character initializer retains a
- * volatile attribute read whose value is overwritten. A plain read removes
- * retail's `lw` and shortens the function by four bytes. This is the sole
- * source qualifier left here; all `register` hints were measured inert and
- * removed.
+ * function-scope `attribute` temporary. The rank loop updates that value,
+ * while the copied character initializer restores it unchanged after filling
+ * the other fields. GCC removes the latter's same-value store but retains the
+ * retail `lw`; no qualifier is needed.
  *
  * The decimal rendering arithmetic is shared again without erasing its
  * allocation donors.  Eight ordinary sites use DRAW_SCORE_NUMBER; the
@@ -300,15 +298,16 @@ void mission_score_screen(void)
                                   2 * sizeof(u32) +
                                   N_STAGE_RANKS * sizeof(GsSPRITE));
         InitScoreSprite(tim, &image, initSprite);
-        /* Retail keeps this dead attribute load (value overwritten
-         * before any use) — a leftover of the rank-loop copy. */
-        attribute = *(u32 volatile *)&initSprite->attribute;
+        /* This copied initializer preserves the attribute without adding the
+         * rank loop's blend mask. GCC removes the same-value store below. */
+        attribute = initSprite->attribute;
         width = initSprite->w;
         height = initSprite->h;
         initSprite->x = -160;
         initSprite->y = -120;
         initSprite->g = initSprite->r = characterColour;
         initSprite->b = characterColour;
+        initSprite->attribute = attribute;
         initSprite->mx = width >> 1;
         initSprite->my = height >> 1;
         ResetScoreSpritePivot(characterSprites, i);
