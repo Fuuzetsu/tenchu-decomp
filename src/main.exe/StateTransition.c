@@ -78,6 +78,11 @@
  *    duplicated to delete its acyclic label.
  *  - The case-1 and case-3 Findenemies paths use one short-circuit eligibility
  *    guard each: type/search/target are all prerequisites for the same count.
+ *  - The alert attack filter is ordinary nested control flow. A downed player
+ *    masks attack buttons immediately; otherwise a sufficiently separated
+ *    target and non-ranged weapon take the same mask path, with unsuitable
+ *    attacks falling into the difficulty-based random veto. The positive
+ *    suitability test gives retail's mask-before-random block order directly.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -420,34 +425,30 @@ void StateTransition(Humanoid *human)
 
             if (StagePlayer->motion->mid == MOT_DAMAGE_DOWNED)
             {
-                goto mask_attack;
+                pad &= PAD_DIRECTION_BUTTONS;
             }
-
-            attacker = Me_THINK_C;
-            target_dy = attacker->target.model->locate.coord.t[1] -
-                        attacker->locate->vy;
-            target_dy = target_dy >= 0 ? target_dy : -target_dy;
-            if (target_dy < ATTACK_HEIGHT_RANGE)
+            else
             {
-                goto random_attack;
-            }
-            if (WEAPON_ATTACK_CLASS(attacker->wpatk) == WEAPON_ATTACK_RANGED)
-            {
-                goto random_attack;
-            }
-
-        mask_attack:
-            pad &= PAD_DIRECTION_BUTTONS;
-            goto attack_checked;
-
-        random_attack:
-            if (rand() % 4 - 2 >= (s32)gNannido)
-            {
-                pad = 0;
+                attacker = Me_THINK_C;
+                target_dy = attacker->target.model->locate.coord.t[1] -
+                            attacker->locate->vy;
+                target_dy = target_dy >= 0 ? target_dy : -target_dy;
+                if (target_dy >= ATTACK_HEIGHT_RANGE &&
+                    WEAPON_ATTACK_CLASS(attacker->wpatk) !=
+                        WEAPON_ATTACK_RANGED)
+                {
+                    pad &= PAD_DIRECTION_BUTTONS;
+                }
+                else
+                {
+                    if (rand() % 4 - 2 >= (s32)gNannido)
+                    {
+                        pad = 0;
+                    }
+                }
             }
         }
 
-    attack_checked:
         if (SR == SR_GONE)
         {
             Humanoid *searcher;

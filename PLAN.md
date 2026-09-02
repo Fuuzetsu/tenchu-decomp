@@ -812,6 +812,14 @@ successful path fall into playback. GCC merges the guards into retail's shared
 return block, removing three gotos and two labels while preserving all 884
 bytes. The event search remains the independently verified hand-rolled scan.
 
+ALERT ATTACK FILTER RECOVERED (2026-09-02): `StateTransition` no longer sends
+the alert attack policy through `mask_attack`, `random_attack`, and
+`attack_checked` labels. The downed-player case masks immediately; otherwise
+the positive tall-target/non-ranged condition selects that same mask, and the
+remaining attacks receive the difficulty-based random veto. This natural
+polarity produces retail's mask-before-random layout, removes four gotos and
+three labels, and preserves all 3,776 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
