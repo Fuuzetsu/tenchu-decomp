@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "images.h"
+#include "memcard.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
@@ -32,7 +33,6 @@
 extern u_long *McardVramSave;
 extern u8 *McardHelp;
 extern Sprite3D *McardSprite;
-extern Sprite3D *McardButtons[];
 
 extern char path_demo_start_card_j[];       /* K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt */
 extern char path_demo_start_mcard_tim[];    /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim */
@@ -42,9 +42,8 @@ extern char path_demo_start_xtoselj_tim[];  /* K:\\WORK\\CDIMAGE\\DEMO\\start\\x
 extern void *valloc(u32 size);
 extern void vfree(void *p);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern s32 draw_card_help_(s32 page, s32 pad);
 
-s32 setup_card_screen_(s16 mode)
+s32 setup_card_screen_(s16 operation)
 {
     u8 c;
     s32 size;
@@ -53,7 +52,7 @@ s32 setup_card_screen_(s16 mode)
     RECT rect;
     GsIMAGE image;
 
-    if (mode != 0)
+    if (operation != CARD_SCREEN_RESOURCES_ACQUIRE)
     {
         setRECT(&rect, MCARD_VRAM_X, MCARD_VRAM_Y, MCARD_VRAM_W, MCARD_VRAM_H);
         LoadImage(&rect, McardVramSave);
@@ -62,11 +61,11 @@ s32 setup_card_screen_(s16 mode)
         McardVramSave = 0;
         vfree(McardHelp);
         vfree(McardSprite);
-        vfree(McardButtons[0]);
-        vfree(McardButtons[1]);
-        vfree(McardButtons[2]);
-        vfree(McardButtons[3]);
-        vfree(McardButtons[4]);
+        vfree(McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]);
+        vfree(McardButtons[MCARD_BUTTON_ACKNOWLEDGE]);
+        vfree(McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]);
+        vfree(McardButtons[MCARD_BUTTON_FORMAT_CANCEL]);
+        vfree(McardButtons[MCARD_BUTTON_FORMAT_SELECTION_HINT]);
         return 0;
     }
 
@@ -107,36 +106,45 @@ s32 setup_card_screen_(s16 mode)
         tim = FileRead(path_demo_start_mbuttonj_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
-        McardButtons[0] = SetupSprite(0, &image);
-        McardButtons[0]->sprite.h >>= 1;
-        McardButtons[0]->sprite.my = image.ph >> 2;
-        McardButtons[0]->sprite.y = 60;
+        McardButtons[MCARD_BUTTON_CONFIRM_CANCEL] = SetupSprite(0, &image);
+        McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite.h >>= 1;
+        McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite.my = image.ph >> 2;
+        McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite.y = 60;
 
-        McardButtons[1] = SetupSprite(McardButtons[0], 0);
-        McardButtons[1]->sprite.v += image.ph >> 1;
+        McardButtons[MCARD_BUTTON_ACKNOWLEDGE] =
+            SetupSprite(McardButtons[MCARD_BUTTON_CONFIRM_CANCEL], 0);
+        McardButtons[MCARD_BUTTON_ACKNOWLEDGE]->sprite.v += image.ph >> 1;
 
-        McardButtons[2] = SetupSprite(McardButtons[0], 0);
-        McardButtons[2]->sprite.w = (McardButtons[0]->sprite.w >> 1) - 0x14;
-        McardButtons[2]->sprite.mx = (McardButtons[2]->sprite.w >> 1) + 10;
-        McardButtons[2]->sprite.x = -0x14;
-        McardButtons[2]->sprite.u += 0xf;
-        McardButtons[2]->sprite.attribute |=
+        McardButtons[MCARD_BUTTON_FORMAT_ACCEPT] =
+            SetupSprite(McardButtons[MCARD_BUTTON_CONFIRM_CANCEL], 0);
+        McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.w =
+            (McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite.w >> 1) - 0x14;
+        McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.mx =
+            (McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.w >> 1) + 10;
+        McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.x = -0x14;
+        McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.u += 0xf;
+        McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.attribute |=
             GS_ATTR_BLEND_MODE(GPU_BLEND_ADD_QUARTER);
 
-        McardButtons[3] = SetupSprite(McardButtons[0], 0);
-        McardButtons[3]->sprite.w = (McardButtons[0]->sprite.w >> 1) - 10;
-        McardButtons[3]->sprite.mx = McardButtons[3]->sprite.w >> 1;
-        McardButtons[3]->sprite.x = 0x1c;
-        McardButtons[3]->sprite.u += ((image.pw >> 1) * 4) + 10;
-        McardButtons[3]->sprite.attribute |=
+        McardButtons[MCARD_BUTTON_FORMAT_CANCEL] =
+            SetupSprite(McardButtons[MCARD_BUTTON_CONFIRM_CANCEL], 0);
+        McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.w =
+            (McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite.w >> 1) - 10;
+        McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.mx =
+            McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.w >> 1;
+        McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.x = 0x1c;
+        McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.u +=
+            ((image.pw >> 1) * 4) + 10;
+        McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.attribute |=
             GS_ATTR_BLEND_MODE(GPU_BLEND_ADD_QUARTER);
 
         tim = FileRead(path_demo_start_xtoselj_tim);
         GetTIMInfo(tim, &image);
         LoadTIMAndFree(tim);
-        McardButtons[4] = SetupSprite(0, &image);
-        McardButtons[4]->sprite.x = 2;
-        McardButtons[4]->sprite.y = 90;
+        McardButtons[MCARD_BUTTON_FORMAT_SELECTION_HINT] =
+            SetupSprite(0, &image);
+        McardButtons[MCARD_BUTTON_FORMAT_SELECTION_HINT]->sprite.x = 2;
+        McardButtons[MCARD_BUTTON_FORMAT_SELECTION_HINT]->sprite.y = 90;
         return 1;
     }
     return 0;

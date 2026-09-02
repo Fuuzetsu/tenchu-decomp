@@ -49,6 +49,26 @@ enum memcard_open_mode
     MEMCARD_OPEN_READ_ONLY = 1
 };
 
+/* setup_card_screen_ keeps the card UI's borrowed VRAM and sprite resources
+ * alive while the save state machine is running. */
+enum card_screen_resource_operation
+{
+    CARD_SCREEN_RESOURCES_ACQUIRE = 0,
+    CARD_SCREEN_RESOURCES_RELEASE = 1
+};
+
+/* Roles within McardButtons. The format prompt splits the ordinary
+ * confirm/cancel strip into independently highlighted accept/cancel choices. */
+enum card_button_sprite
+{
+    MCARD_BUTTON_CONFIRM_CANCEL = 0,
+    MCARD_BUTTON_ACKNOWLEDGE = 1,
+    MCARD_BUTTON_FORMAT_ACCEPT = 2,
+    MCARD_BUTTON_FORMAT_CANCEL = 3,
+    MCARD_BUTTON_FORMAT_SELECTION_HINT = 4,
+    N_MCARD_BUTTON_SPRITES = 5
+};
+
 /* Fixed 16-colour, 16x16 TIM layout used by the three memory-card icon
  * frames. The concrete payload sizes make the two variable TIM blocks a
  * fully typed file. */
@@ -197,6 +217,11 @@ extern s32 MemCardSync(enum memcard_sync_mode mode, s32 *command,
 
 extern void SaveSI(enum save_storage storage, u8 *name, void *data, s32 size);
 extern void *LoadSI(enum save_storage storage, u8 *name);
+
+struct Sprite3D;
+extern struct Sprite3D *McardButtons[N_MCARD_BUTTON_SPRITES];
+extern s32 setup_card_screen_(s16 operation);
+extern s32 draw_card_help_(s32 page, s32 pad);
 
 /* MEMCARD.C-private originally; extern because that source is split here. */
 extern unsigned char *TENCHU_ID;

@@ -50,7 +50,6 @@ extern card_state McardState;
 extern s16 McardPage;
 extern s16 McardRetry;
 
-extern s32 setup_card_screen_(s16 mode);
 /* The definition is s32 update_card_message_(s16 *state, u16 *message) --
  * this TU's swapped pointer types and s16 return are retail's own
  * prototype drift, and they are byte-required: correcting the extern (the
@@ -71,7 +70,7 @@ s32 update_card_screen_(s32 pad)
     u16 save_result_state;
     u16 incremented;
 
-    setup_card_screen_(0);
+    setup_card_screen_(CARD_SCREEN_RESOURCES_ACQUIRE);
     switch (McardState)
     {
     case CARD_STATE_NO_CARD:
@@ -239,7 +238,7 @@ s32 update_card_screen_(s32 pad)
         {
             McardPage = CARD_PAGE_NONE;
             McardRetry = 0;
-            setup_card_screen_(1);
+            setup_card_screen_(CARD_SCREEN_RESOURCES_RELEASE);
             if (McardState < CARD_STATE_SHOW_CHECKING)
             {
                 McardState = CARD_STATE_PREPARE_CHECK;

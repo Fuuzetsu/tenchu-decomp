@@ -2,6 +2,7 @@
 #include "sound.h"
 #include "main.exe.h"
 #include "images.h"
+#include "memcard.h"
 
 extern u8 *McardHelp;
 extern Sprite3D *McardSprite;
@@ -9,7 +10,6 @@ extern s16 McardStateFlag;
 extern s32 McardPageNow;
 extern s32 McardAnswered;
 extern u8 *McardPageText;
-extern Sprite3D *McardButtons[];
 
 extern void SetupTelop(u8 *telop, short line);
 extern s32 telop_text_width_(u8 *str);
@@ -111,7 +111,8 @@ s32 draw_card_help_(s32 page, s32 pad)
         goto done;
 
     case '.':
-        GsSortSprite(&McardButtons[1]->sprite, OTablePt, 0);
+        GsSortSprite(&McardButtons[MCARD_BUTTON_ACKNOWLEDGE]->sprite, OTablePt,
+                     0);
         if (pad != PADRright)
         {
             goto done;
@@ -123,17 +124,25 @@ s32 draw_card_help_(s32 page, s32 pad)
         {
             if (McardStateFlag != 0)
             {
-                McardButtons[2]->sprite.attribute &= ~GS_ATTR_SEMITRANS_ENABLE;
-                McardButtons[3]->sprite.attribute |= GS_ATTR_SEMITRANS_ENABLE;
+                McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.attribute &=
+                    ~GS_ATTR_SEMITRANS_ENABLE;
+                McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.attribute |=
+                    GS_ATTR_SEMITRANS_ENABLE;
             }
             else
             {
-                McardButtons[2]->sprite.attribute |= GS_ATTR_SEMITRANS_ENABLE;
-                McardButtons[3]->sprite.attribute &= ~GS_ATTR_SEMITRANS_ENABLE;
+                McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite.attribute |=
+                    GS_ATTR_SEMITRANS_ENABLE;
+                McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite.attribute &=
+                    ~GS_ATTR_SEMITRANS_ENABLE;
             }
-            GsSortSprite(&McardButtons[2]->sprite, OTablePt, 0);
-            GsSortSprite(&McardButtons[3]->sprite, OTablePt, 0);
-            GsSortSprite(&McardButtons[4]->sprite, OTablePt, 0);
+            GsSortSprite(&McardButtons[MCARD_BUTTON_FORMAT_ACCEPT]->sprite,
+                         OTablePt, 0);
+            GsSortSprite(&McardButtons[MCARD_BUTTON_FORMAT_CANCEL]->sprite,
+                         OTablePt, 0);
+            GsSortSprite(
+                &McardButtons[MCARD_BUTTON_FORMAT_SELECTION_HINT]->sprite,
+                OTablePt, 0);
 
             switch (pad)
             {
@@ -164,7 +173,8 @@ s32 draw_card_help_(s32 page, s32 pad)
         }
         else
         {
-            GsSortSprite(&McardButtons[0]->sprite, OTablePt, 0);
+            GsSortSprite(&McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite,
+                         OTablePt, 0);
             if (pad != PADRright)
             {
                 goto check_cancel;
