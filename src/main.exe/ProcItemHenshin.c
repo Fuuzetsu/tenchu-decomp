@@ -42,12 +42,6 @@
  */
 #include "item.h"
 
-typedef union
-{
-    PARAM_ITEM_LAUNCH drop_request;
-    SVECTOR smoke_velocity;
-} ProcItemHenshinScratch;
-
 /*
  * MATCH.
  *
@@ -68,9 +62,8 @@ typedef union
  *    owner/type.
  *    The old disguise pointer is copied once before its null/proc checks so
  *    volatility does not introduce redundant global reloads.
- *  - `scratch` is the exact sp+0x10..0x37 lifetime overlay: PSX.SYM records
- *    a PARAM_ITEM_LAUNCH `drop_request` on the interrupted-motion path and
- *    an SVECTOR `smoke_velocity` on the smoke paths.
+ *  - `drop_request` occupies the exact sp+0x10..0x37 slot. The smoke paths
+ *    reuse its leading bytes for their short velocity.
  *  - HENSHIN_MODE_START deliberately does not assign HenshinItem. It jumps
  *    directly to the shared mode increment; only the completed wait path
  *    installs the current item after disposing any prior disguise.
@@ -91,7 +84,7 @@ void ProcItemHenshin(TItem *item)
     };
     Humanoid *human;
     ModelArchiveType *archive;
-    ProcItemHenshinScratch scratch;
+    PARAM_ITEM_LAUNCH drop_request;
 
     human = item->owner;
     archive = human->model;
@@ -155,16 +148,16 @@ void ProcItemHenshin(TItem *item)
             drop_position = GetAbsolutePosition(item->locate, 0, 0, 0);
             drop_owner = item->owner;
             itemID = item->type;
-            memset(&scratch.drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
-            scratch.drop_request.type = itemID;
-            scratch.drop_request.user = drop_owner;
-            scratch.drop_request.start.vx = drop_position->vx;
-            scratch.drop_request.start.vy = drop_position->vy;
-            scratch.drop_request.start.vz = drop_position->vz;
-            scratch.drop_request.end.vx = rand() % 200 - 100;
-            scratch.drop_request.end.vy = rand() % 100 - 200;
-            scratch.drop_request.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&scratch.drop_request);
+            memset(&drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
+            drop_request.type = itemID;
+            drop_request.user = drop_owner;
+            drop_request.start.vx = drop_position->vx;
+            drop_request.start.vy = drop_position->vy;
+            drop_request.start.vz = drop_position->vz;
+            drop_request.end.vx = rand() % 200 - 100;
+            drop_request.end.vy = rand() % 100 - 200;
+            drop_request.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&drop_request);
             if (item->proc == 0)
             {
                 return;
@@ -190,9 +183,9 @@ void ProcItemHenshin(TItem *item)
         }
 
         NowReturnNormal(human);
-        scratch.smoke_velocity = svec_y_n50[0];
+        *(SVECTOR *)&drop_request = svec_y_n50[0];
         SetSmoke((VECTOR *)archive->locate.coord.t,
-                 &scratch.smoke_velocity, 10, 6);
+                 (SVECTOR *)&drop_request, 10, 6);
         {
             TItem *previous_disguise;
 
@@ -276,9 +269,9 @@ void ProcItemHenshin(TItem *item)
                 return;
             }
         }
-        scratch.smoke_velocity = svec_y_n50[0];
+        *(SVECTOR *)&drop_request = svec_y_n50[0];
         SetSmoke((VECTOR *)archive->locate.coord.t,
-                 &scratch.smoke_velocity, 10, 6);
+                 (SVECTOR *)&drop_request, 10, 6);
         if (item->proc == 0)
         {
             return;
