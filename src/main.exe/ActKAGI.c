@@ -52,7 +52,7 @@
  *    statement is one instruction short.
  *  - The camera-target block is a local-allocator tie.  `motID =
  *    MOT_KAGI_FLY` must precede the x/z subtraction expressions, which go
- *    through the register-pinned locate/target pointer pair — reordering
+ *    through the dedicated locate/target pointer pair — reordering
  *    either rotates v0/v1/a0/a1/a2 even when scheduling leaves the
  *    instruction order unchanged.
  *  - `quantized` must stay full-width through the 0xc00/0x200 rounding.
@@ -100,8 +100,8 @@ void ActKAGI(void)
         }
         else if (spare_item_slot_(1, Me_MOTION_C) == 0)
         {
-            register VECTOR *target;
-            register VECTOR *locate;
+            VECTOR *target;
+            VECTOR *locate;
             s32 dx;
             s32 dz;
 

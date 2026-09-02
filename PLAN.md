@@ -742,6 +742,13 @@ The one remaining volatile character-attribute read was re-probed only after
 that structural change: making it ordinary removes a real retail load and
 shortens the function by four bytes. All 4,636 bytes remain exact.
 
+REGISTER-HINT AUDIT (2026-09-02): the two remaining ordinary uses in
+`ActDAMAGE` and `ActKAGI` were inert and have been removed byte-identically.
+Every surviving `register` keyword in shipped game code now accompanies an
+explicit hard-register `asm` contract: the two hand-written syscall/GTE
+boundaries and ProcMiscSnowfall's documented three-byte allocation residual.
+Plain register hints are no longer matching tools.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

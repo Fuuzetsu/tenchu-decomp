@@ -180,7 +180,7 @@ void ActDAMAGE(void)
     default:
     {
         SVECTOR *velocity;
-        register int value;
+        int value;
 
         velocity = dtV;
         value = velocity->vx;
