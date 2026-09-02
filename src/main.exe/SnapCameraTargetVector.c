@@ -35,8 +35,8 @@
  *    direct per-field store into `v`. The frame is fully accounted for by
  *    PSX.SYM's 4 locals + the standard 16-byte outgoing-args area + 20
  *    bytes of saved regs + 4 bytes alignment pad (0x10+0x20+0x14+4=0x48),
- *    so there is no room for a hidden 5th local here. One 16-byte work vector
- *    supplies the VECTOR and paired-SVECTOR views of that storage.
+ *    so there is no room for a hidden 5th local here: `sv` and `sv2` are the
+ *    adjacent objects named by the original debug information.
  *    DEMO-VERIFIED (PSX.EXE @ 0x8002aad4): the original build does the
  *    identical dance — memset 16 bytes over both adjacent SVECTORs, three
  *    32-bit ViewInfo stores through sv's memory, 4-word block copy into v
@@ -77,32 +77,32 @@ void SnapCameraTargetVector(void)
         VSHIFT = 5
     };
     VECTOR v;
-    VECTOR work;
+    SVECTOR sv;
+    SVECTOR sv2;
     VECTOR *target;
     s32 t1, t2, t3;
 
-    memset(&work, 0, sizeof(VECTOR));
-    work.vx = ViewInfo.vpx;
-    work.vy = ViewInfo.vpy;
-    work.vz = ViewInfo.vpz;
-    v = work;
+    memset(&sv, 0, sizeof(sv) + sizeof(sv2));
+    ((VECTOR *)&sv)->vx = ViewInfo.vpx;
+    ((VECTOR *)&sv)->vy = ViewInfo.vpy;
+    ((VECTOR *)&sv)->vz = ViewInfo.vpz;
+    v = *(VECTOR *)&sv;
 
-    memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
-    ((SVECTOR *)&work)[1].vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx;
-    ((SVECTOR *)&work)[1].vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy;
-    ((SVECTOR *)&work)[1].vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz;
-    *(SVECTOR *)&work = ((SVECTOR *)&work)[1];
-    VectorNormalSS((SVECTOR *)&work, &((SVECTOR *)&work)[1]);
+    memset(&sv2, 0, sizeof(sv2));
+    sv2.vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx;
+    sv2.vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy;
+    sv2.vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz;
+    sv = sv2;
+    VectorNormalSS(&sv, &sv2);
 
-    t1 = ((SVECTOR *)&work)[1].vx;
-    ((SVECTOR *)&work)[1].vx = (s16)(t1 / (1 << VSHIFT));
-    t2 = ((SVECTOR *)&work)[1].vy;
-    ((SVECTOR *)&work)[1].vy = (s16)(t2 / (1 << VSHIFT));
-    t3 = ((SVECTOR *)&work)[1].vz;
-    ((SVECTOR *)&work)[1].vz = (s16)(t3 / (1 << VSHIFT));
+    t1 = sv2.vx;
+    sv2.vx = (s16)(t1 / (1 << VSHIFT));
+    t2 = sv2.vy;
+    sv2.vy = (s16)(t2 / (1 << VSHIFT));
+    t3 = sv2.vz;
+    sv2.vz = (s16)(t3 / (1 << VSHIFT));
 
-    target = GetAreaMapPassage(GlobalAreaMap, &v,
-                               &((SVECTOR *)&work)[1], -1);
+    target = GetAreaMapPassage(GlobalAreaMap, &v, &sv2, -1);
     if (target != 0)
     {
         CamState.TargetVector.vx = target->vx;
