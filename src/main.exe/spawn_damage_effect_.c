@@ -12,9 +12,11 @@ extern SVECTOR svec_y_n60[];
 
 /*
  * Spawns either a napalm request or a body-attached frame and bleed effect.
- * The union reflects mutually exclusive stack scratch used by the two paths.
- * Keeping the body position aliases split across rand(), and retaining a
- * named pool-result `slot`, reproduces the original register lifetimes.
+ * The outer union reflects mutually exclusive stack scratch used by the two
+ * paths. In the attached-flash path, the completed random-position vector is
+ * reused as the short bleed direction. Keeping the body position aliases
+ * split across rand(), and retaining a named pool-result `slot`, reproduces
+ * the original register lifetimes.
  * svec_y_n60 intentionally has unknown array size: a typed object declaration
  * changes the old compiler's address materialization and instruction schedule.
  */
@@ -26,11 +28,7 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         struct
         {
             VECTOR pos;
-            union
-            {
-                VECTOR random_pos;
-                SVECTOR direction;
-            } scratch;
+            VECTOR scratch;
         } blood;
     } work;
 
@@ -84,14 +82,14 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         }
         model = *objects;
 
-        memset(&work.blood.scratch.random_pos, 0, sizeof(VECTOR));
-        work.blood.scratch.random_pos.vx = rand() % 200 - 100;
-        work.blood.scratch.random_pos.vy = rand() % 200 - 100;
-        work.blood.scratch.random_pos.vz = rand() % 200 - 100;
-        work.blood.pos = work.blood.scratch.random_pos;
+        memset(&work.blood.scratch, 0, sizeof(VECTOR));
+        work.blood.scratch.vx = rand() % 200 - 100;
+        work.blood.scratch.vy = rand() % 200 - 100;
+        work.blood.scratch.vz = rand() % 200 - 100;
+        work.blood.pos = work.blood.scratch;
         position_base = &work.blood.pos;
 
-        work.blood.scratch.direction = svec_y_n60[0];
+        *(SVECTOR *)&work.blood.scratch = svec_y_n60[0];
         time = rand() % 60 + 60;
         position = position_base;
 
@@ -129,7 +127,7 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         slot->proc = DrawFrame;
 
         SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
-                     &work.blood.scratch.direction,
+                     (SVECTOR *)&work.blood.scratch,
                      100, 10, 30, RGB24(100, 100, 60));
         SoundEx((VECTOR *)human->model->locate.coord.t, SE_LIGHTNING);
     }
