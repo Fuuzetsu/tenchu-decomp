@@ -42,27 +42,17 @@
  * The initial empty-list guard and loop exit can therefore use `header.word`
  * for the target's single `lw`/`-1` comparison without an aliasing cast.
  *
- * The status/motion guard (`if (h->status==STAT_DEAD &&
- * h->motion->loop==MOTION_LOOP_DISABLED)
- * goto clear;`) bypasses the `id`/`life` check entirely when true — but
- * the `id`/`life` check itself is NOT a single nested
- * `if (range) { if (life>0) return; }` (that shape falls through to the
- * shared `Event[n]=0;` clear whenever `range` is false, clearing state
- * the target actually PRESERVES): the raw asm's range test branches
- * STRAIGHT to the epilogue on failure, bypassing the clear entirely. One
- * short-circuit return condition (`!range || life > 0`) emits those same
- * two independent machine guards — a real behavioral difference from the nested-if reading, not
- * just a scheduling artifact (verified: the nested-if draft clears
- * `Event[n]` on out-of-range `id`, the target does not).
- * `h->motion->loop` is item.h's `MotionManager.loop` @0x4 (a different
- * struct than Ghidra's raw `*(int*)+0x5c` pointer-then-offset-4 rendering
- * suggests by name).
+ * A scoped `target` snapshot handles the null target and the completed-death
+ * motion as one clear-and-return condition. The subsequent range/life guard
+ * preserves the event when the id is outside the root slots or the current
+ * target is still alive. This distinction is behavioral: nesting the life
+ * test under an in-range check would clear an out-of-range event that retail
+ * preserves. `target->motion->loop` is item.h's `MotionManager.loop` @0x4,
+ * not the raw pointer-plus-offset shape suggested by the decompiler.
  *
- * The EVENT_ROOT_FIRST..EVENT_ROOT_LAST range check recomputes
- * `id - EVENT_ROOT_FIRST` FRESH on each incoming path (the guard-taken path
- * and the guard-skipped path both materialize their own `addiu`) rather than
- * sharing one register — plain repeated inline subtraction reproduces this
- * (no named temp).
+ * The inline EVENT_ROOT_FIRST..EVENT_ROOT_LAST range expression is duplicated
+ * on the guard's two incoming paths, so each path materializes its own
+ * `id - EVENT_ROOT_FIRST` rather than sharing a named temporary.
  *
  * Matching notes:
  *  - Both tables are accessed directly as `Event[n]` and `StageEvent[i]`.
@@ -71,10 +61,9 @@
  *    local (matching PSX.SYM's declaration list).
  *  - Initializing `i` before the empty-list sentinel makes its zero value
  *    fill that guard's delay slot; the cached event-slot pointer follows it.
- *  - The final life test deliberately reads the pointer slot through a
- *    volatile-qualified lvalue. This preserves the target's fresh slot
- *    reload and its load-delay `nop` instead of CSE-reusing the earlier
- *    Humanoid pointer.
+ *  - Ending the guard snapshot's scope before the range/life check makes the
+ *    latter an authoritative `eTarget[n]` read. The structured early clear
+ *    gives retail's fresh slot reload and load-delay `nop` without volatile.
  */
 void UpdateEvent(short n, short id)
 {
@@ -100,15 +89,22 @@ void UpdateEvent(short n, short id)
             {
                 eTarget[n] = GetHumanoid(StageEvent[i].target);
             }
-            if (eTarget[n] != 0 &&
-                !(eTarget[n]->status == STAT_DEAD &&
-                  eTarget[n]->motion->loop == MOTION_LOOP_DISABLED))
             {
-                if ((u16)(id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS ||
-                    (*(Humanoid *volatile *)&eTarget[n])->life > 0)
+                Humanoid *target;
+
+                target = eTarget[n];
+                if (target == 0 ||
+                    (target->status == STAT_DEAD &&
+                     target->motion->loop == MOTION_LOOP_DISABLED))
                 {
+                    Event[n] = 0;
                     return;
                 }
+            }
+            if ((u16)(id - EVENT_ROOT_FIRST) >= N_STAGE_EVENT_SLOTS ||
+                eTarget[n]->life > 0)
+            {
+                return;
             }
             Event[n] = 0;
             return;

@@ -55,20 +55,19 @@
  *    ordinary 12-byte model-part records. Indexing the nested `p` array by
  *    the loop's own counter gives loop.c one unbiased
  *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
- *  - HenshinItem and HenshinCount retain their measured qualifiers. Only the
- *    two owner-slot reads use a volatile view: mode and type accesses are
- *    ordinary. This keeps the retail post-store owner reloads without making
- *    the whole item volatile or introducing a volatile item-pointer local.
- *    The old disguise pointer is copied once before its null/proc checks so
- *    volatility does not introduce redundant global reloads.
+ *  - HenshinItem and HenshinCount are ordinary gameplay globals; their former
+ *    volatile qualifiers were inert and have been removed. Two owner-slot
+ *    reads still use narrow volatile views to retain retail's post-store
+ *    reloads without qualifying the item itself. The old disguise pointer is
+ *    copied once before its null/proc checks, avoiding redundant global reads.
  *  - `drop_request` occupies the exact sp+0x10..0x37 slot. The smoke paths
  *    reuse its leading bytes for their short velocity.
  *  - HENSHIN_MODE_START deliberately does not assign HenshinItem. It jumps
  *    directly to the shared mode increment; only the completed wait path
  *    installs the current item after disposing any prior disguise.
  */
-extern TItem *volatile HenshinItem;
-extern volatile u16 HenshinCount;
+extern TItem *HenshinItem;
+extern u16 HenshinCount;
 extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 void ProcItemHenshin(TItem *item)
