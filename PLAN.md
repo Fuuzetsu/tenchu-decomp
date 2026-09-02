@@ -733,6 +733,15 @@ loop. Plain builtin memcpy was measured and rejected because GCC loses the
 aligned branch's pointee alignment; the four-word aggregate form remains exact
 across all 1,320 bytes.
 
+MISSION SCORE LOCALS RECOVERED (2026-09-02): removed the invented
+`MissionScoreSpriteStorage` aggregate and its three field-alias macros.
+`result`, the rank sprites, and the character sprites are ordinary aligned
+locals again; a small pivot-reset helper preserves the two genuine typed array
+accesses. All twenty matching-era `register` hints were inert and are gone.
+The one remaining volatile character-attribute read was re-probed only after
+that structural change: making it ordinary removes a real retail load and
+shortens the function by four bytes. All 4,636 bytes remain exact.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

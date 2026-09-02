@@ -15,16 +15,18 @@
  * The rank and character sprite initializers intentionally share the
  * function-scope `attribute` temporary.  The rank loop updates that value
  * before storing it, while the copied character initializer retains a
- * volatile attribute read whose value is overwritten.  GCC 2.8.1 consequently
- * allocates both loads to v1; making either initializer use a fresh temporary
- * changes the local-allocation quantities and the instruction schedule.
+ * volatile attribute read whose value is overwritten. A plain read removes
+ * retail's `lw` and shortens the function by four bytes. This is the sole
+ * source qualifier left here; all `register` hints were measured inert and
+ * removed.
  *
  * The decimal rendering arithmetic is shared again without erasing its
  * allocation donors.  Eight ordinary sites use DRAW_SCORE_NUMBER; the
  * enemy-minus-bosses and row-ordinal sites retain their distinct setup and
  * call only DRAW_SCORE_DIGITS.  Their enclosing do/block shapes remain
- * load-bearing.  MissionScoreSpriteStorage likewise expresses the contiguous
- * result/rank/character stack-bank layout directly.
+ * load-bearing. `result`, `rankSprites`, and `characterSprites` are ordinary
+ * locals; the sprite banks' eight-byte alignment naturally preserves their
+ * contiguous retail stack layout.
  * DRAW_SCORE_RANK owns the complete high-score rank-icon operation.  Its safe
  * statement scope gives the rank bank its natural loop weight; flattening the
  * operation had required a folded self-cancellation on rankSpriteBase.
@@ -41,17 +43,6 @@ typedef struct
     u16 oldPad;
     BackGround *background;
 } MissionScoreTail;
-
-/* These are three adjacent stack objects in the original layout. Giving the
- * sprite banks their actual stack alignment expresses the two four-byte gaps
- * without invented "reserved" members. */
-typedef struct
-{
-    ScoreResult result;
-    GsSPRITE rankSprites[N_STAGE_RANKS] __attribute__((aligned(8)));
-    GsSPRITE characterSprites[N_PLAYABLE_CHARACTERS]
-        __attribute__((aligned(8)));
-} MissionScoreSpriteStorage;
 
 extern u8 CHOSEN_CHARACTER;
 extern compact_stage_id CHOSEN_STAGE;
@@ -78,6 +69,14 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 {
     GetTIMInfo(tim, image);
     InitSprite(image, sprite);
+}
+
+static inline void ResetScoreSpritePivot(GsSPRITE *bank, s16 index)
+{
+    GsSPRITE *sprite = &bank[index];
+
+    sprite->mx = 0;
+    sprite->my = 0;
 }
 
 #define DRAW_SCORE_DIGITS(sprite_, value_, negative_)                  \
@@ -159,7 +158,7 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
 #define DRAW_SCORE_RANK(bank_, index_)                                      \
     do                                                                        \
     {                                                                         \
-        register GsSPRITE *rankSprite =                                       \
+        GsSPRITE *rankSprite =                                                \
             &(bank_)[SCORE_STATE->t_dani[index_]];                            \
         rankSprite->r = rankSprite->g = rankSprite->b = 0x7F;                 \
         rankSprite->scalex = rankSprite->scaley = 0xB33;                      \
@@ -168,15 +167,13 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         GsSortSprite(rankSprite, OTablePt, 1);                                \
     } while (0)
 
-#define SCORE_SPRITE_AT(bank_, index_) (&(bank_)[index_])
-
 /* Round-18 re-collapse: all ten signed-digit tails share DRAW_SCORE_DIGITS,
  * and the eight ordinary sites also share DRAW_SCORE_NUMBER.  The derived
  * enemy count and row ordinal keep their distinct setup; passing the enemy
  * subtraction directly moved 233 assembly lines.  The enclosing do carriers
- * are also deliberate: removing one moves 54-63 lines.  Colon rendering and
- * the four sprite-bank address expressions are shared separately so their
- * differing post-colon assignments and surrounding allocation stay visible. */
+ * are also deliberate: removing one moves 54-63 lines. Colon rendering and
+ * the two sprite-bank pivot resets are shared separately so their differing
+ * post-colon assignments and surrounding allocation stay visible. */
 
 /* The persistent high-score block, addressed by CONSTANT rather than through a
  * pointer local.  This is not cosmetic: with a pointer variable the address is
@@ -185,36 +182,36 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
  * expand's EXPAND_SUM/form_sum sorts the constant term LAST, emitting
  * `addu t,index,base` -- the target's operand order. */
 #define SCORE_STATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
-#define result storage.result
-#define rankSprites storage.rankSprites
-#define characterSprites storage.characterSprites
 
 void mission_score_screen(void)
 {
     GsSPRITE number;
     ScoreStats stats;
-    MissionScoreSpriteStorage storage;
+    ScoreResult result;
+    GsSPRITE rankSprites[N_STAGE_RANKS] __attribute__((aligned(8)));
+    GsSPRITE characterSprites[N_PLAYABLE_CHARACTERS]
+        __attribute__((aligned(8)));
     GsIMAGE image;
     MissionScoreTail tail;
-    register u_long *tim;
-    register u_long *archive;
-    register GsSPRITE *initSprite;
-    register GsSPRITE *sprite;
-    register GsSPRITE *medal;
-    register GsSPRITE *medalDraw;
-    register TLinkInfo *statePtr;
-    register s16 i;
-    register s16 newPress;
+    u_long *tim;
+    u_long *archive;
+    GsSPRITE *initSprite;
+    GsSPRITE *sprite;
+    GsSPRITE *medal;
+    GsSPRITE *medalDraw;
+    TLinkInfo *statePtr;
+    s16 i;
+    s16 newPress;
     s16 work;
     s32 medalBrightness;
     s32 rowBrightness;
-    register s32 stageItem;
-    register s32 goNext;
-    register s32 rankColour;
+    s32 stageItem;
+    s32 goNext;
+    s32 rankColour;
     u32 baseU;
-    register s32 negative;
+    s32 negative;
     s32 insertedRank;
-    register s32 resultX;
+    s32 resultX;
     u32 attribute;
 
     tail.oldPad = 0;
@@ -225,7 +222,7 @@ void mission_score_screen(void)
 
     tim = FileRead(NUMBER_TIM_PATH);
     {
-        register GsSPRITE *initNumber = &number;
+        GsSPRITE *initNumber = &number;
 
         InitScoreSprite(tim, &image, initNumber);
         initNumber->attribute |= GS_ATTR_SEMITRANS_ADD;
@@ -248,7 +245,7 @@ void mission_score_screen(void)
     number.w = 12;
 
     {
-        register u32 attributeMask;
+        u32 attributeMask;
 
         archive = FileRead(
             MISSION_SCORE_RANK_ARCHIVE_PATHS[CHOSEN_LANGUAGE]);
@@ -258,9 +255,10 @@ void mission_score_screen(void)
         u32 width;
 
         tim = get_tim_from_archive(archive, i);
-        /* The two-step base+offset walk is byte-required (plain
-         * &rankSprites[i] indexing mismatches badly; measured). */
-        initSprite = (GsSPRITE *)((u8 *)&storage +
+        /* This initializer first forms the row displacement from `result`,
+         * then adds the aligned rank-bank offset. The later typed bank access
+         * is deliberately separate, matching the two source views in retail. */
+        initSprite = (GsSPRITE *)((u8 *)&result +
                                   i * sizeof(GsSPRITE));
         initSprite = (GsSPRITE *)((u8 *)initSprite +
                                   sizeof(ScoreResult) + sizeof(u32));
@@ -276,8 +274,7 @@ void mission_score_screen(void)
         initSprite->attribute = attribute;
         initSprite->mx = width >> 1;
         initSprite->my = initSprite->h >> 1;
-        SCORE_SPRITE_AT(rankSprites, i)->mx = 0;
-        SCORE_SPRITE_AT(rankSprites, i)->my = 0;
+        ResetScoreSpritePivot(rankSprites, i);
         LoadTIM(tim);
     }
         i++;
@@ -286,7 +283,7 @@ void mission_score_screen(void)
     }
 
     {
-        register s32 characterColour;
+        s32 characterColour;
 
         i = 0;
         characterColour = 128;
@@ -296,7 +293,7 @@ void mission_score_screen(void)
         u32 height;
 
         tim = get_tim_from_archive(archive, i + RANK_ARCHIVE_RIKIMARU);
-        initSprite = (GsSPRITE *)((u8 *)&storage +
+        initSprite = (GsSPRITE *)((u8 *)&result +
                                   i * sizeof(GsSPRITE));
         initSprite = (GsSPRITE *)((u8 *)initSprite +
                                   sizeof(ScoreResult) +
@@ -314,8 +311,7 @@ void mission_score_screen(void)
         initSprite->b = characterColour;
         initSprite->mx = width >> 1;
         initSprite->my = height >> 1;
-        SCORE_SPRITE_AT(characterSprites, i)->mx = 0;
-        SCORE_SPRITE_AT(characterSprites, i)->my = 0;
+        ResetScoreSpritePivot(characterSprites, i);
         LoadTIM(tim);
     }
         i++;
@@ -359,7 +355,7 @@ void mission_score_screen(void)
     }
 
     {
-        register s32 found = insertedRank;
+        s32 found = insertedRank;
 
         if (found >= 0)
         {
@@ -376,7 +372,7 @@ void mission_score_screen(void)
             }
 
             {
-                register s32 insertedAt = insertedRank;
+                s32 insertedAt = insertedRank;
 
                 SCORE_STATE->t_time[insertedAt] = stats.clock;
                 SCORE_STATE->t_char[insertedAt] = SCORE_STATE->CharType;
@@ -542,7 +538,7 @@ void mission_score_screen(void)
 
         {
             GsSPRITE *rankSpriteBase;
-            register GsSPRITE *rowSprite;
+            GsSPRITE *rowSprite;
 
             i = 0;
             rowSprite = &number;
@@ -556,7 +552,7 @@ void mission_score_screen(void)
             s16 signedValue;
             s32 widenedValue;
             s32 drawY;
-            register s32 rowNegative;
+            s32 rowNegative;
 
             signedValue = i + 1;
             value = signedValue;
@@ -623,7 +619,7 @@ void mission_score_screen(void)
 
     if (result.grade == RANK_GRAND_MASTER)
     {
-        register TLinkInfo *state =
+        TLinkInfo *state =
             (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
 
         stageItem = StageItem[state->StageNo];
@@ -664,11 +660,7 @@ void mission_score_screen(void)
         exec_process_(PROCESS_MENU);
     }
 }
-#undef SCORE_SPRITE_AT
 #undef DRAW_SCORE_RANK
 #undef DRAW_SCORE_NUMBER
 #undef DRAW_SCORE_COLON
 #undef DRAW_SCORE_DIGITS
-#undef result
-#undef rankSprites
-#undef characterSprites
