@@ -11,12 +11,8 @@
  * to a collided character until the countdown expires.
  *
  * Matching notes:
- *  - The mutually-exclusive particle/drop/explosion/frame aggregates share the
- *    explicit ProcItemFireScratch union.  Its views reproduce the retail
- *    sp+0x18..sp+0x77 overlay and the exact 0x98-byte frame; ordinary block
- *    locals made cc1 reserve an extra 24 bytes.
- *  - Within the particle view, the randomized VECTOR is dead before the
- *    original `vec` SVECTOR is written into the same slot.
+ *  - The randomized particle VECTOR is dead before the original `vec`
+ *    SVECTOR is written into the same slot.
  *  - The three `rand() % (nr * 2)` expressions use separate single-definition
  *    return temps plus `base_* = coordinate - nr`.  Reusing one rand temp leaves
  *    copies from $v0; inlining the calls lets combine reassociate `-25` with
@@ -27,10 +23,7 @@
  *  - The pickup conversion intentionally mixes pointer and direct spellings:
  *    `launch->user` and ReqItemDrop retain the launch pointer in $s0, while
  *    direct aggregate fields preserve the target stack-relative loads/stores.
- *    The saved-position pointer supplies the sequential source loads. The
- *    aggregate's `param` member retains PSX.SYM's exact name for the
- *    semantically corresponding demo PARAM_ITEM_LAUNCH object; retail moved
- *    that request to sp+0x50 as part of its revised scratch overlay.
+ *    The saved-position pointer supplies the sequential source loads.
  *  - Named full-width `size`/`collision_mode` values share 500 and 8 across
  *    halfword and word stores.  Separate literals materialize 8 twice.
  *  - This TU needs maspsx `--expand-div` for the dynamic model-count remainder
@@ -77,37 +70,6 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-/* The retail stack frame overlays the mutually-exclusive mode temporaries.
- * Keep that layout explicit: all four views begin at sp+0x18 and the largest
- * one ends immediately before the saved-register area at sp+0x78. */
-typedef union
-{
-    struct
-    {
-        VECTOR pos;
-        VECTOR work;
-    } particle;
-    struct
-    {
-        PARAM_ITEM_STAY saved;
-        u8 pad0[12];
-        PARAM_ITEM_STAY rparam;
-        u8 pad1[4];
-        PARAM_ITEM_LAUNCH param;
-    } drop;
-    struct
-    {
-        SVECTOR vec;
-        VECTOR pos;
-        VECTOR pos_buf;
-    } explosion;
-    struct
-    {
-        VECTOR pos;
-        VECTOR random_pos;
-    } frame;
-} ProcItemFireScratch;
-
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 extern SVECTOR svec_y_n30[];
 
@@ -130,7 +92,6 @@ void ProcItemFire(TItem *item)
     s32 count;
     s32 mode;
     s32 cid;
-    ProcItemFireScratch scratch;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
@@ -155,30 +116,34 @@ void ProcItemFire(TItem *item)
     DrawSprite(model);
 
     {
-        VECTOR *position;
-        SVECTOR *vec;
-        s32 random_x;
-        s32 random_y;
-        s32 random_z;
-        s32 base_x;
-        s32 base_y;
-        s32 base_z;
+        {
+            VECTOR *position;
+            SVECTOR *vec;
+            s32 random_x;
+            s32 random_y;
+            s32 random_z;
+            s32 base_x;
+            s32 base_y;
+            s32 base_z;
+            VECTOR pos;
+            VECTOR work;
 
-        vec = (SVECTOR *)&scratch.particle.work;
-        memset(&scratch.particle.work, 0, sizeof(VECTOR));
-        random_x = rand();
-        base_x = item->locate->locate.coord.t[0] - nr;
-        scratch.particle.work.vx = base_x + random_x % (nr * 2);
-        random_y = rand();
-        base_y = item->locate->locate.coord.t[1] - nr;
-        scratch.particle.work.vy = base_y + random_y % (nr * 2);
-        random_z = rand();
-        base_z = item->locate->locate.coord.t[2] - nr;
-        scratch.particle.work.vz = base_z + random_z % (nr * 2);
-        scratch.particle.pos = scratch.particle.work;
-        *vec = svec_y_n30[0];
-        position = &scratch.particle.pos;
-        SetBleed(position, vec, rand() % 20, COLOR_YELLOW);
+            vec = (SVECTOR *)&work;
+            memset(&work, 0, sizeof(VECTOR));
+            random_x = rand();
+            base_x = item->locate->locate.coord.t[0] - nr;
+            work.vx = base_x + random_x % (nr * 2);
+            random_y = rand();
+            base_y = item->locate->locate.coord.t[1] - nr;
+            work.vy = base_y + random_y % (nr * 2);
+            random_z = rand();
+            base_z = item->locate->locate.coord.t[2] - nr;
+            work.vz = base_z + random_z % (nr * 2);
+            pos = work;
+            *vec = svec_y_n30[0];
+            position = &pos;
+            SetBleed(position, vec, rand() % 20, COLOR_YELLOW);
+        }
     }
 
     count = param->count - 1;
@@ -191,35 +156,38 @@ void ProcItemFire(TItem *item)
         {
             if (rand() % 10 < 2)
             {
+                PARAM_ITEM_STAY saved_record;
+                PARAM_ITEM_STAY rparam;
+                PARAM_ITEM_LAUNCH launch_record;
                 PARAM_ITEM_STAY *saved;
                 PARAM_ITEM_LAUNCH *launch;
 
-                memset(&scratch.drop.rparam, 0, sizeof(PARAM_ITEM_STAY));
-                scratch.drop.rparam.type = item->type;
-                scratch.drop.rparam.locate.vx = model->locate.coord.t[0];
-                scratch.drop.rparam.locate.vy = model->locate.coord.t[1];
-                scratch.drop.rparam.locate.vz = model->locate.coord.t[2];
-                scratch.drop.saved = scratch.drop.rparam;
+                memset(&rparam, 0, sizeof(PARAM_ITEM_STAY));
+                rparam.type = item->type;
+                rparam.locate.vx = model->locate.coord.t[0];
+                rparam.locate.vy = model->locate.coord.t[1];
+                rparam.locate.vz = model->locate.coord.t[2];
+                saved_record = rparam;
 
                 if (item->proc != 0)
                 {
                     DISPOSE_ITEM(item);
                 }
 
-                saved = &scratch.drop.saved;
-                launch = &scratch.drop.param;
-                scratch.drop.param.type = saved->type;
+                saved = &saved_record;
+                launch = &launch_record;
+                launch_record.type = saved->type;
                 launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
-                scratch.drop.param.start.vx = saved->locate.vx;
-                scratch.drop.param.start.vy = saved->locate.vy;
-                scratch.drop.param.start.vz = saved->locate.vz;
-                scratch.drop.param.end.vx = 0;
-                scratch.drop.param.end.vy = 0;
-                scratch.drop.param.end.vz = 0;
-                scratch.drop.param.start.vy = GetAreaMapLevel(
-                    GlobalAreaMap, scratch.drop.param.start.vx,
-                    scratch.drop.param.start.vy,
-                    scratch.drop.param.start.vz, AREA_LEVEL_DEFAULT);
+                launch_record.start.vx = saved->locate.vx;
+                launch_record.start.vy = saved->locate.vy;
+                launch_record.start.vz = saved->locate.vz;
+                launch_record.end.vx = 0;
+                launch_record.end.vy = 0;
+                launch_record.end.vz = 0;
+                launch_record.start.vy = GetAreaMapLevel(
+                    GlobalAreaMap, launch_record.start.vx,
+                    launch_record.start.vy,
+                    launch_record.start.vz, AREA_LEVEL_DEFAULT);
                 ReqItemDrop(launch);
                 SetSmokeS(&saved->locate, 0, -100, 0, 10);
                 return;
@@ -266,49 +234,54 @@ void ProcItemFire(TItem *item)
 
     case FIRE_MODE_EXPLODE:
     {
-        s32 conflict_id;
+        {
+            s32 conflict_id;
+            SVECTOR vec;
+            VECTOR pos;
+            VECTOR pos_buf;
 
-        scratch.explosion.vec = svec_y_n25[0];
-        memset(&scratch.explosion.pos_buf, 0, sizeof(VECTOR));
-        scratch.explosion.pos_buf.vx = item->locate->locate.coord.t[0];
-        scratch.explosion.pos_buf.vy = item->locate->locate.coord.t[1];
-        scratch.explosion.pos_buf.vz = item->locate->locate.coord.t[2];
-        scratch.explosion.pos = scratch.explosion.pos_buf;
-        SetExplosion(&scratch.explosion.pos, &scratch.explosion.vec);
+            vec = svec_y_n25[0];
+            memset(&pos_buf, 0, sizeof(VECTOR));
+            pos_buf.vx = item->locate->locate.coord.t[0];
+            pos_buf.vy = item->locate->locate.coord.t[1];
+            pos_buf.vz = item->locate->locate.coord.t[2];
+            pos = pos_buf;
+            SetExplosion(&pos, &vec);
 
-        scratch.explosion.vec.vx = 75;
-        scratch.explosion.vec.vy = 120;
-        scratch.explosion.vec.vz = 75;
-        SetHinoko(&scratch.explosion.pos, &scratch.explosion.vec, 8);
-        scratch.explosion.vec.vx = 0;
-        scratch.explosion.vec.vy = -200;
-        scratch.explosion.vec.vz = 0;
-        SetSmoke(&scratch.explosion.pos, &scratch.explosion.vec, 20, 6);
-        SoundEx(&scratch.explosion.pos, SE_EXPLOSION);
+            vec.vx = 75;
+            vec.vy = 120;
+            vec.vz = 75;
+            SetHinoko(&pos, &vec, 8);
+            vec.vx = 0;
+            vec.vy = -200;
+            vec.vz = 0;
+            SetSmoke(&pos, &vec, 20, 6);
+            SoundEx(&pos, SE_EXPLOSION);
 
-        DeleteConflict(item->locate);
-        conflict_id = InsertConflict(item->locate);
-        ConflictObject[conflict_id].offset.vx = 0;
-        ConflictObject[conflict_id].offset.vz = 0;
-        ConflictObject[conflict_id].offset.vy = 0;
-        ConflictObject[conflict_id].size.vz = 1500;
-        ConflictObject[conflict_id].size.vy = 1500;
-        ConflictObject[conflict_id].size.vx = 1500;
-        /* This arm runs with mode == FIRE_MODE_EXPLODE. Retail reuses that
-         * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the conflict
-         * class, and the collision mode below -- the same one-register trick
-         * as the file's other box and ProcItemArrow's. Separate named
-         * constants load fresh immediates and do not match. */
-        ConflictObject[conflict_id].common = (void *)mode;
-        ConflictObject[conflict_id].size.pad = mode;
-        item->collision.size = 1500;
-        item->collision.ofsY = 0;
-        item->collision.mode = mode;
-        item->collision.pause = 0;
-        item->mode++;
-        param->count = 3;
-        reset_alert_duration();
-        return;
+            DeleteConflict(item->locate);
+            conflict_id = InsertConflict(item->locate);
+            ConflictObject[conflict_id].offset.vx = 0;
+            ConflictObject[conflict_id].offset.vz = 0;
+            ConflictObject[conflict_id].offset.vy = 0;
+            ConflictObject[conflict_id].size.vz = 1500;
+            ConflictObject[conflict_id].size.vy = 1500;
+            ConflictObject[conflict_id].size.vx = 1500;
+            /* This arm runs with mode == FIRE_MODE_EXPLODE. Retail reuses that
+             * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the conflict
+             * class, and the collision mode below -- the same one-register trick
+             * as the file's other box and ProcItemArrow's. Separate named
+             * constants load fresh immediates and do not match. */
+            ConflictObject[conflict_id].common = (void *)mode;
+            ConflictObject[conflict_id].size.pad = mode;
+            item->collision.size = 1500;
+            item->collision.ofsY = 0;
+            item->collision.mode = mode;
+            item->collision.pause = 0;
+            item->mode++;
+            param->count = 3;
+            reset_alert_duration();
+            return;
+        }
     }
 
     case FIRE_MODE_BLAST:
@@ -334,18 +307,20 @@ void ProcItemFire(TItem *item)
             {
                 ModelType **objects;
                 ModelType *model;
+                VECTOR pos;
+                VECTOR random_pos;
                 objects = human->model->object;
                 if (human->model->n > 0)
                 {
                     objects += rand() % human->model->n;
                 }
                 model = *objects;
-                memset(&scratch.frame.random_pos, 0, sizeof(VECTOR));
-                scratch.frame.random_pos.vx = rand() % 200 - 100;
-                scratch.frame.random_pos.vy = rand() % 200 - 100;
-                scratch.frame.random_pos.vz = rand() % 200 - 100;
-                scratch.frame.pos = scratch.frame.random_pos;
-                SetFrame(&scratch.frame.pos, 3 * FIXED_ONE, 120,
+                memset(&random_pos, 0, sizeof(VECTOR));
+                random_pos.vx = rand() % 200 - 100;
+                random_pos.vy = rand() % 200 - 100;
+                random_pos.vz = rand() % 200 - 100;
+                pos = random_pos;
+                SetFrame(&pos, 3 * FIXED_ONE, 120,
                          &model->locate);
             }
         }
