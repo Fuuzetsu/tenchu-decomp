@@ -54,12 +54,9 @@
  *  - The state dispatch is a switch whose physical source body order is
  *    3, 2, 1, default.  cc1's balanced comparison tree still tests state 2
  *    first, while retaining that body layout.
- *  - The frame consists of the original `scr` SVECTOR, `pos` VECTOR, and a
- *    reusable aggregate at sp+0x30. Only that last object needs an overlay:
- *    its randomized VECTOR dies before the same storage becomes a velocity
- *    SVECTOR. Keeping that relationship as a local union reproduces the
- *    target's word and unaligned aggregate copies without casts or an outer
- *    scratch-layout struct.
+ *  - The frame consists of the original `scr` SVECTOR and `pos` VECTOR plus
+ *    one temporary VECTOR at sp+0x30. Once its position has been copied, the
+ *    first eight bytes are reused to build the particle velocity.
  *  - The default terrain path is CGetLevel's matched guard shape inlined.
  *    Computing `sy` before loading/computing `z` is load-bearing: it gives the
  *    target x/y/z divide schedule and t2/s0/a3 register assignment.
@@ -93,11 +90,7 @@ void DrawBlood(TEffectSlot *ef)
     GsSPRITE *sprt;
     SVECTOR scr;
     VECTOR pos;
-    union
-    {
-        VECTOR position;
-        SVECTOR velocity;
-    } temp;
+    VECTOR temp;
     s32 brightness;
 
     blood = &ef->param.blood;
@@ -265,25 +258,25 @@ void DrawBlood(TEffectSlot *ef)
 
         if (GameClock & 1)
         {
-            memset(&temp.position, 0, sizeof(VECTOR));
+            memset(&temp, 0, sizeof(VECTOR));
             random_x = rand();
             base_x = blood->px - JITTER_RADIUS;
-            temp.position.vx =
+            temp.vx =
                 base_x + random_x % (JITTER_RADIUS * 2);
             random_y = rand();
             base_y = blood->py - JITTER_RADIUS;
-            temp.position.vy =
+            temp.vy =
                 base_y + random_y % (JITTER_RADIUS * 2);
             random_z = rand();
             base_z = blood->pz - JITTER_RADIUS;
-            temp.position.vz =
+            temp.vz =
                 base_z + random_z % (JITTER_RADIUS * 2);
-            pos = temp.position;
-            memset(&temp.velocity, 0, sizeof(SVECTOR));
-            temp.velocity.vx = blood->vx / 2;
-            temp.velocity.vy = blood->vy / 2;
-            temp.velocity.vz = blood->vz / 2;
-            scr = temp.velocity;
+            pos = temp;
+            memset((SVECTOR *)&temp, 0, sizeof(SVECTOR));
+            ((SVECTOR *)&temp)->vx = blood->vx / 2;
+            ((SVECTOR *)&temp)->vy = blood->vy / 2;
+            ((SVECTOR *)&temp)->vz = blood->vz / 2;
+            scr = *(SVECTOR *)&temp;
             SetBleed(&pos, &scr, rand() % 10 + 10,
                      RGB24(127, 16, 23));
         }
