@@ -128,7 +128,7 @@ void PauseProc(void)
         /* Motion ids above the taunt (0x713) are the stealth-kill
          * finishers — no cheating mid-finisher. */
         if (CamState.Owner->status == STAT_ATTACK && CamState.Owner->motion->mid > MOT_ATTACK_TAUNT)
-            com = 0;
+            com = CHEAT_NONE;
         if (com == CHEAT_REVIVE)
         {
             if (CamState.Owner->status != STAT_DEAD)

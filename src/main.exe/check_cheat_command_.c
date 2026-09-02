@@ -17,12 +17,11 @@
  */
 s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
 {
-    u16 *history;
     s32 combination_index;
-    CheatCommandSequence *guard_entry;
     CheatCommandSequence *entry;
-    u16 *pattern;
-    u16 *pattern_start;
+    const u16 *pattern;
+    const u16 *pattern_start;
+    const u16 *history;
     u32 outer_end;
     u32 inner_end;
     s32 i;
@@ -35,41 +34,27 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
             PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
             i--;
         } while (i > 0);
-        guard_entry = CHEAT_COMMANDS_[0];
         PAD_HISTORY_[0] = buttons;
-        if (guard_entry != NULL)
+        if (CHEAT_COMMANDS_[0] != NULL)
         {
             outer_end = CHEAT_COMMAND_END;
             combination_index = 0;
             do
             {
+                const u16 *history_start;
+
                 entry = CHEAT_COMMANDS_[combination_index];
                 i = 0;
+                history_start = PAD_HISTORY_;
                 pattern_start = entry->presses;
-                if (entry->presses[0] == outer_end)
+                if (*pattern_start == outer_end)
                     goto matched;
 
-                /* Identical arms, and byte-required (measured both ways,
-                 * then pinned against gcc 2.8.1's own sources): retail keeps
-                 * TWO 0xffff registers (t3 outer, t1 inner), and cse1 unifies
-                 * any straight-line `inner_end = 0xffff` — or literal
-                 * comparisons — with outer_end's constant into one. The
-                 * conditional's join makes inner_end's value flow-dependent,
-                 * which is the only thing that hides the constant from cse
-                 * (loop.c could not hoist it anyway: a REG_USERVAR set past
-                 * the matched-exit jump is maybe_never and fails all three
-                 * movability clauses). A ternary folds at tree level and
-                 * fails the same way; jump threading later deletes the
-                 * branch and the dead [1] read. No demo homolog exists. */
-                if (PAD_HISTORY_[1] != 0)
-                    inner_end = CHEAT_COMMAND_END;
-                else
-                    inner_end = CHEAT_COMMAND_END;
+                inner_end = CHEAT_COMMAND_END;
                 pattern = pattern_start;
-                history = PAD_HISTORY_;
+                history = history_start;
                 do
                 {
-
                     if (*pattern != *history)
                     {
                         goto compare_end;
@@ -97,5 +82,5 @@ s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
             } while (CHEAT_COMMANDS_[combination_index] != NULL);
         }
     }
-    return 0;
+    return CHEAT_NONE;
 }

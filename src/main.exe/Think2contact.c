@@ -25,8 +25,7 @@
  * consumers use `Attrib` directly.
  */
 extern Humanoid *Me_THINK_C;
-/* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
-extern int GotoPosition(int vx, int vz);
+extern s16 GotoPosition(s32 vx, s32 vz);
 
 s16 Think2contact(void)
 {
