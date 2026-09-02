@@ -163,7 +163,7 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  * Expressions
  *  - `-(x / 3) - 1` must be spelled `x / -3 - 1`: a negative divisor makes
  *    expmed emit the reversed magic-division subtract with a plain addiu -1.
- *  - Under `enemy.human->itmctl == ITEM_GOSIN`, the doubling is
+ *  - Under `enemy.human->active_item == ACTIVE_ITEM_PROTECTION`, the doubling is
  *    `(u32)(dmg << 0x10) >> 0xf` (sll 16 / srl 15). Spelling it through the
  *    short lvalue truncates to zero -- a real behaviour bug, not a match.
  *  - The armour block computes deg BEFORE the knockback
@@ -639,11 +639,11 @@ resolve_hit:
             {
                 dmg = dmg * 6;
             }
-            if (Me_MOTION_C->itmctl == ITEM_GOSIN)
+            if (Me_MOTION_C->active_item == ACTIVE_ITEM_PROTECTION)
             {
                 dmg = dmg / 3;
             }
-            if (enemy.human->itmctl == ITEM_GOSIN)
+            if (enemy.human->active_item == ACTIVE_ITEM_PROTECTION)
             {
                 dmg = (u32)(dmg << 0x10) >> 0xf;
             }

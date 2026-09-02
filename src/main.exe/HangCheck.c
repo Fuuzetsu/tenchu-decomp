@@ -39,7 +39,7 @@
  * (MOTION.C, called from ActCHASE/ActHANG/ActMOVE/HumanActionControl). Bails
  * immediately for a "type 0xA_" special character, or unless the player is
  * airborne with room below (map.height), not already recovering (motID !=
- * 0x901) and not while Henshin is active (itmctl != ITEM_HENSHIN). Casts a short forward
+ * 0x901) and not while the disguise effect is active. Casts a short forward
  * probe (GetMoveSpeed) both ways from the character's feet: if the ground is
  * closer than the character's own Y (a wall/ledge edge underfoot), nudges
  * `*dtL` back away from it and bails. Otherwise probes further down (300,
@@ -108,7 +108,8 @@ short HangCheck(void)
     {
         return 0;
     }
-    if (Me_MOTION_C->map.height <= 0 || motID == MOT_JUMP_WALLKICK || Me_MOTION_C->itmctl == ITEM_HENSHIN)
+    if (Me_MOTION_C->map.height <= 0 || motID == MOT_JUMP_WALLKICK ||
+        Me_MOTION_C->active_item == ACTIVE_ITEM_DISGUISE)
     {
         return 0;
     }

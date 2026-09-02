@@ -8,7 +8,7 @@
  * ProcItemGosin (0x80041bf4) — the gosin (protection charm) item processor.
  * mode 0: play the use animation (0xF04) + sound 0x4C; mode 1: while the
  * animation plays, on completion (count==0 && loop) spray blood, set the
- * owner's itmctl and start a 0x1C2-frame effect countdown — if the
+ * owner's active item and start a 0x1C2-frame effect countdown — if the
  * animation was interrupted, toss the item back out (ReqItemDrop) and
  * dispose; mode 2: tick the countdown, spawning a set_impact_ex_ flash every
  * 0x40 frames, dispose at 0.
@@ -32,7 +32,7 @@
  *  - `scratch.v = vec_y_n1200_z_400;` is a whole-VECTOR struct assignment (the
  *    16-byte batched-loads/stores block move), not four scalar assignments.
  *  - `human`/`itemID` (PSX.SYM's own names) are the drop path's load-batch
- *    temps; `owner->itmctl = item->type` is the plain narrowing store
+ *    temps; `owner->active_item = item->type` is the plain narrowing store
  *    (lhu of the s32 type field).
  */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -82,7 +82,7 @@ void ProcItemGosin(TItem *item)
     ProcItemGosinScratch scratch;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
-        item->owner.human->itmctl = 0;
+        item->owner.human->active_item = ACTIVE_ITEM_NONE;
         item->mode = GOSIN_MODE_START;
         return;
     }
@@ -140,7 +140,7 @@ void ProcItemGosin(TItem *item)
             GetAbsolutePosition(
                 item->owner.human->model->object[MODEL_PART_TORSO], 0, 0, 0),
             600, 100, 20, 15, RGB24(180, 140, 30));
-        item->owner.human->itmctl = item->type;
+        item->owner.human->active_item = item->type;
         item->param.gosin.count = GOSIN_DURATION;
         item->mode++;
         return;

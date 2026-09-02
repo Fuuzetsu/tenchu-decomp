@@ -64,6 +64,18 @@ union HumanoidActionMode
     animal_attack_timer animal_timer;
 }; /* 0x01 */
 
+/* Long-running item effects recorded in Humanoid.itmctl by ITEM.C. Zero is
+ * the inactive sentinel here, not ITEM_KAGINAWA; only these three item kinds
+ * are ever installed in the field. */
+typedef s16 active_item_kind;
+enum active_item_kind
+{
+    ACTIVE_ITEM_NONE = 0,
+    ACTIVE_ITEM_DISGUISE = ITEM_HENSHIN,
+    ACTIVE_ITEM_PROTECTION = ITEM_GOSIN,
+    ACTIVE_ITEM_LURE = ITEM_MANEBUE
+};
+
 /*
  * Shared types + externs of the original item translation unit (ProcItem*,
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
@@ -215,8 +227,8 @@ typedef struct Humanoid
     struct AfterimageType *illusion[N_WEAPON_HANDS]; /* 0xA4 */
     s16 sound;                /* 0xAC (PSX.SYM name) packed VAB program base;
                                * Sound() adds a character_sound_slot */
-    s16 itmctl;               /* 0xAE (PSX.SYM's item-control field;
-                                 retail shifts it eight bytes from +0xA6) */
+    active_item_kind active_item; /* 0xAE (PSX.SYM's `itmctl`; retail shifts
+                                     it eight bytes from +0xA6) */
     s32 pad_hold;             /* 0xB0 (packed AI pad command/duration;
                                  high half carries D-pad bits and the low
                                  byte counts remaining frames) */

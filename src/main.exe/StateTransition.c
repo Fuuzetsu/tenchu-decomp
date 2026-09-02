@@ -212,12 +212,12 @@ void StateTransition(Humanoid *human)
     }
 
     {
-        if (StagePlayer->itmctl == ITEM_HENSHIN ||
-            StagePlayer->itmctl == ITEM_MANEBUE)
+        if (StagePlayer->active_item == ACTIVE_ITEM_DISGUISE ||
+            StagePlayer->active_item == ACTIVE_ITEM_LURE)
         {
             if ((Me_THINK_C->type & PAGE_MASK) != PAGE_BOSS &&
                 (Me_THINK_C->type & PAGE_MASK) != PAGE_BEAST &&
-                (StagePlayer->itmctl != ITEM_MANEBUE ||
+                (StagePlayer->active_item != ACTIVE_ITEM_LURE ||
                  (Attrib & ATTR_PHASE) != PHASE_ALERT))
             {
                 if (EmergencyNotice != 0)

@@ -126,7 +126,8 @@ void ProcItemHenshin(TItem *item)
                 NowReturnNormal(item->owner.human);
             }
             HenshinItem = 0;
-            ((volatile TItem *)item)->owner.human->itmctl = 0;
+            ((volatile TItem *)item)->owner.human->active_item =
+                ACTIVE_ITEM_NONE;
         }
         item->mode = HENSHIN_MODE_START;
         return;
@@ -250,7 +251,7 @@ void ProcItemHenshin(TItem *item)
          * half. */
         itemID = *(volatile u16 *)&volatile_item->type;
         EmergencyNotice = -HENSHIN_DURATION;
-        disguise_owner->itmctl = itemID;
+        disguise_owner->active_item = itemID;
         return;
     }
 
@@ -261,7 +262,7 @@ void ProcItemHenshin(TItem *item)
         remaining_count = HenshinCount - 1;
         HenshinCount = remaining_count;
         if ((s16)remaining_count > 0 &&
-            item->owner.human->itmctl == item->type &&
+            item->owner.human->active_item == item->type &&
             item->owner.human->status != STAT_DAMAGE &&
             item->owner.human->status != STAT_DEAD)
         {
