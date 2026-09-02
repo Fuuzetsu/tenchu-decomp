@@ -42,13 +42,15 @@ typedef struct
     BackGround *background;
 } MissionScoreTail;
 
+/* These are three adjacent stack objects in the original layout. Giving the
+ * sprite banks their actual stack alignment expresses the two four-byte gaps
+ * without invented "reserved" members. */
 typedef struct
 {
     ScoreResult result;
-    u32 rankReserved;
-    GsSPRITE rankSprites[N_STAGE_RANKS];
-    u32 characterReserved;
-    GsSPRITE characterSprites[N_PLAYABLE_CHARACTERS];
+    GsSPRITE rankSprites[N_STAGE_RANKS] __attribute__((aligned(8)));
+    GsSPRITE characterSprites[N_PLAYABLE_CHARACTERS]
+        __attribute__((aligned(8)));
 } MissionScoreSpriteStorage;
 
 extern u8 CHOSEN_CHARACTER;
@@ -166,8 +168,7 @@ static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
         GsSortSprite(rankSprite, OTablePt, 1);                                \
     } while (0)
 
-#define SCORE_SPRITE_AT(bank_, index_)                               \
-    ((GsSPRITE *)((u8 *)(bank_) + (index_) * sizeof(GsSPRITE)))
+#define SCORE_SPRITE_AT(bank_, index_) (&(bank_)[index_])
 
 /* Round-18 re-collapse: all ten signed-digit tails share DRAW_SCORE_DIGITS,
  * and the eight ordinary sites also share DRAW_SCORE_NUMBER.  The derived

@@ -104,13 +104,13 @@
  *    (`move v1,a1`). Reachability is sound because every found-check path
  *    runs >= 1 loop body iteration (the empty path branches straight to
  *    SystemOut).
- *  - The join recomputes the row as a named base plus an INTEGER pointer
- *    sum: `tbl = HumanData; pp = (HumanDataType *)(idx*sizeof + (u32)tbl);`.
+ *  - The join recomputes the row from a named table base with the ordinary
+ *    `pp = &tbl[idx]` array expression.
  *    The separate tbl statement puts %hi/lo_sum BEFORE the idx*24 chain, so
  *    %hi is born while idx is still live: %hi -> $s1 (not idx's freed $s0),
  *    pp -> $s0, tbl -> $s3, and dbr copies the join's lui into the
  *    found-check's delay slot (0x8002a0b4) with the label split at
- *    0x8002a0c4/0x8002a0c8. A plain `&HumanData[idx]` emits the mult chain
+ *    0x8002a0c4/0x8002a0c8. A direct `&HumanData[idx]` emits the mult chain
  *    first and rotates all three homes.
  *  - The filename scan is a GOTO-loop (label + `if (...) goto`), not a
  *    do/while: with no LOOP notes, loop.c cannot hoist the scan's -1, which
@@ -188,7 +188,7 @@ illegal_type:
     SystemOut(msg_illigal_character_type);
 type_found:
     tbl = HumanData;
-    pp = (HumanDataType *)(idx * sizeof(HumanDataType) + (u32)tbl);
+    pp = &tbl[idx];
     model = pp->model;
     if (model == 0)
     {
