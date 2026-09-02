@@ -39,9 +39,9 @@
  *
  * Matching notes:
  *  - `request`, `rx`, and `ry` are one contiguous sp+0x10..0x3f working
- *    window. The request union gives the shared 0x28-byte slot PSX.SYM's `p`
- *    view in mode 1 and `rp` view in mode 2; the latter also uses the
- *    trailing two words as camera rotation outputs.
+ *    window. The same launch request is populated by the drop and fire
+ *    modes; the latter also uses the trailing two words as camera rotation
+ *    outputs.
  *  - `mode_index = 0` is a zero-byte CSE eviction.  Naming the entry mode
  *    load and dead-overwriting that local before the switch makes
  *    expand_case emit the target's fresh second `lbu`; a direct switch after
@@ -73,11 +73,7 @@ void ProcItemKaengeki(TItem *item)
         KAENGEKI_MODE_FIRE = 2
     };
     param_kaengeki *param;
-    union
-    {
-        PARAM_ITEM_LAUNCH p;
-        PARAM_ITEM_LAUNCH rp;
-    } request;
+    PARAM_ITEM_LAUNCH request;
     void (*ppu)(TItem *);
     s32 rx;
     s32 ry;
@@ -139,16 +135,16 @@ void ProcItemKaengeki(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner.human;
             itemID = item->type;
-            memset(&request.p, 0, sizeof(PARAM_ITEM_LAUNCH));
-            request.p.type = itemID;
-            request.p.user.human = human;
-            request.p.start.vx = pos->vx;
-            request.p.start.vy = pos->vy;
-            request.p.start.vz = pos->vz;
-            request.p.end.vx = rand() % 200 - 100;
-            request.p.end.vy = rand() % 100 - 200;
-            request.p.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&request.p);
+            memset(&request, 0, sizeof(request));
+            request.type = itemID;
+            request.user.human = human;
+            request.start.vx = pos->vx;
+            request.start.vy = pos->vy;
+            request.start.vz = pos->vz;
+            request.end.vx = rand() % 200 - 100;
+            request.end.vy = rand() % 100 - 200;
+            request.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&request);
             ppu = item->proc;
             if (ppu == 0)
             {
@@ -182,11 +178,11 @@ void ProcItemKaengeki(TItem *item)
             item->owner.human->model->rotate.vy -= 0x20;
         }
 
-        request.rp.user.human = item->owner.human;
-        request.rp.type = ITEM_NAPALM;
-        request.rp.end.vx = param->end.vx;
-        request.rp.end.vy = param->end.vy;
-        request.rp.end.vz = param->end.vz;
+        request.user.human = item->owner.human;
+        request.type = ITEM_NAPALM;
+        request.end.vx = param->end.vx;
+        request.end.vy = param->end.vy;
+        request.end.vz = param->end.vz;
         model = item->owner.human->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
@@ -200,24 +196,24 @@ void ProcItemKaengeki(TItem *item)
             rz = model->rotate.vz;
             ry = model->rotate.vy;
         }
-        RotateVector(&request.rp.end, rx, ry, rz);
+        RotateVector(&request.end, rx, ry, rz);
 
-        request.rp.start.vx = request.rp.end.vx;
-        request.rp.start.vy = request.rp.end.vy;
-        request.rp.start.vz = request.rp.end.vz;
-        request.rp.start.vx *= 12;
-        request.rp.start.vy *= 12;
-        request.rp.start.vz *= 12;
-        request.rp.start.vx += param->start.vx;
-        request.rp.start.vy += param->start.vy;
-        request.rp.start.vz += param->start.vz;
-        request.rp.end.vx *= 2;
-        request.rp.end.vy *= 2;
-        request.rp.end.vz *= 2;
-        request.rp.end.vx += request.rp.start.vx;
-        request.rp.end.vy += request.rp.start.vy;
-        request.rp.end.vz += request.rp.start.vz;
-        ReqItemUse(&request.rp);
+        request.start.vx = request.end.vx;
+        request.start.vy = request.end.vy;
+        request.start.vz = request.end.vz;
+        request.start.vx *= 12;
+        request.start.vy *= 12;
+        request.start.vz *= 12;
+        request.start.vx += param->start.vx;
+        request.start.vy += param->start.vy;
+        request.start.vz += param->start.vz;
+        request.end.vx *= 2;
+        request.end.vy *= 2;
+        request.end.vz *= 2;
+        request.end.vx += request.start.vx;
+        request.end.vy += request.start.vy;
+        request.end.vz += request.start.vz;
+        ReqItemUse(&request);
         return;
 
     dispose:
