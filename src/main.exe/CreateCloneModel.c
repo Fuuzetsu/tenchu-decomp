@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "model.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -38,22 +39,7 @@ ModelType *CreateCloneModel(ModelType *objp)
     ModelType *model;
 
     model = (ModelType *)valloc(sizeof(ModelType));
-    model->object.coord2 = &model->locate;
-    model->object.attribute = 0;
-    GsInitCoordinate2(&World.locate, &model->locate);
-    model->locate.coord.t[0] = 0;
-    model->locate.coord.t[1] = 0;
-    model->locate.coord.t[2] = 0;
-    model->rotate.vx = 0;
-    model->rotate.vy = 0;
-    model->rotate.vz = 0;
-    model->clip.vx = 0;
-    model->clip.vy = 0;
-    model->clip.vz = 0;
-    RotMatrixYXZ(&model->rotate, &model->locate.coord);
-    model->locate.flg = 0;
-    model->id = CONFLICT_NONE;
-    model->attribute = 0;
+    INITIALIZE_MODEL_INSTANCE(model, &World.locate);
     if (objp != 0)
     {
         model->object.tmd = objp->object.tmd;

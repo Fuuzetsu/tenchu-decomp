@@ -29,6 +29,7 @@
  * END PSX.SYM */
 
 #include "item.h"
+#include "model.h"
 #include "tmdfile.h"
 
 /*
@@ -83,22 +84,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
                 GsMapModelingData((u_long *)&dtmd->data);
                 GsLinkObject4((u_long)dtmd->data.objects, &dim->object, 0);
             }
-            dim->object.coord2 = &dim->locate;
-            dim->object.attribute = 0;
-            GsInitCoordinate2(&World.locate, &dim->locate);
-            dim->locate.coord.t[0] = 0;
-            dim->locate.coord.t[1] = 0;
-            dim->locate.coord.t[2] = 0;
-            dim->rotate.vx = 0;
-            dim->rotate.vy = 0;
-            dim->rotate.vz = 0;
-            dim->clip.vx = 0;
-            dim->clip.vy = 0;
-            dim->clip.vz = 0;
-            RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
-            dim->id = CONFLICT_NONE;
-            dim->locate.flg = 0;
-            dim->attribute = 0;
+            INITIALIZE_MODEL_INSTANCE(dim, &World.locate);
             mad->object[i] = dim;
             i++;
         } while (i < mad->n);

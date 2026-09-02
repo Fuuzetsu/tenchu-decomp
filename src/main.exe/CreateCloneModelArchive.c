@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "model.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -103,22 +104,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
         {
             objp = mad->object[i];
             dim = (ModelType *)valloc(sizeof(ModelType));
-            dim->object.coord2 = &dim->locate;
-            dim->object.attribute = 0;
-            GsInitCoordinate2(&World.locate, &dim->locate);
-            dim->locate.coord.t[0] = 0;
-            dim->locate.coord.t[1] = 0;
-            dim->locate.coord.t[2] = 0;
-            dim->rotate.vx = 0;
-            dim->rotate.vy = 0;
-            dim->rotate.vz = 0;
-            dim->clip.vx = 0;
-            dim->clip.vy = 0;
-            dim->clip.vz = 0;
-            RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
-            dim->locate.flg = 0;
-            dim->id = CONFLICT_NONE;
-            dim->attribute = 0;
+            INITIALIZE_MODEL_INSTANCE(dim, &World.locate);
             if (objp != 0)
             {
                 dim->object.tmd = objp->object.tmd;

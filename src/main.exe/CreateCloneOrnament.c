@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "model.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -36,14 +37,7 @@ OrnamentType *CreateCloneOrnament(OrnamentType *objp)
     OrnamentType *ornament;
 
     ornament = (OrnamentType *)valloc(sizeof(OrnamentType));
-    ornament->object.coord2 = &ornament->locate;
-    ornament->object.attribute = 0;
-    GsInitCoordinate2(&World.locate, &ornament->locate);
-    ornament->locate.coord.t[0] = 0;
-    ornament->locate.coord.t[1] = 0;
-    ornament->locate.coord.t[2] = 0;
-    RotMatrixYXZ(&UnitVector, &ornament->locate.coord);
-    ornament->locate.flg = 0;
+    INITIALIZE_ORNAMENT_INSTANCE(ornament, &World.locate);
     if (objp != 0)
     {
         ornament->object.tmd = objp->object.tmd;
