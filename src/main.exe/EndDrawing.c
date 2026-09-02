@@ -34,9 +34,8 @@
  * GameClock/SkipFrame/DrawingPage/OTablePt via the raw `.s`).
  *
  * Body, in order:
- *  1. Every 30th frame (`GameClock == GameClock/30*30`, NOT `%` — the raw
- *     asm computes the quotient then re-multiplies and compares, matching
- *     Ghidra's literal rendering, not a modulo idiom), while not already
+ *  1. Every 30th frame (`GameClock % 30 == 0`, lowered by GCC to a quotient
+ *     and re-multiply), while not already
  *     mid-skip (`SkipFrame == 0`), snapshot how much of the current GPU
  *     packet buffer is left by subtracting the current typed page base from
  *     `GsGetWorkBase()`, clamped to PACKET_PAGE_SIZE.
@@ -128,7 +127,7 @@ void EndDrawing(short sync)
     u32 val;
     s32 dp;
 
-    if ((GameClock == (GameClock / 30) * 30) && (SkipFrame == 0))
+    if ((GameClock % 30 == 0) && (SkipFrame == 0))
     {
         val = GsGetWorkBase() - Packet[DrawingPage];
         if (val > PACKET_PAGE_SIZE)

@@ -44,9 +44,8 @@ extern u16 StrainPhase;
  * strain-proportional factor, then GsSortSprite'd.
  *
  * Matching notes:
- *  - `GameClock == (GameClock / speed) * speed` is EndDrawing.c's proven
- *    div-by-30 modulo-test spelling (the magic-multiply reproduces from the
- *    div/mul, not `% speed == 0`).
+ *  - `GameClock % speed == 0` lowers to the target's runtime divisibility
+ *    test, just as EndDrawing's constant-period form does.
  *  - The digit loop is PutNumber.c's own do-while shape (goto-free real
  *    do-while; `r` is the quotient, reused as the next iteration's dividend
  *    exactly like PutNumber's `q`).
@@ -115,7 +114,7 @@ void PutStrain(s32 x, s32 y)
         {
             spr = &KehaiYellowImage;
             ratio = 0;
-            if (GameClock == (GameClock / speed) * speed)
+            if (GameClock % speed == 0)
             {
                 SoundEx(0, SE_WARNING_BEEP);
             }

@@ -34,9 +34,8 @@
  * MM_DO(4) after setting the renderer's TMD mode.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `GameClock == (GameClock / 10) * 10` reproduces the div-by-10
- *    magic-multiply automatically (same idiom as DoItemProc's identical
- *    tick gate, same TU-independent shape).
+ *  - `GameClock % 10 == 0` reproduces the div-by-10 magic-multiply
+ *    automatically (same tick gate as DoItemProc).
  *  - The first scan is a literal goto loop.  Without loop notes, loop.c does
  *    not strength-reduce `pause` into a second `p + 0x14` induction pointer;
  *    `p` can remain nonvolatile, so the zero store fills the resume jump's
@@ -74,7 +73,7 @@ void DoMiscProc(void)
     }
     else
     {
-        if (GameClock == (GameClock / 10) * 10)
+        if (GameClock % 10 == 0)
         {
             s32 i;
 

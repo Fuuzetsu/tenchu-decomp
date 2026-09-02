@@ -115,7 +115,7 @@ void ProcItemLightningBolt(TItem *item)
         break;
 
     case LIGHTNING_MODE_WAIT:
-        if (GameClock == (GameClock / 3) * 3)
+        if (GameClock % 3 == 0)
         {
             item->mode = LIGHTNING_MODE_STRIKE;
         }

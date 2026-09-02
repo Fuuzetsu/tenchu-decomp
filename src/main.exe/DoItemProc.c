@@ -23,9 +23,8 @@
  * live slot's own `proc` callback.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - `GameClock % 10 == 0` written as `GameClock == (GameClock/10)*10`
- *    (Ghidra's own rendering) reproduces the magic-multiply (0x66666667)
- *    div-by-10 sequence automatically — not hand-derived.
+ *  - `GameClock % 10 == 0` reproduces the target's magic-multiply
+ *    (0x66666667) divisibility test directly.
  *  - Top-test (`slti`+`beqz`) + unconditional back-jump (no jump-to-bottom
  *    on entry) is the `while (1) { if (!(cond)) break; ...; i++; }` shape,
  *    NOT the plain-`for` bottom-test shape PackItemLayout got from the
@@ -50,7 +49,7 @@ void DoItemProc(void)
     {
         InitializeItem();
     }
-    if (GameClock == (GameClock / 10) * 10)
+    if (GameClock % 10 == 0)
     {
         UpdateItemState();
     }
