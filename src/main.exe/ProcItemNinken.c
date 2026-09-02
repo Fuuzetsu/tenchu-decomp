@@ -28,28 +28,6 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-/* Retail reuses the completed spawn-query vector for the case-1 smoke
- * direction. The case-2 `vec` is a separate block local in the original
- * source and shares the outer frame slot here. */
-typedef union
-{
-    struct
-    {
-        PARAM_ITEM_STAY saved;
-        u8 pad0[4];
-        PARAM_ITEM_STAY rparam;
-        u8 pad1[4];
-        PARAM_ITEM_LAUNCH launch;
-    } drop;
-    struct
-    {
-        VECTOR pos;
-        VECTOR work;
-        MapVector map;
-    } spawn;
-    SVECTOR vec;
-} ProcItemNinkenScratch;
-
 extern Humanoid *NINKEN_CHARACTER_PTR;
 extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
@@ -69,7 +47,6 @@ void ProcItemNinken(TItem *item)
     };
     param_ninken *param;
     s32 water;
-    ProcItemNinkenScratch scratch;
 
     param = &item->param.ninken;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -113,38 +90,41 @@ void ProcItemNinken(TItem *item)
         }
         if (status == KORO_STAY)
         {
+            PARAM_ITEM_STAY saved_record;
+            PARAM_ITEM_STAY rparam;
+            PARAM_ITEM_LAUNCH launch_record;
             PARAM_ITEM_STAY *saved;
             PARAM_ITEM_LAUNCH *launch;
 
-            memset(&scratch.drop.rparam, 0, sizeof(PARAM_ITEM_STAY));
-            scratch.drop.rparam.type = item->type;
-            scratch.drop.rparam.locate.vx =
+            memset(&rparam, 0, sizeof(PARAM_ITEM_STAY));
+            rparam.type = item->type;
+            rparam.locate.vx =
                 item->locate->locate.coord.t[0];
-            scratch.drop.rparam.locate.vy =
+            rparam.locate.vy =
                 item->locate->locate.coord.t[1];
-            scratch.drop.rparam.locate.vz =
+            rparam.locate.vz =
                 item->locate->locate.coord.t[2];
-            scratch.drop.saved = scratch.drop.rparam;
+            saved_record = rparam;
 
             if (item->proc != 0)
             {
                 DISPOSE_ITEM(item);
             }
 
-            saved = &scratch.drop.saved;
-            launch = &scratch.drop.launch;
-            scratch.drop.launch.type = saved->type;
+            saved = &saved_record;
+            launch = &launch_record;
+            launch_record.type = saved->type;
             launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
-            scratch.drop.launch.start.vx = saved->locate.vx;
-            scratch.drop.launch.start.vy = saved->locate.vy;
-            scratch.drop.launch.start.vz = saved->locate.vz;
-            scratch.drop.launch.end.vx = 0;
-            scratch.drop.launch.end.vy = 0;
-            scratch.drop.launch.end.vz = 0;
-            scratch.drop.launch.start.vy = GetAreaMapLevel(
-                GlobalAreaMap, scratch.drop.launch.start.vx,
-                scratch.drop.launch.start.vy,
-                scratch.drop.launch.start.vz, AREA_LEVEL_DEFAULT);
+            launch_record.start.vx = saved->locate.vx;
+            launch_record.start.vy = saved->locate.vy;
+            launch_record.start.vz = saved->locate.vz;
+            launch_record.end.vx = 0;
+            launch_record.end.vy = 0;
+            launch_record.end.vz = 0;
+            launch_record.start.vy = GetAreaMapLevel(
+                GlobalAreaMap, launch_record.start.vx,
+                launch_record.start.vy,
+                launch_record.start.vz, AREA_LEVEL_DEFAULT);
             ReqItemDrop(launch);
             return;
         }
@@ -170,11 +150,6 @@ void ProcItemNinken(TItem *item)
     case NINKEN_MODE_SPAWN:
     {
         s32 create;
-        s32 valid;
-        Humanoid *slave;
-        VECTOR *position;
-        VECTOR *query;
-        MapVector *map;
 
         create = 0;
         if (is_humanoid_on_stage_(NINKEN_CHARACTER_PTR) == 0 ||
@@ -189,65 +164,76 @@ void ProcItemNinken(TItem *item)
             NINKEN_CHARACTER_PTR->attribute |= ATTR_SUSPEND;
         }
 
-        position = &scratch.spawn.pos;
-        query = &scratch.spawn.work;
-        map = &scratch.spawn.map;
-        scratch.spawn.pos.vx = item->locate->locate.coord.t[0];
-        scratch.spawn.pos.vy = item->locate->locate.coord.t[1];
-        scratch.spawn.pos.vz = item->locate->locate.coord.t[2];
-        scratch.spawn.work.vx = position->vx;
-        scratch.spawn.work.vy = position->vy;
-        scratch.spawn.work.vz = position->vz;
-        scratch.spawn.work.vy -= 2000;
-        GetAreaMapVector(GlobalAreaMap, map, query, 500, AREA_LEVEL_DEFAULT);
+        {
+            s32 valid;
+            Humanoid *slave;
+            VECTOR *position;
+            VECTOR *query;
+            MapVector *map;
+            VECTOR pos;
+            VECTOR work;
+            MapVector map_result;
 
-        if (scratch.spawn.map.level >= position->vy - 500)
-        {
-            if (scratch.spawn.map.level < position->vy)
+            position = &pos;
+            query = &work;
+            map = &map_result;
+            pos.vx = item->locate->locate.coord.t[0];
+            pos.vy = item->locate->locate.coord.t[1];
+            pos.vz = item->locate->locate.coord.t[2];
+            work.vx = position->vx;
+            work.vy = position->vy;
+            work.vz = position->vz;
+            work.vy -= 2000;
+            GetAreaMapVector(GlobalAreaMap, map, query, 500, AREA_LEVEL_DEFAULT);
+
+            if (map_result.level >= position->vy - 500)
             {
-                position->vy = scratch.spawn.map.level;
+                if (map_result.level < position->vy)
+                {
+                    position->vy = map_result.level;
+                }
+                valid = 1;
             }
-            valid = 1;
-        }
-        else
-        {
-            valid = 0;
-        }
-        if (valid == 0 ||
-            (NINKEN_CHARACTER_PTR->attribute & ATTR_SUSPEND) == 0)
-        {
-            item->mode--;
-            param->count = 15; /* retry the spawn shortly */
+            else
+            {
+                valid = 0;
+            }
+            if (valid == 0 ||
+                (NINKEN_CHARACTER_PTR->attribute & ATTR_SUSPEND) == 0)
+            {
+                item->mode--;
+                param->count = 15; /* retry the spawn shortly */
+                return;
+            }
+
+            *(SVECTOR *)&work = svec_y_n50[0];
+            SetSmoke(&pos, (SVECTOR *)&work, 10, 6);
+            SoundEx(&pos, SE_SMOKE_PUFF);
+            param->slave = NINKEN_CHARACTER_PTR;
+            NINKEN_CHARACTER_PTR->status = STAT_NORMAL;
+            slave = param->slave;
+            slave->life = slave->lifemax;
+            param->slave->model->locate.coord.t[0] = pos.vx;
+            param->slave->model->locate.coord.t[1] = pos.vy;
+            param->slave->model->locate.coord.t[2] = pos.vz;
+            param->slave->model->rotate.vx = item->owner->model->rotate.vx;
+            param->slave->model->rotate.vy = item->owner->model->rotate.vy;
+            param->slave->model->rotate.vz = item->owner->model->rotate.vz;
+            EquipWeapon(param->slave, WEAPON_SHEATHED);
+            SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
+            param->slave->attribute &= ~ATTR_PHASE;
+            param->slave->attribute = 0;
+            param->slave->target = &item->owner->model->locate;
+            param->slave->motion->count = 0;
+            PlayMotion(param->slave->motion, 1);
+            param->slave->attribute &= ~ATTR_SUSPEND;
+            param->slave->model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_COLLIDE;
+            set_model_hide_(param->slave, 0);
+            param->slave->vector.vy = 0;
+            item->mode++;
+            param->count = NINKEN_DURATION;
             return;
         }
-
-        *(SVECTOR *)&scratch.spawn.work = svec_y_n50[0];
-        SetSmoke(&scratch.spawn.pos, (SVECTOR *)&scratch.spawn.work, 10, 6);
-        SoundEx(&scratch.spawn.pos, SE_SMOKE_PUFF);
-        param->slave = NINKEN_CHARACTER_PTR;
-        NINKEN_CHARACTER_PTR->status = STAT_NORMAL;
-        slave = param->slave;
-        slave->life = slave->lifemax;
-        param->slave->model->locate.coord.t[0] = scratch.spawn.pos.vx;
-        param->slave->model->locate.coord.t[1] = scratch.spawn.pos.vy;
-        param->slave->model->locate.coord.t[2] = scratch.spawn.pos.vz;
-        param->slave->model->rotate.vx = item->owner->model->rotate.vx;
-        param->slave->model->rotate.vy = item->owner->model->rotate.vy;
-        param->slave->model->rotate.vz = item->owner->model->rotate.vz;
-        EquipWeapon(param->slave, WEAPON_SHEATHED);
-        SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
-        param->slave->attribute &= ~ATTR_PHASE;
-        param->slave->attribute = 0;
-        param->slave->target = &item->owner->model->locate;
-        param->slave->motion->count = 0;
-        PlayMotion(param->slave->motion, 1);
-        param->slave->attribute &= ~ATTR_SUSPEND;
-        param->slave->model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_COLLIDE;
-        set_model_hide_(param->slave, 0);
-        param->slave->vector.vy = 0;
-        item->mode++;
-        param->count = NINKEN_DURATION;
-        return;
     }
 
     case NINKEN_MODE_ACTIVE:
@@ -291,9 +277,12 @@ void ProcItemNinken(TItem *item)
         }
 
     expire:
-        scratch.vec = svec_y_n50[0];
+    {
+        SVECTOR vec;
+
+        vec = svec_y_n50[0];
         SetSmoke(MODEL_POSITION(param->slave->model),
-                 &scratch.vec, 10, 6);
+                 &vec, 10, 6);
         SoundEx(MODEL_POSITION(param->slave->model), SE_SMOKE_PUFF);
         TurnAroundAllItems(param->slave);
         {
@@ -307,6 +296,7 @@ void ProcItemNinken(TItem *item)
             DISPOSE_ITEM(item);
             return;
         }
+    }
 
     active:
     {
