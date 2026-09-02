@@ -29,9 +29,9 @@
  *  - The byte-neutral identical arms make raw `xAdj` a real dependency before
  *    combine, preventing its load-plus-conversion from folding to `lh`.
  *    jump2 removes the condition and duplicate assignment completely.
- *  - The positive-first labelled arms reproduce the target's physical CFG and
- *    its duplicated z conversion at the x-store/skip merge. Separate `newx`
- *    and `newz` carriers preserve `amount` in $s0 while results use $v0.
+ *  - Ordinary positive/negative compound updates reproduce the target's
+ *    shared stores directly: GCC cross-jumps each axis pair without source
+ *    labels or separate result carriers.
  *  - In the fallback arm, copying `half` to `amount` before loading v1.vector
  *    gives the target's final independent move/load schedule.
  */
@@ -45,8 +45,6 @@ void push_from_walls_(VECTOR *pos, s32 amount)
     u16 xAdj;
     s32 signedX;
     u16 zAdj;
-    s32 newx;
-    s32 newz;
 
     GetAreaMapVector(GlobalAreaMap, &v1, pos, amount, AREA_LEVEL_DEFAULT);
     if (v1.level == LEVEL_NONE)
@@ -75,33 +73,20 @@ void push_from_walls_(VECTOR *pos, s32 amount)
     {
         signedX = (s16)xAdj;
     }
-    if (signedX <= 0)
+    if (signedX > 0)
     {
-        goto x_nonpositive;
+        pos->vx += amount;
     }
-    newx = pos->vx + amount;
-    goto store_x;
-x_nonpositive:
-    if (signedX >= 0)
+    else if (signedX < 0)
     {
-        goto skip_x;
+        pos->vx -= amount;
     }
-    newx = pos->vx - amount;
-store_x:
-    pos->vx = newx;
-skip_x:
-    if ((s16)zAdj <= 0)
+    if ((s16)zAdj > 0)
     {
-        goto z_nonpositive;
+        pos->vz += amount;
     }
-    newz = pos->vz + amount;
-    goto store_z;
-z_nonpositive:
-    if ((s16)zAdj >= 0)
+    else if ((s16)zAdj < 0)
     {
-        return;
+        pos->vz -= amount;
     }
-    newz = pos->vz - amount;
-store_z:
-    pos->vz = newz;
 }

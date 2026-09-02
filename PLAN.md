@@ -767,6 +767,14 @@ than presented as recovered structure. Surviving non-hardware qualifiers remain
 audit targets and compiler constraints, never evidence that RAM-backed gameplay
 data was volatile in the original source.
 
+WALL-PUSH CONTROL FLOW RECOVERED (2026-09-02): `push_from_walls_` no longer
+spells its x/z sign handling as five labels, six gotos, and two result carriers.
+The natural pair of positive/negative compound updates for each axis makes GCC
+cross-jump the shared stores itself, preserving all 296 retail bytes. The
+separate unsigned table captures remain because they explain the retail `lhu`
+loads; their identical x-conversion arms are still an explicit audit target,
+not a model for ordinary source.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
