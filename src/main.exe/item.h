@@ -202,7 +202,35 @@ extern ThinkFunc AttackFunc[N_WEAPON_ATTACK_CLASSES];
 
 /* Think1watch/Think1target act on the ticks where actcnt's low bits are
  * clear, so the character looks around once per this many idle ticks. */
-#define THINK_IDLE_PERIOD 0x80
+enum think_idle_timing
+{
+    THINK_IDLE_PERIOD = 0x80,
+    THINK_IDLE_TURN_LIMIT = 10
+};
+
+/* Advance the shared idle-look cycle and produce this frame's virtual pad. */
+#define UPDATE_IDLE_LOOK_PAD(pad_)                                          \
+    {                                                                        \
+        (pad_) = 0;                                                          \
+        if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)            \
+        {                                                                    \
+            (pad_) = PADLleft;                                               \
+            if (Me_THINK_C->actflg != 0)                                    \
+            {                                                                \
+                (pad_) = PADLright;                                          \
+            }                                                                \
+            if (Me_THINK_C->actscnt++ > THINK_IDLE_TURN_LIMIT)              \
+            {                                                                \
+                Me_THINK_C->actflg = rand() & 1;                            \
+                Me_THINK_C->actscnt = 0;                                    \
+                Me_THINK_C->actcnt++;                                       \
+            }                                                                \
+        }                                                                    \
+        else                                                                 \
+        {                                                                    \
+            Me_THINK_C->actcnt++;                                           \
+        }                                                                    \
+    }
 
 /* Think4contact and Think4chase share the same investigation lifetime and
  * arrival rule. Think4chase actively steers only at the start of that wait. */

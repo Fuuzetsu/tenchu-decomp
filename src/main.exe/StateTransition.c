@@ -61,9 +61,8 @@
  *    schedule and allocation without a fixed-register declaration.
  *  - The packed word at Humanoid+0xb0 is read with `word >> 16`, not a halfword
  *    pointer cast: the former gives the target `lh` plus delayed copy to pad.
- *  - The one-shot `do` around the case-0 chase resets emits no control-flow
- *    instructions.  Its loop-depth notes weight the two pointer uses enough
- *    for local-alloc to choose the target's $v0/$v1 order naturally.
+ *  - The case-0 chase reset is a right-to-left chained assignment: Z is the
+ *    inner store, preserving the target's Z-then-X write order.
  *  - Repeating `attacker->target` for the two coordinate reads makes
  *    cse preserve the loaded target pointer with the target's explicit copy.
  *    The >=-form ternaries likewise expand the two absolute values directly
@@ -299,11 +298,8 @@ void StateTransition(Humanoid *human)
                 actor = Me_THINK_C;
                 actor_life = actor->life;
                 Attrib = base_attrib | PHASE_ALERT;
-                do
-                {
+                actor->chase[HUMANOID_CHASE_X] =
                     actor->chase[HUMANOID_CHASE_Z] = 0;
-                    actor->chase[HUMANOID_CHASE_X] = 0;
-                } while (0);
                 if (actor_life > 0)
                 {
                     Humanoid *alert_actor;

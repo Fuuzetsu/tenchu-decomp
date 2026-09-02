@@ -46,25 +46,6 @@ s16 Think1watch(void)
 {
     s16 pad;
 
-    pad = 0;
-    if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
-    {
-        /* The signed view keeps PADLleft in addiu's immediate range. */
-        pad = (s16)PADLleft;
-        if (Me_THINK_C->actflg != 0)
-        {
-            pad = PADLright;
-        }
-        if (Me_THINK_C->actscnt++ > 10)
-        {
-            Me_THINK_C->actflg = rand() & 1;
-            Me_THINK_C->actscnt = 0;
-            Me_THINK_C->actcnt++;
-        }
-    }
-    else
-    {
-        Me_THINK_C->actcnt++;
-    }
+    UPDATE_IDLE_LOOK_PAD(pad);
     return pad;
 }

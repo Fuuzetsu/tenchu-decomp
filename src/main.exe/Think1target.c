@@ -55,26 +55,7 @@ s16 Think1target(void)
 
     if (Me_THINK_C->target == NULL)
     {
-
-        pad = 0;
-        if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
-        {
-            pad = PADLleft;
-            if (Me_THINK_C->actflg != 0)
-            {
-                pad = PADLright;
-            }
-            if (Me_THINK_C->actscnt++ > 10)
-            {
-                Me_THINK_C->actflg = rand() & 1;
-                Me_THINK_C->actscnt = 0;
-                Me_THINK_C->actcnt++;
-            }
-        }
-        else
-        {
-            Me_THINK_C->actcnt++;
-        }
+        UPDATE_IDLE_LOOK_PAD(pad);
         return pad;
     }
 
@@ -140,26 +121,7 @@ s16 Think1target(void)
             return GotoPosition(vx, vz);
         }
         {
-
-                pad = 0;
-            if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)
-            {
-                pad = PADLleft;
-                if (Me_THINK_C->actflg != 0)
-                {
-                    pad = PADLright;
-                }
-                if (Me_THINK_C->actscnt++ > 10)
-                {
-                    Me_THINK_C->actflg = rand() & 1;
-                    Me_THINK_C->actscnt = 0;
-                    Me_THINK_C->actcnt++;
-                }
-            }
-            else
-            {
-                Me_THINK_C->actcnt++;
-            }
+            UPDATE_IDLE_LOOK_PAD(pad);
             return pad;
         }
     }
