@@ -39,13 +39,6 @@
         Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_A);                          \
     }
 
-#define DISPOSE_WEAPON_AFTERIMAGE(slot_)                                      \
-    if (Me_MOTION_C->illusion[slot_] != 0)                                    \
-    {                                                                         \
-        DisposeAfterimage(Me_MOTION_C->illusion[slot_]);                      \
-        Me_MOTION_C->illusion[slot_] = 0;                                     \
-    }
-
 #define INSERT_WEAPON_CONFLICT(hand_)                                         \
     wid = (int)Me_MOTION_C->wepid[hand_];                                     \
     if (wid >= 0)                                                             \
@@ -81,45 +74,6 @@
         bow_shoot_logic(ITEM_GUN, pos);                                       \
         Sound(Me_MOTION_C, CHAR_SE_ATTACK);                                   \
     }
-
-/* End-of-attack weapon cleanup: drop the striking-limb conflict boxes
- * for the weapon class and dispose both afterimage trails. Retail
- * copy-pastes this block three times; the macro is reconstruction
- * shorthand (expands to the identical text; `kind` and `cleanup_guard`
- * are each site's locals). */
-#define DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES()                             \
-    kind = Me_MOTION_C->wpatk;                                                \
-    switch (kind)                                                             \
-    {                                                                         \
-    case FIST:                                                          \
-        DeleteConflict(                                                       \
-            Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);            \
-        DeleteConflict(                                                       \
-            Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);            \
-        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
-        break;                                                                \
-    case JAW:                                                           \
-        DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);  \
-        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
-        break;                                                                \
-    case NO_WEAPON:                                                            \
-        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
-        break;                                                                \
-    default:                                                                  \
-        DeleteConflict(                                                       \
-            Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);            \
-        DeleteConflict(                                                       \
-            Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);            \
-        cleanup_guard = ATTACK_CANCEL_ALL;                                    \
-        break;                                                                \
-    }                                                                         \
-    if ((cleanup_guard & ATTACK_CANCEL_AFTERIMAGES) != 0)                     \
-    {                                                                         \
-        DISPOSE_WEAPON_AFTERIMAGE(0);                                         \
-        DISPOSE_WEAPON_AFTERIMAGE(1);                                         \
-    }
-
-
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -639,7 +593,8 @@ dispatch:
             short cleanup_guard;
             short kind;
 
-            DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
+            kind = Me_MOTION_C->wpatk;
+            CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
             dtM->mask = MOTION_MASK_ALL;
             SetCameraMode(CMODE_NORMAL);
             if (motID == MOT_STATE_FALL)
@@ -659,7 +614,8 @@ dispatch:
         }
         if ((dtM->count == 0) && (dtM->loop != 0))
         {
-            DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
+            kind = Me_MOTION_C->wpatk;
+            CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
             mmp = dtM;
             SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
             mmp->mask = MOTION_MASK_ALL;
@@ -766,7 +722,8 @@ dispatch:
         short i;
 
         saved_mid = motID;
-        DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES();
+        kind = Me_MOTION_C->wpatk;
+        CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         dtM->mask = MOTION_MASK_ALL;
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
@@ -921,8 +878,8 @@ dispatch:
         {
             return;
         }
-        DISPOSE_WEAPON_AFTERIMAGE(0);
-        DISPOSE_WEAPON_AFTERIMAGE(1);
+        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
+        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_1);
         mmp = dtM;
         mmp->mask = MOTION_MASK_ALL;
         return;
@@ -931,4 +888,3 @@ dispatch:
 #undef FIRE_GUN_AT_FRAME
 #undef SETUP_WEAPON_AFTERIMAGE
 #undef INSERT_WEAPON_CONFLICT
-#undef DISPOSE_WEAPON_AFTERIMAGE

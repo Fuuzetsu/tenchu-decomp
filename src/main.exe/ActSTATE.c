@@ -60,43 +60,8 @@ void ActSTATE(void)
     case MOT_STATE_DRAW:
         if (dtM->count == 1)
         {
-            {
-                switch (Me_MOTION_C->wpatk)
-                {
-                case FIST:
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                case JAW:
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                case NO_WEAPON:
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                default:
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                }
-                if ((cleanup_guard & ATTACK_CANCEL_AFTERIMAGES) != 0)
-                {
-                    if (Me_MOTION_C->illusion[WEAPON_HAND_0] != 0)
-                    {
-                        DisposeAfterimage(
-                            Me_MOTION_C->illusion[WEAPON_HAND_0]);
-                        Me_MOTION_C->illusion[WEAPON_HAND_0] = 0;
-                    }
-                    if (Me_MOTION_C->illusion[WEAPON_HAND_1] != 0)
-                    {
-                        DisposeAfterimage(
-                            Me_MOTION_C->illusion[WEAPON_HAND_1]);
-                        Me_MOTION_C->illusion[WEAPON_HAND_1] = 0;
-                    }
-                }
-            }
+            CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, Me_MOTION_C->wpatk,
+                                        cleanup_guard);
             dtM->mask = MOTION_MASK_ALL;
             if (Me_MOTION_C->type < KERAI_KATANA)
             {
@@ -161,43 +126,8 @@ void ActSTATE(void)
                  * then back to idle unless still combat-ready */
         if (dtM->count == 1)
         {
-            {
-                switch (Me_MOTION_C->wpatk)
-                {
-                case FIST:
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                case JAW:
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                case NO_WEAPON:
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                default:
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-                    DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
-                    cleanup_guard = ATTACK_CANCEL_ALL;
-                    break;
-                }
-                if ((cleanup_guard & ATTACK_CANCEL_AFTERIMAGES) != 0)
-                {
-                    if (Me_MOTION_C->illusion[WEAPON_HAND_0] != 0)
-                    {
-                        DisposeAfterimage(
-                            Me_MOTION_C->illusion[WEAPON_HAND_0]);
-                        Me_MOTION_C->illusion[WEAPON_HAND_0] = 0;
-                    }
-                    if (Me_MOTION_C->illusion[WEAPON_HAND_1] != 0)
-                    {
-                        DisposeAfterimage(
-                            Me_MOTION_C->illusion[WEAPON_HAND_1]);
-                        Me_MOTION_C->illusion[WEAPON_HAND_1] = 0;
-                    }
-                }
-            }
+            CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, Me_MOTION_C->wpatk,
+                                        cleanup_guard);
             dtM->mask = MOTION_MASK_ALL;
             if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
             {
