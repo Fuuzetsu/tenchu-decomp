@@ -720,6 +720,12 @@ struct that provided no overlap or domain abstraction. Its world-space
 velocity and impact-position VECTORs are now independent locals; GCC gives
 them the same retail slots and the 832-byte function remains exact.
 
+KAWARIMI LOCALS RECOVERED (2026-09-02): removed the outer
+`ProcItemKawarimiScratch` struct. The emitted particle position is an ordinary
+VECTOR again, while the adjacent union remains to describe the real reuse of
+the position-building storage as two velocity SVECTORs. All 784 bytes remain
+exact.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

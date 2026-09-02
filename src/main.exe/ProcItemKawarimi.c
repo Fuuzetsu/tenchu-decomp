@@ -55,23 +55,10 @@
 
 #include "item.h"
 
-/* The particle loop reuses one 0x20-byte slot. PSX.SYM names its output
- * views `pos` and `vec`; the inner union records how the temporary position
- * is overwritten by the output velocity and its build area. */
-typedef struct
-{
-    VECTOR position;
-    union
-    {
-        VECTOR position_build;
-        struct
-        {
-            SVECTOR velocity;
-            SVECTOR velocity_build;
-        } vectors;
-    } work;
-} ProcItemKawarimiScratch;
-
+/* PSX.SYM names the particle output `pos` and `vec`. The output position is
+ * an ordinary VECTOR; the adjacent work union records the genuine reuse in
+ * which the temporary position is overwritten by two SVECTOR values used to
+ * build and submit the output velocity. */
 void ProcItemKawarimi(TItem *item)
 {
     enum
@@ -83,7 +70,16 @@ void ProcItemKawarimi(TItem *item)
     };
     param_drop *param;
     s32 particle_index;
-    ProcItemKawarimiScratch scratch;
+    VECTOR position;
+    union
+    {
+        VECTOR position_build;
+        struct
+        {
+            SVECTOR velocity;
+            SVECTOR velocity_build;
+        } vectors;
+    } work;
 
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -104,21 +100,21 @@ void ProcItemKawarimi(TItem *item)
         {
             if (particle_index >= 0x14)
                 break;
-            memset(&scratch.work.position_build, 0, sizeof(VECTOR));
-            scratch.work.position_build.vx =
+            memset(&work.position_build, 0, sizeof(VECTOR));
+            work.position_build.vx =
                 item->owner.human->model->locate.coord.t[0] +
                 (rand() % 1000 - 500);
-            scratch.work.position_build.vy =
+            work.position_build.vy =
                 item->owner.human->model->locate.coord.t[1] +
                 (rand() % 1000 - 1200);
-            scratch.work.position_build.vz =
+            work.position_build.vz =
                 item->owner.human->model->locate.coord.t[2] +
                 (rand() % 1000 - 500);
-            scratch.position = scratch.work.position_build;
-            memset(&scratch.work.vectors.velocity_build, 0, sizeof(SVECTOR));
-            scratch.work.vectors.velocity_build.vy = rand() % 10 - 30;
-            scratch.work.vectors.velocity = scratch.work.vectors.velocity_build;
-            SetBleed(&scratch.position, &scratch.work.vectors.velocity,
+            position = work.position_build;
+            memset(&work.vectors.velocity_build, 0, sizeof(SVECTOR));
+            work.vectors.velocity_build.vy = rand() % 10 - 30;
+            work.vectors.velocity = work.vectors.velocity_build;
+            SetBleed(&position, &work.vectors.velocity,
                      rand() % 16 + 15, RGB24(100, 200, 220));
             particle_index++;
         }
