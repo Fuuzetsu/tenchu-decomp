@@ -29,8 +29,9 @@
  *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail changed the demo's
  *    signed field to `u16` (`lhu`), then narrows through an s16 local
  *    (`sll/bnez` zero-test, not andi).
- *  - `scratch.v = vec_y_n1200_z_400;` is a whole-VECTOR struct assignment (the
- *    16-byte batched-loads/stores block move), not four scalar assignments.
+ *  - The active path reuses the completed drop request as a VECTOR and copies
+ *    `vec_y_n1200_z_400` into it as one whole aggregate (the 16-byte batched
+ *    loads/stores block move), not four scalar assignments.
  *  - `human`/`itemID` (PSX.SYM's own names) are the drop path's load-batch
  *    temps; `owner->active_item = item->type` is the plain narrowing store
  *    (lhu of the s32 type field).
@@ -55,12 +56,6 @@
 
 #include "item.h"
 
-typedef union
-{
-    PARAM_ITEM_LAUNCH p;
-    VECTOR v;
-} ProcItemGosinScratch;
-
 /* Retail's caller promotes these scalar arguments before the call. */
 extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                            short start_size, short end_size,
@@ -79,7 +74,7 @@ void ProcItemGosin(TItem *item)
         GOSIN_MODE_WAIT = 1,
         GOSIN_MODE_ACTIVE = 2
     };
-    ProcItemGosinScratch scratch;
+    PARAM_ITEM_LAUNCH drop_request;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->owner->active_item = ACTIVE_ITEM_NONE;
@@ -108,16 +103,16 @@ void ProcItemGosin(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(&scratch.p, 0, sizeof(PARAM_ITEM_LAUNCH));
-            scratch.p.type = itemID;
-            scratch.p.user = human;
-            scratch.p.start.vx = pos->vx;
-            scratch.p.start.vy = pos->vy;
-            scratch.p.start.vz = pos->vz;
-            scratch.p.end.vx = rand() % 200 - 100;
-            scratch.p.end.vy = rand() % 100 - 200;
-            scratch.p.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&scratch.p);
+            memset(&drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
+            drop_request.type = itemID;
+            drop_request.user = human;
+            drop_request.start.vx = pos->vx;
+            drop_request.start.vy = pos->vy;
+            drop_request.start.vz = pos->vz;
+            drop_request.end.vx = rand() % 200 - 100;
+            drop_request.end.vy = rand() % 100 - 200;
+            drop_request.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&drop_request);
             if (item->proc == 0)
                 return;
             item->mode = ITEM_MODE_DISPOSE;
@@ -169,8 +164,8 @@ void ProcItemGosin(TItem *item)
         }
         if ((c & 0x3f) != 0)
             return;
-        scratch.v = vec_y_n1200_z_400;
-        set_impact_ex_(&scratch.v, &item->owner->model->locate,
+        *(VECTOR *)&drop_request = vec_y_n1200_z_400;
+        set_impact_ex_((VECTOR *)&drop_request, &item->owner->model->locate,
                        FIXED_ONE, 6 * FIXED_ONE, COLOR_GRAY, 0,
                        (s16)(rand() % 360), 2, 120, IMPACT_SPRITE_GOSIN);
         return;
