@@ -750,6 +750,11 @@ extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 extern void *memset(void *s, int c, u32 n);
 
+static inline void ClearItemLaunchRequest(PARAM_ITEM_LAUNCH *request)
+{
+    memset(request, 0, sizeof(*request));
+}
+
 /* "item dispose fail   id %d  mode %d" */
 extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 /* The global item pool. */

@@ -45,10 +45,10 @@
  *    sp+0x38..0x5f for PARAM_ITEM_LAUNCH and then VECTOR plus MapVector.
  *    This is the lifetime split recorded by PSX.SYM, without a storage union
  *    or an unrelated aggregate cast.
- *  - `launchp = 0` after memset is a zero-byte CSE eviction. Without that
- *    reassignment, cse2 keeps `&drop_request` in an extra callee-saved register
- *    through all three rand calls, adding an s5 save/restore and growing the
- *    frame. Eviction makes both call sites re-materialize sp+0x38 like target.
+ *  - `ClearItemLaunchRequest` gives the memset address its own inlined helper
+ *    lifetime. Once that parameter dies, cse2 re-materializes sp+0x38 for the
+ *    later request use instead of retaining the address in an extra
+ *    callee-saved register through all three rand calls.
  *  - The movement position is built through direct `pos` writes, then
  *    `apos = &pos` is assigned only for the query/level span.  The final
  *    model-coordinate copies must return to direct stack reads; using `apos`
@@ -115,11 +115,8 @@ void ProcItemShinsoku(TItem *item)
             itemID = item->type;
             {
                 PARAM_ITEM_LAUNCH drop_request;
-                PARAM_ITEM_LAUNCH *launchp;
 
-                launchp = &drop_request;
-                memset(launchp, 0, sizeof(drop_request));
-                launchp = 0;
+                ClearItemLaunchRequest(&drop_request);
                 drop_request.type = itemID;
                 drop_request.user = human;
                 drop_request.start.vx = pos->vx;
