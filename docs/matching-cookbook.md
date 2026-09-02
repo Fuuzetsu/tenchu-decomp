@@ -2158,7 +2158,7 @@ irreducible nest: DrawConstruction's 3.
 - **An EffectSlot `idx`/pointer lockstep in assembly can be strength
   reduction, not two source locals.** The decisive experiment is the WHOLE
   scan: keep `idx`, test `EffectSlot[idx].proc`, and assign
-  `slot = &EffectSlot[idx]` only on success. Across 20 of the 22 EffectSlot
+  `slot = &EffectSlot[idx]` only on success. Across 21 of the 22 EffectSlot
   allocator scans, loop.c recreates the
   target's initialized pointer,
   stride increment, and wrap reset exactly. This also removes the invented
@@ -2167,8 +2167,11 @@ irreducible nest: DrawConstruction's 3.
   the rest of the transcribed cursor graph in place led to the false conclusion
   that an integer pointer sum was required. Hand-written goto scanners are a
   separate case: without real loop notes, their explicit pointer walk may be
-  source-authored. `SetBlood` and `spawn_smoke_burst_` are the two measured
-  exceptions: their hand-written outer goto loops still need a cached pool base.
+  source-authored. `SetBlood` is the remaining measured exception.
+  `spawn_smoke_burst_` looked like a second one only while its outer loop was a
+  hand-written goto: restoring the complete `do { ... } while (1)` form from
+  its PSX.SYM-backed `SetSmoke` sibling simultaneously made direct indexing
+  exact and removed the fake identical-arm reference that had pinned `pos`.
 - **The same whole-graph rule applies to a run of fields, not just a loop.**
   If decompiled C computes `element = (T *)(index * sizeof(T) + (u32)base)`
   and then touches several `element->field`s, replace the entire run with
