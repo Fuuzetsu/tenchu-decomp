@@ -3,6 +3,7 @@
 #include "images.h"
 #include "tim.h"
 #include "item.h"
+#include "model.h"
 #include <psxsdk/libgpu.h>
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -64,20 +65,7 @@ Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
         ModelType *dim;
 
         dim = (ModelType *)sprt;
-        GsInitCoordinate2(&World.locate, &dim->locate);
-        dim->locate.coord.t[0] = 0;
-        dim->locate.coord.t[1] = 0;
-        dim->locate.coord.t[2] = 0;
-        dim->rotate.vx = 0;
-        dim->rotate.vy = 0;
-        dim->rotate.vz = 0;
-        dim->clip.vx = 0;
-        dim->clip.vy = 0;
-        dim->clip.vz = 0;
-        RotMatrixYXZ(&dim->rotate, &dim->locate.coord);
-        dim->locate.flg = 0;
-        dim->id = CONFLICT_NONE;
-        dim->attribute = 0;
+        INITIALIZE_MODEL_STATE(dim, &World.locate);
         sprt->scale = FIXED_ONE;
         memset(&sprt->sprite, 0, sizeof(GsSPRITE));
         sprt->sprite.attribute = 0;

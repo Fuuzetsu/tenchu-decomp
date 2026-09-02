@@ -93,7 +93,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     {
         prnt = &World;
     }
-    INITIALIZE_MODEL_ARCHIVE(mad, &prnt->locate);
+    INITIALIZE_MODEL_STATE(mad, &prnt->locate);
     i = 0;
     count = mad->n;
     if (mad->n > 0)

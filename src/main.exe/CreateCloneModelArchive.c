@@ -83,7 +83,7 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
     newmad->n = mad->n;
     newmad->object = (ModelType **)valloc(newmad->n * sizeof(ModelType *));
-    INITIALIZE_MODEL_ARCHIVE(newmad, mad->locate.super);
+    INITIALIZE_MODEL_STATE(newmad, mad->locate.super);
     i = 0;
     if (newmad->n > 0)
     {
