@@ -27,13 +27,14 @@
 
 /*
  * STATUS: MATCHING — pure C, all 568 bytes / 142 instructions exact.
- * Reusing the PSX.SYM `i` for both archive loops and `j` for the nested
- * parent search produces the target loop and found-path layout. The offset
- * consumer's unsigned prntp cancellation supplies the two allocation reads
- * that make `prntp` outrank `prnt`, giving the target s3/s4 assignment with
- * no one-shot wrappers. Assigning `count` in loop2's comparison and
- * initializing `j` before the parent copy preserve the two target
- * instruction-order pairs.
+ * Reusing the PSX.SYM `i` for both archive passes and `j` for the nested
+ * parent search produces the target loop and found-path layout.  These are
+ * deliberately pre-tested infinite loops: flattening either pass to labels
+ * loses its loop-depth weight and rotates the long-lived prntp/prnt/tmdp
+ * registers.  The first pass snapshots the signed-short index because it is
+ * incremented before LoadOrnament but reused after the call.  Assigning
+ * `count` in the second pass's comparison and initializing `j` before the
+ * parent copy preserve the two target instruction-order pairs.
  */
 
 extern void *valloc(u32 size);
@@ -70,21 +71,16 @@ OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
     prntp = (ParentingType *)adr;
     tmdp = (u8 *)adr;
 
-loop1:
-{
-    int idx = i;
-    s32 offset;
-    if (idx >= mad->n)
-        goto loop1_end;
-    /* Allocation carrier for both former offset-load wrappers. */
-    /* allocation staging: folded after flow -- not recovered arithmetic */
-    offset = prntp[idx].index + (u32)prntp - (u32)prntp;
-    i++;
-    objp = LoadOrnament((u_long *)(tmdp + offset));
-    mad->object[idx] = (OrnamentType *)((u32)objp | uncachedSegment);
-}
-    goto loop1;
-loop1_end:
+    while (1)
+    {
+        int idx = i;
+
+        if (idx >= mad->n)
+            break;
+        i++;
+        objp = LoadOrnament((u_long *)(tmdp + prntp[idx].index));
+        mad->object[idx] = (OrnamentType *)((u32)objp | uncachedSegment);
+    }
 
     if (prnt == 0)
     {
@@ -101,36 +97,36 @@ loop1_end:
     i = 0;
     mad->id = CONFLICT_NONE;
     mad->attribute = 0;
-loop2:
-    if (!(i < (count = mad->n)))
-        goto loop2_end;
-    objp = mad->object[i];
-    super = &mad->locate;
-    if (prntp[i].np >= 0 && count > 0)
+    while (1)
     {
-        j = 0;
-        parent = prntp[i].np;
-    parent_loop:
-        if (parent == prntp[j].nc)
-            goto parent_found;
-        j++;
-        if (j < count)
-            goto parent_loop;
+        if (i >= (count = mad->n))
+            break;
+        objp = mad->object[i];
+        super = &mad->locate;
+        if (prntp[i].np >= 0 && count > 0)
+        {
+            j = 0;
+            parent = prntp[i].np;
+            while (1)
+            {
+                if (parent == prntp[j].nc)
+                {
+                    super = &mad->object[j]->locate;
+                    break;
+                }
+                j++;
+                if (j >= count)
+                    break;
+            }
+        }
+        GsInitCoordinate2(super, &objp->locate);
+        objp->locate.coord.t[0] = prntp[i].dx;
+        objp->locate.coord.t[1] = prntp[i].dy;
+        objp->locate.coord.t[2] = prntp[i].dz;
+        UpdateOrnament(objp, 0);
+        i++;
+        objp->object.attribute |= GS_DOBJ_DIVISION_DEPTH_BITS(2);
     }
-coordinate_init:
-    GsInitCoordinate2(super, &objp->locate);
-    objp->locate.coord.t[0] = prntp[i].dx;
-    objp->locate.coord.t[1] = prntp[i].dy;
-    objp->locate.coord.t[2] = prntp[i].dz;
-    UpdateOrnament(objp, 0);
-    i++;
-    objp->object.attribute |= GS_DOBJ_DIVISION_DEPTH_BITS(2);
-    goto loop2;
-
-parent_found:
-    super = &mad->object[j]->locate;
-    goto coordinate_init;
-loop2_end:
 
     mad->rotate.pad = (short)mad->object[0]->locate.coord.t[1];
     return mad;
