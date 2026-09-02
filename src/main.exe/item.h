@@ -92,9 +92,14 @@ struct AfterimageType;
 extern u8 Item_fInitial;
 extern s32 ic;
 
-/* THINK_4.C's original short-returning dispatch tables. PSX.SYM supplies
- * both their element type and exact bounds; Humanoid stores one selected
- * function from each table. */
+/* THINK_4.C's original short-returning dispatch tables. These callbacks are
+ * virtual-controller policies, not decision-enum queries: each returns the
+ * 16-bit PAD button word the character should produce for this frame.
+ * StateTransition selects think[PHASE_*], filters its result, and feeds it to
+ * update_pressed_buttons; HumanActionControl then exposes human->pad.data as
+ * dtPAD to the ordinary Act* motion handlers. ThinkBasicHuman1/2 prove the
+ * shared interface by forwarding the two physical controllers through it.
+ * PSX.SYM supplies the callbacks' element type and exact table bounds. */
 typedef s16 (*ThinkFunc)(void);
 extern ThinkFunc Think1Func[N_THINK1_PROGRAMS];
 extern ThinkFunc Think2Func[N_THINK2_PROGRAMS];
@@ -173,9 +178,10 @@ typedef struct Humanoid
     VECTOR slocate;           /* 0x48 (ControlHumanoid snapshots *locate) */
     ModelArchiveType *model;  /* 0x58 */
     MotionManager *motion;    /* 0x5C */
-    ThinkFunc think[4];       /* 0x60 (PSX.SYM: short (*think[4])(); retail
-                                 shifts the demo's +0x58 by the eight-byte
-                                 MapVector expansion) */
+    ThinkFunc think[4];       /* 0x60: virtual PAD policy for PHASE_CALM,
+                                 SUSPICIOUS, ALERT, and INVESTIGATE (PSX.SYM:
+                                 short (*think[4])(); retail shifts the demo's
+                                 +0x58 by the eight-byte MapVector expansion) */
     TraceLine *trace;         /* 0x70 (SetupTraceLine/ControlTraceLine;
                                  Ghidra's own independently-built Humanoid
                                  also names this exact offset `trace`) */

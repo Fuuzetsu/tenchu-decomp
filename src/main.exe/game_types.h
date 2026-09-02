@@ -455,8 +455,9 @@ struct IndexArrayType
 /* A bit for each horizontal direction sampled by GetAreaMapVector. */
 typedef u8 MapProbeMask;
 
-/* WORLD.C's packed four-stage think-function selector. Each nibble indexes
- * one of the four Think*Func tables. */
+/* WORLD.C's packed virtual-controller policy selector. Its four nibbles
+ * choose the callbacks installed for PHASE_CALM, PHASE_SUSPICIOUS,
+ * PHASE_ALERT, and PHASE_INVESTIGATE respectively. */
 typedef short TThinkType;
 
 /* The first three entries are shared by all four dispatch tables. */
