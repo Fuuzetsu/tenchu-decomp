@@ -1653,15 +1653,6 @@ struct TCameraPos
     SVECTOR p2; /* 0x18 */
 }; /* 0x20 */
 
-/* The debug editor treats the live camera block both as one four-vector
- * camera preset and as four independently selectable vectors. */
-typedef union DebugCameraStorage DebugCameraStorage;
-union DebugCameraStorage
-{
-    TCameraPos camera;
-    SVECTOR slot[N_DEBUG_CAMERA_SLOTS]; /* indexed by enum debug_camera_slot */
-}; /* 0x20 */
-
 /* CDPLAYER.C's playback state and its original anonymous-enum constants.
  * Retail keeps the demo's original members but rearranges the tail, adds the
  * left/right volume bytes, and appends the pending drive command. */

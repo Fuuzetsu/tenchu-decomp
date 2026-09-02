@@ -23,22 +23,22 @@
  *  - The align-2 (SVECTOR) element type forces the lwl/lwr+swl/swr
  *    block-copy idiom (see UpdateOrnament.c's SVECTOR struct-copy note),
  *    one pair per word, 8 pairs total for the 32 bytes.
- *  - DEBUG_CAMERA_BASE_ is one DebugCameraStorage. Its slot view makes the
- *    four independently editable SVECTORs explicit while retaining the
- *    target's +8/+0x10/+0x18 pointer additions.
+ *  - DEBUG_CAMERA_BASE_ is one TCameraPos. The four slot pointers name its
+ *    r1/r2/p1/p2 fields directly, retaining the target's +8/+0x10/+0x18
+ *    pointer additions.
  */
-extern DebugCameraStorage *DEBUG_CAMERA_BASE_;
+extern TCameraPos *DEBUG_CAMERA_BASE_;
 extern SVECTOR *DEBUG_CAMERA_SLOTS_[N_DEBUG_CAMERA_SLOTS];
 
 void initialise_default_player_cameras_(void)
 {
     CamPos = CamPosDefault;
     DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_SLOT_R1] =
-        &DEBUG_CAMERA_BASE_->slot[DEBUG_CAMERA_SLOT_R1];
+        &DEBUG_CAMERA_BASE_->r1;
     DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_SLOT_R2] =
-        &DEBUG_CAMERA_BASE_->slot[DEBUG_CAMERA_SLOT_R2];
+        &DEBUG_CAMERA_BASE_->r2;
     DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_SLOT_P1] =
-        &DEBUG_CAMERA_BASE_->slot[DEBUG_CAMERA_SLOT_P1];
+        &DEBUG_CAMERA_BASE_->p1;
     DEBUG_CAMERA_SLOTS_[DEBUG_CAMERA_SLOT_P2] =
-        &DEBUG_CAMERA_BASE_->slot[DEBUG_CAMERA_SLOT_P2];
+        &DEBUG_CAMERA_BASE_->p2;
 }
