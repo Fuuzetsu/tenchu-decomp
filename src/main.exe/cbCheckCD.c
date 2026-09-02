@@ -37,26 +37,11 @@
  * argument setup. This is the same zero-code identical-call barrier used by
  * cbAccess.
  *
- * The target's 0x10-byte working stack window overlays `result` with the two
- * original same-named CdlLOC scopes: the first view begins at sp+24 and the
- * second at sp+21. CdaCheckScratch records that overlap explicitly without
- * changing either access or the 56-byte frame.
+ * The drive returns the absolute minute/second/sector at result[5]. Cast that
+ * payload to CdlLOC for CdPosToInt; the fourth CdlLOC byte is only padding as
+ * far as that conversion is concerned. The seek location follows the result
+ * buffer on the stack, accounting for the target's 0x10-byte work area.
  */
-
-typedef union
-{
-    struct
-    {
-        u8 result[8];
-        CdlLOC loc;
-    } first;
-    struct
-    {
-        /* Prefix of the same result buffer before the shifted second loc. */
-        u8 result_prefix[5];
-        CdlLOC loc;
-    } second;
-} CdaCheckScratch;
 
 extern int CdLastCom(void);
 extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
@@ -66,15 +51,16 @@ extern void cd_control(u8 com, u8 *param, u8 *result);
 void cbCheckCD(void)
 {
     TCdaStatus *cs = &CdaStatus;
-    CdaCheckScratch scratch;
+    u8 result[8];
+    CdlLOC loc;
     s32 ret;
     s32 com;
 
     if (cs->command == CDA_COMMAND_READ_XA)
     {
-        CdIntToPos(CdaStatus.StartPos, &scratch.first.loc);
+        CdIntToPos(CdaStatus.StartPos, &loc);
         if ((cs->flag & CDA_FLAG_ACTIVE) &&
-            CdControl(CdlReadS, (u8 *)&scratch.first.loc, NULL) == 0)
+            CdControl(CdlReadS, (u8 *)&loc, NULL) == 0)
         {
             return;
         }
@@ -90,7 +76,7 @@ void cbCheckCD(void)
     }
     cs->CheckCount = 0;
 
-    ret = CdSync(1, scratch.first.result);
+    ret = CdSync(1, result);
     com = CdLastCom();
     switch (ret)
     {
@@ -106,7 +92,7 @@ void cbCheckCD(void)
         }
         if (com == CdlGetlocP)
         {
-            cs->CurPos = CdPosToInt(&scratch.second.loc);
+            cs->CurPos = CdPosToInt((CdlLOC *)&result[5]);
             if ((cs->status & CdlStatRead) &&
                 (cs->EndPos < cs->CurPos ||
                  cs->CurPos < CdaStatus.StartPos - CDA_POSITION_GUARD_SECTORS))
@@ -124,8 +110,8 @@ void cbCheckCD(void)
                 cs->status = CDA_STATUS_IDLE;
                 return;
             }
-            CdControl(CdlNop, NULL, scratch.first.result);
-            CdaStatus.status = scratch.first.result[0];
+            CdControl(CdlNop, NULL, result);
+            CdaStatus.status = result[0];
             CdControlF(CdlGetlocP, NULL);
         }
         else
