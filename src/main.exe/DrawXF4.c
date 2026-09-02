@@ -14,13 +14,6 @@
  *     param $a0       struct POLY_XF4 * ply
  * END PSX.SYM */
 
-/*
- * DrawXF4 (0x80038db4) — identical shape to DrawXG4 just above it
- * (same 0x80038dxx TU): draws the buffer's `ply` then its `tpage` via the
- * BIOS-linked DrawPrim (declared per-TU, as AdtSelect.c already does).
- * `ply` is cached across both calls and needs no
- * separate temp (cookbook's cached-pointer rule).
- */
 void DrawXF4(POLY_XF4 *ply)
 {
     DrawPrim(&ply->ply);

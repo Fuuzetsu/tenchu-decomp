@@ -7,8 +7,6 @@
 #include "sound.h"
 #include "effect.h"
 
-
-
 extern Humanoid *Me_MOTION_C;
 extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
@@ -139,65 +137,6 @@ static inline void SnapToWaistConflict(void)
  *     extern short EngageLevel;
  *     extern struct SVECTOR *dtV;
  * END PSX.SYM */
-
-/*
- * Byte-required spellings in this function (each measured; the
- * round-by-round derivation that found them is not repeated here).
- *
- * Structure
- *  - NO cached pointer locals. Every region re-loads Me_MOTION_C /
- *    StagePlayer / dtR / dtV; the per-region CSE temps then land in
- *    $a0/$v1 as retail has them. Function-spanning caches were what made
- *    earlier drafts look like they had unreachable "hard conflicts".
- *  - PSX.SYM's `Humanoid *enemy` is retained directly. Collision records use
- *    the same pointer word for ownerless-item sentinels, so those two tests
- *    compare the pointer explicitly with `(Humanoid *)CONFLICT_OWNER_ITEM`.
- *    The short-lived `conflict` identity keeps retail's $a0 load and later
- *    $s3 copy.
- *  - The 0x602 engage block has one NPC/state/difficulty eligibility guard.
- *    Inside it, the random if/else remains intact, while ninja-kind and its
- *    coin flip are one short-circuit condition. Cross-jump plus eager delay
- *    fill produce the shared `sh motID` tail with a per-predecessor
- *    `li 0x602` in the delay slots. ITEM_NAPALM is likewise
- *    a plain `if ((rand() & 1) == 0) motID = 0x1003; else motID = 0x1001;`
- *    (no staging temp), and ITEM_MAKIBISHI stores motID/motMODE directly.
- *  - Both ReqLifeBar sites are if/else (`who = enemy` in the taken arm,
- *    else `who = Me_MOTION_C`), so `who` coalesces with the Me load in $a0
- *    and the else arm compiles to nothing.
- *  - The passage halving is a real `while` loop. Its loop notes weight the
- *    body's `t <<= 1` refs (p84 14 -> 16 refs, priority 2413 -> 3678),
- *    which is what orders t > deg > enemy = $s0/$s2/$s3.
- *  - The exit block loads dtV INSIDE the mid == 0x300/0x302 arm.
- *
- * Expressions
- *  - `-(x / 3) - 1` must be spelled `x / -3 - 1`: a negative divisor makes
- *    expmed emit the reversed magic-division subtract with a plain addiu -1.
- *  - Under `enemy->active_item == ACTIVE_ITEM_PROTECTION`, the doubling is
- *    `(u32)(dmg << 0x10) >> 0xf` (sll 16 / srl 15). Spelling it through the
- *    short lvalue truncates to zero -- a real behaviour bug, not a match.
- *  - The armour block computes deg BEFORE the knockback
- *    (`deg = dmg >> 3;` clamp; clamp; `t = dmg * 5 / 2 + 0x50;`) with no
- *    cached `(u16)dmg << 16` temp, so every read re-extends dmg.
- *  - The knockback absolute value is the assigned form
- *    `abs_direction = __builtin_abs(did);`. cc1's mips abssi2 is ONE insn whose
- *    template hides the branch, so reorg never steals the `move s0,a1`
- *    copy out of the lhu load-delay slot; the explicit `if (abs_direction < 0)`
- *    spelling exposes a real branch that always does steal it.
- *  - The deg == 3 arm keeps the abs INSIDE the call's ternary argument:
- *    `MoveHumanoid(Me, (ANGLE_QUADRANT < __builtin_abs((int)(short)did)) ? DAMAGE_LAUNCH_SPEED
- *    : -DAMAGE_LAUNCH_SPEED, 0)`. A move_speed variable costs +4 length.
- *
- * Widths and calls
- *  - `id` is an int loaded via `(u16)vector.pad` (lhu) with `(short)id`
- *    casts at every signed use. An s8 id is wrong (lbu/sll24).
- *  - GetAbsolutePosition's third argument is (short)-converted at the call
- *    site. The `rand() % 360` rotation passed to set_impact_ex_ is
- *    precomputed into a temp so the 0xB60B60B7 magic pair forms before the
- *    0xDCDCDC pair.
- *
- * Fence-free. Matched: 5812 bytes / 1453 instructions, including the
- * compiled switch's own .rodata jump table.
- */
 
 void DamageControl(void)
 {

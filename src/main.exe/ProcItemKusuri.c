@@ -3,47 +3,6 @@
 #include "sound.h"
 #include "main.exe.h"
 
-/*
- * ProcItemKusuri (0x80040500) — the kusuri (healing potion) item processor.
- * mode 0: freeze the drinker (dispose weapon, drink animation 0xF01, status 0xF),
- * attach the item model to the character's hand and nudge it into place; mode 1:
- * while the drink animation plays, track the hand (copy the item coordinate into
- * the sprite and draw it); at animation frame 0x37 switch to mode 2; if the
- * animation was interrupted, drop the item (ReqItemDrop with a random toss) and
- * dispose; mode 2: heal to full, spray 20 random SetBleed particles, play the
- * gulp sound, and dispose of the item.
- *
- * Matching notes (each verified against the original bytes; see also
- * ProcItemManebue.c for the item-TU conventions):
- *  - `ITEM_MODE_DISPOSE` holds ITEM_MODE_DISPOSE in a callee-saved reg ($s4) across calls:
- *    used by the entry test and the drop path's `item->mode = ITEM_MODE_DISPOSE`; mode 2's
- *    dispose rematerializes its 0xff value instead ($s4 holds the particle
- *    position workspace by then).
- *  - The dispatch is a real `switch`: it reloads item->mode (fresh index load)
- *    and compares it SIGNED (slti) — an if-ladder CSEs the load and compares
- *    unsigned. Case bodies sit in source order (0, 1, 2).
- *  - `i = 0` is case 2's first statement (reorg hoists it into the case-2
- *    branch delay slot). The bleed loop is `while (1) { if (!(i < 0x14))
- *    break; ...; i++; }` — a for/while-with-condition gets its exit test
- *    duplicated at the entry (jump.c duplicate_loop_exit_test) and then
- *    constant-folded away; the while(1)+break form keeps the original's
- *    top-test + unconditional back-jump while still letting loop.c hoist the
- *    invariants (&build, &pos, and the two magic divisors).
- *  - mode 2's jitter is written `t[n] + (rand() % 1000 - 500)`: fold's
- *    associate step canonicalizes it to the original's (t[n]-500) + rem shape,
- *    whereas writing `t[n] - 500 + rand() % 1000` gets reassociated the wrong
- *    way (constant pulled onto the remainder).
- *  - PSX.SYM places the interrupted-drop `p` and mode-2 `pos` at sp+16,
- *    and `vec` at sp+32. Keeping the launch request and particle workspace in
- *    their actual switch arms lets GCC reuse those disjoint stack lifetimes;
- *    no source union is needed. The work VECTOR at sp+32 is copied into `pos`,
- *    then its now-dead storage builds and holds the short velocity vector.
- *  - The dispose tail is written out twice (drop path + mode 2); GCC's
- *    cross-jump merges the common suffix from the jalr on. The null check
- *    reads `ppu = item->proc` but the call is `item->proc(item)` (cse reuses
- *    the load) — checking and calling through `ppu` allocates $v1 instead of
- *    the original's $v0.
- */
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

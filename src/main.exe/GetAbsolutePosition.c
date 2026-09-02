@@ -19,13 +19,6 @@
  *     stack sp+48     struct SVECTOR offset
  * END PSX.SYM */
 
-/*
- * GetAbsolutePosition (0x800182a8) — world-space position of a local offset
- * (x, y, z) on a model. Pulls the model's local->world matrix (GsGetLw), makes
- * it the current local screen matrix (GsSetLsMatrix), then RotTrans's the local
- * offset into the original static VECTOR `vector`, whose address is returned.
- * &model->locate is model itself (locate is GsCOORDINATE2 at offset 0).
- */
 extern VECTOR vector;
 
 VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z)

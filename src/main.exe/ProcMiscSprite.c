@@ -17,42 +17,7 @@
  *     reg   $s0       struct Sprite3D * s
  * END PSX.SYM */
 
-/*
- * ProcMiscSprite (0x8004d874, 0xFC bytes across two pieces — the second, a
- * Ghidra `__override__prt_` call-site marker for the AdtMessageBox variadic
- * call, is NOT a jump table: piece 1 falls straight through into it, no
- * branch targets it (cookbook: "__override__prt isn't always a jump
- * table")). MISC_SPRITE's ProcMisc* handler: MM_CREATE clamps the raw
- * `param.init.a` down to a valid SpriteData index and re-stores it as the
- * TSprite.type byte at the SAME union offset (0x18); any message
- * at least MM_DO (the "draw" tick) recolors the sprite a random grey and
- * copies m's position into it.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `msg >= MM_DO` compiles UNSIGNED (`sltiu`, confirmed against the raw
- *    .s alongside ProcMiscFire's identical dispatch prologue) — declaring
- *    `msg` as the actual `enum TMiscMessage` parameter (all-non-negative
- *    enumerators) is what gets cc1 to pick the unsigned compare; a plain
- *    `s32 msg` would emit `slti` instead (wrong instruction, though same
- *    length).
- *  - The union's two views at offset 0x18: `m->param.init.a` (s32) for the
- *    raw CREATE read, `m->param.sprite.type` (u8) for the clamped
- *    store-back and every later read — reproduces the lw-then-sb/lbu width
- *    switch at the identical address (cookbook: a param-union store whose
- *    access WIDTH differs from another view at the same offset is a
- *    distinct union member).
- *  - `rand() % 60 + 0x62` is one expression — the call stays inline so the
- *    magic-multiply divide operates directly on $v0 (cookbook: keep calls
- *    inline in expressions). The `b = g = r = value` chain evaluates its
- *    stores as r, g, b, reproducing retail without a source-level grey
- *    carrier.
- */
-
 extern short DrawSprite(Sprite3D *sprt);
-/* Shared MISC.C rodata pool (same block as AddMisc.c's path_image_2/fmt_undefined_effect
- * strings, carved via AddMisc's .rodata segment) — "unknown sprite type",
- * NOT a fresh literal in this file's own rodata (which would place it at
- * the wrong address, cookbook: TU-shared string pooling). */
 extern char msg_unknown_sprite_type[]; /* unknown sprite type */
 
 void ProcMiscSprite(TMisc *m, TMiscMessage msg)

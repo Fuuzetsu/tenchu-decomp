@@ -2,40 +2,6 @@
 #include "tuning.h"
 #include "main.exe.h"
 
-/*
- * ProcItemKawarimi (0x80040c0c) — the kawarimi (substitution/decoy) item
- * processor. mode 0: reset the frame counter; mode 1: each frame spray 20
- * random SetBleed particles (color 0x64C8DC) around the owner, and after 0x1F
- * frames advance to mode 2; mode 2: dispose of the item (call its proc with
- * mode=ITEM_MODE_DISPOSE, remove its collision, complain if the proc didn't
- * clear mode).
- *
- * Matching notes (all verified against the original bytes; this is
- * ProcItemKusuri's mode-2 bleed loop verbatim — see that file for the loop
- * conventions: while(1)+break keeps the top test while loop.c hoists &buf,
- * &buf[0x10] and the %1000 magic divisor; the %10 magic stays inline; the
- * jitter is written `t[n] + (rand() % 1000 - K)` for fold's reassociation):
- *  - `param = &item->param.drop;` is declared before the entry
- *    ITEM_MODE_DISPOSE test — reorg hoists the addiu into that branch's
- *    delay slot.
- *  - `ITEM_MODE_DISPOSE` (u8, ITEM_MODE_DISPOSE) is caller-saved ($a1) here, unlike
- *    Kusuri's $s4: its
- *    only uses are the entry compare and case 2's `item->mode = ITEM_MODE_DISPOSE`, and no
- *    call intervenes on that path.
- *  - The dispatch is a real `switch` (fresh lbu + signed slti tree), bodies
- *    in source order 0,1,2. Cases 0 and 1 both end in a literal duplicated
- *    `item->mode = item->mode + 1; return;` — jump2 cross-jumps them into
- *    the LAST copy (case 1's), leaving case 0 as `j` + the sb in its delay
- *    slot. Writing one shared after-switch `mode++` instead puts the tail
- *    after case 2 (wrong layout).
- *  - Case 1's counter is `u8 frame_count = param->count + 1;` followed by
- *    the store and threshold test — the u8 local re-narrowed after arithmetic
- *    gives the defensive andi 0xff + sltiu.
- *  - Case 2's dispose checks `if (item->proc == 0)` INLINE (allocates $v0
- *    for both the test and the jalr; Kusuri's named `ppu` temp allocates
- *    $v1 there).
- */
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

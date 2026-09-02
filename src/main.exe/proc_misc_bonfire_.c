@@ -5,24 +5,6 @@
 #include "effect.h"
 #include "misc.h"
 
-/*
- * MATCH.
- *
- * MISC type 6 handler. CREATE clears the one-shot mode flag. Active ticks
- * recolor and draw one of four frame sprites, periodically emit blood, and
- * play a sound every 79 ticks.
- *
- * Matching notes:
- *  - The explicit dispatch ladder leaves the ignored messages inline while
- *    CREATE and the active body are both forward targets.
- *  - svec_y_n60_2 intentionally has unknown array size. The casted whole-
- *    SVECTOR copy then uses the target's two-register HIGH/LO_SUM address.
- *  - `direction[2]` followed by three VECTOR locals reproduces the complete
- *    0x40-byte stack workspace. The middle VECTOR is reused as the first
- *    effect's source and the sound call's destination.
- *  - The chained RGB assignment emits the target's b/g/r store order.
- */
-
 extern SVECTOR svec_y_n60_2[];
 
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);

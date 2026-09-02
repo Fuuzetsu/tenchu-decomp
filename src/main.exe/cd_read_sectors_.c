@@ -2,38 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * MATCHED: cd_read_sectors_ (0x8005f380, 0x1d8 bytes) reads `length`
- * bytes at (`sector`, `byteOffset`) into `buffer`. It seeks with CdlSetmode,
- * primes streaming with CdlReadN, validates each raw sector's position, copies
- * its requested payload slice, and stops the drive when complete. Although all
- * callees are libcd primitives, the address is below the 0x80060000 PsyQ/CRT
- * boundary, so this is game-TU code.
- *
- * The DMA buffer is one CdDataSector: a 12-byte raw-sector header plus a
- * 2048-byte payload. Its 0x80c-byte value receives a 0x810-byte rounded stack
- * slot. Ghidra's adjacent CdlLOC[3]/byte-array locals are two views of this
- * record. The separate 8-byte `param` and CdlLOC[2] `loc` slots complete the
- * exact 0x858-byte frame; only param[0] and loc[0] are used.
- *
- * Matching constraints:
- *  - `dst`, `curSector`, `remaining`, and `off` initialize once immediately
- *    after CdIntToPos, before the CdlSetmode and CdlReadN retry loops. Ghidra's
- *    placement inside the latter loop is a decompiler artifact.
- *  - CdReady-not-ready and CdGetSector failure both jump to `full_retry`.
- *    That re-seeks the original `sector`, resets every cursor, and discards
- *    partial progress. The two apparent assembly destinations differ only
- *    because reorg puts the shared `li 0xa0` prefix in one branch's delay slot;
- *    there is no separate mode-6-only retry.
- *  - A position mismatch is different: seek CdlReadN to `curSector` and keep
- *    the current destination/progress state.
- *  - `src = data + off` is intentionally the copy loop's first body statement.
- *    It is invariant and loop.c hoists it, but source placement inside the loop
- *    makes the entry test choose `i = 0` as its target delay-slot filler.
- *    Moving `src` before the loop preserves the instruction itself but not the
- *    schedule.
- */
-
 extern int VSync(int mode);
 
 void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)

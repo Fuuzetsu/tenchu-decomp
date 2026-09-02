@@ -17,40 +17,6 @@
  *     extern short Degree;
  * END PSX.SYM */
 
-/*
- * ItemUse (0x8002dc0c, 0x10c bytes) — think-handler: while idle
- * (something_about_current_animation->count == 0,
- * i.e. motion just started) and status == USING_ITEM, auto-uses one of the
- * three "use while idling" items in priority order: kusuri (when health is
- * under a third of max), then shuriken (only when roughly facing the target,
- * |Degree| < 100), or fire (only when |Degree| < 300), triggering
- * SetNowMotion.
- *
- * `Humanoid.item` is the per-item-kind count array, so the recovered
- * TItemType labels name these slots directly without changing its layout.
- *
- * The signed life fields make the one-third threshold use the signed
- * magic-multiply sequence (0x55555556 plus the `sra 31` correction).
- *
- * The ReqItemDefault/SetNowMotion tail calls' return values are NOT
- * returned: after `ReqItemDefault(Me_THINK_C, ITEM_KUSURI);` the asm jumps straight
- * to the shared epilogue with NO move into $v0 (a bare `return;`, valid
- * -w-suppressed old-style C for a value-returning function); the final
- * `SetNowMotion(Me_THINK_C, id, MOTION_MOVE_APPLY);` is the LAST statement with no
- * following `return` at all, so control falls off the end of the function
- * — in both cases $v0 at the epilogue is simply whatever the callee left
- * there, never explicitly set by ItemUse itself (confirmed: neither call
- * site has the short-result sll/sra pair a genuine `return call();` would
- * need, unlike Think4contact's `return Think4abandon();`).
- *
- * `id`'s assignments (0xE00, 0xF02) each sit textually right before the
- * guard that tests the SAME condition they were just derived from — cc1
- * schedules them into that guard branch's delay slot as an ordinary
- * independent-and-ready instruction (not the "hoist the taken block's
- * first statement" trick; here the assignment genuinely precedes the
- * test in source, per Ghidra's own literal order).
- */
-
 static s16 ItemUse(void)
 {
     Humanoid *me;

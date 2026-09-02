@@ -13,15 +13,6 @@
  *     param $a0       struct SoundEffect * se
  * END PSX.SYM */
 
-/*
- * DisposeSE (0x80018da0) — silence all voices, close the VAB, then free a
- * sound-effect object's VAB header buffer and the SoundEffect itself. Same
- * null-check-then-free shape as DisposeBG/DisposeAfterimage, plus an extra
- * unconditional SsUtAllKeyOff(0)/SsVabClose(se->VABid) pair before the frees
- * (se survives the first three calls in a callee-saved register; the last
- * call takes it as the argument). Uses game_types.h's shared SoundEffect
- * (VABid@0 s16, program@2 s16 unused here, VABhead@4 pointer).
- */
 extern void SsUtAllKeyOff(s32 flag);
 extern void SsVabClose(vab_id id);
 extern void vfree(void *p);

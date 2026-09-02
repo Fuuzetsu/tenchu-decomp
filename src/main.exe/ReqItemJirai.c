@@ -31,27 +31,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemJirai (0x80048958) — spawn a placed landmine/trap item ("jirai").
- * Twin of ReqItemDrop (same item TU, same pool round-robin on
- * ic and the same dispose-on-exhaustion block); unlike
- * ReqItemDrop there is no GetAreaMapLevel floor check — a jirai is placed
- * unconditionally. It gets ProcItemJirai as its processor and the trigger
- * velocity packed into param (the param.smoke member — ReqItemDrop uses
- * param.drop; identical param_korogari layout).
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &item->param.smoke;` sits BEFORE the null check, same
- *    lever as ReqItemDrop (addiu fills the beqz delay slot).
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as ReqItemDrop (vy/vz reads go through pos; vx reads p directly).
- *  - aowner/atype are real temps, same as ReqItemDrop: the asm loads both
- *    p->user and p->type back-to-back before any owner/proc/mode/type stores.
- *  - x/y/z (end vector) ARE real temps: the asm batches three loads before
- *    three sh stores, matching ReqItemDrop's koro.vx/vy/vz shape exactly.
- *  - `item->param.smoke.koro.hint = 0;` uses the direct union path (not
- *    `param`) for this one store, same as ReqItemDrop.
- */
 extern void ProcItemJirai(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */

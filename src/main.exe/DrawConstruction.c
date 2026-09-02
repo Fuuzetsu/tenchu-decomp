@@ -212,11 +212,6 @@ scan_z:
             ObjectSlotType **slot;
             OrnamentType *model;
 
-            /* These statement boundaries preserve three independent retail
-             * allocation races: the two IsVisible calls, the depth-bucket
-             * calculation, and insertion into the local draw list. Keep the
-             * ordinary ModelSize assignment inside its original boundary;
-             * it must not be replaced with folded arithmetic. */
             do
             {
                 /* IsVisible leaves this object's view-space position behind
@@ -235,7 +230,6 @@ scan_z:
                 } while (0);
                 if (bucket < 0)
                     bucket = 0;
-                /* Offset spelling: byte-required (indexing flips the addu; measured). */
                 slot = (ObjectSlotType **)(bucket * sizeof(*slot) + (u32)DrawList);
                 model = cur->model;
 

@@ -47,17 +47,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * MATCHED: the source-level structure is the pair of small projection helpers
- * independently named by PSX.SYM in the same EFFECT.C translation unit:
- * PrepareGetScreenPositionS followed by GetScreenPositionS.  Keeping those
- * helpers inline preserves their scalar parameter identities at both call sites.
- * The debug-proven SVECTOR * type for the output is essential: screen->vz
- * retains the memory dependency that schedules the result store before the next
- * projection work.  This natural decomposition removes the former identical-arm
- * fence, pointer carriers, and the purported 15-byte allocation floor.
- */
-
 extern MATRIX GsWSMATRIX;
 
 extern long abs(long value);

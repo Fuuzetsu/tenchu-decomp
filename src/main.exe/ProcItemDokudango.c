@@ -79,28 +79,6 @@ static inline void apply_dokudango_reaction(Humanoid *human,
     }
 }
 
-/*
- * Matching notes (2,468 bytes / 617 instructions):
- *  - The entry comparison and fast disposal use ITEM_MODE_DISPOSE, allowing
- *    CSE to retain its 0xff value in $s1 across MoveKorogari. The two later
- *    DISPOSE_ITEM expansions rematerialize their own 0xff values in $v1.
- *  - Each cleanup tests and calls item->proc directly.  Combined with the
- *    literal stores, this keeps the indirect target in $v0 and lets jump2
- *    merge the fast cleanup into the final physical copy after its mode store.
- *    A named proc local or a function-wide `ff` local changes that allocation.
- *  - The search indexes HumanGroup[] directly; PSX.SYM records its index and
- *    candidate but no cursor.  The one-shot candidate assignment is a required
- *    scheduling boundary: flattening it swaps the search and roster registers.
- *  - The target-restoration and poison-reaction helpers inline at every use.
- *    The former retains its internal `restore_param` alias because retail has
- *    the corresponding register copy; the latter specializes its motion
- *    argument at each branch and leaves the duplicated call layout intact.
- *  - Cleanup remains at each semantic exit so late cross-jumping can choose
- *    the target copies. DISPOSE_ITEM is exact at the two later exits, but its
- *    statement scope changes the fast path's s0/s1 priority, so that first
- *    cross-jump input remains open-coded.
- */
-
 void ProcItemDokudango(TItem *item)
 {
     enum

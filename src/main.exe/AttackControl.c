@@ -33,25 +33,6 @@
  *     extern struct MotionManager *dtM;
  * END PSX.SYM */
 
-/*
- * AttackControl (0x8001ed70) -- select an attack motion and handle the
- * close-range critical-hit takeover of a nearby humanoid.
- *
- * STATUS: MATCHED -- exact 1040 bytes / 260 instructions.
- *
- * Matching notes:
- *  - The target-ordered labels in the enemy-kind filter preserve three
- *    physical branch islands that jump2 otherwise collapses.
- *  - The two `enemy` declarations deliberately have disjoint block scopes.
- *    PSX.SYM records the first in $s0 and the final retargeting value in $v0;
- *    one function-wide local instead survives into the tail and adds reloads.
- *  - The final `human` copy gives both target stores one shared base pseudo,
- *    while keeping the GetNearestHumanoid result directly in $v0.
- *  - The chase arm and ordinary motion chooser form a structured `else`.
- *    Repeating the one-line `motMODE = 1` tail in the down, squat, and
- *    ordinary arms lets jump2 rebuild the target's one shared store.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern s16 UpdateMotion(MotionManager *mmp, motion_id mid);
@@ -72,12 +53,8 @@ void AttackControl(void)
                 u16 type;
                 s32 group;
 
-                /* Target filter: bosses (0x80), civilians (0x90) and
-                 * beasts (0xa0) never trade blows; on the story page
-                 * (group 0) only the armed kerai retainers (types 7-9)
-                 * do. The goto ladder is byte-required: both a switch
-                 * (branch polarity flips) and the structured chain
-                 * (length change) were measured off. */
+                /* Bosses, civilians, and beasts do not trade blows; on story page 0,
+                 * only armed kerai types 7-9 do. */
                 type = enemy->type;
                 group = type & PAGE_MASK;
                 if (group == PAGE_BOSS)

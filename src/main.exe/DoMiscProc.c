@@ -21,38 +21,6 @@
  *     extern struct tag_TMisc misc[200];
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING
- *
- * DoMiscProc (0x8004d350, 0x1C4 bytes) — the misc pool's per-frame driver
- * (main's game loop): bails with an error box if InitMisc hasn't run yet;
- * otherwise, every 10th GameClock tick, tests whether each live slot is
- * within LEN (15000) units on every camera axis (ViewInfo.vrx/vry/vrz),
- * dispatching MM_RESUME(3)+unpause when back in range and
- * MM_PAUSE(2)+pause when it drops out — then unconditionally runs every
- * still-unpaused slot's "draw" tick
- * MM_DO(4) after setting the renderer's TMD mode.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `GameClock % 10 == 0` reproduces the div-by-10 magic-multiply
- *    automatically (same tick gate as DoItemProc).
- *  - The first scan is a literal goto loop.  Without loop notes, loop.c does
- *    not strength-reduce `pause` into a second `p + 0x14` induction pointer;
- *    `p` can remain nonvolatile, so the zero store fills the resume jump's
- *    delay slot.  A genuine loop needed a volatile pointee to avoid that GIV,
- *    and the volatile store forced a duplicate counter increment.
- *  - Caching `ViewInfo` explicitly gives the target's s2 base. Initialising
- *    `i`, `view`, then `p` reproduces the counter/ViewInfo/misc preheader;
- *    direct `__builtin_abs(view->field - p->field)` expressions retain the
- *    target load order and subtraction roles without staging locals.
- *  - Cache `p->proc` for the in-range call, but dispatch the out-of-range call
- *    through the field.  That distinction matches the target call carriers.
- *  - `DrawTMDmode = TMD_BANK_FOG;` sits textually right after the cull loop in
- *    source, but its `li` is independent of the tick-gate branch, so cc1
- *    hoists it into that branch's own delay slot regardless of which side
- *    is taken — ordinary scheduling, no special spelling.
- */
-
 extern char msg_misc_not_initialized[]; /* misc not initialized */
 
 /* Misc visibility distance from MISC.C's anonymous enum. */

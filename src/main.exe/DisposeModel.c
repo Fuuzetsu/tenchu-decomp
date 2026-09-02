@@ -13,9 +13,6 @@
  *     param $a0       struct ModelType * objp
  * END PSX.SYM */
 
-/* DisposeModel (0x800184f8) — free a model object if non-null. Byte-identical
- * to DisposeOrnament (cloned via tools/clonematch.py). */
-
 extern void vfree(void *p);
 
 void DisposeModel(ModelType *objp)

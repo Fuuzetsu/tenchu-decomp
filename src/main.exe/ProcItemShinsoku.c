@@ -31,43 +31,6 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * ProcItemShinsoku (0x8003f8a0, ITEM.C:1324) drives the rapid-movement item:
- * it starts/monitors motion 0xf05, drops itself if that motion is interrupted,
- * moves the owner's model with a floor query while steering from the pad, emits
- * a periodic effect, and restores the normal motion/camera before disposal.
- *
- * Matching notes:
- *  - `pos` occupies sp+0x28. The interrupted-animation request and the
- *    active movement query are scoped independently, so GCC naturally reuses
- *    sp+0x38..0x5f for PARAM_ITEM_LAUNCH and then VECTOR plus MapVector.
- *    This is the lifetime split recorded by PSX.SYM, without a storage union
- *    or an unrelated aggregate cast.
- *  - `ClearItemLaunchRequest` gives the memset address its own inlined helper
- *    lifetime. Once that parameter dies, cse2 re-materializes sp+0x38 for the
- *    later request use instead of retaining the address in an extra
- *    callee-saved register through all three rand calls.
- *  - The movement position is built through direct `pos` writes, then
- *    `apos = &pos` is assigned only for the query/level span.  The final
- *    model-coordinate copies must return to direct stack reads; using `apos`
- *    there emits s0-relative loads instead.
- *  - The validity flag is assigned at the END of both comparison arms.  reorg
- *    then places `valid=0`/`valid=1` in the two guard delay slots and global
- *    allocation reuses the comparison's v0, rather than the dead a1 map arg.
- *  - The camera high-base is assigned independently on the effect and skipped
- *    paths.  `(u32 *)0x80090000` plus the -0x6100 load offset produces the two
- *    target `lui v0,0x8009` definitions: one in the count guard's delay slot,
- *    and one after the effect call that clobbers v0.
- *  - The first mode-2 motion check dereferences `item->owner` directly; sharing
- *    the later pad-control `human` local changes a0 to a2 at all three loads.
- *  - The human-shaped `CamState.Owner` access emits two CamState HI16
- *    relocations around the effect call and one shared LO16 field load.  With
- *    CamState pinned to its retail address, those relocations resolve to the
- *    exact words formerly produced by the duplicated numeric-base scaffold.
- */
-
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 
 void ProcItemShinsoku(TItem *item)

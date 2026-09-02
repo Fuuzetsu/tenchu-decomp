@@ -31,29 +31,6 @@
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-/*
- * ActSQUAT (0x80024a04) — updates crouched movement, terrain blocking, and
- * crouch-state attack/item/action dispatch.
- *
- * STATUS: MATCHED — exact 1820 bytes / 455 instructions.
- *
- * Matching notes:
- *  - The demo ActSQUAT is a strong source oracle: it has the same 0x28 frame,
- *    motion cases 0-4, movement/terrain tails, command tree, and stand/stick
- *    dispatch. Retail extends that source shape with case 9, jump input, and
- *    selected-item dispatch.
- *  - `turn` is only the signed half-turn used by cases 2-4. Motion constants
- *    are assigned directly to `motID`; jump2 then sinks those stores into the
- *    target's shared `$v0` tails. Reusing `turn` for them incorrectly keeps
- *    the constants in `$s0`.
- *  - Cases 2 and 3 jump into the stationary-motion continuation inside case
- *    4. That multi-predecessor label preserves the target's physical order:
- *    continuation, case 9, then the default case.
- *  - Case 9 uses `time >> 1`, not `/ 2`; the latter adds the signed division
- *    correction sequence. The signed dtPAD object and dtPAD view
- *    likewise preserve the target's site-specific `lh`/`lhu` loads.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern s32 PlayerSSR;
 
@@ -127,9 +104,6 @@ void ActSQUAT(void)
         }
         if (dtPAD & (PADLleft | PADLright))
         {
-            /* The staged read-modify-write through current/result (vs the
-             * sibling arms' direct dtR->vy += turn) is measured
-             * byte-required. */
             int current;
             int result;
             SVECTOR *rotation;

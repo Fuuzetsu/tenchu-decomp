@@ -6,27 +6,6 @@
 extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 
-/*
- * STATUS: MATCH (exact).
- *
- * The old positional SetGore suggestion for this address is rejected: this
- * function renders the retail-only full-screen FadeType, not a gore particle.
- * SetGore is instead the nearby allocator at 0x80035f44, which installs
- * DrawGore as its effect callback.
- *
- * The three interpolated channels are ordinary byte-sized temporaries. Their
- * natural QImode pseudos give the target's caller-register conflicts; the old
- * mixed u32/u16/u32 draft created a false a0/a2 coloring problem.
- *
- * Case 2 writes the inverse time expression at each channel:
- * `(duration - elapsed) * color / duration`. GCC's CSE shares the repeated
- * subtraction into the target's separate v1 pseudo. Assigning the subtraction
- * back to `elapsed`, or naming a conventional `remaining` local, instead
- * ties it to a1 and leaves a 14-byte register-only residual.
- *
- * This human-scale source matches all 728 bytes without fences or donor copies.
- */
-
 void draw_fade_(TEffectSlot *ef)
 {
     FadeType *fade;

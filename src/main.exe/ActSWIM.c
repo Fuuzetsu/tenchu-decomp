@@ -28,18 +28,6 @@
  *     extern short SelectedItem;
  * END PSX.SYM */
 
-/*
- * ActSWIM (0x80020464) — updates swimming movement, state transitions, and
- * selected-item use.
- *
- * The two small helpers inline at every use. `turn_swimmer`'s constant
- * direction folds into the forward/reverse yaw updates, while
- * `ShowHumanoidBodyParts` keeps the model-bound calculation and visibility
- * walk as one source operation without introducing calls in retail.
- *
- * STATUS: MATCHED — exact 1500 bytes / 375 instructions.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern short SwimCheck(void);
 

@@ -20,44 +20,6 @@
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */
 
-/*
- * InsertConflict (0x8001a444) — append `model` to the ConflictObject conflict pool
- * (the inverse of DeleteConflict.c; the pool is also filled by ProcItem* via
- * ProcItemMakibishi.c). If `model` is already registered
- * (id != CONFLICT_NONE) its id is returned unchanged. Otherwise a fresh slot
- * is claimed: abort via SystemOut if the pool is full (> 0x4f live), then
- * store the model, set `.common` to CONFLICT_OWNER_NONE,
- * copy the identity `.position` from UnitVector2 (UnitVector2, a VECTOR) and
- * `.offset`/`.size` from UnitVector (an SVECTOR), memset the result area, and
- * stamp the model's id (= new slot) and attribute (set bit 14, clear bit 15).
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - EARLY-RETURN, no shared `ret` variable — this IS the match. Funnelling both
- *    the existing id and the new index through one `int ret` gives `id` a
- *    copy-preference toward the index's callee-saved $s0 (idx is live across
- *    memset), so `id` lands in $s0 too; the target keeps `id` in caller-saved
- *    $v1. `if (id != CONFLICT_NONE) return id; ... return idx;` breaks that
- *    copy-chain so id's live range never joins the index's.
- *    `tools/regalloc.py` named the
- *    $s0->$v0 return copy-chain; breaking it was a 26-byte -> 0 fix (this was
- *    parked NON_MATCHING before the diagnoser existed).
- *  - ConflictObjects (gp-relative s16) is read TWICE, un-CSE'd: `lh` (signed) for
- *    the `>= 0x50` compare, `lhu` (narrowing) for the count capture. Increment
- *    BEFORE the sign-extend (`cnt = ConflictObjects; ConflictObjects = cnt + 1;
- *    idx = (short)cnt;`): the store breaks the memory equivalence so `(short)cnt`
- *    sign-extends the register (sll/sra) instead of CSE-reloading a second `lh`.
- *  - `idx`/`id` are `int` so the short return is a plain move of an already-
- *    sign-extended value (no return sll/sra); the raw u16 `cnt` (its own reg)
- *    feeds `model->id = cnt` (sh) and `cnt + 1`.
- *  - `.position = UnitVector2` is a 16-byte word-aligned VECTOR copy (4x lw/sw);
- *    the offset/size `.vector = UnitVector` writes are align-2 SVECTOR copies
- *    (lwl/lwr+swl/swr).
- *    access.py --order proves every position word is a full `sw`.
- */
-
-/* Identity constants copied into a fresh slot. UnitVector2 is Ghidra's
- * UnitVector2 (the VECTOR position); UnitVector is the SVECTOR offset/size. */
-
 extern char msg_conflict_regist_failure[]; /* "CONFLICT REGIST FAILURE" */
 
 conflict_id InsertConflict(ModelType *model)

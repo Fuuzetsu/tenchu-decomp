@@ -22,19 +22,6 @@
  *     extern short (*AttackFunc[4])();
  * END PSX.SYM */
 
-/*
- * Think3chase clears SR at close range. When an attack action is due and the
- * target is aligned, it selects a pad command by distance and schedules the
- * next action; otherwise it dispatches the current weapon class through
- * AttackFunc. The indirect callback takes no arguments.
- *
- * `result` deliberately spans both paths and has one return label. Expanding
- * two source returns lets sched/reload rescue the pad value into $v0 before
- * the AttackActionCount update, duplicating its short conversion. The shared
- * source tail keeps result in $a0, leaves the update in $v0/$v1, and emits the
- * single target conversion at the join.
- */
-
 extern Humanoid *Me_THINK_C;
 extern s32 AttackActionCount; /* next GameClock tick an attack action may fire */
 

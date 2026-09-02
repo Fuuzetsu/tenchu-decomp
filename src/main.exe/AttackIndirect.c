@@ -24,20 +24,6 @@
  *     extern short SR;
  * END PSX.SYM */
 
-/*
- * AttackIndirect (0x8002ee20, 0x350 bytes) — indirect/ranged attack chooser.
- * Status 7 waits for the current BattleDB continuation frame and then rolls
- * an EngageLevel-gated attack; status 9 does nothing.  The ordinary path
- * clears a stale search result, turns or issues PAD commands according to
- * range/facing, and applies a small rotation correction for the 0x80 result.
- *
- * Matching notes:
- *  - `close_not_aimed` sits before the long-range block so the 0x1000 island
- *    remains at the target address; a structured if/else moved it earlier.
- *  - Both runtime divisions require maspsx `--expand-div`; this file also
- *    defines the five gp-relative THINK_3.C globals listed by gpsyms.
- */
-
 extern Humanoid *Me_THINK_C;
 
 extern s16 GotoPosition(s32 vx, s32 vz);

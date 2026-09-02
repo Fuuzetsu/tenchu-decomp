@@ -21,26 +21,6 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING (440 bytes).
- *
- * A structured `while` makes loop.c either eliminate `i` in favour of an
- * `items[i]` GIV or bias an explicit cursor to `item + 0x10`.  The literal
- * goto back edge keeps `i` and `item` as independent, unbiased variables.
- * Since that shape also disables loop-invariant hoisting, cache `ViewInfo`
- * and `ConflictObject` explicitly before the label; this reproduces the
- * target's s5/s6 bases without reintroducing a loop GIV. Direct use of the
- * global ConflictObject array shortens the function by two instructions, so
- * the cached array base itself remains source-authored.
- *
- * The first camera coordinate deliberately uses `ViewInfo` directly while
- * the remaining two use `view`, retaining the target's branch-local `lui`
- * plus persistent base. The inserted collision record is then written as one
- * coherent `conflicts[conflict_id]` field graph. CSE forms its element address
- * once in the target operand order; the old integerized element pointer and
- * its `object` alias were compiler artifacts from testing only one access.
- */
-
 extern s32 abs(s32 x);
 
 /* Per-axis item activation distance from ITEM.C's anonymous enum. */

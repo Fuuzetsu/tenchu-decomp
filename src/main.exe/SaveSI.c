@@ -37,13 +37,6 @@
  *     extern unsigned char *CID;
  * END PSX.SYM */
 
-/*
- * Write a save: disk storage uses PCcreat/PCwrite for the raw blob; card
- * storage builds the card block — header magic, "STAGE %d" title,
- * the three icon frames copied from the archive — then accept the card,
- * offering a format when it is unformatted, create the file, and write the
- * block, reporting each failure through the msg_* strings.
- */
 typedef struct
 {
     u32 word0;
@@ -60,9 +53,7 @@ typedef struct
     u32 word3;
 } __attribute__((packed)) SaveSIUnalignedChunk;
 
-/* The icon-copy branches distinguish a word-aligned source from a potentially
- * unaligned one. Whole-chunk assignments let cc1 emit the corresponding
- * four-word block move in each branch. */
+/* The two branches distinguish aligned and potentially unaligned sources. */
 
 extern char fmt_concat[];         /* "%s%s" */
 extern char fmt_card_name[];      /* "%s%d_%s" */
@@ -149,7 +140,6 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
         alignment = (u32)src & 3;
         if (alignment)
         {
-            /* One-shot fences here: byte-required (collapse measured; see cookbook). */
             do
             {
                 *(SaveSIUnalignedChunk *)dst =
@@ -251,12 +241,6 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
     create_file:
         sprintf(fn, fmt_card_name, CID, StageID, name);
         src = (u8 *)chan;
-        /* `src`'s channel-valued reuse and these identical arms are
-         * byte-required (measured: removing either causes a broad register
-         * reallocation; a separate scalar channel local does not match).
-         * The arms' flow join keeps fn's address in its own register across
-         * the call. The icon3 twin that used to sit before MemCardAccept was
-         * not load-bearing and was collapsed. */
         if (msg != 0)
         {
             dst = fn;

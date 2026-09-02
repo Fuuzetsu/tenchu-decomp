@@ -40,13 +40,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-/*
- * Build a mission from scratch: resolve the TStageConfig row for the
- * stage/character pair, run briefing and inventory selection, then load
- * and wire every subsystem — construction, layouts, enemies (and the
- * ninken summon), backgrounds, fonts, images, infoview, sound, CVA
- * cutscenes, and the stage sequence — showing the title card in between.
- */
 extern s32 DepthPoint;
 extern u8 *TITLE_SPRITES_PTRS[N_LANGUAGES];
 extern u8 CHOSEN_LANGUAGE;
@@ -170,7 +163,6 @@ void CreateStage(stage_id StageNo, int CharType)
     py = StageConfig[StageNo].py;
     pz = StageConfig[StageNo].pz;
     ViewInfo.vpx = px;
-    /* These statement boundaries preserve the retail register allocation. */
     do
     {
         ViewInfo.vpy = py - 10000;

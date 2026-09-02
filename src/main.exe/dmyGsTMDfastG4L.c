@@ -1,10 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * dmyGsTMDfastG4L (0x80068334) — LIBGS "dummy" TMD-fast-draw placeholder; warn-once
- * clone of dmyGsPrstF3NL (see that file for the family's shape).
- */
 extern int printf(const char *fmt, ...);
 extern char str_dmyTMDfastG4L[]; /* "TMDfastG4L\n" */
 extern s32 warn_dmyTMDfastG4L;

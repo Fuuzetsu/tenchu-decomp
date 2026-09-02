@@ -34,54 +34,8 @@
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-/*
- * ProcItemDrop (0x8003e454) — the tossed/dropped item processor installed by
- * ReqItemDrop. Every frame it copies the item coordinate into the sprite and
- * draws it; mode 0: bounce/roll physics (MoveKorogari) until the param status
- * reports ground contact/settling (KORO_GRAND/KORO_STAY: register a 0xB4
- * conflict box and become pick-up-able) or water (KORO_WATER: dispose);
- * mode 1: wait for a
- * character to touch the conflict box, freeze it into the pick-up animation
- * (0x810) and remember it as owner; mode 2: when the animation ends, count
- * the item back into the owner's pouch (item[type]) and dispose.
- *
- * Matching notes (see docs/matching-cookbook.md; item-TU conventions as in
- * ProcItemKusuri/ProcItemManebue — no $gp here, ActionHalt is absolute):
- *  - `model`/`param` are assigned before the ITEM_MODE_DISPOSE entry test
- *    (ReqItemDrop's double lever): the addiu fills the bne delay slot and the
- *    long live ranges demote both, so item/param land in $s3/$s4 after the
- *    shorter-lived case locals take $s0-$s2).
- *  - `model->locate = item->locate->locate` is the 0x50-byte GsCOORDINATE2
- *    struct assignment -> the 16-bytes-per-iteration word copy loop.
- *  - Both dispatches are real `switch`es (fresh index reload + signed slti).
- *    The constant 1 of the outer case tree is CSE'd along the taken path
- *    into the inner (status) tree's `case KORO_WATER` compare: one pseudo, live
- *    across MoveKorogari, hence callee-saved $s0 set in DrawSprite's delay
- *    slot. Plain nested switches produce all of it — no source trick.
- *  - `collision_mode = CONFLICT_SOFT` feeding BOTH
- *    `size.pad` (sh) and `collision.mode` (sw) is
- *    load-bearing: written as literals, the class flag's 8 becomes an HImode
- *    pseudo and
- *    a separate collision.mode literal becomes a second SImode pseudo (two
- *    `li`s, function one insn too long). cse can only reuse a WIDER-mode
- *    constant reg that already
- *    exists, so the shared int variable is the original's shape.
- *  - Mode 2's tosses are two-statement temps: `x = rand(); x = x % 200;`.
- *    The in-place `mult $s1` + `subu $s1,$s1` prove raw value and remainder
- *    are the same variable; the -100/-200 offsets belong to the stores
- *    (`param->koro.vx = x - 100`), which is why they sit after the third rand.
- *    The 0x51EB851F magic is shared by %200/%100 via cse in $s2.
- *  - `cnt`/`count` are u8 temps (Manebue's timer idiom): increment-then-store
- *    with the compare on the masked register (andi 0xFF), no reload; count's
- *    `+ 1` lands in the beq delay slot.
- *  - The dispose tail is written out twice (KORO_WATER + mode-2); cross-jump
- *    merges from the jalr on. Null-check via `ppu` but call through
- *    `item->proc(item)` (Kusuri's rule) so the pointer stays in $v0.
- */
-
 extern void MoveKorogari(TItem *item, param_korogari *pp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
-/* The conflict pool (Ghidra: ConflictObject). */
 
 void ProcItemDrop(TItem *item)
 {

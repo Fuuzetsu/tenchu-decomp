@@ -21,18 +21,6 @@
  *     extern struct MotionPackType *StageMotion;
  * END PSX.SYM */
 
-/*
- * SearchMotion (0x8001b514, 0x148 bytes) — id lookup across the three fixed
- * motion pools in priority order (common, then player, then stage), each a
- * plain `for (i = 0; i < mpd->n; i++)` lookup through each relocated
- * `mpd->motion[i]` reference (LoadMotion.c's proven
- * fixed-up-pointer layout) — same short-counter recompute-from-base shape as
- * LoadMotion's relocation loops (cookbook Loops: a short loop counter
- * suppresses strength reduction). `mpd` is reused across all three blocks
- * (one C variable, reassigned), matching PSX.SYM's single-`mpd`/single-`i`
- * local list.
- */
-
 MotionDataType *SearchMotion(short id)
 {
     MotionPackType *mpd;

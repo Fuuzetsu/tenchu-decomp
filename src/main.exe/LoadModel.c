@@ -19,18 +19,6 @@
  *     extern struct ModelType World;
  * END PSX.SYM */
 
-/*
- * LoadModel (0x80018448, 0xb0 bytes) - near-twin of CreateCloneModel.c (both
- * ModelType constructors in this TU): allocate+zero-init a ModelType the
- * same way (self-referencing object.coord2, World-rooted
- * GsInitCoordinate2, zeroed translation/rotate/clip, RotMatrixYXZ fed the
- * object's OWN zeroed `rotate` field), but instead of CreateCloneModel's
- * clone-from-existing-instance tail (`objp->object.tmd`), LoadModel wires
- * the model data in from `adr` (when non-null) via GsMapModelingData/
- * GsLinkObject4 - the same "reassign the pointer parameter in place, then
- * use a smaller residual offset for the second call" idiom as
- * LoadOrnament.c.
- */
 extern void *valloc(u32 size);
 
 ModelType *LoadModel(u_long *adr)

@@ -7,35 +7,6 @@
 
 #define SCORE_ROW_SPACING 0x16
 
-/*
- * Post-mission score/high-score screen (0x80054B48, 0x121C bytes).
- *
- * STATUS: MATCHING — pure C, all 4636 bytes (1159 instructions) exact.
- *
- * The rank and character sprite initializers intentionally share the
- * function-scope `attribute` temporary. The rank loop updates that value,
- * while the copied character initializer restores it unchanged after filling
- * the other fields. GCC removes the latter's same-value store but retains the
- * retail `lw`; no qualifier is needed.
- *
- * The decimal rendering arithmetic is shared again without erasing its
- * allocation donors.  Eight ordinary sites use DRAW_SCORE_NUMBER; the
- * enemy-minus-bosses and row-ordinal sites retain their distinct setup and
- * call only DRAW_SCORE_DIGITS.  Their enclosing do/block shapes remain
- * load-bearing. `result`, `rankSprites`, and `characterSprites` are ordinary
- * locals; the sprite banks' eight-byte alignment naturally preserves their
- * contiguous retail stack layout.
- * DRAW_SCORE_RANK owns the complete high-score rank-icon operation.  Its safe
- * statement scope gives the rank bank its natural loop weight; flattening the
- * operation had required a folded self-cancellation on rankSpriteBase.
- * The dead rowScore declaration is also load-bearing: deleting its lexical
- * block lets GCC retain the 0x80010000 row base in s2 and makes the function
- * one instruction short, instead of rematerializing the base like retail.
- * The function-scope `work` short similarly spans the number-sprite shade and
- * the later stage-item index. Replacing its first role with a chained RGB
- * assignment makes the function four bytes short.
- */
-
 typedef struct
 {
     u16 oldPad;
@@ -165,20 +136,6 @@ static inline void ResetScoreSpritePivot(GsSPRITE *bank, s16 index)
         GsSortSprite(rankSprite, OTablePt, 1);                                \
     } while (0)
 
-/* Round-18 re-collapse: all ten signed-digit tails share DRAW_SCORE_DIGITS,
- * and the eight ordinary sites also share DRAW_SCORE_NUMBER.  The derived
- * enemy count and row ordinal keep their distinct setup; passing the enemy
- * subtraction directly moved 233 assembly lines.  The enclosing do carriers
- * are also deliberate: removing one moves 54-63 lines. Colon rendering and
- * the two sprite-bank pivot resets are shared separately so their differing
- * post-colon assignments and surrounding allocation stay visible. */
-
-/* The persistent high-score block, addressed by CONSTANT rather than through a
- * pointer local.  This is not cosmetic: with a pointer variable the address is
- * `(plus reg_state reg_index)` and expand_binop emits `addu t,state,index`
- * (base first); inlining the constant makes it `(plus reg_index CONST)`, and
- * expand's EXPAND_SUM/form_sum sorts the constant term LAST, emitting
- * `addu t,index,base` -- the target's operand order. */
 #define SCORE_STATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 void mission_score_screen(void)
@@ -233,10 +190,6 @@ void mission_score_screen(void)
         initNumber->mx = initNumber->w >> 1;
         initNumber->my = initNumber->h >> 1;
     }
-    /* NO do{}while(0) fence here: merging the pivot reset into the rgb block
-     * lets the LoadTIMAndFree(tim) arg copy `move a0,s2` float toward the top
-     * (target hoists it right after InitSprite).  Re-adding a fence pins the
-     * arg copy back down and regresses (see STATUS). */
     number.mx = 0;
     number.my = 0;
     LoadTIMAndFree(tim);
@@ -253,9 +206,7 @@ void mission_score_screen(void)
         u32 width;
 
         tim = get_tim_from_archive(archive, i);
-        /* This initializer first forms the row displacement from `result`,
-         * then adds the aligned rank-bank offset. The later typed bank access
-         * is deliberately separate, matching the two source views in retail. */
+        /* Keep the initializer's row and rank-bank address steps separate. */
         initSprite = (GsSPRITE *)((u8 *)&result +
                                   i * sizeof(GsSPRITE));
         initSprite = (GsSPRITE *)((u8 *)initSprite +
@@ -601,7 +552,7 @@ void mission_score_screen(void)
                 rowBrightness = 0x80;
             }
             sprite->r = sprite->g = sprite->b = rowBrightness;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);

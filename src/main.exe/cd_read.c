@@ -2,27 +2,9 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * cd_read (0x8005f590) — reads up to `length` bytes from a CD file handle
- * (the proven `FILE *` shared with cd_close/cd_getsize/cd_tell/cd_init/
- * cd_open) at its current `pos`, clamped to the remaining `finfo.size`;
- * a NULL handle reports via puts() and returns -1 (see cd_getsize's header
- * for the guard-clause polarity note). CdPosToInt(&f->finfo.pos) converts
- * the handle's start-of-file BCD CdlLOC into an absolute sector number
- * (&f->finfo.pos is offset 0 of the struct, i.e. bit-identical to `f`
- * itself — the m2c reference under-counts this as a zero-arg call because
- * $a0 is the live incoming `f` parameter, never reassigned before the jal;
- * see the cookbook's "leading argument carried in live" rule); adding
- * `pos` (rounded down to a whole sector via the 0x7FF bias before the
- * arithmetic shift) locates the absolute sector/byte-offset cd_read_sectors_
- * forwards to the raw sector reader.
- */
-
 extern int puts(char *s);
 extern void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length);
-extern char msg_cd_read_invalid_handle[]; /* cd_read:invalid handle */ /* "cd_read:invalid handle" — lives in this TU's
-                                                                        * unsplit data blob (splat auto-symbol), same
-                                                                        * pattern as AfsInit's msg_afsinit_not_enough_memory. */
+extern char msg_cd_read_invalid_handle[]; /* "cd_read:invalid handle" */
 
 int cd_read(FILE *f, void *buffer, int length)
 {

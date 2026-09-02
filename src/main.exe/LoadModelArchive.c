@@ -32,17 +32,6 @@
 #include "model.h"
 #include "tmdfile.h"
 
-/*
- * STATUS: MATCHING — pure C, all 760 bytes / 190 instructions exact.
- *
- * The second pass follows LoadOrnamentArchive's proven parent-search shape.
- * Giving its parent pointer a separate `super` identity lets it die in a3 at
- * GsInitCoordinate2 while `objp` remains in s0. The `mad->n`
- * memory view and signed `mad->n` field have the same verified 0x64 address
- * but distinct C identities, preserving the target's adjacent lhu/lh loads
- * instead of cc1 folding them together. `limit` then keeps j in v1 through
- * the inner loop.
- */
 extern void *valloc(u32 size);
 extern char msg_no_model_archive_data[]; /* NO MODEL ARCHIVE DATA */
 

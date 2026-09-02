@@ -21,13 +21,6 @@
  *     extern short SelectedItem;
  * END PSX.SYM */
 
-/*
- * ActMOVE (0x80020108) — updates normal movement, turning, ledge checks,
- * jump handling, and selected-item actions.
- *
- * STATUS: MATCHED — exact 860 bytes / 215 instructions.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern short HangCheck(void);
 extern void JumpControl(void);

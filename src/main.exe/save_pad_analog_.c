@@ -1,26 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * save_pad_analog_ (0x8001b2b8, 0x3c bytes) — called only from LoadExecEx: mirrors
- * byte 7 of PadPort[0][0] into bit0 of the persistent-state byte at 0x80010047.
- * Ghidra calls that byte PersistentState._71_1_ (it prints the offset in
- * DECIMAL: 71 = 0x47), which is TLinkInfo.analog_pad_present.
- *
- * The `lui $v1, 0x8001` with NO `addiu` (hoisted into the branch delay slot and
- * reused as the base for both arms' lbu/sb) is the tell that the source holds
- * the blob's address in a LOCAL, via the literal pointer cast this codebase
- * already uses — `(TLinkInfo *)0x80010000`, see
- * BriefingAndInventorySelectionScreen.c's PSTATE / apply_purchases_.c. Referencing
- * the byte as a plain `extern u8 D_80010047` instead lets cc1 fold the address
- * into each memory operand, so `as` re-materialises `%hi` per arm through `$at`
- * — two extra `lui`s and the wrong length.
- *
- * The pad byte is the recovered TPadPort.fAnalog field. Naming the complete
- * PadPort[0][0] access still produces the target's absolute %hi/%lo pair,
- * while making the source-level relationship explicit.
- */
-
 void save_pad_analog_(void)
 {
     TLinkInfo *ps =

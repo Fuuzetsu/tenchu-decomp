@@ -2,18 +2,8 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * cd_close (0x8005f558) — thin CD-file-handle closer: given a `FILE *`
- * (the raw CD-image file object shared with cd_getsize/cd_tell/cd_read/
- * cd_seek — see TFileHandle/CdlFILE in filesystem.h for the proven layout), clears
- * flagUse to mark the slot free; a NULL handle reports via puts() and
- * returns -1 instead of crashing.
- */
-
 extern int puts(char *s);
-extern char msg_close_invalid_handle[]; /* close:invalid handle */ /* "close:invalid handle" — lives in this TU's
-                                                                    * unsplit data blob (splat auto-symbol), same
-                                                                    * pattern as AfsInit's msg_afsinit_not_enough_memory. */
+extern char msg_close_invalid_handle[]; /* "close:invalid handle" */
 
 int cd_close(FILE *f)
 {

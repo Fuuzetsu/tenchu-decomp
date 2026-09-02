@@ -19,38 +19,6 @@
  *     extern unsigned long *MemoryLoadAddress;
  * END PSX.SYM */
 
-/*
- * LoadFromDEVPC (0x8001952c, 0x100 bytes) — loads a file over the PsyQ
- * host-PC link (PCopen/PClseek/PCread/PCclose, part of the 0x80060xxx
- * precompiled SDK block — see PClseek.c). Bumps TotalIO, opens the file,
- * seeks to the end to get its size; on open or size failure reports via
- * AdtMessageBox and returns NULL. On success, optionally logs (ReadMode &
- * 4), rewinds, takes MemoryLoadAddress as a pre-supplied buffer if set
- * (consuming it — clears it back to NULL) or valloc()s a fresh one, reads
- * the file into it, closes, and returns it.
- *
- * Matching notes: the raw asm shows two SEPARATE early-out branches (`beq
- * fd,-1`, then `blez size`) that share the same error tail, not Ghidra's
- * single `||` condition with a comma-expression inside — write nested ifs
- * (fd != -1) { size = ...; if (size > 0) { ...; return buff; } } falling
- * through to the shared AdtMessageBox/return-0 tail (m2c's `goto block_9`
- * shows the same two-branch shape more literally than Ghidra's `||`).
- * `filename` is never reassigned before the PCopen call (stays live in
- * $a0 straight from entry, like FileWrite's `filename` — PCopen is called
- * with it as the raw incoming register); m2c misses this leading argument
- * (shows `PCopen(0, 0)`), a known m2c under-count.
- *
- * `buff = MemoryLoadAddress;` belongs INSIDE the else-branch, not hoisted
- * before the if the way Ghidra (and m2c) render it: the asm loads
- * MemoryLoadAddress once for the compare and reuses that same value for
- * the assignment only via the branch's delay slot (`bnez v0,L; move
- * s0,v0` — harmless on the then-arm since valloc()'s result overwrites it
- * right after). Writing the hoisted form lets cc1 CSE the compare back
- * onto buff's own register instead (`lw s0,...; bnez s0,...`), a 6-byte
- * pure register-content miss. Another instance of "trust the assembly
- * over Ghidra's statement order" (the hoist is an SSA artifact — buff is
- * unconditionally overwritten on the other arm anyway).
- */
 extern int PCopen(char *name, int mode, int share);
 extern int PClseek(int fd, int offset, TSeekMode whence);
 extern int PCread(int fd, void *buf, int size);

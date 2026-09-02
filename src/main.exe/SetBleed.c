@@ -20,29 +20,6 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
-/*
- * Matching notes (all verified against the original bytes):
- *  - FIND_EFFECT_SLOT expands to a bottom-tested do-while over
- *    `EffectSlot[idx]`. Loop strength reduction creates the target's
- *    pointer/index lockstep; neither that scan pointer nor a second result
- *    alias belongs in the source. The pool-full fallback follows the loop.
- *  - The free-slot cursor-update code (store back to the pool cursor) lives
- *    INSIDE the `if (EffectSlot[idx].proc == 0) { ... }` body, not
- *    after a bare `if (proc==0) break;` — that's what gives the occupied path
- *    (not the found path) the branch-away polarity the original has.
- *  - `slot->param.bleed.pos = *pos;` / `.vec = *vec;` are plain whole-struct
- *    assignments: VECTOR (align 4) block-moves as 4 lw+4 sw, SVECTOR (align 2)
- *    as lwl/lwr+swl/swr pairs — no manual field-by-field copy needed.
- *  - `param = &slot->param.bleed;` must be computed BEFORE `r = col >> 16;` (both
- *    textually and hence in the RTL) even though r's value is stored later:
- *    with r first, cc1 duplicates r's independent `sra` onto both merge-entry
- *    paths and leaves param's address undupped, backwards from the target
- *    (which duplicates the necessarily-path-dependent param address and
- *    computes r's path-invariant value exactly once). Reordering the two flips
- *    it back.
- *  - `slot->proc = ...;` last, after time/b/mode, lets its store fall into the
- *    final jr's delay slot like the original.
- */
 extern void DrawBleed(TEffectSlot *ef);
 
 void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)

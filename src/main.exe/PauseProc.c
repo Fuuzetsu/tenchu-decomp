@@ -3,56 +3,6 @@
 #include "main.exe.h"
 #include "sound.h"
 
-/*
- * PauseProc (0x8004b4c0) — the in-game pause loop. Entered every frame;
- * Start (or a dead player, get_pad_active_ == 0) raises the pause flag
- * (`SYSFLAG_PAUSE`), then this spins: polling the pad, feeding new presses
- * to the combo matcher (0x10 = revive cheat, 0x1000 = debug enable) and the
- * cheat-code recorder, Select opening the debug menu when debug is enabled,
- * Start unpausing, and DrawPause/VSync ticking the frame counter.
- *
- * Matching notes (all verified against the original bytes):
- *  - All pad state is s16 (pad/cur/opad/trig): the plain `opad != 0` test
- *    compiles to sll+beqz (sign-extension with the sra dropped for a zero
- *    test) — u16 vars would emit andi 0xffff. Likewise buf must be SIGNED
- *    s16[]: the 0xffff terminator store materializes as the HImode-canonical
- *    `li -1` (addiu) only for a signed element; a u16 element gives
- *    `ori 0xffff` (one byte off).
- *  - trig is computed fresh ($s1, feeds only the combo-call argument) and then
- *    copied into opad (`opad = trig;`, $s2) which the rest of the body reads:
- *    two registers holding one value = an explicit source copy (cc1 never
- *    splits live ranges).
- *  - `cur == (PADstart | PADselect)` and the call argument share one sign-extension
- *    of cur, CSE'd into callee-saved $s0 because it lives across
- *    return_to_menu_().
- *  - com is int, not short: the combo matcher's short return is extended
- *    once at the assignment (sll/sra straight into $a1, before the
- *    status==7/mid>0x713 override) and both == compares then run on the word.
- *    A short com would re-extend at the compares, after the join.
- *  - Every exit path `break`s and SsSetMVol(0x7f,0x7f) is written ONCE after
- *    the loop: the after-loop block is entered by fallthrough and reorg
- *    steals its `li a0,0x7f` into the three break-jumps' empty delay slots
- *    (.L810 pattern); the revive path's slot is taken by the pad.data sh, so
- *    it jumps to the li itself (.L80C). Writing the call in each path
- *    cross-jumps less (the arg li gets scheduled away from the call and the
- *    suffixes stop matching) — +6 instructions.
- *  - `cur = pad;` sits before `SkipFrame = SKIPFRAME_AFTER_LOAD;` — its move is what reorg puts
- *    in the pause-flag beqz delay slot.
- *  - The recorder increments through a short temp BEFORE the call:
- *    `j = i + 1; i = j; CheckCheatCodes(buf, j + 1);` reproduces
- *    `addiu a1,s7,1; addu s7,a1; …` with a1 dead at the call. Ghidra's order
- *    (call, then i = i + 1) sends the shared i+1 pseudo across the call into
- *    a callee-saved reg with a post-call move (the scheduler never hoists
- *    across calls); `i = i + 1;` first + `(short)i + 1` collapses to an
- *    in-place addiu, one insn short. The narrow adds stay raw (HImode) while
- *    buf's indexes reuse the bound-check's sign-extension (v1).
- *  - &CamState and buf are hoisted into $s4/$s5 by loop.c (while(1) keeps
- *    loop notes — no source temps); CamState.Owner is re-read at every use
- *    and the sh through Owner->life kills cse's memory equivalence, which is
- *    exactly the original's reload pattern.
- *  - The unpause wait is the cookbook's top-test shape:
- *    while(1) { if (!(GetRealPad(PAD_PORT_1) & PADstart)) break; VSync(2); }.
- */
 #include "item.h"
 #include "padcmd.h"
 
@@ -79,7 +29,7 @@
  *     extern short Findenemies;
  * END PSX.SYM */
 
-/* Retail's own prototype drift (def: u8 get_pad_active_(short)) -- byte-required. */
+/* Retail declares s16(s32) here; get_pad_active_ defines u8(s16). */
 extern short get_pad_active_(s32 arg);
 extern void return_to_menu_(void);
 extern short check_cheat_command_(short pad, short trg);

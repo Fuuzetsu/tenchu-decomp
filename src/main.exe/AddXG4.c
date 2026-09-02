@@ -15,12 +15,6 @@
  *     param $a1       struct POLY_XG4 * ply
  * END PSX.SYM */
 
-/*
- * AddXG4 (0x80038d40) — adds the Gouraud quad and its draw-mode command to an
- * ordering table. Both `ot` and `ply` are cached in callee-saved regs across
- * the two calls (plain parameters read twice need no separate temps —
- * cookbook's cached-pointer rule).
- */
 void AddXG4(void *ot, POLY_XG4 *ply)
 {
     AddPrim(ot, &ply->ply);

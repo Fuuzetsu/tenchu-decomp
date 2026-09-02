@@ -2,36 +2,10 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * AfsInit (0x8005ee80) — initializes a TAFS archive-filesystem handle:
- * zeroes 4 of its 7 fields (fModified and posElement are left untouched —
- * proven by the asm, only fpVol/pElement/maxElements/maxElementArea get an
- * `sw zero`), then valloc()s a five-entry TAFSFileHandle pool; on OOM
- * it reports via AdtMessageBox and returns early, otherwise it zeroes the
- * freshly-allocated block with memset. Called by AfsOpenVolume.
- *
- * TAFS/TAFSElement/TAFSFileHandle/TFileHandle use the proper names and full
- * layouts recorded in PSX.SYM; they are shared by this family through
- * filesystem.h.
- *
- * Matching notes: statement order matches the Ghidra rendering directly —
- * the 4 field zero-stores, the unconditional `handle->pHandle = valloc(...)`
- * before the null check, then the if/else. cc1's scheduler independently
- * floats the dependency-free `0x3C` argument constant above the prologue's
- * `sw $ra` and folds the last field-zero store into the call's delay slot;
- * no source reordering needed for that.
- */
-
 extern void AdtMessageBox(char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
 extern void *valloc(u32 size);
-extern char msg_afsinit_not_enough_memory[]; /* AfsInit: not enough memory! */ /* "AfsInit: not enough memory!" — lives in this
-                                                                                * TU's unsplit data blob (splat auto-symbol), same
-                                                                                * pattern as msg_item_dispose_fail/msg_memory_load_is_disabled elsewhere: a
-                                                                                * fresh string literal here would land in a NEW
-                                                                                * .rodata for this .c.o, which the linker script
-                                                                                * has no section-order slot for (rodata is only
-                                                                                * routed via explicit per-TU yaml carves). */
+extern char msg_afsinit_not_enough_memory[]; /* "AfsInit: not enough memory!" */
 
 void AfsInit(TAFS *handle)
 {

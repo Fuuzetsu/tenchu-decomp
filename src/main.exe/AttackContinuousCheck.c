@@ -18,33 +18,6 @@
  *     extern struct MotionManager *dtM;
  * END PSX.SYM */
 
-/*
- * AttackContinuousCheck (0x8001f180, 0x1A4 bytes) — gate a continuous-attack
- * follow-up by the current motion frame against BattleDB's per-move window
- * [contfrm-3, contfrm+3], then run the exact same wpatk-dispatched
- * conflict-volume cleanup + afterimage drop as AttackCancelControl (same
- * switch shape, same field offsets) before returning 1.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - Same genuine `switch (wk) { case 2: ...; case 3: ...; case 0: goto...;
- *    default: ...; }` shape as AttackCancelControl — see that file's header.
- *  - The illusion-disposal block is wrapped in
- *    `if (mode & ATTACK_CANCEL_AFTERIMAGES)`, exactly AttackCancelControl's
- *    parameter test, but here `mode` is a LOCAL that only ever holds
- *    ATTACK_CANCEL_ALL (set on case 0's early exit and again right after the
- *    shared `DeleteConflict(model);`) — never a real parameter. cc1 doesn't
- *    constant-fold the known-true test away (that requires a literal at the
- *    expression site, not a variable merely known-constant by dataflow), so
- *    the dead andi+beqz survives in the binary exactly as Ghidra's own
- *    decompilation (which DOES prove it dead and renders a bare `return 1;`)
- *    hides.
- *  - `Me_MOTION_C->pad.time = 0;` must be written BEFORE `wk =
- *    Me_MOTION_C->wpatk;`, not after (Ghidra's own literal order). Keeping
- *    the signed field load adjacent to the switch dispatch lets combine
- *    select the target's single `lh`; an intervening store changes the
- *    generated instruction sequence.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 s16 AttackContinuousCheck(BattleType *battle)

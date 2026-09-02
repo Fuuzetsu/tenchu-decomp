@@ -20,29 +20,6 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
-/*
- * Matching notes (all verified against the original bytes; the same pool
- * search shape recurs in SetSplash/SetBleed and every other EffectSlot
- * inserter — see effect.h and this function's comments for the reusable
- * idioms):
- *  - FIND_EFFECT_SLOT is a real bottom-tested do-while over
- *    `EffectSlot[idx]`. Loop strength reduction creates the target's scan
- *    pointer and wrap reset; `slot` is only the found/fallback result.
- *  - The free-slot cursor-update store lives INSIDE
- *    `if (EffectSlot[idx].proc == 0) { ... }`, not after a bare
- *    `if (proc==0) break;` with the update code after the loop — only the
- *    former gives the occupied path (not the found path) the branch-away
- *    polarity the target has (a bare `if(cond) break;`'s jump always goes
- *    with cond-true, i.e. the wrong path here).
- *  - A param-union write to a NONZERO field offset goes through a cached
- *    typed pointer (`fp = &slot->param.frame;`); the very first field written,
- *    if it sits at a nonzero offset itself (frame.px here), still wants fp —
- *    only an offset-ZERO field (frame.super) is written through a fresh
- *    `slot->param.frame.super = ...` recast instead of `fp->super`.
- *  - `z = pos->vz;` (captured before the mode/size/count stores, stored via
- *    `fp->pz = z;` after them) reproduces the original's delayed store —
- *    inlining `fp->pz = pos->vz;` in position would read pos->vz too late.
- */
 extern void DrawFrame(TEffectSlot *ef);
 
 void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)

@@ -3,28 +3,6 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-/*
- * fast_tnf4_ (0x80059b08, 0x4ec bytes) — DecodeTMD-family primitive
- * renderer, the 1.00 mnemonic clone of fast_tng4_ (the POLY_GT4 pair of
- * the family). The ONLY difference from fast_tng4_ is the
- * record type: the flat 0x20-byte TMD record has ONE packed colour word,
- * which feeds all four per-vertex colour slots (fast_tng4_ reads four
- * distinct words). Everything else —
- * including every matching note — is fast_tng4_.c verbatim; read that
- * file's header for the full mechanism account.
- *
- * Matching notes: applies the fast_tnf3_ recipe verbatim (read that
- * header). The dual-view TMD record keeps the original TMD_P_TNF4 layout and
- * the normal strength-reduced loop on the target's single cursor; the former
- * function-only flag was compensating for decompiler-style byte offsets. New
- * vs the leaf: the
- * context lives as TWO variables (work + the prim staging pointer — the
- * packet accesses go through prim, the context fields through work);
- * flagAddr is a precomputed loop invariant (used by BOTH gte_stflg sites);
- * the 52-byte packet assignment emits a 3-chunk movstrsi loop +
- * 4-byte remainder.
- */
-
 u_long *fast_tnf4_(TmdTexturedFlatQuadRecord *record, VERT *vertices,
                    u_long *packet,
                    int count, TMD_FAST_WORK *wp)

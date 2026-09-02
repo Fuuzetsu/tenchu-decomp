@@ -2,22 +2,6 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 
-/*
- * Decode the linked TMD primitive stream and hand each supported triangle
- * packet type to its specialized renderer.
- *
- * Matching notes (540 bytes / 135 instructions):
- *  - Giving the linked TMD object its real field layout is load-bearing for
- *    the prologue's load scheduling.
- *  - The tagged batch cursor selects the TMD record member named by its mode;
- *    the renderer interface otherwise retains Sony's VERT and GsOT types.
- *  - The scratch argument stays generic because the custom subdividing quads
- *    and Sony's stock triangle renderers interpret it through different maps.
- *  - The one-shot loops around the x7 and x9 stride expressions emit no
- *    control flow. Their loop notes make local-alloc choose the retail
- *    $v0/$v1 coloring for those two switch arms.
- */
-
 extern u_long DivDepth;
 
 extern u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive,
@@ -80,10 +64,6 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
             GsOUT_PACKET_P = GsTMDfastTNF3(
                 &prim->ft3.packet, vertices, GsOUT_PACKET_P,
                 TMD_BATCH_COUNT(prim), shift, ot, work);
-            /* The named count (here and in case 0x35) replaced two weight
-             * fences: it re-orders the local v0/v1 quantities the fences
-             * pinned. The other arms need the plain *prim spelling
-             * (measured). */
             count = TMD_BATCH_COUNT(prim);
             n -= count;
             step = count * TMD_MEMBER_WORDS(prim, ft3);

@@ -2,49 +2,6 @@
 #include "main.exe.h"
 #include "images.h"
 
-/*
- * STATUS: MATCHING — 212 bytes.
- *
- * init_lifebar_ (0x8004a6bc, 0xd4 bytes) — INFOVIEW.C: initializes two
- * life-bar styles, each with an average-blended frame and an additive fill.
- * Each `GsSPRITE[2]` is 0x50 bytes apart: a 0x48-byte pair plus eight bytes
- * of other per-style fields PutLifeBar.c also touches around this same
- * region: D_8008e414/e416/e418/e41a sit immediately before this function's
- * first sprite LifeBarFrame, and PutLifeBar indexes the very same
- * LifeBarFrame/LifeBarFill sprites by `style * 0x50`). Only called by
- * (still-asm) InitializeInfoView, alongside ResetInfoview/leResetEnemyLayout
- * — i.e. this is InitializeInfoView's life-bar sprite setup, most likely
- * named InitLifeBar or similar (no candidate in reference/psxsym-
- * candidates.tsv to corroborate).
- *
- * GsSPRITE's fields (attribute/mx/my/rotate) are the proven PSY-Q SDK
- * layout already used by InitSprite.c/PutLifeBar.c (include/psxsdk/libgs.h).
- * LifeBarParts is a small local per-style source table (not referenced by any
- * other matched function): a `long` forwarded into both sprites' `rotate`
- * field, plus one image-id byte per sprite (fed straight to GetImage).
- * Indexed by the SAME loop counter used for the `i < N_LIFE_BAR_STYLES` test
- * (`LifeBarParts[i]`), not walked with its own incrementing pointer: touching
- * 2+ fields
- * (word0 and both id bytes) per iteration through a raw walking pointer
- * makes cc1's strength reduction split off a SECOND parallel induction
- * register for the byte offsets (verified — every walking-pointer spelling
- * tried materializes `entry+5`/`entry+1` into its own register, 4 bytes /
- * 1 reg-pair too many); `T[i].f` keeps the loop's only address GIV at the
- * table base, matching the cookbook's "index the table" loop lever.
- * Keeping the proven `LifeBarStyle` aggregate is also load-bearing: direct
- * `frame`/`fill` indexing lets loop.c derive the target's one 0x50-byte style
- * offset and hoist the two sprite bases (`s4` and `s5 = s4+0x24`). Flattening
- * those fields into a raw sprite array leaves the right instructions but
- * initializes the offset GIV too early in the prologue.
- *
- * The otherwise-unused `image[25]` declaration accounts for the target's
- * 0x20 bytes of local-frame space. This is source-backed rather than padding:
- * PSX.SYM records that exact local name/type at sp+16 in the demo's combined
- * InitializeInfoView, whose life-bar initialization loop was later split into
- * this retail helper. Finally, assign `rotate` before `attribute` for the first
- * sprite. cc1 then schedules the rotate load before the attribute constant and
- * moves `i++` into GetImage's delay slot, exactly as in the target.
- */
 typedef struct
 {
     s32 rotation;    /* +0x0, forwarded into both sprites verbatim */

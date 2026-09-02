@@ -27,37 +27,6 @@
  *     extern struct MISC__184fake PitfallData[2];
  * END PSX.SYM */
 
-/*
- * InitMisc (0x8004c1e8, 0x168 bytes) — one-time setup of the misc-object
- * pool: clears all MaxMisc slots (bottom-test walking-pointer loop,
- * `misc + (MaxMisc - 1)` down to `misc`), then loads the door/pitfall
- * pair-of-models tables and the two ambient sprites (rain/snow "steam"),
- * and finally sets the init latch DoMiscProc waits on.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `misc + (MaxMisc - 1)` (a nonzero-offset pointer into a big absolute
- *    extern
- *    array) forces materialization of misc's OWN base address (lui+addiu)
- *    plus a THIRD addiu for the +(MaxMisc-1)*sizeof(TMisc) offset — the
- *    "offset-0 folds, a nonzero offset materializes" rule; ordinary pointer
- *    arithmetic reproduces it with no special spelling.
- *  - DoorData/PitfallData's `Model[2]` fields begin as archive-index words
- *    (or -1 for "none") and are overwritten with loaded ModelType pointers.
- *    Retail's address delta from PitfallData to SpriteData is
- *    N_PITFALL_TYPES records, and the loop handles the same number of
- *    variants; the demo declaration had only 2.
- *  - Both `Model[0]`/`Model[1]` are read UNCONDITIONALLY before either `if`
- *    (`iDoor2` cached because the first `if`'s GetArcData/LoadModel calls
- *    would clobber a caller-saved copy of it; `iDoor1` is consumed
- *    immediately by its own call and needs no separate temp beyond the
- *    parameter register) — same "pointer/value cached only when it must
- *    survive a call" shape as ProcMiscDoor's twins.
- *  - SpriteData's own `.spr` field is likewise read as the GetImage index
- *    BEFORE being overwritten with the real Sprite3D*.
- *  - The final `Misc_fInitial = 1;` is MISC.C's original file-static
- *    `fInitial`, qualified for the split decomp; DoMiscProc reads it.
- */
-
 extern ModelType *LoadModel(u_long *adr);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 

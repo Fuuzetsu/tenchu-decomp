@@ -22,42 +22,6 @@
  *     extern struct TAFS systemAFS;
  * END PSX.SYM */
 
-/*
- * InitFileSystem (0x80019238, 0x15c bytes) — dispatches on `mode & 3`
- * (0/1 = PC-link dev, 2 = CD-ROM AFS volume; 3 has no case) to set up the
- * active file-loading backend FileRead() will use. Case 1 (PC-link,
- * "acquire memory disk") lazily writes a 16-byte "ACQUREMEMORYDISK" magic
- * into a fixed low-memory handshake buffer at 0x807f0000 (only if it isn't
- * already there), sets ReadMode's PC-link bits, then — if EITHER the
- * PC-link bit (1) or the just-set "acquire" bit (8) is set — reinitializes
- * the virtual-memory pool at a fixed 0x80200000/0x5f0000 region and
- * pre-allocates an 0x8000-byte scratch block, before pointing the original
- * `MemoryDiskType *MDfat` at the low-memory payload. MDfat is the neighbour
- * of OTablePt at 0x80097eb8, not OTablePt itself. Case 2 (CD-ROM)
- * inits the CD and opens the "TENCHU\DATA" AFS volume into the global
- * `systemAFS` handle.
- *
- * Matching notes:
- *  - `ReadMode = mode;` (the UNMASKED parameter) is stored FIRST, then
- *    `mode` is reassigned in place to `mode & 3` (the asm's `andi` operates
- *    directly on the $a0 parameter register, no separate move — the
- *    "reused parameter" idiom) and used as the dispatch value from then on.
- *  - The dispatch is a real if/else-if ladder (SIGNED `slti` for the `< 2`
- *    test, over the reused `mode` register) matching Ghidra's polarity
- *    directly: `mode==1` / else `mode<2` (nested `mode==0`) / else `mode==2`.
- *  - The 16-byte magic write is ONE aligned-1 byte-array copy,
- *    not Ghidra's 16 separate byte assignments (its usual block-move
- *    decompilation artifact — same class as the DRAWENV copies in
- *    cbAccess.c/stop_access_meter_.c). A fixed-size built-in copy reproduces the
- *    raw .s's lwl/lwr+swl/swr chunking.
- *  - `virtual_memory_pool`'s save/restore around the vinit+vcalloc pair
- *    sits INSIDE the `if (ReadMode & 9)` guard in the asm (the load is
- *    scheduled right after the guard's own delay slot, i.e. only reached
- *    when the branch falls through) — not hoisted unconditionally before
- *    the guard the way Ghidra renders it (functionally identical either way
- *    since the save/restore is a no-op when the guard is false, but this
- *    placement is what the asm's instruction order actually shows).
- */
 extern void PCinit(void);
 extern void cd_init(void);
 extern int strncmp(const char *a, const char *b, u32 n);

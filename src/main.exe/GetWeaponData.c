@@ -26,59 +26,6 @@
  *     extern struct WeaponModelType WeaponModel[41];
  * END PSX.SYM */
 
-/*
- * GetWeaponData (0x8002a290, 0x1f4 bytes) — two independent sentinel-
- * terminated linear searches feeding into `human`:
- *  1. WeaponDB[].ilup1.pad == wid resolves an index stored into
- *     human->wepid[wpid] (item.h's
- *     proven `wepid[2]`@0x90, this function's own proof — see item.h).
- *  2. WeaponModel[].wid == wid resolves a row whose .model (lazily
- *     FileRead of "%s%s.TMD" formatted from the fixed
- *     "K:\WORK\CDIMAGE\HUMAN\WEAPON\" prefix + the row's .name) backs a
- *     LoadOrnament call; the result is stored to human->weapon[wep] and
- *     wired via GsInitCoordinate2 to human->model->object[body].
- * Ghidra completely lost the 5th (stack-passed) parameter `int wep`,
- * rendering it as an unnamed `in_stack_00000010` — PSX.SYM's prototype
- * recovers it (a known Ghidra weak spot: stack-passed args past the 4
- * register ones). `wep` is only ever used narrowed to its low 16 bits
- * (loaded `lhu` straight off the stack slot, per the Expressions
- * "narrowing use reads even a signed global with lhu" rule) — reflected
- * here as a `short` local, matching PSX.SYM's `reg $s2 short wep`.
- *
- * Both searches share the SAME idiom, matching PSX.SYM's single `reg $a0
- * short i` (one counter, not one per search): `while (Table[i].sentinel_field
- * != WEAPON_KIND_END) { if (Table[i].key == wid) { ...; break; } i++; }` —
- * the loop's OWN controlling test is the terminator (duplicated at entry
- * and at the bottom by loop rotation); the `wid` compare is the inner
- * break, never the while-condition. Getting these two roles backwards
- * (testing `wid` as the while-condition, the terminator as the inner break)
- * still reaches the exact target LENGTH but materialises `wid` before the
- * entry sentinel test rather than after, a 32-byte residual confined to
- * the second search's opening
- * instructions.
- *
- * The second search additionally needs its post-loop found-check
- * (`WeaponModel[i].wid != WEAPON_KIND_END`) INLINE in GetWeaponData rather
- * than behind a helper function that returns `i` — with a real call/return
- * boundary in the way, cc1's jump optimizer cannot thread the loop's entry
- * test (which is
- * RTL-identical to the post-loop check when `i` is still 0) straight through
- * to the shared "not found" label the way it does when both tests are
- * visible in one flat function; it instead re-lands inside the loop-exit
- * merge and recomputes `&WeaponModel[i]`, which is both longer and wrong.
- * The first search doesn't need this — it has no post-loop check, so a
- * `static inline` helper (FindWeaponId) reaches the target fine; only the
- * second search's helper had to be flattened into GetWeaponData itself.
- *
- * `wep` narrows to `short w` once at entry (PSX.SYM's `reg $s2 short wep` —
- * a repeated name over the `int wep` parameter, i.e. a storage-class split,
- * not a second source declaration: a literal `short wep = (short)wep;`
- * would self-reference its own uninitialized declarator in C). `base`
- * (OrnamentType *) stays live in $v0 across the `human->weapon[w] = base;`
- * store so GsInitCoordinate2's second argument (`&base->locate`, offset 0)
- * reads it directly instead of reloading through human->weapon[w].
- */
-
 extern char fmt_tmd[];           /* %s%s.TMD */
 extern char path_human_weapon[]; /* K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\ */
 

@@ -31,19 +31,6 @@
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
-/*
- * ActSTATE (0x8002375c) — handles the humanoid state-motion family rooted at
- * 0x800: weapon draw/sheath cleanup, falls and landing reactions, and the
- * return to the normal standing motion.
- *
- * Matching notes (2,680 bytes / 670 instructions):
- *  - One signed full-width temporary is reused by the chase-Z store and both
- *    terminal motion-selection paths. Its SImode motion producers let jump2
- *    fold only the duplicated final motMODE store.
- *  - The fall graph uses the global humanoid pointer directly; neither its
- *    outer tests nor the random-damage tail need a pointer alias.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);

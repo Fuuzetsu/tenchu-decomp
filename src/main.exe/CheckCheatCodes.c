@@ -14,38 +14,6 @@
  *     extern enum TSystemFlag SystemFlag;
  * END PSX.SYM */
 
-/*
- * CheckCheatCodes (0x8004b354) — matches the just-entered button record
- * `rec` (n halfwords) against two hidden cheat sequences. If it equals the
- * first (CheatSeq), it plays a chime and opens the SAME debug item-cheat
- * menus DoInfoViewProc's ItemAddMenu uses (pick an item, then a count) and
- * adds the chosen count to the current character's carried-item stock. If it
- * equals the second (`ForbiddenCommand`), it sets `SYSFLAG_DEBUGMODE`. Either match
- * plays SoundEx(0, seid) at the end (seid = 0x4c for the item cheat, 10 for
- * the flag cheat); the item cheat ALSO plays SoundEx(0,10) up front.
- *
- * The two menu tables + the `CamState.Owner->item[]` `+=` idiom are verbatim
- * from DoInfoViewProc.c's ItemAddMenu (same TU family):
- * the fixed-size copy from DEBUG_MENU_ITEM_CHOICE_OPTIONS copies the 0xC8
- * table as one block move (emit_block_move 16-byte loop + 8-byte
- * tail), and the second AdtSelect's result is added to item[sel] where sel is
- * the first AdtSelect's result (captured into the callee-saved reg in the
- * second call's delay slot).
- *
- * Matching notes:
- *  - The two prompts reuse one ITEM_N-entry menu buffer. The quantity table
- *    simply replaces its first four entries after the item selection; there
- *    is no variant object or reason for a union.
- *  - Both cheat paths end in SoundEx(0, seid) but written as TWO explicit
- *    per-branch calls (`SoundEx(0, 0x4c)` / `SoundEx(0, 10)`), NOT a shared
- *    `SoundEx(0, seid)` after the if/else. cross-jump merges only the common
- *    `jal SoundEx` tail (leaving the delay slot a nop), so each branch
- *    materialises its own `a0 = 0`; the shared-call form instead hoists a
- *    single `a0 = 0` into the merged jal's delay slot (17-byte diff).
- *  - The item pointer is reached through the recovered `CamState.Owner`
- *    field.  Its nonzero member access gives the target's separate base and
- *    destination registers without inventing a second object at +0x10.
- */
 extern char str_select_item[]; /* select item */
 extern char str_number_of[];   /* number of */
 /* Retail data: Left Right Left Right, Cross x2, Circle x2, Square x2,

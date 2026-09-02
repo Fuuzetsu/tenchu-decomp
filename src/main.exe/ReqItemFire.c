@@ -32,25 +32,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemFire (0x800456fc) — spawn a thrown fire item (near-clone of ReqItemSmoke: ProcItemFire, count=150). Twin
- * of ReqItemDrop/ReqItemJirai/ReqItemDokudango (same item TU, same pool
- * round-robin on ic and the same dispose-on-exhaustion
- * block); like ReqItemJirai/ReqItemDokudango there is no GetAreaMapLevel
- * floor check. It gets ProcItemFire as its processor, packs the throw
- * velocity into the embedded param_smoke.koro record, then initializes the
- * derived type's byte-sized count field to 150.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &item->param.smoke;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins.
- *  - aowner/atype and x/y/z are real temps, same shape as the other twins.
- *    The block-scoped `param_korogari *param` is PSX.SYM's second `param`.
- *  - `item->param.smoke.koro.hint = 0;` uses the direct union path (not
- *    `param`) for this one store, same as the other twins.
- */
 extern void ProcItemFire(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */

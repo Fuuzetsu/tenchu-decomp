@@ -37,43 +37,6 @@
  *     extern unsigned char PutMapMode;
  * END PSX.SYM */
 
-/*
- * DoInfoViewProc (0x8004ba5c) — per-frame in-game HUD/info processor: debug
- * menu dispatch (once the cheat sets `SYSFLAG_DEBUGMODE`, holding exactly
- * L2+R2 opens "select option"), item-cursor cycling on pad trig bits,
- * PauseProc gate,
- * item list / life bars / strain draw, and Select-held minimap.
- *
- * Matching notes (all verified against the original bytes; see
- * docs/matching-cookbook.md):
- *  - ItemAddMenu uses one ITEM_N-entry options buffer for both prompts; the
- *    four quantity entries overwrite its prefix after the item is chosen.
- *    No union is needed to express two sequential populations of one array.
- *  - The debug-menu case bodies are STATIC INLINE HELPERS — see the comment
- *    at the helpers below; this is what makes the menu-buffer addresses
- *    rematerialize per call and the buffers overlap (temp-slot reuse).
- *  - The outer dispatch switches directly on AdtSelect's return value.
- *    Case 2/1's AdtSelect results still go to a separate variable (the
- *    helpers' `n`, $s0): carrying one result variable across the case-body
- *    calls promotes it to a callee-saved reg (one extra prologue save,
- *    +1 shift everywhere).
- *  - ItemLayoutMenu's inner dispatch is a nested 2-case switch: expand_case
- *    lays out tests-then-bodies (beqz / li 1 / beq / j end) where an
- *    if/else-if chain would put the first body on the fallthrough path and
- *    let cse reuse the compare's constant 1 for the AdtSelect mode arg
- *    (target rematerializes `li a2,1` in the branch-taken block).
- *  - Each item-cycle arm has PSX.SYM's block-local `c`: `i = CURR; c = i;
- *    do { i--; wrap; } while (item[i] == 0 && i != c);`. Reorg steals the
- *    top-of-loop decrement into the conditional backjump's delay slot,
- *    retargets the branch past it, and compensates (+1) on the fallthrough
- *    exit. Loading into `i` first and copying to `c` puts the lh in i's
- *    register (move a0,v1).
- *  - gp smalls of this TU: fInitialize,
- *    ItemCursor, PutMapMode (Build.hs maspsxGpExterns +
- *    permute.py). VISIBLE_ENEMIES_/GameClock/SystemFlag/str_opt are other
- *    TUs' — plain absolute externs.
- */
-
 extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;
@@ -101,19 +64,6 @@ extern int PutLifeBarS(void);
 extern void PutStrain(s32 x, s32 y);
 extern void PutMap(void);
 
-/*
- * The three debug-menu case bodies are static inline helpers: each menu
- * buffer is the helper's own first local, so its address is the inlined
- * frame base itself (a plain register at expand time) and every AdtSelect
- * call re-materializes `addiu $a1,$sp,N` directly. Written as plain locals
- * of DoInfoViewProc, the same-valued addresses get forced into pseudos
- * (calls.c precompute) and CSE'd into a callee-saved temp — one extra
- * s-register and a +1-instruction prologue. Inline expansion also allocates
- * the helper frames as freed-and-reused temp slots, which is why the item
- * menu (0xC8 @ sp+0x78), the layout+confirm pair (0x28+0x18, reusing
- * sp+0x78/sp+0xA0) and the effect menu (0xF8, too big for the freed slot,
- * fresh at sp+0x140) overlap exactly as the original frame does.
- */
 static inline void ItemAddMenu(void)
 {
     s32 n;

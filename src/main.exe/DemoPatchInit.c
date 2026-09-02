@@ -17,12 +17,6 @@
  *     extern unsigned char DemoBackupArea[64];
  * END PSX.SYM */
 
-/*
- * DemoPatchInit (0x8004c044) — snapshot a small VRAM rect (x=0x3f0,y=0x1ff,
- * w=0x10,h=1 — a single 16-pixel row, i.e. a 16-colour CLUT) into
- * DemoBackupArea via the PSYQ libgpu StoreImage2, then DrawSync(0) waits for
- * the transfer to finish.
- */
 extern u8 DemoBackupArea[64];
 
 void DemoPatchInit(void)

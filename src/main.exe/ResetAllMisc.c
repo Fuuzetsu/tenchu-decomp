@@ -13,21 +13,6 @@
  *     extern struct tag_TMisc misc[200];
  * END PSX.SYM */
 
-/*
- * ResetAllMisc (0x8004d514, 0x5c bytes) — walks the misc[] pool (MaxMisc
- * entries, TMisc from AddMisc.c's sibling spawner, same TU/proven struct)
- * and force-disposes every live slot: runs `proc(p, MM_DESTROY)`,
- * then clears proc to NULL. Same pool/stride (0x24-byte TMisc, MaxMisc (0xC8)
- * entries) and the same "for whose entry test provably folds away" shape as
- * DrawEffect.c/reset_effects_.c (cookbook Loops/leResetEnemyLayout): a bottom
- * -test-only do-while with a strength-reduced walking pointer.
- *
- * The null-check and the indirect call both read `p->proc` — cc1's cse
- * reuses the ONE load for both (no separate variable needed): the asm loads
- * proc once into $v0, tests it, and calls through the SAME register
- * (DrawEffect.c's exact shape).
- */
-
 void ResetAllMisc(void)
 {
     TMisc *p;

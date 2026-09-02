@@ -17,23 +17,6 @@
  *     reg   $s0       short i
  * END PSX.SYM */
 
-/*
- * HoldMotion (0x8001b8d4, 0x150 bytes) — freeze-frame pose: latch the root
- * bone's locate keyframe straight onto object[0]'s world matrix translation
- * (mask bit 0), then for every other masked bone copy its rotate keyframe
- * onto that bone's ModelType.rotate and refresh its coordinate, before
- * disabling the manager (loop = -2, count = 0).
- *
- * Matching notes: `mot->locate` is re-read fresh at each of its
- * three uses (x/z/y) rather than cached in a pointer temp — every intervening
- * `sw` (unproven-alias to cc1's weak per-store analysis) forces the next read
- * to reload; same for `mmp->model` between the object[0]/rotate.pad reads.
- * rotate.vx/vy/vz load their s16 source fields with `lhu` (a same-width
- * short-to-short copy needs no sign extension — cookbook Expressions), while
- * the locate->x/y/z reads widen into the `long` matrix translation and so
- * load `lh`.
- */
-
 short HoldMotion(MotionManager *mmp)
 {
     MotionDataType *mot;

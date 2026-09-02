@@ -4,17 +4,6 @@
 #include "tmdfast.h"
 #include "effect.h"
 
-/*
- * MATCH.
- *
- * Updates and draws the flattened model used while the humanoid is dying.
- * The timer increment belongs in the non-attribute fallthrough after the
- * returning branch: cc1 then moves it into that branch's delay slot and keeps
- * the following store/clamp sequence in the target order.  A separate timer,
- * signed scale intermediate, projection depth, and full-width model height
- * also preserve the target's register lifetimes and signed `lh` load.
- */
-
 extern ModelType *BLOOD_POOL_MODEL_;
 
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);

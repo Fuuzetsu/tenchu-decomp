@@ -24,32 +24,6 @@
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-/*
- * ActDAMAGE (0x800262b0) — advances damage-reaction motions, emits impact
- * feedback, handles the fatal transition, and selects the recovery motion.
- *
- * Matching notes (1,548 bytes / 387 instructions):
- *  - The dispatch is a narrowed `(short)(dtM->mid - 0x1005)` jump table;
- *    its source case order is the same as the physical body order.
- *  - Cases 0 and 1 inline the shared body-part visibility operation and
- *    repeat the SetBlood tail. jump2 merges only the latter onto case 1,
- *    leaving the shared continuation physically between the later case
- *    bodies as in retail.
- *  - The deceleration `velocity`/`value` pair is the one working graph
- *    that must stay: spelling the fields directly costs 14 lines and
- *    dropping only `velocity` costs 29. Without `value` the two axes
- *    emit separate signed lh tests and unsigned lhu read-modify-writes,
- *    where the target shares one sign-extended load. The fatal path's
- *    former human/player/velocity aliases, `weapon_kind`, and the final
- *    human/attribute pair were NOT load-bearing and are gone.
- *  - `done` is a short, not enum bool.  Its HImode lifetime produces the
- *    target's v0/s0 join copies and prevents Sound's literal 1 from reusing
- *    s0.  The weapon-kind reject assigns it on both paths; jump/reorg then
- *    places the merged assignment in the comparison branch's delay slot.
- *  - The final attribute value is named before the flag store so its load
- *    overlaps the literal producer, avoiding a load-delay nop and giving the
- *    target's a0/v0/v1 allocation.
- */
 extern Humanoid *Me_MOTION_C;
 
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);

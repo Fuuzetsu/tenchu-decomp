@@ -16,29 +16,6 @@
  *     reg   $a3       struct MotionElementType * key1n
  * END PSX.SYM */
 
-/*
- * UpdateSplineControl (0x8001bfc0, 0x1B0 bytes) — recompute the per-frame
- * delta vectors (dd0 for [key0p,key1), ds1 for [key0,key1n)) once the
- * bracketing keyframes move. key0p/key1n are key0/key1 nudged one slot
- * outward whenever the frame lands exactly on a keyframe boundary.
- *
- * Matching note: `dt` (the byte-truncated Q8 time delta — keyframe times
- * wrap at 256) is an s16 difference narrowed through (s8) then shifted:
- * combine fuses the narrowing pair with the shift into retail's
- * sll 24 / sra 16. The s16 `diff` temp matters: casting the raw
- * subtraction directly lets cc1's value-range narrowing recompute the
- * operand LOADS in QImode (lbu instead of lh).
- *
- * Both quotients (slope1 for dd0, slope2 for ds1) must be computed
- * BACK-TO-BACK, before either's store block — i.e. exactly Ghidra's
- * original statement order (iVar4, iVar2, [trap guards], iVar1, [trap
- * guards], then the two multiply/store passes). Interleaving them
- * (computing slope1, storing dd0, THEN computing slope2) puts three stores
- * between the two `spc->key0->time` reads that feed dt/slope2; the
- * intervening stores through `spc` invalidate cse1's cached load of that
- * field, forcing a needless reload + reload-preserving `move` sequence (4
- * extra bytes at 432 vs the target's direct register reuse).
- */
 void UpdateSplineControl(SplineControlType *spc)
 {
     MotionElementType *key0p;

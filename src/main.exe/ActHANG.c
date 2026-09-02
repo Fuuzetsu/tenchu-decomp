@@ -26,50 +26,6 @@
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-/*
- * ActHANG (0x80024748, 0x2bc bytes incl. jump table) — the ledge-hang action
- * state (MOTION.C's ActionFunc[] table). Motion ids 0xA00..0xA04: 0xA00
- * (hanging) drops while DOWN is held (raise dtL->vy by 100 until HangCheck
- * fails -> motion 0x803 falling), or starts a shimmy (0xA02 on RIGHT,
- * 0xA03 on LEFT), or on UP (PADLup) checks the ledge above via
- * GetAreaMapLevel before pulling up (0xA04); 0xA01 (reach) returns to 0xA00
- * when the motion runs out; 0xA02/0xA03 (shimmy) keep moving while the
- * direction is held else return to 0xA00, falling (0x803) if the grip
- * breaks; 0xA04 (pull-up) ends in stand (0) or the weapon-drawn engage
- * stance (0x501, attribute & ATTR_WEAPON_DRAWN) and RETURNS
- * (skipping the shared tail). Shared tail: ATTR_PUSH (shoved off the ledge)
- * knocks the character off the wall.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - A real jump-table `switch` on `(short)(dtM->mid - MOT_HANG)`: the (short)
- *    cast narrows the subtract to HImode — `lhu` (raw load) + HImode `addiu`
- *    + `sll/sra` re-widen, then expand_case's `sltiu 5` + table jump. A plain
- *    `switch (dtM->mid)` with 0xA00-based cases would subtract in SImode off
- *    an `lh` (no sll/sra) — wrong shape.
- *  - Case bodies are emitted in SOURCE order; the original's order is the
- *    MEMORY order 0, 2/3, 4, 1 (case 1 last, falling into the shared tail;
- *    its `motID = MOT_HANG; motMODE = MOTION_MOVE_APPLY;` island is the physically-last copy
- *    that case 0's 0xA02/0xA03 stores cross-jump onto, leaving each
- *    predecessor just its own `li` in the branch delay slot).
- *  - `motMODE = MOTION_MOVE_APPLY;` written literally per arm (never hoisted/shared);
- *    cc1's cross-jump does all the merging (same rule as ActSYURI.c).
- *  - dtPAD has its recovered signed object type. dtPAD supplies
- *    the case-0 `lhu` mask tests, while case 2/3's plain signed view gives the
- *    target's `lh`; attribute@0x4 likewise diverges per-site: `*(u16 *)&`
- *    for case 4's `& 0x40` (lhu) vs the plain s16 field for the tail's
- *    `& 0x8000` (lh).
- *  - Case 4's double `dtM->count` read reuses ONE dtM load across the
- *    `dtV->vy = -0x23` store (cse.c's MEM_IN_STRUCT_P heuristic: a varying
- *    struct store does not invalidate a fixed-address non-struct scalar
- *    load), while a multi-pred label forces the fresh dtM loads elsewhere.
- *  - The climb loop is a plain bottom-tested `do { } while (HangCheck());`
- *    (`y` = PSX.SYM's `long y`, callee-saved across the call); the case-0
- *    GetAreaMapLevel `1` (5th arg) and `motMODE = 1` unify into one
- *    call-crossing $s0 pseudo via cse, no named variable.
- *  - gp-externs: dtV, dtM, dtPAD, dtL, motID, motMODE, Me_MOTION_C.
- *    StagePlayer/GlobalAreaMap stay absolute.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern short HangCheck(void);

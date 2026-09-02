@@ -1,23 +1,9 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * Per-frame input loop for an end-of-level screen. It updates the character's
- * best stage uid, then passes only a newly pressed pad value to update_card_screen_.
- * `lastpad` is intentionally uninitialized on the first iteration, matching
- * the original $s1 input state.
- *
- * The one `result` identity is significant and natural: it holds the default
- * zero input, the conditional new-pad value, and then update_card_screen_'s return.
- * With the reset written after GetRealPad, cse leaves that call's literal-zero
- * argument alone; the scheduler later hoists the independent reset into
- * StartDrawing's delay slot once `result` has been allocated to $s0. This is
- * the exact target sequence without a carrier, fence, or no-op scaffold.
- */
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-/* The definition returns s32; this s16 view is retail's own drift and
- * byte-required (the s32 spelling drops the caller's return narrowing). */
+/* Retail declares this s16 here although the definition returns s32. */
 extern s16 update_card_screen_(s32 input);
 
 void score_screen_input_(void)

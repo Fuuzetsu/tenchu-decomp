@@ -54,20 +54,6 @@
  *     extern struct ModelType *ModelHook;
  * END PSX.SYM */
 
-/*
- * MATCHED: both projection sites use the inline GetScreenPosition structure
- * independently named by PSX.SYM earlier in EFFECT.C.  Keeping the scalar
- * x/y/z parameters and the debug-proven SVECTOR * output together in that
- * helper preserves the target's scheduling and register lifetimes.  It also
- * removes the former loop-store scramble and the claimed 80-byte floor.
- * The distance block uses PSX.SYM's `v1`/`v2` pointer identities, which
- * share $s3/$s2 with the `start`/`end` parameters exactly as aliases
- * would. In the interpolation block PSX.SYM records `t`, `Q` and `R` and
- * NOT the two Bezier coefficients, so those are spelled at their uses --
- * three times each, which is the cost of following the symbol list here
- * rather than a claim that they were single-use.
- */
-
 extern MATRIX GsWSMATRIX;
 
 extern long abs(long value);
@@ -138,8 +124,6 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
         {
             big = 1;
         }
-        /* The staged flag is byte-required (testing the || directly
-         * recolors the delta registers; measured). */
         if (big)
         {
             dx /= 0x100;
@@ -156,8 +140,6 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     lcount = distance / WIRE_SEG_LEN;
     if (center == 0)
     {
-        /* vy/vz go through the freshly assigned alias: byte-required
-         * (filling StockCenter first recolors the pointer; measured). */
         StockCenter.vx = (end->vx + start->vx) / 2;
         center = &StockCenter;
         center->vy = (end->vy + start->vy) / 2 + distance / WIRE_SAG_DIV;
@@ -176,8 +158,6 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             break;
         }
 
-        /* one_value re-registers FIXED_ONE for this block: byte-required
-         * (using it directly recolors the sum/negate pair; measured). */
         one_value = FIXED_ONE;
         t = one_value - i * FIXED_ONE / lcount;
         Q = t * 2;

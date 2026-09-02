@@ -33,20 +33,6 @@
  *     extern short VoiceMode;
  * END PSX.SYM */
 
-/*
- * The post-memset cursor is deliberately separate from the scan's `event`.
- * Updating that short-lived carrier in place preserves the source dependency
- * that makes cc1 keep the cursor in v0 while loading StagePlayer into v1.
- *
- * Other load-bearing shapes: the event scan is a hand-rolled goto loop;
- * separate s32 `wanted`/`end_mode` values create the preheader extension and
- * loop-carried `CVA_CMD_END`; and the motion arm's `(motion = 0, test)` comma
- * expression selects the retail allocation and schedule.
- * The two missing/end-event checks and failed `CVAupdate` are ordinary zero
- * returns. Successful setup falls directly into sequence playback; GCC merges
- * the guard returns into retail's shared zero-return block without labels.
- */
-
 #include "item.h"
 
 extern u8 TelopText[];

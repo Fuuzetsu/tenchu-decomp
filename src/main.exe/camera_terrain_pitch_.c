@@ -2,26 +2,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/*
- * Derive the camera's terrain-following pitch from the Humanoid's current
- * AreaNode and a point 0x100 units ahead along its facing direction.  Each
- * point is projected onto the node's flat/X-slope/Z-slope plane, the height
- * difference becomes ratan2(dy, 0x100), and the result is clamped to
- * +/-ROTMAX.  A missing area, invalid height, or a drop below -699 returns 0.
- *
- * Matching notes:
- *  - x/z and their spans are s16 working values.  Keeping them wide and only
- *    casting at the divisions changes local allocation throughout both
- *    duplicated plane evaluations.
- *  - yy deliberately stays wide after the node's unsigned-y load.  Narrowing
- *    it only in `(short)yy * 10` lets both slope arms cross-jump into the same
- *    tail and keeps the target's a3 -> v0 handoff.
- *  - The final clamp assigns one shared `angle` and returns once; three direct
- *    returns produce a different final basic-block layout.
- *  - `DIV` and `ROTMAX` are CAMERA.C's original names. Their exact values and
- *    roles survive in this retail-only helper even though it has no demo body.
- */
-
 s32 camera_terrain_pitch_(Humanoid *human)
 {
     enum

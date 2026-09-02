@@ -35,21 +35,6 @@
  *     extern int CurrentEnemyID;
  * END PSX.SYM */
 
-/*
- * The demo executable contains the 1148-byte earlier-build AddEnemy at
- * 0x80043390. Its control flow and PSX.SYM line records expose the ordinary
- * source behind retail's four extra bytes: sentinel scans for the stage and
- * weapon tables, direct indexed globals, and one compact set of locals reused
- * first as menu cursors and later as the spawned enemy's coordinates.
- *
- * Declaration order is code-generating here. Keeping the PSX.SYM order gives
- * retail's x/i/r/y allocation in s5/s4/s3/s2; reversing the whole list rotates
- * those four registers. The final lexical block likewise places named `pos`
- * at sp+0x7c0 and the zeroed temporary at sp+0x7d0. With direct global access,
- * gcc itself hoists StageAppearance/WeaponModel and emits their caller saves
- * around sprintf at sp+0x7e0/sp+0x7e4—no source-level spill model is needed.
- */
-
 extern char str_select_type[];          /* select type */
 extern char str_custom_think_setting[]; /* custom think setting */
 extern char fmt_pair[];                 /* %s %s */
@@ -76,8 +61,6 @@ void AddEnemy(void)
 
     x = 0;
     i = 0;
-    /* The entry guards before both scans are in the bytes (cc1 does not
-     * fold them into the while's own top test; measured). */
     if (HumanData[0].type != CHARACTER_KIND_END)
     {
         while (HumanData[i].type != CHARACTER_KIND_END)
@@ -115,8 +98,7 @@ void AddEnemy(void)
     ItemName[x].name = str_cancel_2;
     ItemName[x++].value = ADT_SELECT_CANCEL;
     ItemName[x].name = 0;
-    /* (s16) re-narrows the s32 return: byte-required (writer-width rule;
-     * measured). */
+    /* Re-narrow the wider return value before storing it. */
     type = (s16)AdtSelect(str_select_type, ItemName, 0);
     if (type == ADT_SELECT_CANCEL)
         return;

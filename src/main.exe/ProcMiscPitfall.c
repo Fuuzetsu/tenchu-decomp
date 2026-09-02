@@ -25,22 +25,6 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-/*
- * ProcMiscPitfall (0x8004cb6c, 868 bytes) — creates the pitfall collision
- * volume, advances its opening animation, and draws the two trap-door models.
- *
- * The single function-scope `w` is load-bearing.  Although its two switch-arm
- * lifetimes never meet, keeping one source identity makes cc1 allocate it
- * globally and reuse m's $s1 home.  Two block-local `w` declarations instead
- * put the resume value in $s0 before global allocation and displace the
- * shared literal 2 to $s3.
- *
- * Two non-obvious source identities are measured and load-bearing: promoting
- * mode to int changes the lone range test from sltiu to the target's slti
- * (7 -> 6 bytes), and keeping ConflictObject in a block pointer across
- * GetConflictResult changes a 218-instruction draft to the target length.
- */
-
 #include "item.h"
 #include "misc.h"
 
@@ -119,8 +103,6 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
 
         /* The promoted temporary selects signed slti after the lbu. */
         mode = m->mode;
-        /* The nested != 1 / < 2 / == 0 tree is byte-required (a flat
-         * else-if chain re-shapes the compare tree; measured). */
         if (mode != PITFALL_MODE_OPENING)
         {
             if (mode < PITFALL_MODE_OPEN)

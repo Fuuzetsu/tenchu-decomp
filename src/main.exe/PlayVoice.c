@@ -70,41 +70,6 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
     CdIntToPos(pos * 2 + OFFSET, loc);
 }
 
-/*
- * MATCHED: PlayVoice (0x8004eee4, 756 bytes / 189 instructions) searches a
- * language EVENT table for ids below VOICE_ID_INTRO_BASE, IntroVoiceTable for
- * ids 100-199, or ToraVoiceTable for higher ids, then falls back to
- * CommonVoiceTable using the English EVENT filename. A miss
- * reports the id and stops CD audio.
- * A hit clamps gSELevel, restores the XA mix, converts the row's minute/second
- * pairs to start/end locations, and plays its channel; playback failure is
- * reported with the filename, channel, and id.
- *
- * Matching constraints:
- *  - VoiceXaName, VoiceXaNameF, VoiceXaNameI, and VoiceXaNameJ are distinct
- *    globals. Treating them as one global array changes the loads and grows
- *    the function from 756 to 772 bytes.
- *  - The language loop advances and then re-caches the current id. The
- *    INTRO/TORA loop instead peeks the next row through a separate pointer
- *    before advancing. Do not normalize these two source shapes.
- *  - The two BuildVoiceLocation calls need separate min/sec block scopes, and
- *    volume is s32. Together they preserve the playback tail's saved-register
- *    assignment.
- *  - The high-bank search keeps current and next as distinct pointer
- *    identities; jump2 erases the equal-arm copy that expresses this.
- *  - end_marker belongs only to the language loop. The fallback search has
- *    separate fallback and fallback_end locals; sharing the sentinel creates
- *    a false live-range conflict and swaps the fallback registers.
- *  - Select the filename slot first, then derive language from its pointer
- *    difference. That extra real reference gives the filename and table bases
- *    their target saved-register homes; direct indexing swaps them.
- *  - Keep the zero-code region after forming the two indexed addresses. It
- *    changes only sched's dependency region, producing filename address,
- *    table address, voice load, then filename load in the voice load's delay
- *    slot.
- *  - Primary-table hits are loop breaks. The fallback hit remains a goto so
- *    jump2 retains the target's small out-of-line hit block.
- */
 void PlayVoice(int id)
 {
     u8 *FileName;
@@ -178,7 +143,7 @@ void PlayVoice(int id)
         filename_entry = filenames + CHOSEN_LANGUAGE;
         language = filename_entry - filenames;
         voice_entry = tables + language;
-        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+        /* Empty loop retained for code layout; its original source construct is unknown. */
         do
         {
         } while (0);

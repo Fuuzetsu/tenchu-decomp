@@ -41,52 +41,6 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-/*
- * StateTransition (0x8002aad0) is the central humanoid AI-state dispatcher:
- * it updates perception, alert/engage state, movement hints, obstacle probes,
- * and the synthesized controller input for one frame.
- *
- * Matching notes (3,776 bytes / 942 compared instructions):
- *  - This is THINK.C code, so its TU-local small globals need the explicit
- *    StateTransition gp-extern list in Build.hs/permute.py.  The random engage
- *    test also needs maspsx's `--expand-div` compatibility sequence.
- *  - The three alert arms deliberately contain the same Findenemies tail.
- *    gcc's cross-jump pass merges those copies while carrying the already
- *    loaded Humanoid pointer into the join. The first arm expresses the same
- *    actor-type and player-target eligibility test directly as the later
- *    alert arms.
- *  - The first FieldAttrib store is the comma side effect in the fifth
- *    GetAreaMapLevel argument.  This keeps the value live until all four
- *    register arguments have been loaded, matching the original store
- *    schedule and allocation without a fixed-register declaration.
- *  - The packed word at Humanoid+0xb0 is read with `word >> 16`, not a halfword
- *    pointer cast: the former gives the target `lh` plus delayed copy to pad.
- *  - The case-0 chase reset is a right-to-left chained assignment: Z is the
- *    inner store, preserving the target's Z-then-X write order.
- *  - Repeating `attacker->target` for the two coordinate reads makes
- *    cse preserve the loaded target pointer with the target's explicit copy.
- *    The >=-form ternaries likewise expand the two absolute values directly
- *    as abssi2.
- *  - reset_alert_duration has an old-style declaration intentionally.  The
- *    case-0 call carries the already-loaded life value in $a0; the callee takes
- *    no arguments, but preserving that harmless call-site value keeps jump.c
- *    from cross-jumping the call itself with the other alert arms.
- *  - The case-2 hold path can `break` normally; cse threads its known-nonzero
- *    value into the shared hint body. At the obstacle tail, an inverse guard
- *    removes the periodic label while the one-line obstacle action is safely
- *    duplicated to delete its acyclic label.
- *  - The case-1 and case-3 Findenemies paths use one short-circuit eligibility
- *    guard each: type/search/target are all prerequisites for the same count.
- *  - The alert attack filter is ordinary nested control flow. A downed player
- *    masks attack buttons immediately; otherwise a sufficiently separated
- *    target and non-ranged weapon take the same mask path, with unsuitable
- *    attacks falling into the difficulty-based random veto. The positive
- *    suitability test gives retail's mask-before-random block order directly.
- *  - The special forward-step probe combines its matching-level and small
- *    absolute-delta tests in one guard. An excessive positive delta is the
- *    `else if` case, so both outcomes fall naturally into the shared tail.
- */
-
 extern Humanoid *Me_THINK_C;
 extern s32 StrainRatio;
 extern long EmergencyNotice;
@@ -100,7 +54,7 @@ extern s16 Think2confirm(void);
 extern s16 think_alarm_reaction_(void);
 extern s16 Think3firstattack(void);
 extern s16 GotoPosition(s32 vx, s32 vz);
-/* Retail's own prototype drift (def: u16 pressed) -- byte-required. */
+/* Retail declares the pressed word as s16 here; the definition uses u16. */
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
 extern s16 Think1ninja(void);
 extern s32 rand(void);

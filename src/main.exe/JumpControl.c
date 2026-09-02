@@ -22,51 +22,6 @@
  *     extern short dtPAD;
  * END PSX.SYM */
 
-/*
- * JumpControl (0x8001d474, 0x248 bytes) — per-frame controller for the
- * jump/hang motion state (MOTION.C, called from ActCHASE/ActENGAGE/ActMOVE/
- * ActNORMAL). Kicks off a landing-dust effect at `*dtL` via spawn_smoke_burst_,
- * then checks whether the player's current motion (0x900) is still valid.
- * If not (GetMotionID returns a "not found" sentinel with the sign bit set),
- * the whole rest of the function is skipped. While already mid-jump-attack
- * (motID==0x607), lands into the roll-recovery motion (0x906) once the
- * active motion is more than 11 frames from its end, playing a footstep
- * sound (plus an extra landing sound if the player controls this Humanoid).
- * Otherwise (motID != 0x607): records the standing model's `id` into
- * ConflictObject[id].position's x/z (a "was standing here" landing-spot
- * cache) if it's registered, resets the jump target vector (`dtV->vy`),
- * switches to the base jump motion (0x900), then dispatches on the D-pad
- * bits to pick a directional jump motion (0x902..0x905, one of forward/
- * back/left/right) and pass a matching offset to MoveHumanoid — or, with no
- * direction held, zeroes `*dtV`'s x/z instead.
- *
- * Matching notes:
- *  - GetMotionID's recovered signed-short result makes each availability
- *    check a direct comparison with zero. GCC still emits the retail
- *    sign-bit test when the result is consumed only by the branch.
- *    The dash-frame and MOT_JUMP_RUN availability checks are one eligibility
- *    guard; both are prerequisites for the same recovery body.
- *  - The `motID == 0x607` vs else split is a plain `if/else`: the small
- *    0x607 body is the fallthrough (physically first), the big else body
- *    is the branch target — standard cc1 if/else layout, no polarity
- *    inversion needed.
- *  - The D-pad dispatch is a plain `if/else if` ladder (0x1000, 0x4000,
- *    0x2000, 0x8000, else) — Ghidra's own nesting already has this right;
- *    m2c's flattened "if (bit) {...; return;}" four times is an equally
- *    valid but differently-shaped rendering of the SAME asm (every branch
- *    ends in a jump straight to the shared epilogue either way, since
- *    there is nothing after the dispatch). Each subsequent bitmask test is
- *    precomputed in the PRECEDING branch's delay slot (`andi` scheduled
- *    into the branch-not-taken slot) — a scheduler artifact, not a source
- *    shape; plain nested tests reproduce it without any hand-holding.
- *  - `Me_MOTION_C->model->object[0]->id` and `dtM->count` both check out
- *    against item.h's proven `ModelArchiveType *model`@0x58,
- *    `ModelType **object`@0x68, `s16 id`@0x58 (of ModelType), and
- *    MotionManager's proven `s16 count`@0x2.
- *  - `ConflictObjectType.position` (a VECTOR @0x4, so `.vx`@4/`.vz`@0xC of
- *    the slot) matches InsertConflict.c's/DeleteConflict.c's already-proven
- *    layout; redefined locally here per this repo's per-file convention.
- */
 extern Humanoid *Me_MOTION_C;
 
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);

@@ -43,26 +43,6 @@ extern void reset_alert_duration(void);
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-/*
- * Advances the placed landmine through floor placement, collision arming,
- * detonation, and its ten-frame-effect burst before disposal.
- *
- * Matching notes:
- *  - `call_item` makes both disposal predecessors materialize the indirect
- *    call argument before entering their shared tail; calling
- *    `item_proc(item)` instead fills the jalr delay slot and removes one of
- *    those moves.
- *  - The zero-trip wrapper around `frame_index = 0` keeps initialization
- *    after the character-state call, where it fills the following branch
- *    delay slot. That loop note initially gave `frame_index` the allocator's
- *    preferred saved register, so the second zero-trip wrapper weights the
- *    three `% 200` expressions more heavily. The generated division constant
- *    then takes $s1 and leaves the target $s3 for `frame_index`, without
- *    emitting extra code.
- *  - This function needs maspsx `--expand-div` for the dynamic model-count
- *    remainder guard; Build.hs and permute.py carry the mirrored flag.
- */
-
 void ProcItemJirai(TItem *item)
 {
     enum
@@ -215,7 +195,7 @@ void ProcItemJirai(TItem *item)
 
             hit_human = ConflictObject[conflict_id].common;
             human_present = is_humanoid_on_stage_(hit_human);
-            /* empty 1-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);

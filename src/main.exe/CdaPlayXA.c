@@ -25,50 +25,6 @@
  *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
-/*
- * CdaPlayXA (0x8004f99c, 0x164 bytes) — starts CD-XA audio playback of
- * `fname` when CD audio is enabled: stops any current playback (CdaStop,
- * idempotent), searches for the file (CdSearchFile), and on a hit computes
- * StartPos/EndPos in CD sectors (StartPos = file's own position + 150
- * sectors — the standard 2-second pregap; EndPos defaults to StartPos + the file's own
- * length in sectors (size>>11) unless an explicit `end` CdlLOC is given;
- * `start` further offsets StartPos when given), arms the drive (CdlSetmode
- * with speed|RT|SF|DA, VSync(3) to let it settle), resets the
- * status/check-count bookkeeping, sets the play filter (file=1,
- * chan=channel) via CdlSetfilter, and installs the vsync-driven pump callback (cbCheckCD). Returns 1
- * on success, 0 if CD audio is disabled or the file wasn't found. Same proven
- * TCdaStatus struct as CdaStop.c/CdaReady.c/CdaGetCurrentLength.c.
- *
- * Matching notes:
- *  - The two nested `if`s Ghidra shows (`if (flag&1) { CdaStop(); if
- *    (CdSearchFile(...)) {...long body...} }`, falling off the end to
- *    `return 0;`) put "return 1" textually FIRST (nested) and the shared
- *    "return 0" LAST — the opposite of what the asm wants. The asm has
- *    "return 1" fall straight into the epilogue (no jump) and BOTH failure
- *    points jump forward to a single shared "return 0" block. Respelling as
- *    two early-exit guard clauses (`if (flag&1)==0) return 0;` /
- *    `if (CdSearchFile(...)==0) return 0;`) with the long success body
- *    UNNESTED and LAST fixes this (cookbook's guard-clause-with-two-returns
- *    family, but inverted from the usual "short error nested" shape since
- *    here the LONG body is what needs to sit last/unnested).
- *  - `if (end != 0) {CdPosToInt block} else {size>>0xb block}` — Ghidra's
- *    literal polarity (`if (end==0) {size path} else {CdPosToInt path}`)
- *    lays the SHORT arm out first; the target puts the LONGER (CdPosToInt)
- *    arm first/fallthrough instead (cookbook's "flip back when the success
- *    arm is the longer one", generalized to "whichever arm is longer sits
- *    fallthrough-first" even outside a success/error framing).
- *  - `param`/`filter` are two independent small stack buffers passed to the
- *    two cd_control calls (0xe then 0xd) — not one shared buffer.
- *
- * STATUS: MATCHING — 89 instructions / 0x164 bytes. `mode` has PSX.SYM's
- * ordinary int type. Once its input value has been committed to CdaStatus,
- * the parameter is reused for the three sector-position conversions. That
- * later reassignment prevents cc1 from treating the original value as a
- * reloadable stack equivalence, so it emits the target's early
- * `lw $s0,0x68($sp)` and preserves it across the two preceding calls. A
- * separate position local leaves the input in its stack home and makes the
- * function one instruction short.
- */
 extern void CdaStop(void);
 extern void cd_control(u8 cmd, u8 *param, u8 *result);
 extern void VSync(s32 mode);

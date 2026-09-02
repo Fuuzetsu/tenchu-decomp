@@ -20,28 +20,6 @@
  *     extern long EmergencyNotice;
  * END PSX.SYM */
 
-/*
- * ProcItemManebue (0x8004a1d8) — the manebue (lure whistle) item processor.
- * mode 0: silence the alert, set the owner's whistling state, play the sound,
- * arm a 30-frame timer; mode 1: count the timer down, then dispose of the item
- * (call its proc, drop the conflict, clear owner/proc).
- *
- * Matching notes (all verified against the original bytes):
- *  - `param = &item->param.drop` mirrors the original PSX.SYM local
- *    (it lives in $s1 across the calls); indexing off `item` directly doesn't
- *    allocate $s1.
- *  - The mode dispatch is an ordinary `switch` (measured byte-identical
- *    2026-08-31). It supersedes an earlier note claiming a `zero`
- *    variable plus a goto ladder were needed to make cc1 reload `mode`
- *    after the ITEM_MODE_DISPOSE test and keep the case bodies out of
- *    line: the switch produces both by itself, and the helper local is
- *    gone with it.
- *  - EmergencyNotice is a plain small extern here, and this file is
- *    deliberately NOT in Build.hs's maspsxGpExterns list: the original item TU
- *    did not define it (think's TU does), so ASPSX addressed it absolutely
- *    (lui $at) — unlike Think1sleep, where the same symbol is gp-relative.
- */
-
 void ProcItemManebue(TItem *item)
 {
     enum

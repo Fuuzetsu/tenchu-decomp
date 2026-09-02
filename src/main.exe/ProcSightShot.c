@@ -30,34 +30,6 @@
 #include "item.h"
 #include <psxsdk/libgs.h>
 
-/*
- * MATCH.
- *
- * ProcSightShot (0x8003ea84) owns the first-person aiming item.  Releasing
- * the item restores the inventory or drops it if the user's launch motion
- * was interrupted.  While the motion is active it counts down the sight,
- * draws the target sprite, searches either from ViewInfo or the user's model
- * rotation, disposes the sight item, and launches the projectile.
- *
- * Matching notes:
- *  - `launch = &item->param.launch` is formed in the entry mode-test
- *    delay slot and kept in a0 until the aiming body.
- *    `dispose_mode` is s32 and therefore receives the target's long-lived s4.
- *  - The drop block and common disposal block deliberately precede the
- *    `sight_mode` label.  Source-ordering the normal sight path first gives
- *    equivalent behavior but reverses the target's physical basic blocks.
- *  - `param`, `rot`, `rx`, and `ry` reproduce the exact sp+0x10..0x47 local
- *    window recovered by PSX.SYM. The rotation helper writes the two full-word
- *    scalar outputs at sp+0x40 and sp+0x44.
- *  - Keep the user's model as a `ModelArchiveType *` and take
- *    `&model->rotate` only in SearchItemTarget2.  Precomputing an `SVECTOR *`
- *    creates a separate RTL pseudo: the owner/model chain moves to v1/v0 and
- *    gains a nop.  The aggregate pointer lets GCC coalesce the chain into a1
- *    and interleave the independent sight-count load exactly.
- *  - The three disposal invocations are intentionally separate. Sharing
- *    control flow changes branch placement and whether
- *    SetCameraMode(CMODE_LOCK) precedes launch.
- */
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
 extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);

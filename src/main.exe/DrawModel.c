@@ -24,39 +24,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING.
- *
- * DrawModel (0x80017248) — same TU as DrawClip.c/UpdateCoordinate.c/
- * GetAbsolutePosition.c/DrawOrnament.c (3DCTRL.C): DrawClip's full-bodied
- * twin — builds the model's local screen matrix (GsGetLs+GsSetLsMatrix,
- * DrawOrnament's pair) then runs the exact same visibility/clip gauntlet
- * as DrawClip (the MODEL_ATTR_CULL_* gauntlet, UnitVector RotTransPers,
- * DrawTMDmode), and on success actually calls DrawTMD; returns 1 drawn / 0
- * not.
- *
- * Matching constraints:
- *  - The screen-cull block falls into the far-depth test, which falls into
- *    UnitVector projection. Keep ret as the shared draw tail.
- *  - sz is PSX.SYM's one end-to-end value: first projection OTZ, -1 reject
- *    sentinel, and second projection OTZ. iv is the separate transient
- *    absolute box-coordinate value.
- *  - The MODEL_ATTR_CULL_FAR test reads the old sz before assigning -1 and
- *    jumping.
- *    Ghidra's comma rendering reflects a delay-slot store, not source order.
- *  - Preserve two literal tail returns. return sz != -1 materializes an
- *    unwanted boolean.
- *  - Both box-threshold failures go directly to reject; they do not project
- *    UnitVector. The far-depth test remains after the box body so its three
- *    incoming edges share one physical test.
- *  - Spell the fog choice as if (sz >= FOG_DEPTH) fog; else plain. Swapping
- *    the equivalent arms changes which block reaches the following shared
- *    tail without a jump.
- *  - Pin the shared reject assignment with a real reject label inside the
- *    UnitVector depth guard. Attribute-4 and both box failures jump to it.
- *    The far-depth reject stays separate so its -1 assignment can occupy
- *    its own branch delay slot.
- */
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 
 short DrawModel(ModelType *objp)

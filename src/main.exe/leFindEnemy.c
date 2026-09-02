@@ -26,34 +26,6 @@
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-/*
- * leFindEnemy (0x8003c470, 0x1a4 bytes) — `le`=layout-enemy family (see
- * leAddPath.c/leResetPath.c for TEnemyLayout): scans the 30-slot `enemy[]`
- * table for the live (`type != CHARACTER_KIND_END`) entry nearest
- * CamState.Owner's model
- * position, returning its index (or ENEMY_LAYOUT_NONE if none is closer than
- * the initial 2000-unit cutoff). On a hit, spawns the same marker explosion
- * effect as leAddPath (SetExplosion with the pooled {0,-100,0} direction
- * vector and the found enemy's own x/y/z) at the found enemy's position.
- *
- * Matching notes:
- *  - `pow = svec_y_n100[0];` (the whole-SVECTOR copy) is computed BEFORE
- *    the `memset` call in source, not after — same pooled rodata constant
- *    as leAddPath.c, same lwl/lwr+swl/swr block-copy shape.
- *  - The zeroed/filled VECTOR is a SEPARATE staging local from the one
- *    passed to SetExplosion: `epos` (invented name) gets memset then
- *    vx/vy/vz filled from `enemy[find]`, and `pos = epos;` (a whole 4-word
- *    struct copy,
- *    including the untouched zero `pad`) is what SetExplosion actually
- *    receives — not a fused "memset+fill one local" shape. PSX.SYM's demo
- *    build only names the one surviving local (`pos`); retail keeps the
- *    staging copy.
- *  - `enemy[find]`'s address is computed as `find*17*8` (`(find<<4)+find,
- *    then <<3`), the compiler's own strength-reduced multiply by
- *    sizeof(TEnemyLayout)==0x88 — write plain `&enemy[find]`, not a manual
- *    shift/add, and let cc1 pick this multiply sequence itself.
- */
-
 extern SVECTOR svec_y_n100[]; /* {0,-100,0} */
 
 extern void *memset(void *s, s32 c, u32 n);

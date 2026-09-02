@@ -20,72 +20,6 @@
  *     reg   $a2       unsigned long size2
  * END PSX.SYM */
 
-/*
- * vrealloc (0x80016738, 0x204 bytes) — same TU/family as valloc.c/vfree.c
- * (virtual_memory_pool's free-list allocator): realloc over the same
- * `struct VMhead` free list. `pt == 0` is a plain `valloc(size)` (malloc
- * semantics). Otherwise the request is rounded to words exactly like
- * valloc's own rounding, then:
- *   - if the block's CURRENT raw size (header->size, WITH the in-use flag
- *     still set) is < the requested word count — note this is an UNSIGNED
- *     compare against a value with bit31 set, so for any pointer valloc
- *     actually handed out it is NEVER true (the request tops out around
- *     0x40000000 words): a live block always takes the "already fits" arm,
- *     and the grow path only fires on a header whose flag is clear — try
- *     to grow in place by absorbing the immediately-following block
- *     (`vhp->next`) if it exists, is free, and together is big enough;
- *     otherwise give up: valloc a fresh block, memcpy over, vfree the old
- *     block. The copy length is `min(size, vsize(pt))` with `size` in
- *     WORDS but vsize() in BYTES — retail's own unit mix (it undercopies
- *     to a quarter), preserved as-is.
- *   - else (already fits): clear the in-use flag, and if the leftover slack
- *     is big enough (>= VMEM_MIN_SPLIT_SLACK words) split off a fresh free
- *     tail block,
- *     itself absorbing `vhp`'s ORIGINAL next block if that one is also
- *     free. If the slack is smaller, the function returns with the
- *     in-use flag left CLEARED — a quirk (or latent bug) of the original,
- *     confirmed by both the raw asm and Ghidra's own decompilation, not a
- *     transcription error here.
- *
- * Matching notes (the last 74 bytes were a register-allocation knot, solved
- * with cc1 -dg/-dl RTL dumps run standalone — not by respelling the C):
- *  - The grow-coalesce SPLIT tail's size is the raw excess (no `-2`); the
- *    shrink SPLIT tail excludes VMEM_HEADER_WORDS. The grow and shrink paths
- *    also use distinct named split thresholds.
- *  - Locate either split header in allocator words: cast `vhp` to `u32 *`,
- *    add `size`, then add `sizeof(*vhp) / sizeof(u32)`. The left-associated
- *    form preserves retail's base-plus-payload-plus-header address order.
- *  - `vh.next` in the shrink-split branch is read fresh off `vhp->next`
- *    (not the cached `svhp`), even though the two are numerically identical
- *    at that point — matches Ghidra's own literal `*(uint*)(pt+-4)` reread.
- *  - The give-up path's `if (pt != 0) { ...memcpy... }` guarding a copy from
- *    a provably-non-null `pt` is real source, preserved literally.
- *  - The slack (`size2`) and the give-up memcpy length CANNOT be one
- *    variable: the target holds the slack in $v1 but flows the length
- *    through $a2, and gcc 2.8.1 never splits a pseudo's live range — one
- *    variable = one hard register. `-dg` showed the shared variable's
- *    memcpy-third-arg copy-preference ($a2) winning the FIRST allocation
- *    (it was the top-priority pseudo) and rotating every register after it.
- *  - The grow branch's `mask` is a real variable assigned BETWEEN the
- *    `svhp != 0` and `svhp->size >= 0` tests — hence the nested-if +
- *    `goto giveup` shape instead of one `&&` chain. That places the
- *    `li VMEM_BLOCK_IN_USE` in the second test's basic block: sched1 slots it
- *    into the `lw svhp->size` load-delay stall, reorg then pulls it into
- *    the `bltz` delay slot, and the assembler re-inserts the load-use
- *    hazard nop — reproducing the target's `lw / nop / bltz / lui` exactly.
- *    An inline literal in each arm instead compiles TWO `lui`s (cse's
- *    path-following cannot unify constants across the divergent split/
- *    absorb arms) — one instruction long.
- *  - `mask` is ALSO the give-up path's memcpy-length temp (one variable,
- *    disjoint live ranges). This is load-bearing two ways: the memcpy
- *    third-argument copy gives the pseudo an $a2 preference, and global.c's
- *    find_reg makes earlier allocnos AVOID registers that later allocnos
- *    prefer — so `vhp` (allocated first, higher priority) skips the free
- *    $a2 and lands in $a3, after which mask/length takes $a2 in both
- *    regions. Splitting them left vhp/mask swapped (a2/a3) with no
- *    C-level lever at all.
- */
-
 extern void *valloc(u32 size);
 extern void vfree(void *pt);
 extern void *memcpy(void *dst, void *src, u32 n);
@@ -126,8 +60,6 @@ void *vrealloc(void *pt, u32 size)
             nb = (struct VMhead *)((u32 *)vhp + size +
                                    sizeof(*vhp) / sizeof(u32));
             vhp->next = nb;
-            /* Byte-required spelling: the not-and differs from line 144's
-             * (s32)size >= 0 form of the same in-use test (measured). */
             if (svhp != 0 && (~svhp->size & VMEM_BLOCK_IN_USE) != 0)
             {
                 vh.size += (svhp->size + VMEM_HEADER_WORDS);

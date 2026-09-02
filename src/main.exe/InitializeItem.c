@@ -25,31 +25,6 @@
  *     extern struct Sprite3D *sprNapalm2;
  * END PSX.SYM */
 
-/*
- * InitializeItem (0x8003d3e4, 0x144 bytes) — one-time setup of the item
- * pool: loads four fixed models (the "launch"/"arrow"-family fixed visuals
- * ReqItemLaunch's SyurikenModel, ReqItemArrow's ArrowModel, NingyoModel, and
- * ProcItemHappou's HappouModel — all four retain PSX.SYM's `ModelType *`
- * declarations and the type LoadModel actually returns), blanks all 30
- * item[] slots, then sets up the on-screen
- * target-lock, item-count, and Goshikimai cursor sprites.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - sprNapalm/sprNapalm2 use the complete shared Sprite3D, including the
- *    embedded GsSPRITE `.sprite` field this function writes.
- *  - The `for (i=0;i<1;i++)` TargetSprite loop is Ghidra's own literal
- *    rendering (a `bgtz`-tested single-iteration loop) — transcribed as-is.
- *    Indexing TargetSprite directly lets loop.c derive retail's pointer
- *    induction value without an invented source-level `sprite` cursor.
- *  - GetArcData/GetImage feed their consumers directly. Their former `arc`
- *    and `image` carriers were absent from PSX.SYM and remove byte-exactly.
- *    `attr` cannot: spelling the additive sprite attribute at the store moves
- *    its `lui` three instructions later (ten differing bytes), so the carrier
- *    keeps the target's pre-loop materialization order.
- *  - `Item_fInitial = 1;` is ITEM.C's original file-static `fInitial`
- *    (qualified for the split decomp) and DoItemProc's lazy-init guard.
- */
-
 extern GsSPRITE SpriteGoshikimai;
 
 extern ModelType *LoadModel(u_long *adr);

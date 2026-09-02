@@ -17,20 +17,6 @@
  *     extern struct TPadPort PadPort[2][4];
  * END PSX.SYM */
 
-/*
- * GetPad (0x8001b144) — held-buttons for controller row `no`, slot zero.
- * The pad API represents a controller as `(row << 4) | slot`; converting `no`
- * to that ordinary encoded-port value before using both halves naturally emits
- * retail's sll16/sra12/sra4 chain.  Keeping the field address in `button` also
- * reproduces the target's address-materialisation order, just as GetRealPad's
- * matched source does.
- *
- * The earlier direct `PadPort[no][0]` draft was a local minimum: it made cc1
- * fold the conversion to sll16/sra16 and led to the incorrect claim that the
- * three-shift form required an inline-asm optimizer barrier.  The demo homolog
- * uses the same three shifts, and its line table separates the pointer setup
- * from the later held-field load, corroborating this human source structure.
- */
 short GetPad(short no)
 {
     u16 *button;

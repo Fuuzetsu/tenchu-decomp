@@ -16,27 +16,6 @@
  *     extern short motMODE;
  * END PSX.SYM */
 
-/*
- * MotionAndMove (0x80027210, 0x90 bytes) — advance the current motion
- * command onto Me_MOTION_C via SetNowMotion, but first guard against
- * clobbering a motion already mid-update on another humanoid: when
- * MotionUpdateMode is set, scan the CVAhuman[] table and bail early
- * (return 0, no call) if Me_MOTION_C is already one of the tracked
- * entries. CVAhuman[N_CVA_HUMANS] has stride 8
- * (0x800c2cc8..0x800c2cf0 = 0x28 total).
- * This routine only needs the leading `human` pointer; the trailing
- * `loop` and `motid` halfwords are real fields used by CVArun.
- *
- * Matching notes:
- *  - `i` is `short`: indexing CVAhuman[i] (8-byte stride) compiles the
- *    index as a fused sign-extend+scale-by-8 (sll 16 / sra 13) — the
- *    ordinary 2-instruction short-index form (cookbook toolchain
- *    gotchas: distinct from the blocked 3-instruction sign-extend-split
- *    class, which needs a THIRD sra).
- *  - motID and motMODE use their recovered signed `short` declarations here.
- *    NowReturnNormal's two retail `lhu` reads are localized raw-value views;
- *    they do not change the underlying objects' types.
- */
 extern Humanoid *Me_MOTION_C;
 
 short MotionAndMove(void)

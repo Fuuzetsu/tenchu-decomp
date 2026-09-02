@@ -4,49 +4,9 @@
 #include "gte.h"
 
 /*
- * drawF3 (0x8005d0d4, 0x128 bytes) — the flat-triangle (POLY_F3) primitive
- * renderer of the DrawTMD handler family, and the anchor for the restricted
- * gte.h inline-asm policy (docs/gte-policy.md).  The carved .s marks it a
- * "Handwritten function", and the calling convention below independently
- * supports that classification.
- *
- * STATUS: the guarded reference reconstruction is byte-exact (0/296).  The
- * original remains canonical assembly per config/handwritten-asm.txt.
- *
- * Fresh evidence explains why the final two instructions should not be forced
- * through invented C dependencies.  The demo body at 0x80016dc8 is all 296
- * bytes identical to retail, and PSX.SYM supplies no C translation-unit or
- * source-line records for it.  At the only former residual, the original reads
- * FLAG and immediately writes `addiu $s0,$zero,0`; cc1's RTL instead lowers
- * every C `code = 0` through movsi as `addu $s0,$zero,$zero`.  Splitting the
- * assignment from the flag test also lets reorg sink that move into the branch
- * delay slot, shortening the handler.
- *
- * COMPILER-PROVENANCE RE-AUDIT (2026-07-19). Replacing the helper with the
- * ordinary `gte_stflg_reg(flag); code = 0;` source was compiled through Sony
- * GCC 2.6.3, 2.7.2, 2.8.0, 2.8.1, 2.91.66 and 2.95.2. All six emit the same
- * 292-byte handler and the same tail at this site: `cfc2; and; bnez; move`,
- * with the zeroing move in the branch delay slot. None emits the target's
- * 296-byte `cfc2; addiu s0,zero,0; and; bnez; nop`. The boundary is therefore
- * stable across the available PsyQ-era backends, not a 2.8.1 codegen quirk.
- *
- * The local READ_FLAG_AND_CLEAR_CODE helper therefore preserves those adjacent
- * handwritten instructions as one assembly unit.  Everything around it remains
- * the coherent C reconstruction: all COP2 moves, the three GTE commands, the
- * deferred ordering-table insertion, and every guard delay slot match exactly.
- * The default build still selects the canonical INCLUDE_ASM body.
- *
- * Non-ABI entry — the DrawTMD dispatcher hands the handler its working state in
- * live registers (no stack frame, no callee-save):
- *   $v0 ($2)  batch primitive count (0x304 sentinel => 1)
- *   $t0 ($8)  deferred ordering-table slot from the previous primitive
- *   $t2 ($10) ordering-table base
- *   $t3 ($11) output packet cursor (POLY_F3, 0x14 bytes each)
- *   $t4 ($12) transformed-vertex (SVECTOR) base
- *   $t5 ($13) input primitive cursor (0x10 bytes each)
- *   $t6 ($14) running item budget, decremented by this batch's count
- *   $t9 ($25) ordering-table length (depth clamp)
- *   $s0 ($16) pending-primitive code byte carried across iterations (0 = none)
+ * Canonical handwritten DrawTMD handler (docs/gte-policy.md). The dispatcher
+ * supplies a non-ABI live-register set, and the handler directly schedules
+ * GTE operations and packet writes.
  */
 
 #ifndef NON_MATCHING

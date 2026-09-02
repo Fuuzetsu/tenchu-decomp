@@ -13,23 +13,6 @@
  *     param $a0       int index
  * END PSX.SYM */
 
-/*
- * GetArcData (0x8004f37c, 0xd0 bytes) — lazily loads "models.arc" via
- * FileRead into the gp-relative static ArcData (defined in this TU, hence
- * gp-addressed — see the cookbook's gp section), one-time-converts
- * its table of `count` ArcEntry offsets (each stored where it will end up
- * holding an absolute pointer — the union names both views of the same slot,
- * as in ProcItemDrop's shared-constant idiom but here for a whole table) into
- * absolute pointers relative to `ARC_ENTRY_TABLE_OFFSET` (the entry table
- * follows the {count,loaded} header word), marks `loaded` so the conversion
- * only runs once, then returns `entry[index]` after validating `index`
- * against `count`.
- *
- * The relocation is an ordinary counted loop. Grouping the entry's relative
- * offset with the table-header displacement before adding the archive base
- * mirrors the wire format and preserves the retail arithmetic order.
- */
-
 /* PSX.SYM names IMAGES.C's original archive pointer ArcData. */
 extern ArcFile *ArcData;
 extern void AdtMessageBox(char *fmt, ...);

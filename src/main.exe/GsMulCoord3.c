@@ -1,16 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * GsMulCoord3 (0x80065300) — stock PsyQ libgs, GsMulCoord2's sibling with two
- * deliberate differences (both verified in the asm, not assumed from the clone):
- *   - it composes via MulMatrix, not MulMatrix2;
- *   - it writes the summed translation back into m1 (`sw v0,20(s0)`), where
- *     GsMulCoord2 writes it into m2 (`sw v0,20(s1)`).
- * Otherwise identical: rotate m2's translation through m1 into a local VECTOR,
- * multiply, then add m1's own translation back component-wise.
- */
-
 void GsMulCoord3(MATRIX *m1, MATRIX *m2)
 {
     VECTOR v;

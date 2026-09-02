@@ -18,24 +18,6 @@
  *     extern struct TPadPort PadPort[2][4];
  * END PSX.SYM */
 
-/*
- * PadProc (0x8001ada4) services the direct pad and multitap header, then
- * advances PadArrange's attack/release rumble envelope.  The expired-release
- * path turns both actuators off without performing the second time increment.
- *
- * PadShock appears earlier in the original PADCMD.C and is inlined at the
- * three writes here.  Its second actuator argument is an int, while act2 is a
- * raw unsigned byte: negative values are converted to the 0..255 byte domain
- * by adding 0x100 before the actuator pair is written.  GCC removes that
- * source branch after QImode truncation, so standalone PadShock's instructions
- * are unchanged.  Before jump folding, however, the two real pair-write paths
- * keep both arguments live; that produces retail's a3 constant, a0 quotient,
- * branch-specific PadPort pointers, and instruction order in both envelope
- * arms.  The demo and trial PadProc bodies have the same register graph, and
- * the demo line table places each inlined expansion on PADCMD.C lines 260 and
- * 266 (with the motor-off expansion on line 270).
- */
-
 extern void ComPad(int port, u8 *rxbuf);
 extern u8 Anakon;
 
@@ -71,8 +53,6 @@ void PadProc(void)
     ComPad(PAD_PORT_1, ComBuf[0]);
     ComPad(PAD_PORT_2, ComBuf[1]);
 
-    /* The negate-then-add split is byte-required (the folded subtract
-     * recolors the loads; measured). */
     ct = -PadArrange.time++;
     ct += PadArrange.attack;
     if (ct > 0)

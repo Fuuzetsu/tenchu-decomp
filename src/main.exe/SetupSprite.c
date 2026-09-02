@@ -24,28 +24,6 @@
  *     extern struct ModelType World;
  * END PSX.SYM */
 
-/*
- * SetupSprite (0x80017a18, 0x1d0 bytes) — Sprite3D's allocate+init
- * constructor. Unlike CreateCloneModel/CreateCloneOrnament (which always
- * build a fresh zeroed instance and optionally copy just the `tmd` model
- * pointer), a non-null `orgsprt` here clones EVERY field verbatim via a
- * plain aggregate assignment (`*sprt = *orgsprt;` — the whole 0x8c-byte
- * struct, compiled as an inline word-at-a-time block copy, not a memcpy
- * call); only a NULL `orgsprt` takes the zero-init path (World-rooted
- * GsCOORDINATE2, zeroed translation + RotMatrixYXZ, default grey/full-scale
- * GsSPRITE) and optionally derives the sprite's pixel geometry from `image`
- * — same field-by-field shape and idioms as InitSprite.c (IMAGES.C, matched
- * — this TU's twin): `texture_mode`/`width_shift` are named locals reused
- * after the GetTPage call, `image->px`/`py` are re-read (fresh loads,
- * GetTPage clobbers the caller-saved copies), and `(u8)image->py` for `.v`
- * is a genuinely separate byte load from the earlier signed `lh` of the
- * same field.
- *
- * Sprite3D's complete 0x8C-byte PSX.SYM layout is shared in game_types.h;
- * `sprite` is its trailing GsSPRITE member at +0x68. PSX.SYM's `dim` view
- * initializes the ModelType-compatible prefix through +0x63; `sprt` handles
- * the Sprite3D-only scale and sprite tail.
- */
 extern void *valloc(u32 size);
 extern void *memset(void *s, s32 c, u32 n);
 

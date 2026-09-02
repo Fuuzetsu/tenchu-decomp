@@ -26,12 +26,6 @@
  *     stack sp+32     short size
  * END PSX.SYM */
 
-/* Exact retail reconstruction. Keeping the unmasked image mode in its own
- * unsigned capture preserves h in $s1 until the later mask. Reading w/h back
- * through their stored fields makes cc1 emit the target's independent
- * midpoint narrowing. The cell-width capture and source-level u-before-v
- * stores are also load-bearing for the inner-loop allocation and schedule. */
-
 extern char msg_no_background_image_data[]; /* NO BACKGROUND IMAGE DATA */
 extern void *valloc(u32 size);
 

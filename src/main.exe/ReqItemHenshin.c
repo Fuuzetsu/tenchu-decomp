@@ -28,14 +28,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemHenshin (0x800431c8) — spawn a "henshin" (transformation/disguise)
- * item. Exact mutual clone of ReqItemKusuri (same item TU, same pool
- * round-robin, same no-param-union shape) differing in exactly one real
- * instruction: the `item->proc = ProcItemHenshin` assignment. See
- * ReqItemKusuri.c's header for the full derivation (access.py trace, the
- * item->locate reload-not-cached behaviour, the return-1 convention).
- */
 extern void ProcItemHenshin(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */

@@ -3,41 +3,6 @@
 #include "sound.h"
 #include "main.exe.h"
 
-/*
- * ProcItemMakibishi (0x8003f304) — the makibishi (caltrop) item processor.
- * mode 0: roll it (MoveKorogari) — KORO_WATER disposes after entering water,
- * while KORO_STAY registers a 100-unit conflict box and advances to mode 1;
- * mode 1: once a live character is found in the conflict box, spray a
- * SetBleeds burst + step-on sound and dispose. Every mode (and the
- * mode==neither-0-nor-1 default) falls through to a shared tail that redraws
- * the sprite from the current locate every frame.
- *
- * Matching notes (see also ProcItemDrop.c for the item-TU/ConflictObject
- * conventions this shares):
- *  - `model = (Sprite3D *)item->model; param = &item->param.drop;` both sit
- *    before the entry mode==ITEM_MODE_DISPOSE test (ProcItemDrop's double
- *    lever): model's
- *    load is sequential, param's addiu fills the entry branch's delay slot.
- *  - The mode dispatch is a real switch (fresh reload distinct from the
- *    entry ITEM_MODE_DISPOSE-check's load, matching the switch rule); with no case for
- *    "neither 0 nor 1", falling out of the switch reaches the shared draw
- *    tail directly — the SAME tail case 0/case 1 reach via `break`.
- *  - The value shared by KORO_WATER, `item->mode + 1`,
- *    `.common = CONFLICT_OWNER_ITEM`, the conflict class, and
- *    `item->collision.mode = CONFLICT_HIT` stays live in one register. The
- *    mode increment is consequently `addu` (register), not `addiu`
- *    (immediate), across the DeleteConflict/InsertConflict calls.
- *  - The dispose after status==KORO_WATER and the dispose after mode 1's
- *    conflict-hit are the SAME code written out TWICE (cross-jump merges
- *    from the jalr on): the KORO_WATER path reuses `ITEM_MODE_DISPOSE` (still live,
- *    untouched since entry); the mode-1 path materializes a fresh
- *    ITEM_MODE_DISPOSE value since nothing carries `ITEM_MODE_DISPOSE` that far — same
- *    asymmetry as ProcItemKusuri's mode-2 vs mode-1 dispose.
- *  - Collision box field-store order (offset x/z/y, then size z/y/x,
- *    then common, then class flags) exactly mirrors ProcItemDrop's
- *    KORO_GRAND/KORO_STAY case, just different numbers (100 not 0xb4,
- *    CONFLICT_HIT not CONFLICT_SOFT).
- */
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

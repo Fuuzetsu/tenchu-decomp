@@ -2,28 +2,6 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 
-/*
- * draw_shade_quad_ (0x80038c0c, 0xd4 bytes) — builds a semi-transparent POLY_F4
- * and its DR_TPAGE command in a recovered POLY_XF4 at the current work base,
- * advances the work base by six packet slots, colors the quad with the
- * caller's RGB, then adds the quad and draw mode to the order table.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - The `-SCREEN_W / 2` constant materialized before the first AddPrim call is a
- *    dead/live-across-call scratch (m2c's 3rd "argument" to the first
- *    AddPrim is that leftover register, not a real argument — cookbook's
- *    m2c-overcounts-args rule): AddPrim takes exactly 2 arguments here too.
- *  - **The `ply->ply.x0 = -SCREEN_W / 2` store's SOURCE POSITION is before the tpage
- *    command store, not after it (out of the order Ghidra/m2c both render it
- *    in).** The remaining proven statement order, including `y1` before
- *    `x1`, is retained; this one constant's statement needs to move one slot
- *    earlier for its `li` to schedule where the target has it
- *    (found by tools/permute.py, ~1500 iterations, score 0 — a permuter
- *    candidate also inserted a dead `if (!p) {}` alongside the reorder;
- *    that part was verified NOT load-bearing and dropped per the cookbook's
- *    "bisect a multi-diff score-0 candidate" rule).
- */
-
 void draw_shade_quad_(void *ot, s8 r, s8 g, s8 b)
 {
     POLY_XF4 *ply;

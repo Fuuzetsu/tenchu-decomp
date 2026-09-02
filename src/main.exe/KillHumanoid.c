@@ -20,27 +20,6 @@
  *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-/*
- * KillHumanoid (0x800291a8) — tear down a Humanoid (conflict box, model
- * archive, motion manager, weapon data, the Humanoid block itself), then
- * swap-remove it from HumanGroup[] if present.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - The search-then-swap-remove loop is GetHumanoid.c's exact twin: a
- *    `short i` loop counter over `HumanGroup[]` (a `Humanoid *[]`) fuses the
- *    sign-extend with the pointer's 4-byte stride into one `sll 16/sra 14`
- *    per iteration instead of loop.c strength-reducing to a walking
- *    pointer — see the toolchain-gotchas note citing GetHumanoid/
- *    DisposeWeapon for this exact 2-instruction shape.
- *  - `for (i = 0; i < Humans; i++) if (HumanGroup[i] == human) break;` is
- *    the standard entry-duplicated bottom-test do-while with a `break`
- *    joining the same exit as the counter running out — `i` is live after
- *    the loop either way (found index, or == Humans if not found).
- *  - `Humans` is read `lh` (signed) for the entry `0 < Humans` guard and
- *    again `lh`+`lhu` (two un-CSE'd loads) for the post-loop `i < Humans`
- *    test / `Humans - 1` capture — the same per-read-purpose disagreement
- *    as CreateHumanoid/InsertConflict.
- */
 extern void DisposeModelArchive(ModelArchiveType *mad);
 extern void DisposeMotionManager(MotionManager *mm);
 extern void vfree(void *p);

@@ -2,19 +2,6 @@
 #include "main.exe.h"
 #include "padcmd.h"
 
-/*
- * MATCH.
- *
- * Add a newly pressed pad state to the twelve-entry history and compare that
- * history with each 0xffff-terminated special-button sequence.  A successful
- * sequence is consumed by shifting the history once more and inserting zero.
- *
- * The combination table walk is deliberately written with an integer index.
- * loop.c strength-reduces it to the target's $a3 pointer induction, but creates
- * the initial low-half address after the hoisted history address.  A source
- * pointer cursor emits the same three instructions and registers in the wrong
- * schedule order (the former 12-byte residual).
- */
 s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
 {
     s32 combination_index;

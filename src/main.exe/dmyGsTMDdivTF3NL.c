@@ -1,10 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * dmyGsTMDdivTF3NL (0x800670a4) — LIBGS "dummy" TMD-subdivision placeholder; warn-once
- * clone of dmyGsPrstF3NL (see that file for the family's shape).
- */
 extern int printf(const char *fmt, ...);
 extern char str_dmyTMDdivTF3NL[]; /* "TMDdivTF3NL\n" */
 extern s32 warn_dmyTMDdivTF3NL;

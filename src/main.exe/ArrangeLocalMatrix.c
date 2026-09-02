@@ -23,31 +23,6 @@
  *     reg   $t1       long u
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * This is a fixed-point Gauss-Jordan pass over the local 3x3 matrix.  Each
- * pivot row is normalised, the pivot column is eliminated from the other
- * rows, and a determinant-like scale check decides whether to compose and
- * publish the result.
- *
- * Matching notes:
- *  - The outer `i` loop and middle `j` loop are explicit top-tested
- *    `while (1)` loops.  The two `k` loops stay ordinary bottom-tested loops;
- *    that accounts for the target's two extra guard/jump pairs.
- *  - The first row-normalisation loop deliberately reuses `k`, as does the
- *    deepest elimination loop.  Retail therefore gives both counters $a2,
- *    while the middle `j` loop stays in $t4.  Using `j` for both adjacent
- *    loops preserves the values but rotates nine caller-saved registers.
- *  - Spelling the deepest test as `k != i` puts the multiply/subtract path
- *    first and the variable division later.  The opposite equivalent test is
- *    one instruction short because its jump delay slot hides the divide
- *    result's hazard gap.
- *  - The final whole-MATRIX assignment expands to the target's eight-word
- *    copy.  Variable divisions require maspsx's `--expand-div` compatibility
- *    pass to reproduce ASPSX's guarded `div` sequences.
- */
-
 void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
 {
     enum

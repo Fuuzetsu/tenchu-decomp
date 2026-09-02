@@ -26,47 +26,6 @@
 
 #include "item.h"
 
-/*
- * ProcKaginawa (0x8003eea4) — the grappling-hook (kaginawa) item processor.
- * Three-way dispatch on the owner's hook state, all converging on the shared
- * ProcItem dispose tail:
- *  - owner->hookflag (Humanoid+0xCD) == 0: not yet thrown — enter DIRECTION
- *    camera mode and dispose.
- *  - owner is mid-throw but not in the hook-fly motion (motion->mid != MOT_KAGI):
- *    dispose.
- *  - owner IS in the hook-fly motion (mid == MOT_KAGI): aim the camera along the
- *    throw (GetVectorRotation off ViewInfo), and if the sight bit is held just
- *    re-sort the reticle sprite and bail; otherwise walk the camera target
- *    toward the hook tip (RotateVector a fixed offset, trace_ground_ a step,
- *    accumulate into CamState.TargetVector), snap onto the owner's model once
- *    close enough or the pitch turned upward, drop into LOCK camera mode,
- *    clear the hook flag, and dispose.
- *
- * Matching notes (see ProcItemTeleport.c / ProcItemKusuri.c for the item-TU
- * conventions this shares):
- *  - `dispose_mode = ITEM_MODE_DISPOSE` (0xff) is a callee-saved var ($s1),
- *    tested at entry and reused as `item->mode = dispose_mode` in the first
- *    two dispose blocks; in the big third block $s1 has been repurposed for
- *    the ViewInfo/CamState addresses, so the same `dispose_mode` variable is
- *    rematerialised as a fresh `li 0xff` there.
- *  - `owner = item->owner` is ONE load feeding both the hookflag test and the
- *    motion->mid test (caller-saved $v1, dies at the first call); the big
- *    block reloads item->owner for its pad-bit test and hookflag clear.
- *  - Disposal remains separate in all three branches; jump2 cross-jumps the
- *    identical expanded `jalr`-onward suffix into one shared tail after the
- *    third branch. The first two use DISPOSE_ITEM_WITH_MODE exactly; the
- *    third stays open because its rematerialised mode store makes the macro
- *    scope grow the function by two instructions.
- *  - The hook flag lives at Humanoid+0xCD, i.e. `owner->item[ITEM_N]` one past
- *    the DoInfoViewProc-indexed slots (item.h sizes item[] to 0x1A to cover
- *    it); read `lbu`, written `sb 0`.
- *  - `w.vx = v.vx; …; w.vx += ViewInfo.vpx; …` is the two-phase raw-copy-
- *    then-add the target stores twice per field (a single `w.vx = v.vx +
- *    ViewInfo.vpx` would store once); v/w are separate VECTOR locals.
- *  - `v = vec_z_n20000;` is a plain extern VECTOR struct assignment — under
- *    -msplit-addresses the 16-byte (non-small) source address builds as a
- *    two-register lui/addiu pair and the four words copy through it.
- */
 #include <psxsdk/libgs.h>
 
 extern VECTOR vec_z_n20000; /* {0,0,-20000} */

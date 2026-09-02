@@ -14,14 +14,6 @@
  *     param $a0       struct OrnamentArchiveType * mad
  * END PSX.SYM */
 
-/*
- * DisposeOrnamentArchive (0x8003cd5c) — free an ornament archive: dispose
- * each sub-ornament in the `object` table (DisposeOrnament handles its own
- * null check, so the loop calls it unconditionally — unlike
- * DisposeModelArchive's inline null-check-then-vfree), then the object
- * table, the `data` buffer, and the archive itself. The shared PSX.SYM
- * record supplies `n`@0x5C, `object`@0x60, and `data`@0x64.
- */
 extern void DisposeOrnament(OrnamentType *objp);
 extern void vfree(void *p);
 

@@ -22,43 +22,6 @@
  *     extern short Humans;
  * END PSX.SYM */
 
-/*
- * LayoutEnemyOption (0x8005bb18, 644 bytes) — the debug menu's "enemy layout
- * option" submenu (DoInfoViewProc dispatch case 0): add/remove/layout enemies,
- * clear layout (with ok/cancel confirm), path layout sub-submenu
- * (find/add/reset path on the latched enemy), enemy count message box,
- * camera-owner select.
- *
- * Matching notes (byte-verified; see docs/matching-cookbook.md):
- *  - Table-switch TU (second after BriefingAndInventorySelectionScreen): the
- *    8-entry jump table routes through this object's .rodata, carved in the
- *    yaml at file 0x3F98 (vram 0x80014798). The INCLUDE_ASM stub state needs
- *    ALL split pieces (copy the list from .shake/gen/main.exe/src/<Name>.c —
- *    reverse.py seeds only the first) plus a static const u32 jtbl[8] with
- *    the original words.
- *  - All three menu buffers are PLAIN LOCALS of this function, unlike
- *    DoInfoViewProc's inline helpers: the frame (0x10 args + 0x58 + 0x18 +
- *    0x38 + ra/pad = 0xC0) has no temp-slot overlap, and each buffer address
- *    rematerializes per use because the block-move loop labels break the cse
- *    windows. The OkCancel copy really happens at ENTRY, before the
- *    first AdtSelect, though it's only read in case 4.
- *  - Fixed-size built-in copies give the template-copy shapes: 0x58 and 0x38
- *    are the 16-bytes-per-iteration loop + 8-byte tail, while the recovered
- *    three-entry TAdtSelect array is the unrolled 3+3 lw/sw batch.
- *  - Outer dispatch: separate `(n & 0xffff) != 0xffff` guard (andi + ori
- *    0xFFFF + beq) then `switch ((s16)n)` — 8 contiguous cases = casesi
- *    tablejump (sltiu 8 bounds + lw/jr); bodies laid out in source order
- *    0..7; case 7 falls into the shared exit.
- *  - Inner path submenu: `k = (s16)AdtSelect(...)` with int k extends ONCE
- *    at the assignment; `if (k != ADT_SELECT_CANCEL)` then a 3-case switch
- *    whose SOURCE order is ENEMY_PATH_ADD (1), ENEMY_PATH_RESET (2),
- *    ENEMY_PATH_SELECT (0) — recovered from the target's body layout (bodies
- *    are in source order; the balanced compare tree sorts by value
- *    regardless).
- *  - CurrentEnemyID is this TU's gp small (Build.hs maspsxGpExterns +
- *    permute.py GP_EXTERNS); everything else is absolute externs.
- */
-
 extern char str_enemy_layout_option[]; /* "enemy layout option" */
 extern char msg_clear_ok_2[]; /* "clear ok?" */
 extern char str_path_layout_option[]; /* "path layout option" */

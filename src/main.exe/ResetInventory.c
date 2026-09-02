@@ -1,35 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * ResetInventory (0x8005663c, 0x84 bytes) — resets the per-run selected-item
- * purchase counts (TLinkInfo.selItem, splat's SELECTED_ITEM_COUNTS):
- * ITEM_KAGINAWA to infinite/preselected, items 1..8 to available, and the
- * remaining selectable stock through ITEM_ARMOUR to locked.
- * Called by DoBriefingAndInventorySelection.
- *
- * Matching notes: the raw .s reaches the array through a bare
- * `lui $a1,%hi(SELECTED_ITEM_COUNTS)` with NO addiu, hoisted once per loop
- * and reused as the base for `addu`+displacement accesses — the cookbook's
- * "gp vs absolute globals" tell for a literal pointer-cast local
- * (`(TLinkInfo *)0x80010000`, the same PSTATE convention as
- * save_pad_analog_.c/apply_purchases_.c), not a plain `extern u8
- * SELECTED_ITEM_COUNTS[]` (which would materialize a one-register `la`
- * instead). The loop counter is `short i`: each iteration re-sign-extends it
- * (`sll 16/sra 16`) before adding it to the hoisted base — the textbook
- * byte-array index shape (cookbook's "short loop counter suppresses
- * strength reduction", degenerate to a pure sign-extend since the stride is
- * 1). First loop is a bottom-tested `do/while` (no entry test in the asm);
- * second is a top-tested `while` whose asm shows the classic duplicated
- * entry test before falling into a second bottom-tested loop. The item-0
- * scalar store and the two loops are three UNRELATED accesses (each its own
- * literal `(TLinkInfo *)0x80010000` cast, not one shared pointer
- * local) — a shared local would CSE the address into ONE register reused by
- * all three, but the target computes the constant-index store through the
- * assembler's own $at one-line macro and hoists a fresh %hi into $a1 once
- * per loop (loop.c's invariant motion has no cross-loop memory).
- */
-
 void ResetInventory(void)
 {
     s16 i;

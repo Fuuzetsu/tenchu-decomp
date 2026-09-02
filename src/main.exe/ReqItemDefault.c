@@ -22,38 +22,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-/*
- * ReqItemDefault (0x800475f4) — spawn an item thrown/placed in front of a
- * Humanoid (called from the ActXXX/DamageControl/ItemUse family). Builds a
- * PARAM_ITEM_LAUNCH: start = user's model position (y raised by THROW_HEIGHT), end =
- * start + a rotated toss vector (the fixed vec_z_n100 vector rotated by
- * either the current view direction, when the camera is looking through
- * this user in CMODE_DIRECTION, or the user's own model rotation otherwise).
- * Forwards to ReqItemUse (the big dispatcher — not in this batch).
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `type`/`user` are stored FIRST (matching the asm's chronological order),
- *    not after the rotation-vector fill as Ghidra's rendering shows it —
- *    another instance of "trust the assembly over Ghidra's statement order".
- *  - `user->model->locate.coord.t[0/1/2]` for start.vx/vy/vz are three
- *    INDEPENDENT dereferences (no cached pointer temp): each re-does the
- *    `->model` load, matching three separate `lw ...,0x58(v1)` in the asm
- *    with no intervening call to justify caching.
- *  - `pm = param.user->model;` (used for the if-condition and reused unreloaded
- *    in the else branch) reads through the just-STORED struct field, not the
- *    raw `user` parameter — the asm reloads it from the local's stack slot
- *    (sp+0x14) right before the branch, which only lines up with reading the
- *    field (the function keeps zero callee-saved registers, so `user` has no
- *    other memory home to reload from across the intervening memset() call).
- *  - `vec_z_n100` is a plain (non-gp) extern VECTOR constant; its address
- *    compiles as a split `lui`/`addiu` into TWO different registers, the
- *    "not -G8-small" tell — declared as an unknown-size array per the
- *    cookbook's respelling rule.
- *  - The GetVectorRotation out-params are read back with `lw` (full word),
- *    so `rx`/`ry` must be `s32` locals, matching both Ghidra's `int` and the
- *    recovered original API.
- */
-
 extern VECTOR vec_z_n100[]; /* {0,0,-100} */
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 

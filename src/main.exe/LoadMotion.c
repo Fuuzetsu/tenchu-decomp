@@ -21,26 +21,6 @@
  *     extern struct MotionPackType *MotionPack;
  * END PSX.SYM */
 
-/*
- * LoadMotion (0x8001c2c0, 0xf0 bytes) — fixup pass for a freshly-loaded
- * motion-pack blob. Every MotionPackType.motion[] entry starts life as a
- * pack-relative on-disk byte OFFSET and is rewritten in place into a real
- * MotionDataType pointer by adding the pack base; within each MotionDataType,
- * .locate and every .rotate[] entry get the same offset -> pointer fixup,
- * relative to THAT MotionDataType's own (already-fixed-up) address — same
- * on-disk-offset idiom as LoadAreaMap.c's `index` fixup.
- *
- * Matching notes: `if (mpd == 0) SystemOut(...)` has no early return — Ghidra
- * flags SystemOut noreturn, but the asm falls straight through into the fixup
- * loop reading through the null pointer on that path (LoadAreaMap.c's
- * identical SystemOut-then-continue shape). Both `mmp->n != 0` tests are the
- * SAME source condition: the second is just the natural entry-duplicated
- * bound check of `for (j = 0; j < mmp->n; j++)` (cookbook Loops), not a
- * second nested if.
- * The remaining base-only `(s32)` casts preserve the target's offset-first
- * `addu` operands; spelling these as conventional byte-pointer additions
- * reverses each commutative instruction's source registers.
- */
 extern char msg_no_motion_data[]; /* NO MOTION DATA */
 
 MotionPackType *LoadMotion(unsigned long *data)

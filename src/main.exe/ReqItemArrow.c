@@ -29,50 +29,6 @@
  *     extern struct ModelType *ArrowModel;
  * END PSX.SYM */
 
-/*
- * ReqItemArrow (0x800480c4) — spawn a homing/auto-aim arrow. Twin of
- * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemLaunch (same item TU, same
- * pool round-robin on ic and the same
- * dispose-on-exhaustion block); like ReqItemLaunch, `item->model` is a FIXED
- * global (ArrowModel, gp-relative in this TU like ReqItemLaunch's
- * SyurikenModel) rather than ItemImage[item->type], and the tail hands off to
- * SetupFly. Unlike every other twin, there's a pre-pool-search step: it
- * computes the aim direction from p->start/p->end (GetVectorRotation), packs
- * it into an SVECTOR, and feeds that to SearchItemTarget2 to find an actual
- * target position (`target`) BEFORE the round-robin allocation even starts —
- * that result becomes SetupFly's "end" vector instead of p->end directly.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `&p->start`/`&p->end` are passed INLINE to GetVectorRotation/
- *    SearchItemTarget2 (no shared `pos` temp for these two calls) — `pos` only
- *    exists as the twins' usual tail-only temp (`pos = &p->start;` right
- *    before the coord.t[1]/[2] reads, same statement position as every
- *    twin). Caching `&p->start` in a named variable spanning BOTH the early
- *    calls and the tail forced it into a different callee-saved register
- *    than the pool cursor/`item`, swapping $s0/$s1 vs the twins' assignment —
- *    inlining the two early address-of expressions (still CSE'd by the
- *    compiler within that straight-line prefix) reproduced the twins' exact
- *    allocation.
- *  - GetVectorRotation's recovered `int *` signature gives `rx` and `ry`
- *    adjacent four-byte stack slots. GCC narrows their later assignments to
- *    the SVECTOR fields to low-halfword loads, matching the retail code.
- *  - The inlined allocator keeps PSX.SYM's `ret` cursor separate from the
- *    outer `item`: `ret = items + COUNTER...;` is used throughout the
- *    loop/dispose block, and `item = ret;` is assigned exactly twice
- *    (the early-exit branch and right before the dispose block falls into
- *    `found:`) — the heavier tail (p/pos/param all needing registers across
- *    SetupFly) raises pressure the same way ReqItemLaunch's does.
- *  - `param = &item->param.arrow;` sits BEFORE the null check, same
- *    delay-slot lever as every twin; reused unchanged for both
- *    SetupFly's 1st arg and the final `param->count = 5;` store (unlike
- *    ReqItemLaunch's analogous store, which needed a FRESH direct
- *    `item->param.launch` access for its own scheduling tie — here the cached
- *    param reproduces the target directly).
- *  - `aowner`/`atype` temps for owner/type, same shape as the other twins (loaded
- *    back-to-back, stored owner/proc/mode/type in that order).
- *  - `item->collision.size = 0; item->model = ArrowModel;` immediately precede
- *    SetupFly, same position/interleaving as ReqItemLaunch.
- */
 extern void ProcItemArrow(TItem *item);
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);

@@ -21,13 +21,6 @@
  *     extern short SelectedItem;
  * END PSX.SYM */
 
-/*
- * ActNORMAL (0x8001f7e4) — updates idle/turning motion and dispatches command,
- * jump, movement, and selected-item actions.
- *
- * STATUS: MATCHING
- */
-
 extern Humanoid *Me_MOTION_C;
 extern int rand(void);
 extern void JumpControl(void);
@@ -118,10 +111,6 @@ void ActNORMAL(void)
     {
         pad_command command;
 
-        /* A hand goto ladder, not a switch: the bodies lay out 1,2,3,0,4
-         * and the tests run 0, 2, <3, 3, 4. Re-measured 2026-08-31 with
-         * the cases written in that physical order (the switch lever that
-         * converted six other ladders that day): 67 diff lines. */
         command = dtCMD;
         if (command == CMD_NONE)
             goto command_0;

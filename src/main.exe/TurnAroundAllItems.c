@@ -20,19 +20,6 @@
 
 #include "item.h"
 
-/*
- * Drop every carried item at the user's root-model position, giving each copy
- * a small random launch vector, then clear the inventory counts.
- *
- * Matching notes:
- *  - The two top-tested `while (1)` loops preserve the target's explicit
- *    counter tests and unconditional backedges.
- *  - `human` and `itemID` are distinct block-local captures.  Together with
- *    the stack PARAM_ITEM_LAUNCH object, they reproduce the original saved-
- *    register allocation and the call setup for ReqItemDrop.
- *  - Keep each rand call inline in its modulo expression so its result stays
- *    in $v0 and the three magic-division sequences retain their target shape.
- */
 void TurnAroundAllItems(Humanoid *user)
 {
     s32 i;

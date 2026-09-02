@@ -28,27 +28,6 @@
  *     extern long AttackActionCount;
  * END PSX.SYM */
 
-/*
- * Chooses a short-range humanoid attack.  STAT_ATTACK waits for the current
- * BattleDB continuation frame; the ordinary path handles chase, turn, item,
- * and SetCommand choices from distance, facing, and EngageLevel rolls.
- *
- * Matching notes:
- *  - The full-width `status_raw` producer is narrowed through `pad`,
- *    followed by an empty one-shot loop and identical full-width assignments.
- *    This zero-code boundary preserves the explicit zero-return island while
- *    making both result copies plain `move v0,s0` instructions.
- *  - Capturing `status_human` before the boundary keeps the existing humanoid
- *    pointer live across its loop notes.  Reading Me_THINK_C again afterwards
- *    introduces one extra load.
- *  - The separate SImode result carrier keeps the three status-7 edges joined
- *    at one shared sign-extension tail without narrowing either copy.
- *  - Local return ladders can be collapsed to ordered if/else chains, but the
- *    remaining `goto return_pad` edges are byte-required. Replacing even the
- *    first surviving edge with `return pad;` differs by 24 lines; the shared
- *    label still anchors the surrounding delay-slot fills.
- */
-
 extern Humanoid *Me_THINK_C;
 extern s32 AttackActionCount;
 
@@ -78,7 +57,7 @@ short AttackShort(void)
         status_human = Me_THINK_C;
         status_raw = 0;
         pad = status_raw;
-        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+        /* Empty loop retained for code layout; its original source construct is unknown. */
         do
         {
         } while (0);
@@ -118,17 +97,6 @@ short AttackShort(void)
         }
 
     choose_attack:
-        /* Turn toward the target, then slash: pad = PADLright/PADLleft
-         * by Degree, |= PADRleft. The demo compiled the natural if/else
-         * spelling of exactly this (thresholds 500), but retail's bytes
-         * need this topology: the twin-arm head keeps status_raw's zero
-         * opaque so the rand-fail return reads the register; the else
-         * arm's early |= plus the goto give the middle path its slash
-         * while keeping attack_value REFERENCED — that label is the
-         * basic-block fence that stops combine fusing the final ori
-         * into the return copy (retail: ori s0; move v0,s0). A natural
-         * s16 ladder variant instead costs a second callee-saved
-         * register across the rand() call. */
         if (Degree > 300)
         {
             status_raw = PADLright;
@@ -138,7 +106,7 @@ short AttackShort(void)
             status_raw |= PADRleft;
             if (Degree < -300)
             {
-                status_raw = (s16)PADLleft; /* (s16): addiu -32768, not ori (measured) */
+                status_raw = (s16)PADLleft;
             }
             else
             {

@@ -15,17 +15,6 @@
  *     param $a1       short mid
  * END PSX.SYM */
 
-/*
- * GetMotionID (0x8001c510, 0x74 bytes) — search mmp's registered-motion
- * table (MotionRegistType[], sentinel mid == MOTION_ID_NONE) for the row whose `mid`
- * matches the requested id and return that row's `id`; on falling through to
- * the sentinel without a match, returns the sentinel row's own `id` instead.
- * Same search-with-break-then-read-index shape as GetAttackDBID.c (a near-
- * twin, which itself calls this to resolve the character's current motion
- * before its own BattleDB search) — just reading a struct field instead of
- * the loop index at the end.
- */
-
 short GetMotionID(MotionManager *mmp, motion_id mid)
 {
     MotionRegistType *registrations;

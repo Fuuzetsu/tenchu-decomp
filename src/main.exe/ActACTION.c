@@ -16,22 +16,6 @@
  *     reg   $v1       short i
  * END PSX.SYM */
 
-/*
- * ActACTION (0x8001fb98) — controls action-motion cleanup and completion,
- * including weapon/afterimage teardown, replay transitions, sounds, and the
- * return to the normal motion, or to the weapon-drawn engage stance
- * (0x501) when ATTR_WEAPON_DRAWN is up.
- *
- * Matching notes (1,392 bytes / 348 instructions):
- *  - The one-shot loop around the dtM/Me_MOTION_C loads and mask store leaves
- *    the original loop note for sched2.  It keeps the MOTION_MASK_ALL store at the
- *    shared cleanup join instead of duplicating it into predecessor delay
- *    slots, and preserves the target's dtM-then-Me_MOTION_C load order.
- *  - The case-1 and final motion selections write their complete terminal
- *    motID/motMODE tails independently.  jump2 then shares only the flag
- *    store, retaining both target motID stores and their branch layout.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
@@ -106,7 +90,7 @@ void ActACTION(void)
             motion = dtM;
             human = Me_MOTION_C;
             motion->mask = MOTION_MASK_ALL;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);

@@ -3,31 +3,6 @@
 #include "item.h"
 #include <psxsdk/libgpu.h>
 
-/*
- * debug_menu_player_jump (0x8005cbbc, 0x2b4 bytes) — lets the debug menu
- * move StagePlayer one map-grid unit at a time, optionally snapping the
- * requested position to the area-map floor and moving the camera target
- * with the player.
- *
- * Matching notes (all verified against the original bytes):
- *  - The four format strings need distinct fixed-address symbols. Expressing
- *    them as offsets from one base lets cc1 retain and reuse that base,
- *    whereas the target materializes each address independently.
- *  - `pos` is a stack VECTOR. Keeping each `*= 1000` in GetAreaMapLevel's
- *    argument list leaves x/y/z in the argument registers while also
- *    writing their scaled values back to the stack, exactly as the target
- *    does.
- *  - The chained player/ViewInfo assignments are intentional: their
- *    right-to-left evaluation gives the target's store order without
- *    hand-written temporaries.
- *  - `exit_pad = pad` is deliberately before the first exit test even
- *    though it is only consumed on that test's taken path. Moving the copy
- *    into the `if` leaves control flow and instruction count unchanged, but
- *    changes its allocno home and produces a two-byte register mismatch.
- *  - A bounded late permuter run found this final source with a nonzero
- *    proxy score; authoritative full-link rescoring proved it byte-exact.
- */
-
 extern char str_player_jump[];
 extern char fmt_jump_x[];
 extern char fmt_jump_y[];

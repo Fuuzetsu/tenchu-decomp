@@ -28,32 +28,6 @@
  *     extern short SkipFrame;
  * END PSX.SYM */
 
-/*
- * main (0x800162a4, START.C) — the game entry point: one-time subsystem init,
- * then an infinite per-frame loop (pad -> stage sequence -> physics -> draw).
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - NO explicit `__main()` call: gcc inserts the C-runtime `__main()` at the
- *    top of `main` automatically, and reorg fills its delay slot with the s0
- *    save. Writing `__main();` compiles a SECOND call (2 bytes over).
- *  - `u8 dead[0xF8]` is a DEAD 248-byte local — the retail frame is 0x118 with
- *    NO stack access beyond the 3 register saves, the "unexplained frame-size
- *    gap = unused aggregate" pattern. Neither Ghidra nor m2c shows it (both
- *    optimise it away); only the frame size proves it. The demo's own locals
- *    (`i`/`dat`/`rect`) were removed in retail.
- *  - CHOSEN_STAGE(+5)/CHOSEN_CHARACTER(+4)/control_scheme(+0x5F) are read
- *    through ONE `TLinkInfo *ps = (TLinkInfo *)0x80010000;`
- *    assigned right before CreateStage, so cc1 shares a single transient
- *    `%hi(0x8001)` base (the bare-lui rule) instead of re-materialising it per
- *    global; declaring `ps` at function top instead pins it in a callee-saved
- *    register across the whole init sequence (wrong).
- *  - `CdaStatus.flag` is the byte at CdaStatus+0x13 (0x8008EA53); StageSequence
- *    returns `short` (the `sll 16 / sra 16` sign-extend of its result feeds the
- *    `== 1` / `== -1` tests). The constant 1 is hoisted into a callee-saved
- *    register (`s1`) by loop.c as a loop invariant shared by the `seq == 1`
- *    and `SkipFrame == SKIPFRAME_SKIPPED` tests.
- */
-
 extern control_scheme ControlScheme;
 extern char fmt_free_memory[];
 
@@ -66,12 +40,12 @@ extern void InitEffect(void);
 extern void InitializeInfoView(void);
 extern void InitSoundEffect(void);
 extern void DemoPatchInit(void);
-/* Retail's own prototype drift (def: s32 return) -- byte-required: correcting it changes the caller. */
+/* Retail calls the s32-returning definition through a void declaration. */
 extern void InitPersistentState(void);
 extern void CreateStage(stage_id stage, s32 chr);
 extern void clear_pad_send_(void);
 extern void PadProc(void);
-/* Retail's own prototype drift (def: s32 return) -- byte-required: correcting it changes the caller. */
+/* Retail calls the s32-returning definition through an s16 declaration. */
 extern short StageSequence(void);
 extern void StageEndScreen(void);
 extern void game_over_screen_(void);

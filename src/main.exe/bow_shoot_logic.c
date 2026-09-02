@@ -3,40 +3,6 @@
 #include "humanoid.h"
 #include "item.h"
 
-/*
- * bow_shoot_logic (0x80027554, 0x134 bytes) — spawns a bow projectile
- * (`kind` is the PARAM_ITEM_LAUNCH.type — ITEM_ARROW for the arrow)
- * travelling from `*start` towards the target, landing at
- * the target's actual world-Y (Me_MOTION_C->target->coord.t[1], same
- * field proven by launch_lightning_bolt_.c) with a small chance
- * (1 in EngageLevel+1) of landing 1000 units short specifically for arrows.
- *
- * `move.pad` is a real write, not a stray local: Ghidra's own struct-typed
- * decompilation resolves the GetTargetDistance store to local_10 (our
- * `move`)'s SVECTOR.pad field, and it's never reloaded from the stack
- * afterward (every later use reads the still-live register) — the original
- * really does park the raw distance in the move vector's otherwise-unused
- * pad slot before overwriting the whole vector via GetMoveSpeed.
- *
- * The `rand() % (EngageLevel + 1)` is a genuine runtime division (divisor is
- * a variable, not a constant) — real `div` + ASPSX's guarded-division
- * bnez/break 7/break 6 sequence, needing maspsx --expand-div for this file
- * (Build.hs maspsxGpExterns' `extra`, mirrored in tools/permute.py
- * MASPSX_EXTRA), same as GetAreaMapLevel.
- *
- * GetTargetDistance's recovered return type must remain the full-width
- * `long` (not `s16`): a 5-instruction block (store dist to move.pad, re-derive a
- * clean s16 for the `< 1000` compare, load dtR, do the compare) came out as
- * a pure reorder of identical instructions — the store landed after the
- * compare instead of before it — with every other lever (separate `dist`
- * local, hoisting the `dtR->vy` read, operand order) leaving it
- * unchanged. Found by one short decomp-permuter run; it's the
- * return-type-is-an-extension-position lever (see Think1trace/BIS's
- * GetRealPad in the cookbook): the full-width return defers the derived-s16
- * extension past the store, whereas a narrowed return forces it immediately
- * after the call.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 void bow_shoot_logic(s16 kind, VECTOR *start)

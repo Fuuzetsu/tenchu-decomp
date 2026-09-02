@@ -14,13 +14,6 @@
  *     param $a0       struct AfterimageType * afi
  * END PSX.SYM */
 
-/*
- * DisposeAfterimage (0x80038e58) — free an afterimage effect's two dynamic
- * buffers (`p1`@0x18, `p2`@0x1C — trail-point arrays, sized by SetupAfterimage
- * per ReqItemHappou/ReqItemLaunch) then the AfterimageType itself. Same
- * null-check-then-free shape as DisposeMotionManager (afi survives all three
- * vfree calls in a callee-saved register).
- */
 extern void vfree(void *p);
 
 void DisposeAfterimage(AfterimageType *afi)

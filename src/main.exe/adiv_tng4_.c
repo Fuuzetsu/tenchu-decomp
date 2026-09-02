@@ -3,18 +3,6 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-/*
- * Render a batch of textured Gouraud quads with adaptive subdivision.
- * Each record supplies four object-space vertices, texture coordinates and
- * colours.  The GTE projects the root quad into work->v, and front-facing
- * quads are handed to subdivide_quad_ through work->frame[0].
- *
- * The remaining top-level volatile qualifier applies only to the incoming
- * ordering-table pointer. It keeps GCC 2.8's stack read at the use site; the
- * table itself is ordinary memory. The shift value follows normal by-value
- * flow and shares `t1` with the later, disjoint GTE scratch address.
- */
-
 u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                    u_long *packet,
                    int count, u_long shift, GsOT *volatile ot,

@@ -16,16 +16,6 @@
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-/*
- * leResetPath (0x8003ca4c, 0x2c bytes) — clears the path point-count on one
- * slot of the enemy-layout table (debug menu "path layout > reset path").
- *
- * enemy is TEnemyLayout[0x1e] (0x88/entry: type/ThinkType/nPath, x/y/z,
- * r/pad, VECTOR path[7] — full layout from the Ghidra type export, size
- * matches the asm's id*0x88 stride exactly). Only nPath (s16 @ offset 4) is
- * touched here.
- */
-
 void leResetPath(enemy_layout_index id)
 {
     if ((u32)id < MAX_ENEMIES)

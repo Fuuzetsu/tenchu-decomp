@@ -42,40 +42,6 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * DrawBlood (0x80032950, EFFECT.C:657) updates the four-phase blood-sprite
- * state machine, performs its inline area-height/collision query, emits a
- * small bleed particle on alternating frames, and projects/sorts either one
- * or two blood sprites.
- *
- * Matching notes:
- *  - The state dispatch is a switch whose physical source body order is
- *    3, 2, 1, default.  cc1's balanced comparison tree still tests state 2
- *    first, while retaining that body layout.
- *  - The frame consists of the original `scr` SVECTOR and `pos` VECTOR plus
- *    one temporary VECTOR at sp+0x30. Once its position has been copied, the
- *    first eight bytes are reused to build the particle velocity.
- *  - The default terrain path is CGetLevel's matched guard shape inlined.
- *    Computing `sy` before loading/computing `z` is load-bearing: it gives the
- *    target x/y/z divide schedule and t2/s0/a3 register assignment.
- *  - In state 3, assigning `brightness` before GetScreenPosition makes the
- *    value live across the call in pre-schedule RTL.  The scheduler then moves
- *    the actual sign-extension into the following guard's delay slot.  This
- *    creates the target's sixth saved register and exact s0-s5 allocation
- *    without any register-asm steering.
- *  - The three bleed jitter axes need distinct rand and base locals.  Each
- *    `base = blood->p? - JITTER_RADIUS` sits after rand in the C but schedules
- *    between the multiply and its magic-divide tail, matching the target.
- *    Reusing one rand/base local instead adds moves or delays the position load.
- *  - Write the final x integration before y even though the scheduled target
- *    stores y first; this is the same source-order/scheduler distinction seen
- *    in the matched effect donors.
- *  - The two scale divisions have runtime divisors, so this function needs
- *    maspsx `--expand-div` in both Build.hs and permute.py.
- */
-
 extern long ComputeAreaLevel(AreaNodeType *area, long x, long z);
 extern void *memset(void *dst, int value, u32 size);
 

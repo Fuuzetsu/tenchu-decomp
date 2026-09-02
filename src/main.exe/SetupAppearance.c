@@ -30,26 +30,6 @@
  *     extern struct MotionPackType *StageMotion;
  * END PSX.SYM */
 
-/*
- * SetupAppearance (0x80029aa4, 0x400 bytes) — frees the current appearance
- * resources and reloads the stage/player motion packs. The disassembly is
- * split at an internal PRT marker, but both pieces are one C function.
- *
- * Matching notes:
- *  - `pt = (u8 *)0x80010000` is the recovered `unsigned char *pt` local. It
- *    keeps the PersistentState base in one register for the +0x58/+0x1a
- *    reads. The later armour clear uses an absolute TLinkInfo field view so
- *    the address is rematerialized after `pt` is repurposed.
- *  - `smode` and `sstage` are the original APPEAR.C static names. Retail
- *    preserves their adjacent halfword layout and their character-cache/
- *    stage-cache roles despite other globals inserted ahead of them since the
- *    demo.
- *  - StageMotion can be tested and freed directly; the earlier neutral
- *    `resource` alias was reconstruction residue. In contrast, rereading the
- *    armour selection for the second comparison instead of caching it in
- *    `armour` grows the function by four bytes, so that byte remains a
- *    measured retail scheduling input.
- */
 extern s16 ARMOUR_EQUIPPED_;
 extern character_kind smode;
 extern s16 sstage;

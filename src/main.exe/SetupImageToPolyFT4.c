@@ -22,54 +22,6 @@
  *     reg   $t0       short th
  * END PSX.SYM */
 
-/*
- * SetupImageToPolyFT4 (0x8004eaf0, 0x120 bytes) — POLY_FT4 analogue of
- * InitSprite.c: builds a textured GPU quad primitive from the SAME GsIMAGE
- * source struct InitSprite reads (identical field offsets: pmode-narrow-cast
- * @0, px/py signed @4/6, pw/ph unsigned @8/A, cx/cy signed @0x10/0x12 — same
- * "narrow lhu view of pmode" and "byte-narrowed py" idioms), placing four
- * (x,y)/(u,v) vertices offset by the scaled pw/ph instead of one x/y/scale
- * triple. POLY_FT4 (u0/v0/clut/x1/y1/u1/v1/tpage/x2/y2/u2/v2/pad1/x3/y3/u3/
- * v3/pad2) is the real PsyQ SDK layout from libgpu.h.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `image->px`/`image->py`/`image->pw`/`image->ph` are read into NAMED
- *    TEMPS right after `sh` is computed, ALL FOUR BEFORE the r0/g0/b0/x0/
- *    y0/y1/x2 stores — Ghidra's own decompilation shows this same grouping
- *    (uVar1/uVar8/uVar2/uVar3 assigned before the stores); inlining the
- *    field reads at their later use sites instead reorders the schedule
- *    (loads no longer hoist ahead of the stores) and mis-colors 3
- *    registers even though the instruction COUNT stays identical — a
- *    "N adjacent loads with no use between them are source temps" case.
- *  - `image->py`'s BYTE-narrowed read ((u8) cast, `lbu`) is a distinct
- *    load from the earlier full `lh` read for the GetTPage argument —
- *    different machine modes don't CSE (DeleteConflict's ConflictObjects).
- *  - u0/u1 byte values are each stored to TWO fields (tx to u0 and u2;
- *    tx2 to u1 and u3) — named locals for exactly the values reused
- *    across those non-adjacent stores.
- *  - `ty` is the one top-edge texture coordinate recorded by PSX.SYM; the
- *    bottom edge is `ty + th`. Sony's `setUV4` expresses the complete UV
- *    operation and lets cc1 reuse the same register for the two top stores,
- *    advance it once, and reuse it for the two bottom stores. Splitting that
- *    into `pyByte` and `v2Val` is equally exact but invents a local.
- *  - `tx`/`tx2` must stay UNCAST/WIDE (u32/u16, no `(u8)` truncation
- *    on the assignment): an explicit `(u8)` on `tx`'s assignment forces
- *    a redundant `andi 0xff` when it's later added into `tx2`, which the
- *    target doesn't have (the `& mask` already leaves it byte-range; a
- *    second narrowing cast makes cc1 re-mask on reuse instead of trusting
- *    the first AND).
- *  - The empty `do { } while (0);` right after the `y += th;` update is a
- *    load-bearing REGALLOC LEVER (found by tools/permute.py, ~4600 iters,
- *    score 0): with no barrier, cc1's scheduler hoists `tx2 = tx + tw;`
- *    to float BEFORE the `x`/`y` updates (same instructions, wrong
- *    order); the loop-note barrier pins it after, matching the target.
- *  - `tx2` must stay a named local even though `ply->u1 = tx + tw;`
- *    twice would read better: inlined, the add sinks one slot past the
- *    v0 store (1 instruction out of place). Folding `px` into `tx` or
- *    `pw` into `tw` costs 32 lines — the four grouped field reads above
- *    are the reason.
- */
-
 void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
 {
     s32 tp;
@@ -100,7 +52,7 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     tw = pw << sh;
     x += tw;
     y += th;
-    /* Empty one-shot: a zero-code scheduling barrier (fence class; see cookbook). */
+    /* Empty loop retained for code layout; its original source construct is unknown. */
     do
     {
     } while (0);

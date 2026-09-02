@@ -3,25 +3,6 @@
 #include "appear.h"
 #include "item.h"
 
-/*
- * MATCH.
- *
- * Creates the persistent ninken character, then snapshots the selected
- * character's model and a temporary table-selected character model for the
- * disguise logic consumed by ProcItemHenshin.
- *
- * Matching notes:
- *  - Each output buffer has the saved `waist` value followed by ordinary
- *    12-byte model-part snapshots (`tmd`, `x`, `y`, and `z`).
- *  - The two model-copy phases need separate block-scoped model and saved
- *    pointers. CaptureHenshinModel's index is likewise cloned into each
- *    inline expansion. Reusing one set across both phases joins their
- *    pseudos, rotates the caller-saved registers, and fills three target
- *    load-delay nops; distinct source identities reproduce the exact
- *    allocation.
- *  - The selected character model is read through the recovered shared
- *    `CamState.Owner` field.
- */
 extern Humanoid *NINKEN_CHARACTER_PTR;
 
 void create_ninken_character_(s16 type, s32 stage)

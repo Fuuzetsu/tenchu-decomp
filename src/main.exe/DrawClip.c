@@ -20,54 +20,6 @@
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */
 
-/*
- * DrawClip (0x80018320, 296 bytes) — same TU as DrawModel.c/UpdateCoordinate.c/
- * GetAbsolutePosition.c (3DCTRL.C): a visibility/clip test twin of
- * DrawModel's body without the actual DrawTMD call. `objp->clip` is
- * RotTransPers'd into a stack `rxy` pair first (skipped with
- * MODEL_ATTR_NOCULL), gated by the MODEL_ATTR_CULL_* flags and the shared
- * screen/depth limits; then `xy` (the caller's own out-param, or
- * NULL) is RotTransPers'd against the fixed UnitVector, and DrawTMDmode is
- * set from the resulting OTZ exactly like DrawModel's tail — but DrawClip
- * returns the OTZ instead of drawing.
- *
- * Matching notes:
- *  - `objp->attribute` reads via `lhu` although item.h's proven field is
- *    `s16` — every use here is a small positive bitwise `&`, so combine
- *    folds the sign_extend+mask into a zero_extend load (DrawModel.c's
- *    twin does the same); not a type mismatch.
- *  - This is DrawSprite.c's body transcribed one-to-one (same TU, same
- *    source template) with the sprite tail replaced by `return result;`.
- *    Read DrawSprite.c's notes for the full derivation; the two levers:
- *      * `result` ($v0) is assigned ONLY on the edges that reach `ret:`,
- *        never once at the top, so it stays caller-saved and cc1
- *        rematerialises `li $v0,-1` per reject — the target's four
- *        `li v0,-1` + three `move v0,v1`.
- *      * The reject sites split into DIRECT (own branch to the epilogue,
- *        `li v0,-1` stolen into its delay slot: sz==0, the X-limit failure,
- *        and the far-depth failure) and SHARED (`goto reject`, routed through
- *        the block's own `j ret`: the hidden early-out and the Y-limit
- *        box fail). We do not choose the split — reorg does — but the C
- *        controls what it CAN do: the two SHARED sites are exactly the two
- *        whose branch delay slot is ALREADY FULL (`move s1,a1` at
- *        0x80018340, `andi v0,s0,0x10` at 0x800183c0), so they cannot
- *        inline the `li` and must route through the shared block.
- *  - `reject:`'s PHYSICAL POSITION is load-bearing, and it is what the
- *    earlier 62-byte park missed: the label must sit INSIDE the
- *    `if (sz > DEPTH_LIMIT)` guard in the the UnitVector projection block, making the shared
- *    block that guard's body (target 0x800183fc `j 0x80018434; li v0,-1`,
- *    reached by jumps from both full-delay-slot sites). The park had tried
- *    "literal `return -1` vs a goto to a shared label" and found them
- *    byte-identical — true, but the variable it never moved was WHERE the
- *    label lives. A trailing `reject:` next to `ret:` takes a free
- *    fallthrough and cross-jump swaps it with the arm that should have
- *    owned it; that swap was the whole 62-byte residual.
- *  - The `if (sz >= FOG_DEPTH) DrawTMDmode = TMD_BANK_FOG; else = 0;` two-armer is
- *    spelled NEGATED so the `= 0` arm sits adjacent to the tail and takes
- *    the fallthrough (target 0x8001842c) — same swap-non-invariance
- *    DrawModel and DrawSprite needed.
- */
-
 long DrawClip(ModelType *objp, long *xy)
 {
     u16 attr;

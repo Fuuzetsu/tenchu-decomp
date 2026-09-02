@@ -15,14 +15,6 @@
  *     stack sp+20     long result
  * END PSX.SYM */
 
-/*
- * ChkCard (0x80056df8) — kicks off a MemCardAccept on
- * slot 0 and blocks on MemCardSync until it reports a result, returning that
- * result truncated to a short. `cmd` is MemCardSync's command out-param, which
- * this caller ignores; `result` is seeded with MemCardAccept's return and then
- * overwritten in place by MemCardSync, so the seed value is never read. FormatCard.c is the same function over MemCardFormat.
- */
-
 card_result ChkCard(void)
 {
     s32 cmd;

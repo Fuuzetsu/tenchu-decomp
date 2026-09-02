@@ -24,28 +24,6 @@
  *     extern struct NodeIndexType *FieldIndex;
  * END PSX.SYM */
 
-/*
- * GetAreaMapPassage (0x8001a0c4, 0x244 bytes) — advance the global probe
- * position `cv` along `vect` until it leaves the current map cell, returning
- * the last valid point when the map query fails or null when `count` expires.
- *
- * Matching notes:
- *  - The real outer `for (;;)` loop keeps `%hi(cv)` and `&cv` in saved
- *    registers across repeated GetAreaMapLevel calls. The inner back-edge is
- *    hand-written: only x[0], x[1], and y[0] are cached in registers; y[1],
- *    z[0], and z[1] remain lazy stack reloads in the six-way bounds test.
- *  - `initial` separates the conditional default from the live counter:
- *    the plain `count = initial;` copy preserves the target's `v0 -> s3`
- *    move without giving `count` enough loop weight to exchange registers
- *    with the cached `%hi(cv)` value.
- *  - `ymax` delays the y[1] stack store until after the three cached-bound
- *    loads, matching the join schedule. The final x/y/z subtraction order
- *    makes the return-path `&cv` materialization match independently.
- *  - AreaNodeType and NodeIndexType use the recovered map layouts;
- *    FieldIndex[-1].y is the target's -0x10 halfword
- *    load. GetAreaMapLevel's fifth argument is the promoted `int` mode zero.
- */
-
 extern VECTOR cv;
 
 VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n)

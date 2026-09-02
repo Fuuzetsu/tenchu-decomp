@@ -1,41 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * push_from_walls_ (0x80030644, 0x128 bytes) — nudges a position's x/z (a VECTOR,
- * only vx/vz are touched, vy is left alone) away from an area-map wall: it
- * samples the area map at `pos` with GetAreaMapVector, bails out if the
- * sample is off-map (`level == INT_MIN`) or reports no wall (`vector == 0`),
- * then re-samples at HALF the requested `amount` and uses that sample's
- * `vector` code instead if it also came back non-wall (falling back to the
- * first sample's code and the halved amount). `RefrectMove[vector]` is a
- * 16-entry `[xAdjust, zAdjust]` sign table: each component's sign (not
- * magnitude — only compared `<1`/`>-1`) decides whether to nudge that axis
- * by `+amount`, `-amount`, or leave it alone. Called once from the
- * sibling CameraDirection.c (`push_from_walls_(&CamLoc, 1000);`) to push
- * a candidate camera position off a wall it's testing against — a camera
- * wall-avoidance helper, not player collision. No candidate name in
- * reference/psxsym-candidates.tsv; not in the demo's PSX.SYM (CameraDirection
- * itself IS in the demo per CAMERA.C:898, so this helper is either a
- * retail-only addition or was inlined/differently-named in the demo build).
- *
- * The two MapVector out-buffers sit 0x18 bytes apart at sp+0x18/sp+0x30,
- * independently confirming the retail type's complete size.
- *
- * Matching notes:
- *  - `xAdj` and `zAdj` are same-width unsigned captures of the signed table
- *    entries. This keeps both target `lhu` loads while the casts at their
- *    signed consumers produce the visible `sll`/`sra` conversions.
- *  - The byte-neutral identical arms make raw `xAdj` a real dependency before
- *    combine, preventing its load-plus-conversion from folding to `lh`.
- *    jump2 removes the condition and duplicate assignment completely.
- *  - Ordinary positive/negative compound updates reproduce the target's
- *    shared stores directly: GCC cross-jumps each axis pair without source
- *    labels or separate result carriers.
- *  - In the fallback arm, copying `half` to `amount` before loading v1.vector
- *    gives the target's final independent move/load schedule.
- */
-
 void push_from_walls_(VECTOR *pos, s32 amount)
 {
     MapVector v1;

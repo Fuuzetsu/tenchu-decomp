@@ -39,41 +39,6 @@
 
 #include "item.h"
 
-/*
- * MATCH.
- *
- * ProcItemArrow (0x80047b94) flies, arms, attaches, and renders the homing
- * arrow.  Before attachment it maintains a 300-unit conflict box and aims
- * from the previous to current position; a character hit either disposes
- * the arrow or attaches it to a random model object.  Its final two modes
- * blink the attached arrow before disposal.
- *
- * Matching notes:
- *  - `v1`, `v2`, `rx`, and `ry` use the stack slots recovered by PSX.SYM.
- *    GetVectorRotation writes the two full-word outputs at sp+0x88/sp+0x8c;
- *    their later stores to SVECTOR members naturally use only the low halves.
- *  - The dead `mode_index = ARROW_MODE_FLY` assignment is a zero-code CSE
- *    eviction. It forces expand_case to emit a fresh mode `lbu`; otherwise
- *    the entry
- *    guard's load is reused and the function is one instruction short.
- *  - Direct ITEM_MODE_DISPOSE operands still share the target's caller-saved
- *    value on the no-call mode-2 path; call-crossing disposal prefixes
- *    rematerialize it before the common indirect-call tail.
- *  - The payload is the `else` of the conflict-id test and uses inverse
- *    mode/kind guards, so a non-humanoid hit and both zero cases fall into
- *    the later aiming block without labels. Direct status tests let CSE keep
- *    the payload byte in v1 and `1` in v0 while still allowing the `li` to
- *    fill the payload-zero branch's delay slot.
- *  - `clock` prevents the halfword-load optimization on GameClock.  The
- *    original reads the declared long with `lw`, shifts it, then narrows at
- *    the model rotation store.
- *  - The target model-object cursor is a `ModelType **`: loop-free pointer
- *    adjustment after the guarded random remainder reproduces the single
- *    object-array load and the checked variable-division sequence.
- *  - `model->locate = item->locate->locate` intentionally remains a whole
- *    GsCOORDINATE2 assignment.  GCC emits the target five-iteration,
- *    16-byte block-copy loop before DrawModel.
- */
 extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *human);

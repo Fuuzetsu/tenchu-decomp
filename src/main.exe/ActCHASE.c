@@ -32,13 +32,6 @@
  *     extern short SelectedItem;
  * END PSX.SYM */
 
-/*
- * ActCHASE (0x800217dc) — updates chase movement and dispatches chase-state
- * jump, attack, and selected-item actions.
- *
- * STATUS: MATCHED — exact 1416 bytes / 354 instructions.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern short HangCheck(void);
 extern void JumpControl(void);
@@ -54,10 +47,7 @@ void ActCHASE(void)
     {
     case MOT_CHASE:
     {
-        if (dtM->count == 0 || dtM->count ==
-                dtM->motion->time / 2 /* /2 (not >>1): the signed-division
-                                         correction is in the bytes here,
-                                         unlike ActSQUAT's site; measured */)
+        if (dtM->count == 0 || dtM->count == dtM->motion->time / 2)
         {
             Sound(Me_MOTION_C,
                   (Me_MOTION_C->map.attrib & MAP_WOOD)
@@ -108,9 +98,6 @@ void ActCHASE(void)
                 int result;
                 SVECTOR *rotation;
 
-                /* Staged read-modify-write (rotation/current/result):
-                 * byte-required, same measured lever as ActSQUAT's
-                 * identical block. */
                 rotation = dtR;
                 current = rotation->vy;
                 if (dtPAD & PADLright)

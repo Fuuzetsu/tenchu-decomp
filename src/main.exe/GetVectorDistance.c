@@ -14,24 +14,6 @@
  *     param $a1       struct VECTOR * v2
  * END PSX.SYM */
 
-/*
- * GetVectorDistance (0x80039808, 0x13c bytes) — same clamp-then-scale
- * magnitude idiom as the sibling GetVectorLength.c (this TU), but takes the
- * delta between two VECTOR points instead of three raw components. See
- * GetVectorLength.c's header for the three idioms this shares:
- *  - `abs()` must be declared `long abs(long)`, not `int abs(int)` — the
- *    latter is cc1's recognized builtin and inlines to branch+negate (no
- *    `jal`) even though this build's `-fno-builtin` never reaches cc1
- *    (Build.hs only feeds it to the separate `cpp` step). The target's 3
- *    `jal 0x80076074` calls (tools/xref.py) need the non-builtin spelling.
- *  - Ghidra's `bVar1 = false; if (OR-chain) bVar1 = true; if (bVar1) ...`
- *    is literal source shape (not SSA noise): the flag surviving all three
- *    abs() calls is what puts it in a callee-saved register.
- *  - Each `if (v < 0) v = v + 0xff;` clamp is a default-then-override temp
- *    (`t = v; if (v < 0) t = v + 0xff; v = t >> 8;`), matching the target's
- *    delay-slot-filled `bgez` (the unconditional copy sits in the branch's
- *    delay slot); reassigning `v` in place compiles 8 bytes short.
- */
 extern long abs(long x);
 
 int GetVectorDistance(VECTOR *v1, VECTOR *v2)

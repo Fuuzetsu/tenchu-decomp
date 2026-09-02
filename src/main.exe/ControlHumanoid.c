@@ -27,76 +27,6 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-/*
- * MATCHED.  394 instructions / 1576 bytes, 0 differing bytes.
- *
- * Three source facts are load-bearing here; all three were verified against the
- * pinned gcc-2.8.1 source (global.c) and the .lreg/.greg dumps.
- *
- * 1. GetDirection's third parameter is `short` (reference/psxsym-protos.h), and
- *    the three-term rotation sum must be narrowed through a VAR_DECL.
- *    convert_to_integer distributes an outer (s16) cast into a PLUS_EXPR's
- *    operands, making every halfword leaf narrow-use-only (`lhu`) and folding
- *    into the last operand's register; it cannot distribute into a VAR_DECL.
- *    Naming the full sum (`rotation_pair`) is the fix.
- * 2. The player-yaw sum and the enemy rotation sum are ONE reused variable
- *    (`rotation_pair`); retail keeps both in $v0.  Splitting them per branch
- *    drops both sums to 2 refs each, which hands them to local_alloc and
- *    perturbs the whole player block (measured: 68 bytes).
- * 3. The abs magnitude is THREE separate variables, one per site -- spelled as
- *    the PSX.SYM header describes ("a repeated name is a nested-block scope"),
- *    i.e. the two player sites shadow the enemy one.  Only the DISTINCT VAR_DECLs
- *    matter; the names do not.  This is what puts each magnitude in $a0, and it
- *    is pure global-alloc priority:
- *
- *      global.c:allocno_compare ranks allocnos by
- *          floor_log2(n_refs) * n_refs / live_length * 10000 * size
- *      (descending), and `.lreg` prints both inputs as
- *      "Register N used R times across L insns".
- *
- *    `direction` is 20 refs / 45 insns = 17777.  A SINGLE `magnitude` covering
- *    all three sites is 16 refs / 26 insns = 24615, so it is coloured FIRST.
- *    It has no hard-reg preference of its own (set_preference strips one level
- *    of the src expression and takes operand 0; for `(set mag (abs dir))` that
- *    is a global pseudo, and every other donating site yields $v0, which
- *    magnitude hard-conflicts with).  Meanwhile `direction` INHERITS $a0 from
- *    `rotation_pair`: expand_preferences unions hard-reg preferences BOTH WAYS
- *    between a single_set's global dest and any non-conflicting global carrying
- *    a REG_DEAD note on that insn, and `direction = CamState.DirectionRY -
- *    rotation_pair` kills rotation_pair.  rotation_pair prefers $a0 because its
- *    player-branch sum `(set rp (plus obj0_load obj1_load))` has operand 0 =
- *    the obj[0] load, which local_alloc colours $a0 (`lh $a0,0x52($v1)`).
- *    prune_preferences then puts $a0 into regs_someone_prefers[magnitude] (the
- *    union of LOWER-priority conflicting allocnos' preferences), so the single
- *    magnitude avoids $a0 and lands in $a1 -- 22 bytes, a pure 19-instruction
- *    a0->a1 rename.
- *
- *    Splitting per site drops each magnitude through a floor_log2 step and
- *    below `direction`, so `direction` is coloured first, takes its own $v1,
- *    and leaves regs_someone_prefers empty for each magnitude -- whose fallback
- *    scan then hits $a0 (it conflicts with hard $v0, and $v1 is taken):
- *        enemy magnitude   6 refs / 12 insns = 10000
- *        yaw   magnitude   5 refs /  7 insns = 14285
- *        pitch magnitude   5 refs /  7 insns = 14285
- *    all < direction's 17777.  The three sites are disjoint, so all three share
- *    $a0.  Each half still spans basic blocks (the abs itself branches), so
- *    unlike rotation_pair they remain GLOBAL allocnos -- which is why splitting
- *    magnitude wins where splitting rotation_pair loses.
- *
- * Dead ends, measured, so they are not retried: a `do{}while(0)` weighting
- * fence on the enemy-vertical block does add loop-depth-weighted refs to
- * `direction` (20 -> 24) and leaves live_length alone, but its LOOP_END note
- * lands next to the cross-jumped `UpdateCoordinate` tail and blocks the merge:
- * 282 bytes.  There is no free ref to remove from magnitude either -- its 16
- * refs correspond exactly to 19 emitted instructions (3 abs defs of 2 insns
- * each + 13 single-insn uses), so none is combine-folded.
- *
- * The player arm always returns, so the enemy head-tracking path needs no
- * trailing `else`. Its two calm-phase exclusions are one short-circuit return
- * guard. Keep the target-ordered vertical clamp nested: the flatter clamp
- * ladder differs by 26 lines.
- */
-
 extern char fmt_dbg_pos[];  /* ~c800%02x~c888(%d,%d,%d)  */
 extern char fmt_dbg_word[]; /* ~c880%04x=%02x  */
 extern char fmt_dbg_pair[]; /* ~c080%02x/%d%d  */
@@ -189,8 +119,7 @@ draw_done:
         return;
     }
 
-    /* The u16 view makes this an lhu (a plain read is lw): byte-required
-     * (verified against the .s). */
+    /* Retail reads only the low halfword here. */
     DrawModeSave[VISIBLE_ENEMIES_] = DrawTMDmode;
     VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
     VISIBLE_ENEMIES_++;
@@ -222,8 +151,6 @@ draw_done:
                 return;
             }
             head->rotate.vx = rotation->x;
-            /* The re-walked chain (not rotation->y) is byte-required (the
-             * fresh loads are in the bytes; measured). */
             head->rotate.vy =
                 human->motion->motion->rotate[MODEL_PART_HEAD]->y;
             UpdateCoordinate(head);

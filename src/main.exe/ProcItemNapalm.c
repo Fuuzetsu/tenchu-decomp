@@ -3,38 +3,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/*
- * ProcItemNapalm (0x800469c0) — expands the thrown fireball for twenty
- * frames, updates its two layered sprites, registers the damage conflict at
- * frame ten, emits a random attached frame effect on a collided character,
- * and disposes when it leaves the area map.  Modes 0/1/2 are initialise,
- * animate, and dispose; unknown modes still take the shared draw tail.
- *
- * Matching notes:
- *  - `ITEM_MODE_DISPOSE` is live to mode 2 in $s6, while `switch (item->mode)` deliberately
- *    reloads the mode into $s4.  Literal `1` stores in case 1 reuse that switch
- *    index through cse's taken-edge equivalence; an explicit `mode` local adds
- *    $s7 and changes the frame.
- *  - The colour `t` is `u8` and is assigned in three statements.  Its narrow
- *    mode keeps rand()%25's quotient separate from the final remainder, giving
- *    the target's $v0/$v1 chain and the copy used by the third byte store.
- *    A single int expression is one instruction short and globally re-colours
- *    the chain.
- *  - The InsertConflict result is block-local `n`, distinct from the later
- *    query `cid`; sharing them rotates every register in the 0x78-byte index
- *    calculation.  Likewise, cache `proc` for the null check but invoke through
- *    `item->proc`: cse retains one load and allocates the target in $v0.
- *  - `random_pos` is zeroed and copied wholesale to `pos`; the two VECTOR
- *    declarations reproduce the sp+0x18/sp+0x28 stack objects and four-word
- *    block copy before SetFrame.
- *  - Both cleanup sequences are written out so jump2 cross-jumps from the map
- *    failure into mode 2's copy.  The two coordinate struct assignments at the
- *    end intentionally lower to the target's 0x50-byte copy loops.
- *  - This TU needs maspsx `--expand-div` for the model-count remainder guards
- *    and `--gp-extern sprNapalm2` for the six retail gp-relative loads; Build.hs
- *    and permute.py carry the mirrored per-function settings.
- */
-
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

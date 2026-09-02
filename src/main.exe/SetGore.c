@@ -20,27 +20,6 @@
 
 extern void DrawImpact(TEffectSlot *ef);
 
-/*
- * MATCH. This is the retail form of EFFECT.C's SetGore. It converts a
- * model-space position and velocity into a blood/gore effect, then emits a
- * larger impact particle every fourth frame. Its ABI and allocation logic
- * are a retail redesign; the source identity is established by adjacency and
- * by installing DrawGore as the effect callback.
- *
- * The two FIND_EFFECT_SLOT calls intentionally use distinct scoped locals.
- * Each expansion indexes the pool directly; loop strength reduction creates
- * the scan pointer seen in the target, while the named slot is only the
- * found/fallback result.
- * The first generated cursor coalesces with the BloodType pointer in $s0;
- * keeping one source cursor live through both searches rotates nearly every
- * scan register.
- * `world_velocity` receives the rotated gore velocity, while the independent
- * `impact_position` VECTOR holds the three signed captures at sp+0x58..0x60
- * during the second pool search. Scalar captures stay in registers, shorten
- * the function, and lose the target's 0x88-byte frame. Finally, naming
- * `impact_pz` immediately after the py store preserves the target's early
- * load and late pz store.
- */
 void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
              SVECTOR *local_velocity)
 {

@@ -22,20 +22,6 @@
  *     extern short RefrectMove[16][2];
  * END PSX.SYM */
 
-/*
- * MoveKorogari (0x8003da08, 1,484 bytes) — advances a rolling item, probes
- * terrain, reflects or damps its velocity, and handles water and bounce
- * state changes.
- *
- * Matching notes:
- *  - GetAreaMapVector writes retail's complete 0x18-byte MapVector here.
- *  - svec_y_n20 is declared as an array even though only element zero is
- *    copied.  That preserves the target's two-register absolute address.
- *  - The final bounce deliberately spells the sum as A + (B + 25).  GCC
- *    2.8.1's fold pass reassociates that tree to (A + 25) + B, placing the
- *    target addiu on the abs()/2 accumulator before expanding rand() % 25.
- */
-
 extern SVECTOR svec_y_n20[]; /* {0,-20,0} */
 
 void MoveKorogari(TItem *item, param_korogari *param)
@@ -104,9 +90,8 @@ void MoveKorogari(TItem *item, param_korogari *param)
             param->vz = rand() % 20 - 10;
             if (param->vy > 20)
             {
-                /* Dead copy, but retail's own bytes (removal mismatches);
-                 * `vec` is in the demo symbols -- an older SetSplash likely
-                 * took the splash direction it still loads here. */
+                /* Retail retains this dead copy; the demo symbols suggest an older
+                 * SetSplash accepted the direction. */
                 vec = svec_y_n20[0];
                 SetSplash(MODEL_POSITION(item->locate),
                           2 * FIXED_ONE, 2 * FIXED_ONE, 4);

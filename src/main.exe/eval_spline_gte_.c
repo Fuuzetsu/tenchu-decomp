@@ -3,50 +3,9 @@
 #include "item.h"
 
 /*
- * ASM-CANONICAL (owner decision 2026-07-19; docs/gte-policy.md).
- *
- * eval_spline_gte_ (0x8001c730, 0xdc bytes) is the retail GTE rewrite of the
- * scalar Hermite evaluator at the end of the demo's GetSpline
- * (0x8001b39c).  `basis` points at one row of HermiteTable[33][4].  The
- * helper loads basis[0..2] as GTE V0, arranges key0/key1/dd0 as the GTE's
- * 3x3 rotation matrix, executes MVMVA, then adds the fourth Hermite term
- * `(basis[3] * ds1.xyz) >> 12` and narrows the results to an SVECTOR.
- * The readable C below records that exact value-level operation.
- *
- * This helper did not exist in the symbol-bearing demo.  Retail places it at
- * the end of ACTION.C's function run, immediately before MOTION.C, and
- * GetSpline is its only observed caller.  It is also the only function outside
- * the already-classified handwritten draw handlers that reads GTE MAC1/2/3
- * directly into CPU registers.  PsyQ INLINE_C.H provides gte_rtv0_b(), but its
- * corresponding gte_stlvnl() writes through memory with SWC2; it has no
- * MAC1/2/3-to-C-register macro capable of producing this tail.
- *
- * Compiler-led reconstruction confirmed the split.  Human-shaped direct-field
- * C reaches every operation, and fixed-register diagnostics can force the
- * prefix through the first multiply byte-exact, but only by encoding the
- * target's t0..t5 plan in C.  The remaining tail is hand-scheduled across both
- * multiply latency and the GTE result read: the plausible volatile macro form
- * forces the third MFLO before the MFC2 reads, while the target deliberately
- * reads MAC1..3 first; a nonvolatile invented macro crosses that boundary but
- * cc1 consumes the first two products early.  Retaining either register pins
- * or a fake GTE macro would disguise assembly as C, so the original assembly
- * is the canonical source form and the #else body is documentation only.
- *
- * INDEPENDENT RE-AUDIT (2026-07-19). The most natural macro-shaped source was
- * also compiled with Sony GCC 2.6.3, 2.7.2, 2.8.0, 2.8.1, 2.91.66 and 2.95.2.
- * Versions 2.6.3 through 2.8.1 produce identical multiply/MFLO scheduling;
- * the newer pair only changes hard-register homes and moves farther away. A
- * human-order rewrite (issue MVMVA, then form the three weighted residuals)
- * exposes two additional compiler tells. First, cc1 keeps each first/second
- * multiply's MFLO ahead of the following component loads, unlike the target's
- * hand-interleaved `mult; lh; lh; mflo`. Second, with the debug-consistent
- * ordinary `SVECTOR *out`, the dbr dump explicitly reports `1 got 1 delays`
- * and moves the final `sh` into `jr ra`; the target ends `sh; jr ra; nop`.
- * Only changing the API to an unjustified `volatile SVECTOR *out` suppresses
- * that fill. The real INLINE_C.H `gte_stlvnl` alternative is also structurally
- * excluded: it emits three SWC2 stores through memory, while this target reads
- * MAC1/2/3 with MFC2 into integer registers. Thus the stock compiler revisions,
- * natural operation order and actual SDK result macro all fail independently.
+ * Canonical handwritten assembly (docs/gte-policy.md). This retail-only
+ * helper evaluates one Hermite basis row with the GTE and reads MAC1-MAC3
+ * directly; the SDK exposes no C macro for that result path.
  */
 #ifndef NON_MATCHING
 INCLUDE_ASM("config/../.shake/gen/main.exe/asm/nonmatchings/eval_spline_gte_", eval_spline_gte_);

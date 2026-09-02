@@ -17,23 +17,6 @@
  *     stack sp+16     struct RECT rect
  * END PSX.SYM */
 
-/*
- * GetTIMpackInfo (0x80018ae8) — index a TIM-pack's offset table (same
- * "skip the leading u_long ID word" convention as GetTIMInfo.c/LoadTIM.c):
- * TIMPackIndex supplies the element count and a table of per-element byte
- * offsets relative to that table; each offset lands on a TIMFile whose ID
- * word is skipped before the packed image data. Fails (returns 0)
- * for an out-of-range idx; otherwise walks the offset table to `idx` and
- * hands the located TIM to GsGetTimInfo.
- *
- * Matching notes (docs/matching-cookbook.md): `i` is a plain `short` loop
- * counter — cc1's combine pass proves `i = i + 1` need not be truncated at
- * every assignment (only the compare needs the 16-bit view, and modular
- * add/truncate commute), so the asm keeps the raw 32-bit accumulation in
- * one register and only sign-extends a throwaway copy for the `while`
- * test — Ghidra renders that literally as `iVar2 * 0x10000 >> 0x10`
- * instead of inferring a `short` type.
- */
 short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
 {
     short i;

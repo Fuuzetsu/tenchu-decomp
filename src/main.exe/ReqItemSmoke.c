@@ -32,25 +32,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemSmoke (0x80040354) — spawn a thrown smoke-bomb ("smoke") item. Twin
- * of ReqItemDrop/ReqItemJirai/ReqItemDokudango (same item TU, same pool
- * round-robin on ic and the same dispose-on-exhaustion
- * block); like ReqItemJirai/ReqItemDokudango there is no GetAreaMapLevel
- * floor check. It gets ProcItemSmoke as its processor, packs the throw
- * velocity into the embedded param_smoke.koro record, then initializes the
- * derived type's byte-sized count field to 10.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &item->param.smoke;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins.
- *  - aowner/atype and x/y/z are real temps, same shape as the other twins.
- *    The block-scoped `param_korogari *param` is PSX.SYM's second `param`.
- *  - `item->param.smoke.koro.hint = 0;` uses the direct union path (not
- *    `param`) for this one store, same as the other twins.
- */
 extern void ProcItemSmoke(TItem *item);
 /* ITEM.C's `ic` slot cursor (inside TAKE_ITEM_SLOT) is gp-relative:
  * listed in Build.hs maspsxGpExterns for this file. */
@@ -78,9 +59,7 @@ int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
         item->model = (ModelType *)ItemImage[item->type];
     }
     {
-        param_korogari *param; /* shadows the outer `param`, as PSX.SYM has it;
-                                * byte-required -- writing through the full
-                                * member path re-colors the stores */
+        param_korogari *param; /* Shadows the outer launch parameter in retail. */
 
         param = &item->param.smoke.koro;
         x = p->end.vx;

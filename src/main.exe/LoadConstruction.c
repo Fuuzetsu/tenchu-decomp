@@ -6,11 +6,7 @@
 #include "tmdfile.h"
 #include "vmemory.h"
 
-/* Map a world coordinate to its WorldMap cell index (floor division by the
- * CONSTRUCTION_CELL-unit cell, wrapped to one axis). Repeated per axis at
- * both construction passes; macro is reconstruction shorthand (expands to
- * the identical text). The copy interleaved with the msize computation stays
- * open-coded. */
+/* Shared map-coordinate conversion used by both construction passes. */
 #define WORLD_CELL(src, out)                                                  \
     {                                                                         \
         long a = src;                                                         \
@@ -23,11 +19,7 @@
         out = q & WORLD_MAP_AXIS_MASK;                                        \
     }
 
-/* Free an ornament archive: every ornament, then the object table, the
- * model data, and the archive record itself. Retail repeats the block
- * for the mission archive and the shared object archive; the macro is
- * reconstruction shorthand for that copy-paste (expands to the
- * identical text). */
+/* Shared archive disposal used for the mission and common archives. */
 #define DISPOSE_ORNAMENT_ARCHIVE(arc)                                         \
     {                                                                         \
         OrnamentArchiveType *mad;                                             \
@@ -43,7 +35,6 @@
             vfree(mad);                                                       \
         }                                                                     \
     }
-
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -98,40 +89,6 @@
  *     extern int StageID;
  *     extern struct ModelType World;
  * END PSX.SYM */
-
-/*
- * LoadConstruction (0x8003ab60) — rebuild the stage's construction state:
- * dispose the previous maps/models, load the shared and stage archives,
- * dispatch the 32-byte construction records, and bucket their ornaments in
- * WorldMap for rendering.
- *
- * STATUS: MATCH (2724 bytes, split jump-table function).
- *
- * Architecture notes (recovered from the target's own codegen):
- *  - ObjectID/MapModel/wlddt/n (fn scope, declaration order) and ix/msize
- *    (final block) are plain locals whose pseudos lose allocation and spill;
- *    reload assigns slots 0x15C..0x170 in pseudo-number order and emits the
- *    rotating t0-t3 reloads, the lhu msize narrow reload, and the delay-slot
- *    spill stores. data reloads from its arg-home slot 0x1A0.
- *  - `MapModelSize` is WORLD.C's original allocation constant. Retail lowers
- *    it from the demo's 0x70800 bytes to 0x6B800 at the same allocation site.
- *  - name/center/param/tmp/size are five separate stack locals: gcc 2.8.1
- *    rounds each BLKmode slot up to 8 bytes, which yields retail's pads
- *    (param@0x128+24, tmp@0x140+24, size@0x158) with no explicit padding.
- *  - The counting loop indexes the typed `wlddt[i]` table directly (no
- *    walker variable): loop.c strength-reduces it to the v1 giv, emitting
- *    the hoisted li 2 before the giv init (target preheader order), and the
- *    giv advance lands in the loop branch delay slot.
- *  - Each of the six /CONSTRUCTION_CELL divisions is `long a, q; if (a >= 0) q = a/CONSTRUCTION_CELL;
- *    else q = a/CONSTRUCTION_CELL - 1; x = q & 7;` — a in a0, quotient in the v0/v1
- *    temps, single andi def into the callee-saved home.
- *  - Both WorldMap cell pointers use the PSX.SYM-recorded `slot` local and
- *    are built in two steps: the typed pointer first carries the derived byte
- *    offset, then receives the WorldMap base. Combining the steps or using a
- *    direct array address changes the slot/msize register allocation. This
- *    keeps the actual list accesses typed without reusing the unrelated
- *    nModel count as an address.
- */
 
 /* WorldDataType.mode says which kind of record this row is, not a phase:
  * the values are the stage-data file's own tags and are not contiguous. */

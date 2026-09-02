@@ -2,29 +2,6 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 
-/*
- * Decode the linked TMD primitive stream and hand each supported packet type
- * to its specialized renderer.
- *
- * Fills the shared TMD_FAST_WORK context first (tmdfast.h): the OT and
- * bucket shift, the far-Z reject (0x4a98) and depth-cue start (15000), and
- * the 320x240 screen clip box; the per-store comments name the fields.
- *
- * Matching notes (636 bytes / 159 instructions):
- *  - The real linked-TMD field layout is load-bearing for the prologue's load
- *    schedule.
- *  - The mode tag selects the concrete packed TMD record view; every renderer
- *    receives that typed stream together with the shared Sony VERT table.
- *  - The ordering table and workspace parameters carry their real pointer
- *    types. Direct TMD_FAST_WORK field stores give the alias pass enough
- *    information to reproduce the retail prologue: each attribute flag is
- *    read normally, and the two packet-parameter stores fill the gap before
- *    the final TON extraction without a volatile reload.
- *  - Direct per-case cursor updates retain the two distinct x7 switch tails.
- *  - The 29-entry switch table is routed through this object's .rodata carve
- *    at 0x80013C20.
- */
-
 extern u_long DivDepth;
 
 extern u_long *fast_tng4_(TmdTexturedGouraudQuadRecord *primitive,

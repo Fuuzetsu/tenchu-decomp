@@ -29,62 +29,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * DrawModelArchive (0x8001768c) — MATCHED.
- *
- * Same TU as DrawModel.c/DrawSprite.c (3DCTRL.C): the ModelArchiveType twin
- * of DrawModel's visibility gauntlet (same GsGetLs+GsSetLsMatrix /
- * MODEL_ATTR_CULL_* clip test / UnitVector RotTransPers), gated by a
- * SkipFrame early-out and a `gap<0` bypass, and instead of a single DrawTMD
- * call it walks `mad->object[0..n)` drawing each non-hidden sub-model with
- * `gap` as the DrawTMD mode.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `sz`/`result` follow DrawSprite's two-variable shape: `sz` ($v1) holds
- *    the OTZ from either RotTransPers (re-tested by the attribute&4/&0x10
- *    guards), `result` ($v0) is the "-1 = reject / else the accepted OTZ"
- *    value the tail sums with `gap` — assigned only at each exit edge, never
- *    once up front, so cc1 rematerialises `li v0,-1` per reject.
- *  - The reject sites split into two categories (as in the matched
- *    sibling DrawSprite): the HIDDEN test and the screen-cull's outer
- *    band use `goto reject;` (the one shared block), while the other
- *    three culls spell their own `result = -1; goto tail;` bodies. The asm LOOKS like four independent
- *    "direct to tail" rejects (`bcond tail` + own `li v0,-1` in the delay
- *    slot) plus one branch to a shared stub, but that is reorg's doing, not
- *    the source's: reorg steals reject's own `li v0,-1` into each eligible
- *    branch's delay slot and retargets the branch THROUGH reject's `j tail`
- *    to tail itself. The Y-limit site (0x8001775c) still points at the real
- *    `reject:` only because its delay slot was already taken by
- *    `andi v0,s0,0x10`, so reorg had nothing to steal with. The five
- *    `li v0,-1` in the target are one real + four stolen copies.
- *    Do NOT move the remaining `goto reject;` sites to their own
- *    `result = -1; goto tail;` bodies: a trailing `result=-1` block
- *    adjacent to `tail:` gets a free fallthrough, identical to reject's
- *    `li v0,-1; j tail`, so it absorbs reject and swaps reject with the
- *    DrawTMDmode==0 arm (44 bytes).
- *  - Keep a single trailing `return 1;`: an inline SkipFrame early return
- *    leaves a join CODE_LABEL (RTL `code_label 25`) between the `mad`
- *    parameter copy and the first `GsGetLs` call. cse's basic block ends at
- *    every CODE_LABEL, so the a0 == mad equivalence dies there and cc1 emits
- *    a redundant `move a0,s2`, which reorg then hoists into the `bltz s3`
- *    delay slot the target leaves as a bare `nop`. Inverse guards around the
- *    body (`SkipFrame != SKIPFRAME_SKIPPED`) and visibility pass (`gap >= 0`) keep the one
- *    return and compile exactly without source labels. The `nop` is the
- *    symptom: with the copy gone the fallthrough starts with the `jal`, which
- *    is ineligible for a delay slot. Verified with rtldump and tryf.
- *  - `RotTransPers(&UnitVector, ...)` passes a literal NULL sxy pointer here
- *    (no sprite-relative xy to fill, unlike DrawSprite's `xy`), so there is
- *    no `if (xy != 0)` tail arm — `result = sz;` sits directly after the
- *    DrawTMDmode if/else and is the last block before `tail:`.
- *  - The tail test is `result + gap`, not `result == -1`: DrawModelArchive
- *    folds the caller's `gap` into the same sentinel arithmetic.
- *  - The sub-model loop is a plain `for (i = 0; i < mad->n; i++)` over
- *    `mad->object[i]`; cc1's own loop rotation duplicates the `0 < mad->n`
- *    entry test for free. `i` is `short`: the per-iteration address is
- *    recomputed via the fused `sll 16/sra 14` sign-extend+scale (the
- *    short-counter idiom that suppresses loop.c's strength reduction).
- */
-
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 
 short DrawModelArchive(ModelArchiveType *mad, long gap)

@@ -4,48 +4,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-/*
- * ProcItemGun (0x80046528) — the gun item processor. mode 0: muzzle flash —
- * spray a grey (0x7F7F7F) SetBleeds burst from the item's position along a
- * backward direction vector (svec_z_n250, rotated by the owner's facing);
- * mode 1: fire — aim from the item at the launch target stored in
- * item->param (GetVectorRotation), trace the shot (SearchItemTarget2), snap
- * the item to the hit point, register a 100-unit conflict box there, and
- * splash: a big impact + red bleed + hit sound if a Humanoid was hit, a
- * smaller impact + yellow bleed + ricochet sound otherwise; mode 2: dispose.
- *
- * Matching notes (all verified against the original bytes; shares
- * ProcItemKawarimi's dispatch/dispose shape and ProcItemLightningBolt's
- * conflict-box insert block — same store order,
- * `conflict_id = InsertConflict` as s32):
- *  - `param = &item->param.gun;` + `ITEM_MODE_DISPOSE = ITEM_MODE_DISPOSE;` before the
- *    entry test:
- *    param's addiu fills the entry branch's delay slot, and BOTH stay
- *    caller-saved here (param → $a1: its only use is GetVectorRotation's 2nd
- *    argument via `param->vec`, with no intervening call; ITEM_MODE_DISPOSE → $v1, used by
- *    the entry compare and case 2's `item->mode = ITEM_MODE_DISPOSE`).
- *  - The switch INDEX register ($s2) is callee-saved and reused inside case 1
- *    as the source of every `= 1` store (common/class flags/collision.mode): cse's
- *    record_jump_equiv on the `beq index,1` taken edge knows the pseudo == 1,
- *    and the constant-register equivalence survives the calls. Plain literal
- *    `1`s in the source produce it — do NOT hand-substitute a variable.
- *  - The outer `vec = svec_z_n250[0];` / inner `vec = svec_z_150[0];` — the
- *    two 8-byte SVECTOR globals MUST be declared as unknown-size arrays: that
- *    makes them non-small (-G8), so their address builds as split HIGH/LO_SUM
- *    through TWO registers (`lui $v0,%hi / addiu $t3,$v0,%lo`) whose lui
- *    reorg/sched can hoist (into the dispatch delay slot for case 0, into the
- *    collision store run for case 1). A plain `extern SVECTOR D_…;` is
- *    -G8-small and collapses to a fused one-register `la` — one instruction
- *    long (the cookbook's AddItem2 smoke-vector rule, same D_80097Bxx table).
- *  - Case 1's inner block shadows the function-scope `vec` with PSX.SYM's
- *    second `SVECTOR vec` at sp+0x30. The preceding rx/ry output slots land
- *    at sp+0x38/sp+0x3C after the function-scope vec@0x18 + target@0x20.
- *  - The outer `vec.vx = rx;` etc. narrow the s32 out-params: combine folds
- *    each load+truncate to a single lhu.
- *  - Cases 0 and 1 end in duplicated `item->mode = item->mode + 1; return;`
- *    tails, cross-jumped into case 1's copy (Kawarimi's layout lever).
- */
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

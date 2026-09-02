@@ -18,57 +18,6 @@
  *     param $a3       short mode
  * END PSX.SYM */
 
-/*
- * SetupTexScroll (0x80032720, 0x230 bytes) — spawns an EffectSlot pool entry
- * that draws a small animated 2x2-cell water/warp tile grid from a texture
- * page (AddMisc.c passes the just-uploaded TIM's own GsIMAGE plus the two
- * retail scroll velocities). It uses the same round-robin EffectSlot[200]
- * pool search as SetSplash/SetFrame/SetBleed/SetSmoke. FIND_EFFECT_SLOT keeps
- * that shared indexed do-while in one place; loop strength reduction creates
- * the target's scan pointer from its direct `EffectSlot[idx]` accesses.
- *
- * The found slot's `texscroll` payload is retail's shortened form of the
- * PSX.SYM TexScroll record: it keeps px/py, vx/vy, x/y, sx/sy, and image,
- * while omitting the demo's time/count pair. The image RECT receives the
- * TIM's source rectangle; sx/sy hold the shared animated scroll cursor;
- * x/y retain the texture-page destination; and vx/vy receive this call's
- * velocity parameters only at the end, immediately before `proc` is set.
- * This is the retail evolution of the demo SetupTexScroll: both initialise
- * the same texture-scroll fields and run the same 2x2 MoveImage loop, while
- * retail obtains sx/sy globally, removes mode/time/count, and returns through
- * the effect pool instead of returning a standalone TexScroll pointer.
- *
- * Matching notes:
- *  - The 2x2 grid loop uses `short` counters (`j`,`i`), not `int` — a
- *    `short` loop counter suppresses loop.c's strength reduction and keeps
- *    the target's own `(x<<0x10)>>0x10`-style recompute-from-base shape
- *    (cookbook: "a short loop counter suppresses strength reduction").
- *  - The cell-mask test is always true for j,i in the 2x2 grid because
- *    retail selects TEXSCROLL_COPY_ALL, but the target still computes it. Ghidra
- *    renders an extra `& 0x1F` because MIPS variable shifts mask their count
- *    in hardware; retaining that decompiler artifact emits a real `andi`
- *    which is absent from the target.
- *  - `TexScrollX`/`TexScrollY` are read ONCE into named locals right
- *    after the slot is found (not hoisted to the top the way Ghidra's own
- *    SSA rendering shows `sVar2 = DAT_80097f32; sVar3 = DAT_80097f30;` as
- *    the first two statements) — the raw .s doesn't read them until deep
- *    into the found-body, immediately before the texscroll sx/sy stores
- *    (cookbook: "trust the assembly over Ghidra's statement order").
- *  - The outer indefinite loop keeps a meaningful fixed-point
- *    `scrollYShifted` value live through the inner loop. Clearing that scratch
- *    on the exit edge prevents loop.c from incorrectly lifting its signed
- *    conversion; flow later removes the dead clear. The resulting ordinary
- *    pseudo is the target's natural sp+0x14 reload spill, after the vx/vy spills.
- *  - `mask` is a `short` work variable, not a folded literal. That source
- *    identity gives the target's v1/v0/a3 shift chain without a donor fence.
- *  - PsyQ declares `MoveImage` as returning `int`. Even though this caller
- *    ignores the value, the return in v0 changes the hard-register conflicts:
- *    the second multiply result naturally lands in t0. Declaring it `void`
- *    leaves only the final two register bytes unmatched.
- *
- * These source identities and the exact SDK prototype match all 560 bytes.
- */
-
 extern s16 TexScrollX;
 extern s16 TexScrollY;
 

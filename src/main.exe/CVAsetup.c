@@ -20,45 +20,6 @@
  *     extern struct POLY_F4 TelopbgP;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHED — exact 536 bytes / 134 instructions.
- *
- * The final one-instruction residual was not a register-allocation quirk:
- * CHOSEN_CHARACTER and CHOSEN_LANGUAGE are fields +4 and +0x5e of the same
- * PersistentState blob at 0x80010000.  Expressing all three reads through
- * PSTATE makes cc1 materialise that common base once, retain it in $s1
- * across sprintf/FileRead/SetPolyF4, and reuse it for the late character
- * guard.  Separate extern globals force a second `lui`; caching only the
- * character VALUE also diverges because the target caches the address base.
- */
-
-/*
- * CVAsetup (0x8004ff98, 0x218 bytes) — prepares a CVA cutscene: frees any
- * previous CVAdata blob and loads the new one
- * ("<lang-prefix>STAGE<n><A|R>.CAD", the trailing letter is the character's
- * initial — 'R' Rikimaru / 'A' Ayame), then a fixed
- * TelopbgP POLY_F4 letterbox (r0/g0/b0=1, spanning the screen width — the
- * canonical PsyQ SDK POLY_F4). On STAGE_ID_CORRUPT_MINISTER as Rikimaru it loads
- * "tanka.tpd" and populates the TANKA_SPRITES_ Sprite3D slots.
- * Each slot's `attribute` gets MODEL_ATTR_HIDDEN set,
- * and the embedded GsSPRITE's x/y are
- * laid out in a fan (`(2-i)*20+10`, `(i%3)*8-4`) — then the LAST slot's
- * embedded sprite is nudged (x -= 8, y = 40) before the tpd is freed.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - The embedded-GsSPRITE x/y stores go through a FRESH
- *    `TANKA_SPRITES_[i]` re-read each time (matching
- *    Ghidra's own `*piVar2` — a dereference of the SLOT ADDRESS, not the
- *    `pSVar1` variable already holding the same value) — only the
- *    `attribute |= 1` update reuses `pSVar1` directly, and the r/g/b
- *    stores go through a third re-read held in `slot`. Same lever as
- *    CVArun's GsSortSprite re-read.
- *  - `letter` (the trailing filename letter) is a real `int` local,
- *    computed by a plain if/else BEFORE the sprintf call — writing it
- *    inline would evaluate it at the wrong point relative to the other
- *    vararg materialisation.
- */
-
 extern char *STAGE_ANIMATION_PREFICES[N_LANGUAGES];
 extern char fmt_stage_cad[];       /* %sSTAGE%d%c.CAD */
 extern char path_anim_tanka_tpd[]; /* K:\\WORK\\CDIMAGE\\ANIM\\tanka.tpd */

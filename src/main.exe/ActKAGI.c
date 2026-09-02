@@ -37,35 +37,6 @@
  *     extern struct SVECTOR *dtV;
  * END PSX.SYM */
 
-/*
- * ActKAGI (0x80020a40, 0x830 bytes) — the grappling-hook action states.
- * MOT_KAGI launches the hook and aims it at the camera target, MOT_KAGI_FLY
- * waits for SetFlyWire, and MOT_KAGI_PULL pulls the character toward the target before
- * returning to the normal motion system.
- *
- * Matching notes:
- *  - PSX.SYM's VECTOR followed by PARAM_ITEM_LAUNCH is the exact retail
- *    stack layout: v at sp+0x10 and item at sp+0x20, giving a 0x50 frame.
- *  - `model->object[i++]` is material.  The post-increment creates the
- *    target's working copy of the narrow index before its scale and copies
- *    the increment back afterward; spelling the increment as a separate
- *    statement is one instruction short.
- *  - The camera-target block is a local-allocator tie.  `motID =
- *    MOT_KAGI_FLY` must precede the x/z subtraction expressions, which go
- *    through the dedicated locate/target pointer pair — reordering
- *    either rotates v0/v1/a0/a1/a2 even when scheduling leaves the
- *    instruction order unchanged.
- *  - `quantized` must stay full-width through the 0xc00/0x200 rounding.
- *    Narrowing it to u16 creates an extra merge move.  Conversely, the CVA
- *    scan needs its own short counter (a nested `i` shadowing the
- *    outer one, which is how PSX.SYM records it) instead of reusing the
- *    earlier model-part counter, which gives the target v1/a1/a0 coloring.
- *  - `__builtin_abs` is intentional: Build.hs passes -fno-builtin to cc1,
- *    so a normal abs() prototype would emit three calls.  The explicit
- *    builtin expands to the target branch/negu chains, and the short-circuit
- *    while duplicates those chains at the loop head and latch exactly.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
@@ -229,9 +200,7 @@ void ActKAGI(void)
                 quantized += ANGLE_QUADRANT;
             }
             rotation->vy = quantized;
-            /* The vy = sum store above is dead (quantized overwrites it)
-             * but both sh are in the bytes; adjust_root is the asm's own
-             * reload of object[0] beside root. */
+            /* Retail writes vy before immediately replacing it with the quantized value. */
             adjust_root = human->model->object[MODEL_PART_WAIST];
             motID = MOT_STATE_FALL;
             adjust_root->rotate.vy += old_ry - quantized;

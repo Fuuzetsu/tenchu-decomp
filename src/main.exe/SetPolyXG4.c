@@ -14,12 +14,6 @@
  *     param $a1       short attrib
  * END PSX.SYM */
 
-/*
- * SetPolyXG4 (0x80038d80) — initializes EFFECT.C's recovered POLY_XG4:
- * one DR_TPAGE command followed by a semi-transparent Gouraud quad. The
- * attribute's low two bits select the semi-transparency rate in the draw-mode
- * command.
- */
 void SetPolyXG4(POLY_XG4 *ply, short attrib)
 {
     setPolyG4(&ply->ply);

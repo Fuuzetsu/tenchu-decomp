@@ -22,22 +22,6 @@
  *     reg   $t0       short th
  * END PSX.SYM */
 
-/*
- * SetupImageToPolyGT4 (0x8004ec10, 0x144 bytes) — the Gouraud twin of
- * SetupImageToPolyFT4 (IMAGES.C), byte-for-byte the same shape: the only
- * difference is POLY_GT4's per-vertex colour, so all twelve r/g/b bytes are
- * written 0x7F instead of FT4's three. Layout below is PSX.SYM's own POLY_GT4
- * (reference/psxsym-types.h), which confirms every offset in the .s.
- *
- * PSX.SYM's local list for this function is `tx`, `ty` and `th`, and all
- * three reproduce the bytes: `ty` is the top-edge V coordinate and `ty + th`
- * is the bottom edge. Sony's `setUV4` expresses all four UV pairs and cc1
- * naturally advances the same register between the top and bottom stores.
- * Retail does need more than the demo's three (the four grouped field reads
- * and `tx2` are load-bearing — see FT4's header for the measurements), but
- * the earlier note here claiming the demo names were unusable was wrong.
- */
-
 void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
 {
     s32 tp;
@@ -71,7 +55,7 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     tw = pw << sh;
     x += tw;
     y += th;
-    /* One-shot fence: byte-required (collapse measured; see cookbook). */
+    /* Empty loop retained for code layout; its original source construct is unknown. */
     do
     {
     } while (0);

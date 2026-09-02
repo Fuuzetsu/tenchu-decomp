@@ -18,35 +18,6 @@
  *     stack sp+24     struct VECTOR pos
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — 356 bytes. Declaring the constant as an unknown-bound
- * `SVECTOR` array and copying element zero makes cc1 materialize its address
- * as the target's `lui v0,%hi` / `addiu t3,v0,%lo` register handoff.
- *
- * ProcMiscFire (0x8004d570, 0x164 bytes) — MISC_FIRE's ProcMisc* handler:
- * MM_CREATE arms a 10-tick fuse; each MM_DO tick decrements it (gated on
- * `mode == 0`) and, when it reaches 0, detonates: an
- * explosion + a burning-embers burst + a smoke puff at m's position, then
- * rearms the fuse to a random 0..149 tick count and plays the bang sound.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `msg >= MM_DO` is the same unsigned-enum dispatch as ProcMiscSprite
- *    (`enum TMiscMessage msg`, not plain `s32`, is what gets cc1 to emit
- *    `sltiu` instead of `slti`).
- *  - `--m->count` (or equivalently `m->count = m->count - 1;`) stores
- *    unconditionally in the branch's delay slot even on the "still armed"
- *    path — ordinary statement order, no special shape needed.
- *  - `vec = svec_y_n35;` is a whole-SVECTOR struct assignment (align-2
- *    `lwl/lwr`+`swl/swr` block move, cookbook: cast type's alignment drives
- *    copy code) from an unnamed 8-byte rodata/data constant — NOT the
- *    Ghidra-rendered `local_28._4_4_ = (uint)(ushort)local_28.pad << 0x10;`
- *    later in the function, which is a decompiler artifact: the raw .s has
- *    three plain adjacent `sh` stores (vx=0, vy=-200, vz=0), no pad touched
- *    at all (cookbook: trust the assembly over Ghidra's rendering).
- *  - `m->count = rand() % 150;` keeps the call inline so the magic-multiply
- *    divide operates directly on $v0.
- */
-
 extern SVECTOR svec_y_n35[];
 
 void ProcMiscFire(TMisc *m, TMiscMessage msg)

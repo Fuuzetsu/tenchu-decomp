@@ -27,31 +27,6 @@
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */
 
-/*
- * SetupAfterimage (0x80038e9c, 0xfc bytes) — allocate an afterimage-trail
- * effect: two SVECTOR fields seeded from UnitVector (the identity SVECTOR,
- * same convention as UpdateOrnament/InsertConflict), a ring buffer of `len`
- * trail points (`p1`/`p2`, each `len * sizeof(GpuScreenPosition)` bytes —
- * matched twin DisposeAfterimage.c frees these same two fields), and a
- * POLY_GT4 sprite
- * initialized via SetupImageToPolyGT4/SetSemiTrans. The shared layout is
- * PSX.SYM's original `AfterimageType`, also independently confirmed by
- * Ghidra (reference/ghidra_types.h:4885). `len` is `short`, as recorded by
- * PSX.SYM and the shared API: `size = len * sizeof(*points)` compiles to the
- * sign-extend+scale-by-4 shift pair from the short parameter directly.
- *
- * Matching notes (docs/matching-cookbook.md): store order follows Ghidra's
- * literal rendering exactly, including `n` (offset 0x16) stored textually
- * BEFORE `maxn` (offset 0x14, the LOWER address) — reorg schedules the
- * `maxn` store into the following `valloc` call's delay slot, but the
- * source statement order is still n-then-maxn. `p1`/`p2` go through one
- * reused temp across both valloc calls (same cached-pointer-temp
- * convention as LoadTIMpackAndFree/GetVectorRotation's out-param). Each
- * `afi->vector{1,2} = UnitVector;` is an independent align-2 SVECTOR
- * struct copy (own `lui/addiu` reload of UnitVector's address — the two
- * copies do NOT share a cached base register, matching the "TU sibling"
- * caveat that a repeated global reference isn't automatically cached).
- */
 extern void *valloc(u32 size);
 
 AfterimageType *SetupAfterimage(ModelType *model, short len)

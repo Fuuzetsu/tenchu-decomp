@@ -19,18 +19,7 @@
  *     param stack+16  int time
  * END PSX.SYM */
 
-/*
- * MATCHED.
- *  - Retail narrowed the demo build's `int time` parameter to `unsigned short`:
- *    the target loads stack+16 with `lhu`. Direct `(short)time` casts at the
- *    division and remainder consumers reproduce the target's signed guarded
- *    remainder and two-instruction sign extension without a staging local.
- *  - `m = smoke->time - 1` must remain its own statement, as in SetSmoke.
- *    Inlining it lets fold reassociate the subtraction into `sum + 1`, moving
- *    the addiu to the wrong side of the final expression.
- *  - FIND_EFFECT_SLOT supplies the shared SetSmoke/SetExplosion round-robin
- *    search, including its full-pool fallback and cursor update.
- */
+/* Retail narrows the demo build's int time parameter to u16. */
 extern void DrawSmoke(TEffectSlot *ef);
 
 void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)

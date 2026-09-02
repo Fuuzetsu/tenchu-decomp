@@ -26,44 +26,6 @@
  *     reg   $a0       short dm
  * END PSX.SYM */
 
-/*
- * GetCenterAndSize (0x8003a9bc, 0x1a4 bytes) — same TU as leFindEnemy.c/
- * IsVisible.c (WORLD.C): given a mapped TMD object, walks its linked vertex
- * table to find the x/y/z bounding box, writes its center to `*center`, and
- * returns half of its largest axis extent through `*size`.
- *
- * Matching notes:
- *  - Each axis is `if (max < v) max = v; else if (v < min) min = v;` — an
- *    `if`/`else if`, NOT two independent ifs (Ghidra's own rendering, an
- *    `||`-chained single `if`, is an SSA merge artifact of the shared
- *    "did we already take the max branch" flag; the raw asm's max-branch
- *    unconditionally jumps past the min-test).
- *  - The field read for the COMPARISON is a signed `lh`, but the read that
- *    feeds the (short-to-short) assignment is an unsigned `lhu` of the SAME
- *    field, at the SAME address, with no intervening store — two un-CSE'd
- *    loads of different machine modes (the narrowing-use-gets-lhu rule).
- *    Reproduced by reading `vert->vN` directly at both the comparison and
- *    the assignment rather than caching it in a temp.
- *  - `maxz - minz` is computed ONCE, immediately after the loop, BEFORE the
- *    center->vx/vy/vz stores — and re-used only after them, for the size
- *    comparison. Statement position, not Ghidra's late placement, is the
- *    real order (the value is textually first but used last).
- *  - The `(short)a < (short)b` axis-extent comparisons compile to a SLT on
- *    the two values shifted left 16 (no `sra`) — cc1 skips the sign-extend
- *    since only the ORDERING of the low 16 bits matters to a signed
- *    comparison of two `<<16`'d operands.
- *  - Indexing `vert[i].vN` (not walking a pointer with `vert++`) is required:
- *    the loop touches THREE fields (vx/vy/vz) off one base, and a walking
- *    pointer biases the induction register toward the last-touched field
- *    (Loops section rule) — confirmed here (permuter-free structural fix).
- *  - `dm = (short)(maxx - minx);` must be computed as a NAMED local right
- *    alongside `dz = maxz - minz;` (before the center->vx/vy/vz stores) and
- *    reused in the final `if (dz < dm)` — recomputing `(short)(maxx-minx)`
- *    inline at the comparison compiles to a different (permuter-found)
- *    register colouring for the whole tail. Matches PSX.SYM's `reg $a0
- *    short dm` local exactly.
- */
-
 static void GetCenterAndSize(TmdObjectRecord *tmd, SVECTOR *center, int *size)
 {
     VERT *vert;
@@ -73,8 +35,6 @@ static void GetCenterAndSize(TmdObjectRecord *tmd, SVECTOR *center, int *size)
     short dz;
     short dm;
 
-    /* Chained copies off minx (not one multi-assign): byte-required
-     * (the multi-assign flips a subu's operands; measured). */
     minx = 0;
     miny = minx;
     minz = minx;

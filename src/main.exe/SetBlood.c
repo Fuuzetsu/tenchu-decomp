@@ -27,42 +27,8 @@
  *     extern struct AreaNodeType *FieldArea;
  * END PSX.SYM */
 
-/*
- * Matching notes (all verified against the original bytes):
- *  - The demo's PSX.SYM records a FOUR-argument prototype (pos, vect, n,
- *    time). Retail's three callers (ActDAMAGE, CVAupdate, DamageControl x2)
- *    each set only $a0/$a1/$a2 before `jal SetBlood`, and the callee itself
- *    never reads $a3 — the SVECTOR* "spread" parameter was dropped between
- *    the demo and retail builds (every per-axis jitter below now comes
- *    straight from rand(), with no live use of a spread vector anywhere in
- *    the body). Retail SetBlood is a plain THREE-argument
- *    `void SetBlood(VECTOR *pos, short n, short time)` — verified from the
- *    callers' own register setup, not assumed from PSX.SYM.
- *  - GetAreaMapLevel's return is discarded (called for a side effect only);
- *    `hint = FieldArea;` is a separate global read right after, not
- *    GetAreaMapLevel's result. Ghidra drops GetAreaMapLevel's stack-passed
- *    5th arg (the `0` mode flag) — cookbook: Ghidra undercounts stack args.
- *  - The per-particle fill uses the same guarded outer `do { ... } while (1)`
- *    shape as SetSmoke. A plain `while (i < n)` lets loop.c hoist the shared
- *    %120/%60 magic-multiply constant and the `time/2` split, adding four
- *    instructions. The complete outer-loop/direct-array graph below keeps
- *    both computations at their source use sites without a hand-written
- *    back edge or an artificial inner one-shot scope.
- *  - The inner search uses FIND_EFFECT_SLOT, preserving PSX.SYM's single
- *    result pointer, `slot`. Its direct `EffectSlot[idx]` expression lets
- *    loop strength reduction create the pointer walk visible in the target.
- *    The old apparent counter/test ordering difference from SetImpact was a
- *    scheduler artifact; the shared expansion matches both functions.
- *  - The per-particle initializer stores sprite,
- *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a
- *    brightness halfword store, hint, mode, and `proc` last (it lands in
- *    the closing loop-jump's delay slot).
- *  - Retail replaced the demo's adjacent `mode`/`bright` bytes with the
- *    halfword `brightness` at +0x20, so the 0x80 initialization is one `sh`.
- *  - `time`'s jitter needs a genuine variable division (`rand() % half2`),
- *    guarded by ASPSX's break 7/break 6 — needs `--expand-div`
- *    (Build.hs/permute.py).
- */
+/* Retail dropped the demo build's SVECTOR * argument; every retail caller
+ * and the callee use the three-argument form below. */
 extern void DrawBlood(TEffectSlot *ef);
 
 void SetBlood(VECTOR *pos, short n, short time)

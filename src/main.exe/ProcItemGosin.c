@@ -4,38 +4,6 @@
 #include "sound.h"
 #include "effect.h"
 
-/*
- * ProcItemGosin (0x80041bf4) — the gosin (protection charm) item processor.
- * mode 0: play the use animation (0xF04) + sound 0x4C; mode 1: while the
- * animation plays, on completion (count==0 && loop) spray blood, set the
- * owner's active item and start a 0x1C2-frame effect countdown — if the
- * animation was interrupted, toss the item back out (ReqItemDrop) and
- * dispose; mode 2: tick the countdown, spawning a set_impact_ex_ flash every
- * 0x40 frames, dispose at 0.
- *
- * Matching notes (all verified against the original bytes; this is
- * ProcItemKusuri's shape — see that file for the shared stack scratch and
- * drop-path conventions, ProcItemKawarimi/ProcItemGun for the dispose tail):
- *  - `ITEM_MODE_DISPOSE` (u8 ITEM_MODE_DISPOSE) is callee-saved ($s4): entry compare + the
- *    cross-jumped dispose tail's `item->mode = ITEM_MODE_DISPOSE` (both copies of the
- *    duplicated tail must spell `ITEM_MODE_DISPOSE` or they don't merge).
- *  - Real `switch` (fresh lbu + slti tree), bodies in source order 0,1,2;
- *    cases 0 and 1 end in a literal duplicated `item->mode = item->mode + 1;
- *    return;` cross-jumped into case 1's copy.
- *  - The dispatch index rides callee-saved $s0 because case 2 passes the
- *    literal `2` to set_impact_ex_ after rand(): cse's record_jump_equiv on the
- *    `beq idx,2` taken edge substitutes the index register for the literal
- *    (the ProcItemGun rule).
- *  - Case 2 uses PSX.SYM's `param_gosin.count`. Retail changed the demo's
- *    signed field to `u16` (`lhu`), then narrows through an s16 local
- *    (`sll/bnez` zero-test, not andi).
- *  - The active path reuses the completed drop request as a VECTOR and copies
- *    `vec_y_n1200_z_400` into it as one whole aggregate (the 16-byte batched
- *    loads/stores block move), not four scalar assignments.
- *  - `human`/`itemID` (PSX.SYM's own names) are the drop path's load-batch
- *    temps; `owner->active_item = item->type` is the plain narrowing store
- *    (lhu of the s32 type field).
- */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

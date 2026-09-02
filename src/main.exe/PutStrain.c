@@ -26,61 +26,6 @@
 extern s32 StrainRatio;
 extern u16 StrainPhase;
 
-/*
- * PutStrain (0x8004a8f0) — draws the "strain" HUD icon at (x,y): a
- * flashing/pulsing warning glyph whose sprite and pulse phase depend on
- * StrainRatio. 0x7fffffff (a sentinel) draws nothing at all. Otherwise:
- * ratio==0 -> KehaiRedImage (no pulse-drift clamp); ratio <
- * -20000 -> the retail-only KehaiCriticalImage (clamps ratio to 0 for the
- * pulse calc); -20000<=ratio<0 -> KehaiYellowImage (also plays
- * SoundEx(0,0xe) every 30 ticks — a warning beep — and clamps ratio to 0);
- * 0<ratio<=20000 draws a
- * PutNumber-style right-to-left digit strip of `(20000-ratio)/200` using
- * NumberImage (the numeric strain percentage) THEN uses KehaiGreenImage;
- * ratio>20000 returns without drawing anything.
- * The chosen icon sprite is then positioned at (x,y), tinted a shade of
- * gray that oscillates via rsin() driven by a persistent phase counter
- * (StrainPhase, advanced by the (adjusted) strain delta), and scaled by a
- * strain-proportional factor, then GsSortSprite'd.
- *
- * Matching notes:
- *  - `GameClock % speed == 0` lowers to the target's runtime divisibility
- *    test, just as EndDrawing's constant-period form does.
- *  - The digit loop is PutNumber.c's own do-while shape (goto-free real
- *    do-while; `r` is the quotient, reused as the next iteration's dividend
- *    exactly like PutNumber's `q`).
- *  - `ratio` is ONE variable doing double duty: the dispatch value AND (in
- *    the two negative branches, reset to 0) the value the tail geometry
- *    reads — Ghidra's decompilation renders these as two different
- *    variables (`lVar6`/`StrainRatio`) but m2c's raw register trace shows
- *    a single reused pseudo across both roles.
- *  - The phase-advance uses `delta` ADJUSTED (+0x1f when negative, an
- *    arithmetic-shift-rounds-toward-negative-infinity correction before the
- *    `>>5`), but the scale factor uses the RAW (unadjusted) `delta` — two
- *    separate reads of the same `powrange - ratio` expression, not one shared
- *    temp.
- *  - CRITICAL: `NumberImage.u` is NOT read/restored globally — Ghidra's
- *    `uVar1 = NumberImage.u;` at the very top (before the StrainRatio
- *    dispatch) is a decompiler artifact; the target never touches
- *    NumberImage at all in the three simple (non-digit-loop) branches.
- *    `base`/`img` are LOCAL to the digit-loop (`else`) branch only — the
- *    earlier draft that hoisted them to function scope cost an extra
- *    saved register (frame 56 vs target's 48) and never converged; scoping
- *    them into the branch fixed the length exactly.
- *  - The first digit-branch access is the direct `NumberImage.w = 4`, then
- *    `img = &NumberImage`. That creates the target's address pseudo followed
- *    by the separate `$s1` copy; writing `img->w = 4` after the assignment
- *    lets cc1 form the address directly in `$s1` and loses one instruction.
- *    Reading `base` later through `img` also leaves its `lbu` in the target
- *    slot between the y producer and store.
- *  - The statement boundary around the final `img->u = base` write raises
- *    `base` above `spr` in global allocation, placing them in the target's
- *    `$s3`/`$s4` respectively.
- *  - `phase` is genuinely unsigned: the target passes it to `rsin` with one
- *    `andi`, not a signed `sll`/`sra` pair.
- *
- * MATCH — exact 584-byte / 146-instruction pure-C match.
- */
 void PutStrain(s32 x, s32 y)
 {
     enum
@@ -149,10 +94,6 @@ void PutStrain(s32 x, s32 y)
             } while (0);
         }
 
-        /* This is cc1's own signed-divide-by-32 expansion, and unlike
-         * the one below it does NOT fold back: `delta / 32` costs 6
-         * lines, because `delta` is still live for the scale below
-         * and the schedule differs. */
         delta = powrange - ratio;
         s = delta;
         if (delta < 0)

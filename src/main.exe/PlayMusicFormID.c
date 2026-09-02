@@ -14,27 +14,7 @@
  *     param $a0       int id
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — 176 bytes / 44 instructions.
- *
- * Event-audio IDs below 100 are voice clips. IDs from 100 are logical music
- * IDs and are remapped through the sentinel-terminated MusicIdByTrack before
- * being passed to _PlayMusic.
- *
- * _PlayMusic's real two-argument ABI is load-bearing: treating the table and
- * sentinel as extra call arguments lengthens their live ranges and creates a
- * false address-register conflict. Otherwise the source is the direct
- * sentinel loop it appears to be: `MusicIdByTrack[track]` is tested for both
- * the requested cue and the end marker. The signed 16-bit `track` makes GCC
- * generate the target's extension and indexed address sequence; no table
- * aliases, integer pointer sum, next-index temporary, or scheduling fence is
- * needed.
- */
-
-/* splat's auto MusicIdByTrack had drifted to 0x8008ea34 (+8 bytes, pre-existing
-   accumulation drift in a still-raw data blob) — bound fresh at the correct
-   address in config/symbols.main.exe.txt (see the cookbook's drifted-D_
-   note). */
+/* Explicit binding avoids an eight-byte offset error in the generated symbol. */
 void PlayMusicFormID(s32 event_audio_id)
 {
     s32 cue;

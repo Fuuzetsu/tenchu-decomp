@@ -4,12 +4,6 @@
 
 extern s32 abs(s32 value);
 
-/*
- * Naming: retail added this pair after the demo build. SetSnow is called only
- * by ProcMiscSnowfall and installs this callback; this body advances exactly
- * those snow-param fields and draws the dedicated sprite. The unused
- * SetSnow/DrawSnow pair follows every surrounding EffectSlot setter/callback.
- */
 void DrawSnow(TEffectSlot *ef)
 {
     SnowParticleType *param;
@@ -37,8 +31,6 @@ void DrawSnow(TEffectSlot *ef)
     view_x = ViewInfo.vrx;
     view_y = ViewInfo.vry;
     view_z = ViewInfo.vrz;
-    /* Field loads in this machine order: byte-required (the plain
-     * x = param->x + param->velocity[0] spelling reorders; measured). */
     {
         s16 velocity_x;
         s16 velocity_z;
@@ -87,9 +79,6 @@ void DrawSnow(TEffectSlot *ef)
 
     if (wrapped != 0)
     {
-        /* Retail reuses the rewrap flag's register for the ground query
-         * (a fresh local, or reusing `ground`, re-colors a pseudo --
-         * measured). */
         wrapped = GetAreaMapLevel(GlobalAreaMap, x, param->sample_y, z,
                                   AREA_LEVEL_FIRST_HIT);
         if (wrapped < y)

@@ -15,12 +15,6 @@
  *     param $a1       struct POLY_XF4 * ply
  * END PSX.SYM */
 
-/*
- * AddXF4 (0x80038de4) — identical shape to AddXG4 two functions up in the
- * same 0x80038dxx TU: adds two GPU primitives out of one buffer to an order
- * table, `ply` then `tpage`, via AddPrim(ot, prim). `ot` and `ply` are cached in
- * callee-saved regs across both calls (cookbook's cached-pointer rule).
- */
 void AddXF4(void *ot, POLY_XF4 *ply)
 {
     AddPrim(ot, &ply->ply);

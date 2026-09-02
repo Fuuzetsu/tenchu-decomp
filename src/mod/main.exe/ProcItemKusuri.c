@@ -1,16 +1,4 @@
-/*
- * MOD hook of ProcItemKusuri (0x80040500) — the kusuri (health item) processor.
- *
- * This is Ghidra's decompilation, made to compile (it will NOT byte-match) so we
- * can trampoline it via `./Build mod` (docs/modding-and-nonmatching.md). The whole
- * Ghidra type set is pulled in via reference/ghidra_types.h (`pointer` is Ghidra's
- * generic-pointer pseudo-type). The one gameplay knob lives in the `mode == 2`
- * branch: `item->owner->life = item->owner->lifemax;` — later we set that to 50.
- *
- * The overlapping stack locals Ghidra split (local_40/2c/28/24/20) are kept as one
- * 40-byte buffer accessed by offset, so the memory behaviour matches the original.
- */
-typedef void *pointer;              /* Ghidra generic pointer pseudo-type */
+typedef void *pointer; /* Compatibility type for this non-matching mod hook. */
 #include "../../../reference/ghidra_types.h"
 
 #define CONCAT22(hi, lo) \

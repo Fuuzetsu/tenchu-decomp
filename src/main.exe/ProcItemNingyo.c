@@ -48,20 +48,6 @@ extern short DrawModel(ModelType *objp);
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
-/* MATCH (retail): the pure-C body has the exact 0x68 frame, 564 instructions,
- * exact 36/12/33/1 branch/jump/call/return inventory, and target
- * item/param/sentinel homes s3/s4/s5.  The drop path's direct model load
- * preserves the target owner/type/model load order in s2/s1/s0.
- *
- * Clearing the launch request through `ClearItemLaunchRequest` confines the
- * memset address to the inlined helper lifetime, preventing the stack-address
- * CSE that otherwise occupies s3. Reusing the model pointer for its embedded
- * position then makes the derived-address and all three shared modulus-
- * constant sequences exact. Separate base/result conflict pointers and
- * INITIALIZE_CONFLICT_OBJECT preserve the mode-1 address and constant ordering.
- * The safe disposal statement scope supplies the source-level loop weight that
- * keeps item/param/sentinel in s3/s4/s5; flattening that scope rotates all
- * three registers. */
 void ProcItemNingyo(TItem *item)
 {
     enum

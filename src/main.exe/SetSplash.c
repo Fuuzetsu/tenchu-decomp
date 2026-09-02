@@ -20,14 +20,6 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
-/*
- * Matching notes (see SetFrame.c for the shared indexed do-while pool scan):
- *  - splash.px is this struct's offset-ZERO field and is the first one
- *    written, so it goes through a fresh `slot->param.splash.px = ...` recast;
- *    `fp = &slot->param.splash;` is only introduced for the second field
- *    onward (all nonzero offsets), matching the target's t0-direct first
- *    store followed by a v1=t0+4 computed just before the second.
- */
 extern void DrawSplash(TEffectSlot *ef);
 
 void SetSplash(VECTOR *pos, short sx, short sy, int speed)

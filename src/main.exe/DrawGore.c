@@ -29,28 +29,6 @@
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void DrawBleed(TEffectSlot *ef);
 
-/*
- * MATCH. This is the retail form of EFFECT.C's DrawGore, installed by
- * SetGore. It is closely related to DrawBlood, but always emits a small
- * DrawBleed particle and uses a 60-unit position jitter. Retail radically
- * redesigns the demo's GoreType state into the BloodType view used here.
- *
- * The vector, position, and temporary locals form the sp+0x18..sp+0x3f
- * workspace. The short vector first carries the bleed velocity and is later
- * reused for screen projection; the temporary position similarly becomes a
- * short velocity only after its full-width copy. sprBloodStay is the original
- * name of the second blood-sprite bank; retail expands both demo singletons to
- * four sprites. Naming it separately is load-bearing because the target
- * materializes both bank bases independently. The named base_x/y/z values
- * prevent reassociation of `(position - 60) + rand()%120`,
- * and the full-width `green` local preserves the target's li 0x7f10 before a
- * byte store. The pool's iteration count is PSX.SYM's `i`;
- * FIND_EFFECT_SLOT's direct `EffectSlot[cursor]` access lets loop strength
- * reduction create the machine-level scan pointer, while `slot` carries only
- * the found/fallback result. The retained `velocity` pointer is also a
- * measured aggregate-copy boundary: spelling its destination directly costs
- * 15 diff lines.
- */
 void DrawGore(TEffectSlot *ef)
 {
     enum

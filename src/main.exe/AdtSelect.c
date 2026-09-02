@@ -2,32 +2,6 @@
 #include "main.exe.h"
 #include "adt.h"
 
-/*
- * AdtSelect (0x8005fecc, 776 bytes) — modal debug-menu mode widget:
- * waits for pad release, saves the display state into a 0x8090-byte frame
- * buffer, then draws the choice list (18 per page) and moves the cursor on
- * edge-detected pad input until confirm (pad & 0x820 -> current entry) or
- * cancel (pad & 0x40 -> last entry); returns the entry's value.
- *
- * STATUS: MATCHING — ordinary human-shaped C under the reused ADT object's
- * pinned GCC 2.8.0 compiler profile.
- *
- * Matching constraints:
- *  - All eleven contiguous members of the reused ADT object are exact under
- *    GCC 2.8.0, and their linked objects produce zero main.exe differences.
- *  - Keep the empty indexed entry-count loop, ordinary list-display for loop,
- *    and human D-pad if/else-if chain. No synthetic one-shot fences are
- *    required.
- *  - Compiler identity is the remaining mechanism. GCC 2.8.0 preserves the
- *    large-frame menu address reload as RELOAD_FOR_OPADDR_ADDR and emits the
- *    target's a3 self-tie. GCC 2.8.1 reclassifies it and leaves the otherwise
- *    equal-length body nine bytes off.
- *  - Volatile pointer spellings change length or cause an allocation cascade;
- *    an empty asm constraint only diagnoses the lifetime and is not acceptable
- *    source. Do not restore either workaround.
- *  - The same 776-byte body in ENDING.EXE, MAIN.EXE, MENU.EXE, and TRIAL.EXE
- *    identifies this as one reused ADT library object.
- */
 extern s32 VSync(s32 mode);
 
 extern char str_select_item_2[]; /* select item */
@@ -101,8 +75,6 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
             mode = count - 1;
             break;
         }
-        /* i doubles as the cursor delta: byte-required (a separate local
-         * loses the s-register identity; measured). */
         if (trg & PADLup)
             i = -1;
         else if (trg & PADLdown)

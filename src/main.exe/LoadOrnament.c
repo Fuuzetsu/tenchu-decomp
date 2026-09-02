@@ -20,17 +20,6 @@
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */
 
-/*
- * LoadOrnament (0x80018644, 0x90 bytes) - near-twin of
- * CreateCloneOrnament.c (same OrnamentType/World setup, same
- * GsInitCoordinate2/RotMatrixYXZ initialization tail): allocate and
- * initialize an OrnamentType, hook it into World's hierarchy, build an
- * identity matrix at the origin - and, when `adr` is non-null, wire the
- * model data in (GsMapModelingData on the modeling-data block, then
- * GsLinkObject4 to attach the object list) instead of
- * CreateCloneOrnament's plain tmd-pointer copy from an existing clone
- * source.
- */
 extern void *valloc(u32 size);
 
 OrnamentType *LoadOrnament(u_long *adr)

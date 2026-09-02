@@ -42,20 +42,6 @@ extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void *valloc(u32 size);
 extern void vfree(void *ptr);
 
-/*
- * Matching notes (see docs/matching-cookbook.md):
- *  - Both table scans need the explicit top-tested `while (1)`/`break`
- *    shape.  Keeping `HumanGroup` in `group` also reproduces the removal
- *    loop's base-pointer lifetime.
- *  - The two address-taken VECTORs receive stack slots in declaration
- *    order: `tmp` must precede the memset scratch `pos`, even though `pos`
- *    is referenced first.
- *  - The one-shot loop around the rotation store emits no control flow; its
- *    loop note is the scheduler barrier needed for the target's two load
- *    delay nops.  This was isolated with the RTL-guided autorules pass.
- *  - Direct `tp[i]` indexing gives the target's single induction value;
- *    a walking TracePoint pointer introduces a second one.
- */
 void leLayoutEnemy(enemy_layout_mode mode)
 {
     s32 i;
@@ -109,8 +95,6 @@ void leLayoutEnemy(enemy_layout_mode mode)
 
             human = BreedLife(en->type, en->x, en->y, en->z, 0);
             human->model->rotate.vy = en->r;
-            /* Staged owner_model straddling the |= is byte-required
-             * (inlining the read reorders the pair; measured). */
             owner_model = CamState.Owner->model;
             human->attribute |= ATTR_SUSPEND;
             human->target = &owner_model->locate;

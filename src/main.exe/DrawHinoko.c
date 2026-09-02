@@ -20,31 +20,6 @@
  *     extern struct Sprite3D *sprBomb[3];
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * DrawHinoko advances the spark/explosion state, integrates its velocity,
- * copies the result to sprBomb[BOMB_SPRITE_HINOKO], and draws it.
- * `ef->param.hinoko` has the
- * ExplosionType layout: vec@0x0, pos@0x8, rotate@0x18, scale@0x1c,
- * time@0x20, and mode@0x21.
- *
- * After normalizing relocated global addresses, the demo implementation is
- * instruction-identical to retail apart from its epilogue. For this function,
- * PSX.SYM's line events map to the demo executable at +0x20 and form a useful
- * source-order oracle: after the switch the original statements are time,
- * vertical acceleration, scale, then position x/y/z. The old parked
- * draft instead preloaded z/x/y into invented scalar locals; that changed
- * sched1's quantity graph and created the supposed 18-byte allocation floor.
- * The ordinary compound assignments below reproduce the target allocation.
- *
- * Two other carriers are unnecessary. GCC CSEs the two direct `time` reads in
- * case 1 into the target's single lbu. A direct rotation assignment written
- * before the RGB stores keeps its load there and schedules its store into
- * UpdateCoordinate's delay slot. The result uses exactly PSX.SYM's original
- * locals: param, spr, and alfa.
- */
-
 extern short DrawSprite(Sprite3D *sprt);
 
 /* Originally static in EFFECT.C; global here because SetHinoko is split into

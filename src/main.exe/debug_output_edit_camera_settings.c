@@ -2,29 +2,6 @@
 #include "main.exe.h"
 #include <psxsdk/libgpu.h>
 
-/*
- * debug_output_edit_camera_settings (0x8003076c, 0x274 bytes) edits one of
- * four camera SVECTORs with the held pad directions, restores all four
- * vectors when L2+R2 are held (a new L1 press cycles the edited
- * slot), and prints the current values.
- *
- * Splat divides the original assembly at the interior
- * `__override__prt_800309b0...` call-site marker.  The first piece falls
- * straight through to the second; this is one ordinary C function, not a
- * jump table or a second entry point.
- *
- * Matching notes:
- *  - The one-frame button state is written through the globals themselves.
- *    The first assignment remains observable to the following global-based
- *    expression and reproduces both target `sh` stores; computing the result
- *    only through locals lets cc1 delete the first store.
- *  - The 32-byte camera reset is one align-2 aggregate assignment, producing
- *    the target's `lwl/lwr` and `swl/swr` block copy.
- *  - `i = 0` deliberately precedes the named format-pointer capture.  Reorg
- *    moves the zero into the reset guard's delay slot, while the format
- *    pointer lives in `$s3` across the four FntPrint calls.
- */
-
 extern u16 DEBUG_PAD_HELD_;
 extern u16 DEBUG_PAD_PRESS_;
 extern s16 DEBUG_CAMERA_INDEX_;

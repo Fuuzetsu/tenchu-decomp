@@ -15,12 +15,6 @@
  *     stack sp+20     long result
  * END PSX.SYM */
 
-/*
- * FormatCard — MemCardFormat on slot 0, then block on MemCardSync and return
- * its result truncated to a short. Structurally identical to ChkCard.c (see
- * that file for the shared-stack-slot note); only the kick-off call differs.
- */
-
 card_result FormatCard(void)
 {
     s32 cmd;

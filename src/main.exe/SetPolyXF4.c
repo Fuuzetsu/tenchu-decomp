@@ -15,16 +15,6 @@
  *     param $a1       short attrib
  * END PSX.SYM */
 
-/*
- * SetPolyXF4 (0x80038e24) — initializes EFFECT.C's recovered POLY_XF4: one
- * DR_TPAGE command followed by a semi-transparent flat quad.
- *
- *  - `ply->ply.tag`'s top byte (offset+3) is the PsyQ `setlen` length field,
- *    set to the POLY_F4 payload length; `.code` selects a semi-transparent
- *    flat quad.
- *  - `ply->tpage.tag`'s top byte is set to 1 (setlen), and `.code[0]`
- *    carries `attrib`'s gpu_blend_mode in the DR_TPAGE blend field.
- */
 void SetPolyXF4(POLY_XF4 *ply, short attrib)
 {
     setPolyF4(&ply->ply);

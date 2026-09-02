@@ -30,54 +30,6 @@
  *     extern struct AreaNodeType *FieldArea;
  * END PSX.SYM */
 
-/*
- * GetAreaMapLevel (0x80019a10) — node-map floor-height query (this is the
- * map/collision TU, not the item TU). Coordinates are divided by 10 into
- * map units; the NodeIndexType table (FieldIndex caches the last hit, `area`
- * is the table base) is walked down/up to the row matching `y2` (y/10),
- * then each
- * row entry's rect is tested and ComputeAreaLevel gives the height. The
- * result is cached in FieldArea/FieldIndex/FieldAttrib (attribute) and
- * AreaMapLastY (last `y2`). Returns the height*10 (or its delta to y with
- * mode&2), 0x80000000 when nothing is below.
- *
- * Matching notes (docs/matching-cookbook.md; all verified against the bytes):
- *  - Every loop is a hand-rolled goto loop, NOT while/do-while: real loops
- *    here get jump.c-rotated (do-while) or loop.c-strength-reduced (extra
- *    combined address bases like s8=index+2 / s0=node+6 appear). Goto loops
- *    keep the original's top-test + conditional back-jump and one cursor.
- *  - x and z are the PARAMETERS reused (`x = x / 10;`) — that is what puts
- *    them in callee-saved homes with the `move s5,a1`/`move s6,a3` prologue
- *    copies; `y2` is a separate local (y itself is reloaded from its arg home
- *    slot 0x50 at the end). PSX.SYM records both the promoted `int mode`
- *    parameter and the original `short mode` local, the characteristic K&R
- *    boundary shape represented here by `mode` and `mode16`.
- *  - The 5th-arg tests split: (mode & 1)/(mode & 0x10) read the still-live
- *    word register; (mode16 & 8)/(& 4)/(& 2) read the spilled short slot.
- *  - `row` is a long cursor at &index->index. NODE_INDEX_ROW_FIELD derives
- *    the surrounding halfword fields from the same address shape (the n load
- *    at -2($s2) proves it). The row rect tests re-read the same expressions
- *    in the division block so cse reuses the bounds registers.
- *  - qx/qz are `short`: the (q<<16)>>15 / (q<<16)>>13 sequences are the
- *    sign-extend of the short quotient merged with the *2 and *8 array scaling.
- *  - Forming the node address as a byte count plus an integerized list keeps
- *    the operand order (addu s0,v0,a2); typed `list + n` emits
- *    addu s0,a2,v0.
- *  - The tail return-0x80000000 body carries the ret_min label INSIDE the
- *    (`y2` < -1000 && !(mode & 4)) body, and the `yy`==MIN / attribute&2
- *    checks `goto ret_min`: written this way there is exactly ONE
- *    return-MIN body, entered by fallthrough, so it survives inline as
- *    [j epilogue; lui-delay] and the two gotos become branches whose delay
- *    slots reorg fills by stealing that lui (writing separate `return
- *    0x80000000;` statements lets cross-jump merge/invert them differently).
- *  - The (mode & 4) test's bnez lands at E60 past the E54 lhu because reorg's
- *    redundant_insn check sees t1 already holds the mode slot on that path
- *    and steals the following andi into the delay slot instead.
- *  - The do{}while(0) wrapper (found by tools/permute.py) is load-bearing:
- *    see the comment at its site. maspsx needs --expand-div for this file
- *    (true `/` by a variable -> ASPSX's guarded div with break 7/break 6).
- */
-
 extern long AreaMapLastY; /* last queried y/10 (`y2`) */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
@@ -114,11 +66,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
     z = z / 10;
     y2 = y / 10;
     yy = LEVEL_NONE;
-    /* The do{}while(0) wrapper is load-bearing: its loop notes double flow.c's
-     * loop_depth ref-weighting for everything inside, which is what pushes the
-     * allocation priorities into the original's order (row above index, nn
-     * above y2 -> $s2/$s3/$s7/$fp exactly as in the target); the degenerate
-     * loop itself generates no code. */
+    /* Wrapper retained for code layout; its original source construct is unknown. */
     do
     {
         if (mode & AREA_LEVEL_STEP_DOWN)

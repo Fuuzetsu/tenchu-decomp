@@ -34,46 +34,8 @@
  *     extern unsigned char gNannido;
  * END PSX.SYM */
 
-/*
- * FileOption (0x8005c5a8, 1108 bytes) — the debug menu's file/save submenu
- * (dispatch case 3 in DoInfoViewProc): save/load layouts to the memory card,
- * image re-init, SystemFlag toggle, music test by StageID, music-select menu,
- * engage-level presets, stock layout load.
- *
- * STATUS: MATCHED — pure C, all 1108 bytes / 277 instructions exact, with
- * the target's 13 conditional branches, 13 jumps, 21 calls, and 2 returns.
- * Everything derived and verified: local menu-template copies, (s16) dispatch
- * with case 1 laid out before case 0, the shared 7000-byte work area, split-
- * address (lui+lo_sum) symbol accesses [-msplit-addresses is ON in this cc1:
- * TARGET_DEFAULT includes MASK_SPLIT_ADDR — non-small extern symbols split,
- * small (≤ -G8) ones stay one-line macros], the case-9 terminator's named
- * pointer, the cross-jumped editor rebuild tail, and this TU's gp-relative
- * SystemFlag accesses.
- *
- * The final scheduler tie closes by passing the byte that was just stored:
- * `load_layout(STAGE_LAYOUT_NUMBER[0])`.  cc1 store-forwards that read to the
- * same `andi a0,v1,0xff` as the old `k & 0xff` spelling, while the memory
- * dependency keeps `sb v1,6(v0)` before the mask.  No load survives.  This is
- * the narrow source-level lever that the earlier statement/fence/permuter
- * searches missed: express a same-width store-to-load dependency and let CSE
- * erase the reload, rather than pinning the schedule with loop notes.
- *
- * SystemFlag is gp-relative in this TU (Build.hs maspsxGpExterns + permute.py).
- * EngageLevel/StageID/gNannido are other TUs' smalls -> absolute macros.
- * PSX.SYM records one byte buffer and a `pBuf` cursor, not a variant object.
- * LayoutSaveData gives that 7000-byte work area its primary save-file shape,
- * and the typed cursor names its enemy and item sections on the save path; the
- * music-test and menu cases reinterpret it only where they temporarily
- * populate another format. The indexed targets/messages walk then lets loop.c
- * derive the target's three pointers. Naming fmt_num_2 directly keeps its
- * `%hi` half loop-invariant while forming `%lo` at each call, producing the
- * retail instruction schedule and ordinary relocations.
- */
-
 extern MusicTrack MusicByStage[N_STAGE_CONFIGS];
-/* declared as an unknown-size array ON PURPOSE: not-small -> split-address
- * (lui+lo_sum through an allocated reg), where BIS's scalar `extern u8`
- * spelling would be sdata-flagged and become a $at macro store */
+/* Unknown bound keeps this symbol out of small-data addressing. */
 extern u8 STAGE_LAYOUT_NUMBER[];
 
 extern char str_file_option[]; /* "file option" */

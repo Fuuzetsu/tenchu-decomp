@@ -29,19 +29,6 @@
  *     extern long AttackActionCount;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING
- *
- * Three source-shape facts close the function:
- *  - Assigning GameClock to AttackActionCount before compound-adding
- *    EngageLevel*10 preserves the target's a0 accumulator/writeback.
- *  - `(raw >= 0) ? raw : -raw` reaches GCC's abssi2 expansion and emits the
- *    target's copy-then-self-negu form.  The LT ternary does not.
- *  - Spelling the two random choices as a nested positive arm makes ItemUse
- *    the cold final arm and lets jump2 merge the four SetCommand calls into
- *    the target's single call tail.
- */
-
 extern Humanoid *Me_THINK_C;
 extern s32 AttackActionCount;
 
@@ -110,8 +97,6 @@ short AttackLong(void)
     {
         Humanoid *me;
 
-        /* The mid-sequence alias and mixed spellings are byte-required
-         * (uniform spelling recolors the stores; measured). */
         Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
         me = Me_THINK_C;
         Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;

@@ -22,14 +22,6 @@
  *     reg   $s1       unsigned long * data
  * END PSX.SYM */
 
-/*
- * LoadFromMEMORY (0x8001962c) — memory-card/MEMORY loading stub; disabled in
- * the shipped build, so it just reports the "disabled" message and returns
- * null (filename is unused). msg_memory_load_is_disabled is the literal string
- * "*** memory load is disabled now ***" living in this TU's rodata blob
- * (unsplit data segment; the address already has an auto symbol, no yaml
- * carve needed — same pattern as msg_item_dispose_fail/VoiceMode elsewhere).
- */
 extern void AdtMessageBox(char *fmt, ...);
 extern char msg_memory_load_is_disabled[]; /* *** memory load is disabled now *** */
 

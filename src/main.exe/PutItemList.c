@@ -32,32 +32,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — all 504 bytes / 126 instructions exact.
- *
- * Draws each carried item count (except the 0xFF unlimited sentinel), the
- * rotating cursor for the selected kind, and the corresponding bright or dim
- * item icon.  The two small inline routines preserve the natural same-TU
- * boundaries of INFOVIEW.C's immediately neighbouring PutNumber and
- * PutItemCursor operations; this is what gives loop.c the target's NumberImage
- * and CursorImage preheader hoists without the old constant locals and
- * identical-arm fence.
- *
- * The decisive recovery was the meaning and lifetime of the demo's locals.
- * `s` is the carried count loaded into $s0, while each branch-local `ItemID`
- * first holds `i * sizeof(ItemImage[0])` and is then reused for the loaded
- * item pointer.  Fresh loop RTL shows GCC combining those two branch-local
- * arithmetic givs into one reduced offset: its init is emitted after the
- * hoists (`move s5,s3`) and its backedge update is `addiu s5,s5,4`.
- * Hand-writing that machine offset as a function-wide counter created the old
- * 27-byte sched2 local minimum and contradicted this compiler-generated shape.
- *
- * Keeping each arm's own ItemID/spr scope and GsSortSprite call is also
- * intentional: jump2 merges the final calls while retaining the target's
- * branch-local ItemImage address producers; shared `x = x - ItemGap` fills
- * the merged call's delay slot.
- */
-
 static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
 {
     CursorImage.x = x;

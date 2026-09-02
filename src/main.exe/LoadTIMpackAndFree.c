@@ -10,13 +10,6 @@
  * adopted. Corroborate with `tools/callmatch.py --verify` before renaming.
  * END PSX.SYM */
 
-/*
- * LoadTIMpackAndFree (0x800188d8) — identical shape to LoadTIMAndFree just
- * above it: loads a TIM-pack via LoadTIMpack, then frees the buffer via
- * vfree. `tim` is cached in a callee-saved reg across both calls (a plain
- * parameter read twice needs no separate temp — cookbook's cached-pointer
- * rule).
- */
 extern short LoadTIMpack(unsigned long *adr);
 extern void vfree(void *p);
 

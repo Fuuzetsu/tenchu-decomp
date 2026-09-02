@@ -13,19 +13,6 @@
  *     extern struct tag_EffectSlot EffectSlot[200];
  * END PSX.SYM */
 
-/*
- * DrawEffect (0x80039bbc, 0x58 bytes) — walks the EffectSlot[] pool (200
- * entries) and runs every live slot's `proc` callback, passing the slot itself.
- * Same pool/stride as reset_effects_.c (0x4C-byte tag_EffectSlot, 0xC8
- * entries) — a real `for` loop whose i<200 entry test provably folds away,
- * leaving the bottom-test-only do-while shape and a strength-reduced
- * walking pointer (cookbook Loops/leResetEnemyLayout).
- *
- * The null-check and the indirect call both read `p->proc` — cc1's cse
- * reuses the ONE load for both (no separate variable needed): the asm loads
- * proc once into $v0, tests it, and calls through the SAME register.
- */
-
 void DrawEffect(void)
 {
     TEffectSlot *p;

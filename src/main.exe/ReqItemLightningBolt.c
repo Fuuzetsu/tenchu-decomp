@@ -28,43 +28,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemLightningBolt (0x80046358) — spawn a "lightning bolt" item. Twin of
- * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemKaengeki/ReqItemMakibishi
- * (same item TU, same pool round-robin on ic and the
- * same dispose-on-exhaustion block); like ReqItemJirai/ReqItemKaengeki there
- * is no GetAreaMapLevel floor check. It gets ProcItemLightningBolt as its
- * processor.
- *
- * PSX.SYM identifies the payload as `param_lightningbolt`: start is stored
- * as three full words, with start.vx through `item->param.lightningbolt`
- * directly and start.vy/start.vz through `param`. There is no end-vector store — instead
- * GetVectorRotation(&p->start, &p->end, &rx, &ry) computes two full-word
- * rotation outputs; their low halves become `param_lightningbolt.rot.vx/.vy`,
- * with `.vz` cleared.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - The inlined allocator keeps PSX.SYM's `ret` separate from the outer
- *    `item`, as in ReqItemMakibishi: `ret = items + ic;` in the
- *    loop/dispose block, with `item = ret;`
- *    assigned once in the early-exit branch and once before the dispose
- *    block's final owner/proc zeroing — this function's register pressure
- *    (stack rotation outputs + param + item + p all live around the tail)
- *    pushes `ret`/`item` to different hard registers, making the transfer a real
- *    `move` (see the cookbook rule this pair of functions taught).
- *  - `param = &item->param.lightningbolt;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins; dead afterward (p->start.vy/vz are re-read
- *    directly off p, not through pos, in the param tail below, same as
- *    ReqItemKaengeki).
- *  - aowner/atype are real temps, same shape as the other twins.
- *  - The three start-vector param stores are INLINE (no x/y/z temps): each
- *    compiles to one lw immediately followed by its sw, same as
- *    ReqItemKaengeki's six-word tail.
- *  - `rx`/`ry` are read before any of the three result stores (batched
- *    loads-before-stores, the same shape as the other twins' x/y/z temps).
- */
 extern void ProcItemLightningBolt(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */

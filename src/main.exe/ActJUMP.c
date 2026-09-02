@@ -132,8 +132,6 @@ void ActJUMP(void)
             return;
         }
 
-        /* Staged velocity/scaled pair: byte-required (folding the two
-         * multiplies into per-arm dtV->vy stores mismatches; measured). */
         velocity = dtV;
         apex_offset = dtM->count - (dtM->motion->time >> 1);
         if (motID == MOT_JUMP_RUN)

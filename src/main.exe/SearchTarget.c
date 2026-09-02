@@ -32,23 +32,6 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — exact 1128-byte / 282-instruction pure-C match.
- * The stack plan is frame 0x50, `vect` VECTOR at sp+0x10, position VECTOR at
- * sp+0x20, and passage SVECTOR at sp+0x30.
- *
- * The passage failure's SImode -2 is narrowed through `passage_pad`, crosses
- * a zero-code loop fence, and is widened through identical arms.  This strips
- * the literal equivalence until jump2 without emitting code, so retail's late
- * `j`/`li -2` island survives while the close-distance return folds directly
- * into its conditional branch.
- *
- * The three components of `vect` must be one stack VECTOR; the sight-profile
- * selector (demo `mode`) must remain s16 for the target's repeated
- * promotion/copy chains; and the vertical adjustment needs distinct
- * `initial_delta_y`, updated `delta_y`, and `base_y` identities.
- */
-
 typedef struct
 {
     s32 sight_distance; /* beyond this: SR_UNSEEN */
@@ -173,12 +156,6 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
         {
             limit = 300;
         }
-        /* Run the sight ray from this character's eyes to the player's:
-         * lift the origin by 300 above the feet minus its own height, and
-         * shift the target vector to match. The delta staging is
-         * byte-required (spelling `vect.vy += human->height - 300;`
-         * directly costs 10 lines); the origin update is not, so it is
-         * written plainly. */
         initial_delta_y = vect.vy;
         delta_y = initial_delta_y - 300;
         position.vy += 300 - human->height;
@@ -220,7 +197,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 
             passage_raw = -2;
             passage_pad = passage_raw;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);

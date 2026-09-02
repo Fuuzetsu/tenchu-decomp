@@ -38,12 +38,7 @@ extern void *memset(void *dst, s32 value, u32 size);
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);
 
-/*
- * The 0x200-byte card header and save payload are the two members of one
- * MemoryCardFileBlock. Fixed-size built-in copies use TCardHeader's recovered
- * Clut/Icon bounds while preserving the original compiler's aligned/unaligned
- * loops.
- */
+/* The card header and save payload are one MemoryCardFileBlock. */
 card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 write_data)
 {
     u8 fn[200];

@@ -23,35 +23,6 @@
  *     reg   $a2       struct param_korogari * param
  * END PSX.SYM */
 
-/*
- * MoveFly (0x8003dfd4) — advances a thrown/flying item one frame along a
- * quadratic Bezier arc, or hands off to MoveKorogari once it has landed.
- * Needs maspsx --expand-div (Build.hs + permute.py): it divides
- * `t << FIXED_SHIFT` by the runtime byte `param->p.fly.count2` (ASPSX
- * break 7 / break 6 guards).
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - The mode dispatch is a plain `switch (param->mode)` with cases 0 and 1
- *    and no default (measured byte-identical 2026-08-31, replacing an
- *    equivalent two-goto ladder): both bodies are forward-jump targets and
- *    the do-nothing default falls through.
- *  - The named runtime copy `k = FIXED_ONE` shares the constant across
- *    `q = k - …` and `w9 = k - d2 + …` (one `li` reused as a subtract base), matching the
- *    target's a3; two inline `0x1000` literals compile a fold-reassociated
- *    `q2 + 0x1000` and diverge.
- *  - `d2 = q * 2` as its own statement lets reorg steal the `sll` into the
- *    `q*q < 0` guard's delay slot; folded into w8/w9 it leaves a nop there.
- *  - Each fixed-point reduction sits immediately after its own `<0` adjust so
- *    reorg fills the NEXT guard's delay slot with it (deferred one step).
- *  - `nv = q2;` is an explicit second copy of q2 (permuter-found): the target
- *    keeps q2 live in TWO registers — one (`q2`) used only by the `y` multiply,
- *    one (`nv`) by w9/w8 and the `x`/`z` multiplies. gcc 2.8.1 never splits a
- *    live range, so one value in two registers = two source variables.
- *
- * PSX.SYM names the three curve points `s`, `v`, and `r` in `tag_fly`.
- * `param_fly.p` overlays that record with param_korogari for the landing
- * transition. */
-
 extern void MoveKorogari(TItem *item, param_korogari *param);
 
 static void MoveFly(TItem *item, param_fly *param)
@@ -69,9 +40,6 @@ static void MoveFly(TItem *item, param_fly *param)
         q = k - (t << FIXED_SHIFT) / param->p.fly.count2;
         q2 = q * q;
         d2 = q * 2;
-        /* cc1's own signed-divide-by-0x1000 expansion. This one does NOT
-         * fold back to `q2 / FIXED_ONE` -- q2 is reused as the interpolation weight afterwards,
-         * so the schedule differs (9 lines). Its sibling below does. */
         if (q2 < 0)
             q2 += FIXED_TRUNC_BIAS;
         q2 = q2 >> FIXED_SHIFT;

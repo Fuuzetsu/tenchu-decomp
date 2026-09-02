@@ -9,20 +9,6 @@
  *     WORLD.C:1329, 110 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  * END PSX.SYM */
 
-/*
- * Initializes the fast TMD primitive dispatch table. Each family contains
- * two rows of L/LFG/NL handlers followed by the N/divide pair.
- *
- * Matching notes:
- *  - The assignments must remain in logical index order. Ghidra rendered the
- *    scheduler's physical store order instead; transcribing that order kept
- *    the first handler live until the F4 block and produced a same-length but
- *    479-byte residual. Sequential indices let cc1 retain the three repeated
- *    addresses in $a1/$a0/$v0 and scatter their stores exactly like retail.
- *  - The final configuration stores are one word followed by two halfwords,
- *    as proven by the retail `sw`/`sh` access widths.
- */
-
 extern _GsFCALL GsFCALL4;
 
 extern unsigned char *dmyGsTMDfastF3L();

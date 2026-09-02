@@ -31,35 +31,6 @@
  *     extern int StageID;
  * END PSX.SYM */
 
-/*
- * CVAupdate (0x80050628) — interpret character-animation and camera events.
- *
- * Byte-matching. Jump-table function (switch on the event kind).
- *
- * Four source-shape constraints remain; each is a cc1-2.8.1 mechanism worth
- * knowing (see the commits for the RTL/pinned-source evidence):
- *   - the motion row's y position scaled by 1000: a dedicated `y` local made
- *     the last shift write a
- *     BLOCK-LOCAL temp whose copy to `y` sched1 sank past the GetAreaMapLevel
- *     call, so local-alloc's combine_regs tied the whole x1000 chain into one
- *     call-crossing quantity and forced it callee-saved. combine_regs refuses to
- *     tie into a pseudo that is not block-local, so reusing the long-lived `i`
- *     (PSX.SYM: `long i` in $s0, provably dead here) keeps the chain in $v0.
- *   - `cursor` keeps the command walk in one identity; reading `CVAnow`
- *     directly changes 10 canonical lines.
- *   - `model` keeps the object-loop base live; following `human->model`
- *     directly changes 14 canonical lines.
- *   - `pan_value` stages the default/override before the one CameraSpeed
- *     store; the direct ternary changes 15 canonical lines.
- *
- * PSX.SYM's three-locals record (vect, human, i) remains the through-line.
- * The complete indexed animation graph removes `anim_base`, `anim`, and
- * `slot`; on that graph the `packed` and `ch` carriers and the register-held
- * `invalid` constant also disappear exactly. Their earlier isolated failures
- * were allocation effects of the pointer-cursor graph, not source
- * requirements.
- */
-
 extern s16 CVAflag; /* set by CVA camera/telop commands */
 extern u8 TelopText[];
 extern u8 ctype_tab[]; /* BSD _ctype_+1: &4 = digit */
@@ -168,9 +139,7 @@ s16 CVAupdate(void)
                 if (human == 0)
                     return 0;
 
-                /* For ACTOR commands the signed x slot packs two bytes.  The
-                 * direct invalid test and arithmetic >>8 still share the
-                 * target's one shift after the animation scans are indexed. */
+                /* ACTOR commands pack two signed bytes into the x field. */
                 if (CVAnow->payload.actor.motion == CVA_ACTOR_DESPAWN)
                 {
                     human->life = HUMANOID_LIFE_INACTIVE;

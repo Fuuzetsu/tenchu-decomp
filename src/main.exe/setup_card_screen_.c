@@ -13,23 +13,6 @@
 #define MCARD_VRAM_W 0x40
 #define MCARD_VRAM_H 0x100
 
-/*
- * setup_card_screen_ (0x8005adbc) — Save or restore the memory-card menu's VRAM window and allocate/free its
- * help text and sprites.  The load path also sanitises the help text, skipping
- * the second byte of high-bit characters and replacing control/backslash
- * bytes with NUL separators.
- *
- * Matching notes:
- *  - `rect` followed by `image` gives the target's complete sp+0x10..0x37
- *    workspace and 0x50-byte frame.
- *  - `i = 0` before vsize keeps the loop index live across that call in s0;
- *    the do-while then reproduces both increments on high-bit characters.
- *  - Literal returns are intentional.  A shared `result` local allocated in
- *    a0, shortened the success tail, and added a final move.  Independent
- *    `return 0`/`return 1` sites keep the result in v0 and make cc1 move the
- *    final SetupSprite result to a0 before the two field stores.
- */
-
 extern u_long *McardVramSave;
 extern u8 *McardHelp;
 extern Sprite3D *McardSprite;

@@ -18,44 +18,6 @@
  *     stack sp+16     struct SVECTOR vect
  * END PSX.SYM */
 
-/*
- * ActiveMotion (0x8001bdfc, 0x1c4 bytes) — per-frame spline playback:
- * bail to HoldMotion for a static (time==0) pose, else bump `count` and, for
- * every masked bone, evaluate its GetSpline bracket at `count` (bone 0's
- * locate+rotate written specially onto the world matrix translation, every
- * other bone only rotate), then wrap `count` back to 0 once it passes the
- * motion's `time` limit.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `frame` is a genuinely SEPARATE variable from `count`, not a renaming: `frame =
- *    mmp->count;` computes the raw pre-increment value once (feeds both the
- *    `mmp->count = frame + 1;` store and, later, `count = frame;`), while `count`
- *    itself only needs a callee-saved home from the point it's actually
- *    read again. Funnelling both through ONE variable (`count = mmp->count;
- *    mmp->count = count + 1;`) makes cc1 compute the increment directly in
- *    count's own callee-saved register (no separate temp) — one instruction
- *    short of the target, which keeps the raw read in a caller-saved reg and
- *    copies it to $s3 only later. `i` is a THIRD, genuinely reused variable
- *    (cookbook Register allocation steering) — `i = frame;` gives it the same
- *    value for the two bone-0 GetSpline calls, then it's clobbered as the
- *    `for (i = 1; ...)` loop counter; the loop's own GetSpline calls pass
- *    `count` directly, never `i`.
- *  - The function-final `mmp->count = 0; return 0;` MUST be an early
- *    `return 0;`, not `count = 0;` falling through to a single shared
- *    `return count;` — funnelling the tail through `count` forces an extra
- *    sign-extend-into-$v0 step at the shared return (the "shared return
- *    variable copy-preferences its sources" cookbook rule); two early
- *    returns let cc1 target $v0 directly on each path. Same lever fixes the
- *    OUTER dispatch: `if (time==0) { count = HoldMotion(mmp); return count;
- *    }` (an early return, not `else`) rather than falling through to the
- *    shared tail.
- *  - `mmp->control + (i + 1)` needs the EXPLICIT parens: `mmp->control + i +
- *    1` (left-to-right `(control+i)+1`) reads mmp->control BEFORE computing
- *    i's scale, while `+ (i + 1)` computes the `(i+1)*sizeof` scale first and
- *    defers the `mmp->control` field load until right before the final add
- *    — same value either way, different instruction order.
- */
-
 extern short HoldMotion(MotionManager *mmp);
 extern void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt);
 

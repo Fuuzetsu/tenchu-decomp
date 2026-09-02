@@ -14,8 +14,6 @@
  *     param $a0       struct OrnamentType * objp
  * END PSX.SYM */
 
-/* DisposeOrnament (0x80018718) — byte-identical clone of DisposeModel (tools/clonematch.py). */
-
 extern void vfree(void *p);
 
 void DisposeOrnament(OrnamentType *objp)

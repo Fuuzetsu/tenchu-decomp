@@ -22,27 +22,6 @@
  *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — 488 bytes / 122 instructions.
- *
- * cbCheckCD is the VSync callback that advances CD-audio state, retries or
- * stops out-of-range playback, and updates CdaStatus from the drive result.
- * The switch cases stay in source order 5 then 2, and the case-5 path shares
- * its status-reset tail with the mode-1 range check.
- *
- * The final cross-jump requires two source-level CdControlF(0x11, NULL)
- * calls in the `com == CdlGetlocP` if/else. CSE and the first jump pass retain both
- * calls and therefore both a0/a1 materializations. Late delay-branch cleanup
- * merges only the calls, leaving the target's explicit jump and repeated
- * argument setup. This is the same zero-code identical-call barrier used by
- * cbAccess.
- *
- * The drive returns the absolute minute/second/sector at result[5]. Cast that
- * payload to CdlLOC for CdPosToInt; the fourth CdlLOC byte is only padding as
- * far as that conversion is concerned. The seek location follows the result
- * buffer on the stack, accounting for the target's 0x10-byte work area.
- */
-
 extern int CdLastCom(void);
 extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);

@@ -24,18 +24,6 @@
  *     reg   $a1       short degree
  * END PSX.SYM */
 
-/*
- * Steer a humanoid toward the current trace point. The current point controls
- * the turn-pad result; reaching it advances to the next point, with
- * TRACE_POINT_END marking the end of the trace.
- *
- * The direct tail is important. PSX.SYM records no idx/sentinel temporaries,
- * and the human-shaped field increment, sentinel test, then normal-path OR
- * gives cc1 the target's early `li -1`, signed `lh`, unsigned `lhu`, and OR in
- * the branch delay slot. The former separate idx/sentinel/value scaffold was
- * the cause of the apparent 10-byte floor.
- */
-
 short ControlTraceLine(Humanoid *human)
 {
     TraceLine *trcl;
@@ -73,9 +61,6 @@ short ControlTraceLine(Humanoid *human)
     {
         roty = human->rotate->vy;
         ang = ratan2(-dx, -dz);
-        /* The t/diff/d32/degree/absdeg staging is byte-required: each name
-         * fixes one width or one re-extension point (collapsing any pair
-         * mismatches; measured). */
         t = ang - roty;
         diff = t;
         if (diff > ANGLE_HALF)

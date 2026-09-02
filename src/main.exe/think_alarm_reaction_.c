@@ -7,14 +7,6 @@
 #include "appear.h"
 #include "item.h"
 
-/*
- * Multi-stage AI handler used while an alerted character circles in small
- * steps.  It either chooses a turn command, advances the circling timer, or
- * spawns a second humanoid when the target remains far away.
- *
- * This translation unit reads the recovered signed `Attrib` object's raw flag
- * bits through the shared unsigned `Attrib` view.
- */
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
 extern character_kind
@@ -31,18 +23,6 @@ enum alarm_reaction_state
     ALARM_REACTION_CIRCLE = 1,
     ALARM_REACTION_CALL_BACKUP = 2
 };
-
-/*
- * `nextState` intentionally carries each condition and its eventual result.
- * Reusing the dead `alertTime` local for StageID keeps the comparison operand
- * separate while allowing cc1 to reuse the condition register for the branch
- * delay-slot assignments.
- *
- * The approach, circle, and call-backup modes form one ordinary
- * `if`/`else if`/`else` chain. Circle decisions finish through their own
- * nested alternatives, and the backup work is guarded by the positive range
- * test; GCC forms retail's common return join without source gotos.
- */
 
 s16 think_alarm_reaction_(void)
 {
@@ -236,8 +216,6 @@ s16 think_alarm_reaction_(void)
                 rand() % N_STAGE_REINFORCEMENT_CHOICES];
             rotation = Me_THINK_C->rotate;
             newRotation = rotation->vy + direction;
-            /* Staged locate read straddling the vy store: byte-required
-             * (a direct position load recolors the base; measured). */
             loc = Me_THINK_C->locate;
             rotation->vy = newRotation;
             position = loc;

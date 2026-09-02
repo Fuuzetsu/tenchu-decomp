@@ -26,60 +26,6 @@
  *     extern unsigned char gSoundLevel;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — pure C, all 400 bytes / 100 instructions exact.
- *
- * _PlayMusic (0x8004ed54, 0x190 bytes) — dispatches a music-play request:
- * MusicNo in the reserved cue range (checked UNSIGNED) or negative is an
- * error (message box + stop CD audio); MusicNo below MUSIC_TRACK_COUNT plays
- * a CD-XA track from `MusicTable[MusicNo]`; otherwise it's a synthesized
- * "voice" cue translated into one of PlayVoice's numbered banks.
- *
- * Splat/Ghidra split this one function into 3 pieces
- * (`_PlayMusic`/`play_stage_music__override__prt_8004ed94_...`/
- * `..._prt_8004edf4_...`) — they're contiguous addresses with plain
- * fallthrough between them (no jump table), just Ghidra mis-identifying
- * internal control-flow joins as separate functions; one real C function
- * reproduces all three.
- *
- * `MusicTable`'s real stride is 12 bytes, not PSX.SYM's stale 8-byte
- * `TMusicTable` (file@0, channel@4, min@5, sec@6) — the asm also reads
- * offsets 7/8 (the `end` CdlLOC's min/sec) and scales the index by 12
- * (`MusicNo*3<<2`), so the true struct has two more `u8` fields.
- *
- * The 3 embedded strings ("bad music no", the sprintf format, "playmusic
- * fail...") show as bare hex in the .s (no `%hi(SYMBOL)`) only because
- * splat never carved/named that unreferenced rodata — NOT because the
- * source used a literal pointer cast: writing them as literal casts
- * (`(char *)0x8001349C`) compiles the low half with `ori` (raw 32-bit
- * constant synthesis); the target's `addiu` (address-style combine)
- * needs a real named `extern char msg_bad_music_no[];` (config/symbols.main.exe.txt
- * entries added), confirmed empirically. Contrast clamp_shop_stock_.c's
- * `(TLinkInfo *)0x80010000` cast, which really is a bare literal
- * (that lui has NO addiu at all, reused as a base for several field
- * offsets) — a different, narrower tell than "no %hi(SYMBOL) shown here".
- *
- * `MusicTable[MusicNo]`'s two `CdlLOC` locals use PSX.SYM's original
- * singular `start`/`end` declarations. Ghidra rendered each as a two-element
- * array only because the following stack object begins one `CdlLOC` later.
- *
- * `gSoundLevel` is apply_cd_volume_.c's already-proven persisted volume byte
- * (passed to `set_cda_volume_` twice, identically, exactly as that file
- * does).
- *
- * The two voice-bank offsets can be passed as a conditional expression
- * directly to PlayVoice. Likewise, testing CdaPlayXA's return value directly
- * preserves retail's branch. Neither result needs the generic `n` carrier
- * from the first reconstruction, matching PSX.SYM's local inventory as well
- * as the retail instructions.
- *
- * Two source identities close the former whole-function cascade. Expressing
- * the synthesized-voice arm before the XA arm reproduces retail's physical
- * body order. `InitMusicLocation` is an inlined source helper: its pointer
- * formal keeps each expanded stack-address use independent, so cc1
- * rematerializes sp+224/sp+232 instead of retaining two saved-register
- * aliases. That restores the original 264-byte frame and s0-s4 allocation.
- */
 extern char msg_bad_music_no[];           /* "bad music no" */
 extern char fmt_xa_path[];                /* "\TENCHU\XA\%s;1" */
 extern char fmt_playmusic_fail_chan_id[]; /* "playmusic fail %s  chan %d  id %d" */

@@ -28,23 +28,8 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * MATCH notes:
- * - The scalar aliases on py/pz are intentional.  Plain structure-member
- *   reads carry cc1's in-structure memory marker, so CSE sinks both loads
- *   below the scratchpad stores and reuses v0/v1.  Reading the same 32-bit
- *   representation through scalar lvalues keeps the original long-lived
- *   y/z values in a1/a2, as recorded by PSX.SYM and emitted by retail.
- * - svec_y_n20_2 is an array in the original declaration.  Indexing element
- *   zero, rather than declaring one SVECTOR object, produces the target's
- *   separately scheduled address high/low around the VECTOR block copy.
- * - The second z is deliberately scoped after RotTransPers; PSX.SYM records
- *   it as a distinct int local from the outer long coordinate.
- */
-
 extern MATRIX GsWSMATRIX;
 extern SVECTOR svec_y_n20_2[];
-
 
 void DrawSplash(TEffectSlot *ef)
 {
@@ -71,12 +56,6 @@ void DrawSplash(TEffectSlot *ef)
     *SCREEN_PROJECTION_POINT_Z = z - (s16)ViewInfo.vpz;
     SetTransMatrix(SCREEN_PROJECTION_MATRIX);
     SetRotMatrix(&GsWSMATRIX);
-    /* `projected` is not a redundant alias for `&scr`: spelling the address
-     * directly at its uses costs 8 lines. PSX.SYM records `scr` twice
-     * here, once as an SVECTOR and once as a pointer, so the original
-     * had them in separate scopes rather than side by side -- but they
-     * are simultaneously live in retail's shape, so that is not
-     * reachable by renaming. */
     projected = &scr;
     projected->vz = (s16)RotTransPers(
         SCREEN_PROJECTION_POINT, (s32 *)projected,

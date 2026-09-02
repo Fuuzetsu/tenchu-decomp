@@ -26,86 +26,15 @@
  *     extern unsigned long *virtual_memory_pool;
  * END PSX.SYM */
 
-/*
- * valloc (0x8001656c, 0x1CC bytes) — the free-list allocator's core routine.
- * Same TU as vinit.c/vfree.c/vcalloc.c/vgetmaxsize.c/vgetfreesize.c
- * (VALLOC.C). Lazily self-initializes the pool the way vinit(0,0) would,
- * rounds the request up to words, then walks the free list for the first
- * fit: exact-or-near (slack < VMEM_MIN_SPLIT_SLACK words) is marked in-use
- * whole, while a bigger block is split (the tail becomes a fresh free
- * block). On failure it walks the list
- * twice more (max free block, total free) to format the fatal "OUT OF
- * MEMORY" diagnostic for SystemOut, then returns the (NULL) cursor.
- *
- * Matching notes:
- *  - THE $s1 MECHANISM (this was the previous session's 2-instruction
- *    residual): the search cursor `vmpt` is ALSO the return value, and the
- *    function's very last statement is `return vmpt;` — AFTER the sprintf/
- *    SystemOut calls (the target's `addu $v0,$s1,$zero` at 0x80016720).
- *    That final use keeps vmpt live across both calls, which is the entire
- *    reason cc1 gives it callee-saved $s1 (and the extra sw/lw pair). The
- *    early exit is `if (vmpt) goto done;` to the shared `done: return
- *    vmpt;` — that compiles to the target's 2-insn `bnez $s1,epilogue`
- *    with `move $v0,$s1` in the delay slot; a literal early `return vmpt;`
- *    instead compiles branch-AROUND (beqz + j + nop, 2 insns long). A draft
- *    that ends at SystemOut() has no call-crossing use, so the cursor lands
- *    caller-saved and the whole loop's registers cascade off-target.
- *  - THE SPLIT-ARM FRESH RELOADS (cse.c follow-jumps, root-caused in the
- *    gcc-2.8.1 sources): the split arm must reload `vhp->size`/`vhp->next`
- *    fresh (lw/subu/addiu -2 through the $a0 copy) even though the tests
- *    just loaded *vmpt. cse's path-following (cse_end_of_basic_block)
- *    follows a conditional branch's taken edge whenever the target label
- *    has NUSES==1 and is preceded by a BARRIER — which the natural
- *    if/else+break shape always satisfies, so cse merges the split arm's
- *    loads with the tests' values (and a post-cse jump_optimize then also
- *    inverts the branch and moves the near-fit arm to the function end).
- *    The scan is blocked by a NOTE_INSN_LOOP_END sitting between that
- *    barrier and the label: hence the dummy do{}while(0) around the
- *    near-fit arm, whose loop notes land exactly there. With the follow
- *    blocked, the split arm compiles as its own fresh basic block —
- *    byte-exact, including the whole loop's register assignment.
- *  - Stack layout: the split-tmp `vh` is the OUTER declaration (sp+0x18),
- *    the self-init `vh` is a nested-block shadow inside the `if` (sp+0x20),
- *    and `str` lives in a later nested block (sp+0x28) — matching PSX.SYM's
- *    two `vh` scopes at sp+24/sp+32 and cc1's in-encounter-order slot
- *    assignment.
- *  - The loop reads its tests through `vmpt` (lw 0($s1)) but takes a copy
- *    `vhp = (struct VMhead *)vmpt;` at loop top ($a0, scheduled into the first
- *    branch's delay slot): the split arm's loads/stores and the advance
- *    (`vmpt = vhp->next`) go through the copy.
- *  - `maxsize <<= 2;` is a real source statement between the two tail loops
- *    (after `freesize = 0;`): its `sll` is what reorg steals into the second
- *    loop guard's delay slot; sprintf then receives `maxsize` raw.
- *  - The self-init branch duplicates vinit.c's `size == 0` arm literally
- *    (pool = 0x800DC000; vh.size = 0x47ffe; vh.next = 0) — no call, cc1
- *    2.8.1 does not inline. VMEM_DEFAULT_POOL/VMEM_DEFAULT_CAPACITY retain that
- *    human-looking exact source.  For the normal link, a bounded assembly
- *    transform changes only those LUI/ORI pairs to standard symbolic
- *    LUI/ADDIU pairs, preserving this function's exact 0x1cc-byte schedule.
- *    Image growth can then move the pool base and derive its smaller capacity;
- *    tools/reloc_c_literals.py gates the transform and relocation counts.
- *  - The request rounding is `if (size & 3) size += 4;` (NOT `(size+3)&~3`)
- *    — read off the raw immediate; keep the odd shape.
- *  - Both whole-struct stores (`*(struct VMhead *)virtual_memory_pool = vh;`,
- *    `*(struct VMhead *)vmpt = vh;`) are aggregate assignments: two field
- *    stores to the stack
- *    slot, then the $t1/$t2 reload+store block copy (vinit.c's idiom).
- */
-
 extern int sprintf(char *buf, char *fmt, ...);
 
-extern char msg_out_of_memory[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" — pooled
-                              right before vfree.c's msg_double_memory_release ("DOUBLE MEMORY
-                              RELEASE") in this TU's rodata */
+extern char msg_out_of_memory[]; /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" */
 
 void *valloc(u32 size)
 {
     struct VMhead vh;   /* split tmp, sp+0x18 */
     struct VMhead *vhp; /* search-loop copy of the cursor */
     u32 *vmpt;          /* cursor AND result — returned after SystemOut, hence $s1 */
-    /* off/mask/tag are pre-hoisted loop invariants: byte-required (the
-     * target computes the sll/addu/li/or before the search loop; verified
-     * against the .s). */
     u32 off;
     u32 mask;
     u32 tag;
@@ -137,17 +66,10 @@ void *valloc(u32 size)
             {
                 if (vmpt[0] - size < VMEM_MIN_SPLIT_SLACK)
                 {
-                    /* The do{}while(0) is LOAD-BEARING: its LOOP_END note
-                     * lands between this arm's `goto` and the split arm's
-                     * label, which blocks cse.c's follow-jumps path scan
-                     * (cse_end_of_basic_block breaks at NOTE_INSN_LOOP_END)
-                     * — that is what keeps the split arm's vhp-> reads as
-                     * FRESH loads (lw/subu/addiu) like the target instead
-                     * of CSE reusing the test's loaded value/slack. */
+                    /* The unreachable empty loop preserves a control-flow boundary whose source form is unknown. */
                     vmpt[0] = vmpt[0] | mask;
                     vmpt = vmpt + VMEM_HEADER_WORDS;
                     goto search_done;
-                    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
                     do
                     {
                     } while (0);

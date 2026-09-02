@@ -16,48 +16,6 @@
  *     reg   $a0       short yy
  * END PSX.SYM */
 
-/*
- * ComputeAreaLevel (0x8001986c) — height query for a single AreaNodeType leaf:
- * splits the node's rect into a division-bitmask grid (z-span/x-span each cut
- * in quarters), tests whether that grid cell is enabled in node->division,
- * and if so returns node->y plus a linear slope contribution along whichever
- * axis node->attribute's top two bits select (0x4000 = slope along x,
- * 0x8000 = slope along z, else flat).
- *
- * Matching notes (docs/matching-cookbook.md; all verified against the bytes;
- * PSX.SYM only names ONE extra local ("yy") — wrong here, the asm needs four
- * more (dz/zspan/dx/xspan, plus the named `mask` below), each read TWICE (the mask test and a case body)):
- *  - Real runtime divisions (variable divisor) — this file needs
- *    maspsx --expand-div (Build.hs maspsxGpExterns).
- *  - x1/z1/x2/z2/division read `lhu` (Ghidra's own (uint)(ushort) casts
- *    confirm this TU's unsigned uses), while y/dy/attribute stay plain
- *    `short`; explicit casts preserve those reads on the shared original
- *    AreaNodeType.
- *  - **`x & (1 << n)` for a non-constant `n` ALWAYS canonicalizes to
- *    `(x >> n) & 1` under this cc1** (verified standalone: any direct
- *    `division & (1<<shift)` compiles to srav+andi, never sllv+and,
- *    regardless of how the shift expression is spelled). Naming the shifted
- *    mask first (`int mask = 1 << shift; if (division & mask)`) is the ONLY
- *    way to keep the literal `sllv`+`and` shape the target uses — this is a
- *    real reusable rule, not specific to this function.
- *  - **The `<<2` scale must be a separate reused variable's OWN use, not an
- *    inline `(short)(diff) << 2` subexpression**, or fpeephole fuses the
- *    truncating sra with the shift into one `sra x,x,14` — one instruction
- *    SHORTER than the target. The fusion is suppressed here only because
- *    `dz`/`dx` (the plain truncated diffs) are each read a SECOND time later
- *    (in the slope_x/slope_z slope multiply), so cc1 must keep the
- *    unshifted value alive in its own register instead of folding it away.
- *  - The two slope cases must be a genuine `switch`, not an `if/else if`:
- *    expand_case emits both tests before the case bodies and keeps one shared
- *    `return yy;`. The structured conditional interleaves tests and bodies
- *    and measures 21 diff lines.
- *  - Guard the whole valid-cell region with `division & mask` and leave
- *    `return LEVEL_NONE;` textually last. This retains the target's late
- *    constant materialization without the old `ret_min` label. An immediate
- *    early return at the original zero test instead floats the `lui` into
- *    the branch delay slot.
- */
-
 long ComputeAreaLevel(AreaNodeType *node, long x, long z)
 {
     short dz, zspan;

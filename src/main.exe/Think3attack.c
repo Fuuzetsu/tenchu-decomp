@@ -27,19 +27,6 @@
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-/*
- * Select the attack controls for an alerted humanoid.  The weapon class
- * determines the turn and distance thresholds; close targets are attacked,
- * distant targets are approached, and item use is considered while idle.
- *
- * The status-7 path deliberately has its own literal return.  GCC merges its
- * short-return conversion with the final return, but the extra control-flow
- * boundary keeps that conversion above the epilogue restores, as in retail.
- * The ordinary action choice is one distance-ordered `if/else if` ladder.
- * Its final dash test is positive so the dash block remains textually before
- * the `ItemUse` alternative, matching retail's cold-block order.
- */
-
 extern Humanoid *Me_THINK_C;
 /* Per-range-class engagement distances (retail data: 3000/3500/4000
  * for the melee classes, 20000 for the ranged class). */

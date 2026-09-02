@@ -31,39 +31,6 @@
  *     extern short VoiceMode;
  * END PSX.SYM */
 
-/*
- * Sound (0x8004ff10) — play a character's sound effect. A `seid` with its VAB
- * program already packed is played directly at the character's position.
- * Otherwise it is a character_sound_slot combined with Humanoid.sound's
- * program base; the slots after CHAR_SE_SPECIAL are voice lines, muted by
- * VoiceMode and while the character's AI is suspended (ATTR_SUSPEND).
- *
- * Matching notes (this was a parked 5-byte NON_MATCHING; the fix needed BOTH
- * edits below — RTL story from cc1 -dl/-dg dumps):
- *  - TWO literal `return SoundEx(...)` calls, not one shared call with a
- *    `locate`/`seid` funnel. cc1 itself gives a promoted `short seid` param two
- *    pseudos — the raw SImode $a1 copy (read by SOUND_ID_HAS_PROGRAM, the
- *    CHAR_SE_SPECIAL boundary and the first call's arg) and the HImode
- *    declared variable (the target's `move v1,a1` in the beqz delay slot,
- *    read only by the second call's `or`).
- *    A single shared call reads ONE variable in both arms, so its sign-extend
- *    reads $v1 on the if-path too (5-byte residual, permuter-immune at ~447k
- *    iterations). Cross-jump merges the two calls' identical `sll/sra/jal`
- *    tails back into one physical copy.
- *  - The second call's arg must be the cast around
- *    `SOUND_ID_WITH_PROGRAM(seid, human->sound)`. Without the cast it is an
- *    int expression: the sign-extend chain lands BEFORE the ior, and sched1
- *    then floats the `$a0 = human->locate` load above the sound load, defining
- *    $a0 while `human`'s pseudo is still live — that conflict
- *    evicts human off $a0 (`move v1,a0` at entry, everything repartitioned).
- *    The cast folds the truncation into the ior (or-then-extend, the target's
- *    shape); the deeper or-chain then wins sched1's priority race, the sound
- *    lhu schedules first, human dies at the $a0 load, and human/seid coalesce
- *    to $a0/$v1 exactly as the target.
- *  - SoundEx returns s16 here (item.h) — the result is Sound's return, so the
- *    `return -1` guards branch straight to the epilogue past its sign-extend.
- */
-
 short Sound(Humanoid *human, short seid)
 {
     if (SOUND_ID_HAS_PROGRAM(seid))

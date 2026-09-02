@@ -27,41 +27,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — exact 532-byte pure C.
- *
- * DrawBleed (0x8003437c, EFFECT.C:910) — the blood-drip effect's per-frame
- * draw: while `mode==0` and `time!=0`, advances the drip position by its
- * velocity (`pos += vec`) and drifts `vec.vy` by +1 (gravity-ish), or kills
- * the slot (`ef->proc = 0`) once `time` runs out; every frame regardless
- * decrements `time`, then projects `pos` (camera-relative, via the
- * DrawTarget-style Scratchpad SetTransMatrix/SetRotMatrix/RotTransPers
- * idiom) and, if visible (`otz > NEAR_DEPTH`), fills the shared `plyBleed` POLY_F4
- * quad (a diagonal streak from `(x,y)` to `(x+sz,y+sz)`, `sz` a distance-
- * scaled length) and GsSortPoly's it into the OT with the same
- * `[0, 0x4e1]` OTZ-derived priority clamp as DrawSpriteXYZ/draw_sprite_coord_.
- *
- * Matching constraints:
- *  - Use PSX.SYM's long x, y, and z captures, with y and z read through
- *    scalar s32 lvalues. Direct nested-VECTOR reads carry a structure-memory
- *    marker and sched1 sinks them; the scalar views preserve the target's
- *    early $a1/$a2 loads. No param2 or savedTime identities are needed.
- *  - param is the proven BleedType at ef+4. Decrement time with an actual
- *    -1; Ghidra's displayed +0xff is not the encoded operation here.
- *  - Keep position integration and vec.vy update as four statements.
- *    vec.vy is loaded signed for the s32 accumulator and unsigned for its
- *    narrowing self-store, so sharing the read changes the code.
- *  - Preserve the DrawTarget scratchpad projection and assign the
- *    RotTransPers result to scr.vz through s16.
- *  - t = (s32)((u32)(u16)scr.vz << 16) is one named value reused for the
- *    visibility/division path and the final >>18 priority clamp. Re-reading
- *    scr.vz adds an lhu that the target does not contain.
- *  - Keep the POLY_F4 store order x0,y0,y1,x2; compute sz; x1,y2,x3,y3;
- *    then r0,g0,b0. Repeat scr.vx + sz and scr.vy + sz so the second pair
- *    reuses the live values rather than reloading fields.
- *  - The priority clamp retains DrawSpriteXYZ's goto-zero topology, and this
- *    runtime division file requires maspsx --expand-div.
- */
 extern MATRIX GsWSMATRIX;
 
 void DrawBleed(TEffectSlot *ef)
@@ -89,10 +54,7 @@ void DrawBleed(TEffectSlot *ef)
         }
     }
     x = param->pos.vx;
-    /* pos is a VECTOR, so these casts read the same longs the plain field
-     * spelling would -- but they are not free to cc1, which schedules the
-     * punned MEMs differently. Dropping both costs 30 lines, either one
-     * alone 21/23, and hoisting a `VECTOR *pos` costs 30 as well. */
+    /* Preserve the scalar view of these VECTOR fields; it affects alias scheduling. */
     y = *(s32 *)&param->pos.vy;
     z = *(s32 *)&param->pos.vz;
     param->time--;
@@ -105,12 +67,6 @@ void DrawBleed(TEffectSlot *ef)
     *SCREEN_PROJECTION_POINT_Z = z - (short)ViewInfo.vpz;
     SetTransMatrix(SCREEN_PROJECTION_MATRIX);
     SetRotMatrix(&GsWSMATRIX);
-    /* `projected` is not a redundant alias for `&scr`: spelling the address
-     * directly at its uses costs 57 lines. PSX.SYM records `scr` twice
-     * here, once as an SVECTOR and once as a pointer, so the original
-     * had them in separate scopes rather than side by side -- but they
-     * are simultaneously live in retail's shape, so that is not
-     * reachable by renaming. */
     projected = &scr;
     projected->vz = (s16)RotTransPers(
         SCREEN_PROJECTION_POINT, (s32 *)projected,

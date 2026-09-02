@@ -16,24 +16,6 @@
  *     param $a1       struct TracePoint * point
  * END PSX.SYM */
 
-/*
- * SetupTraceLine (0x800299d0) — allocate a TraceLine, seed it from the
- * (sentinel-terminated, `pad == TRACE_POINT_END`) TracePoint array `point`:
- * walk to the last point, stamp its world position (from human->locate) and
- * its range (locate->vy / 100), then install the new TraceLine on
- * human->trace.
- * SystemOut("NO TRACE POINT") (does not return) if point is null.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - The plain `while (point->pad != TRACE_POINT_END) point++;` scan emits
- *    the target's entry guard and bottom test, with the increment in the
- *    backjump delay slot. No copied `pad` value is needed.
- *  - `point->x`/`point->z`/`point->range` are each reloaded from
- *    `human->locate` FRESH (three separate `lw human->locate`), not cached
- *    in one pointer local — matches the raw asm's three reloads.
- *  - `point->range = (s16)(human->locate->vy / 100);` is the magic-multiply
- *    constant division (automatic from plain `/100`).
- */
 extern void *valloc(u32 size);
 extern char msg_no_trace_point[]; /* NO TRACE POINT */
 

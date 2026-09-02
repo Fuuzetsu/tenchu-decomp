@@ -20,54 +20,6 @@
  *     extern int AccessPower;
  * END PSX.SYM */
 
-/*
- * cbAccess (0x80018dec, 0x114 bytes) — the access-meter's vsync-callback
- * draw routine (armed by PrepareAccess/FileRead): advances AccessPower by 8
- * (wrapping mod 256) and re-tints AccessImage's 4 vertices to a
- * four-corner tint cycling each corner between the current intensity and its
- * complement, then swaps in a draw environment with the display's own clip
- * rect (so the meter draws unclipped over the current frame), draws it, and
- * restores the original draw environment. Same canonical
- * DRAWENV/DISPENV/RECT types as sibling stop_access_meter_.c and
- * AdtReleaseDisp.c.
- *
- * Matching notes:
- *  - `n_draw = o_draw;` is a plain DRAWENV (align-4, 0x5c bytes) struct
- *    assignment — cc1's emit_block_move splits it into a 5x 16-byte-chunk
- *    loop (4 words each) plus a 12-byte (3-word) tail, matching the raw .s
- *    word-for-word (cookbook's "cast type's alignment drives copy code").
- *  - `n_draw.clip = o_disp.disp;` is then written SEPARATELY on top: RECT is
- *    align-2 (four shorts), so this one compiles to lwl/lwr+swl/swr pairs —
- *    NOT part of the word-copy above, even though clip sits at n_draw+0 (this
- *    was the first real bug: writing it as 4 separate scalar field
- *    assignments compiles each as its own scalar lhu/sh instead of the
- *    aligned 4-byte lwl/lwr combine — matched only once respelled as ONE
- *    aggregate RECT assignment).
- *  - The color computation must funnel through ONE variable reused for both
- *    the `AccessPower` store and every AccessImage.rN/gN store the asm
- *    colours through $v0: `intensity = (AccessPower + 8) & 0xff;` (matches the
- *    `andi $v0,$v0,0xff` before ANY store — this is not a `u_char` truncation
- *    at the store, the mask happens at the assignment). This part is
- *    byte-identical to the target already.
- *
- * MATCH. The final CSE lever is the identical `GetDispEnv(&o_disp)` call in
- * both arms of the `AccessPower` test. Before jump cleanup, its control-flow
- * boundary separates the first `&o_draw` use (`GetDrawEnv`) from the source
- * pointer emitted for `n_draw = o_draw`; after allocation and scheduling,
- * jump cleanup erases the test and merges the calls, so the final binary has
- * no branch or duplicate call. This makes cc1 rematerialize `sp+40` in the
- * target's caller-saved registers ($a0, then $v0, then $a0) instead of CSEing
- * it across GetDispEnv into $s0, which had added a save/restore instruction.
- * The fence must sit on the SECOND call: placing it at function entry pins
- * the return-address save ahead of the target's body setup, while fencing the
- * first call delays its argument and changes the color-register allocation.
- *
- * The target also writes `AccessImage.g0` before computing/storing `b0`.
- * Keeping that source order resolves the remaining independent-store
- * scheduling tie. A one-shot loop and declaration-order changes did not
- * affect the address merge; guided autorules likewise found no improvement.
- */
-
 void cbAccess(void)
 {
     DISPENV o_disp;

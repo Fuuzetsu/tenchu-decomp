@@ -1,24 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * award_stage_items_ (0x80052ea8) — awards inventory stock at the end of a
- * stage. The rank-specific award chooses a deterministic one- or two-item
- * sweep, optional random bonuses, and the stage-specific reward; locked stock
- * entries use 0xfe and are opened by adding through the byte value.
- *
- * STATUS: MATCHED — exact 1244 bytes / 311 instructions.
- *
- * Matching notes:
- *  - Keep the three deterministic sweeps as separate source loops.  cc1
- *    emits the target's repeated blocks and keeps their s16 induction
- *    variables in caller-saved registers; factoring them would change the
- *    control flow.
- *  - `award_tier` and `remaining` are signed 16-bit values. An unsigned-width
- *    mechanical rewrite happens to restore the instruction count while
- *    replacing the required sll/sra sign extension with andi/sltiu.
- */
-
 extern s32 rand(void);
 
 void award_stage_items_(TLinkInfo *state, ScoreResult *result)

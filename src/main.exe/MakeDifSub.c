@@ -28,47 +28,6 @@
  *     reg   $s1       long ip
  * END PSX.SYM */
 
-/*
- * MakeDifSub (0x800300b4, 0x2dc bytes) — CAMERA.C's smoothed-delta helper:
- * given a src/target pair of VECTORs, writes the eased step toward target
- * into *dest and updates the TMakeDifInfo scratch block (*info) it was
- * handed (`spd` holds last frame's speed and `bef` its raw delta).
- * Divides by runtime values throughout (the eased speed's fixed-point
- * division and the final per-axis dest = delta*speed/len), so this TU needs
- * `--expand-div` (Build.hs maspsxGpExterns' extra list + permute.py's
- * MASPSX_EXTRA) for ASPSX's guarded bnez/break-7/break-6 expansion.
- *
- * Matching notes:
- *  - PSX.SYM's own locals list two SVECTOR pointers, `a` and `b`. Their
- *    narrow inner scope is significant: `a = &nv` and `b = &info->bef` give
- *    cse1 the two bases for the adjacent theta/length reads without keeping
- *    either pointer live through the rest of the function. Later destination
- *    writes and the final `bef` copy therefore use fresh direct field loads.
- *  - `dx` is referenced by name twice more after being computed (theta's
- *    product's first term, lenA's first arg) and stays in its own register
- *    for both; `dy`/`dz` are never referenced again by name after being
- *    stored into `nv` — every later use goes through `nv.vy`/`nv.vz`
- *    instead, which is why only dx's reads skip a stack round-trip.
- *  - The two signed fixed-point reductions need the GetVectorLength.c
- *    "default-then-override temp" shape (`t = v; if (v<0) t =
- *    v+FIXED_TRUNC_BIAS; v = t>>FIXED_SHIFT;`), not an in-place
- *    adjustment and shift — same idiom,
- *    same reason (the branch's delay slot gets the unconditional default).
- *  - The eased-speed reduction is THREE statements, not one expression:
- *    the product and signed bias land in `mspd`, the shift lands in `spd`,
- *    then `info->ac` is added to `spd`. Two levers here are both
- *    length/register-critical:
- *      (a) the product needs its OWN temp `mspd` distinct from `spd` — the
- *          in-place product, bias, shift, and add fuse the pre-shift
- *          accumulator and the final speed
- *          into one pseudo (a0), which coloured the whole chain a0 and drifted
- *          6 bytes; a fresh `mspd` lets the accumulator take v1.
- *      (b) the final shift and `spd = spd + info->ac` must be SEPARATE
- *          statements — a fused shift-and-add
- *          keeps the shift result in mspd's register (v1) and only the add
- *          lands in spd (a0); splitting makes the shift itself target spd (a0)
- *          and the add happen in place (the last 2-byte tie).
- */
 extern long GetVectorLength(long dx, long dy, long dz);
 
 void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)

@@ -19,15 +19,6 @@
  *     extern struct HumanDataType HumanData[63];
  * END PSX.SYM */
 
-/*
- * SetupWeapon (0x8002a484) — initialise a humanoid's weapon ornaments.
- *
- * STATUS: MATCHING — exact 1128-byte / 282-instruction pure-C match.
- * Keeping the clear's increment in `weapon[i++]` gives old cc1 the narrow
- * working copy used by both the target's loop-delay-slot store and the
- * following rotated HumanData scan.
- */
-
 void SetupWeapon(Humanoid *human)
 {
     s16 i;

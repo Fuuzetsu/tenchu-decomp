@@ -3,13 +3,7 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-/* Emit one textured gouraud triangle (POLY_GT3, code 0x34, len 9) for a
- * subdivided corner quad straight into the packet stream, z-sorted by the
- * FIRST vertex's depth. Retail copy-pastes this block four times; the
- * macro is reconstruction shorthand for the first three copies (expands
- * to the identical text). The fourth, final copy stays open-coded below:
- * its two corner loads are issued in the opposite order and it parks the
- * bumped output pointer in `tail` for the shared epilogue. */
+/* Emit one POLY_GT3 for a subdivided corner, sorted by its first vertex. */
 #define EMIT_SUBDIV_GT3(a, b, m)                                              \
     {                                                                         \
         ADIV_VERT *va;                                                        \
@@ -45,9 +39,7 @@
         work->out += GPU_POLY_GT3_WORDS;                                      \
     }
 
-/* Average one edge into this recursion frame. The x store intentionally
- * precedes the midpoint pointer assignment; all remaining fields go through
- * that pointer, matching the renderer's shared interpolation sequence. */
+/* Average one edge before recursing; the first vertex supplies the OT depth. */
 #define INTERPOLATE_ADIV_VERTEX(storage, midpoint, a, b)                      \
     storage.pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);                    \
     midpoint = &storage;                                                      \
@@ -64,43 +56,6 @@
         (u8)((a->texture.component.u + b->texture.component.u) >> 1);         \
     midpoint->texture.component.v =                                           \
         (u8)((a->texture.component.v + b->texture.component.v) >> 1)
-
-/*
- * subdivide_quad_ (0x80057b80, 3796 bytes) — the recursive quad subdivider of
- * the active-subdivision cluster (entered from adiv_tng4_/adiv_tnf4_;
- * layout types in tmdfast.h).  Per call it takes one ADIV_FRAME (four
- * ADIV_VERT corner pointers), computes the quad's Z range and screen bbox,
- * rejects when off-screen, and either emits the leaf POLY_GT4 from the
- * workspace template (small enough on screen, or the depth limit reached)
- * or computes the five edge/centre midpoints in the frame, transforms them
- * (RTPT), and recurses into the next frame for the four sub-quads,
- * emitting a POLY_GT3 fan piece after each recursion.
- *
- * MATCHED: recursive primitive subdivision renderer using the PsyQ inline-GTE
- * macros.  The two pointer arguments are first copied into ordinary locals,
- * with the second assignment written before the first.  gcc coalesces those
- * locals into s1 and s0 while retaining that source order, which produces the
- * target's s1/a1 save-copy pair before its s0/a0 pair.
- *
- * This disproves the former signature-only impossibility proof: it assumed
- * every body use had to remain on the formal-parameter pseudos.  The nested
- * do/while boundary around the leaf vertex copies remains allocation-relevant;
- * it is consistent with nested primitive-copy macro expansion, while removing
- * it changes the function-wide register assignment.
- *
- * Spelling notes:
- *  - The screen-Y extent test reuses adivw (the half-WIDTH) as its bound —
- *    that is what retail's bytes do (offset 0x34 in both extent tests).
- *  - The midpoint blocks write the first pos.vx through the frame and the
- *    rest through the midpoint pointer, per the matched bytes.
- *  - Each GT3 emission re-derives the packet/OT fields from the workspace
- *    (never from the leaf `proto` pointer) — distinct spellings, kept.
- *  - GpuPolyGT3Packet/GpuPolyGT4Packet expose the same storage as both PsyQ
- *    packet fields and GPU vertex words. Leaf quads copy each complete texture
- *    word; triangle fan pieces zero-extend only the UV halfword before their
- *    CLUT/tpage fields are installed. The remaining casts are the DMA-tag/OT
- *    link writes whose aliasing keeps retail's load scheduling.
- */
 
 void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
 {
@@ -130,8 +85,6 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
 
     work = awp;
     fp = afp;
-    /* nf carries the field stores, next the recursive calls: the split
-     * pair is byte-required (one name mismatches; measured). */
     nf = fp + 1;
     next = fp + 1;
     proto = &work->packet;
@@ -145,9 +98,6 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
         work->zmax = fp->vp[1]->sz;
         work->zmin = fp->vp[0]->sz;
     }
-    /* weight fence — split per the DefaultActionHumanoid method: +1 fp ref
-     * pairing with the depth-2 leaf-copy fence below (fp must out-rank work
-     * for s0; 6*99/666 > 6*110/743). */
     do
     {
         zA = fp->vp[2]->sz;
@@ -249,10 +199,6 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     ((work->maxx - work->minx < 0xff) &&
                      (work->maxy - work->miny < 0x7f)))
                 {
-                    /* Weight fence — split per the DefaultActionHumanoid
-                     * method: depth 2 here + the zA fence above keep fp
-                     * ahead of work (the old depth-3 tower overshot;
-                     * depth 2 alone swaps s0/s1). */
                     do
                     {
                         do

@@ -19,20 +19,6 @@
  *     extern short Attrib;
  * END PSX.SYM */
 
-/*
- * Think3escape clears SR at close range, chooses a turn/run command from
- * Degree, and optionally arms a timed escape hint in the current Humanoid.
- * The division is a real runtime divide, so this file remains in the
- * maspsx --expand-div list.
- *
- * The three byte-neutral identical-arm spellings are intentional cc1 2.8.1
- * inputs. The first gives the long-lived result enough allocation weight for
- * $a0. The second keeps the raw Degree and its absolute-value copy distinct
- * through cse, producing the target's self-referencing `negu $v0,$v0`. The
- * last preserves the post-guard Humanoid copy (`$v1` to `$a1`). jump2 merges
- * every pair, so none of the tests or duplicate assignments survives in the
- * emitted function.
- */
 extern Humanoid *Me_THINK_C;
 
 s16 Think3escape(void)

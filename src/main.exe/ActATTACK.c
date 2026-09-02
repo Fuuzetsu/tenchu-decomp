@@ -124,39 +124,6 @@
  *     extern struct WeaponType WeaponDB[28];
  * END PSX.SYM */
 
-/*
- * ActATTACK (0x80021d64) — the main humanoid attack-motion controller.  It
- * turns toward the current target, dispatches the active attack animation,
- * creates and removes weapon conflict boxes, drives projectiles and special
- * attacks, and manages weapon afterimages.
- *
- * Matching notes (6,648 bytes / 1,662 instructions):
- *  - MOTION.C's small globals need the ActATTACK gp-extern list in both the
- *    build and standalone matching tools.
- *  - DeleteConflict is intentionally old-style in this translation unit.
- *    The hand-selection value remains live in $a1 and is a harmless second
- *    argument on the first cleanup calls.  The typed case-2 call preserves a
- *    distinct HImode call result, stopping jump2 from folding two physical
- *    cleanup calls into one.  The conflict.h prototype is renamed while
- *    including the aggregate header so it does not erase this original
- *    call-site shape.
- *  - Both the retail and trial executables contain the otherwise dead
- *    Me_MOTION_C read immediately before the root-model coordinate clears.
- *    The volatile-qualified read records that real access explicitly.
- *  - cleanup_guard is a short.  Its HImode definitions make reorg duplicate
- *    the case-0 `li 3` into the switch branch delay slot, as in the target.
- *  - The reversed `direction > turn` comparisons only change fold/ref order;
- *    they give local allocation the target's $v1/$a1 assignment.
- *  - The Napalm request and its velocity scratch retain PSX.SYM's original
- *    block-local names, `item` and `vect`.
- *  - PSX.SYM records scoped PARAM_ITEM_LAUNCH locals named `item` at the
- *    earlier sp+0x18 slot, accounting for its 0x28-byte extent. Retail only
- *    uses the leading SVECTOR as fall-motion velocity, so an explicit union
- *    gives that inferred view a descriptive name without inventing an array.
- *  - One-shot do loops around the MotionUpdateMode scans preserve the target's
- *    loop notes and load order without emitting control-flow instructions.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern void DeleteConflict();
 
@@ -285,8 +252,6 @@ dispatch:
             PARAM_ITEM_LAUNCH *request;
             short first_frame;
 
-            /* The frame-window constants staged in first_frame/last_frame
-             * are byte-required (direct literals recolor; measured). */
             first_frame = 36;
             t = dtM->count;
             request = &item;
@@ -344,7 +309,7 @@ dispatch:
             }
             motMODE = MOTION_MOVE_APPLY;
             i = 0;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
@@ -457,7 +422,7 @@ dispatch:
             }
             motMODE = MOTION_MOVE_APPLY;
             i = 0;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
@@ -503,7 +468,7 @@ dispatch:
         set_combo:
             motMODE = MOTION_MOVE_APPLY;
             i = 0;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
@@ -666,8 +631,6 @@ dispatch:
         }
         waist = *Me_MOTION_C->model->object;
         ActionHalt = ACTION_HALT_NONE;
-        /* Re-walks the chain rather than reading waist->id: byte-required
-         * (the second full deref is in the bytes; measured). */
         conflict_id = (int)(*Me_MOTION_C->model->object)->id;
         if (conflict_id >= 0)
         {
@@ -790,45 +753,10 @@ dispatch:
             {
             case FIST:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0], hand_kind);
-                /* NOT something anyone wrote. Both this cast and the
-                 * bogus second argument on the sibling calls exist for one
-                 * reason: to stop gcc 2.8.1's find_cross_jump merging these
-                 * arms' identical `jal DeleteConflict; j <join>` tails.
-                 * find_cross_jump compares CALL_INSN_FUNCTION_USAGE plus the
-                 * pattern code, so a spurious extra argument (which emits
-                 * NOTHING here -- the target sets only $a0) or value-typing
-                 * the call (call_value vs call) makes two arms differ.
-                 *
-                 * What is actually wrong is upstream, and the file proves it:
-                 * the SAME switch appears in
-                 * DELETE_WEAPON_CONFLICTS_AND_AFTERIMAGES above with plain
-                 * one-argument calls, and there the merge is CORRECT -- its
-                 * five source calls emit three at each of its three sites
-                 * (offsets 32/52/56; the ONININ_HAND_1 and BEAST_HAND_0 tails
-                 * merge away). This switch's five all survive in retail
-                 * (32/44/8/52/56), so the original had something here that
-                 * blocked the merge, and it was not a cast.
-                 *
-                 * Measured while looking for it: plain one-argument calls
-                 * throughout cost 35 lines (two arms merge); restoring the
-                 * real prototype as well changes nothing further; moving the
-                 * `dtM->mask` store from after the switch into each arm costs
-                 * 54. The answer is a structural difference in this block we
-                 * have not found -- exactly the situation ActSTATE was in
-                 * until its nested humanoid aliases came out and its own
-                 * SetCameraMode cast stopped being needed.
-                 *
-                 * Narrowed further since: the cast is uniquely required
-                 * GIVEN this structure. Dropping just the cast while
-                 * keeping the fake arguments costs 32; moving the fake
-                 * argument onto this arm's second call instead of the
-                 * cast, or onto default's, costs 56 either way. And the
-                 * retail arms end in identical two-instruction
-                 * `jal DeleteConflict; j <join>` tails that cc1 did NOT
-                 * merge, while the macro switch above merges its
-                 * three-instruction ones -- so retail's calls really did
-                 * differ in RTL argument usage or pattern, and finding
-                 * what source produced that is the open question. */
+                /* The cast and extra arguments in sibling calls are reconstruction
+                 * scaffolding that prevents GCC from merging these switch tails. Retail
+                 * preserves all five calls, but the original structural distinction remains
+                 * unresolved. */
                 ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
                 break;
             case JAW:

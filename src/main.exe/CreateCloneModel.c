@@ -15,23 +15,6 @@
  *     param $a0       struct ModelType * objp
  * END PSX.SYM */
 
-/*
- * CreateCloneModel (0x8001851c, 0xa0 bytes) — ModelType's allocate+init
- * constructor, the sibling of CreateCloneOrnament.c's OrnamentType version
- * (same TU idiom: valloc(sizeof(T)), self-referencing object.coord2, a
- * World-rooted GsInitCoordinate2, a zeroed translation + RotMatrixYXZ, then
- * an optional object.tmd clone from an existing instance).
- *
- * Unlike OrnamentType, ModelType (item.h) owns its own `rotate`/`clip`
- * SVECTORs and an `id`/`attribute` pair, so RotMatrixYXZ is fed the object's
- * OWN (freshly zeroed) `rotate` field instead of the shared `UnitVector`
- * global that CreateCloneOrnament/UpdateOrnament use for OrnamentType (which
- * has no rotate of its own). `id` is initialized to -1 (no model index yet)
- * and `attribute` to 0, matching Ghidra's own independently-built struct
- * exactly (reference/ghidra_types.h:5021) — valloc(sizeof(ModelType)) == 0x74
- * only once item.h's ModelType carries the trailing `object` (GsDOBJ2) field
- * added here.
- */
 extern void *valloc(u32 size);
 
 ModelType *CreateCloneModel(ModelType *objp)

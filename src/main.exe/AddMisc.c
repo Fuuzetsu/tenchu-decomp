@@ -26,58 +26,6 @@
  *     extern struct tag_TMisc misc[200];
  * END PSX.SYM */
 
-/*
- * AddMisc (0x8004d13c) — the misc-object/effect spawner (fire, doors,
- * pitfalls, snowfall, sprites, water TIM swaps...). Scans the misc[] pool for
- * a free slot (proc == 0), fills in position + the three init params, then
- * dispatches on `type` to install the processor and kick it once with
- * MM_CREATE (0). type 5 doesn't allocate anything: it loads one of seven
- * water/warp TIMs (name picked by x) and uploads it via SetupTexScroll.
- *
- * First jump-table switch in a scan loop; the table links from this TU's
- * .rodata at the original 0x800127E8 (splat carve [0x1FE8, .rodata, AddMisc],
- * same mechanism as BriefingAndInventorySelectionScreen).
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - The pool scan is a hand-rolled GOTO loop, not do/while: with loop notes,
- *    loop.c hoists the jump-table la, type<<2 and &tbl[x] to the preheader and
- *    builds a p+0x14 induction variable (none of which the target has). The
- *    goto loop keeps them all in place; the bound is re-anchored each
- *    iteration by cse as one addiu off the register that la'd misc.
- *  - `base` holds that la: declared FIRST with its initializer, and
- *    `p = base;` written as a STATEMENT so the tp/ptm/va/vb/vc initializers
- *    sit between the la and the copy — cse2 has a (set REG0 REG1) special
- *    case that would otherwise rewrite the ADJACENT pair to move the la into
- *    p and flip the copy direction.
- *  - name_table/ptm are pointer variables initialized at declaration: their addius
- *    are the two prologue frame addresses (t1/s1); the calls then pass plain
- *    registers (no per-call addiu rematerialization, unlike &tm spelled at
- *    each use).
- *  - va/vb/vc are copies of the three STACK parameters. A stack parm used
- *    once (REG_N_REFS == 2) has its entry load sunk to the use by
- *    local-alloc's update_equiv_regs (REG_EQUIV machinery) when no loop notes
- *    cover the use; copying to a local makes update_equiv_regs substitute the
- *    parm INTO the copy insn, so the lw itself lands at the copy's position
- *    (entry, decl order = the original's load order) and the copy's pseudo —
- *    having no REG_EQUIV note — must get a hard register. Raw parms also
- *    lose priority races (REG_LIVE_LENGTH is doubled for equiv-noted regs).
- *  - The do{}while(0) around stores+switch+call+pause is the regalloc lever
- *    (depth-2 refs) that produces the target's caller-saved assignment
- *    [base a0, va a2, vb a3, vc t0, name_table t1]; the switch's sltiu bound check
- *    floats to the top of the block only because it is INSIDE the note range
- *    (loop notes are scheduler barriers), and the wrapper must extend through
- *    p->pause = 1 or jump.c moves case 0's then-arm (a jump out of the note
- *    range) to the end of the function. The nested double wrapper at the
- *    loop bottom weights base's bound ref so base outranks va for a0.
- *  - Case 5's name table is copied from an anonymous-initializer-style data
- *    blob kept as an extern: the original's u8*[7]={"Water1.tim",...} would
- *    emit the strings + table into THIS object and cannot reproduce the
- *    interleaved original .data. Naming the selected pointer separately gives
- *    the target's base+index addu; plain array indexing emits index+base.
- *  - The loop bound compares SIGNED ((s32) casts): the target uses slt, and
- *    Ghidra renders the condition as (int)ptVar1 < -0x7ff3da88.
- */
-
 extern u8 *MiscTimNames[7];                                /* the seven water/warp TIM names */
 extern u8 path_image_2[]; /* "K:\\WORK\\CDIMAGE\\IMAGE\\" */
 extern char fmt_undefined_effect[];                        /* "undefined effect %d" */
@@ -168,8 +116,7 @@ loop:
         do
         {
             p++;
-            /* Signed pointer compare (slt, not the plain compare's sltu):
-             * byte-required; the (s32) views are the lever. */
+            /* The original ownership test compares the addresses as signed values. */
             if ((s32)p < (s32)(base + MaxMisc))
                 goto loop;
         } while (0);

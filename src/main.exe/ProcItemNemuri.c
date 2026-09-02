@@ -44,28 +44,6 @@ extern s16 Think1sleep(void);
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-/*
- * Advances the sleeping-powder projectile, draws its pulsing sprite, puts a
- * collided humanoid to sleep, and disposes the item after impact, expiry, or
- * leaving the area map.
- *
- * Matching notes:
- *  - `conflict_class` shares the collision-mode constant between a halfword and a word
- *    store; two literals produce an extra `li`.
- *  - The byte-identical `bleed_count` arms disappear in jump2, but their CFG keeps
- *    the call-count and colour pseudos out of the pulse's register.  `bleed_count`
- *    is initialized, and is overwritten with its real value before the call.
- *  - The nested zero-trip loops emit no instructions.  Their loop notes weight
- *    `bleed_color` to 9 refs / 49 RTL insns (priority 5510), above `pulse`'s 5 / 35
- *    (2857), selecting the target $t0/$t1 allocation.  Splitting the colour
- *    across the two statements then puts its `lui` in the branch delay slot
- *    and its `ori` at the join.
- *  - `bleed_range` is assigned after the duplicated X update so its $a1 copy
- *    fills that update's load delay.  The full-width `rotation_count` similarly
- *    schedules the count load before the scale store without an `andi 0xff`.
- *  - The cleanup paths cache `item_proc` for the null check but call through
- *    `item->proc`; jump2 cross-jumps them into the target shared tail.
- */
 void ProcItemNemuri(TItem *item)
 {
     enum
@@ -215,10 +193,7 @@ void ProcItemNemuri(TItem *item)
                 effect_work.vx = rand() % 200 - 100;
                 effect_work.vy = rand() % 200 - 100;
                 effect_work.vz = rand() % 200 - 100;
-                /* Dead copy, but retail's own: the 12-byte struct copy is in
-                 * the shipped bytes (removal measures -32). The jittered
-                 * position is computed and then never passed anywhere --
-                 * SetSmoke below gets the body position instead. */
+                /* Retail computes and copies this jittered position but never uses it. */
                 random_position = effect_work;
                 SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
 

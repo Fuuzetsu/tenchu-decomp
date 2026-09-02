@@ -2,20 +2,6 @@
 #include "main.exe.h"
 #include "score.h"
 
-/*
- * calculate_score (0x8004e794, 0x160 bytes) builds the six halfword
- * end-of-stage score components and returns their static result record.
- *
- * Matching notes:
- *  - Friendly-fire, spotted, and total scores are signed values. The
- *    explicit unsigned view of the spotted component in the sum preserves
- *    the retail halfword load and its modulo-16-bit accumulation.
- *  - Each stage branch writes the final spotted score using its own penalty
- *    rate. Factoring out that store lets the compiler retain the full-width
- *    value instead of reloading the stored halfword before the clamp.
- *  - The first four components are written directly; `result` begins at the
- *    point where the completed record is read, clamped, and returned.
- */
 extern ScoreResult STAGE_SCORE_COMPONENTS;
 extern void *memset(void *s, s32 c, u32 n);
 

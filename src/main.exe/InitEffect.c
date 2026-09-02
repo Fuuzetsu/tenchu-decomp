@@ -34,34 +34,6 @@
  *     extern struct ModelType *ModelHook;
  * END PSX.SYM */
 
-/*
- * InitEffect (0x80032184, 0x388 bytes) -- initialize the sprites, models,
- * images, and draw primitive used by the game's visual effects.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - BloodSpriteImageIds is the real eight-byte table immediately after the
- *    effect cursor: four interleaved flying/stain image pairs. It is declared
- *    as the packed byte array emitted by the original data object, then copied
- *    to a local byte array. The array expression also preserves the retail
- *    split-address schedule; declaring the external symbol as an aggregate
- *    coalesces those instructions.
- *  - The blood image IDs must stay a flat byte array.  Indexing it with
- *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
- *    formed addresses; caching a row of a two-dimensional array does not.
- *  - The `while (1) { if (i >= N) break; ... }` loop spelling is
- *    byte-required: the natural `for` form changes the emitted length
- *    (measured) — the manual top test suppresses the for-loop's
- *    entry-test/rotation treatment.
- *  - Each SetupSprite loop has its own block-scoped `sprite` temporary.
- *    Sharing one function-scoped pointer extends its lifetime and emits
- *    three extra return-value moves.
- *  - The smoke loop's two image IDs are a block-local initialized array, so
- *    each iteration emits the target's two stack stores before indexing it.
- *    The later explosion-ID array belongs to its own block as well. Their
- *    lexical order gives them the adjacent retail stack slots naturally;
- *    function-scoping the explosion array reverses those slots.
- */
-
 extern u8 BloodSpriteImageIds[];
 /* Indexed by impact_sprite and the BOMB_SPRITE_* selectors respectively. */
 extern u8 ImpactSpriteImageIds[MaxImpacts];
@@ -88,10 +60,7 @@ void InitEffect(void)
     i = 0;
     for (; i < N_BLOOD_SPRITES; i++)
     {
-        /* Not a flattened image[4][2]: the target recomputes the index and
-         * re-adds the base for the second element (addu/addu/lbu 0), where a
-         * real 2D or paired-struct access folds it into the load as lbu 1.
-         * Both spellings measured 24 lines off. */
+        /* Retail indexes the two image-id streams independently rather than as pairs. */
         image = GetImage(blood_images[i * 2]);
         InitSprite(image, &sprBlood[i]);
         sprBlood[i].attribute = GS_ATTR_SEMITRANS_ADD;

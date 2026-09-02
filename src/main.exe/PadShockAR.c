@@ -19,9 +19,7 @@
  *     extern struct PADCMD__141fake PadArrange;
  * END PSX.SYM */
 
-/* Ghidra: struct PadArrange { pow, time, attack, release; } — a pad rumble
- * (shock) envelope: power level + attack/release ramp times, time is a
- * running counter reset here. */
+/* Rumble envelope: power, elapsed time, attack, and release. */
 
 void PadShockAR(int port, int pow, int attack, int release)
 {

@@ -1,14 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * Load an executable from CD, waiting first for a successful open and then
- * for the asynchronous read to finish.  The caller supplies the stack fields
- * written into the SDK execution record immediately before the hand-off.
- *
- * The two INCLUDE_ASM pieces were one function: the interior prototype marker
- * sits at the printf call in the retry loop, and its branches cross the split.
- */
 extern char fmt_reading_exec[];
 extern char msg_exe_read_ok[];
 extern void cb_nop_(void);

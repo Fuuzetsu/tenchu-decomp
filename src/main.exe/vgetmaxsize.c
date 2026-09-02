@@ -13,14 +13,6 @@
  *     extern unsigned long *virtual_memory_pool;
  * END PSX.SYM */
 
-/*
- * vgetmaxsize (0x80016c9c, 0x4c bytes) — same TU as vinit.c/vgetfreesize.c
- * (virtual_memory_pool/valloc/vfree/vgetmaxsize/vgetfreesize/vcalloc all
- * cluster together): walks the pool's singly-linked free list (see
- * vinit.c/vgetfreesize.c for `struct VMhead`) and returns the size of the LARGEST
- * free block (top bit clear), in BYTES (word count << 2).
- */
-
 unsigned long vgetmaxsize(void)
 {
     struct VMhead *p;

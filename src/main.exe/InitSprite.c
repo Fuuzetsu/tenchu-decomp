@@ -17,30 +17,6 @@
  *     param $s2       struct GsSPRITE * sprite
  * END PSX.SYM */
 
-/*
- * InitSprite (0x8004e9d8, 0x118 bytes) — zero a GsSPRITE, set its default
- * grey/full-scale look, then (when `image` is given) derive its pixel
- * geometry/tpage/UV window from a GsIMAGE. Twins: SetPolyXF4.c/AddXF4.c/
- * AddXG4.c/StartDrawing.c (same TU, all matched).
- *
- * Matching notes:
- *  - `TIM_PIXEL_MODE((u16)image->pmode)` uses only the low halfword of the
- *    four-byte pmode field. GCC folds the value conversion into retail's
- *    `lhu` at offset zero, so the recovered GsIMAGE layout stays intact
- *    without a pointer-punning access.
- *  - `width_shift = 2 - texture_mode` is a named local: it's read again
- *    AFTER the GetTPage call (for the `u` mask), so its live range crosses
- *    the call and it needs a callee-saved register — matches if declared
- *    once and reused for both the `w` shift and the `u` mask.
- *  - `image->px`/`image->py` are re-read (fresh loads) after the
- *    GetTPage call rather than cached, since the call clobbers the
- *    caller-saved copies (same "reload across an intervening call"
- *    shape as SetupSE.c's se->VABid).
- *  - `sprite->v = (u8)image->py` is a genuinely separate BYTE load
- *    (lbu) from the earlier full `lh` read of the same field for the
- *    GetTPage argument — different machine modes don't CSE (cookbook:
- *    DeleteConflict's ConflictObjects).
- */
 extern void *memset(void *s, s32 c, u32 n);
 
 void InitSprite(GsIMAGE *image, GsSPRITE *sprite)

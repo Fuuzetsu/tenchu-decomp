@@ -26,21 +26,6 @@
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-/*
- * WeaponHitWeapon (0x8001f324, 0x284 bytes) retries rejected weapon
- * contacts, knocks the accepted combatants back, emits ten blood particles,
- * advances the attack motion, and supplies clash feedback.
- *
- * The same-name demo body and its MOTION.C:771-795 line records expose the
- * original control shape: the successful handling path remains inside an
- * indefinite retry loop. Rejected slots continue; the accepted path breaks
- * after handling. That makes the blood-particle for-loop genuinely nested,
- * so loop.c naturally hoists ConflictObject's two address forms and the /100
- * magic constant before the retry loop. Direct ConflictObject indexing and
- * the source's natural `p = &ConflictObject[hand->id].position` then reproduce
- * all 161 retail instructions without carrier locals or allocation fences.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 void WeaponHitWeapon(ModelType *hand)
@@ -85,10 +70,8 @@ void WeaponHitWeapon(ModelType *hand)
             }
 
             hand->attribute = hand->attribute & ~MODEL_ATTR_COLLIDE;
-            /* Retail quirk, byte-matched as-is: `id` is a conflict-POOL
-             * slot index, but BattleDB is the warid-keyed attack table —
-             * the parry-stun length is read from whichever row shares
-             * the slot number, not from either fighter's attack. */
+            /* Retail indexes BattleDB with the conflict-pool slot, not either
+             * fighter's attack id. */
             dtM->loop = BattleDB[id].power / -3 - 1;
             Sound(Me_MOTION_C, SE_WEAPON_CLASH);
             if (StagePlayer == Me_MOTION_C)

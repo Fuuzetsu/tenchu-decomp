@@ -16,42 +16,6 @@
  *     extern long GameClock;
  * END PSX.SYM */
 
-/*
- * StartDrawing (0x800181d4, 0x74 bytes) — per-frame draw-page flip: toggles
- * the double-buffer page index, points the GPU work/packet area at the new
- * page (GsSetWorkBase, page stride PACKET_PAGE_SIZE), repoints the global
- * sort table pointer OTablePt at OTable[DrawingPage] and clears it
- * (GsClearOt), then bumps the frame counter GameClock. Called once per frame
- * from the main loop alongside the (unmatched) present/flip step.
- *
- * DrawingPage/OTable/GameClock are Ghidra-recovered names (symbols.tsv);
- * Packet (the GPU work/packet buffer immediately following OTable's two
- * entries — OTable+2*sizeof(GsOT) == 0x80098018+0x28 == 0x80098040) has no
- * Ghidra name, so it keeps splat's auto name. GsOT uses the canonical
- * five-word PsyQ LIBGS layout shared by every ordering-table caller.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - DrawingPage is signed `short` (Ghidra's own `(short)` cast on the
- *    store). Its two reads in this function don't CSE: `1 - DrawingPage`
- *    only feeds a narrowing store (`newPage` is itself `short`), so the
- *    sign bits of the load are provably dead and cc1 emits `lhu`; the
- *    later `OTable[DrawingPage]` index needs the full signed value and
- *    reloads fresh with `lh` (DeleteConflict's ConflictObjects rule: two
- *    un-CSE'd loads of one signed-short global, one lhu one lh — give the
- *    narrowing use its own temp and let the index re-read the global).
- *  - The recovered `Packet[][PACKET_PAGE_SIZE]` declaration makes
- *    `Packet[newPage]` perform the page-stride shift before adding the
- *    absolute arena base, including the target's addu operand order.
- *  - OTable/Packet are ABSOLUTE (`lui`/`addiu` to %hi/%lo) in this TU,
- *    not %gp_rel — OTable's known 0x28-byte size and Packet's incomplete
- *    outer array type are both non-small; DrawingPage/OTablePt/
- *    GameClock ARE %gp_rel here (tools/gpsyms.py --write; Build.hs
- *    maspsxGpExterns + permute.py GP_EXTERNS both list StartDrawing now).
- *  - GsSetWorkBase/GsClearOt live above 0x80060000 (precompiled PsyQ SDK —
- *    don't source-shape their bodies, only this call site's argument
- *    setup).
- */
-
 /* Leave only the PSX.SYM-proven outer bound incomplete: this retains the
  * absolute symbol access while preserving the 64 KiB page type. */
 extern u8 Packet[][PACKET_PAGE_SIZE];

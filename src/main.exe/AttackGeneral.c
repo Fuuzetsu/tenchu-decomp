@@ -28,25 +28,6 @@
  *     extern long AttackActionCount;
  * END PSX.SYM */
 
-/*
- * AttackGeneral (0x8002e39c, 0x5a4 bytes) -- general-purpose humanoid
- * attack chooser.  The status-7 continuation gate shares AttackIndirect's
- * one-shot loop fence; the ordinary path chooses chase, turn, item, and
- * SetCommand actions from distance, facing, and EngageLevel rolls.
- *
- * Matching notes:
- *  - GameClock must use its original scalar declaration.  The equivalent
- *    unknown-size-array declaration lets delay-slot filling hoist its `lui`
- *    across the modulo guard and makes the function one instruction short.
- *  - Spell the time guard `GameClock > AttackActionCount`: comparison
- *    operand evaluation order puts the absolute GameClock load before the
- *    gp-relative action-count load, as in the target.
- *  - The cold close-range `% 4` switch needs an explicit default exit.
- *    Its cases may use `break` when an enclosing `else` keeps the ordinary
- *    range arm separate; omitting the default adds another predecessor and
- *    makes CSE reload the pre-switch Distance value.
- */
-
 extern Humanoid *Me_THINK_C;
 extern s32 AttackActionCount;
 
@@ -104,8 +85,6 @@ short AttackGeneral(void)
         if (Distance < 2000)
         {
             d = Degree;
-            /* The lone ternary abs (vs this file's five if-negate abs) is
-             * measured byte-required. */
             deg = (d >= 0) ? d : -d;
             if (deg < 1000)
             {
@@ -123,8 +102,6 @@ short AttackGeneral(void)
     {
         Humanoid *me;
 
-        /* Mid-sequence alias + mixed spellings: byte-required (measured in
-         * AttackLong's identical block). */
         Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
         me = Me_THINK_C;
         Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;

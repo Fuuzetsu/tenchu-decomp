@@ -22,49 +22,6 @@
  *     extern struct CVAType *CVAnow;
  * END PSX.SYM */
 
-/*
- * CVArun (0x80050e60, 0x214 bytes) — the once-per-frame CVA cutscene body:
- * runs the normal per-frame draw/update pipeline (ComputeAllConflict through
- * draw_visible_characters_, matched — Ghidra's own
- * `FUN_80029368`), then two CVA-specific passes:
- *  1. STAGE_ID_CORRUPT_MINISTER + RIKIMARU_0 only:
- *     N_TANKA_SPRITES-entry sprite-fade-and-sort pass — each
- *     slot is a Sprite3D with a "hidden" `attribute` bit and a
- *     three-channel fade in its embedded GsSPRITE. The shared brightness
- *     increments by 8 while `sprite.r`'s sign bit is clear, then the sprite
- *     is sorted.
- *  2. CVAhuman[N_CVA_HUMANS] reconciliation (proven HumanAnimType:
- *     human/loop/motid):
- *     for each live human whose queued motion has already looped enough
- *     (`CVAhuman[i].loop <= human->motion->loop`), either
- *     motid==MOTION_ID_NONE (stop:
- *     set motion->loop to -1 and clear the human's x/z velocity) or (status != DEAD)
- *     start the queued motid via SetNowMotion and clear the slot.
- * Finally advances the CVA frame counter (CVAtime) and, once it reaches
- * the current WAIT event's own duration (CVAnow->payload.wait.frames,
- * the +2 payload halfword), advances to the next 12-byte event
- * record and calls CVAupdate for the new one; returns 1 while still
- * running the current event, else CVAupdate's own continue/stop flag.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - Both loop counters are `short i` (PSX.SYM), reused across both loops —
- *    the narrow counter suppresses loop.c's strength reduction, matching
- *    the target's recompute-from-base address for both
- *    `TANKA_SPRITES_[i]` and `&CVAhuman[i]`.
- *  - The positional-data slot's own pointer is loaded ONCE per iteration
- *    into a named local (`e`) for the flag/fade field accesses, but the
- *    GsSortSprite call re-reads `TANKA_SPRITES_[i]` directly
- *    (NOT `e`) — the target reloads the slot a SECOND time right before
- *    the call instead of reusing the cached value, matching Ghidra's own
- *    rendering (`*piVar4 + 0x68`, a fresh dereference of the slot address,
- *    distinct from `iVar3` which is `*piVar4`'s EARLIER read reused for
- *    the flag/fade tests). Reusing `e` here compiles one `lw` short.
- *  - The fade counter's new value is computed once by the chained
- *    `r = g = b = b + 8` assignment and stored to all three bytes from that
- *    one register. Writing each store as `+8` inline would reload/recompute
- *    three times.
- */
-
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 extern u8 CHOSEN_CHARACTER;
 
@@ -126,9 +83,6 @@ short CVArun(void)
             if (motid == MOTION_ID_NONE)
             {
                 mmp->loop = MOTION_LOOP_DISABLED;
-                /* The slot is reloaded for the stores (like the sprite
-                 * pass above): byte-required (using human directly drops
-                 * the second lw; measured). */
                 reload = CVAhuman[i].human;
                 reload->vector.vz = 0;
                 reload->vector.vx = 0;

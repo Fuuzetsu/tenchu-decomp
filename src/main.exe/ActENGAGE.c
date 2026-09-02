@@ -26,24 +26,6 @@
  *     extern short SelectedItem;
  * END PSX.SYM */
 
-/*
- * ActENGAGE (0x80021270) — updates a humanoid's engage movement and selects
- * the next command, jump, attack, or item-use motion.
- *
- * Matching notes (1,388 bytes / 347 instructions):
- *  - The engage-stance input priority is an ordinary `if`/`else if` chain.
- *    Its common stage-end transition follows the chain directly; GCC emits
- *    retail's shared join without source labels or gotos.
- *  - The successful command and item arms repeat the complete
- *    motID/motMODE/return tail.  jump2 merges the stores onto the final
- *    0x602 arm while retaining the target's separate constant-load islands.
- *  - The retreat input is an ordinary two-way branch: holding down selects
- *    the chase-back motion; otherwise the actor returns to its normal or
- *    weapon-ready stance and restores the player camera when needed.
- *  - Loading dtV before each component value gives the velocity pointer and
- *    component value the target's $v1/$v0 allocation.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);

@@ -3,30 +3,6 @@
 #include "main.exe.h"
 #include "item.h"
 
-/*
- * Draws the current map target and each live goshikimai owned by the camera
- * owner after rotating and scaling their X/Z coordinates through the current
- * stage's map placement.
- *
- * Matching notes:
- *  - The RequestItem candidate above is REFUTED: the demo dispatcher's
- *    (enum TRequestItem, void *) shape cannot produce this (x, z, area)
- *    signature, and retail replaced RequestItem with the per-item
- *    ReqItem* helper family (item.h) — every demo role is accounted for.
- *  - Indexing `items` with the loop counter gives cc1 the target's single
- *    natural 0x58-byte induction pointer; a separately incremented item
- *    pointer was biased to `items + 0x10` and made the function four
- *    instructions too long.
- *  - The two X call arguments need distinct temporaries even though their
- *    expressions are identical and their live ranges do not overlap. Each
- *    temporary pulls the screen_x load/shift ahead of the Y rounding branch;
- *    sharing one source variable coalesces the regions and recolors both
- *    division chains, while inlining either argument schedules that region
- *    too late.
- *  - `--expand-div` is required for the retail signed-division overflow and
- *    divide-by-zero guards.
- */
-
 extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 
 void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)

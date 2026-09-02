@@ -17,17 +17,6 @@
  *     param $a2       unsigned long size
  * END PSX.SYM */
 
-/*
- * LoadExecEx (0x80019448, 0xac bytes) — shuts down every game subsystem
- * (sound, graphics, pads, memcard, CD callback) before loading and jumping
- * to a fresh executable off the disc. The Ghidra callee `FUN_8005e834` is
- * the already-named `run_exec_file` (config/symbols.main.exe.txt); its
- * second argument is the fixed stack-top constant 0x801ffff0, not an
- * address-of (Ghidra's `&DAT_801ffff0` is a decompiler artifact for a bare
- * absolute literal here, not a real object being pointed to — the asm
- * builds it as a plain `lui/ori` 32-bit constant, never with a
- * `-G8`/`%lo`-style small-symbol relocation).
- */
 extern void save_pad_analog_(void);
 extern void CdaStop(void);
 extern void SsEnd(void);

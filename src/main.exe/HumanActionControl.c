@@ -26,22 +26,6 @@
  *     extern void (*ActionFunc[18])();
  * END PSX.SYM */
 
-/*
- * HumanActionControl (0x8001c80c, 0x124 bytes) — the per-humanoid, per-frame
- * top-level driver: snapshots the pad, latches the "d-globals" (dtL/dtR/dtV/
- * dtM/motID) other MOTION.C functions read, runs whichever of
- * DamageControl/FallCheck-then-{HangCheck,SwimCheck} applies, drops the
- * D-pad directions from dtPAD while L1 (camera-center) is held, dispatches through `ActionFunc[human->status]`
- * (an indirect call through the per-status function-pointer table), and
- * finally runs MotionAndMove() unless the dispatched handler left
- * `motMODE` at MOTION_MOVE_UNSET.
- *
- * Matching note: populate the shared d-globals directly in this order. Reading
- * `mid` back through the freshly assigned `dtM` keeps the motion pointer live
- * and gives the retail unsigned halfword transfer without a cast-only struct
- * view or any invented locals.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern void (*ActionFunc[N_CHARACTER_STATUSES])(void);
 extern s16 FallCheck(void);

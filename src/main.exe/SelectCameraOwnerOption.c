@@ -22,55 +22,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-/*
- * SelectCameraOwnerOption (0x8005ba08, 0x110 bytes) — debug menu's "select
- * camera owner" submenu (LayoutEnemyOption dispatch case 7): builds an
- * AdtSelect menu of every live Humanoid's index ("%d") -> pointer pair, lets
- * the user pick one, and re-centers the debug camera (ViewInfo) on the
- * chosen Humanoid's model position.
- *
- * Matching notes:
- *  - The ordinary indexed `for` loop is important.  The demo's debug symbols
- *    list only `i`, `targets`, and `msg`; the apparent `buffer`, HumanGroup
- *    cursor, and target pointer in the disassembly are compiler-created
- *    induction values, not source locals.  With all three expressions written
- *    naturally, cc1 strength-reduces `msg[i]` and `HumanGroup[i]` but leaves
- *    `targets[i]` as the target's fresh `sp+16+i*8` calculation.  Manually
- *    spelling the first two walkers made a real loop reduce the third as well
- *    and led to the misleading hand-written-goto reconstruction.
- *  - That real loop also hoists `%hi(fmt_num_2)` into s3 while leaving the
- *    `%lo(fmt_num_2)` addiu at the sprintf call.  Thus the same symbolic C
- *    both resolves to the retail `lui s3,0x8009; addiu a1,s3,0x7D70` bytes and
- *    carries the HI16/LO16 relocation pair required by a normal link.
- *  - Real retail layout differs from PSX.SYM's (earlier-build) recollection:
- *    the raw asm places `msg` at sp+0x130 (304), not PSX.SYM's sp+264, which
- *    means `targets` is 36 entries (0x120 bytes), matching Ghidra's own
- *    TAdtSelect[36] rather than PSX.SYM's [31].  `msg[35][10]` occupies 350
- *    bytes and its stack object rounds to 0x160, yielding the observed frame
- *    (0x2A8 = args/pad + targets 0x120 + msg 0x160 + 5 saved regs + pad).
- *  - `CamState.Owner = (Humanoid *)AdtSelect(...)` writes the recovered
- *    shared camera field, not a separate object at its interior address.
- *  - The three `CamState.Owner->model->locate.coord.t[i]` reads are kept as
- *    three independent, uncached expressions (no `model` temp): the asm
- *    reloads Owner->model fresh via v0 (Owner) for EACH of the three t[i]
- *    accesses (three separate `lw ?,0x58(v0)`), which only happens when the
- *    source repeats the whole chain rather than caching a `model` pointer.
- *  - The coordinate copy is spelled `vrx`/`vry`/`vrz` = t[0..2] (direct reads)
- *    then `vpx=vrx; vpy=vry-5000; vpz=vrz;` (plain copies) — the OPPOSITE of
- *    Ghidra's naming (which computes into vpx/vry/vpz and copies vrx=vpx,
- *    vrz=vpz). The asm's actual value-to-register binding proves it: `t[0]`
- *    stores to vrx's offset FIRST (needs the full address), and the vpx
- *    store (offset 0, foldable through the address's hi-only register) is
- *    scheduled much later, matching a plain-copy-from-vrx shape, not
- *    Ghidra's reverse. Fixed a 6-instruction register-identity mismatch.
- *  - No %gp_rel symbols in this function (tools/gpsyms.py): Humans/
- *    HumanGroup are another TU's smalls, absolute here.
- *  - `fmt_num_2` (the "%d" format string) is a splat auto-name drifted -8
- *    bytes in this run (a whole str_select..fmt_concat chain shares the
- *    offset — verified against the .map). Bound a fresh
- *    `fmt_num_2 = 0x80097D70;` in config/symbols.main.exe.txt per the
- *    cookbook's drifted-symbol recipe rather than fight the wrong auto-name.
- */
 extern char fmt_num_2[]; /* %d */                                /* "%d" */
 extern char str_select_camera_owner[]; /* select camera owner */ /* "select camera owner" */
 

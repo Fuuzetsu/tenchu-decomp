@@ -28,29 +28,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemKaengeki (0x80043c0c) — spawn a "kaengeki" item. Twin of
- * ReqItemDrop/ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango (same
- * item TU, same pool round-robin on ic and the same
- * dispose-on-exhaustion block); like ReqItemJirai/ReqItemSmoke/ReqItemFire/
- * ReqItemDokudango there is no GetAreaMapLevel floor check. It gets
- * ProcItemKaengeki as its processor.
- *
- * This packs p->start and p->end into PSX.SYM's `param_kaengeki` as six full
- * words. start.vx is addressed through `item->param.kaengeki` directly; the
- * other fields use the already-computed `param` pointer.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &item->param.kaengeki;` sits BEFORE the null check, so its
- *    addiu fills the beqz delay slot.
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins; dead afterward (p->start.vy/vz are re-read
- *    directly off p, not through pos, in the param tail below).
- *  - aowner/atype are real temps, same shape as the other twins.
- *  - The six start/end fields are INLINE (no x/y/z temps): each compiles to
- *    one lw immediately followed by its sw with no batching, unlike the
- *    s16-narrowing twins which batch three loads before three stores.
- */
 extern void ProcItemKaengeki(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */

@@ -32,40 +32,8 @@
  *     extern long EmergencyNotice;
  * END PSX.SYM */
 
-/*
- * The Henshin (disguise) item processor: snapshots the player's model into
- * HenshinSnapshot, swaps in the disguise character for the HenshinCount
- * countdown with a smoke puff at both ends, ticks the countdown each frame,
- * and restores the original model when the timer runs out, damage breaks
- * the disguise, or the item is disposed (HenshinItem marks the active
- * instance).
- */
 #include "item.h"
 
-/*
- * MATCH.
- *
- * ProcItemHenshin (0x80042c1c) owns the disguise transformation.  It starts
- * and monitors motion 0xf04, drops itself when that motion is interrupted,
- * swaps the owner's model-object data to/from two saved snapshots, and tears
- * down the previous disguise before installing a new one.
- *
- * Matching notes:
- *  - The retail snapshot begins with the saved `waist` value, followed by
- *    ordinary 12-byte model-part records. Indexing the nested `p` array by
- *    the loop's own counter gives loop.c one unbiased
- *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
- *  - HenshinItem and HenshinCount are ordinary gameplay globals; their former
- *    volatile qualifiers were inert and have been removed. Two owner-slot
- *    reads still use narrow volatile views to retain retail's post-store
- *    reloads without qualifying the item itself. The old disguise pointer is
- *    copied once before its null/proc checks, avoiding redundant global reads.
- *  - `drop_request` occupies the exact sp+0x10..0x37 slot. The smoke paths
- *    reuse its leading bytes for their short velocity.
- *  - HENSHIN_MODE_START deliberately does not assign HenshinItem. It jumps
- *    directly to the shared mode increment; only the completed wait path
- *    installs the current item after disposing any prior disguise.
- */
 extern TItem *HenshinItem;
 extern u16 HenshinCount;
 extern SVECTOR svec_y_n50[]; /* {0,-50,0} */

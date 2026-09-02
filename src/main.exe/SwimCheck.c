@@ -30,14 +30,6 @@
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
-/*
- * Water entry test, run when the character stands below map level on a
- * water-attributed cell: spray a ring of splashes, cancel the attack,
- * switch the player camera to swim, and start the swim motion — or the
- * drown death when the model has no swim animation (or life already ran
- * out). Returns 1 while the character belongs in the water (including
- * already swimming / drowned), 0 on dry land or while aiming the kaginawa.
- */
 extern Humanoid *Me_MOTION_C;
 
 extern void set_model_hide_(Humanoid *human, short hide);
@@ -139,13 +131,3 @@ short SwimCheck(void)
 return_one:
     return 1;
 }
-
-/* Matching notes:
- * - Keep the two color rand() calls inside SetSplash's arguments.  cc1 then
- *   materializes the first shifted color across the second call, exactly as
- *   the retail scheduler does.
- * - The two loop counters are distinct locals: sharing one makes the later
- *   CVAhuman scan inherit the splash loop's callee-saved register.
- * - Assigning the dtL alias only in the successful conflict-object arm keeps
- *   its gp load at the target's first actual use.
- */

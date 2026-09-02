@@ -43,33 +43,6 @@
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * DrawShadow (0x80038394, EFFECT.C:1572) updates the humanoid's ground
- * position/attributes, emits a splash while the character is moving on an
- * eligible frame, or builds and draws the flattened ground-shadow model.
- *
- * Matching notes:
- *  - The retail 0x60-byte frame is the natural packing of the original
- *    VECTOR scl, MATRIX mat, SVECTOR scr result, and two long RotTransPers
- *    outputs.  No synthetic padding or scratch overlay is needed.
- *  - `height` comes from the archive's own `model->rotate.pad`, not from
- *    `object[0]`.  Keeping both archive reads on `human->model` lets CSE
- *    share that pointer and reproduces the target's argument-zero setup and
- *    object/rotation load order around GetAbsolutePosition.
- *  - The first status-3 random result is a block-local single-use temp so
- *    the rand call precedes the independent Y adjustment without retaining
- *    a copy.  The other random remainders stay inline; reusing one multi-def
- *    temp inserted four target-absent moves after the calls.
- *  - The EffectSlot scan directly indexes `EffectSlot[idx]` in a bottom-tested
- *    loop. Strength reduction generates the target's pointer walk; `slot`
- *    carries only the found/fallback result recorded by PSX.SYM.
- *  - ShadowMdl is viewed as ModelType: locate@0, rotate@0x50, and
- *    object@0x64 account for every use.  The chained scl assignment emits
- *    the target's reverse z/y/x stack-store order.
- */
-
 extern void DrawSplash(TEffectSlot *ef);
 void DrawShadow(Humanoid *human)
 {

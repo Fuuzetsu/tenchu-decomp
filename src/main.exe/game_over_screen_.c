@@ -16,9 +16,7 @@ enum game_over_state
     GAMEOVER_FADE_TO_MENU = 5
 };
 
-/* Fade one caption line in: from its start frame, ramp the sprite's
- * flat colour up to 0x80 and sort it. Pasted per line in retail; macro
- * is reconstruction shorthand (expands to the identical text). */
+/* Shared expansion for the two identical caption fades. */
 #define FADE_IN_LINE(spr, at)                                                 \
     if (GameClock >= at)                                                      \
     {                                                                         \
@@ -32,9 +30,7 @@ enum game_over_state
         GsSortSprite(&spr, OTablePt, GAME_OVER_TEXT_OT_PRIORITY);                                   \
     }
 
-/* Pull line N from the fade archive and centre it as an additive
- * sprite at height y. Two of retail's three copies share this exact
- * text (the first writes x before y and stays open-coded). */
+/* Shared expansion for the two identical archive-text lines. */
 #define INIT_ARCHIVE_LINE(spr, idx, y0)                                       \
     tim = get_tim_from_archive(fade_archive, idx);                            \
     StartDemoInitSprite(tim, &image, &spr);                                   \
@@ -80,35 +76,6 @@ enum game_over_state
         }                                                                     \
     } while (0)
 
-
-/*
- * game_over_screen_ (0x80055d64) — the mission-failed screen (invented
- * name; a prior guess called it start_demo_): loads the localized gov_*
- * (game-over) telop archive, plays the game-over theme once, and waits —
- * retry sets GameRetry and reboots PROCESS_MAIN, Start/timeout clears it
- * and returns to PROCESS_MENU. Original description continues below.
- * screen, fades in its sprites, handles continue/cancel input, then releases
- * the resources and dispatches to the selected executable.
- *
- * STATUS: MATCHING — pure C, all 2188 bytes (547 instructions) exact.
- *
- * Naming the selected resource-prefix table entry (rather than only its
- * value) gives GCC 2.8.1 the target local-allocation and sprintf argument
- * schedule. The setup brightness and the later literal 0x80 intentionally
- * remain separate source values; GCC hoists the latter into its own saved
- * register. The prompt initializer snapshots and restores its attribute while
- * filling the other fields. GCC removes the same-value store but retains the
- * retail v1 load; `increment` is then reused by the fade loop.
- *
- * The screen phases use their own enum, and the compound transitions are safe
- * statement operations.  ENTER_GAME_OVER_TITLE nests the phase/fade reset
- * inside the viewport/timer setup; HANDLE_GAME_OVER_EXIT_INPUT owns both exit
- * choices.  Those real operation scopes provide the four loop-depth-weighted
- * state references needed for retail's saved-register order.  Flattening the
- * operations rotates s6/s7/fp even though their runtime assignments are the
- * same.
- */
-
 extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
@@ -121,7 +88,7 @@ extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern int sprintf(char *buffer, char *format, ...);
 extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
-/* Retail's own prototype drift (def: u16 dir) -- byte-required. */
+/* Retail declares shade as s16 here; tile_sprite_ defines it as u16. */
 extern void tile_sprite_(Sprite3D *sprite, s16 shade);
 extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);
@@ -179,7 +146,6 @@ void game_over_screen_(void)
 
     i = 0;
     persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
     do
     {
         chr_offset = SAVE_ITEM_ROW_OFFSET(CHOSEN_CHARACTER);

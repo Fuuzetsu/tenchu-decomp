@@ -2,14 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 
-/*
- * Maintains one controller's current/previous/new input words and the recent
- * non-zero input history. `frames_since_new_input` is signed deliberately:
- * the increment-and-negative test is the original input-disable gate.
- * Reading `currently_pressed` back in the change test is load-bearing: it
- * keeps the field store ahead of the previous/new-input updates and matches
- * the target's store/reload schedule.
- */
+/* A negative frames_since_new_input value disables input until it wraps. */
 s16 update_pressed_buttons(PADtype *buttons, u16 pressed)
 {
     s16 i;

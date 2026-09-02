@@ -29,39 +29,6 @@
 
 #include "item.h"
 
-/*
- * MATCH.
- *
- * ProcItemKaengeki (0x80043710) runs the fire-breath item.  It starts the
- * owner's use animation, drops the item if that animation is interrupted,
- * then spends 40 frames steering the owner and launching camera-relative
- * napalm requests.
- *
- * Matching notes:
- *  - `request`, `rx`, and `ry` are one contiguous sp+0x10..0x3f working
- *    window. The same launch request is populated by the drop and fire
- *    modes; the latter also uses the trailing two words as camera rotation
- *    outputs.
- *  - `mode_index = 0` is a zero-byte CSE eviction.  Naming the entry mode
- *    load and dead-overwriting that local before the switch makes
- *    expand_case emit the target's fresh second `lbu`; a direct switch after
- *    the entry guard incorrectly reuses the first load.
- *  - `dispose_mode` is an s32 caller-saved local in a1.  It remains live from the entry
- *    compare to mode 2's no-call dispose path, while mode 1 rematerializes
- *    ITEM_MODE_DISPOSE as a fresh 0xff value after its calls. That difference
- *    keeps the two dispose prefixes separate while cross-jump merges them at
- *    the indirect call.
- *  - The completed request assigns user before type.  This prevents the
- *    type's `li 22` from filling the steering guard's delay slot and yields
- *    the target load/li/store ordering at the request head.
- *  - The steering writes use direct compound expressions through the owning
- *    `item->owner->model` path. A named model assignment instead colors the
- *    model into a0.
- *  - The staged vector statements are intentional: copy rotated end to
- *    start, scale start by 12, add the saved origin, double end, then add
- *    start.  They reproduce both rounds of stack stores in the target.
- */
-
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ProcItemKaengeki(TItem *item)

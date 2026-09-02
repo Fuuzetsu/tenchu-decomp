@@ -20,38 +20,6 @@
  *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-/*
- * GetNearestHumanoid (0x80029864) returns the nearest other live, visible,
- * type-filtered Humanoid within `distance`, or 0. It searches only while the
- * input Humanoid is at ground level (map.height == 0). The type/attribute
- * mask tests intentionally use unsigned halfword loads; status/life use
- * signed halfword loads, matching their comparisons and item.h declarations.
- *
- * The height check MUST be an early-return guard clause, not an `if (height
- * == 0) { for (...) }` wrapper, even though both spell the same behaviour and
- * both fold to the same `bnez -> epilogue` branch. cc1's post-reload
- * `reload_cse_regs` (toplev.c:3501, after .greg, before sched2) rewrites a
- * constant SET_SRC into a copy from the first hard register (scanning regno 0
- * upward) already recorded as holding that value -- unconditionally; there is
- * no cost comparison, and $zero never qualifies because no insn ever sets it.
- * With the wrapper form nothing separates `best = 0` (s4) from the loop's
- * `i = 0`, so s4 is still recorded as 0 and the preheader degrades to
- * `move s2,s4`. reload_cse_regs forgets every register value at a CODE_LABEL,
- * and the early return's `if_false` label lands exactly between the two
- * zeroes, so s4 is forgotten and `i = 0` stays `move s2,zero` as in the
- * target. jump2 cross-jumping then merges the two identical `return best`
- * tails, which is why the final asm is otherwise identical.
- *
- * The indexed `for` is intentional: cc1 strength-reduces HumanGroup[i] to
- * the target's s1 walking pointer while keeping i in s2. `__builtin_abs`
- * keeps each absolute value as one RTL operation until reorg, which lets the
- * first dx multiply issue before dz is formed and hides both MULT hazards.
- * Reusing dx as the PAGE_CIVILIAN comparand gives that first abs result the
- * target's distinct v1 output lifetime; dx is overwritten before its
- * distance use. Flattening the guard loses that lifetime and coalesces the
- * abs input/output in v0.
- */
-
 Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
 {
     Humanoid *cur;

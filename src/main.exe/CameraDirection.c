@@ -28,13 +28,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-/*
- * The free-look camera (CMODE_DIRECTION): stick input pans the aim angles
- * (clamped to ~80 deg up/down and 90 deg sideways; while the PREVIOUS mode
- * was SIGHT the stick is halved and the L1 release check is skipped), and
- * the eye sits at head height nudged toward open space, looking down the
- * rotated forward ray.
- */
 #include "item.h"
 #include "padcmd.h"
 

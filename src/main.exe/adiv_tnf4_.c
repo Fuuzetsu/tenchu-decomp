@@ -3,16 +3,6 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-/*
- * Flat-colour sibling of adiv_tng4_.  It projects each textured quad into the
- * typed ADIV_WORK root vertices, copies the record's one colour to all four
- * corners, and passes visible quads to the recursive subdivider.
- *
- * As in adiv_tng4_, the remaining volatile qualifier applies only to the
- * incoming ordering-table pointer so GCC 2.8 reads that stack argument at its
- * use site. The table and the ordinary by-value shift are not volatile.
- */
-
 u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
                    u_long *packet,
                    int count, u_long shift, GsOT *volatile ot,

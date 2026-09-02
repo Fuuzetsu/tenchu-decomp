@@ -2,22 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * AfsFindFile (0x8005eb84, 0x230 bytes) normalizes an AFS path, resolves each
- * directory component to its numeric entry prefix, then returns the matching
- * file-table element.  The two 200-byte arrays account for the target's
- * vars= 400 (0x190) local window.
- *
- * The demo body calls AfsFilenameFix and subAfsFindFile, while retail inlines
- * AfsFilenameFix once and subAfsFindFile twice.  Keeping local inline definitions
- * recovers those return islands and the byte-offset/index pair used by each
- * table scan.  The outer scan must remain a real while loop whose first body
- * statement derives cursorPath in two steps.  cc1 then duplicates the loop
- * test at entry and independently forms buffer[cursor] for the bottom test and
- * cursorPath for the next iteration; an if-wrapped do loop CSEs those addresses
- * and is one instruction short.  The mask parameter is full-width like the
- * matched subAfsFindFile helper: narrowing it inserts an andi/sign extension.
- */
 extern char *strncpy(char *dst, const char *src, u32 n);
 extern char *strcpy(char *dst, const char *src);
 extern int strncmp(const char *a, const char *b, u32 n);
@@ -83,9 +67,6 @@ TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
         {
             *cursorPath = 0;
             entryIndex = subAfsFindFileInline(handle, buffer, AfsFlag_Folder);
-            /* The loop's failure exit jumps into the tail test's return:
-             * byte-required (a local return 0 duplicates the island;
-             * measured). */
             if (entryIndex < 0)
             {
                 goto not_found;

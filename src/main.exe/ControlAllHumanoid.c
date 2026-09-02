@@ -15,36 +15,6 @@
  *     extern struct Humanoid *HumanGroup[32];
  * END PSX.SYM */
 
-/*
- * ControlAllHumanoid (0x800292a4, 0xc4 bytes) — same "Humanoid control" TU
- * as GetHumanoid.c/MoveHumanoid.c/GetMoveSpeed.c/GetTargetDistance.c
- * (HUMAN.C). Clears VISIBLE_ENEMIES_ (proven s16, DoInfoViewProc.c/
- * draw_visible_characters_.c), then walks the live
- * HumanGroup[]/Humans array (the same short-counter fused sign-extend+scale
- * loop shape as GetHumanoid), calling ControlHumanoid(human) on every entry
- * whose attribute bit 0x80 is clear — bracketing the call with
- * swap_balma_area_map_() (the area-map cursor save/restore
- * helper, HUMAN.C's own name for FUN_8001aba0, called TWICE) when
- * human->type == BALMA (0x85).
- *
- * `human->attribute` forces the `lhu` this TU's access uses against
- * item.h's proven-signed `s16 attribute` (same per-TU load-width divergence
- * as HumanActionControl.c's identical cast on the same field/offset).
- *
- * A separate redundant-load bug fixed first: writing `result` as `s16`
- * (matching the Ghidra-rendered `sVar1`) made cc1 emit TWO loads of Humans
- * (an extra dead `lhu` into an unused register right at entry, before the
- * real signed `lh`) — the HImode store vs SImode compare expansions of the
- * same global apparently defeat cc1's CSE here. Declaring `result` as `s32`
- * instead collapses both references back onto ONE load, matching target.
- *
- * `result` deliberately has two roles: it first holds Humans for the empty
- * loop return, then receives the loop-continuation comparison in
- * `while (result = i < Humans)`. The final false `slt` is therefore already
- * the function's zero return in $v0. Writing a separate `result = 0` in the
- * body gives the value an $a0 home and needs an extra `move v0,a0` in the
- * epilogue.
- */
 extern s16 VISIBLE_ENEMIES_;
 extern void swap_balma_area_map_(void);
 

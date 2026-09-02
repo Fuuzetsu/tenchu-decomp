@@ -2,32 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * AfsGetEntry (0x8005e950, 0x234 bytes) allocates and reads the AFS volume's
- * big-endian element table.  The demo calls getshort/getlong; retail contains
- * those helpers inline, including the address-taken stack short used to check
- * each record's AFS_ELEMENT_MARK.
- *
- * Matching notes:
- *  - A hand-written back edge preserves the three explicit cursors.  A real
- *    do/while lets loop.c create parallel biased induction pointers for the
- *    name and packed-word accesses, making the function nine instructions
- *    too long.
- *  - The two error calls are written before the success body.  jump2 merges
- *    their common call/return suffix at the earlier target address while each
- *    branch still materializes its string directly in the a0 argument chain.
- *  - The nested zero-trip loops emit no code.  Their loop-depth weighting
- *    reproduces the retail saved-register priorities; the depth-2 pair is
- *    irreducible (i's only refs outside it are fence-toxic: i = 0 blocks a
- *    code motion, the back edge costs a branch, and enclosing the label
- *    revives the induction-pointer explosion).  The old third level on the
- *    element-base copy is split per the DefaultActionHumanoid method onto
- *    the elements error arm below (elements must stay above raw).
- *  - The marker's high and low bytes intentionally use the raw and packed
- *    cursors respectively; the inline helper also preserves the target's
- *    address-taken stack-halfword store.
- */
-
 extern void AdtMessageBox(char *fmt, ...);
 extern void *valloc(u32 size);
 extern void vfree(void *p);
@@ -89,8 +63,7 @@ entry_ready:
             handle->maxElements * sizeof(AFSIndexEntry));
 
     raw = buffer;
-    /* One-shot fences: the depth-2 pair is byte-required and irreducible
-     * (collapse measured; cookbook, and the header note). */
+    /* Wrapper loops retain the original control-flow boundaries; their source form is unknown. */
     do
     {
         do

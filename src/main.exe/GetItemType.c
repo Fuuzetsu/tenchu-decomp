@@ -17,19 +17,6 @@
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-/*
- * GetItemType (0x8004a3e8, 0x44 bytes) — linear-search the global item pool
- * `items[]` (item.h's proven TItem; 30 slots, the same bound
- * ClearItemLayout.c uses) for the slot whose `locate->id` (ModelType.id)
- * matches ConflictID, returning that slot's `type`. Falls back to
- * ITEM_KAGINAWA if none of the 30 slots match.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - A plain indexed for-loop with an early match return emits the retail
- *    pointer walk and rotated loop exactly; no explicit cursor or goto is
- *    needed.
- */
-
 TItemType GetItemType(s32 ConflictID)
 {
     s32 i;

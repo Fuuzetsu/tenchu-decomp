@@ -19,20 +19,6 @@
  *     extern struct TPadPort PadPort[2][4];
  * END PSX.SYM */
 
-/*
- * GetPadXY (0x8001b480) — writes the x/y analog-stick fields through the
- * out-parameters. `port = no << 4` converts the plain controller number to
- * the encoded row/slot convention used by the PADCMD.C family; the normal
- * `port >> 4` / `port & 3` lookup therefore selects PadPort[no][0]. Keeping
- * that encoded value and the selected record as ordinary locals makes cc1
- * emit the target's sll16/sra12/sra4 chain and compute the shared address
- * once. No optimizer barrier is needed.
- *
- * This exact human-shaped source falsifies the former SIGNEXT-SPLIT park.
- * The demo's same-named function has the same three-shift prefix and the
- * same two field stores, with only its earlier 12-byte record stride and
- * trivial-frame epilogue differing from retail.
- */
 void GetPadXY(short no, short *x, short *y)
 {
     s32 port;

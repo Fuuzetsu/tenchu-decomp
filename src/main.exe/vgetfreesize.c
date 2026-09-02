@@ -13,14 +13,6 @@
  *     extern unsigned long *virtual_memory_pool;
  * END PSX.SYM */
 
-/*
- * vgetfreesize (0x80016ce8, 0x44 bytes) — same TU as vinit.c
- * (virtual_memory_pool/valloc/vfree/vgetmaxsize/vgetfreesize/vcalloc all
- * cluster together): sums the `size` (word count) of every block in the
- * pool's singly-linked block list whose in-use bit (top bit, from
- * vinit.c) is clear, returning the total in BYTES (word count << 2).
- */
-
 unsigned long vgetfreesize(void)
 {
     struct VMhead *p;

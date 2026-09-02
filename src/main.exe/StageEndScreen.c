@@ -21,29 +21,6 @@
  *     extern unsigned char gfMemory;
  * END PSX.SYM */
 
-/*
- * Byte-identical C reconstruction (6084 bytes).
- *
- * The five current-score fields deliberately capture x = 0x52 in separate
- * block locals.  GCC 2.8.1 combines those real loop movables into the target's
- * single saved-register constant, after the decimal /10 magic and per-sign
- * divisor constants.  A function-wide coordinate initializes too early and
- * produces a different schedule.
- *
- * The score table is carried as its real three-dimensional type. The initial
- * current-score lookup retains its character byte stride and offset-first add
- * because a direct subscript shortens that path. The later next-stage layout
- * search indexes `stage_stats[character][stage][0]` directly; converting that
- * whole selection graph removes two offset carriers with no byte change.
- * The function-wide `work` scalar deliberately serves the score sprite's x
- * transfer and the later persistent-state base. Splitting those uses into
- * semantic block locals changes six instruction bytes. Expressing the final
- * memory-card prompt as one eligibility guard lets the StageNo field remain a
- * normal typed read while its address setup fills the first branch delay slot.
- * The best-score X carrier is also reused while selecting the archives; it is
- * a plain 32-bit work word, not a source-level pointer/scalar union.
- */
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
@@ -282,9 +259,6 @@ void StageEndScreen(void)
     }
 
     {
-        /* Weight fence: best_x needs +3 weighted refs — 1 here plus 2 on
-         * the language test below (both fences load-bearing; the old
-         * depth-2 nest here was the only overshoot and is halved). */
         do
         {
             best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
@@ -360,8 +334,7 @@ void StageEndScreen(void)
                 }
                 if ((pressed & PADRdown) != 0)
                 {
-                    /* Twin-arm fence in switch clothing: both arms set
-                     * selection = STAGE_END_QUIT; collapsing it is measured off. */
+                    /* Retail keeps identical switch arms here; their original distinction is unknown. */
                     switch (!!pad)
                     {
                     case STAGE_END_ADVANCE:
@@ -392,7 +365,7 @@ void StageEndScreen(void)
                     s32 enemy_count;
 
                     sprite = &digit;
-                    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+                    /* Empty loop retained for code layout; its original source construct is unknown. */
                     do
                     {
                     } while (0);
@@ -488,15 +461,10 @@ void StageEndScreen(void)
                 rank.x = -25;
                 rank.y = 78;
                 pulse = rsin((GameClock << FIXED_SHIFT) / 90) * 0x7f;
-                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+                /* Empty loop retained for code layout; its original source construct is unknown. */
                 do
                 {
                 } while (0);
-                /* cc1's signed /4096 expansion, byte-required HERE (plain
-                 * division is 7 lines) even though the identical sequence
-                 * for the grade icon below folds to `pulse / 0x1000`
-                 * cleanly. The difference is this one's neighbouring
-                 * one-shot fence, not liveness. */
                 if (pulse < 0)
                 {
                     pulse += FIXED_TRUNC_BIAS;
@@ -591,14 +559,6 @@ void StageEndScreen(void)
             layout_record = &PSTATE->stage_stats[PSTATE->CharType]
                                                 [PSTATE->StageNo][0];
             layout_index = 0;
-            /* A goto loop, and provably so: the empty-exit branch's delay
-             * slot holds the POST-loop `li v0,3` (the != 3 compare) — a
-             * branch-target fill reorg only performs when it predicts the
-             * branch taken, which needs a note-free (goto) loop. Every real
-             * loop construct gets loop notes and the opposite prediction:
-             * for(;;)+break also duplicates the entry test (+7 insns);
-             * do/while({break;}while(1)) and do/while(idx<3) both keep the
-             * shape but fill that slot from the fallthrough instead. */
         layout_loop:
             if (layout_record->stageBosses + layout_record->stageEnemies == 0)
                 goto layout_done;

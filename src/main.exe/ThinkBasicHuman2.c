@@ -10,15 +10,6 @@
  *     THINK.C:247, 2 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  * END PSX.SYM */
 
-/*
- * ThinkBasicHuman2 (0x8002f8c4, 0x24 bytes) — think-handler that just
- * forwards port-1 held-buttons (same "think" TU as Think1sleep.c; s16
- * return convention). The direct `return GetPad(PAD_CONTROLLER_2);` tail call still emits
- * the short-result sll16/sra16 pair right after the jal (a short-returning
- * call's result always needs this re-extension, even used bare as the
- * caller's own s16 return — see the cookbook's short-result-extension
- * rule).
- */
 s16 ThinkBasicHuman2(void)
 {
     return GetPad(PAD_CONTROLLER_2);

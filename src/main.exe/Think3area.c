@@ -25,24 +25,6 @@
  *     reg   $s0       short pad
  * END PSX.SYM */
 
-/*
- * Think3area chooses controls while an enemy approaches its assigned area
- * point.  Weapon class 3 delegates to Think3attack; other classes either run
- * the active AttackFunc callback or steer toward point[0]/point[1].
- *
- * Matching notes:
- *  - The already-acting callback arm is written before the longer steering
- *    arm.  This matches retail's physical fallthrough layout, the same shape
- *    used by Think3hitaway.
- *  - This THINK_3.C caller sees GotoPosition returning s16.  Declaring
- *    it s32 adds a deferred result copy and makes the function one instruction
- *    long; the original-width prototype keeps the return in $v0 until reorg
- *    moves it into `pad` in the following Attrib branch's delay slot.
- *  - `__builtin_abs(Degree)` gives the target's two-pseudo abssi2 expansion:
- *    the raw signed Degree remains in $v0 while the absolute result occupies
- *    $v1.  Mutating one `degree` local in place leaves a seven-byte residual.
- */
-
 extern Humanoid *Me_THINK_C;
 
 extern s16 SuccessionAttack(s32 dist, s16 deg);

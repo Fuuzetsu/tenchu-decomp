@@ -31,12 +31,6 @@
  *     extern long EmergencyNotice;
  * END PSX.SYM */
 
-/*
- * Guard idle/patrol selector when nothing is targeted: a slow activity
- * clock (actcnt) alternates look/step commands, re-rolling the patrol
- * direction after ten beats; with a target (or the alarm up) it hands
- * control to the pursue turn instead.
- */
 extern Humanoid *Me_THINK_C;
 extern long EmergencyNotice;
 
@@ -66,7 +60,6 @@ s16 Think1target(void)
         s32 abs_dy;
         s32 direction;
 
-        /* Keep the coordinate pairs in one allocator identity across both tests. */
         vx = xx = StagePlayer->locate->vx - Me_THINK_C->locate->vx;
         vz = zz = StagePlayer->locate->vz - Me_THINK_C->locate->vz;
         dy = StagePlayer->locate->vy - Me_THINK_C->locate->vy;
@@ -74,7 +67,7 @@ s16 Think1target(void)
         deg = GetDirection(xx, zz, Me_THINK_C->rotate->vy);
         if (distance <= 4000)
         {
-            /* This zero-code CFG fence gives distance the retail allocation priority. */
+            /* Retail keeps identical branches here; their original distinction is unknown. */
             if (distance != 0)
             {
                 abs_dy = (dy >= 0) ? dy : -dy;

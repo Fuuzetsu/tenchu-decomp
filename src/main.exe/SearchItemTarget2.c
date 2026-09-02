@@ -31,69 +31,6 @@
  *     extern short Humans;
  * END PSX.SYM */
 
-/*
- * SearchItemTarget2 (0x8003cde4, 0x2d8 bytes) — auto-aim target search for a
- * thrown/fired item (bow/gun/lightning bolt family: ProcItemGun,
- * ProcItemLightningBolt, ProcSightShot, ReqItemArrow, ReqItemHappou,
- * ReqItemUse all call this). Builds a world-space aim point in `*target`
- * (rotate a fixed muzzle-offset constant by `rot`, add `start`, then trace it
- * via trace_ground_ — likely a ground-following raycast) and its distance from
- * `start`, then scans every live Humanoid other than `owner` for the one
- * whose position, transformed into the aim-ray's local space (RotMatrix of
- * `-rot` applied via ApplyMatrixLV), sits within a narrow forward cone
- * (|dx|<500, |dy|<1000, dz>100) and is closer than the current best — if
- * found, overwrites `*target` with that Humanoid's own absolute position and
- * returns it (otherwise returns NULL, leaving `*target` as the traced aim
- * point).
- *
- * Matching notes:
- *  - The two VECTOR temps are reused for two different roles each: the first
- *    (`tv` here) holds the constant/rotated muzzle offset before the loop,
- *    then each candidate's own absolute position inside the loop (the value
- *    ultimately copied into `*target` on a hit); the second (`lv`) holds
- *    trace_ground_'s traced point before the loop, then the aim-space-relative
- *    delta used for the cone test inside the loop. Reusing the same two
- *    locals for both roles (rather than four distinct VECTORs) reproduces
- *    the asm reusing the same two stack slots.
- *  - Inside the loop, `lv.v* -= start->v*;` reads and writes lv's OWN slot
- *    (not `tv`'s), even though Ghidra's rendering shows the RHS as `local_48`
- *    (tv): `tv` and `lv` are value-equal at that point (`lv = tv;` just ran),
- *    so Ghidra's decompiler picked either name arbitrarily — the raw asm's
- *    load/store address is `lv`'s slot both times. Cookbook: "Trust the
- *    assembly over Ghidra's statement order."
- *  - `HumanGroup[i]` (array-of-pointers indexing, not a hand-rolled walking
- *    pointer) lets cc1's own loop strength reduction produce the target's
- *    parallel pointer-cursor induction variable (`ppHVar6`), same as
- *    ControlAllHumanoid's identical `HumanGroup[i]` idiom.
- *  - `while (1) { if (!(i < Humans)) break; ...; i = i + 1; }` — the top
- *    test is reached both from fall-in and from an unconditional back-jump
- *    (no duplicated entry test), the loop-rule-2 shape (leFindEnemy).
- *  - trace_ground_'s own Ghidra decompilation shows only 3 params, but this
- *    call site sets up 4 argument registers (a0-a3) — the trailing `u32`
- *    flag is forwarded unchanged to CGetLevel and not otherwise interpreted,
- *    an instance of the Ghidra-under-counts-trailing-args class (cookbook:
- *    "m2c and Ghidra disagree on a call's ARG COUNT").
- *  - The winning shape for the innermost guard needed a NAMED temp for the
- *    compared field PLUS a comma expression to keep it short-circuited:
- *    `if (cond && (z = lv.vz, z < dist)) { dist = z; *target = tv; ret =
- *    human; }`. A bare `if (cond && lv.vz < dist) { ...; dist = lv.vz; }`
- *    (no temp) forced a second reload of `lv.vz` from the stack for the
- *    `dist =` assignment (the compare's own register got clobbered by the
- *    slt overwriting it) — a plain unconditional `z = lv.vz;` BEFORE the
- *    `if` fixed the reload but broke `&&`'s short-circuit (the field got
- *    read even when `cond` was false, costing 2 extra instructions of its
- *    own). Only evaluating the assignment INSIDE the right-hand operand
- *    reproduces both the target's short-circuit and its register reuse.
- *    Statement order inside the hit body also matters: `dist = z;` must
- *    come BEFORE `*target = tv;`, not after (Ghidra renders it after) —
- *    the struct copy's own temps otherwise get scheduled first and the
- *    `move s5,v1`/`move s7,s1` pair comes out swapped.
- *  - `human->model->object[0]` (`*human->model->object`, item.h's proven
- *    `ModelArchiveType *model` @0x58 and its `ModelType **object` @0x68) and
- *    `human->life` (item.h's proven `s16 life` @0x08, read `lh` here since
- *    it's a plain signed comparison `0 < life`, unlike the narrowing `lhu`
- *    uses seen elsewhere) both check out against this function's own asm.
- */
 extern VECTOR vec_z_n17000;
 
 extern long abs(long x);

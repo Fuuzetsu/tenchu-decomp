@@ -19,17 +19,6 @@
  *     extern struct SVECTOR UnitVector;
  * END PSX.SYM */
 
-/*
- * CreateCloneOrnament (0x8001873c, 0x80 bytes) — allocate and initialize an
- * OrnamentType (GsCOORDINATE2 locate@0 + GsDOBJ2 object@0x50; sizeof ==
- * 0x60, the exact valloc size). GsInitCoordinate2 hooks the new coordinate
- * under World, the DOBJ2's coord2 points back at the ornament's own locate,
- * the t[] stores place it at the origin, RotMatrixYXZ(&UnitVector, ...)
- * fills the 3x3, and — when cloning an existing ornament
- * (`objp` non-null) — copies its tmd pointer so the clone shares the same
- * 3D model data. PSX.SYM declares `World` as a ModelType; this function
- * addresses its leading `.locate` field.
- */
 extern void *valloc(u32 size);
 
 OrnamentType *CreateCloneOrnament(OrnamentType *objp)

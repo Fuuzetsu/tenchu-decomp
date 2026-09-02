@@ -10,34 +10,6 @@
  *     ITEM.C:577, 20 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
  * END PSX.SYM */
 
-/*
- * GetFreeItemSlot (0x8004a42c) — allocate a free slot from items[] via the same
- * round-robin counter as ReqItemDrop (ic): if the slot
- * the counter lands on is free (proc == 0) it's returned immediately;
- * otherwise the counter advances and retries up to 0x1d times, and if the
- * whole pool stays busy the slot the counter last landed on is force-disposed
- * (identical dispose sequence to ReqItemDrop/ProcItemManebue: run its proc
- * with mode set to ITEM_MODE_DISPOSE, delete the conflict, complain if mode
- * didn't clear, then clear owner/proc) and returned anyway.
- *
- * No caller for this function exists anywhere in the retail image (checked:
- * no `jal` and no raw address reference anywhere in main.exe, and none of
- * Ghidra's decompilation of every other function references it either) —
- * dead code kept for byte-identical reproduction. The matching copies in the
- * request functions are consistent with this source helper having been
- * compiler-inlined there while also retaining this out-of-line copy.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - Same do-while shape as ReqItemDrop (`i = 0;` first, since there's no
- *    parameter to cache ahead of it here), but the early exit is
- *    `if (item->proc == 0) return item;` rather than `goto found;`: with no
- *    drop-specific code after the loop, cc1 emits the return-value move in
- *    the branch's own delay slot instead of falling into shared code.
- *  - The final teardown stays open-coded: DISPOSE_ITEM's statement scope
- *    moves the return-value copy below its two clearing stores, while retail
- *    establishes the returned pointer first.
- */
-
 TItem *GetFreeItemSlot(void)
 {
     TItem *item;

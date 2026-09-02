@@ -25,23 +25,6 @@
  *     extern short Degree;
  * END PSX.SYM */
 
-/*
- * Turn briefly while no chase point exists, then abandon when the
- * investigation wait expires. During the initial steering interval,
- * override the default forward command with a
- * forward-right or forward-left command. With a chase point, steer toward
- * it and clear it after arriving or when actscnt wraps.
- *
- * As in Think4contact, the default pad value must be assigned before the two
- * comparisons and the nonzero outcomes expressed only as overrides. This
- * preserves the target's fallthrough bodies, explicit jumps, and inline
- * return-conversion delay slot.
- *
- * The first comparison is intentionally written `Degree > rotation_speed`.
- * Its mathematical inverse spelling emits the same slt but evaluates the
- * field load first; this spelling preserves the target's Degree-first load
- * order.
- */
 extern s16 Think4abandon(void);
 
 s16 Think4chase(void)

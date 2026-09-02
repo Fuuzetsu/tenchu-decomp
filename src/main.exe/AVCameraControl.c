@@ -25,21 +25,6 @@
  *     extern struct Humanoid *CameraTarget;
  * END PSX.SYM */
 
-/*
- * AVCameraControl (0x80051228) — applies the active cutscene-camera pan
- * mode: normal camera update, orbit rotation, vertical pan, zoom, or target
- * lock, then submits the updated ViewInfo.
- *
- * STATUS: MATCHING — 0x1F4 bytes plus the 9-word jump table.
- *
- * The 2/3 and 6/7 arms contain source-level GetMoveSpeed calls whose common
- * call sequence is merged by cross-jump. The short `ry` needs two ordinary
- * wide copies in the 2/3 arm: `base_angle` preserves its signed extension,
- * while `speed` preserves CameraSpeed's signed load. Both optimize away as
- * storage, but without them cc1 uses modulo-short `lhu` arithmetic and
- * coalesces the input/result into the wrong register.
- */
-
 extern void Camera(void);
 
 void AVCameraControl(void)
@@ -67,8 +52,6 @@ void AVCameraControl(void)
     case CAMERA_PAN_ORBIT_ANGLE_INCREASE:
     case CAMERA_PAN_ORBIT_ANGLE_DECREASE:
         base_angle = ry;
-        /* The twin `speed = CameraSpeed;` on both arms is byte-required
-         * (hoisting it above the if mismatches). */
         if (CameraPanMode == CAMERA_PAN_ORBIT_ANGLE_INCREASE)
         {
             speed = CameraSpeed;

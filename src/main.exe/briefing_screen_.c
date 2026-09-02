@@ -5,24 +5,6 @@
 #include <psxsdk/libcd.h>
 #include "images.h"
 
-/* STATUS: MATCHED — exact 1448-byte / 362-instruction pure C.
- * There are no allocator-only no-op loop fences: the
- * normal fade update and guarded strip loop recover the target frame naturally.
- * Writing the first PathFileRead before all state initializers is the key natural
- * live-range split: cc1 hoists those independent writes around the call into the
- * target's exact prologue order. Explicit, ordinary base/scale temporaries make
- * both edge-brightness arms byte-exact. Scoped signed 32-bit renderer values
- * recover the target tpage/width allocation and load-delay nop. Keeping the
- * renderer's offset, narrow sprite coordinate, and signed brightness coordinate
- * as distinct human values gives cc1 the target t0 reload and in-place s0
- * narrowing without an allocation fence.
- * The brightness corridor uses inverse guards for its normal and within
- * ranges, plus one local right/center diamond; the zero and twin store islands
- * remain in their original textual slots.
- *
- * The superseded round-by-round investigation log for this function lives
- * in docs/matching-archive.md.
- * it keeps the exact CFG and length and improves 77 -> 76 bytes. */
 typedef struct
 {
     char *background;
@@ -75,9 +57,6 @@ void briefing_screen_(void)
     s32 fade_now;
     enum
     {
-        /* Wait for the fade in, start the stage's narration track, wait
-         * for the CD to actually begin, hold for the scripted length,
-         * then scroll the briefing text. */
         BRIEFING_START_MUSIC = 0,
         BRIEFING_WAIT_AUDIO = 1,
         BRIEFING_HOLD = 2,
@@ -249,8 +228,6 @@ void briefing_screen_(void)
                     }
                     goto brightness_right_store;
 
-                /* Twin store bodies: byte-required (one merged label loses
-                 * the cross-jump layout; measured). */
                 brightness_left_store:
                     sprite.r = brightness;
                     sprite.g = brightness;

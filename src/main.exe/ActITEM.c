@@ -17,18 +17,6 @@
  *     reg   $v0       struct VECTOR * p
  * END PSX.SYM */
 
-/*
- * ActITEM (0x80026074) — trigger motion-timed item use and return to idle.
- *
- * STATUS: MATCHING — exact 572 bytes.
- *
- * PSX.SYM's four locals are sufficient.  The two valid item modes each
- * contain their natural `flag`/`item.type` writes; jump2 cross-jumps those
- * identical tails after allocation.  Keeping the source arms distinct gives
- * `flag` the target's $a1 allocation without the redundant reset that reorg
- * used to steal into the target's bare delay-slot nop.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);

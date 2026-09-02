@@ -24,28 +24,6 @@
  *     extern struct TPadPort PadPort[2][4];
  * END PSX.SYM */
 
-/*
- * Reads one controller report into PadPort. A multitap report recursively
- * supplies four eight-byte subreports; an error report clears the port; a
- * normal report derives digital x/y values, records analog mode, and advances
- * the actuator setup state machine.
- *
- * Retail inserted `active` at offset 6 in the demo's 12-byte TPadPort, moving
- * the later byte fields by one and making this version 14 bytes. The repeated
- * block-scoped `int i` locals follow the original debug symbols.
- *
- * Matching notes:
- *  - The empty one-shot loop is a zero-code scheduling boundary. Together
- *    with the identical full-width assignments it keeps the target's
- *    `sh v0; move v1,v0` sequence instead of narrowing the copy to an `andi`
- *    or moving the store into a branch delay slot.
- *  - The second button test intentionally reloads `button`; the target contains
- *    a fresh `lhu` there.
- *  - Capturing `actbuf` before the Send guard fixes the outer branch delay
- *    slot. The recovered `u8 *` PadSetActAlign argument and six-byte static
- *    align object likewise reproduce the final guard/call schedule.
- */
-
 extern int PadInfoMode(int port, int mode, int unused);
 extern int PadGetState(int port);
 extern int PadSetAct(int port, u8 *data, int len);
@@ -93,19 +71,16 @@ void ComPad(int port, u8 *rxbuf)
         int i;
 
         pad->button = raw;
-        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+        /* Empty loop retained for code layout; its original source construct is unknown. */
         do
         {
         } while (0);
-        /* Identical arms on the port test: retail's own dead branch,
-         * byte-required (collapsing moves the store to v1; measured). */
+        /* Retail keeps identical branches here; their original distinction is unknown. */
         if (port != 0)
             i = raw;
         else
             i = raw;
-        /* 0x2D = 45: the synthesized stick deflection for digital pads.
-         * The raw recycle is byte-required (a direct store loses the
-         * branch shape; measured). */
+        /* Digital pads synthesize a stick deflection of 45. */
         if (i & PADLright)
         {
             raw = PAD_DIGITAL_AXIS_MAGNITUDE;

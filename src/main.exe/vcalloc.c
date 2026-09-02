@@ -14,17 +14,6 @@
  *     param $a1       unsigned char c
  * END PSX.SYM */
 
-/*
- * vcalloc (0x80016d2c) — calloc-shaped wrapper over the virtual allocator
- * (same TU as vinit.c: virtual_memory_pool/valloc/vfree/vgetmaxsize/
- * vgetfreesize/vcalloc all cluster together in this address range):
- * allocate `size` bytes from the pool, then fill them with byte `c`.
- *
- * The allocation result remains a named local across memset. Returning
- * memset(valloc(size), c, size) directly is valid C but compiles 16 bytes
- * shorter: retail preserves the original pointer independently of memset's
- * return value.
- */
 extern void *valloc(u32 size);
 extern void *memset(void *s, int c, u32 n);
 

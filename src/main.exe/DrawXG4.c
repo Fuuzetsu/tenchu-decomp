@@ -14,12 +14,6 @@
  *     param $a0       struct POLY_XG4 * ply
  * END PSX.SYM */
 
-/*
- * DrawXG4 (0x80038d10) — draws the Gouraud quad followed by its draw-mode
- * command. `ply` is cached in a callee-saved register across both calls (a
- * plain parameter read twice needs no separate temp — see the cookbook's
- * cached-pointer rule).
- */
 void DrawXG4(POLY_XG4 *ply)
 {
     DrawPrim(&ply->ply);

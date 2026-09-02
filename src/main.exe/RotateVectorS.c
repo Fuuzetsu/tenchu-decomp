@@ -19,8 +19,6 @@
  *     stack sp+56     struct SVECTOR vo
  * END PSX.SYM */
 
-/* Matching notes: RotateVector's SVECTOR-output twin — a direct transcription
- * of Ghidra's decompilation using the PSX.SYM local names, matched as-is. */
 extern void *memset(void *s, int c, u32 n);
 
 void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz)

@@ -29,41 +29,6 @@
  *     extern struct Sprite3D *sprSmoke;
  * END PSX.SYM */
 
-/*
- * ReqItemNemuri (0x80045f40) — spawn a thrown sleep-gas ("nemuri") item. Twin
- * of ReqItemDrop/ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango/
- * ReqItemShinsoku (same item TU, same pool round-robin on
- * ic and the same dispose-on-exhaustion block); like
- * ReqItemJirai/ReqItemSmoke/ReqItemFire/ReqItemDokudango/ReqItemShinsoku there
- * is no GetAreaMapLevel floor check. It gets ProcItemNemuri as its processor,
- * but differs from the rolling-item twins (Jirai/Smoke/Fire) in
- * two ways (both confirmed against the .s, not just Ghidra):
- *  - `item->model` is unconditionally set from the first shared smoke sprite
- *    (Ghidra/the export names the table `sprSmoke`, confirmed at 0x80097a68 in
- *    .shake/ghidra-export) — no ItemImage[item->type] lookup by item type.
- *  - the end vector is packed into PSX.SYM's `param_napalm.vec` at offsets
- *    0/2/4. No hint/status/count writes occur here.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &item->param.napalm;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins.
- *  - aowner/atype are real temps, same shape as the other twins.
- *  - the end-vector stores are NOT batched through temps here (unlike the
- *    rolling-item twins' x/y/z): the asm interleaves each `lhu` with its
- *    `sh` immediately, so they're written inline through `param->vec` — no
- *    temp means the truncating lhu, matching the target exactly (identical
- *    shape to ReqItemShinsoku).
- *    The FIRST of the three (+0) compiles through $s0 (item) directly while
- *    the other two (+2/+4) compile through param's own register ($s2) — a cc1
- *    cse/regalloc artifact, not a source-spelling difference:
- *    ReqItemShinsoku's already-matched source uses the SAME uniform
- *    `param`-based spelling for all three and produces this exact split.
- *  - unlike ReqItemShinsoku (unconditional return 0), this function returns
- *    1 on success like Jirai/Smoke/Fire — confirmed by the success path's
- *    `li $v0,1` materialized before the tail jump.
- */
 extern void ProcItemNemuri(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */
@@ -83,8 +48,6 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
         s32 atype;
 
         INITIALIZE_ITEM_FROM_REQUEST(ProcItemNemuri);
-        /* model-then-size, the reverse of every sibling's order, is
-         * measured byte-required here (swapping them mismatches). */
         item->model = (ModelType *)sprSmoke[SMOKE_SPRITE_NORMAL];
         item->collision.size = 0;
     }

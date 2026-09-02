@@ -13,12 +13,6 @@
  *     extern struct TCdaStatus CdaStatus;
  * END PSX.SYM */
 
-/*
- * CdaReady (0x8004fbe4, 0x10 bytes) — tests bit5 of CdaStatus.status, the
- * "CD-audio stream primed and playable" flag. Same proven TCdaStatus struct as
- * CdaStop.c/set_cda_volume_.c/apply_cda_attr_.c. Returns the masked bit rather than a
- * normalised 0/1, so no extra andi follows the lbu.
- */
 s32 CdaReady(void)
 {
     return CdaStatus.status & CdlStatRead;

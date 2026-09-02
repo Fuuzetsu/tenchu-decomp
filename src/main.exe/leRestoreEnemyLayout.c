@@ -16,14 +16,6 @@
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-/*
- * leRestoreEnemyLayout (0x8003ca78, 0x2c bytes) — bulk-restore the whole
- * enemy-layout table from a caller-supplied buffer (the inverse of a save;
- * `le`=layout-enemy family, see leResetPath.c for TEnemyLayout, recovered
- * from the Ghidra type export). sizeof(enemy) == 0x1e * 0x88 == 0xFF0,
- * matching the memcpy length exactly (free at compile time).
- */
-
 extern void *memcpy(void *s1, void *s2, u32 n);
 
 void leRestoreEnemyLayout(void *buf)

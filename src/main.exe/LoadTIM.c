@@ -17,19 +17,6 @@
  *     stack sp+24     struct GsIMAGE tim
  * END PSX.SYM */
 
-/*
- * LoadTIM (0x80018904, 0xb0 bytes) - loads a TIM's pixel data (and, when the
- * TIM carries a CLUT per GsIMAGE's pmode bit 3, its CLUT too) via the PSYQ
- * libgpu LoadImage, having fetched the image geometry through GsGetTimInfo
- * (same "skip the leading u_long ID word" convention as GetTIMInfo.c).
- * SystemOut is annotated noreturn by Ghidra but the compiled code falls
- * straight through after the call (no early return) - same shape as
- * InsertConflict.c/LoadAreaMap.c's identical SystemOut-then-continue idiom.
- * The recovered API returns `short`. Retail has no explicit return after
- * DrawSync(0), leaving that call's residual value in $v0; every known caller
- * ignores it. This is ordinary old-C fallthrough, not evidence for replacing
- * the original return type with `void`.
- */
 extern char msg_no_image_data[]; /* NO IMAGE DATA */
 
 short LoadTIM(unsigned long *adr)

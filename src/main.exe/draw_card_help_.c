@@ -15,17 +15,6 @@ extern void SetupTelop(u8 *telop, short line);
 extern s32 telop_text_width_(u8 *str);
 extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
 
-/* Draw one page of the memory-card help text and process its trailing prompt.
- * Pages and lines are both separated by double NULs.  A trailing '.' is an
- * acknowledge prompt; '?' selects between accept/cancel, with page 3 drawing
- * the two-choice selector.
- *
- * Keeping both the trailing punctuation dispatch and the sparse pad values as
- * switches matters: cc1 emits the target's ordered comparison trees and
- * separately placed case tails. Finally, `n` intentionally serves as page
- * offset, line number, and signed result so all three non-overlapping lifetimes
- * reuse s3.
- */
 s32 draw_card_help_(s32 page, s32 pad)
 {
     s32 page_num;
@@ -202,6 +191,6 @@ done:
     {
         McardAnswered = 1;
     }
-    /* (short) re-narrows n: byte-required (writer-width rule; measured). */
+    /* Re-narrow after decrementing the wider return value. */
     return (short)n;
 }

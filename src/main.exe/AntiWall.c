@@ -28,22 +28,6 @@
  *     extern unsigned long *GlobalAreaMap;
  * END PSX.SYM */
 
-/*
- * AntiWall (0x80030390, 0x2b4 bytes) — tests camera positions offset to
- * either side of the target, then rotates a corrective vector away from a
- * wall and applies it to the target view.
- *
- * Matching notes:
- *  - Retail changed the demo's SVECTOR outputs to VECTORs when it replaced
- *    ApplyMatrixSV with ApplyRotMatrix. Declaring vsL, vsR, and av in this
- *    order reproduces the three 16-byte stack slots at sp+0x18/0x28/0x38;
- *    the original int rx/ry locals follow at sp+0x48/0x4c.
- *  - The literal scratchpad casts are intentional. Repeated accesses keep
- *    0x1f800000 in $s2 while call arguments still materialize in $a0.
- *  - Plain signed `/ 2` expressions produce the target's bias-and-shift
- *    truncation sequence and retain its intermediate numerator registers.
- */
-
 extern SVECTOR WallProbeL;
 extern SVECTOR WallProbeR;
 extern char str_mark_l[];     /* (L) */

@@ -21,39 +21,6 @@
  *     extern unsigned char fInitialize;
  * END PSX.SYM */
 
-/*
- * InitializeInfoView (0x8004a790, 0x160 bytes) — one-time HUD/inventory init,
- * called from DoInfoViewProc the first frame (guarded by fInitialize) and
- * from main(). Sets up the cursor/digit sprites, the shared item-image
- * table (ItemImage, the contiguous IMG_ICON_* range, then padded with the
- * otherwise-unused gunfire image),
- * and the retail-expanded 4-entry KehaiImage array, then resets enemy
- * layout/info-view state and marks fInitialize.
- *
- * STATUS: MATCHING — 352 bytes. The SetupSprite result is assigned to its
- * ItemImage slot in the same expression so the following attribute write
- * deliberately goes back through the shared table.
- *
- * Matching notes:
- *  - The three loops index ItemImage[] and KehaiImage[] directly. GCC
- *    strength-reduces those subscripts to the advancing cursors in retail.
- *  - The padding phase keeps its scale and attribute in named values across
- *    the GetImage/SetupSprite calls. The first phase can use the same values
- *    directly because the compiler naturally hoists or rematerializes them
- *    in the corresponding retail locations.
- *  - `fInitialize` is this TU's gp small; maspsxGpExterns is PER FILE (each
- *    split function is its own assembly unit), so this file needs its OWN
- *    Build.hs entry — DoInfoViewProc.c's entry only covers DoInfoViewProc.c.
- *  - `ItemImage`'s auto-computed address DRIFTS depending on which nearby
- *    functions are still raw-asm vs compiled C (this function converting to
- *    C removed the last raw xref that had been anchoring it, and it
- *    resolved +0x28 off) — bound explicitly in config/symbols.main.exe.txt
- *    (plain name: ReqItemDrop/ReqItemMakibishi/
- *    ReqItemManebue already reference this exact symbol as
- *    `extern Sprite3D *ItemImage[];` and need the SAME name fixed under
- *    them, unlike the 0x80097Dxx string-table drift where nothing else
- *    referenced the bad name).
- */
 extern u8 fInitialize;
 
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);

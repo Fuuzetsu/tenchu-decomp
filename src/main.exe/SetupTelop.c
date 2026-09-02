@@ -25,26 +25,6 @@
  *     extern struct POLY_FT4 TelopP;
  * END PSX.SYM */
 
-/* STATUS: MATCHED — exact 1076 bytes / 269 instructions.
- *
- * Matching constraints:
- *  - Keep the glyph fill as one coherent source package: PSX.SYM's u is the
- *    inner pixel counter, bitmap[v][15 - u] is one ternary assignment, and
- *    font selection is ordinary if/else control flow. Synthetic one-shot
- *    fences, carrier variables, and loop-weighting nests are not required.
- *  - Write v = 0 before entering the fill loop. The independent zero
- *    initialization fills the font guard's delay slot and preserves the
- *    target allocation.
- *  - Keep the byte swap in two statements: bits = raw_bits >> 8 followed by
- *    bits |= raw_bits << 8. A fused expression reverses the operand emission
- *    order even though loop.c still hoists it.
- *  - The fill constant may remain literal in the bitmap assignment; CSE
- *    retains the target's single TELOP_WHITE value.
- *
- * The rounds 1–4 allocation floor was a property of the scaffolded draft, not
- * the recovered decomposition. Its superseded autopsy remains in
- * docs/matching-archive.md.
- */
 extern s16 TelopFont[];
 
 extern s16 *Krom2RawAdd(u32 code);
@@ -111,14 +91,6 @@ void SetupTelop(u8 *telop, short line)
                 v = 0;
                 do
                 {
-                    /* Two pseudos, deliberately: fusing them into one
-                     * `bits = font[v]; bits = bits >> 8 | bits << 8;`
-                     * costs 31 lines. Reading `(u16)font[v]` twice
-                     * instead of naming `raw_bits` is also exact, but
-                     * repeats the load with two added casts and PSX.SYM
-                     * records NEITHER local, so there is no fidelity
-                     * argument either way -- this spelling reads as the
-                     * byte swap it is. */
                     raw_bits = font[v];
                     bits = raw_bits >> 8;
                     bits |= raw_bits << 8;

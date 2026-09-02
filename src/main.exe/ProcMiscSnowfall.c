@@ -26,43 +26,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-/*
- * ProcMiscSnowfall (0x8004ced0, 0x26C bytes) — MISC_SNOWFALL's ProcMisc*
- * handler: MM_CREATE snapshots the two grid dimensions, resets `mode`, and
- * restores them. GCC proves the `w` write redundant, so retail retains both
- * reads but only the `h` store; the demo has the same prefix before allocating
- * the particle grid that retail no longer keeps.
- * Every 4th tick (`GameClock & 3`) while armed (msg >= MM_DO), spawns
- * one snowflake: a small downward-biased jitter velocity and a position
- * randomized in a box around the camera, handed to SetSnow (the
- * EffectSlot particle pool).
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - Dispatch is the "short do-nothing case falls through, both real
- *    bodies are jump targets" 3-way: `if (msg==CREATE) goto do_create; if
- *    (MM_DO<=msg) goto do_tick; return;` — messages 1-3 (do-nothing) are the
- *    inline fallthrough, while CREATE and DO are both forward-jump targets,
- *    placed in that order (CREATE immediately after the dispatch, DO after
- *    CREATE) — matching neither a plain if/else-if (puts CREATE
- *    inline instead) nor if/else with the arms swapped (moves CREATE to
- *    the function's end) reproduces this; only the explicit 3-way goto
- *    ladder does.
- *  - `param = &m->param.snowfall;` is computed once, unconditionally, at
- *    function entry (PSX.SYM's own register-resident `param` local). Reading
- *    the dimensions through `m` and restoring them through `param` reproduces
- *    the demo-backed source graph: the eliminated `param->w = w` keeps `w`
- *    live across the `h` read, naturally assigning the two loads to $v0/$v1
- *    and the pointer to $a2 without volatile or a fixed-register extension.
- *  - `ViewInfo.vrx - 3000 + rand() % 6000` (Ghidra's literal `A - C + B`)
- *    needed the fold-reassociation rewrite `ViewInfo.vrx + (rand() % 6000
- *    - 3000)` (cookbook Expressions) to get the target's schedule (the
- *    field load interleaved with the rand()%N divide's latency) instead of
- *    a same-length but differently-scheduled sequence.
- *  - `vel`/`pos` (the copies actually passed to SetSnow) must be
- *    declared BEFORE `jitter`/`posRaw` (the raw computed locals) for the
- *    target's stack slot assignment (call args at the lower addresses).
- */
-
 extern void *memset(void *s, int c, u32 n);
 
 void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)

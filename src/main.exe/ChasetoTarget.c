@@ -25,13 +25,6 @@
  *     extern long Distance;
  * END PSX.SYM */
 
-/*
- * Think helper: steer toward the target through a persistent random flank
- * offset (chase[0]/chase[1], re-rolled at `length` radius when
- * cleared or when the hit/push contact bits are up), returning
- * GotoPosition's command, or 0 when there is no target, the offset point is
- * nearly reached, the wall-contact bit is set, or the target is already close.
- */
 extern int rand(void);
 
 short ChasetoTarget(long length)
@@ -43,8 +36,6 @@ short ChasetoTarget(long length)
     short deg;
 
     me = Me_THINK_C;
-    /* chase is formed before the target guard: byte-required (the addiu
-     * fills the branch's delay slot; measured). */
     chase = &me->chase[HUMANOID_CHASE_X];
     if (me->target == 0)
     {

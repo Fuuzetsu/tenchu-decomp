@@ -15,53 +15,6 @@
  *     extern short SkipFrame;
  * END PSX.SYM */
 
-/*
- * Pre-mission briefing / item selection screen (0x80052084, 0xE24 bytes).
- *
- * STATUS: MATCHING — all 905 instructions are byte-identical.
- *
- * Matching constraints:
- *  - `pad` is one signed 16-bit controller word. Only the edge-mask
- *    arithmetic views it as unsigned; those casts retain retail's later
- *    sign extension for `check_cheat_command_` without a scalar union.
- *  - Keep GetRealPad's recovered full-word `long` return type. A u16 return
- *    moves the cheat-command sign extension ahead of the new-press chain.
- *  - The entry clamp must re-read `mx < cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex]`; the similar case-1
- *    clamp must retain `mx < c`. CSE makes the former byte-neutral while its
- *    preference set fixes the store-address register.
- *  - In case 0x1f, keep both eligibility tests as ordinary short-circuit
- *    guards. Changing either one alone creates a paired register conflict.
- *  - Preserve the hand-split `hx`/`hy` cursor shift pairs and intervening
- *    `k = cursor` copy. Their overlapping lifetimes produce the interleaved
- *    extensions and branch-delay-slot fill.
- *  - Retain the do/while(0) boundary around each bounce arm's temporary
- *    update, and the separate boundary around the cursor-move block.
- *  - Digit entry needs an int `t1 = cap` temporary but an inline
- *    `av = t1 - taken`; naming both operands changes local allocation.
- *  - `newpress` is the edge-triggered mask. `selected_kinds` and `taken`
- *    are distinct counts, and the right/down handlers have no shared guard.
- *  - Keep the grid's multi-definition `int c = (u8)var`, the shown loop's
- *    `(s16)j` path through grid y, and the digit loop's int `d`/`quo` with
- *    its loop-carried copy at the bottom.
- *  - TLINKINFO_STOCK expands the seven item accesses as a flat byte-walk;
- *    keep that expansion and the grid traversal as a real for loop because
- *    both shapes affect delay-slot duplication.
- *    Still true now that gItem is properly
- *    `[N_PLAYABLE_CHARACTERS][SAVE_ITEM_SLOTS]`: the natural
- *    `ps->gItem[ps->CharType][idx]` costs 12 lines at these seven
- *    sites, so the flat walk is the shape, not the type.
- *  - Preserve the two `dsp->u` memory rereads. They seed the required s1/s2
- *    register assignment; caching either value changes the allocation.
- */
-
-/* The persistent state is accessed three ways in the original, on purpose:
- *  - through short-lived pointer locals (q/ps/r below) -> reg+disp addressing;
- *  - through PSTATE casts in the two entry loops -> one hoisted 0x80010000;
- *  - through plain extern globals -> assembler one-line macro (lui+op pairs).
- * Array-indexing spelling picks the addu operand order: `p->arr[i]` puts the
- * base first, `(&p->arr[0])[i]` puts the index first, the extern-symbol form
- * puts the (hoisted) %hi base first.
- */
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
@@ -78,26 +31,12 @@ extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern void exec_process_(int arg);
 extern short DrawBG(BackGround *bg);
-/* Retail's only caller omits PutNumber's dead fourth parameter (it is
- * `void PutNumber(int x, int y, int cols, int n)` and the target sets
- * no $a3). No header prototypes it, so DELETING this line still gates
- * ASM-IDENTICAL -- by falling back to an implicit declaration, which
- * is worse than saying so. Keep it. */
+/* Retail calls this without the definition's unused fourth argument. */
 extern void PutNumber();
 extern void DisposeBG(BackGround *bg);
 extern int check_cheat_command_(s16 pad, s16 newpress);
 extern void briefing_screen_(void);
 
-/*
- * The two TIM-sprite setup blocks are inlined static helpers (same mechanism
- * as DoInfoViewProc's menus): the GsIMAGE scratch is the helper's own local,
- * so its address expands from the inlined frame base (bare register -- every
- * call gets a direct addiu into the arg register instead of a CSE'd
- * callee-saved pseudo), and the two inline expansions reuse one freed temp
- * slot after the caller's locals (spr @ +0, hspr @ +0x28, tim @ +0x50).
- * NOTE: keep the helpers inside the guard -- in the stub state cc1 emits
- * unreferenced static inlines as standalone code (+32 insns).
- */
 static inline ArcFile *LoadHelpArchive(TLinkInfo *q)
 {
     u8 *paths[N_LANGUAGES];
@@ -180,9 +119,6 @@ void BriefingAndInventorySelectionScreen(void)
     bg = load_background_(buf);
     vfree(buf);
     buf = FileRead(NUMBER_TIM_PATH);
-    /* The p alias over spr is byte-required (direct spr. member writes
-     * recolor the address register; measured — the help block below gets
-     * away without one). */
     p = &spr;
     TimToSprite(buf, p);
     spr.attribute |= GS_ATTR_SEMITRANS_ADD;
@@ -223,13 +159,7 @@ void BriefingAndInventorySelectionScreen(void)
         pad = GetRealPad(PAD_PORT_1);
         newpress = (u16)pad & ((u16)pad ^ newpress);
         id = check_cheat_command_(pad, newpress);
-        /* The subtract-then-narrow is retail's own: addiu -1 then an
-         * sll/sra s16 truncation before the bound check. The s16 `cheat`
-         * temp is byte-required HERE because `id` is an int (the direct
-         * switch(id) with unbiased cases was measured off); contrast
-         * EquipWeapon, whose source field is already short and whose
-         * biased local proved to be an artifact. Cases are combo ids
-         * minus one. */
+        /* Cheat ids are one-based; retail narrows after subtracting. */
         cheat = id - 1;
         switch (cheat)
         {
@@ -250,9 +180,6 @@ void BriefingAndInventorySelectionScreen(void)
                 }
                 else
                 {
-                    /* The (&arr[0])[i] decay spelling here and below is the
-                     * measured addu operand-order lever (plain arr[i]
-                     * flips it; same class as PlayMusicFormID). */
                     TLINKINFO_FLAT_STOCK(ps, n) =
                         TLINKINFO_FLAT_STOCK(ps, n) + 1;
                 }
@@ -349,7 +276,7 @@ void BriefingAndInventorySelectionScreen(void)
             int ddx, ddy, hx, hy;
             int k;
 
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
@@ -507,7 +434,7 @@ void BriefingAndInventorySelectionScreen(void)
         {
             t = scale + 0x10;
             scale = t;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
@@ -520,7 +447,7 @@ void BriefingAndInventorySelectionScreen(void)
         {
             t = scale - 0x10;
             scale = t;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
@@ -533,7 +460,7 @@ void BriefingAndInventorySelectionScreen(void)
         {
             t = scale - 0x10;
             scale = t;
-            /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+            /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);

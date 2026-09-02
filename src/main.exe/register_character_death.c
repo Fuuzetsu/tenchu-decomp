@@ -7,23 +7,6 @@
 extern u16 DeathIndex;
 extern long EmergencyNotice;
 
-/*
- * register_character_death (0x8002bcb8) periodically chooses another live
- * humanoid and starts its alert/chase state when the dead actor is close and
- * an area-map passage exists between them.
- *
- * Matching notes:
- *  - The three long deltas at sp+0x10/sp+0x14/sp+0x18 are one VECTOR.  Keeping
- *    them as independent scalars allocates them to saved registers instead of
- *    reproducing the target's 0x38-byte frame and s0-s2 register set.
- *  - The repeated component-halving block is one `while` over three inline
- *    absolute-value tests.  cc1 duplicates its exit test at entry and emits
- *    the target's shared loop body without source labels.
- *  - Publishing the incremented selection cursor before the modulo keeps both
- *    target stores to DeathIndex; writing the two stores adjacently lets dead
- *    store elimination discard the first one.
- */
-
 void register_character_death(Humanoid *dead)
 {
     VECTOR delta;

@@ -22,28 +22,6 @@
  *     reg   $s0       short blood
  * END PSX.SYM */
 
-/*
- * ActDEAD (0x800268bc) — advances and finalizes death motions, handles
- * corpse settling and feedback, dispatches scripted death-frame events, and
- * emits the associated splash/blood effects.
- *
- * Matching notes (1,680 bytes / 420 instructions):
- *  - The explicit splash/event/ordinary labels preserve the target's
- *    dispatch-chain-first layout and its otherwise-elided jump over splash.
- *  - `p` and `v` are the original PSX.SYM locals. Retail no longer reads or
- *    writes `v`, but GCC still reserves its eight-byte aggregate slot at
- *    sp+0x20. The later gore position and velocity then land naturally at
- *    sp+0x28/sp+0x30, accounting for the complete frame without padding or a
- *    synthetic scratch aggregate.
- *  - svec_y_n200_z_n240 is an unknown-sized SVECTOR array so its [0] copy retains
- *    the target's split high/low address materialization.
- *  - The event scan keeps count and the sentinel live across its backedge;
- *    its explicit labels prevent cc1 from peeling the known-zero first row.
- *    Advancing it as the natural `i++` also preserves the target's v0/v1
- *    next-row allocation and moves the counter update into the backedge's
- *    delay slot.
- */
-
 enum death_event_action
 {
     DEATH_EVENT_SOUND_PLAYER = 0,
@@ -56,7 +34,7 @@ enum death_event_action
 /* Each death-script opcode gives the last two halfwords a different meaning.
  * DEATH_EVENT_END uses the gore payload too; a model_part of -1 makes it a
  * sentinel-only row. local_velocity packs Y in the low byte and Z in the
- * high byte, matching the SVECTOR built below. */
+ * high byte and is unpacked into the SVECTOR below. */
 typedef union
 {
     struct
@@ -174,13 +152,6 @@ void ActDEAD(void)
         return;
     }
 
-    /* The death-kind dispatch is a hand-written goto ladder, and the
-     * evidence is now two-sided: retail's branches jump TO the labeled
-     * bodies (test-first layout only `if (c) goto L;` produces — a
-     * structured else-if falls INTO its arms instead), and the DEMO's
-     * ActDEAD has a simpler single `mid < 0x1109` test here — retail
-     * added the DeadEvents 0x1109..0x110e range and extended the demo's
-     * test into this ladder by hand. */
     mid = dtM->mid;
     if (mid == MOT_DEAD_DROWN)
         goto splash_dead;

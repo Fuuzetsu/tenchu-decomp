@@ -25,16 +25,6 @@
  *     extern short Degree;
  * END PSX.SYM */
 
-/*
- * On clear sight escalate to PHASE_ALERT, turn briefly while no chase point
- * exists, then abandon when the investigation wait expires. With a chase
- * point, steer toward it and clear it after arriving or when actscnt wraps.
- *
- * The default pad assignment belongs before the two turn comparisons.
- * Besides expressing the three-way choice directly, it gives cc1 the
- * target's zero-valued delay-slot move and keeps the two nonzero outcomes
- * as fallthrough bodies with explicit jumps to the shared return conversion.
- */
 extern s16 Think4abandon(void);
 
 s16 Think4contact(void)

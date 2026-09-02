@@ -2,19 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-/*
- * cd_init (0x8005f710) — clears `flagUse` (marking the handle free) for all 10
- * entries of the CD file-handle pool (`FileHandlePool`, Ghidra symbols.tsv
- * @0x800c2d70; element type is the already-proven `FILE` from
- * cd_close/cd_getsize/cd_tell/AfsInit — `sw $zero,0x18(...)` is a single
- * word store of the whole `s32 flagUse`, NOT the four separate byte fields
- * (`used`/`field19_0x19`/`field20_0x1a`/`field21_0x1b`) Ghidra's
- * disc_file_descriptor_t rendering suggests — its auto-typed struct just
- * has byte-granularity fields there, a display artifact; the m2c reference
- * (`var_v0->unk18 = 0;`, one assignment) and the raw asm agree it's one sw.
- * Walks the pool backwards from its last entry to index 0.
- */
-
 void cd_init(void)
 {
     int i;

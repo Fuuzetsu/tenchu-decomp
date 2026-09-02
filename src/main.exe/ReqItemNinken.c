@@ -31,30 +31,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemNinken (0x800446d0) — spawn a ninken (tracker dog) item. Twin of
- * ReqItemDrop/ReqItemJirai/ReqItemDokudango/ReqItemSmoke/ReqItemFire (same
- * item TU, same pool round-robin on ic and the same
- * dispose-on-exhaustion block); like its siblings there is no
- * GetAreaMapLevel floor check. It gets ProcItemNinken as its processor, packs
- * the throw velocity into the embedded param_ninken.koro record but — unlike
- * them — only reads end.vx/end.vz from the caller: end.vy is never loaded,
- * and koro.vy instead gets the hardcoded
- * constant -250 (a fixed vertical/launch parameter for the tracker dog).
- * PSX.SYM identifies the following word and halfword as the slave and count
- * fields of param_ninken, respectively.
- *
- * Matching notes (see docs/matching-cookbook.md):
- *  - `param = &item->param.ninken;` sits BEFORE the null check, same
- *    lever as the other twins (addiu fills the beqz delay slot).
- *  - `pos = &p->start;` materialized between the t[0] and t[1] stores, same
- *    as the other twins.
- *  - aowner/atype and x/z are real temps, same shape as the other twins (no `y`
- *    temp here: end.vy is never read). The block-scoped
- *    `param` is PSX.SYM's second `param`.
- *  - `item->param.ninken.koro.hint = 0;` uses the direct union path (not
- *    `param`) for this one store, same as the other twins.
- */
 extern void ProcItemNinken(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */
@@ -81,9 +57,7 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
         item->model = (ModelType *)ItemImage[item->type];
     }
     {
-        param_korogari *param; /* shadows the outer `param`, as PSX.SYM has it;
-                                * byte-required -- writing through the full
-                                * member path re-colors the stores */
+        param_korogari *param; /* Shadows the outer launch parameter in retail. */
 
         param = &item->param.ninken.koro;
         x = p->end.vx;

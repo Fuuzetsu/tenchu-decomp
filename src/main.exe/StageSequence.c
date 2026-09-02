@@ -40,34 +40,6 @@
  *     extern struct Humanoid *eTarget[2];
  * END PSX.SYM */
 
-/*
- * StageSequence (0x8004df58, 0x6cc bytes) advances the two active
- * stage-event slots, runs their mode-specific completion tests, starts the
- * selected movie/event, and updates the stage score/debug counters.
- *
- * Matching notes:
- *  - The switch is ordinary C.  Its compiler-generated nine-entry jump table
- *    exactly replaces the old split scaffold's StageSequence_jtbl at
- *    0x80012858; no hand-authored table or split-function labels remain.
- *  - The retail definition needs an `s32` return type even though the demo
- *    symbol records `short`.  All values are -1/0/1 and callers consume a
- *    short; explicit `(s16)` conversions at the two recursive uses reproduce
- *    retail's caller-side widening.  Defining this TU's function as `s16`
- *    adds a final sll/sra to the no-event result, one instruction absent from
- *    retail, so this is a measured retail/demo declaration divergence.
- *  - The camera read is `CamState.Mode`, not a standalone scalar: retaining
- *    the structure base gives retail's separate v0 address and v1 value
- *    registers for the lui/lw pair. `StageTime` itself is an ordinary shared
- *    object; the recovered switch/dataflow keeps its -100 store in place
- *    without a qualifier.
- *  - The mode-6 distance checks are inline `__builtin_abs` expressions.  A
- *    shared `d` temporary creates a persistent v0/v1 allocation tie; consuming
- *    each subtraction directly reproduces all three retail abs sequences.
- *  - The three debug-format addresses at 0x80097c7c/84/8c are fixed symbols,
- *    which preserves their exact lui/addiu construction instead of folding
- *    them through a shared base.
- */
-
 extern s32 StageTime;
 extern long EmergencyNotice;
 extern u8 STAGE_LAYOUT_NUMBER;
@@ -160,9 +132,6 @@ s32 StageSequence(void)
         {
             continue;
         }
-        /* Only the root sequences keep running once the player
-         * is dead; the single-read range trick avoids an allocation
-         * ripple (see briefing_screen_'s note). */
         if ((u8)(ev->header.route.id - EVENT_ROOT_FIRST) >=
                 N_STAGE_EVENT_SLOTS &&
             StagePlayer->life == 0)

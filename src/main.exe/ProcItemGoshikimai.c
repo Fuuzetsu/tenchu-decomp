@@ -1,46 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * ProcItemGoshikimai (0x8004333c) — the goshikimai (five-colored rice charm)
- * item processor. mode 0: freeze the owner (dispose weapon, throw animation
- * 0xF03, status 8), nudge into place, advance to mode 1; mode 1: once the
- * throw animation reaches frame 0xF, build a PARAM_ITEM_LAUNCH from the owner's
- * held-object bone (object[0xd]) and the item's stashed end-velocity, restore
- * the owner's normal stance (NowReturnNormal), dispose the item, then spawn
- * the follow-up dropped/thrown item with ReqItemDrop.
- *
- * Matching notes (see also ProcItemKusuri.c/ReqItemGoshikimai.c for the
- * item-TU conventions):
- *  - `param = &item->param.goshikimai;` is the VERY FIRST statement
- *    (before even the entry mode==ITEM_MODE_DISPOSE test): the addiu fills
- *    the entry branch's delay slot, as in ReqItemGoshikimai.
- *  - `if (mode==ITEM_MODE_DISPOSE)` (a plain if, separate statement) and the `switch
- *    (item->mode)` right after each get their OWN fresh lbu of item->mode —
- *    two total reloads, matching the switch rule (expand_case always
- *    re-reads the discriminant). The switch has NO default: mode values
- *    other than 0/1 fall out of the switch with nothing after it (straight
- *    to the epilogue, mode untouched) — a real function-level fallthrough,
- *    not a case.
- *  - `item->mode = GOSHIKIMAI_MODE_START; return;` is written OUT TWICE —
- *    once as the entry `ITEM_MODE_DISPOSE`
- *    guard, once at the end of case 1 (when `mid != 0xf03`) — not shared via
- *    a goto/post-switch tail. GCC's cross-jump pass merges the two
- *    identical copies from the `sb`/`j` backwards (the cookbook's "shared
- *    tails" rule); a shared label would merge MORE than the original since
- *    the two call sites differ.
- *  - Case 0 mirrors ProcItemKusuri's case 0 exactly (dispose/animate/status/
- *    MoveHumanoid), just different animation id (0xf03) and status (8).
- *  - `param_goshikimai.vec` is read with the SAME fresh-vs-cached asymmetry
- *    ReqItemGoshikimai writes it with: vec.vx uses
- *    `item->param.goshikimai` directly, while vec.vy/vec.vz use `param`.
- *  - `item->owner->model->object[0xd]` is recomputed in full for EACH of the
- *    three GetAbsolutePosition calls (three separate jal's in the asm, no
- *    cached model/object pointer) — Ghidra's literal repetition is the
- *    source's real shape, not a decompiler artifact.
- *  - The dispose tail reuses `ITEM_MODE_DISPOSE` (the same ITEM_MODE_DISPOSE local tested
- *    at entry) for `item->mode = ITEM_MODE_DISPOSE`, like every other ProcItem*.
- */
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

@@ -24,23 +24,11 @@
  *     extern short Degree;
  * END PSX.SYM */
 
-/*
- * Build a first-attack control word from the facing direction and weapon
- * class. Close targets clear SR, civilians set Attrib bit 0x10, ranged
- * weapons suppress non-turn bits while badly aimed, and targets inside the
- * per-class atkd2 range add the attack bit.
- *
- * The duplicated Degree assignment is an intentional cc1 2.8.1 input.
- * jump2 erases the condition and identical arms, but their dependency keeps
- * the mask ahead of the Degree load. That preserves the target's two delay
- * nops and register allocation. Keeping pad and masked in SImode likewise
- * defers the function's s16 conversion to the shared return tail.
- */
 extern Humanoid *Me_THINK_C;
 /* Per-range-class first-attack distances, indexed by weapon attack class
  * (same shape as Think3attack.c's atkd table). */
 extern s16 atkd2[N_WEAPON_ATTACK_CLASSES];
-/* Retail's own prototype drift (def: s16(s32, s32)) -- byte-required: correcting it changes the caller. */
+/* Retail declares an int return here although GotoPosition returns s16. */
 extern int GotoPosition(int vx, int vz);
 
 s16 Think3firstattack(void)
@@ -64,7 +52,7 @@ s16 Think3firstattack(void)
         s32 masked;
 
         masked = pad & PAD_TURN_BUTTONS_SIGNED;
-        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+        /* Empty loop retained for code layout; its original source construct is unknown. */
         do
         {
         } while (0);

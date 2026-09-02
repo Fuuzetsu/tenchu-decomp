@@ -19,8 +19,6 @@
  *     stack sp+56     struct VECTOR vo
  * END PSX.SYM */
 
-/* Matching notes: a direct transcription of Ghidra's decompilation using the
- * PSX.SYM local names (SMAT/rot/vo) — matched with no source-shaping needed. */
 extern void *memset(void *s, int c, u32 n);
 
 void RotateVector(VECTOR *vec, int rx, int ry, int rz)

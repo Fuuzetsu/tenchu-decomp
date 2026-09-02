@@ -27,15 +27,6 @@
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-/*
- * ReqItemManebue (0x8003f72c) — spawn a "manebue" (decoy whistle) item.
- * Near-clone of ReqItemKusuri (same item TU, same pool round-robin, same
- * no-param-union shape); unlike Kawarimi/Gosin/Henshin this one is NOT a
- * byte-exact clone modulo the ProcItem pointer — expect a handful of extra
- * differing words, adjust per matchdiff. See ReqItemKusuri.c's header for the
- * base derivation (access.py trace, the item->locate reload-not-cached
- * behaviour, the return-1 convention).
- */
 extern void ProcItemManebue(TItem *item);
 /* ITEM.C defines the counter (gp-relative): listed in Build.hs
  * maspsxGpExterns for this file, unlike ActionHalt/EmergencyNotice (absolute here). */

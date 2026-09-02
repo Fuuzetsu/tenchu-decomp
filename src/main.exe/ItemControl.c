@@ -11,15 +11,6 @@
  *     MOTION.C:896, 13 src lines, frame 24 bytes, saved-reg mask 0x80000000 (DEMO build -- see below)
  * END PSX.SYM */
 
-/*
- * ItemControl (0x80027818) — maps the selected inventory item to its use
- * motion, or dispatches the default item handler / rejection sound.
- *
- * STATUS: MATCHING — 0xC4 bytes plus the 12-word jump table. The case order
- * and shared labels are the same item-dispatch shape used by the matched
- * ActNORMAL/ActCHASE/ActSWIM functions in this translation-unit family.
- */
-
 extern Humanoid *Me_MOTION_C;
 
 void ItemControl(void)

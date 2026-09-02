@@ -15,13 +15,6 @@
  *     stack sp+16     unsigned char [256] filename
  * END PSX.SYM */
 
-/*
- * PathFileRead (0x80019394, 0x38 bytes) — joins a resource prefix and a
- * resource name into a 256-byte stack buffer and loads that file. Every caller
- * passes a directory prefix like path_image_2 ("K:\WORK\CDIMAGE\IMAGE\") plus a
- * bare filename, so the "%s%s" is a plain filename concatenation.
- */
-
 extern char fmt_concat_2[]; /* %s%s */
 
 extern int sprintf(char *buf, char *fmt, ...);

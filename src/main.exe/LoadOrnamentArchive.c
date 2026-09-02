@@ -25,18 +25,6 @@
  *     extern struct ModelType World;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — pure C, all 568 bytes / 142 instructions exact.
- * Reusing the PSX.SYM `i` for both archive passes and `j` for the nested
- * parent search produces the target loop and found-path layout.  These are
- * deliberately pre-tested infinite loops: flattening either pass to labels
- * loses its loop-depth weight and rotates the long-lived prntp/prnt/tmdp
- * registers.  The first pass snapshots the signed-short index because it is
- * incremented before LoadOrnament but reused after the call.  Assigning
- * `count` in the second pass's comparison and initializing `j` before the
- * parent copy preserve the two target instruction-order pairs.
- */
-
 extern void *valloc(u32 size);
 extern void UpdateOrnament(OrnamentType *objp, short ry);
 extern OrnamentType *LoadOrnament(u_long *adr);

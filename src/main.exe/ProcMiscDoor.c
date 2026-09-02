@@ -29,21 +29,6 @@
  *     extern struct MISC__183fake DoorData[11];
  * END PSX.SYM */
 
-/*
- * Matching notes:
- *  - The message dispatch is a real switch. expand_case emits the target's
- *    destroy/create/pause/resume test order while the bodies remain in their
- *    readable create/destroy/pause/resume/control order.
- *  - Keep the ratan2 result and the door's current rotation as two source
- *    statements (`t = ...; t += ...;`). That real producer/update boundary
- *    gives PSX.SYM's `t` its target allocation priority. Folding both into
- *    one expression previously required a fake unsigned self-identity and an
- *    invented `wrap` local; the wrapped remainder is naturally one expression.
- *  - `__builtin_abs` is intentional.  This build disables ordinary builtin
- *    folding, while the explicit builtin produces the target's inline
- *    bgez/nop/negu sequence and the required DoorData register allocation.
- */
-
 extern char fmt_unknown_door_type[]; /* unknown door type %d */
 extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
@@ -144,8 +129,6 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
                     ConflictObject[cid].position.vx -
                         param->locate->locate.coord.t[0]);
                 t += param->locate->rotate.vy;
-                /* dir stages the predicate before the speed: byte-required
-                 * (a plain if/else puts the store in a1, not v0; measured). */
                 dir = ((t + 2 * ANGLE_FULL) % ANGLE_FULL) <= ANGLE_HALF;
                 if (dir != 0)
                     dir = DOOR_ANGLE_STEP;
@@ -185,8 +168,6 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     {
         GsCOORDINATE2 *parent;
 
-        /* Staged parent pointer: byte-required (the direct &->locate
-         * store recolors the address; measured). */
         parent = &param->locate->locate;
         model->locate.coord.t[0] = -w;
         model->locate.coord.t[1] = 0;

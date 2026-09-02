@@ -17,26 +17,6 @@
  *     reg   $s0       struct Sprite3D * spr
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * The final 4-byte residual was not a conflict-free local-alloc floor.  The
- * target itself uses $a0 for three disjoint roles: red's interpolation work,
- * the green/blue start-colour inputs, and the later coordinate pointer.  One
- * ordinary 32-bit `work` word for the colour and coordinate-parent roles
- * gives those loads the pointer call's $a0 preference and reproduces all four
- * register fields. It is not a source-level pointer/scalar union.
- * The colour-lerp locals end/start2/inverse are reused the same way for
- * the px/py/pz captures (and start2 a third time for the OT depth) —
- * same shared-role lever.
- * No priority fence, dead carrier, or no-op is needed.  The one-shot wrapper
- * around the px capture remains load-bearing: unwrapping it changes 7 bytes
- * in the following grouped-load block.
- *
- * The superseded round-by-round investigation log for this function lives
- * in docs/matching-archive.md.
- */
-
 void DrawImpact(TEffectSlot *ef)
 {
     ImpactType *param;
@@ -98,7 +78,7 @@ void DrawImpact(TEffectSlot *ef)
     spr->b = start2 + (end_raw * ratio) / FIXED_ONE;
 
     end = param->px;
-    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+    /* Empty loop retained for code layout; its original source construct is unknown. */
     do
     {
     } while (0);

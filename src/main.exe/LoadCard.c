@@ -28,12 +28,7 @@ extern void *valloc(u32 size);
 extern void vfree(void *ptr);
 extern int sprintf(char *buf, char *fmt, ...);
 
-/*
- * The two apparent Ghidra buffers are one MemoryCardFileBlock: its named
- * payload member begins after the 0x200-byte card header. The fixed-size
- * built-in payload copy reproduces the compiler's aligned/unaligned loop
- * pair.
- */
+/* The card header and save payload are one MemoryCardFileBlock. */
 card_result LoadCard(s32 target, u8 *name)
 {
     void *allocation;

@@ -2,19 +2,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-/*
- * set_fade_ (0x80038fdc, 0xc0 bytes) — EFFECT.C effect-pool allocator:
- * same EffectSlot[200] round-robin search as SetSplash/SetFrame/SetBleed
- * (see SetSplash.c for the indexed do-while reconstruction).
- * Called only by (still-asm) CVAupdate, which also drives SetBlood/
- * SetNowMotion/SoundEx/SetupTelop for the same cutscene-ish sequence.
- *
- * The FadeType written here is a DIFFERENT union member than BloodType at
- * offset 0: three separate color-byte stores, not BloodType's pointer. Its
- * renderer uses +4 as an ordering-table priority and +8/+0xc as the fade's
- * clock interval, so those fields must not inherit BloodType's position
- * names.
- */
 extern void draw_fade_(TEffectSlot *ef);
 
 void set_fade_(u8 r, u8 g, u8 b, long priority)

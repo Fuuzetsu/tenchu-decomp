@@ -17,21 +17,6 @@
  *     reg   $s1       short i
  * END PSX.SYM */
 
-/*
- * SweepMotion (0x8001ba24, 0x3d8 bytes) — advance the motion count while
- * interpolating each enabled model object toward its current keyframe. Bone
- * zero also sweeps the root translation; the remaining enabled bones update
- * rotation only.
- *
- * Matching notes: the narrow postincrement expression is load-bearing:
- * `count = -mmp->count++` preserves the old unsigned halfword for the
- * increment/store, then negates that old value into the shared signed-short
- * divisor. The direct compound assignments deliberately re-read each narrow
- * rotation field after division, matching cc1's natural HImode update shape.
- * Variable division requires maspsx `--expand-div` for all nine PsyQ guard
- * sequences.
- */
-
 short SweepMotion(MotionManager *mmp)
 {
     MotionDataType *mot;

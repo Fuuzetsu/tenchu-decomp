@@ -21,46 +21,6 @@
  *     extern unsigned long *MemoryLoadAddress;
  * END PSX.SYM */
 
-/*
- * LoadFromCDROM (0x80019650, 0x118 bytes) — loads a file from the AFS
- * volume on disc: bumps TotalIO, temporarily enables normal ADT messages,
- * and opens `filename` via AfsOpen on the global `systemAFS` handle; a NULL
- * result restores the prior quiet mode and reports via AdtMessageBox. On
- * success, optionally logs (ReadMode & READ_MODE_TRACE), gets the file's size via
- * AfsFileSize, takes MemoryLoadAddress as a pre-supplied buffer if set
- * (consuming it) or valloc()s a fresh one, reads it via AfsRead, closes
- * the handle, restores the prior quiet mode, and returns the buffer. Same
- * proven TAFS/TAFSFileHandle layout as
- * AfsRead.c/AfsFileSize.c/AfsClose.c/AfsOpen.c.
- *
- * Matching notes:
- *  - `&systemAFS` is recomputed at each of its 3 uses (AfsOpen, AfsFileSize,
- *    AfsRead) rather than cached in a named pointer: the first two share one
- *    callee-saved register (CSE, no intervening redefinition), but that
- *    register gets reused for `size` right after AfsFileSize, so AfsRead's
- *    `&systemAFS` materializes fresh. Write the address-of expression
- *    directly at each call site — don't introduce a `TAFS *vol` local.
- *  - Same MemoryLoadAddress idiom as LoadFromDEVPC: `buff = MemoryLoadAddress`
- *    belongs INSIDE the else-branch (m2c already shows this literally),
- *    not hoisted before the if the way Ghidra renders it.
- *  - AfsOpen's real return type is `TAFSFileHandle *` (AfsFileSize/AfsRead/
- *    AfsClose already fixed that signature) even though AfsOpen.c's own
- *    still-unmatched Ghidra stub calls it `TAFSElement *` — Ghidra's struct
- *    naming for this family isn't reliable; follow the proven callees.
- *  - GUARD POLARITY: unlike the one-line-success guard clauses (AfsClose,
- *    AfsFileSize — literal `== 0`, error as the branch target folded next
- *    to the epilogue), this guard's success arm is LONG (several
- *    statements, a nested if, five more calls) and a shared `quiet`
- *    local live from before the guard to the tail of BOTH arms. Ghidra's
- *    literal `if (fd == 0) {error; return 0;} success; return buff;`
- *    compiles with the wrong polarity here (success ends up the branch
- *    target, error the fallthrough — backwards from the target, which
- *    keeps error unnested and LAST). Nest the long success arm instead:
- *    `if (fd != 0) { ...long body...; return buff; } error; return 0;`
- *    — the mirror image of the short-body guard-clause rule. Net rule:
- *    the short-body exception flips back once the "success" side is the
- *    LONGER of the two arms.
- */
 extern TAFSFileHandle *AfsOpen(TAFS *handle, char *path);
 extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
 extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);

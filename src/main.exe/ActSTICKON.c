@@ -39,39 +39,6 @@
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-/*
- * ActSTICKON (0x80025120, 0xcb0 bytes) — controls wall-clinging movement,
- * transitions, camera/item commands, and item throws.
- *
- * STATUS: MATCHED — 3248/3248 bytes, 812/812 instructions.
- *
- * Two notes for future readers, since both residuals here were long recorded
- * as un-reachable register ties and neither actually was:
- *
- * 1. The camera dispatch is a plain switch on an UNSIGNED mode, with the
- *    compare literals inline in each case body. There is deliberately no
- *    `camera_direction` variable: the shared `li v0,K / bne a0,v0` tail in the
- *    target is a jump2 CROSS-JUMPING artifact. Cross-jumping runs AFTER
- *    register allocation, so it merged two case bodies whose only difference
- *    was the `li v0,K`. Modelling that merged tail as a source-level variable
- *    gives the constant a live range spanning the tree's own `li v0,6` compare
- *    scratch, which exiles it from v0 and cascades rv from a0 into a1. Inline
- *    literals are per-case short-lived pseudos that reuse v0, so rv keeps a0.
- *    Case order 6, 9, 7, 10 pairs the two 0xC03 arms and the two 0xC04 arms
- *    and reproduces the target's fall-through block layout.
- *
- * 2. In the makibishi loop, `angle += next_angle - angle` and the
- *    do{}while(0) around it are BOTH load-bearing and must stay. The delta
- *    update keeps the copy from being coalesced away (a plain
- *    `angle = next_angle` loses the `move s2,s0`). The fence must ENCLOSE the
- *    copy: its NOTE_INSN_LOOP_END is what
- *    stops local-alloc's optimize_reg_copy_1 (local-alloc.c:753 in this cc1 —
- *    there is no regmove.c in 2.8.1) from rewriting the later `y = next_angle`
- *    read from next_angle (s0) to angle (s2). That scan breaks on a CODE_LABEL,
- *    a JUMP_INSN, or a loop note; with the copy outside the fence, nothing
- *    breaks it and the sign-extension reads s2.
- */
-
 extern Humanoid *Me_MOTION_C;
 extern s32 StickonItem;
 
@@ -102,10 +69,6 @@ void ActSTICKON(void)
             s32 reflected;
             s32 wall_y;
 
-            /* These are distinct allocation identities: direct rotation is
-             * 33 lines off; deleting reflected/reflected_raw costs 42/306;
-             * replacing wall_y with y costs 19 at best. */
-
             map = StickonCheck();
             if (map == 0)
             {
@@ -120,8 +83,6 @@ void ActSTICKON(void)
                 wall_y += ANGLE_QUADRANT;
             }
             reflected_raw = RefrectVector[map->vector] - wall_y;
-            /* t re-registers wall_y for the divide below:
-             * direct wall_y use differs by 51 canonical lines. */
             t = wall_y;
             rv = reflected_raw;
             reflected = (s16)reflected_raw;
@@ -211,7 +172,6 @@ void ActSTICKON(void)
                 {
                     MotionManager *update_motion;
 
-                    /* Direct dtM at the call is 8 canonical lines off. */
                     update_motion = dtM;
                     y = MOT_STICKON_SLIDE_R;
                     if (rv == ((pd + 1) & 3))
@@ -267,8 +227,6 @@ void ActSTICKON(void)
                 s32 high_item;
 
                 selected_item = SelectedItem;
-                /* The second identity is allocation-bearing: folding it into
-                 * selected_item differs by 191 canonical lines. */
                 high_item = selected_item;
                 StickonItem = selected_item;
                 if (selected_item <= ITEM_SMOKE)
@@ -333,9 +291,6 @@ void ActSTICKON(void)
             break;
         }
 
-        /* Plain dtPAD reads reproduce both the shared initial shift and the
-         * loop's separate reload; pad/pad_bits/loop_pad aliases are not
-         * required. */
         if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) == 0)
         {
             goto slide_no_pad;
@@ -361,7 +316,6 @@ void ActSTICKON(void)
         }
         if (motID != t)
         {
-            /* Reusing y for this selection differs by 10 canonical lines. */
             UpdateMotion(dtM, t);
         }
 
@@ -432,8 +386,7 @@ void ActSTICKON(void)
         {
             s32 base_angle_value;
 
-            /* This full-width boundary preserves the later explicit narrowing;
-             * forming the angle directly is 10 canonical lines off. */
+            /* Narrow only after selecting the base angle. */
             base_angle_value =
                 (s16)(model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy);
             angle = (pd ? base_angle_value - ANGLE_QUADRANT
@@ -466,14 +419,12 @@ void ActSTICKON(void)
         {
             s32 next_angle;
 
-            /* Reusing the outer i costs 78 canonical lines; a nested i costs
-             * 30, so the shared t identity remains. */
             for (t = 0; t < 5; t++)
             {
                 next_angle = angle - 10;
                 next_angle += rand() % 20;
                 angle += next_angle - angle;
-                /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
+                /* Empty loop retained for code layout; its original source construct is unknown. */
                 do
                 {
                 } while (0);

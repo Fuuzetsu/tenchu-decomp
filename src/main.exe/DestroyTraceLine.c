@@ -13,14 +13,6 @@
  *     param $a0       struct TraceLine * t
  * END PSX.SYM */
 
-/*
- * DestroyTraceLine (0x8003cb44) — free a trace-line's point array, then the
- * TraceLine itself (called from CreateStage). Same shape as
- * DisposeMotionManager (null-check, free a nested pointer field, then free
- * self; `t` stays live across the first vfree in a callee-saved register).
- * PSX.SYM's shared TraceLine is { short index; short count;
- * struct TracePoint *point; }; only `point` is touched here.
- */
 extern void vfree(void *p);
 
 void DestroyTraceLine(TraceLine *t)

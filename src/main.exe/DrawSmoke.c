@@ -20,46 +20,6 @@
  *     extern struct Sprite3D *sprSmoke;
  * END PSX.SYM */
 
-/*
- * MATCH.
- *
- * DrawSmoke (0x800334c4, EFFECT.C:794) — the smoke-puff effect's per-frame
- * draw: picks its sprite from `sprSmoke[param->sprite]`; when the lifetime
- * countdown reaches its scheduled event time (`time==evtime`), it damps the
- * velocity by 0.8x every time `vec.vy` drifts below -20 and bumps
- * `scale`/re-rolls `evtime` from `time` and a `rand()%5` jitter; then, if
- * `time<26`, sets `alfa = time*5` (else the 0x80 default), integrates
- * `pos += vec`, writes the sprite's position/scale/color/rotate, draws it,
- * and finally decrements `time` (`+0xff`, i.e. a real `-1` wrap for the u8
- * field — see the encoding note below), disposing the slot when the OLD
- * time was 0.
- *
- * Matching constraints:
- *  - param is the proven SmokeType at ef+4. sprSmoke is a two-entry
- *    Sprite3D pointer array in retail, and Sprite3D retains its complete
- *    140-byte shared layout.
- *  - Leave the 80/100 damping and signed /2 as plain arithmetic; cc1 emits
- *    the target magic multiply and sign-correct shift.
- *  - Capture vz_old immediately after storing vx, update vy next, and store
- *    the damped vz last. This gives the target load order but vx/vy/vz store
- *    order.
- *  - Re-roll in three statements: call rand(), compute m = time - 1, then
- *    assign m - r % 5. Combining either subtraction lets fold reassociate it
- *    and leaves four extra bytes.
- *  - Load spr through a named Sprite3D **sprp. Direct array indexing changes
- *    the prologue saved-register order; the extra source identity is an
- *    allocation lever, not a second runtime indirection.
- *  - Capture rotate after the scale store and write it after r/g/b. Direct
- *    field assignment lets those color stores fill a delay slot that is a
- *    target nop.
- *  - Let the time < 26 guard read time once for its comparison and again for
- *    the multiply; alfa's 0x80 default is materialized once before dispatch.
- *  - Re-read pos.vx/vy/vz for the final sprite coordinate stores rather than
- *    carrying the integration values.
- *  - Capture oldtime once for the final test, but spell the store as
- *    param->time + 0xff. The positive byte increment and old-value test share
- *    one lbu in the target.
- */
 extern short DrawSprite(Sprite3D *sprt);
 
 void DrawSmoke(TEffectSlot *ef)

@@ -3,39 +3,6 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-/*
- * fast_tng4_ (0x8005961c, 0x4ec bytes) — DecodeTMD-family primitive
- * renderer, the POLY_GT4 sibling of the matched leaf pair
- * fast_tnf3_/fast_tng3_ (TMD quad in decode_tmd_fast_'s switch). Each family
- * member receives its matching packed TMD records, Sony VERT table, output
- * packet cursor, record count, and shared TMD_FAST_WORK.
- * Builds one POLY_GT4 (Gouraud-shaded, textured quad, GPU code 0x3C) output
- * packet per input record: transforms the record's first 3 vertex indices
- * through the GTE (RTPT) with a FLAG check, backface-culls via NCLIP
- * (MAC0 <= 0), transforms the 4th vertex (RTPS) with a second FLAG check,
- * discards quads whose screen-space bbox misses the caller's clip rectangle,
- * computes an OTZ bucket index from the max depth / 4, applies depth-cueing
- * (DPCS) to each vertex's baked colour when beyond the far-fog range, then
- * copies the finished packet into the caller's output list and re-links the
- * caller's OT bucket to point at it.
- *
- * work is the shared per-call rendering context of the family
- * (TMD_FAST_WORK in tmdfast.h); THIS pair stages its POLY_GT4 at work->gt4
- * (the GT3 pair stages at work->gt3).
- *
- * Matching notes: applies the fast_tnf3_ recipe verbatim, except the OTZ
- * store follows the near-Z guard here (its delay slot is already taken).
- * The dual-view record retains the original TMD_P_TNG4 layout and keeps the
- * normal strength-reduced loop on the target's single cursor; the former
- * function-only flag was compensating for decompiler-style byte offsets. New
- * vs the leaf: the
- * context lives as TWO variables (work + the prim staging pointer — the
- * packet accesses go through prim, the context fields through work);
- * flagAddr is a precomputed loop invariant (used by BOTH gte_stflg sites);
- * the 52-byte packet assignment emits a 3-chunk movstrsi loop +
- * 4-byte remainder.
- */
-
 u_long *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
                    u_long *packet,
                    int count, TMD_FAST_WORK *wp)

@@ -4,32 +4,6 @@
 #include "item.h"
 #include "sound.h"
 
-/*
- * ProcItemFire (0x80044de0) — rolls and draws the fire item, emits a small
- * random bleed every frame, occasionally converts an exhausted item back into
- * a pickup, expands its collision volume when lit, and attaches a frame effect
- * to a collided character until the countdown expires.
- *
- * Matching notes:
- *  - The randomized particle VECTOR is dead before the original `vec`
- *    SVECTOR is written into the same slot.
- *  - The three `rand() % (nr * 2)` expressions use separate single-definition
- *    return temps plus `base_* = coordinate - nr`.  Reusing one rand temp leaves
- *    copies from $v0; inlining the calls lets combine reassociate `-25` with
- *    the remainder and removes each target coordinate-load hazard nop.
- *  - `count` is full-width, with explicit `(u8)` tests.  That keeps the
- *    decrement in one SI pseudo ($v1) and emits the target narrowing at each
- *    switch path; an `u8` local was one instruction short and needed a copy.
- *  - The pickup conversion intentionally mixes pointer and direct spellings:
- *    `launch->user` and ReqItemDrop retain the launch pointer in $s0, while
- *    direct aggregate fields preserve the target stack-relative loads/stores.
- *    The saved-position pointer supplies the sequential source loads.
- *  - Named full-width `size`/`collision_mode` values share 500 and 8 across
- *    halfword and word stores.  Separate literals materialize 8 twice.
- *  - This TU needs maspsx `--expand-div` for the dynamic model-count remainder
- *    guard; Build.hs and permute.py carry the mirrored per-function setting.
- */
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -266,11 +240,6 @@ void ProcItemFire(TItem *item)
             ConflictObject[conflict_id].size.vz = 1500;
             ConflictObject[conflict_id].size.vy = 1500;
             ConflictObject[conflict_id].size.vx = 1500;
-            /* This arm runs with mode == FIRE_MODE_EXPLODE. Retail reuses that
-             * register as the owner tag (CONFLICT_OWNER_ITEM == 1), the conflict
-             * class, and the collision mode below -- the same one-register trick
-             * as the file's other box and ProcItemArrow's. Separate named
-             * constants load fresh immediates and do not match. */
             ConflictObject[conflict_id].common = (void *)mode;
             ConflictObject[conflict_id].size.pad = mode;
             item->collision.size = 1500;

@@ -18,23 +18,6 @@
  *     extern unsigned char *ImagePath;
  * END PSX.SYM */
 
-/*
- * ResetInfoview (0x8004bfa4, 0x80 bytes) — resets the five-entry
- * LifeBar[nLifeBar] pool (same struct/stride as PutLifeBarS.c) and, for a
- * valid stage, reloads
- * the minimap sprite MapImage from "chizu.tim" via PathFileRead/GetTIMInfo/
- * LoadTIMAndFree/InitSprite (the same call chain InitSprite.c's own header
- * documents). PSX.SYM (an earlier build) recorded `LifeBar[4]`; the loop
- * here plainly zeroes five entries like ReqLifeBar/PutLifeBarS's
- * already-matched pool — the retail array grew by one, so `nLifeBar = 5`
- * is what reproduces the bytes (cookbook: "the layouts are from an earlier
- * build ... if the retail .s disagrees, the asm wins").
- *
- * `int i` (not `short`) lets loop.c strength-reduce `LifeBar[i].count = 0;`
- * into the walking cursor the asm shows (`addiu $v0,$v0,-0x14` each
- * iteration, starting at &LifeBar[4]); only one field is touched so there's
- * no walking-pointer field-order bias to worry about (cookbook Loops).
- */
 extern char path_chizu_tim[]; /* chizu.tim */
 
 void ResetInfoview(int stage)

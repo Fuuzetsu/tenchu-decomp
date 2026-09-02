@@ -41,38 +41,6 @@
 
 #include "item.h"
 
-/*
- * MATCH.
- *
- * StartStageSequence (0x8004d970) installs the stage-specific characters,
- * reorders HumanGroup by character class, counts enemies/citizens/bosses,
- * applies the stage-specific score exclusions, and resets the event and
- * score clocks.
- *
- * Matching notes:
- *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
- *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
- *  - The chrid translation is a sparse switch whose every arm selects `tp`.
- *    expand_case keeps STAGE_CHAR_PARTNER (-1) inline and lays
- *    STAGE_CHAR_STORY_NPC (-2) out later, emitting the target's -2/-1 test
- *    order. Assigning the ordinary row value in the default arm retains the
- *    separate signed dispatch and unsigned selection loads; loop.c derives
- *    the parallel think-field address from the later direct field access.
- *  - `y` deliberately carries each x/z product to both destination stores;
- *    repeating the multiplication expression makes GCC recompute it.  The
- *    StagePlayer model is likewise fetched before the attribute/life stores
- *    so the target's v1 chain can be interleaved with them.
- *  - Loop spelling is mixed intentionally.  The first two class-filter scans
- *    are `while` loops, but the remaining-pointer scan and score-count scan
- *    are `for` loops.  With the pinned cc1 those loop notes make reorg copy
- *    `i + 1` into two taken-branch delay slots and recompute it on the other
- *    path; the equivalent all-while spelling is two instructions short.
- *  - StageEvent/StagePlayer and the score counters are gp-relative in this
- *    translation unit; maspsxflags.py records that per-function list.
- *  - The stage exclusions are another sparse switch: FREE_PRINCESS performs
- *    its first decrement and conditionally falls through to the shared
- *    stage-2/3 decrement body.
- */
 extern s32 StageTime;
 extern s32 AttackActionCount;
 

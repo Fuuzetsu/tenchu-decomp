@@ -14,12 +14,6 @@
  *     param $a0       struct ModelType * dim
  * END PSX.SYM */
 
-/*
- * UpdateCoordinate (0x80018248) — recompute a model's local->world matrix from
- * its Euler rotation, then clear the GsCOORDINATE2 dirty flag. `dim` survives
- * the RotMatrixYXZ call (callee-saved $s0) for the trailing flg store.
- */
-
 void UpdateCoordinate(ModelType *dim)
 {
     RotMatrixYXZ(&dim->rotate, &dim->locate.coord);

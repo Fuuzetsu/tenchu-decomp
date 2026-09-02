@@ -16,18 +16,6 @@
  *     param $a3       int * ry
  * END PSX.SYM */
 
-/*
- * GetVectorRotation (0x8003975c, 0xac bytes) — the aim-direction helper: given
- * two world points, writes the pitch (*rx) and yaw (*ry) that aim `start` at
- * `end`. Yaw is `ratan2` of the negated horizontal deltas; pitch is `ratan2` of
- * the vertical delta over the horizontal distance (`SquareRoot0` of dx²+dz²).
- *
- * The out-params are written as full words, as the recovered signature says.
- *
- * Statement order is load-order significant: dx (vx), then dz (vz), then dy
- * (vy) — the deltas are computed in that order even though dy is consumed last.
- */
-
 void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry)
 {
     s32 dx;

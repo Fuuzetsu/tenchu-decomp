@@ -4,42 +4,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-/*
- * ProcItemLaunch (0x80047048) — the launched/thrown item processor (grenade
- * family). Every frame: fly it (MoveFly), tick the arming countdown (at 0
- * register a 300-unit conflict box), spin it (rotate.vy = GameClock * 0x2AA),
- * mirror the coordinate into the shared model and draw + afterimage. If a
- * live character is in the conflict box: SetImpact + SoundEx and dispose.
- * Otherwise, once `param->fly.mode` is armed, dispatch on the rolling
- * overlay's `status`: KORO_WATER = plain dispose; KORO_WALL = detonate
- * (SetBleeds/SoundEx 0x31 + reset_alert_duration); KORO_GRAND/KORO_STAY =
- * drop a pickup (build a
- * PARAM_ITEM_LAUNCH at the model's position, dispose, ReqItemDrop).
- *
- * Matching notes (this is ProcItemHappou's skeleton — see that file for the
- * conflict-box and countdown conventions; all deltas verified):
- *  - The scratch model is `item->model` here (Happou draws into its gp-global
- *    HappouModel instead).
- *  - The spin block's three stores are inline (`item->locate->rotate.v* =`);
- *    each reloads item->locate (the in-struct stores invalidate the cached
- *    load). GameClock * 0x2AA is the plain literal multiply (shift/add
- *    chain), truncated by the sh.
- *  - `switch (param->fly.p.koro.status)` has bodies in source order
- *    KORO_WALL, KORO_GRAND/KORO_STAY, KORO_WATER; KORO_WATER is the
- *    shared `dispose:` label the impact path reaches by `goto` — its body
- *    (and the KORO_GRAND/KORO_STAY copy) are literal duplicates, NOT
- *    cross-jumped (they
- *    have different continuations).
- *  - The drop path builds `param` through a pointer (`p = &param;
- *    memset(p, ...)`) but stores fields DIRECT (`param.type = ...`, sp-folded),
- *    then copies with `rparam = *p;` — the *p spelling is what lets the
- *    0x28-byte block copy's source cursor coalesce with p ($s0) across the
- *    KORO_GRAND/KORO_STAY join label (a `rparam = param` spelling
- *    re-materializes the address). ReqItemDrop takes &rparam (the copy, not
- *    the original).
- *  - `rparam` is declared before `param` (slot order 0x18/0x40, matching
- *    PSX.SYM's rparam@24/param@72 declaration order).
- */
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

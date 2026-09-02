@@ -13,24 +13,6 @@
  *     param $a0       unsigned char * vab
  * END PSX.SYM */
 
-/*
- * SetupSE (0x80018ce8, 0xb8 bytes) — allocate a SoundEffect record and load
- * a VAB (SsVabOpenHead for the header, SsVabTransBody/SsVabTransCompleted +
- * vrealloc for the body), returning NULL when `vab` is NULL. SoundEffect
- * (VABid@0 s16, program@2 s16, VABhead@4 void*) proven by DisposeSE.c — this
- * is the function that ALLOCATES it (valloc(sizeof(SoundEffect))).
- *
- * Matching notes:
- *  - VabHdr.ps is read once (u16, lhu) and used TWICE: scaled by
- *    VAB_TONE_ATTRIBUTE_BYTES_PER_PROGRAM (sign-extend+scale idiom,
- *    sll16/sra7 — cookbook toolchain
- *    gotchas' "ordinary matchable" 2-instruction class, not the blocked
- *    3-instruction one) for `size`, and stored raw into se->program.
- *  - se->VABid is RELOADED (not kept live in a register) for the
- *    SsVabTransBody call: the intervening (conditional) SystemOut call
- *    clobbers the caller-saved copy, so cc1 re-reads it from memory —
- *    just write `se->VABid` again rather than caching it in a local.
- */
 extern vab_id SsVabOpenHead(u8 *vab, vab_id requested_id);
 extern void SsVabTransBody(u8 *body, vab_id id);
 extern void SsVabTransCompleted(int flag);

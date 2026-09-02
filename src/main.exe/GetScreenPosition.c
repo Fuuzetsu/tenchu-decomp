@@ -16,38 +16,6 @@
  *     param $a3       struct SVECTOR * scr
  * END PSX.SYM */
 
-/*
- * GetScreenPosition (0x800396c0, 0x9c bytes) — camera-relative coordinate
- * transform + perspective project: zeroes the point-projection workspace's
- * GTE matrix translation (fixed PS1 scratchpad RAM at 0x1F800000, same
- * `MATRIX *m` idiom as PrepareGetScreenPositionS.c), writes
- * (x,y,z) - ViewInfo.(vpx,vpy,vpz) into its input SVECTOR
- * (same idiom as the twin GetScreenPositionS.c's sv @ 0x1F800080), installs the
- * (all-zero) translation and the global world-space rotation matrix
- * GsWSMATRIX, then calls RotTransPers (GTE perspective-transform library
- * wrapper, 0x80078704 > 0x80060000, precompiled) with that SVECTOR, the
- * caller's own output pointer `scr` (passed through unmodified), and the
- * workspace's perspective/flag outputs. RotTransPers's returned OTZ (depth) is
- * written to `scr->vz` at +4 bytes — identical tail
- * to the twin.
- *
- * ViewInfo.vpx/vpy/vpz: canonical GsRVIEW2 `long` fields (s32 on PsyQ,
- * Ghidra's own independently-built GsRVIEW2 — see ReqItemDefault.c/
- * GetScreenPositionS.c). SetTransMatrix/SetRotMatrix each take a single MATRIX*
- * (PrepareGetScreenPositionS.c proves both signatures); the OTHER a-registers still
- * holding values at those call sites are leftover from the adjacent
- * sv->vy/vz stores, not real arguments — m2c over-counts both calls'
- * argument lists by reading those live regs as args.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `x - (short)ViewInfo.vpx` is a NARROWING use (the result stores into
- *    a scratchpad s16 field) of a s32 global's LOW HALF — cc1 emits `lhu`
- *    for it, same rule as the twin.
- *  - Each ScreenProjectionWorkspace pointer macro resolves to its own absolute
- *    scratchpad address, never a shared "Scratchpad + offset" symbol
- *    (PrepareGetScreenPositionS.c/GetScreenPositionS.c precedent).
- */
-
 extern MATRIX GsWSMATRIX;
 
 void GetScreenPosition(long x, long y, long z, SVECTOR *scr)

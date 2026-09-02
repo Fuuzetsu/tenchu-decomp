@@ -15,27 +15,6 @@
  *     param $a1       short mode
  * END PSX.SYM */
 
-/*
- * PlayMotion (0x8001c584, 0xbc bytes) — per-frame motion-manager advance:
- * bails returning 0 if `loop` is negative (motion disabled/one-shot-done).
- * With mode == 0 (normal playback), advances `count` and, once it reaches
- * the current motion's `time` limit, resets `count` to 0 and bumps `loop`.
- * With mode != 0, either forwards to SweepMotion (when `count` is negative)
- * or to ActiveMotion, bumping `loop` only when ActiveMotion reports done
- * (0). Always returns the (possibly just-reset) `count`.
- *
- * item.h's MotionManager (mid/count/loop/n/mask/mode/model/motion/motreg/
- * control) and MotionDataType (n/sweep/orderspd/sidespd) are proven by
- * SetNowMotion.c and friends; this function adds MotionDataType's `time`
- * field @0x4 (a raw `lh` on mmp->motion), matching Ghidra's own
- * independently-built MotionDataType exactly (reference/ghidra_types.h).
- *
- * Matching notes (docs/matching-cookbook.md): both the SweepMotion path and
- * the ActiveMotion!=0 path skip the trailing `mmp->loop = result + 1;` via
- * an early `goto done` (shared final `return mmp->count;` — Ghidra's own
- * two-goto rendering matches the raw asm's shared tail directly, no
- * restructuring needed).
- */
 extern short SweepMotion(MotionManager *mmp);
 
 short PlayMotion(MotionManager *mmp, short mode)

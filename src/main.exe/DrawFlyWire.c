@@ -62,9 +62,6 @@ void DrawFlyWire(TEffectSlot *ef)
         VECTOR tmp;
         s16 count;
 
-        /* The tmp copy and the per-component count reloads are
-         * byte-required (building pos directly with one count
-         * mismatches; measured). */
         memset(&tmp, 0, sizeof(VECTOR));
         count = param->count;
         tmp.vx = ((param->center.vx * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +

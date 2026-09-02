@@ -4,12 +4,7 @@
 #include "item.h"
 #include "sound.h"
 
-/* The release-emptied debug print, the idiom the demo build shows live: a
- * debug build defines it as do { FntPrint x; } while (0) (the demo binary
- * carries this TU's prints compiled in; retail still links FntPrint). The
- * name is a stand-in -- the original macro name is unrecoverable. The empty
- * expansion's loop notes are load-bearing at three sites in the conflict
- * arm; see the register-allocation notes below. */
+/* Debug builds keep the original loop-shaped logging macro. */
 #ifdef DEBUG
 #define DBG(x) do { FntPrint x; } while (0)
 #else
@@ -50,37 +45,6 @@
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
-/*
- * Register-allocation constraints:
- *  - reflect_dz is a short, hot, call-crossing carrier that outranks and
- *    conflicts with i, so it takes $s0 and moves i to $s1. The earlier zz
- *    values then share $s0 because each dies at its reflect_dz copy.
- *  - Keep the three copies in separate control-flow blocks, with the turn-path
- *    copy before if (i > 0), and keep the mask and shift as two statements.
- *    Flow counts those references before the copies, mask, and negation fold
- *    away; moving or combining them loses the required conflict or weight.
- *    Reusing dead PSX.SYM local ry also matches, but reflect_dz states the value
- *    being preserved and has more allocation headroom.
- *  - There is no honest carrier in the conflict loop: GetDirection's result
- *    dies before SetNowMotion, while the vector save/restore crosses no call.
- *  - Retail's added damage arm makes i call-crossing, creating the contest that
- *    the demo build did not have. GCC 2.8.0-psx, 2.8.1-psx, and gs107 agree on
- *    this allocation; 2.7.2 misses even the instruction count.
- *
- * Scheduling constraints:
- *  - The three empty DBG one-shot loops in the conflict arm are release forms
- *    of debug-print sites. Their loop notes form sched1 region boundaries and
- *    preserve the target's conflict-record load order. Each site, and the
- *    size-before-position source order in the third region, is required.
- *  - Qualifiers are not substitutes: volatile on the short field changes the
- *    load sequence; a volatile word orders memory but not the address ALU;
- *    const and register are inert.
- *  - This explanation is consistent with the demo's live map-probe prints and
- *    its 31 FntPrint calls. Retail still links diagnostic printing, so deleted
- *    per-frame DBG calls are a natural source for the otherwise empty fences.
- *  - The recovered long i is explicitly narrowed at both map queries to keep
- *    the shared API's promoted int mode visible.
- */
 short DefaultActionHumanoid(Humanoid *human)
 {
     MapVector *map;
@@ -101,8 +65,7 @@ short DefaultActionHumanoid(Humanoid *human)
     vector = &human->vector;
     object = *human->model->object;
     human->rotate->vy &= ANGLE_MASK;
-    /* The cast (not &= 0xff) makes the reload an lbu: byte-required
-     * (verified against the .s). */
+    /* Narrow through u8 before reloading the attribute. */
     human->attribute = (u8)human->attribute;
     slocate = &human->slocate;
 
@@ -133,10 +96,7 @@ short DefaultActionHumanoid(Humanoid *human)
         GetAreaMapVector(GlobalAreaMap, map, locate, human->width, (short)i);
     }
 
-    /* The demo build's own dump of the probe result, recovered verbatim
-     * from the demo binary (strings at 0x800106d4/0x800106f4, arguments
-     * matched field-for-field against its call sites); compiled out of
-     * retail, where this whole statement folds to nothing. */
+    /* Demo log text and fields are recovered; retail compiles this away. */
     if (map->level == LEVEL_NONE)
     {
         DBG(("l(ia) h%d v%x ah%x al%x %04x\n", map->height, map->vector,
@@ -384,11 +344,7 @@ short DefaultActionHumanoid(Humanoid *human)
                 locate->vz -= ((ConflictDistance.vz >= 0)
                                    ? human->width : -human->width) / 8;
 
-                /* Three DBG sites the bytes require (their empty release
-                 * expansions are sched1 region fences -- see the header).
-                 * Unlike the map-probe pair above, the real print text
-                 * postdates the demo and is unrecoverable; the argument
-                 * below is a placeholder, not a recovered string. */
+                /* Retail retains three empty debug sites; their original text is unknown. */
                 conflict = &ConflictObject[i];
                 DBG(("deleted debug print (text lost)\n"));
                 object_id = object->id;

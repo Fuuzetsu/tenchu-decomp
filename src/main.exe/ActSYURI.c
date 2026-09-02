@@ -22,42 +22,6 @@
  *     extern short motMODE;
  * END PSX.SYM */
 
-/*
- * ActSYURI (0x80025dd0, 0x2a4 bytes) — the shuriken-throw action state
- * (MOTION.C's ActionFunc[] table, dispatched by HumanActionControl on
- * human->status). Two motion ids: MOT_SYURI (throw) spawns the shuriken item at
- * the weapon-hand model's absolute position on frame 1 (count == 1), or —
- * past that frame — checks the spare-shuriken slot (spare_item_slot_) and
- * drops to recover when it runs out or the player cancels via pad.trig &
- * (PADRleft | PADRdown | PADRright); MOT_SYURI_RECOVER restocks the AI's
- * shuriken (ReqItemDefault) and returns to motion 0 or the weapon-drawn
- * engage stance (MOT_ENGAGE_STANCE, attribute & ATTR_WEAPON_DRAWN) when the
- * motion runs out.
- *
- * Matching notes (docs/matching-cookbook.md):
- *  - `switch (dtM->mid)` (a real switch: sequential beqs + `j default`,
- *    bodies in source order). The E01 case's `count == 1` compare constant
- *    is reorg-stolen into the dispatch beq's delay slot — automatic.
- *  - The `1` in the E00 case is ONE cse-unified pseudo (callee-saved $s0):
- *    the `count == 1` compare constant, `item.type = ITEM_SHURIKEN`
- *    (=1) word store, and all three `motMODE = 1` halfword stores fold
- *    onto it via cse's taken-edge path following. No named variable needed
- *    (PSX.SYM lists only `p` and `item` — consistent).
- *  - `motMODE = MOTION_MOVE_APPLY;` is DUPLICATED into both arms of each motID=0x501/0
- *    if/else (the cookbook's "duplicate the shared trailing statement"
- *    shared-tails rule): in E01 sched2 (which runs BEFORE jump2 here) then
- *    hoists the else-arm's `li v0,1` above its store and cross-jump merges
- *    only the `sh` into the epilogue-adjacent island; in E00 nothing merges
- *    (the fall-in predecessor of the end label stores v0, these arms s0).
- *  - `item.end = item.start;` is a whole-VECTOR (align-4) struct assignment
- *    → the batched 4×lw/4×sw t0–t3 block move.
- *  - `attribute`@0x4 is read `lhu` in this TU (item.h proves it s16):
- *    the same `*(u16 *)&` memory-reinterpret cast HumanActionControl.c
- *    documents for this TU's attribute/attrib fields.
- *  - gp-externs (MOTION.C's own smalls): dtM, Me_MOTION_C, motID,
- *    motMODE. StagePlayer stays absolute (defined elsewhere).
- */
-
 extern Humanoid *Me_MOTION_C;
 
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);

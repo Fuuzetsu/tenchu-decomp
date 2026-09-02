@@ -11,14 +11,9 @@ extern void DrawFrame(TEffectSlot *ef);
 extern SVECTOR svec_y_n60[];
 
 /*
- * Spawns either a napalm request or a body-attached frame and bleed effect.
- * The outer union reflects mutually exclusive stack scratch used by the two
- * paths. In the attached-flash path, the completed random-position vector is
- * reused as the short bleed direction. Keeping the body position aliases
- * split across rand(), and retaining a named pool-result `slot`, reproduces
- * the original register lifetimes.
- * svec_y_n60 intentionally has unknown array size: a typed object declaration
- * changes the old compiler's address materialization and instruction schedule.
+ * The union models mutually exclusive stack scratch for the two branches;
+ * the original source form is still uncertain. svec_y_n60 remains
+ * unknown-bound because a scalar declaration changes its addressing.
  */
 void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
 {
@@ -54,8 +49,6 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         work.launch.end.vx = x;
         work.launch.end.vy = y - 100;
         work.launch.end.vz = z;
-        /* vx/vz staging: byte-required (inlining the reads recolors the
-         * store registers; measured). */
         vx = human->vector.vx;
         work.launch.end.vx = x + vx;
         vz = human->vector.vz;

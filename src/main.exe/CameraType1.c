@@ -44,35 +44,6 @@
  *     extern struct TCameraPos CamPosCriticalHit[3];
  * END PSX.SYM */
 
-/*
- * CameraType1 (0x80030c74) — select a third-person camera placement from
- * the owner's state and nearby map geometry, then generate the view delta.
- *
- * Byte-matched retail extent: 2628 bytes / 657 instructions. CameraScratch
- * overlays the initializer, wall-probe vectors, and mutually-exclusive
- * camera presets exactly as the original 0x98-byte frame does. The stick-left
- * preset starts after the probe pair; the knockback arm holds a second
- * preset separately because both are live across the first camera call.
- *
- * The union looks invented and is not; three ways of removing it were
- * measured (cc1 gives every sibling block its own stack slot and never
- * overlaps by lifetime — see the cookbook):
- *   - a `TCameraPos campos;` inside each preset arm: +304 lines, because
- *     each arm then owns a separate 32-byte slot;
- *   - plain function-scope `init`/`vecl`/`vecr`/`campos`: +408, and the
- *     frame grows to 168 against retail's 152 — exactly the 16 bytes that
- *     `init` stops sharing;
- *   - dropping `init` and building `pos` in place: the frame lands on 152
- *     exactly, but +288, because retail really does keep both objects and
- *     copy sp+40 to sp+24 between them.
- * PSX.SYM's local list is not a target here, and the reason is now
- * exact: those eight `campos`/`ref` pairs are MakeCameraPosition's own
- * two parameters, recorded once per site because the demo INLINED it.
- * Retail calls it (three `jal MakeCameraPosition` here), so there is no
- * scope to recover -- the pairs are a callee's frame, not this
- * function's locals. See the cookbook rule on reading nested records.
- */
-
 #include "item.h"
 
 typedef union
@@ -116,7 +87,6 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
     mad = pl->model;
     memset(&scratch.init, 0, sizeof(scratch.init));
-    /* Fresh pl->model reads (not mad): byte-required (measured). */
     scratch.init.vx = pl->model->locate.coord.t[0];
     scratch.init.vy = pl->model->locate.coord.t[1] - CAMERA_EYE_HEIGHT;
     scratch.init.vz = pl->model->locate.coord.t[2];
@@ -169,8 +139,6 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         if (levbr == LEVEL_NONE)
             levmap |= CAMERA_PROBE_BACK_RIGHT;
 
-        /* The full four-bit mask is byte-required even though levmap only
-         * ever holds these bits (dropping it recolors the compare; measured). */
         if ((levmap & CAMERA_PROBE_ALL_MASK) == CAMERA_PROBE_BACK_LEFT)
         {
             CamState.Mode = CMODE_PEEP_R;
@@ -232,7 +200,6 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
             cs->Mode = CMODE_KNOCKBACK;
             break;
         }
-        /* (s16) re-extends the lhu-loaded mid: byte-required (measured). */
         if ((s16)mid != MOT_DAMAGE_GETUP)
             break;
         cs->Mode = CMODE_KNOCKBACK;

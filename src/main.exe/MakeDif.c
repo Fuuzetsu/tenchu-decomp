@@ -18,25 +18,6 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-/*
- * MakeDif (0x80032088, 0xfc bytes) — computes vdif = target - vinfo for a
- * GsRVIEW2 camera view, gated by CamState.snap_pending: a straight
- * 6-field s32 subtraction on the next camera update after a requested snap
- * or discontinuity (and clears the flag), otherwise a smoothed delta via two
- * MakeDifSub calls — one over
- * the rotation-only half (vrx..vrz) using a TMakeDifInfo scratch block that
- * sits right after the retail CamState in memory (`ref` = CamState +
- * 0x20). Ghidra's demo-shaped type mis-renders this as
- * `&CamState.Valiation`, but it is really a separate
- * static, its address just materializes as its own `lui`/`addiu`, never
- * derived from CamState's already-loaded base register), one over the full
- * 6-field view using the already-named `pnt` global.
- *
- * Retail rearranged the demo's TCameraStatus: raw halfword accesses prove
- * DirectionRX/DirectionRY at +0x18/+0x1A, while this function's byte access
- * and SetCameraMode's stores prove the snap flag at +0x1D. The demo's
- * Valiation at +0x20 disappeared when the record shrank to 0x20 bytes.
- */
 extern TMakeDifInfo ref;
 extern TMakeDifInfo pnt;
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);

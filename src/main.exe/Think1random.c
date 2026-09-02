@@ -23,19 +23,6 @@
  *     extern short Attrib;
  * END PSX.SYM */
 
-/*
- * Advance the random-walk counter. A new cycle picks a chase point near the
- * spawn point; later ticks either reset after reaching it or steer toward it
- * unless Attrib blocks the action.
- *
- * The direct vx/vz difference expressions are intentional. Splitting each
- * chase coordinate, locate coordinate, and pad value into extra scratch roles
- * changes global allocation and delay-slot scheduling. Keeping vx/vz as the
- * actual chase-minus-locate values yields the target load order, preserves
- * them in $a0/$a1 for GotoPosition, and leaves each absolute value
- * in a separate $v0 temporary.
- */
-
 s16 Think1random(void)
 {
     s32 pad;

@@ -21,24 +21,6 @@
  *     extern short motMODE;
  * END PSX.SYM */
 
-/*
- * StickonCheck (0x8001d374) tests whether the current character can attach to
- * the surface in front of it. Character and surface attributes can reject the
- * probe; reflect-vector flags reject forbidden edges/slopes. A successful
- * probe selects motion 0xc00 when necessary and returns the shared map result.
- *
- * The map-attribute test is deliberately a positive enclosing `if`, with the
- * null return after the block. This is ordinary human control flow and agrees
- * with the demo decompilation and its source-line sequence. The equivalent
- * early-return spelling gives GCC's reorg pass an owned success label whose
- * leading RefrectVector `lui` can be stolen into the branch delay slot. The
- * positive block instead emits retail's direct failure branch with zero in its
- * delay slot, and the remaining code then matches byte-for-byte.
- *
- * PSX.SYM's signed `short rv` and `short RefrectVector[16]` are retained. GCC
- * still chooses the retail `lhu`, keeps the masked use unsigned, and inserts
- * the later signed-short extension for the ANGLE_NONE sentinel test.
- */
 extern Humanoid *Me_MOTION_C;
 extern MapVector map;
 

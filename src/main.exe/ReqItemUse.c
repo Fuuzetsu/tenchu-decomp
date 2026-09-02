@@ -151,70 +151,8 @@
  *     extern struct Sprite3D *sprNapalm;
  * END PSX.SYM */
 
-/*
- * ReqItemUse (0x80048afc) — the item-launch dispatcher: decrements the
- * user's carry count for the item type, then switch(p->type) into 25 case
- * bodies (throw-vector setup + per-type ReqItemXxx call, or an inline
- * item-pool claim for kaginawa/sightshot/teleport/napalm).
- *
- * STATUS: MATCHING — all 5272 bytes match.
- *
- * Facts proven while matching (all byte-verified):
- *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_LAUNCH layout {TItemType type;
- *    Humanoid *user; VECTOR start; VECTOR end;} (psxsym size 40 agrees).
- *  - TWO function-scope 0x28 workspaces: `param`@sp+16, `work`@sp+56.
- *    Sibling case scopes do NOT share stack slots under this cc1 (first
- *    draft with per-case aggregates laddered the frame to 416 bytes), so
- *    the original declared shared function-scope workspaces; the per-case
- *    address-taken rx/ry pairs DO ladder (96..204), giving frame 224.
- *    The kusuri-family "VECTOR v" lives at the head of `param`;
- *    makibishi/jirai stage a PARAM_ITEM_DROP in `work` (memset + 3 field
- *    copies + `param = work`), then reuse work's head as the throw vector.
- *    ItemRequestWorkspace names all three views without pointer casts.
- *  - Retail case map from the jump table (demo enum differs: 8/9 swapped,
- *    0x16=NAPALM, 0x17=LIGHTNINGBOLT, 0x18=TELEPORT).
- *  - The camera-check template is ReqItemDefault.c's idiom verbatim; the
- *    The `st` pointer temp before the guard puts &param.vector in
- *    a callee-saved reg across GetVectorRotation (guard delay slot addiu).
- *  - The owner guard and teleport transition use the recovered
- *    `CamState.Owner` and `CamState.Mode` fields.  `CMODE_SIGHT` names the
- *    latter's retail value 3, and the ordinary member accesses reproduce the
- *    target's split-address schedule without separate alias objects.
- *  - The lightning endpoint is built in two ordinary phases: copy the rotated
- *    direction, then translate it by the request's start position.
- *  - The four pool-claim cases are ReqItemKusuri/Makibishi/Happou's matched
- *    idiom verbatim. Their PSX.SYM-named `ret` scan cursor is handed to the
- *    selected `item`; napalm's `pp` sits at the found: label like shuriken's
- *    nested `param`; reorg
- *    duplicates the
- *    addiu into the loop-exit branch's delay slot for napalm and steals it
- *    into the null-check beqz's slot for shuriken — same source shape.
- *  - The makibishi rand-loop is `while (1) { if (!(i < 5)) break; i++; ... }`
- *    (top test + unconditional back-jump, magic %100/%50 hoisted) with
- *    `i = 0;` AFTER the RotateVector call (sched1 hoists the move above the
- *    call; writing it before the call orders the merge block's addiu/move
- *    backwards).
- *  - jirai's tail needs vx/vy/vz temps for the work-vector reads (multi-use
- *    values in caller-saved regs; matches the batched-loads rule).
- */
-
-/*
- * Retail case map (jump table order; retail case values differ from the
- * demo enum for 8/9 and 0x16-0x18):
- *   0 KAGINAWA  1 SHURIKEN  2 MAKIBISHI  3 KUSURI  4 FIRE  5 SMOKE
- *   6 JIRAI  7 DOKUDANGO  8 GOSHIKIMAI  9 NEMURI  a KAWARIMI  b HENSHIN
- *   c GOSIN  d SHINSOKU  e NINGYO  f HAPPOU  10 NINKEN  11 KAENGEKI
- *   12 MANEBUE  13 (nothing/default)  14 GUN  15 ARROW  16 NAPALM
- *   17 LIGHTNINGBOLT  18 TELEPORT
- */
-
 #include "item.h"
 
-/* Every launcher aims the same way: along the first-person view when the
- * thrower is the aimed camera owner (CMODE_DIRECTION), else along the
- * thrower model's own facing. The block is ReqItemDefault.c's idiom,
- * copy-pasted into every case in retail; the macro is reconstruction
- * shorthand for that copy-paste (expands to the identical text). */
 #define GET_THROW_ROTATION(mdl, rx, ry, rz)                                   \
     if (CamState.Owner->model == (mdl) && CamState.Mode == CMODE_DIRECTION)   \
     {                                                                         \

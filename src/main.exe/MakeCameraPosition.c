@@ -49,24 +49,12 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-/*
- * STATUS: MATCHING — pure C, all 660 bytes / 165 instructions exact.
- *
- * TransformCameraPoint's pointer formal keeps the two expanded output
- * addresses independent, so cc1 rematerializes &vc and &vd for the following
- * trace_ground_ call. The late tp alias supplies the target's s0=&target base
- * without extending its lifetime over the earlier calls. Spelling each
- * component delta as -va + vb preserves the target's independent-load order.
- * Retail removed the demo's fourth `SVECTOR *ref` input; its fourth argument
- * is the surviving fifth `GsRVIEW2 *vDif` output, as shown by all six stores.
- */
-
 extern TMakeDifInfo ref;
 extern TMakeDifInfo pnt;
 extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 
-/* Retail's own prototype drift (def: s32 return) -- byte-required: correcting it changes the caller. */
+/* Retail declares this s16 here although the definition returns s32. */
 extern short camera_terrain_pitch_(Humanoid *h);
 extern void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target);
 extern void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info);

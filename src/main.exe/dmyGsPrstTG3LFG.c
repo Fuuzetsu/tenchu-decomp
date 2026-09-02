@@ -1,10 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/*
- * dmyGsPrstTG3LFG (0x8006720c) — LIBGS "dummy" primitive-sort placeholder; warn-once
- * clone of dmyGsPrstF3NL (see that file for the family's shape).
- */
 extern int printf(const char *fmt, ...);
 extern char str_dmyPrstTG3LFG[]; /* "PrstTG3LFG\n" */
 extern s32 warn_dmyPrstTG3LFG;
