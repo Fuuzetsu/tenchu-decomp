@@ -124,7 +124,7 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         frame->pz = position->vz;
         frame->mode = FRAME_MODE_FLASH;
         frame->size = 3 * FIXED_ONE;
-        frame->progress.countdown = time;
+        frame->count = time;
         frame->super = &model->locate;
         slot->proc = DrawFrame;
 

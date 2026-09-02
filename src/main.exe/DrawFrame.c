@@ -34,27 +34,27 @@
  * MATCH.
  *
  * DrawFrame (0x80035094, EFFECT.C:1044) — the frame/flash effect's per-frame
- * draw: picks the animation slot from the progress counter, runs a
+ * draw: picks the animation slot from `count`, runs a
  * mode-driven countdown state machine (mode 0: white flash fading via
- * `countdown`, resetting to mode 1 at 0; mode 1: fade using the word's low
+ * `count`, resetting to mode 1 at 0; mode 1: fade using the word's low
  * byte as the RGB level, self-disposing at 0), then projects `param`'s
  * position through the draw_sprite_coord_-style hint-or-camera-relative dispatch
  * and, if visible, scales/positions the picked `sprFrame` slot and
  * GsSortSprite's it with the same `[0, 0x4e1]` OTZ-derived clamp.
  *
  * Matching notes (docs/matching-cookbook.md):
- *  - FrameType.progress (s16 @ 0x12) doubles as BOTH the countdown AND (its
- *    raw low byte, mode 1) the fade level. The two typed views preserve the
- *    retail `lh`/`lbu` accesses without a pointer reinterpretation.
- *  - `idx = progress.countdown % MaxFrames;` is plain C `%` by the constant 4 — cc1's
+ *  - FrameType.count (s16 @ 0x12) doubles as the countdown and, after a u8
+ *    conversion in mode 1, the fade level. The ordinary field accesses
+ *    produce the retail `lh` and narrowing `lbu` loads.
+ *  - `idx = count % MaxFrames;` is plain C `%` by the constant 4 — cc1's
  *    own round-toward-zero remainder expansion (bgez-guarded `+3`, `sra 2`,
  *    `sll 2`, `subu`) is automatic, no manual shift/mask needed.
  *  - The mode dispatch is a plain `switch`: both cases converge on the draw
  *    code below, and the two-case expansion produces the target's
  *    goto-ladder-to-a-shared-continuation shape (`beqz mode,body0; beq
  *    mode,1,body1; j draw;`).
- *  - Both mode bodies test `if (progress.countdown <= 0) {...}` AFTER storing
- *    the decremented value back (`countdown -= 1`/`countdown -= 29` reproduces
+ *  - Both mode bodies test `if (count <= 0) {...}` AFTER storing
+ *    the decremented value back (`count -= 1`/`count -= 29` reproduces
  *    the target's own `addiu -1`/`addiu -0x1D`; Ghidra's `-0x1D` text is
  *    the real encoded immediate here, unlike DrawBleed's `+0xff` — verify
  *    the encoded byte before trusting Ghidra's rendering either way).
@@ -119,7 +119,7 @@ void DrawFrame(TEffectSlot *ef)
     GsCOORDINATE2 *hint;
     s32 size;
 
-    idx = param->progress.countdown % MaxFrames;
+    idx = param->count % MaxFrames;
     spr = &sprFrame[idx];
 
     switch (param->mode)
@@ -128,17 +128,17 @@ void DrawFrame(TEffectSlot *ef)
         spr->b = FRAME_FLASH_LEVEL;
         spr->g = FRAME_FLASH_LEVEL;
         spr->r = FRAME_FLASH_LEVEL;
-        param->progress.countdown--;
-        if (param->progress.countdown <= 0)
+        param->count--;
+        if (param->count <= 0)
         {
-            param->progress.countdown = FRAME_FLASH_LEVEL;
+            param->count = FRAME_FLASH_LEVEL;
             param->mode++;
         }
         break;
     case FRAME_MODE_FADE:
-        spr->r = spr->g = spr->b = param->progress.fade_level;
-        param->progress.countdown -= 29;
-        if (param->progress.countdown <= 0)
+        spr->r = spr->g = spr->b = (u8)param->count;
+        param->count -= 29;
+        if (param->count <= 0)
         {
             ef->proc = 0;
         }

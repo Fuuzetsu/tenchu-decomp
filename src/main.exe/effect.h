@@ -214,16 +214,6 @@ enum frame_mode
     FRAME_MODE_FADE = 1
 };
 
-/* The frame effect counts down as a signed halfword. Once it enters the fade
- * phase, the renderer also consumes that word's low byte as the sprite's
- * brightness. */
-typedef union FrameProgress FrameProgress;
-union FrameProgress
-{
-    s16 countdown;
-    u8 fade_level;
-}; /* 0x02 */
-
 struct FrameType /* size 24 */
 {
     GsCOORDINATE2 *super; /* +0x0 */
@@ -231,7 +221,7 @@ struct FrameType /* size 24 */
     long py;              /* +0x8 */
     long pz;              /* +0xc */
     short size;           /* +0x10 */
-    FrameProgress progress; /* +0x12 */
+    s16 count;            /* +0x12 (PSX.SYM's original field) */
     frame_mode mode;      /* +0x14 */
 };
 

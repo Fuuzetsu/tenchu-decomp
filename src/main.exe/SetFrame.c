@@ -82,7 +82,7 @@ found:
     z = pos->vz;
     fp->mode = FRAME_MODE_FLASH;
     fp->size = size;
-    fp->progress.countdown = time;
+    fp->count = time;
     fp->pz = z;
     slot->param.frame.super = super;
     slot->proc = DrawFrame;
