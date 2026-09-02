@@ -161,15 +161,7 @@ void ProcItemHenshin(TItem *item)
             {
                 return;
             }
-            item->mode = ITEM_MODE_DISPOSE;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != HENSHIN_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
         if (motion->count != 0)
@@ -191,17 +183,7 @@ void ProcItemHenshin(TItem *item)
             previous_disguise = HenshinItem;
             if (previous_disguise != 0 && previous_disguise->proc != 0)
             {
-                previous_disguise->mode = ITEM_MODE_DISPOSE;
-                previous_disguise->proc(previous_disguise);
-                DeleteConflict(previous_disguise->locate);
-                if (previous_disguise->mode != HENSHIN_MODE_START)
-                {
-                    AdtMessageBox(msg_item_dispose_fail,
-                                  previous_disguise->type,
-                                  (u32)previous_disguise->mode);
-                }
-                previous_disguise->owner = 0;
-                previous_disguise->proc = 0;
+                DISPOSE_ITEM(previous_disguise);
             }
         }
         HenshinItem = item;
@@ -273,15 +255,7 @@ void ProcItemHenshin(TItem *item)
         {
             return;
         }
-        item->mode = ITEM_MODE_DISPOSE;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != HENSHIN_MODE_START)
-        {
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        }
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM(item);
         return;
     }
     }
