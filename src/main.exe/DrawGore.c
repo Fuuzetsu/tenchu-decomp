@@ -26,21 +26,6 @@
  *     reg   $a2       int i
  * END PSX.SYM */
 
-typedef union DrawGoreScratch
-{
-    SVECTOR screen;
-    struct
-    {
-        SVECTOR velocity;
-        VECTOR position;
-        union
-        {
-            VECTOR position;
-            SVECTOR velocity;
-        } temporary;
-    } bleed;
-} DrawGoreScratch;
-
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void DrawBleed(TEffectSlot *ef);
 
@@ -50,11 +35,12 @@ extern void DrawBleed(TEffectSlot *ef);
  * DrawBleed particle and uses a 60-unit position jitter. Retail radically
  * redesigns the demo's GoreType state into the BloodType view used here.
  *
- * The explicit scratch union is the original sp+0x18..sp+0x3f workspace:
- * the projection SVECTOR, bleed VECTOR, and temporary VECTOR/SVECTOR all
- * overlap, keeping the target's 0x60-byte frame. sprBloodStay is the original
- * name of the second blood-sprite bank; retail expands both demo singletons
- * to four sprites. Naming it separately is load-bearing because the target
+ * The vector, position, and temporary locals form the sp+0x18..sp+0x3f
+ * workspace. The short vector first carries the bleed velocity and is later
+ * reused for screen projection; the temporary position similarly becomes a
+ * short velocity only after its full-width copy. sprBloodStay is the original
+ * name of the second blood-sprite bank; retail expands both demo singletons to
+ * four sprites. Naming it separately is load-bearing because the target
  * materializes both bank bases independently. The named base_x/y/z values
  * prevent reassociation of `(position - 60) + rand()%120`,
  * and the full-width `green` local preserves the target's li 0x7f10 before a
@@ -75,7 +61,9 @@ void DrawGore(TEffectSlot *ef)
     BloodType *param;
     GsSPRITE *spr;
     GsSPRITE *spr2;
-    DrawGoreScratch scratch;
+    SVECTOR vector;
+    VECTOR position;
+    VECTOR temporary;
 
     param = &ef->param.blood;
     spr = &sprBlood[param->sprite];
@@ -102,17 +90,17 @@ void DrawGore(TEffectSlot *ef)
         size = param->scale;
         rotate = param->rotate;
         brightness = (s16)param->brightness;
-        GetScreenPosition(param->px, param->py, param->pz, &scratch.screen);
-        if (scratch.screen.vz <= NEAR_DEPTH)
+        GetScreenPosition(param->px, param->py, param->pz, &vector);
+        if (vector.vz <= NEAR_DEPTH)
         {
             return;
         }
         spr2->scalex = spr2->scaley = spr->scalex = spr->scaley =
-            (s16)((size * PROJECTION_DISTANCE) / scratch.screen.vz) + 1;
+            (s16)((size * PROJECTION_DISTANCE) / vector.vz) + 1;
         spr->rotate = rotate;
         spr2->rotate = rotate;
-        spr2->x = spr->x = scratch.screen.vx;
-        spr2->y = spr->y = scratch.screen.vy;
+        spr2->x = spr->x = vector.vx;
+        spr2->y = spr->y = vector.vy;
         spr->r = (u8)brightness;
         spr->g = (u8)brightness;
         spr->b = (u8)brightness;
@@ -120,11 +108,11 @@ void DrawGore(TEffectSlot *ef)
         spr2->g = (u8)(brightness / 2);
         spr2->b = (u8)(brightness / 2);
 
-        sort_depth = (s16)(u16)scratch.screen.vz >> 2;
+        sort_depth = (s16)(u16)vector.vz >> 2;
         CLAMP_SORT_DEPTH(priority, sort_depth);
         GsSortSprite(spr, OTablePt, (u16)priority);
 
-        sort_depth = (s16)(u16)scratch.screen.vz >> 2;
+        sort_depth = (s16)(u16)vector.vz >> 2;
         CLAMP_SORT_DEPTH(priority, sort_depth);
         GsSortSprite(spr2, OTablePt, (u16)priority);
         return;
@@ -247,27 +235,27 @@ void DrawGore(TEffectSlot *ef)
             }
         }
 
-        memset(&scratch.bleed.temporary.position, 0, sizeof(VECTOR));
+        memset(&temporary, 0, sizeof(VECTOR));
         random_x = rand();
         base_x = param->px - JITTER_RADIUS;
-        scratch.bleed.temporary.position.vx =
+        temporary.vx =
             base_x + random_x % (JITTER_RADIUS * 2);
         random_y = rand();
         base_y = param->py - JITTER_RADIUS;
-        scratch.bleed.temporary.position.vy =
+        temporary.vy =
             base_y + random_y % (JITTER_RADIUS * 2);
         random_z = rand();
         base_z = param->pz - JITTER_RADIUS;
-        scratch.bleed.temporary.position.vz =
+        temporary.vz =
             base_z + random_z % (JITTER_RADIUS * 2);
-        scratch.bleed.position = scratch.bleed.temporary.position;
-        memset(&scratch.bleed.temporary.velocity, 0, sizeof(SVECTOR));
-        velocity = &scratch.bleed.velocity;
+        position = temporary;
+        memset((SVECTOR *)&temporary, 0, sizeof(SVECTOR));
+        velocity = &vector;
         color = GORE_COLOR;
-        scratch.bleed.temporary.velocity.vx = param->vx / 2;
-        scratch.bleed.temporary.velocity.vy = param->vy / 2;
-        scratch.bleed.temporary.velocity.vz = param->vz / 2;
-        *velocity = scratch.bleed.temporary.velocity;
+        ((SVECTOR *)&temporary)->vx = param->vx / 2;
+        ((SVECTOR *)&temporary)->vy = param->vy / 2;
+        ((SVECTOR *)&temporary)->vz = param->vz / 2;
+        *velocity = *(SVECTOR *)&temporary;
 
         cursor = EFFECT_CURSOR_;
         i = 0;
@@ -294,7 +282,7 @@ void DrawGore(TEffectSlot *ef)
         slot = &dmy;
         bleed = &dmy.param.bleed;
     bleed_found:
-        slot->param.bleed.pos = scratch.bleed.position;
+        slot->param.bleed.pos = position;
         slot->param.bleed.vec = *velocity;
         bleed->time = 7;
         bleed->r = GORE_COLOR >> 16;
@@ -322,17 +310,17 @@ void DrawGore(TEffectSlot *ef)
         spr->g = param->brightness;
         spr->b = param->brightness;
         size = param->scale;
-        GetScreenPosition(param->px, param->py, param->pz, &scratch.screen);
-        otz = scratch.screen.vz;
+        GetScreenPosition(param->px, param->py, param->pz, &vector);
+        otz = vector.vz;
         if (otz <= NEAR_DEPTH)
         {
             return;
         }
         spr->scalex = spr->scaley =
             (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
-        spr->x = scratch.screen.vx;
-        spr->y = scratch.screen.vy;
-        sort_depth = (s16)(u16)scratch.screen.vz >> 2;
+        spr->x = vector.vx;
+        spr->y = vector.vy;
+        sort_depth = (s16)(u16)vector.vz >> 2;
         CLAMP_SORT_DEPTH(priority, sort_depth);
         GsSortSprite(spr, OTablePt, (u16)priority);
     }
