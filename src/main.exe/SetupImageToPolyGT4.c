@@ -30,8 +30,9 @@
  * (reference/psxsym-types.h), which confirms every offset in the .s.
  *
  * PSX.SYM's local list for this function is `tx`, `ty` and `th`, and all
- * three reproduce the bytes: `ty` in particular is ONE variable advanced in
- * place across the four v stores, which is how the target uses the register.
+ * three reproduce the bytes: `ty` is the top-edge V coordinate and `ty + th`
+ * is the bottom edge. Sony's `setUV4` expresses all four UV pairs and cc1
+ * naturally advances the same register between the top and bottom stores.
  * Retail does need more than the demo's three (the four grouped field reads
  * and `tx2` are load-bearing — see FT4's header for the measurements), but
  * the earlier note here claiming the demo names were unusable was wrong.
@@ -75,17 +76,9 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     {
     } while (0);
     tx2 = tx + tw;
-    ply->v0 = ty;
-    ply->v1 = ty;
-    ty += th;
     ply->x1 = x;
     ply->y2 = y;
     ply->x3 = x;
     ply->y3 = y;
-    ply->u0 = tx;
-    ply->u1 = tx2;
-    ply->u2 = tx;
-    ply->v2 = ty;
-    ply->u3 = tx2;
-    ply->v3 = ty;
+    setUV4(ply, tx, ty, tx2, ty, tx, ty + th, tx2, ty + th);
 }

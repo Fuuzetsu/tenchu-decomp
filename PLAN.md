@@ -1061,9 +1061,10 @@ Two compiler facts found this round, both in the cookbook:
     never overlaps by lifetime, so a nested block scope is free for a
     register value and costs full frame space for a stack object. Frame
     size (`subu $sp,$sp,N`) is the cheap discriminator.
-  - `(x + x) - x` is the ONLY C-level way to spend one extra reference
-    for flow.c to count; `x|x`, `x&x`, `x^0`, `x*1` and `x+0` all fold
-    before the count.
+  - A historical `(x + x) - x` probe showed when flow.c reference weighting
+    owned a residual, but it is not acceptable source. Every such probe was
+    removed by recovering the real statement, loop, or macro boundary; use it
+    only in a disposable experiment and never commit it.
 
 Settle an addu-order or spelling question in a six-line scratch file with
 the build's cc1 flags, not inside the function — two runs of that

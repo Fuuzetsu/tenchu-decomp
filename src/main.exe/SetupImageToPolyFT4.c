@@ -47,12 +47,11 @@
  *  - u0/u1 byte values are each stored to TWO fields (tx to u0 and u2;
  *    tx2 to u1 and u3) — named locals for exactly the values reused
  *    across those non-adjacent stores.
- *  - `ty` spans all four v stores: the target reuses one register ($7 in
- *    FT4) for the py-derived byte at v0/v1 and then for `ty + th` at
- *    v2/v3, so this is ONE source variable advanced in place, not two.
- *    Splitting it (we had `pyByte` and `v2Val`) is equally exact but
- *    invents a local; PSX.SYM records `tx`, `ty` and `th` and no others,
- *    which is where these three names come from.
+ *  - `ty` is the one top-edge texture coordinate recorded by PSX.SYM; the
+ *    bottom edge is `ty + th`. Sony's `setUV4` expresses the complete UV
+ *    operation and lets cc1 reuse the same register for the two top stores,
+ *    advance it once, and reuse it for the two bottom stores. Splitting that
+ *    into `pyByte` and `v2Val` is equally exact but invents a local.
  *  - `tx`/`tx2` must stay UNCAST/WIDE (u32/u16, no `(u8)` truncation
  *    on the assignment): an explicit `(u8)` on `tx`'s assignment forces
  *    a redundant `andi 0xff` when it's later added into `tx2`, which the
@@ -106,17 +105,9 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
     {
     } while (0);
     tx2 = tx + tw;
-    ply->v0 = ty;
-    ply->v1 = ty;
-    ty += th;
     ply->x1 = x;
     ply->y2 = y;
     ply->x3 = x;
     ply->y3 = y;
-    ply->u0 = tx;
-    ply->u1 = tx2;
-    ply->u2 = tx;
-    ply->v2 = ty;
-    ply->u3 = tx2;
-    ply->v3 = ty;
+    setUV4(ply, tx, ty, tx2, ty, tx, ty + th, tx2, ty + th);
 }

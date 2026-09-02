@@ -2238,23 +2238,18 @@ irreducible nest: DrawConstruction's 3.
   change — `PlayVoice`, `SetBleeds` and `SetBleedsDir` already contained
   the nested `pos`/`time`/`min`/`sec` scopes their repeated demo names
   describe.
-- **The `(x + x) - x` identity is the only known C-level way to spend one
-  extra otherwise-meaningless reference.** It exists to bump `REG_N_REFS` in
-  flow.c and is folded away afterwards, so it costs no instruction and changes
-  only allocation. Every
-  simpler spelling was measured and fails, because fold collapses them
-  before the count: `x|x`, `x&x`, `x^0`, `x*1`, `x+0`. A gated sweep of
-  the tree's original identities found most genuinely load-bearing under a
-  removal-only test (removing one costs 12-52 lines).  ProcItemNingyo initially
-  appeared to need either one of a redundant pair, but reconstructing the safe
-  disposal statement macro supplied the real loop-depth weight and removed the
-  surviving identity too.  So **when two of these sit in one function, test
-  them together as well as separately, then look for a missing statement-macro
-  scope**.
-  Say at the site that it is allocation staging, not arithmetic. But a passing
-  removal test does **not** prove the weight itself was source-authored: first
-  split any fused producer/update that feeds the identity, then restore any
-  missing structured loop scopes around it. `ProcMiscDoor`'s `t = ratan2(...) +
+- **Folded self-identities are diagnostic probes, never recovered source.**
+  `(x + x) - x` can bump flow.c's `REG_N_REFS` and then fold away, which once
+  made it useful for proving that a residual was allocation-weight related.
+  It is nevertheless compiler camouflage that no human would write, so do not
+  retain or recommend it in C. If such a probe improves the bytes, treat that
+  as evidence that the reconstruction is missing a real statement boundary,
+  loop scope, macro operation, or data identity. Test the complete graph before
+  bisecting it: several identities looked individually load-bearing but vanished
+  together once their surrounding source shape was restored.
+
+  Start by splitting fused producer/updates and restoring structured loop and
+  statement-macro scopes. `ProcMiscDoor`'s `t = ratan2(...) +
   rotation` needed the fence; the natural `t = ratan2(...); t += rotation;`
   supplies the same allocation boundary and removes both the identity and an
   invented `wrap` local exactly. RestoreItemLayout's missing outer and inner

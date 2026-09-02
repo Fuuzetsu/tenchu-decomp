@@ -31,6 +31,12 @@ PATTERNS = [
     ("lab", re.compile(r"\b(?:LAB_|block_|joined_r0x)[0-9a-fA-F_]+\b")),
     ("offset_cast", re.compile(r"\*\s*\(\s*(?:u8|u16|u32|s8|s16|s32|short|int|char|long|undefined\d?)\s*\*\s*\)\s*\(")),
     ("byte_arith", re.compile(r"\(\s*(?:u8|char|s8)\s*\*\s*\)\s*[A-Za-z_][A-Za-z0-9_]*\s*\+")),
+    # Compiler-allocation camouflage, not a meaningful arithmetic operation.
+    ("folded_identity", re.compile(
+        r"\(\s*(?:\([^()]*\)\s*)?([A-Za-z_]\w*)\s*\+\s*"
+        r"(?:\([^()]*\)\s*)?\1\s*\)\s*-\s*"
+        r"(?:\([^()]*\)\s*)?\1\b"
+    )),
 ]
 
 DUMP_MARKERS = (

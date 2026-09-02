@@ -48,7 +48,9 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   the exact unrotated CFG and supplies the original weights naturally.
   LoadOrnamentArchive's flattened load/link passes had the same failure mode:
   restoring their pre-tested infinite loops and nested parent search removes
-  the fake `prntp` cancellation and recovers s3/s4/s5 directly.
+  the fake `prntp` cancellation and recovers s3/s4/s5 directly. Folded
+  self-identities are useful only as disposable diagnostics; they are forbidden
+  in retained source because they describe the compiler problem, not the game.
 - **A statement macro's `do { ... } while (0)` is also a real loop scope.**
   ProcItemNingyo's flattened teardown needed a fake item-pointer identity to
   recover its s3/s4/s5 priority. Restoring the safe DISPOSE_ITEM statement
