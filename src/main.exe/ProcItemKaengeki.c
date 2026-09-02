@@ -221,15 +221,7 @@ void ProcItemKaengeki(TItem *item)
         {
             return;
         }
-        item->mode = dispose_mode;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != KAENGEKI_MODE_START)
-        {
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        }
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
         return;
     }
     }

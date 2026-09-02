@@ -54,9 +54,9 @@
  *    creates a separate RTL pseudo: the owner/model chain moves to v1/v0 and
  *    gains a nop.  The aggregate pointer lets GCC coalesce the chain into a1
  *    and interleave the independent sight-count load exactly.
- *  - The three disposal sequences are intentionally separate.  Sharing them
- *    changes branch placement and whether SetCameraMode(CMODE_LOCK) precedes
- *    launch.
+ *  - The three disposal invocations are intentionally separate. Sharing
+ *    control flow changes branch placement and whether
+ *    SetCameraMode(CMODE_LOCK) precedes launch.
  */
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
@@ -123,15 +123,7 @@ void ProcSightShot(TItem *item)
 dispose:
     if (item->proc != 0)
     {
-        item->mode = dispose_mode;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != ITEM_MODE_START)
-        {
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        }
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
     }
     return;
 
@@ -176,16 +168,7 @@ sight_mode:
         SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
         if (item->proc != 0)
         {
-            item->mode = dispose_mode;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != ITEM_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type,
-                              (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
         }
         SetCameraMode(CMODE_LOCK);
     }
@@ -200,16 +183,7 @@ sight_mode:
                           &param.end);
         if (item->proc != 0)
         {
-            item->mode = dispose_mode;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != ITEM_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type,
-                              (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
         }
     }
     ReqItemLaunch(&param);

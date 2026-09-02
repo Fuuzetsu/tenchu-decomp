@@ -52,10 +52,11 @@
  *  - `owner = item->owner` is ONE load feeding both the hookflag test and the
  *    motion->mid test (caller-saved $v1, dies at the first call); the big
  *    block reloads item->owner for its pad-bit test and hookflag clear.
- *  - The dispose tail is written out in all three branches; jump2's
- *    cross-jump merges the identical `jalr`-onward suffix into one shared
- *    tail after the third branch (the mode-store instruction differs — $s1
- *    vs rematerialised $v1 — so the merge starts at the call, not earlier).
+ *  - Disposal remains separate in all three branches; jump2 cross-jumps the
+ *    identical expanded `jalr`-onward suffix into one shared tail after the
+ *    third branch. The first two use DISPOSE_ITEM_WITH_MODE exactly; the
+ *    third stays open because its rematerialised mode store makes the macro
+ *    scope grow the function by two instructions.
  *  - The hook flag lives at Humanoid+0xCD, i.e. `owner->item[ITEM_N]` one past
  *    the DoInfoViewProc-indexed slots (item.h sizes item[] to 0x1A to cover
  *    it); read `lbu`, written `sb 0`.
@@ -94,26 +95,14 @@ void ProcKaginawa(TItem *item)
         item_proc = item->proc;
         if (item_proc == 0)
             return;
-        item->mode = dispose_mode;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != ITEM_MODE_START)
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
     }
     else if (owner->motion->mid != MOT_KAGI)
     {
         item_proc = item->proc;
         if (item_proc == 0)
             return;
-        item->mode = dispose_mode;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != ITEM_MODE_START)
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
     }
     else
     {

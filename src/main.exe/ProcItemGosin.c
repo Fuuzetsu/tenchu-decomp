@@ -115,15 +115,7 @@ void ProcItemGosin(TItem *item)
             ReqItemDrop(&drop_request);
             if (item->proc == 0)
                 return;
-            item->mode = ITEM_MODE_DISPOSE;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != GOSIN_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
         if (mot->count != 0)
@@ -151,15 +143,7 @@ void ProcItemGosin(TItem *item)
         {
             if (item->proc == 0)
                 return;
-            item->mode = ITEM_MODE_DISPOSE;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != GOSIN_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
         if ((c & 0x3f) != 0)

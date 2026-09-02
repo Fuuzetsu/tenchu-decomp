@@ -53,7 +53,7 @@ extern s16 Think1target(void);
  * Matching notes (2,468 bytes / 617 instructions):
  *  - The entry comparison and fast disposal use ITEM_MODE_DISPOSE, allowing
  *    CSE to retain its 0xff value in $s1 across MoveKorogari. The two later
- *    cleanup copies rematerialize their own 0xff values in $v1.
+ *    DISPOSE_ITEM expansions rematerialize their own 0xff values in $v1.
  *  - Each cleanup tests and calls item->proc directly.  Combined with the
  *    literal stores, this keeps the indirect target in $v0 and lets jump2
  *    merge the fast cleanup into the final physical copy after its mode store.
@@ -61,10 +61,10 @@ extern s16 Think1target(void);
  *  - The search indexes HumanGroup[] directly; PSX.SYM records its index and
  *    candidate but no cursor.  The one-shot candidate assignment is a required
  *    scheduling boundary: flattening it swaps the search and roster registers.
- *  - The full cleanup sequence and mode-advance tail remain duplicated at
- *    their semantic exits so late cross-jumping can choose the target copies.
- *    DISPOSE_ITEM's statement scope changes the fast path's s0/s1 priority,
- *    so these three cross-jump inputs deliberately remain open-coded.
+ *  - Cleanup remains at each semantic exit so late cross-jumping can choose
+ *    the target copies. DISPOSE_ITEM is exact at the two later exits, but its
+ *    statement scope changes the fast path's s0/s1 priority, so that first
+ *    cross-jump input remains open-coded.
  */
 
 void ProcItemDokudango(TItem *item)
@@ -254,16 +254,7 @@ void ProcItemDokudango(TItem *item)
                 drop_request.end.vz = 0;
                 if (item->proc != 0)
                 {
-                    item->mode = ITEM_MODE_DISPOSE;
-                    item->proc(item);
-                    DeleteConflict(item->locate);
-                    if (item->mode != DOKUDANGO_MODE_ROLL)
-                    {
-                        AdtMessageBox(msg_item_dispose_fail, item->type,
-                                      (u32)item->mode);
-                    }
-                    item->owner = 0;
-                    item->proc = 0;
+                    DISPOSE_ITEM(item);
                 }
                 ReqItemDrop(&drop_request);
                 return;
@@ -436,16 +427,7 @@ void ProcItemDokudango(TItem *item)
             {
                 return;
             }
-            item->mode = ITEM_MODE_DISPOSE;
-            item->proc(item);
-            DeleteConflict(item->locate);
-            if (item->mode != DOKUDANGO_MODE_ROLL)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type,
-                              (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
 
