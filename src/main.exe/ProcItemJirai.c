@@ -4,21 +4,6 @@
 #include "item.h"
 #include "sound.h"
 
-typedef union
-{
-    struct
-    {
-        SVECTOR velocity;
-        VECTOR position;
-        VECTOR position_build;
-    } explosion;
-    struct
-    {
-        VECTOR position;
-        VECTOR random_position_build;
-    } frame;
-} ProcItemJiraiScratch;
-
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 
 extern s32 is_humanoid_on_stage_(Humanoid *human);
@@ -63,9 +48,6 @@ extern void reset_alert_duration(void);
  * detonation, and its ten-frame-effect burst before disposal.
  *
  * Matching notes:
- *  - The explosion and frame-effect aggregates are mutually exclusive and
- *    share ProcItemJiraiScratch.  This reproduces the target's exact
- *    sp+0x18..sp+0x3f working window and 0x60-byte frame.
  *  - `call_item` makes both disposal predecessors materialize the indirect
  *    call argument before entering their shared tail; calling
  *    `item_proc(item)` instead fills the jalr delay slot and removes one of
@@ -97,7 +79,6 @@ void ProcItemJirai(TItem *item)
     param_smoke *param;
     void (*item_proc)(TItem *);
     TItem *call_item;
-    ProcItemJiraiScratch scratch;
 
     sprite = (Sprite3D *)item->model;
     param = &item->param.smoke;
@@ -181,32 +162,37 @@ void ProcItemJirai(TItem *item)
     }
 
     case JIRAI_MODE_EXPLODE:
-        scratch.explosion.velocity = svec_y_n25[0];
-        memset(&scratch.explosion.position_build, 0, sizeof(VECTOR));
-        scratch.explosion.position_build.vx =
-            item->locate->locate.coord.t[0];
-        scratch.explosion.position_build.vy =
-            item->locate->locate.coord.t[1];
-        scratch.explosion.position_build.vz =
-            item->locate->locate.coord.t[2];
-        scratch.explosion.position = scratch.explosion.position_build;
-        SetExplosion(&scratch.explosion.position,
-                     &scratch.explosion.velocity);
-        scratch.explosion.velocity.vx = 75;
-        scratch.explosion.velocity.vy = 200;
-        scratch.explosion.velocity.vz = 75;
-        SetHinoko(&scratch.explosion.position,
-                  &scratch.explosion.velocity, 10);
-        scratch.explosion.velocity.vx = 0;
-        scratch.explosion.velocity.vy = -400;
-        scratch.explosion.velocity.vz = 0;
-        SetSmoke(&scratch.explosion.position,
-                 &scratch.explosion.velocity, 20, 6);
-        SoundEx(&scratch.explosion.position, SE_EXPLOSION);
-        item->mode++;
-        param->count = JIRAI_BLAST_COUNTDOWN_START;
-        reset_alert_duration();
-        break;
+    {
+        {
+            SVECTOR velocity;
+            VECTOR position;
+            VECTOR position_build;
+
+            velocity = svec_y_n25[0];
+            memset(&position_build, 0, sizeof(VECTOR));
+            position_build.vx =
+                item->locate->locate.coord.t[0];
+            position_build.vy =
+                item->locate->locate.coord.t[1];
+            position_build.vz =
+                item->locate->locate.coord.t[2];
+            position = position_build;
+            SetExplosion(&position, &velocity);
+            velocity.vx = 75;
+            velocity.vy = 200;
+            velocity.vz = 75;
+            SetHinoko(&position, &velocity, 10);
+            velocity.vx = 0;
+            velocity.vy = -400;
+            velocity.vz = 0;
+            SetSmoke(&position, &velocity, 20, 6);
+            SoundEx(&position, SE_EXPLOSION);
+            item->mode++;
+            param->count = JIRAI_BLAST_COUNTDOWN_START;
+            reset_alert_duration();
+            break;
+        }
+    }
 
     case JIRAI_MODE_BLAST:
     {
@@ -240,6 +226,8 @@ void ProcItemJirai(TItem *item)
                 {
                     ModelType **model_objects;
                     ModelType *model;
+                    VECTOR position;
+                    VECTOR random_position_build;
 
                     if (frame_index >= JIRAI_FRAME_EFFECT_COUNT)
                     {
@@ -251,21 +239,19 @@ void ProcItemJirai(TItem *item)
                         model_objects += rand() % hit_human->model->n;
                     }
                     model = *model_objects;
-                    memset(&scratch.frame.random_position_build, 0,
-                           sizeof(VECTOR));
+                    memset(&random_position_build, 0, sizeof(VECTOR));
                     frame_index++;
                     do
                     {
-                        scratch.frame.random_position_build.vx =
+                        random_position_build.vx =
                             rand() % 200 - 100;
-                        scratch.frame.random_position_build.vy =
+                        random_position_build.vy =
                             rand() % 200 - 100;
-                        scratch.frame.random_position_build.vz =
+                        random_position_build.vz =
                             rand() % 200 - 100;
                     } while (0);
-                    scratch.frame.position =
-                        scratch.frame.random_position_build;
-                    SetFrame(&scratch.frame.position, 3 * FIXED_ONE,
+                    position = random_position_build;
+                    SetFrame(&position, 3 * FIXED_ONE,
                              rand() % 60 + 60,
                              &model->locate);
                 }
