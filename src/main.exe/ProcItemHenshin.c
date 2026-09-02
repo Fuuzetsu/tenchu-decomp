@@ -80,12 +80,10 @@ void ProcItemHenshin(TItem *item)
         HENSHIN_MODE_ACTIVE = 3,
         HENSHIN_DURATION = 600
     };
-    Humanoid *human;
     ModelArchiveType *archive;
     PARAM_ITEM_LAUNCH drop_request;
 
-    human = item->owner;
-    archive = human->model;
+    archive = item->owner->model;
 
     if (item->mode == ITEM_MODE_DISPOSE)
     {
@@ -111,15 +109,17 @@ void ProcItemHenshin(TItem *item)
     switch (item->mode)
     {
     case HENSHIN_MODE_START:
-        SetNowMotion(human, MOT_ITEM_KAENGEKI, MOTION_MOVE_APPLY);
+        SetNowMotion(item->owner, MOT_ITEM_KAENGEKI, MOTION_MOVE_APPLY);
         Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 
     case HENSHIN_MODE_WAIT:
     {
+        Humanoid *human;
         MotionManager *motion;
 
+        human = item->owner;
         motion = human->motion;
         if (motion->mid != MOT_ITEM_KAENGEKI)
         {
