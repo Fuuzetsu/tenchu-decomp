@@ -206,39 +206,23 @@ struct tag_TMisc
     MiscParameters param;                /* 0x18 */
 }; /* 0x24 */
 
-/* InitMisc replaces each table's archive identity in place with the loaded
- * model pointer. MODEL_ARCHIVE_NONE leaves that half of the door absent. */
-typedef union MiscModelReference MiscModelReference;
-union MiscModelReference
+typedef struct
 {
-    ModelArchiveId archive_id;
-    ModelType *model;
-}; /* 0x4 */
-
-typedef union MiscSpriteReference MiscSpriteReference;
-union MiscSpriteReference
-{
-    ImageArchiveId image_id;
-    Sprite3D *sprite;
-}; /* 0x4 */
+    ModelType *Model[2]; /* 0x0 */
+    s16 HitSize;         /* 0x8 */
+} DoorDataType;          /* 0xC, MISC__183fake */
 
 typedef struct
 {
-    MiscModelReference Model[2]; /* 0x0 */
-    s16 HitSize;                 /* 0x8 */
-} DoorDataType;                  /* 0xC, MISC__183fake */
+    ModelType *Model[2]; /* 0x0 */
+    s16 HitSize;         /* 0x8 */
+} PitfallDataType;       /* 0xC, MISC__184fake */
 
 typedef struct
 {
-    MiscModelReference Model[2]; /* 0x0 */
-    s16 HitSize;                 /* 0x8 */
-} PitfallDataType;               /* 0xC, MISC__184fake */
-
-typedef struct
-{
-    MiscSpriteReference spr; /* 0x0 */
-    s32 scale;               /* 0x4 */
-} SpriteDataType;            /* 0x8, MISC__185fake */
+    Sprite3D *spr; /* 0x0 */
+    s32 scale;     /* 0x4 */
+} SpriteDataType;  /* 0x8, MISC__185fake */
 
 extern TMisc misc[MaxMisc];
 extern DoorDataType DoorData[N_DOOR_TYPES];

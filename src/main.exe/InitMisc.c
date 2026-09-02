@@ -43,7 +43,6 @@
  *    arithmetic reproduces it with no special spelling.
  *  - DoorData/PitfallData's `Model[2]` fields begin as archive-index words
  *    (or -1 for "none") and are overwritten with loaded ModelType pointers.
- *    MiscModelReference exposes those two lifecycle views directly.
  *    Retail's address delta from PitfallData to SpriteData is
  *    N_PITFALL_TYPES records, and the loop handles the same number of
  *    variants; the demo declaration had only 2.
@@ -84,17 +83,17 @@ void InitMisc(void)
 
         for (i = 0; i < N_DOOR_TYPES; i++)
         {
-            iDoor1 = DoorData[i].Model[0].archive_id;
-            iDoor2 = DoorData[i].Model[1].archive_id;
+            iDoor1 = (ModelArchiveId)DoorData[i].Model[0];
+            iDoor2 = (ModelArchiveId)DoorData[i].Model[1];
             if (iDoor1 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(iDoor1));
-                DoorData[i].Model[0].model = data;
+                DoorData[i].Model[0] = data;
             }
             if (iDoor2 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(iDoor2));
-                DoorData[i].Model[1].model = data;
+                DoorData[i].Model[1] = data;
             }
         }
     }
@@ -109,10 +108,10 @@ void InitMisc(void)
         do
         {
             i++;
-            spr->spr.sprite = SetupSprite((Sprite3D *)0,
-                                          GetImage(spr->spr.image_id));
-            spr->spr.sprite->sprite.attribute = attr;
-            spr->spr.sprite->scale = spr->scale;
+            spr->spr = SetupSprite((Sprite3D *)0,
+                                   GetImage((ImageArchiveId)spr->spr));
+            spr->spr->sprite.attribute = attr;
+            spr->spr->scale = spr->scale;
             spr++;
         } while (i < N_MISC_SPRITE_TYPES);
     }
@@ -124,17 +123,17 @@ void InitMisc(void)
 
         for (i = 0; i < N_PITFALL_TYPES; i++)
         {
-            id1 = PitfallData[i].Model[0].archive_id;
-            id2 = PitfallData[i].Model[1].archive_id;
+            id1 = (ModelArchiveId)PitfallData[i].Model[0];
+            id2 = (ModelArchiveId)PitfallData[i].Model[1];
             if (id1 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(id1));
-                PitfallData[i].Model[0].model = data;
+                PitfallData[i].Model[0] = data;
             }
             if (id2 != MODEL_ARCHIVE_NONE)
             {
                 data = LoadModel(GetArcData(id2));
-                PitfallData[i].Model[1].model = data;
+                PitfallData[i].Model[1] = data;
             }
         }
     }
