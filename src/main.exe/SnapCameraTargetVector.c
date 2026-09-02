@@ -35,8 +35,8 @@
  *    direct per-field store into `v`. The frame is fully accounted for by
  *    PSX.SYM's 4 locals + the standard 16-byte outgoing-args area + 20
  *    bytes of saved regs + 4 bytes alignment pad (0x10+0x20+0x14+4=0x48),
- *    so there is no room for a hidden 5th local here. CameraVectorWork names
- *    the VECTOR and paired-SVECTOR views of those same 16 bytes.
+ *    so there is no room for a hidden 5th local here. One 16-byte work vector
+ *    supplies the VECTOR and paired-SVECTOR views of that storage.
  *    DEMO-VERIFIED (PSX.EXE @ 0x8002aad4): the original build does the
  *    identical dance — memset 16 bytes over both adjacent SVECTORs, three
  *    32-bit ViewInfo stores through sv's memory, 4-word block copy into v
@@ -70,17 +70,6 @@
  *    do not cache `model` in a local.
  */
 
-typedef union CameraVectorWork CameraVectorWork;
-union CameraVectorWork
-{
-    VECTOR position;
-    struct
-    {
-        SVECTOR input;
-        SVECTOR output;
-    } direction;
-};
-
 void SnapCameraTargetVector(void)
 {
     enum
@@ -88,31 +77,32 @@ void SnapCameraTargetVector(void)
         VSHIFT = 5
     };
     VECTOR v;
-    CameraVectorWork work;
+    VECTOR work;
     VECTOR *target;
     s32 t1, t2, t3;
 
     memset(&work, 0, sizeof(VECTOR));
-    work.position.vx = ViewInfo.vpx;
-    work.position.vy = ViewInfo.vpy;
-    work.position.vz = ViewInfo.vpz;
-    v = work.position;
+    work.vx = ViewInfo.vpx;
+    work.vy = ViewInfo.vpy;
+    work.vz = ViewInfo.vpz;
+    v = work;
 
-    memset(&work.direction.output, 0, sizeof(SVECTOR));
-    work.direction.output.vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx;
-    work.direction.output.vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy;
-    work.direction.output.vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz;
-    work.direction.input = work.direction.output;
-    VectorNormalSS(&work.direction.input, &work.direction.output);
+    memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
+    ((SVECTOR *)&work)[1].vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx;
+    ((SVECTOR *)&work)[1].vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy;
+    ((SVECTOR *)&work)[1].vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz;
+    *(SVECTOR *)&work = ((SVECTOR *)&work)[1];
+    VectorNormalSS((SVECTOR *)&work, &((SVECTOR *)&work)[1]);
 
-    t1 = work.direction.output.vx;
-    work.direction.output.vx = (s16)(t1 / (1 << VSHIFT));
-    t2 = work.direction.output.vy;
-    work.direction.output.vy = (s16)(t2 / (1 << VSHIFT));
-    t3 = work.direction.output.vz;
-    work.direction.output.vz = (s16)(t3 / (1 << VSHIFT));
+    t1 = ((SVECTOR *)&work)[1].vx;
+    ((SVECTOR *)&work)[1].vx = (s16)(t1 / (1 << VSHIFT));
+    t2 = ((SVECTOR *)&work)[1].vy;
+    ((SVECTOR *)&work)[1].vy = (s16)(t2 / (1 << VSHIFT));
+    t3 = ((SVECTOR *)&work)[1].vz;
+    ((SVECTOR *)&work)[1].vz = (s16)(t3 / (1 << VSHIFT));
 
-    target = GetAreaMapPassage(GlobalAreaMap, &v, &work.direction.output, -1);
+    target = GetAreaMapPassage(GlobalAreaMap, &v,
+                               &((SVECTOR *)&work)[1], -1);
     if (target != 0)
     {
         CamState.TargetVector.vx = target->vx;
