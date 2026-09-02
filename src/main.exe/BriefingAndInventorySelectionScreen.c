@@ -21,6 +21,9 @@
  * STATUS: MATCHING — all 905 instructions are byte-identical.
  *
  * Matching constraints:
+ *  - `pad` is one signed 16-bit controller word. Only the edge-mask
+ *    arithmetic views it as unsigned; those casts retain retail's later
+ *    sign extension for `check_cheat_command_` without a scalar union.
  *  - Keep GetRealPad's recovered full-word `long` return type. A u16 return
  *    moves the cheat-command sign extension ahead of the new-press chain.
  *  - The entry clamp must re-read `mx < cq->gItem[CHOSEN_CHARACTER][SHOP_ITEM_DEFAULTS[ci].itemIndex]`; the similar case-1
@@ -116,11 +119,7 @@ void BriefingAndInventorySelectionScreen(void)
     GsSPRITE spr;
     GsSPRITE hspr;
     s16 bounce;
-    union
-    {
-        u16 u;
-        s16 s;
-    } pad;
+    s16 pad;
     u16 cap;
     u16 taken;
     BackGround *bg;
@@ -149,7 +148,7 @@ void BriefingAndInventorySelectionScreen(void)
     int id;
     s16 cheat;
 
-    pad.s = -1;
+    pad = -1;
     cap = NORMAL_ITEM_CARRY_LIMIT;
     cursor = 0;
     taken = 0;
@@ -220,10 +219,10 @@ void BriefingAndInventorySelectionScreen(void)
     do
     {
         rand();
-        newpress = pad.u;
-        pad.u = GetRealPad(PAD_PORT_1);
-        newpress = pad.u & (pad.u ^ newpress);
-        id = check_cheat_command_(pad.s, newpress);
+        newpress = (u16)pad;
+        pad = GetRealPad(PAD_PORT_1);
+        newpress = (u16)pad & ((u16)pad ^ newpress);
+        id = check_cheat_command_(pad, newpress);
         /* The subtract-then-narrow is retail's own: addiu -1 then an
          * sll/sra s16 truncation before the bound check. The s16 `cheat`
          * temp is byte-required HERE because `id` is an int (the direct
@@ -402,7 +401,7 @@ void BriefingAndInventorySelectionScreen(void)
             SoundEx(0, SE_UI_CURSOR);
             help_image = ITEM_HELP_NONE;
         }
-        if (newpress != 0 && pad.s == PADRright)
+        if (newpress != 0 && pad == PADRright)
         {
             newpress = 0;
             bounce = 1;
@@ -444,7 +443,7 @@ void BriefingAndInventorySelectionScreen(void)
                 }
             }
         }
-        if (newpress != 0 && pad.s == PADRdown)
+        if (newpress != 0 && pad == PADRdown)
         {
             s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
             bounce = 2;

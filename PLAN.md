@@ -793,6 +793,12 @@ ITEM_N-entry `TAdtSelect` array repopulated for the second prompt. Removing the
 variant facade preserves all 1,352 bytes and the helper's required stack-slot
 reuse.
 
+BRIEFING PAD SCALAR RECOVERED (2026-09-02): the inventory screen no longer
+uses a two-member signed/unsigned union for one controller word. `pad` is an
+ordinary `s16`; only the edge-detection bit arithmetic takes unsigned views,
+while the cheat decoder receives the signed value directly. This preserves
+the retail sign-extension point and all 3,620 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
