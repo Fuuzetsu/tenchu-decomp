@@ -49,18 +49,15 @@
  *     ==2 test order while retaining the case bodies in plain 0,1,2 source
  *     order. Values outside that set reach the shared tail unchanged.
  *     - case 0: if the frame is overrunning its budget
- *       (`VSync(1) > ((sync - (sync<<4))<<4) - 0xa`), start skipping
+ *       (`VSync(1) > -sync * SCREEN_H - 10`), start skipping
  *       (`SkipFrame=1`) and return immediately — this return, not a
- *       fallthrough, is what skips the shared tail below. The condition is
- *       written call-first (`VSync(1) > ...`) so cc1 evaluates the call
- *       before the multiply (matching the target's instruction order), and
- *       the multiply-by-(-0xf0) is spelled as the explicit strength
- *       reduction `(x - (x<<4)) << 4` rather than `x * -0xf0`: the literal
- *       multiply gets const-multiply-synthesized as "compute +240*x, then
- *       negate" (an extra `subu $0,...`/negate instruction), while the
- *       explicit form directly computes `x - 16x = -15x` (sign built into
- *       the subtraction order, no separate negate) — same value, one
- *       instruction shorter, matching the target exactly.
+ *       fallthrough, is what skips the shared tail below. VSync reports
+ *       elapsed scanlines, so each requested wait contributes one screen
+ *       height to the budget, less a ten-line margin. The condition stays
+ *       call-first so cc1 evaluates VSync before forming the budget. Writing
+ *       the negation on `sync` is significant to this compiler: the natural
+ *       `-sync * SCREEN_H` emits the target's subtraction-and-shift constant
+ *       multiply, whereas `sync * -SCREEN_H` adds a separate negation.
  *     - case 1: `sync` itself gets overwritten — `(u16)sync << 1` widened
  *       through the classic double-shift (`sll 16`/`srl 15`, net shift +1,
  *       the unsigned analogue of the sign-extension idiom) — an explicit
@@ -144,7 +141,7 @@ void EndDrawing(short sync)
     switch (sk)
     {
     case SKIPFRAME_NONE:
-        if (VSync(1) > ((sync - (sync << 4)) << 4) - 0xA)
+        if (VSync(1) > -sync * SCREEN_H - 10)
         {
             SkipFrame = SKIPFRAME_SKIPPED;
             return;
