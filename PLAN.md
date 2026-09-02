@@ -806,6 +806,12 @@ through their actual alternatives and backup spawning uses a positive range
 guard. GCC produces retail's shared return join naturally, removing all six
 gotos and the `done` label while preserving all 1,392 bytes.
 
+CVA SEQUENCE GUARDS RECOVERED (2026-09-02): `CVAsequence` now returns zero
+directly for an empty script, an exhausted scan, or failed setup, and lets the
+successful path fall into playback. GCC merges the guards into retail's shared
+return block, removing three gotos and two labels while preserving all 884
+bytes. The event search remains the independently verified hand-rolled scan.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

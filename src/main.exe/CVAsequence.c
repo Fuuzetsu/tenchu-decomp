@@ -42,6 +42,9 @@
  * separate s32 `wanted`/`end_mode` values create the preheader extension and
  * loop-carried `CVA_CMD_END`; and the motion arm's `(motion = 0, test)` comma
  * expression selects the retail allocation and schedule.
+ * The two missing/end-event checks and failed `CVAupdate` are ordinary zero
+ * returns. Successful setup falls directly into sequence playback; GCC merges
+ * the guard returns into retail's shared zero-return block without labels.
  */
 
 #include "item.h"
@@ -72,7 +75,7 @@ s16 CVAsequence(s16 sid)
 
     CVAnow = CVAdata;
     if (CVAdata->mode == CVA_CMD_END)
-        goto return_zero;
+        return 0;
 
     wanted = sid;
     end_mode = CVA_CMD_END;
@@ -88,7 +91,7 @@ scan_event:
 event_found:
 
     if (CVAnow->mode == CVA_CMD_END)
-        goto return_zero;
+        return 0;
 
     memset(CVAhuman, 0, sizeof(CVAhuman));
     cursor = CVAnow;
@@ -111,13 +114,9 @@ event_found:
     }
 
     CVAflag = 0;
-    if (CVAupdate() != 0)
-        goto run_sequence;
+    if (CVAupdate() == 0)
+        return 0;
 
-return_zero:
-    return 0;
-
-run_sequence:
     if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = ACTION_HALT_ACTIVE;
     MotionUpdateMode = 1;
