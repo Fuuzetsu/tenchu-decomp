@@ -178,14 +178,15 @@ void CreateStage(stage_id StageNo, int CharType)
     py = StageConfig[StageNo].py;
     pz = StageConfig[StageNo].pz;
     ViewInfo.vpx = px;
-    /* One-shot fences here: byte-required (collapse measured; see cookbook). */
-    /* The vpy boundary remains load-bearing. */
+    /* These statement boundaries preserve the retail register allocation. */
     do
     {
         ViewInfo.vpy = py - 10000;
     } while (0);
-    /* Folded after flow to retain the old vpz allocation weight. */
-    ViewInfo.vpz = ((u32)pz + (u32)pz) - (u32)pz;
+    do
+    {
+        ViewInfo.vpz = pz;
+    } while (0);
     ViewInfo.vrx = px;
     ViewInfo.vry = py;
     ViewInfo.vrz = pz;
