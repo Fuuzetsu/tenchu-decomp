@@ -77,11 +77,11 @@ void register_character_death(Humanoid *dead)
                     SetNowMotion(human, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
                     dead->attribute |= ATTR_SEARCH;
                     human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
-                    human->chase[HUMANOID_CHASE_X] = dead->locate->vx;
+                    human->chase.point[HUMANOID_CHASE_X] = dead->locate->vx;
                     chase_z = dead->locate->vz;
                     human->actcnt = 0;
                     human->actscnt = 0;
-                    human->chase[HUMANOID_CHASE_Z] = chase_z;
+                    human->chase.point[HUMANOID_CHASE_Z] = chase_z;
                 }
             }
         }

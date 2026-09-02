@@ -33,9 +33,9 @@ void spread_blood_pool_(Humanoid *human)
     s32 scaled;
     s32 depth;
 
-    chase = &human->chase[0];
+    chase = &human->chase.blood_pool_timer;
     if (human->motion->loop >= 0 || (human->map.attrib & (MAP_WATER | MAP_WOOD)) != 0 ||
-        human->chase[0] < 0)
+        human->chase.blood_pool_timer < 0)
     {
         *chase = 0;
         return;
@@ -50,11 +50,11 @@ void spread_blood_pool_(Humanoid *human)
         return;
     }
 
-    timer = human->chase[0] + 0x88;
-    human->chase[0] = timer;
+    timer = human->chase.blood_pool_timer + 0x88;
+    human->chase.blood_pool_timer = timer;
     if (timer > FIXED_ONE)
     {
-        human->chase[0] = FIXED_ONE;
+        human->chase.blood_pool_timer = FIXED_ONE;
     }
 
     position = GetAbsolutePosition(human->model->object[MODEL_PART_WAIST], 0, 0, 0);
@@ -64,7 +64,7 @@ void spread_blood_pool_(Humanoid *human)
     BLOOD_POOL_MODEL_->locate.coord.t[1] = position->vy;
     BLOOD_POOL_MODEL_->locate.coord.t[2] = position->vz;
 
-    scaled = human->chase[0] * -height / 1024;
+    scaled = human->chase.blood_pool_timer * -height / 1024;
     scale.vx = scale.vy = scale.vz =
         scaled - (human->map.height >> 1);
 

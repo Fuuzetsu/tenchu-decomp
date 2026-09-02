@@ -293,8 +293,8 @@ void StateTransition(Humanoid *human)
                 Attrib = base_attrib | PHASE_ALERT;
                 do
                 {
-                    actor->chase[HUMANOID_CHASE_Z] = 0;
-                    actor->chase[HUMANOID_CHASE_X] = 0;
+                    actor->chase.point[HUMANOID_CHASE_Z] = 0;
+                    actor->chase.point[HUMANOID_CHASE_X] = 0;
                 } while (0);
                 if (actor_life > 0)
                 {
@@ -314,8 +314,8 @@ void StateTransition(Humanoid *human)
                 if (EmergencyNotice != 0)
                 {
                     SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
-                    Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
-                    Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
+                    Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
+                    Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;
                 }
                 Attrib = base_attrib | PHASE_SUSPICIOUS;
                 Sound(Me_THINK_C, CHAR_VOICE_NOTICE);
@@ -355,8 +355,8 @@ void StateTransition(Humanoid *human)
             {
                 SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
             }
-            Me_THINK_C->chase[HUMANOID_CHASE_Z] = 0;
-            Me_THINK_C->chase[HUMANOID_CHASE_X] = 0;
+            Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
+            Me_THINK_C->chase.point[HUMANOID_CHASE_X] = 0;
             Sound(Me_THINK_C, CHAR_VOICE_ALERT);
             if (Me_THINK_C->life > 0)
             {
@@ -455,11 +455,11 @@ void StateTransition(Humanoid *human)
 
             searcher = Me_THINK_C;
             Attrib = base_attrib | ATTR_SEARCH | PHASE_INVESTIGATE;
-            searcher->chase[HUMANOID_CHASE_X] =
+            searcher->chase.point[HUMANOID_CHASE_X] =
                 searcher->target.model->locate.coord.t[0];
             last_seen_z = searcher->target.model->locate.coord.t[2];
             searcher->actscnt = 1;
-            searcher->chase[HUMANOID_CHASE_Z] = last_seen_z;
+            searcher->chase.point[HUMANOID_CHASE_Z] = last_seen_z;
         }
 
         if (Me_THINK_C->pad_hold == 0)

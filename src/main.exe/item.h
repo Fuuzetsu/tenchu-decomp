@@ -24,8 +24,8 @@
 #define N_WEAPON_SLOTS 4
 #define WEAPON_SLOT_NONE (-1)
 
-/* Components of Humanoid.point (home/spawn point) and chase (AI scratch
- * point).  spread_blood_pool_ deliberately reuses chase[0] as a timer. */
+/* Components of Humanoid.point (home/spawn point) and chase.point (the
+ * current AI navigation point). */
 #define HUMANOID_HOME_X 0
 #define HUMANOID_HOME_Z 1
 #define HUMANOID_CHASE_X 0
@@ -157,6 +157,16 @@ union HumanoidTargetReference
     ModelArchiveType *archive;
 }; /* 0x04 */
 
+/* THINK handlers use these two words as an X/Z navigation point. A dead
+ * humanoid no longer navigates, so spread_blood_pool_ reuses the first word
+ * as its pool-growth timer. */
+typedef union HumanoidChaseState HumanoidChaseState;
+union HumanoidChaseState
+{
+    s32 point[2];
+    s32 blood_pool_timer;
+}; /* 0x08 */
+
 typedef struct Humanoid
 {
     character_kind type;      /* 0x00 */
@@ -193,9 +203,7 @@ typedef struct Humanoid
                                  point[1]=z via `sw s4,0x7C(s0)`; matches
                                  Ghidra's own independently-built Humanoid's
                                  `long point[2]` at this offset) */
-    s32 chase[2];             /* 0x80: AI scratch — the chase/flank point
-                                 (ChasetoTarget, Think*chase), reused as
-                                 the blood-pool timer and death spot */
+    HumanoidChaseState chase; /* 0x80: navigation point / blood-pool timer */
     HumanoidActionMode actmode; /* 0x88: controller-specific progress */
     u8 actflg;                /* 0x89 */
     /* Free-running idle counter for the Think1* wander states. It only

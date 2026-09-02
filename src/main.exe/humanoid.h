@@ -10,8 +10,8 @@
  *                  (SR==2, the "?" bark), PHASE_ALERT 2 (SR==1, target
  *                  seen — kills in it score Murders, not stealth kills),
  *                  PHASE_INVESTIGATE 3 (SR==-2, target lost; written as
- *                  ATTR_SEARCH | phase with chase[] set to the last-known
- *                  spot)
+ *                  ATTR_SEARCH | phase with chase.point set to the
+ *                  last-known spot)
  *   0x0004         "non-template AI": SetupThinkFunction sets it iff the
  *                  think type is a real mix (not 0/0x1111/0x2222), the
  *                  call-aid/alarm reinforcement morphs set it while
@@ -27,7 +27,7 @@
  *   ATTR_SEARCH    0x0010 — the personal investigation latch: when the
  *                  startle motion (0x80e) completes, ActSTATE sets 0x12
  *                  (think-mode 2 + this bit), stores the player's spot in
- *                  chase[], and the guard goes searching; StateTransition
+ *                  chase.point, and the guard goes searching; StateTransition
  *                  keeps alert behavior while it (or EmergencyNotice) is
  *                  up. ActDEAD REUSES the bit on corpses to tag a splash
  *                  (drowning) death, clearing it for every other death
