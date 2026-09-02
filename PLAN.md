@@ -208,9 +208,10 @@ State (2026-08-27): stale dumps stripped from all 23 matched carriers;
 `DamageControl` humanised (labels/locals/format); the whole TMD renderer
 family humanised — the fast cluster fully struct-typed (`TMD_FAST_WORK`,
 `src/main.exe/tmdfast.h`), the subdivision cluster's `subdivide_quad_`
-rewritten on `ADIV_VERT`/`ADIV_FRAME`/`ADIV_WORK`, and the entry
-renderers annotated (their index spelling is byte-required — see the
-struct-store scheduling rule added to cookbook 3.13).
+rewritten on `ADIV_VERT`/`ADIV_FRAME`/`ADIV_WORK`, followed by both entry
+renderers.  Their vertices, frame, packet template, GTE operands and recursive
+call now use that recovered model directly; only three entry stores retain a
+generic scalar lvalue for GCC 2.8 scheduling.
 MILESTONE (2026-08-27): shipped code now contains ZERO Ghidra-style
 locals, ZERO param_N parameters, and ZERO D_ data placeholders. Every
 data global referenced from matched C is named — by recovered demo
@@ -756,9 +757,15 @@ read-modify-writes remain exact as ordinary objects. More substantially,
 parameters, writes named workspace fields directly, and reads the object
 attribute normally; that typed interface reproduces all five retail loads and
 the context-store schedule while deleting the opaque integer-address macros
-and every cast at the four renderer calls. Surviving non-hardware qualifiers
-remain audit targets, not evidence that RAM-backed gameplay data was volatile
-in the original source.
+and every cast at the four renderer calls. The two adaptive quad renderers now
+likewise use `ADIV_WORK`, `ADIV_FRAME` and `ADIV_VERT` through their full bodies.
+Their `shift` and `ot` parameter objects remain the one unresolved part: making
+them ordinary changes GCC 2.8's stack-load schedule, while a two-field by-value
+wrapper removes the qualifiers in both leaves but makes `decode_tmd_adiv_` emit
+non-retail aggregate-copy scaffolding. That invented API was rejected rather
+than presented as recovered structure. Surviving non-hardware qualifiers remain
+audit targets and compiler constraints, never evidence that RAM-backed gameplay
+data was volatile in the original source.
 
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout

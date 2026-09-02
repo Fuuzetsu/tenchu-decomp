@@ -238,14 +238,14 @@ typedef struct
  * renderer fills the header and the four root vertices; the subdivider
  * walks frames from frame[0] down the remaining scratch.
  *
- * NOTE: the entry renderers must keep their index/cast spelling off the
- * u_long* scratch — struct-member stores un-pin the volatile parameter
- * reads they retail-interleave with (cookbook 3.13) — so this layout is
- * their documentation, matched by the per-store field comments.
+ * The renderers use this layout directly for their frames, vertices, packet
+ * template and persistent state.  Only the initial limit and clip-bound
+ * stores retain a generic scalar lvalue; that alias shape controls GCC 2.8's
+ * entry scheduling without obscuring the rest of the workspace.
  */
 typedef struct
 {
-    long limit;          /* 0x00 recursion depth limit (4) */
+    u_long limit;        /* 0x00 recursion depth limit (4) */
     long pad04;          /* 0x04 */
     long pad08;          /* 0x08 */
     long shift;          /* 0x0c OT bucket shift */
@@ -269,16 +269,14 @@ typedef struct
     ADIV_FRAME frame[1]; /* 0xe0 recursion frames, one per depth level */
 } ADIV_WORK;
 
-/* The entry renderers need scalar pointer arithmetic for retail scheduling,
- * but its constants can still be derived from the typed workspace map. */
-#define ADIV_BYTE_OFFSET(member) ((u_long)&((ADIV_WORK *)0)->member)
-#define ADIV_WORD_OFFSET(member) (ADIV_BYTE_OFFSET(member) / sizeof(u_long))
-#define ADIV_BYTE(work, member)                                            \
-    (*(u_char *)((int)(work) + ADIV_BYTE_OFFSET(member)))
-#define ADIV_SHORT(work, member)                                          \
-    (*(short *)((int)(work) + ADIV_BYTE_OFFSET(member)))
-#define ADIV_WORD(work, member) ((work)[ADIV_WORD_OFFSET(member)])
-#define ADIV_WORD_ADDRESS(work, member) ((work) + ADIV_WORD_OFFSET(member))
+/* Generic lvalues for the three entry stores described above. */
+#define ADIV_FIELD_OFFSET(member) ((u_long)&((ADIV_WORK *)0)->member)
+#define ADIV_SCALAR_SHORT(work, member)                                   \
+    (*(short *)((u8 *)(work) + ADIV_FIELD_OFFSET(member)))
+#define ADIV_SCALAR_WORD(work, member)                                    \
+    (*(u_long *)((u8 *)(work) + ADIV_FIELD_OFFSET(member)))
+
+void subdivide_quad_(ADIV_FRAME *frame, ADIV_WORK *work, int depth);
 
 enum
 {

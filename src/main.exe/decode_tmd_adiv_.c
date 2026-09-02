@@ -11,6 +11,8 @@
  *    the prologue's load scheduling.
  *  - The tagged batch cursor selects the TMD record member named by its mode;
  *    the renderer interface otherwise retains Sony's VERT and GsOT types.
+ *  - The scratch argument stays generic because the custom subdividing quads
+ *    and Sony's stock triangle renderers interpret it through different maps.
  *  - The one-shot loops around the x7 and x9 stride expressions emit no
  *    control flow. Their loop notes make local-alloc choose the retail
  *    $v0/$v1 coloring for those two switch arms.
@@ -21,11 +23,11 @@ extern u_long DivDepth;
 extern u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive,
                           VERT *vertices,
                           u_long *packet, u_short count, u_long shift,
-                          GsOT *ot, u_long *work);
+                          GsOT *ot, ADIV_WORK *work);
 extern u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive,
                           VERT *vertices,
                           u_long *packet, u_short count, u_long shift,
-                          GsOT *ot, u_long *work);
+                          GsOT *ot, ADIV_WORK *work);
 extern u_long *GsTMDfastTNF3(TMD_P_TNF3 *primitive, VERT *vertices,
                              u_long *packet, u_short count, u_long shift,
                              GsOT *ot, u_long *work);
@@ -34,7 +36,7 @@ extern u_long *GsTMDfastTNG3(TMD_P_TNG3 *primitive, VERT *vertices,
                              GsOT *ot, u_long *work);
 
 void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
-                      u_long *work)
+                      void *work)
 {
     int step;
     int count;
