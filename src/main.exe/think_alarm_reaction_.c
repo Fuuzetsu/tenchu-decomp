@@ -37,6 +37,11 @@ enum alarm_reaction_state
  * Reusing the dead `alertTime` local for StageID keeps the comparison operand
  * separate while allowing cc1 to reuse the condition register for the branch
  * delay-slot assignments.
+ *
+ * The approach, circle, and call-backup modes form one ordinary
+ * `if`/`else if`/`else` chain. Circle decisions finish through their own
+ * nested alternatives, and the backup work is guarded by the positive range
+ * test; GCC forms retail's common return join without source gotos.
  */
 
 s16 think_alarm_reaction_(void)
@@ -112,10 +117,8 @@ s16 think_alarm_reaction_(void)
             }
             self->actscnt = nextState;
         }
-        goto done;
     }
-
-    if (state == ALARM_REACTION_CIRCLE)
+    else if (state == ALARM_REACTION_CIRCLE)
     {
         u8 count;
 
@@ -126,7 +129,6 @@ s16 think_alarm_reaction_(void)
             if (count != 8)
             {
                 result = Me_THINK_C->pad.data;
-                goto done;
             }
             else
             {
@@ -142,7 +144,6 @@ s16 think_alarm_reaction_(void)
                     {
                         result = PADLright;
                     }
-                    goto done;
                 }
                 else
                 {
@@ -152,11 +153,10 @@ s16 think_alarm_reaction_(void)
                     if (randomValue % 5 != 0)
                     {
                         result = PADLright;
-                        if ((rand() & 1) == 0)
+                        if (rand() & 1)
                         {
-                            goto done;
+                            result = -PADLleft;
                         }
-                        result = -PADLleft;
                     }
                     else
                     {
@@ -165,9 +165,8 @@ s16 think_alarm_reaction_(void)
                 }
             }
         }
-        goto done;
     }
-
+    else
     {
         s16 direction;
         s32 direction2;
@@ -209,11 +208,7 @@ s16 think_alarm_reaction_(void)
             }
         }
 
-        if (Distance <= 16500)
-        {
-            goto done;
-        }
-        else
+        if (Distance > 16500)
         {
             s32 alertTime;
             s16 soundId;
@@ -277,6 +272,5 @@ s16 think_alarm_reaction_(void)
         }
     }
 
-done:
     return result;
 }

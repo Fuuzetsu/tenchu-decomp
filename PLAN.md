@@ -799,6 +799,13 @@ ordinary `s16`; only the edge-detection bit arithmetic takes unsigned views,
 while the cheat decoder receives the signed value directly. This preserves
 the retail sign-extension point and all 3,620 bytes.
 
+ALARM-REACTION CONTROL FLOW RECOVERED (2026-09-02):
+`think_alarm_reaction_` now expresses its approach, circle, and call-backup
+modes as one `if`/`else if`/`else` state chain. Nested circle outcomes finish
+through their actual alternatives and backup spawning uses a positive range
+guard. GCC produces retail's shared return join naturally, removing all six
+gotos and the `done` label while preserving all 1,392 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
