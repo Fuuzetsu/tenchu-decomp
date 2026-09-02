@@ -73,7 +73,7 @@ Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
         sprt->sprite.scalex = sprt->sprite.scaley = FIXED_ONE;
         if (image != 0)
         {
-            texture_mode = TIM_PIXEL_MODE(*(u16 *)&image->pmode);
+            texture_mode = TIM_PIXEL_MODE((u16)image->pmode);
             sprt->sprite.attribute =
                 sprt->sprite.attribute | GS_ATTR_TEXTURE_MODE(texture_mode);
             width_shift = 2 - texture_mode;

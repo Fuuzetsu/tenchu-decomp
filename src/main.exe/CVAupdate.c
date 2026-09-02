@@ -332,7 +332,8 @@ s16 CVAupdate(void)
                     }
                     else
                     {
-                        *(u16 *)&TANKA_SPRITES_[i - 1]->attribute &= ~MODEL_ATTR_HIDDEN;
+                        TANKA_SPRITES_[i - 1]->attribute &=
+                            ~MODEL_ATTR_HIDDEN;
                     }
                 }
                 TelopText[0] = 0;

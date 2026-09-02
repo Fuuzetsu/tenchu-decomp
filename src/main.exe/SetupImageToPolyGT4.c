@@ -51,7 +51,7 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     u32 th;
 
     SetPolyGT4(ply);
-    tp = TIM_PIXEL_MODE(*(u16 *)&image->pmode);
+    tp = TIM_PIXEL_MODE((u16)image->pmode);
     ply->tpage = GetTPage(tp, 1, image->px, image->py);
     ply->clut = GetClut(image->cx, image->cy);
     sh = 2 - tp;

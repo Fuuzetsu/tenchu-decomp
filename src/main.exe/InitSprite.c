@@ -24,13 +24,10 @@
  * AddXG4.c/StartDrawing.c (same TU, all matched).
  *
  * Matching notes:
- *  - `TIM_PIXEL_MODE(*(u16 *)&image->pmode)` reads only the LOW HALFWORD of
- *    the 4-byte pmode field (lhu at offset 0) — GsIMAGE's real layout (proven
- *    elsewhere, e.g. LoadTIM.c's full-word `im.pmode`) keeps pmode a
- *    u_long; this call site narrows via an explicit pointer cast rather
- *    than through the field, same idiom as a param-union's divergent
- *    access width (cookbook Expressions: reach it via an explicit offset
- *    cast off the SAME proven pointer).
+ *  - `TIM_PIXEL_MODE((u16)image->pmode)` uses only the low halfword of the
+ *    four-byte pmode field. GCC folds the value conversion into retail's
+ *    `lhu` at offset zero, so the recovered GsIMAGE layout stays intact
+ *    without a pointer-punning access.
  *  - `width_shift = 2 - texture_mode` is a named local: it's read again
  *    AFTER the GetTPage call (for the `u` mask), so its live range crosses
  *    the call and it needs a callee-saved register — matches if declared
@@ -60,7 +57,7 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     sprite->scalex = FIXED_ONE;
     if (image != 0)
     {
-        texture_mode = TIM_PIXEL_MODE(*(u16 *)&image->pmode);
+        texture_mode = TIM_PIXEL_MODE((u16)image->pmode);
         sprite->attribute =
             sprite->attribute | GS_ATTR_TEXTURE_MODE(texture_mode);
         width_shift = 2 - texture_mode;
