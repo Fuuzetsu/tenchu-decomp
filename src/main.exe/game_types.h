@@ -1552,6 +1552,21 @@ enum TCameraMode
     CMODE_HANG = 0x11
 };
 
+/* Bitmask produced by the camera's corner terrain probes. */
+enum camera_probe_mask
+{
+    CAMERA_PROBE_CLEAR = 0,
+    CAMERA_PROBE_FRONT_LEFT = 1,
+    CAMERA_PROBE_FRONT_RIGHT = 2,
+    CAMERA_PROBE_BACK_LEFT = 4,
+    CAMERA_PROBE_BACK_RIGHT = 8,
+    CAMERA_PROBE_FRONT_MASK =
+        CAMERA_PROBE_FRONT_LEFT | CAMERA_PROBE_FRONT_RIGHT,
+    CAMERA_PROBE_ALL_MASK =
+        CAMERA_PROBE_FRONT_MASK |
+        CAMERA_PROBE_BACK_LEFT | CAMERA_PROBE_BACK_RIGHT
+};
+
 /* CAMERA.C's original maximum-index spelling, plus retail's four-entry
  * critical-hit camera count. */
 enum

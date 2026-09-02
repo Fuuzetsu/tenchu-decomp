@@ -52,15 +52,10 @@ extern char str_mark_alert[]; /* (!) */
 
 void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 {
-    enum
-    {
-        FL = 1,
-        FR = 2
-    };
     VECTOR vsL;
     VECTOR vsR;
     int lvR;
-    int rmap;
+    enum camera_probe_mask rmap;
     VECTOR av;
     int rx;
     int ry;
@@ -84,35 +79,35 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
                           target->vpx + vsR.vx,
                           target->vpy + vsR.vy,
                           target->vpz + vsR.vz, AREA_LEVEL_DEFAULT);
-    rmap = 0;
+    rmap = CAMERA_PROBE_CLEAR;
     if (GetAreaMapLevel(GlobalAreaMap,
                         target->vpx + vsL.vx,
                         target->vpy + vsL.vy,
                         target->vpz + vsL.vz, AREA_LEVEL_DEFAULT) <= target->vpy)
     {
-        rmap = FL;
+        rmap = CAMERA_PROBE_FRONT_LEFT;
         FntPrint(str_mark_l);
     }
     if (lvR <= target->vpy)
     {
-        rmap |= FR;
+        rmap |= CAMERA_PROBE_FRONT_RIGHT;
         FntPrint(str_mark_r);
     }
 
-    rmap &= FL | FR;
-    if (rmap != 0)
+    rmap &= CAMERA_PROBE_FRONT_MASK;
+    if (rmap != CAMERA_PROBE_CLEAR)
     {
         av.vx = 0;
         av.vy = 0;
         av.vz = 0;
-        if (rmap == FL)
+        if (rmap == CAMERA_PROBE_FRONT_LEFT)
         {
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = WALL_AVOID_PUSH;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
             ApplyRotMatrix((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS, &av);
         }
-        if (rmap == FR)
+        if (rmap == CAMERA_PROBE_FRONT_RIGHT)
         {
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = -WALL_AVOID_PUSH;
             ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = 0;

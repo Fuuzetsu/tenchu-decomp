@@ -108,13 +108,6 @@ extern s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
 
 void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 {
-    enum
-    {
-        FL = 1,
-        FR = 2,
-        BL = 4,
-        BR = 8
-    };
     ModelArchiveType *mad;
     VECTOR pos;
     CameraScratch scratch;
@@ -138,7 +131,7 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
         s32 levfr;
         s32 levbl;
         s32 levbr;
-        s32 levmap;
+        enum camera_probe_mask levmap;
 
         scratch.probe.vecl = CamVecL[0];
         scratch.probe.vecr = CamVecR[0];
@@ -167,32 +160,35 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
                                 mad->locate.coord.t[2] - scratch.probe.vecr.vz,
                                 AREA_LEVEL_STEP_DOWN);
 
-        levmap = levfl == LEVEL_NONE ? FL : 0;
+        levmap = levfl == LEVEL_NONE ? CAMERA_PROBE_FRONT_LEFT
+                                     : CAMERA_PROBE_CLEAR;
         if (levfr == LEVEL_NONE)
-            levmap |= FR;
+            levmap |= CAMERA_PROBE_FRONT_RIGHT;
         if (levbl == LEVEL_NONE)
-            levmap |= BL;
+            levmap |= CAMERA_PROBE_BACK_LEFT;
         if (levbr == LEVEL_NONE)
-            levmap |= BR;
+            levmap |= CAMERA_PROBE_BACK_RIGHT;
 
         /* The full four-bit mask is byte-required even though levmap only
          * ever holds these bits (dropping it recolors the compare; measured). */
-        if ((levmap & (FL | FR | BL | BR)) == BL)
+        if ((levmap & CAMERA_PROBE_ALL_MASK) == CAMERA_PROBE_BACK_LEFT)
         {
             CamState.Mode = CMODE_PEEP_R;
             break;
         }
-        else if ((levmap & (FL | FR | BL | BR)) == BR)
+        else if ((levmap & CAMERA_PROBE_ALL_MASK) == CAMERA_PROBE_BACK_RIGHT)
         {
             CamState.Mode = CMODE_PEEP_L;
             break;
         }
-        else if ((levmap & (FL | FR)) == FL)
+        else if ((levmap & CAMERA_PROBE_FRONT_MASK) ==
+                 CAMERA_PROBE_FRONT_LEFT)
         {
             CamState.Mode = CMODE_STICK_R;
             break;
         }
-        else if ((levmap & (FL | FR)) == FR)
+        else if ((levmap & CAMERA_PROBE_FRONT_MASK) ==
+                 CAMERA_PROBE_FRONT_RIGHT)
         {
             CamState.Mode = CMODE_STICK_L;
             break;
