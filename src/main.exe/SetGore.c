@@ -3,12 +3,6 @@
 #include "main.exe.h"
 #include "effect.h"
 
-typedef struct
-{
-    VECTOR world_velocity;
-    VECTOR impact_position;
-} SetGoreScratch;
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -39,12 +33,12 @@ extern void DrawImpact(TEffectSlot *ef);
  * The first generated cursor coalesces with the BloodType pointer in $s0;
  * keeping one source cursor live through both searches rotates nearly every
  * scan register.
- * `scratch` is genuinely a two-VECTOR workspace: `world_velocity` receives
- * the rotated gore velocity, while `impact_position` holds the three signed
- * position captures at sp+0x58..0x60 during the second pool search.
- * Independent scalar captures stay in registers, shorten the function, and
- * lose the target's 0x88-byte frame.  Finally, naming `impact_pz` immediately
- * after the py store preserves the target's early load and late pz store.
+ * `world_velocity` receives the rotated gore velocity, while the independent
+ * `impact_position` VECTOR holds the three signed captures at sp+0x58..0x60
+ * during the second pool search. Scalar captures stay in registers, shorten
+ * the function, and lose the target's 0x88-byte frame. Finally, naming
+ * `impact_pz` immediately after the py store preserves the target's early
+ * load and late pz store.
  */
 void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
              SVECTOR *local_velocity)
@@ -64,7 +58,8 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
     VECTOR world_position;
     MATRIX local_to_world;
     SVECTOR velocity_copy;
-    SetGoreScratch scratch;
+    VECTOR world_velocity;
+    VECTOR impact_position;
     long transform_flags[2];
     u32 impact_phase;
 
@@ -109,10 +104,10 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         gore->py = world_position.vy;
         gore->pz = world_position.vz;
         velocity_copy = *local_velocity;
-        ApplyRotMatrix(&velocity_copy, &scratch.world_velocity);
-        gore->vx = (short)scratch.world_velocity.vx;
-        gore->vy = (short)scratch.world_velocity.vy;
-        gore->vz = (short)scratch.world_velocity.vz;
+        ApplyRotMatrix(&velocity_copy, &world_velocity);
+        gore->vx = (short)world_velocity.vx;
+        gore->vy = (short)world_velocity.vy;
+        gore->vz = (short)world_velocity.vz;
         gore->time = rand() % GORE_TIME_SPREAD + GORE_TIME_MIN;
         gore->hint = 0;
         gore->brightness = GORE_INITIAL_BRIGHTNESS;
@@ -133,10 +128,10 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
 
         start_color = COLOR_GRAY;
         end_color = COLOR_GRAY;
-        scratch.impact_position.vx = local_position->vx;
-        scratch.impact_position.vy = local_position->vy;
+        impact_position.vx = local_position->vx;
+        impact_position.vy = local_position->vy;
         impact_slots_searched = 0;
-        scratch.impact_position.vz = local_position->vz;
+        impact_position.vz = local_position->vz;
         impact_index = EFFECT_CURSOR_;
         do
         {
@@ -160,10 +155,10 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         impact_slot = &dmy;
     impact_found:
         impact_slot->proc = DrawImpact;
-        impact_slot->param.impact.px = scratch.impact_position.vx;
+        impact_slot->param.impact.px = impact_position.vx;
         impact = &impact_slot->param.impact;
-        impact->py = scratch.impact_position.vy;
-        impact_pz = scratch.impact_position.vz;
+        impact->py = impact_position.vy;
+        impact_pz = impact_position.vz;
         impact->rotate_speed = GORE_IMPACT_ROTATE_SPEED;
         impact->start_size = GORE_IMPACT_SIZE;
         impact->end_size = GORE_IMPACT_SIZE;

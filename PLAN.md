@@ -715,6 +715,11 @@ ordinary locals again; only the sp+0x30 object remains a union, because its
 randomized VECTOR lifetime genuinely precedes an SVECTOR velocity in the same
 storage. The resulting source is still exact across all 2,160 bytes.
 
+SETGORE LOCALS RECOVERED (2026-09-02): removed `SetGoreScratch`, a two-field
+struct that provided no overlap or domain abstraction. Its world-space
+velocity and impact-position VECTORs are now independent locals; GCC gives
+them the same retail slots and the 832-byte function remains exact.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
