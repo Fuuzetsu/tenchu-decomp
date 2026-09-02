@@ -101,7 +101,8 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
     AfterimageType *ai;
     s32 i;
 
-    TAKE_ITEM_SLOT_VIA_CURSOR();
+    TAKE_ITEM_SLOT_VIA_CURSOR(found);
+found:
     param = &item->param.launch;
     if (item == 0)
         return 0;

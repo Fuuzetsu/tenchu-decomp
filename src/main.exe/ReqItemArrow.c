@@ -97,7 +97,8 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     dir.vx = rx;
     dir.vy = ry;
     SearchItemTarget2(p->user, &dir, &p->start, &target);
-    TAKE_ITEM_SLOT_VIA_CURSOR();
+    TAKE_ITEM_SLOT_VIA_CURSOR(found);
+found:
     param = &item->param.arrow;
     if (item == 0)
         return 0;

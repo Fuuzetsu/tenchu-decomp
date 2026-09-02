@@ -138,32 +138,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         {
             s32 i;
 
-            i = 0;
-            do
-            {
-                ic++;
-                if (ic >= MAX_ITEMS)
-                    ic = 0;
-                ret = items + ic;
-                if (ret->proc == 0)
-                {
-                    item = ret;
-                    goto found;
-                }
-                i++;
-            } while (i < MAX_ITEMS - 1);
-
-            /* pool exhausted: force-dispose the slot the counter landed on */
-            ret->mode = ITEM_MODE_DISPOSE;
-            ret->proc(ret);
-            DeleteConflict(ret->locate);
-            if (ret->mode != ITEM_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);
-            }
-            item = ret;
-            item->owner = 0;
-            item->proc = 0;
+            TAKE_ITEM_SLOT_VIA_CURSOR(found);
         }
 
     found:

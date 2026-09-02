@@ -78,7 +78,8 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
     int ry;
     s32 i;
 
-    TAKE_ITEM_SLOT_VIA_CURSOR();
+    TAKE_ITEM_SLOT_VIA_CURSOR(found);
+found:
     param = &item->param.lightningbolt;
     if (item == 0)
         return 0;

@@ -257,19 +257,6 @@
     GET_THROW_ROTATION(model, rx, ry, rz);                                    \
     RotateVector(&work.vector, rx, ry, rz)
 
-#define RECLAIM_POOL_ITEM()                                                   \
-    ret->mode = ITEM_MODE_DISPOSE;                                            \
-    ret->proc(ret);                                                           \
-    DeleteConflict(ret->locate);                                              \
-    if (ret->mode != ITEM_MODE_START)                                         \
-    {                                                                         \
-        AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);      \
-    }                                                                         \
-    item = ret;                                                               \
-    item->owner = 0;                                                          \
-    item->proc = 0
-
-
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
 extern VECTOR vec_z_n100[];        /* {0,0,-100} */
 extern VECTOR vec_z_100[];         /* {0,0,100} */
@@ -363,22 +350,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         {
             param_launch *param;
 
-            i = 0;
-            do
-            {
-                ic++;
-                if (ic >= MAX_ITEMS)
-                    ic = 0;
-                ret = items + ic;
-                if (ret->proc == 0)
-                {
-                    item = ret;
-                    goto found_shuriken;
-                }
-                i++;
-            } while (i < MAX_ITEMS - 1);
-
-            RECLAIM_POOL_ITEM();
+            TAKE_ITEM_SLOT_VIA_CURSOR(found_shuriken);
 
     found_shuriken:
             param = &item->param.launch;
@@ -511,22 +483,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 atype;
         s32 i;
 
-        i = 0;
-        do
-        {
-            ic++;
-            if (ic >= MAX_ITEMS)
-                ic = 0;
-            ret = items + ic;
-            if (ret->proc == 0)
-            {
-                item = ret;
-                goto found_kaginawa;
-            }
-            i++;
-        } while (i < MAX_ITEMS - 1);
-
-        RECLAIM_POOL_ITEM();
+        TAKE_ITEM_SLOT_VIA_CURSOR(found_kaginawa);
 
     found_kaginawa:
         if (item == 0)
@@ -554,22 +511,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 atype;
         s32 i;
 
-        i = 0;
-        do
-        {
-            ic++;
-            if (ic >= MAX_ITEMS)
-                ic = 0;
-            ret = items + ic;
-            if (ret->proc == 0)
-            {
-                item = ret;
-                goto found_teleport;
-            }
-            i++;
-        } while (i < MAX_ITEMS - 1);
-
-        RECLAIM_POOL_ITEM();
+        TAKE_ITEM_SLOT_VIA_CURSOR(found_teleport);
 
     found_teleport:
         if (item == 0)
@@ -606,22 +548,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 atype;
         s32 i;
 
-        i = 0;
-        do
-        {
-            ic++;
-            if (ic >= MAX_ITEMS)
-                ic = 0;
-            ret = items + ic;
-            if (ret->proc == 0)
-            {
-                item = ret;
-                goto found_napalm;
-            }
-            i++;
-        } while (i < MAX_ITEMS - 1);
-
-        RECLAIM_POOL_ITEM();
+        TAKE_ITEM_SLOT_VIA_CURSOR(found_napalm);
 
     found_napalm:
         pp = &item->param.napalm;
@@ -651,6 +578,5 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     return 1;
 }
-#undef RECLAIM_POOL_ITEM
 #undef SETUP_ROTATED_DROP
 #undef REQUEST_ROTATED_ITEM

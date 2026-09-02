@@ -721,9 +721,9 @@ found:
 /* The same launcher preamble, in the cursor variant some ReqItem* use: the
  * scan keeps its recovered `ret` cursor and only publishes `item` once.
  * This gives cc1 two pseudos where TAKE_ITEM_SLOT() gives it one (adopting
- * the single-variable macro in those files costs 40 diff lines). Macro is
- * reconstruction shorthand for the copy-paste (expands to identical text). */
-#define TAKE_ITEM_SLOT_VIA_CURSOR()                                           \
+ * the single-variable macro in those files costs 40 diff lines). The caller
+ * places the supplied continuation label immediately after the operation. */
+#define TAKE_ITEM_SLOT_VIA_CURSOR(found_)                                     \
     i = 0;                                                                    \
     do                                                                        \
     {                                                                         \
@@ -734,7 +734,7 @@ found:
         if (ret->proc == 0)                                                   \
         {                                                                     \
             item = ret;                                                       \
-            goto found;                                                       \
+            goto found_;                                                      \
         }                                                                     \
         i++;                                                                  \
     } while (i < MAX_ITEMS - 1);                                              \
@@ -749,9 +749,7 @@ found:
     }                                                                         \
     item = ret;                                                               \
     item->owner = 0;                                                    \
-    item->proc = 0;                                                           \
-                                                                              \
-found:
+    item->proc = 0
 
 extern TItem items[MAX_ITEMS];
 /* ITEM.C's shared model and sprite resources. */
