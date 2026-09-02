@@ -418,6 +418,11 @@ extern ModelType *ShadowMdl;
 extern void DrawGore(TEffectSlot *ef);
 extern void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector);
 extern void spawn_damage_effect_(struct Humanoid *human, DamageEffectKind kind);
+extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
+                           short start_size, short end_size,
+                           long start_color, long end_color,
+                           s32 rotate, s32 rotate_speed, s32 time,
+                           enum impact_sprite type);
 extern void UpdateTexScroll(TEffectSlot *ef);
 extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
 

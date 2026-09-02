@@ -69,15 +69,6 @@
  */
 
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
-/* Retail's caller promotes these scalar arguments before the call. */
-extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                           short start_size, short end_size,
-                           long start_color, long end_color,
-                           /* s32 tail vs the definition's u16s is measured
-                            * byte-required: this caller passes negative
-                            * rotates, and the signed view keeps them li -30
-                            * (addiu) instead of ori 0xffe2. */
-                           s32 rotate, s32 rotate_speed, s32 time, s32 type);
 
 void ProcItemShinsoku(TItem *item)
 {

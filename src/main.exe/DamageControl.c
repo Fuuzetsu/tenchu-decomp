@@ -18,11 +18,6 @@ extern s16 damagemotion[N_DAMAGE_MOTIONS];
 extern int ReqLifeBar(Humanoid *h);
 extern void reset_alert_duration(void);
 extern s16 PlayMotion(MotionManager *mmp, s16 mode);
-extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                           short start_size, short end_size,
-                           long start_color, long end_color,
-                           /* s16 rotate vs the definition's u16 is retail's own drift -- byte-required. */
-                           s16 rotate, u16 rotate_speed, u16 time, u16 type);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 
 #define RECORD_PLAYER_KILL()                                                 \
@@ -182,9 +177,9 @@ extern void SetBlood(VECTOR *pos, s16 n, s16 time);
  *  - `id` is an int loaded via `(u16)vector.pad` (lhu) with `(short)id`
  *    casts at every signed use. An s8 id is wrong (lbu/sll24).
  *  - GetAbsolutePosition's third argument is (short)-converted at the call
- *    site; set_impact_ex_'s rot argument is an s16 parameter in this TU;
- *    its `rand() % 360` is precomputed into a temp so the 0xB60B60B7 magic
- *    pair forms before the 0xDCDCDC pair.
+ *    site. The `rand() % 360` rotation passed to set_impact_ex_ is
+ *    precomputed into a temp so the 0xB60B60B7 magic pair forms before the
+ *    0xDCDCDC pair.
  *
  * Fence-free. Matched: 5812 bytes / 1453 instructions, including the
  * compiled switch's own .rodata jump table.

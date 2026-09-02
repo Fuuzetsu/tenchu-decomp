@@ -12,14 +12,9 @@
  * the configurable counterpart to SetImpact's computed defaults. The name
  * is not recovered, so the address name remains rather than inventing one.
  *
- * `time` and `type` are stack args read with `lhu` (16-bit) even though
- * Ghidra types them `undefined1`/`uchar` and only their low byte is ever
- * stored (`sb`) — trusting the raw access width over Ghidra's guess
- * (cookbook: "Ghidra can mistype a stack-passed parameter's width").
- * Its three callers deliberately retain local declarations that reproduce
- * their original default promotions; a shared ANSI prototype changes their
- * argument normalization (notably Shinsoku's -30 rotate speed). Do not
- * centralize those declarations without rematching both caller and callee.
+ * The four trailing arguments use their promoted ABI widths. Narrow locals
+ * preserve the callee's four upfront `lhu` reads while one shared prototype
+ * keeps every caller's signed constants and the impact-sprite domain honest.
  *
  * The two `lw $v1,N($sp)` in the tail are `start_color`/`end_color`
  * rematerialized from their REG_EQUIV incoming slots: register pressure
@@ -44,13 +39,18 @@ extern void DrawImpact(TEffectSlot *ef);
 void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                     short start_size, short end_size,
                     long start_color, long end_color,
-                    u16 rotate, u16 rotate_speed, u16 time, u16 type)
+                    s32 rotate, s32 rotate_speed, s32 time,
+                    enum impact_sprite type)
 {
     int idx;
     TEffectSlot *slot;
     int count;
     ImpactType *param;
     long pz;
+    u16 stored_rotation = rotate;
+    u16 stored_rotate_speed = rotate_speed;
+    u16 stored_time = time;
+    u16 stored_type = type;
 
     FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
@@ -60,14 +60,14 @@ found:
     param->py = pos->vy;
     pz = pos->vz;
     param->super = super;
-    param->rotate = rotate;
-    param->rotate_speed = rotate_speed;
+    param->rotate = stored_rotation;
+    param->rotate_speed = stored_rotate_speed;
     param->start_color.word = start_color;
     param->end_color.word = end_color;
     param->start_size = start_size;
     param->end_size = end_size;
-    param->time = (u8)time;
+    param->time = stored_time;
     param->count = 0;
-    param->type = (u8)type;
+    param->type = stored_type;
     param->pz = pz;
 }
