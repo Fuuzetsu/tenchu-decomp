@@ -36,9 +36,10 @@
  * search indexes `stage_stats[character][stage][0]` directly; converting that
  * whole selection graph removes two offset carriers with no byte change.
  * The function-wide `work` scalar deliberately serves the score sprite's x
- * transfer and the later persistent-state byte load. Splitting those uses into
- * semantic block locals changes six instruction bytes; spelling the latter as
- * a direct volatile load grows the function by four bytes.
+ * transfer and the later persistent-state base. Splitting those uses into
+ * semantic block locals changes six instruction bytes. Expressing the final
+ * memory-card prompt as one eligibility guard lets the StageNo field remain a
+ * normal typed read while its address setup fills the first branch delay slot.
  * The best-score X carrier is also reused while selecting the archives; it is
  * a plain 32-bit work word, not a source-level pointer/scalar union.
  */
@@ -568,14 +569,11 @@ void StageEndScreen(void)
         i++;
     } while (i < N_LOADOUT_ITEMS);
 
-    if (gfMemory != 0)
+    work = TENCHU_PERSISTENT_STATE_ADDRESS;
+    if (gfMemory != 0 &&
+        ((TLinkInfo *)work)->StageNo != STAGE_ID_FREE_PRINCESS)
     {
-        work = TENCHU_PERSISTENT_STATE_ADDRESS;
-        work = *(volatile u8 *)(work + 5);
-        if (work != STAGE_ID_FREE_PRINCESS)
-        {
-            score_screen_input_();
-        }
+        score_screen_input_();
     }
 
     switch (selection)
