@@ -52,12 +52,12 @@
  * Matching notes:
  *  - `order[40]` is the exact sp+0x18..sp+0xb7 reorder buffer; the outgoing
  *    fifth argument remains at sp+0x10 and the saved area starts at sp+0xb8.
- *  - The chrid translation is a two-case switch. expand_case keeps the
- *    STAGE_CHAR_PARTNER (-1) arm inline and lays the STAGE_CHAR_STORY_NPC
- *    (-2) arm out later while emitting the target's -2/-1 test order. The
- *    named `stg_think` pointer keeps the compiler's
- *    derived think-field base live; the volatile row view prevents CSE with
- *    the preceding signed chrid load.
+ *  - The chrid translation is a sparse switch whose every arm selects `tp`.
+ *    expand_case keeps STAGE_CHAR_PARTNER (-1) inline and lays
+ *    STAGE_CHAR_STORY_NPC (-2) out later, emitting the target's -2/-1 test
+ *    order. Assigning the ordinary row value in the default arm retains the
+ *    separate signed dispatch and unsigned selection loads; loop.c derives
+ *    the parallel think-field address from the later direct field access.
  *  - `y` deliberately carries each x/z product to both destination stores;
  *    repeating the multiplication expression makes GCC recompute it.  The
  *    StagePlayer model is likewise fetched before the attribute/life stores
@@ -96,21 +96,10 @@ void StartStageSequence(void)
         {
             enum
             {
-                StageCharThinkOffset = 0x0c,
                 STAGE_CHAR_PARTNER = -1,
                 STAGE_CHAR_STORY_NPC = -2
             };
-            s16 chrid;
-            volatile u16 *stg_think;
-
-            chrid = (s16)stg->chrid;
-            stg_think = (volatile u16 *)&stg->think;
-            /* Walked back from stg_think, not read off stg: byte-required
-             * (the target addresses chrid as lhu -10(stg_think); measured). */
-            tp = ((volatile StageCharType *)((u8 *)stg_think -
-                                             StageCharThinkOffset))
-                     ->chrid;
-            switch (chrid)
+            switch (stg->chrid)
             {
             case STAGE_CHAR_PARTNER:
                 /* The partner ninja — whichever of the pair the player did
@@ -130,6 +119,10 @@ void StartStageSequence(void)
                 {
                     tp = TONO;
                 }
+                break;
+
+            default:
+                tp = stg->chrid;
                 break;
             }
 
