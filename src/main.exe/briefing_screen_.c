@@ -85,8 +85,6 @@ void briefing_screen_(void)
     };
     s16 sequence;
     s32 fade_step;
-    s32 adjusted;
-    s32 scroll_value;
     s16 strip_width;
     u16 strip_px;
     s32 intensity;
@@ -275,15 +273,8 @@ void briefing_screen_(void)
             {
                 fade_step = 8;
             }
-            scroll_value = scroll;
-            adjusted = scroll_value +
-                       StageScrollAdj[PSTATE->language][PSTATE->StageNo];
-            scroll = adjusted;
-            if (adjusted < 0)
-            {
-                adjusted += 0xff;
-            }
-            xbase = (u32)adjusted >> 8;
+            scroll += StageScrollAdj[PSTATE->language][PSTATE->StageNo];
+            xbase = scroll / 256;
             break;
         }
 
