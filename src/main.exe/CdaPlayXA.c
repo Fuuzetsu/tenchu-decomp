@@ -60,15 +60,14 @@
  *  - `param`/`filter` are two independent small stack buffers passed to the
  *    two cd_control calls (0xe then 0xd) — not one shared buffer.
  *
- * STATUS: MATCHING — 89 instructions / 0x164 bytes. `mode` is qualified on
- * its parameter object, not in the function type: top-level parameter
- * qualifiers do not change the ABI or caller-visible type. The qualifier
- * makes the incoming stack value's read observable, so cc1 cannot sink its
- * sole load to `CdaStatus.mode = mode`. It instead emits the target's early
- * `lw $s0,0x68($sp)` and keeps that value live across the calls. A volatile
- * cast at the assignment is not equivalent for codegen: cc1 preserves that
- * read but then copy-propagates the later use back to `mode`, producing a
- * second load. Qualifying the parameter object yields the target's one load.
+ * STATUS: MATCHING — 89 instructions / 0x164 bytes. `mode` has PSX.SYM's
+ * ordinary int type. Once its input value has been committed to CdaStatus,
+ * the parameter is reused for the three sector-position conversions. That
+ * later reassignment prevents cc1 from treating the original value as a
+ * reloadable stack equivalence, so it emits the target's early
+ * `lw $s0,0x68($sp)` and preserves it across the two preceding calls. A
+ * separate position local leaves the input in its stack home and makes the
+ * function one instruction short.
  */
 extern void CdaStop(void);
 extern void cd_control(u8 cmd, u8 *param, u8 *result);
@@ -76,15 +75,11 @@ extern void VSync(s32 mode);
 extern void VSyncCallback(void (*func)(void));
 extern void cbCheckCD(void);
 
-int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mode)
+int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode)
 {
     CdlFILE cf;
     CdlFILTER filter;
     u8 param[4];
-    s32 pos;
-    int saved_mode;
-
-    saved_mode = mode;
 
     if ((CdaStatus.flag & CDA_FLAG_ACTIVE) == 0)
     {
@@ -95,13 +90,13 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     {
         return 0;
     }
-    CdaStatus.mode = saved_mode;
-    pos = CdPosToInt(&cf.pos);
-    CdaStatus.StartPos = pos + CDA_FILE_LEAD_IN_SECTORS;
+    CdaStatus.mode = mode;
+    mode = CdPosToInt(&cf.pos);
+    CdaStatus.StartPos = mode + CDA_FILE_LEAD_IN_SECTORS;
     if (end != 0)
     {
-        pos = CdPosToInt(end);
-        CdaStatus.EndPos = CdaStatus.StartPos + pos;
+        mode = CdPosToInt(end);
+        CdaStatus.EndPos = CdaStatus.StartPos + mode;
     }
     else
     {
@@ -110,8 +105,8 @@ int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, volatile int mo
     }
     if (start != 0)
     {
-        pos = CdPosToInt(start);
-        CdaStatus.StartPos += pos;
+        mode = CdPosToInt(start);
+        CdaStatus.StartPos += mode;
     }
     param[0] = CDA_XA_DRIVE_MODE;
     cd_control(CdlSetmode, param, 0);
