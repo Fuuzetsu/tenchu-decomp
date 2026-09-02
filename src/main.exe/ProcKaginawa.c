@@ -79,7 +79,6 @@ void ProcKaginawa(TItem *item)
     VECTOR w;
     s32 rx, ry;
     s32 dist;
-    s32 tx, ty, tz;
     item_mode dispose_mode;
 
     dispose_mode = ITEM_MODE_DISPOSE;
@@ -124,18 +123,9 @@ void ProcKaginawa(TItem *item)
         w.vz += ViewInfo.vpz;
         trace_ground_(CAMERA_VIEWPOINT(&ViewInfo), &w,
                       &CamState.TargetVector, 0);
-        tx = v.vx;
-        if (tx < 0)
-            tx += 0xF;
-        v.vx = tx >> 4;
-        ty = v.vy;
-        if (ty < 0)
-            ty += 0xF;
-        v.vy = ty >> 4;
-        tz = v.vz;
-        if (tz < 0)
-            tz += 0xF;
-        v.vz = tz >> 4;
+        v.vx /= 16;
+        v.vy /= 16;
+        v.vz /= 16;
         CamState.TargetVector.vx += v.vx;
         CamState.TargetVector.vy += v.vy;
         CamState.TargetVector.vz += v.vz;
