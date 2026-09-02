@@ -47,12 +47,6 @@
  * ninken summon), backgrounds, fonts, images, infoview, sound, CVA
  * cutscenes, and the stage sequence — showing the title card in between.
  */
-typedef struct
-{
-    u8 unused[32];
-    u8 *title[N_LANGUAGES];
-} CreateStageTitleScratch;
-
 extern s32 DepthPoint;
 extern u8 *TITLE_SPRITES_PTRS[N_LANGUAGES];
 extern u8 CHOSEN_LANGUAGE;
@@ -85,11 +79,13 @@ void CreateStage(stage_id StageNo, int CharType)
 {
     Humanoid *target;
     POLY_FT4 ply_ten;
-    CreateStageTitleScratch scratch;
+    /* Retained in the original PSX.SYM even though this build no longer uses it. */
+    GsIMAGE image;
+    u8 *title[N_LANGUAGES];
     TStageConfig *base;
     TStageConfig *stage;
     u_long *dat;
-    GsIMAGE *image;
+    GsIMAGE *image_info;
     BackGround *bg;
     Humanoid *human;
     int i;
@@ -122,11 +118,10 @@ void CreateStage(stage_id StageNo, int CharType)
     SetupSoundEffect(CharType, STAGE_NUMBER(StageNo));
     DoBriefingAndInventorySelection();
 
-    __builtin_memcpy(scratch.title, TITLE_SPRITES_PTRS,
-                     sizeof(scratch.title));
-    dat = PathFileRead(ImagePath, scratch.title[CHOSEN_LANGUAGE]);
-    image = GetImage(IMG_TENCHU);
-    SetupImageToPolyFT4(image, &ply_ten, 0x34, 0x43);
+    __builtin_memcpy(title, TITLE_SPRITES_PTRS, sizeof(title));
+    dat = PathFileRead(ImagePath, title[CHOSEN_LANGUAGE]);
+    image_info = GetImage(IMG_TENCHU);
+    SetupImageToPolyFT4(image_info, &ply_ten, 0x34, 0x43);
     bg = load_background_(dat);
     vfree(dat);
 
