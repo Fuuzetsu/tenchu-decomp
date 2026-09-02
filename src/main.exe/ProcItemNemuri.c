@@ -10,14 +10,6 @@ extern SVECTOR svec_y_n150[];
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1sleep(void);
 
-/* The position builder is overwritten with the smoke velocity after its
- * otherwise-dead aggregate copy.  Keep both meanings visible. */
-typedef union
-{
-    VECTOR random_position_build;
-    SVECTOR smoke_velocity;
-} ProcItemNemuriEffectWork;
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -217,7 +209,7 @@ void ProcItemNemuri(TItem *item)
                 hit_human != item->owner)
             {
                 VECTOR random_position;
-                ProcItemNemuriEffectWork effect_work;
+                VECTOR effect_work;
                 VECTOR smoke_position;
                 VECTOR smoke_position_build;
                 SVECTOR *smoke_velocity;
@@ -227,18 +219,18 @@ void ProcItemNemuri(TItem *item)
                 {
                     rand();
                 }
-                smoke_velocity = &effect_work.smoke_velocity;
-                memset(&effect_work.random_position_build, 0, sizeof(VECTOR));
-                effect_work.random_position_build.vx = rand() % 200 - 100;
-                effect_work.random_position_build.vy = rand() % 200 - 100;
-                effect_work.random_position_build.vz = rand() % 200 - 100;
+                memset(&effect_work, 0, sizeof(VECTOR));
+                effect_work.vx = rand() % 200 - 100;
+                effect_work.vy = rand() % 200 - 100;
+                effect_work.vz = rand() % 200 - 100;
                 /* Dead copy, but retail's own: the 12-byte struct copy is in
                  * the shipped bytes (removal measures -32). The jittered
                  * position is computed and then never passed anywhere --
                  * SetSmoke below gets the body position instead. */
-                random_position = effect_work.random_position_build;
+                random_position = effect_work;
                 SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
 
+                smoke_velocity = (SVECTOR *)&effect_work;
                 *smoke_velocity = svec_y_n150[0];
                 memset(&smoke_position_build, 0, sizeof(VECTOR));
                 smoke_position_build.vx = hit_human->model->locate.coord.t[0];
