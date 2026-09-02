@@ -32,17 +32,42 @@
  * ActSWIM (0x80020464) — updates swimming movement, state transitions, and
  * selected-item use.
  *
+ * The two small helpers inline at every use. `turn_swimmer`'s constant
+ * direction folds into the forward/reverse yaw updates, while
+ * `ShowHumanoidBodyParts` keeps the model-bound calculation and visibility
+ * walk as one source operation without introducing calls in retail.
+ *
  * STATUS: MATCHED — exact 1500 bytes / 375 instructions.
  */
 
 extern Humanoid *Me_MOTION_C;
 extern short SwimCheck(void);
 
+enum swim_steering_direction
+{
+    SWIM_STEER_FORWARD = 1,
+    SWIM_STEER_REVERSE = -1
+};
+
+static inline void turn_swimmer(enum swim_steering_direction direction)
+{
+    s32 yaw;
+    s32 turned_yaw;
+    SVECTOR *rotation;
+
+    rotation = dtR;
+    yaw = rotation->vy;
+    if ((dtPAD & PADLright) != 0)
+        turned_yaw = yaw + direction * Me_MOTION_C->turn;
+    else
+        turned_yaw = yaw - direction * Me_MOTION_C->turn;
+    rotation->vy = turned_yaw;
+}
+
 void ActSWIM(void)
 {
     enum
     {
-        LAST_SWIM_HIDDEN_PART = 12,
         SWIM_EXIT_MOVE_FRAME = 40,
         SWIM_EXIT_SPEED = 100
     };
@@ -62,26 +87,7 @@ void ActSWIM(void)
         {
             if (dtM->count == 1)
                 Sound(Me_MOTION_C, SE_WATER_MOVE);
-            {
-                /* This reads as `dtR->vy += Me_MOTION_C->turn;` and is not:
-                 * retail splits the load, add and store across a current yaw,
-                 * turned yaw and rotation pointer, and all three are needed.
-                 * Measured on the middle of the three copies -- the plain
-                 * compound assignment costs 18 lines, dropping only the
-                 * pointer 15, dropping only the yaw pair 13; collapsing all
-                 * three copies at once costs 226. */
-                int idle_yaw;
-                int turned_yaw;
-                SVECTOR *idle_rotation;
-
-                idle_rotation = dtR;
-                idle_yaw = idle_rotation->vy;
-                if (dtPAD & PADLright)
-                    turned_yaw = idle_yaw + Me_MOTION_C->turn;
-                else
-                    turned_yaw = idle_yaw - Me_MOTION_C->turn;
-                idle_rotation->vy = turned_yaw;
-            }
+            turn_swimmer(SWIM_STEER_FORWARD);
             break;
         }
         if ((dtPAD & (PADLdown | PADLup)) == 0)
@@ -117,19 +123,7 @@ void ActSWIM(void)
                 break;
             }
             if ((dtPAD & (PADLleft | PADLright)) != 0)
-            {
-                int stroke_yaw;
-                int turned_yaw;
-                SVECTOR *stroke_rotation;
-
-                stroke_rotation = dtR;
-                stroke_yaw = stroke_rotation->vy;
-                if (dtPAD & PADLright)
-                    turned_yaw = stroke_yaw + Me_MOTION_C->turn;
-                else
-                    turned_yaw = stroke_yaw - Me_MOTION_C->turn;
-                stroke_rotation->vy = turned_yaw;
-            }
+                turn_swimmer(SWIM_STEER_FORWARD);
             movement_speed = SWIM_SPEED;
             forward_swimmer = Me_MOTION_C;
             MoveHumanoid(forward_swimmer, movement_speed, 0);
@@ -151,19 +145,7 @@ void ActSWIM(void)
                 break;
             }
             if ((dtPAD & (PADLleft | PADLright)) != 0)
-            {
-                int reverse_yaw;
-                int turned_yaw;
-                SVECTOR *reverse_rotation;
-
-                reverse_rotation = dtR;
-                reverse_yaw = reverse_rotation->vy;
-                if (dtPAD & PADLright)
-                    turned_yaw = reverse_yaw - Me_MOTION_C->turn;
-                else
-                    turned_yaw = reverse_yaw + Me_MOTION_C->turn;
-                reverse_rotation->vy = turned_yaw;
-            }
+                turn_swimmer(SWIM_STEER_REVERSE);
             movement_speed = -SWIM_SPEED;
         }
         else
@@ -181,16 +163,7 @@ void ActSWIM(void)
     case MOT_SWIM_EXIT:
         if (dtM->count == 1)
         {
-            ModelArchiveType *exit_model;
-            s16 last_exit_part;
-            s16 exit_part;
-
-            exit_model = Me_MOTION_C->model;
-            if (exit_model->n > LAST_SWIM_HIDDEN_PART)
-                last_exit_part = LAST_SWIM_HIDDEN_PART;
-            else
-                last_exit_part = exit_model->n - 1;
-            SHOW_HUMANOID_BODY_PARTS(exit_model, last_exit_part, exit_part);
+            ShowHumanoidBodyParts(Me_MOTION_C);
             Sound(Me_MOTION_C, SE_WATER_MOVE);
             return;
         }
@@ -215,41 +188,30 @@ void ActSWIM(void)
         break;
     }
 
-{
-    Humanoid *item_user;
-
-    item_user = Me_MOTION_C;
-    if ((item_user->pad.trig & PADRup) == 0)
-        return;
-    /* Every arm of the switch below except ITEM_KAGINAWA is dead past this
-     * guard — retail's own code, kept as-is. */
-    if (SelectedItem != ITEM_KAGINAWA)
-        return;
-    dtM->mask = MOTION_MASK_NOROOT;
-
     {
-        ModelArchiveType *item_model;
-        s16 last_item_part;
-        s16 item_part;
+        Humanoid *item_user;
 
-        item_model = item_user->model;
-        if (item_model->n > LAST_SWIM_HIDDEN_PART)
-            last_item_part = LAST_SWIM_HIDDEN_PART;
-        else
-            last_item_part = item_model->n - 1;
-        SHOW_HUMANOID_BODY_PARTS(item_model, last_item_part, item_part);
+        item_user = Me_MOTION_C;
+        if ((item_user->pad.trig & PADRup) == 0)
+            return;
+        /* Every arm of the switch below except ITEM_KAGINAWA is dead past this
+         * guard — retail's own code, kept as-is. */
+        if (SelectedItem != ITEM_KAGINAWA)
+            return;
+        dtM->mask = MOTION_MASK_NOROOT;
+
+        ShowHumanoidBodyParts(item_user);
+
+        SELECT_ITEM_USE_MOTION(item_sound, item_default);
+        motMODE = MOTION_MOVE_APPLY;
+        return;
+
+    item_sound:
+        SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
+        return;
+
+    item_default:
+        ReqItemDefault(Me_MOTION_C, SelectedItem);
+        return;
     }
-
-    SELECT_ITEM_USE_MOTION(item_sound, item_default);
-    motMODE = MOTION_MOVE_APPLY;
-    return;
-
-item_sound:
-    SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
-    return;
-
-item_default:
-    ReqItemDefault(Me_MOTION_C, SelectedItem);
-    return;
-}
 }

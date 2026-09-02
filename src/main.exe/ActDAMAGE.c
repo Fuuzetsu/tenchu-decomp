@@ -31,9 +31,10 @@
  * Matching notes (1,548 bytes / 387 instructions):
  *  - The dispatch is a narrowed `(short)(dtM->mid - 0x1005)` jump table;
  *    its source case order is the same as the physical body order.
- *  - Cases 0 and 1 repeat the signed-short model-part loop and the SetBlood
- *    tail.  jump2 merges only the latter onto case 1, leaving the shared
- *    continuation physically between the later case bodies as in retail.
+ *  - Cases 0 and 1 inline the shared body-part visibility operation and
+ *    repeat the SetBlood tail. jump2 merges only the latter onto case 1,
+ *    leaving the shared continuation physically between the later case
+ *    bodies as in retail.
  *  - The deceleration `velocity`/`value` pair is the one working graph
  *    that must stay: spelling the fields directly costs 14 lines and
  *    dropping only `velocity` costs 29. Without `value` the two axes
@@ -67,16 +68,7 @@ void ActDAMAGE(void)
     {
         if (dtM->count == 1)
         {
-            ModelArchiveType *model;
-            s16 last;
-            s16 i;
-
-            model = Me_MOTION_C->model;
-            if (model->n > 12)
-                last = 12;
-            else
-                last = model->n - 1;
-            SHOW_HUMANOID_BODY_PARTS(model, last, i);
+            ShowHumanoidBodyParts(Me_MOTION_C);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {
@@ -100,16 +92,7 @@ void ActDAMAGE(void)
     {
         if (dtM->count == 1)
         {
-            ModelArchiveType *model;
-            s16 last;
-            s16 i;
-
-            model = Me_MOTION_C->model;
-            if (model->n > 12)
-                last = 12;
-            else
-                last = model->n - 1;
-            SHOW_HUMANOID_BODY_PARTS(model, last, i);
+            ShowHumanoidBodyParts(Me_MOTION_C);
         }
         else if (dtM->count == 0 && dtM->loop != 0)
         {

@@ -135,9 +135,9 @@ void ActKAGI(void)
             ModelArchiveType *model;
 
             model = Me_MOTION_C->model;
-            if (model->n > 12)
+            if (model->n > MODEL_PART_BODY_LAST)
             {
-                ry = 12;
+                ry = MODEL_PART_BODY_LAST;
             }
             else
             {

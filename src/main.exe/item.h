@@ -446,6 +446,20 @@ typedef struct Humanoid
     *(u16 *)&(model_)->object[MODEL_PART_WAIST]->attribute |=                  \
         MODEL_ATTR_HIDDEN
 
+static inline void ShowHumanoidBodyParts(Humanoid *human)
+{
+    ModelArchiveType *model;
+    s16 last;
+    s16 part;
+
+    model = human->model;
+    if (model->n > MODEL_PART_BODY_LAST)
+        last = MODEL_PART_BODY_LAST;
+    else
+        last = model->n - 1;
+    SHOW_HUMANOID_BODY_PARTS(model, last, part);
+}
+
 typedef struct PARAM_ITEM_LAUNCH
 {
     TItemType type; /* 0x00 */

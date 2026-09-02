@@ -14,8 +14,9 @@
  *
  * Matching source facts:
  *  - The `if/else` polarity for `last` IS the opposite of Ghidra's literal
- *    "assign-then-override" rendering: write `if (0xc < model->n) last =
- *    0xc; else last = model->n - 1;` — this is what actually forces the
+ *    "assign-then-override" rendering: compare against
+ *    `MODEL_PART_BODY_LAST` first, then use `model->n - 1` in the other arm.
+ *    This is what actually forces the
  *    genuine TWO separate loads (lh signed for the compare, lhu unsigned
  *    for the narrowing subtract) the target has; Ghidra's literal order
  *    (subtract first, then override) lets cc1 CSE both into one lhu +
@@ -48,9 +49,9 @@ void set_model_hide_(Humanoid *human, s16 hide)
     s16 i;
 
     model = human->model;
-    if (model->n > 0xc)
+    if (model->n > MODEL_PART_BODY_LAST)
     {
-        last = 0xc;
+        last = MODEL_PART_BODY_LAST;
     }
     else
     {
