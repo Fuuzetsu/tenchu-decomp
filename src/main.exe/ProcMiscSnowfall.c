@@ -28,10 +28,10 @@
 
 /*
  * ProcMiscSnowfall (0x8004ced0, 0x26C bytes) — MISC_SNOWFALL's ProcMisc*
- * handler: MM_CREATE zeroes `mode` (sandwiched between a retained read of
- * TSnowfall.w and a self-store of TSnowfall.h — the retail body no longer
- * uses the grid dimensions the demo's PSX.SYM locals (w/h/i/pos) suggest a
- * fuller CREATE once set up; only the two reads/one self-store survive).
+ * handler: MM_CREATE snapshots the two grid dimensions, resets `mode`, and
+ * restores them. GCC proves the `w` write redundant, so retail retains both
+ * reads but only the `h` store; the demo has the same prefix before allocating
+ * the particle grid that retail no longer keeps.
  * Every 4th tick (`GameClock & 3`) while armed (msg >= MM_DO), spawns
  * one snowflake: a small downward-biased jitter velocity and a position
  * randomized in a box around the camera, handed to SetSnow (the
@@ -48,14 +48,11 @@
  *    the function's end) reproduces this; only the explicit 3-way goto
  *    ladder does.
  *  - `param = &m->param.snowfall;` is computed once, unconditionally, at
- *    function entry (PSX.SYM's own register-resident `param` local). The
- *    volatile view retains retail's otherwise dead `w` read while keeping
- *    the source well-defined; `param` itself remains typed normally for the
- *    final self-store.
- *  - Binding `h` to retail's $v1 resolves the old compiler's tie between the
- *    dead volatile-read result, `h`, and `param`. This replaces the former
- *    undefined read plus duplicated branches with the CREATE operation the
- *    binary actually performs.
+ *    function entry (PSX.SYM's own register-resident `param` local). Reading
+ *    the dimensions through `m` and restoring them through `param` reproduces
+ *    the demo-backed source graph: the eliminated `param->w = w` keeps `w`
+ *    live across the `h` read, naturally assigning the two loads to $v0/$v1
+ *    and the pointer to $a2 without volatile or a fixed-register extension.
  *  - `ViewInfo.vrx - 3000 + rand() % 6000` (Ghidra's literal `A - C + B`)
  *    needed the fold-reassociation rewrite `ViewInfo.vrx + (rand() % 6000
  *    - 3000)` (cookbook Expressions) to get the target's schedule (the
@@ -70,7 +67,6 @@ extern void *memset(void *s, int c, u32 n);
 
 void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
 {
-    register s32 h asm("$3");
     TSnowfall *param = &m->param.snowfall;
 
     if (msg == MM_CREATE)
@@ -86,10 +82,12 @@ void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
 do_create:
 {
     s32 w;
+    s32 h;
 
-    w = ((volatile TSnowfall *)&m->param.snowfall)->w;
-    h = ((volatile TSnowfall *)&m->param.snowfall)->h;
+    w = m->param.snowfall.w;
+    h = m->param.snowfall.h;
     m->mode = 0;
+    param->w = w;
     param->h = h;
 }
     return;
