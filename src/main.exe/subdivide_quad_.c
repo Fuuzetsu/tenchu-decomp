@@ -26,11 +26,7 @@
         pk->gpu.vertex[1].screen.word = vb->screen.word;                      \
         pk->gpu.vertex[2].screen.word = (m)->screen.word;                     \
         dz = va->sz;                                                          \
-        if (dz < 0)                                                           \
-        {                                                                     \
-            dz += 3;                                                          \
-        }                                                                     \
-        work->zmax = dz >> 2;                                                 \
+        work->zmax = dz / 4;                                                  \
         pk->gpu.vertex[0].texture.word = va->texture.coordinates;             \
         pk->gpu.vertex[1].texture.word = vb->texture.coordinates;             \
         pk->gpu.vertex[2].texture.word = (m)->texture.coordinates;            \
@@ -386,11 +382,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         pk->gpu.vertex[1].screen.word = va->screen.word;
                         pk->gpu.vertex[2].screen.word = m31->screen.word;
                         dz = vb->sz;
-                        if (dz < 0)
-                        {
-                            dz += 3;
-                        }
-                        work->zmax = dz >> 2;
+                        work->zmax = dz / 4;
                         pk->gpu.vertex[0].texture.word =
                             vb->texture.coordinates;
                         pk->gpu.vertex[1].texture.word =
