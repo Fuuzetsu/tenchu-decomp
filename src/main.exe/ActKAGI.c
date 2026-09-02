@@ -115,18 +115,7 @@ void ActKAGI(void)
             v.vz = dz;
             if (dx == 0 && dz == 0)
             {
-                if (Me_MOTION_C == StagePlayer)
-                {
-                    SetCameraMode(CMODE_NORMAL);
-                }
-                if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
-                {
-                    SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-                }
-                else
-                {
-                    SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
-                }
+                SELECT_RETURN_MOTION();
             }
             else
             {
@@ -138,18 +127,7 @@ void ActKAGI(void)
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
         {
             spare_item_slot_(0, Me_MOTION_C);
-            if (Me_MOTION_C == StagePlayer)
-            {
-                SetCameraMode(CMODE_NORMAL);
-            }
-            if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
-            {
-                SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-            }
-            else
-            {
-                SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
-            }
+            SELECT_RETURN_MOTION();
         }
 
         if ((Me_MOTION_C->map.attrib & MAP_WATER) &&

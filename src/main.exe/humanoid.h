@@ -152,6 +152,23 @@ typedef s16 facing_angle;
     motID = (id_);                                                            \
     motMODE = (movement_)
 
+/* The complete ReturnNormal body, repeated inline by the motion handlers. */
+#define SELECT_RETURN_MOTION()                                                \
+    {                                                                         \
+        if (Me_MOTION_C == StagePlayer)                                       \
+        {                                                                     \
+            SetCameraMode(CMODE_NORMAL);                                      \
+        }                                                                     \
+        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)                \
+        {                                                                     \
+            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);                 \
+        }                                                                     \
+        else                                                                  \
+        {                                                                     \
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);                        \
+        }                                                                     \
+    }
+
 /* Attack-animation ids, for the one switch that keys on them (ActATTACK).
  *
  * `GetMotionID(dtM, MOT_ATTACK)` returns the `id` of the mid == MOT_ATTACK

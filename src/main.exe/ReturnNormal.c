@@ -27,16 +27,5 @@ extern Humanoid *Me_MOTION_C;
 
 void ReturnNormal(void)
 {
-    if (Me_MOTION_C == StagePlayer)
-    {
-        SetCameraMode(CMODE_NORMAL);
-    }
-    if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
-    {
-        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-    }
-    else
-    {
-        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
-    }
+    SELECT_RETURN_MOTION();
 }
