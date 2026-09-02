@@ -749,6 +749,17 @@ explicit hard-register `asm` contract: the two hand-written syscall/GTE
 boundaries and ProcMiscSnowfall's documented three-byte allocation residual.
 Plain register hints are no longer matching tools.
 
+VOLATILE AUDIT (2026-09-02): ordinary game state is no longer qualified merely
+to steer matching. `StageTime` and CreateStage's two `SystemFlag`
+read-modify-writes remain exact as ordinary objects. More substantially,
+`decode_tmd_fast_` now takes its real `GsOT *` and `TMD_FAST_WORK *`
+parameters, writes named workspace fields directly, and reads the object
+attribute normally; that typed interface reproduces all five retail loads and
+the context-store schedule while deleting the opaque integer-address macros
+and every cast at the four renderer calls. Surviving non-hardware qualifiers
+remain audit targets, not evidence that RAM-backed gameplay data was volatile
+in the original source.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

@@ -15,17 +15,11 @@
  *    schedule.
  *  - The mode tag selects the concrete packed TMD record view; every renderer
  *    receives that typed stream together with the shared Sony VERT table.
- *  - The volatile attribute read preserves the retail reload across the two
- *    packet-parameter stores.
- *  - The workspace parameter must stay a plain INT (an opaque scratch
- *    address, each store cast at the site).  Typing it as any pointer
- *    (TMD_FAST_WORK * or u_long *) gives cc1's alias pass a known REG base
- *    for those MEMs: the scheduler then hoists the eight context stores
- *    above the volatile-adjacent attribute loads and the whole prologue
- *    reschedules/re-allocates (+4 bytes, attr lands in v0 instead of the
- *    dying a0).  Measured both ways; the leaves are unaffected because
- *    their workspace pointer arrives as a fifth argument they only read
- *    through.
+ *  - The ordering table and workspace parameters carry their real pointer
+ *    types. Direct TMD_FAST_WORK field stores give the alias pass enough
+ *    information to reproduce the retail prologue: each attribute flag is
+ *    read normally, and the two packet-parameter stores fill the gap before
+ *    the final TON extraction without a volatile reload.
  *  - Direct per-case cursor updates retain the two distinct x7 switch tails.
  *  - The 29-entry switch table is routed through this object's .rodata carve
  *    at 0x80013C20.
@@ -50,9 +44,9 @@ extern u_long *fast_tng3_(TmdTexturedGouraudTriangleRecord *primitive,
                           u_long *packet, u_short count,
                           TMD_FAST_WORK *work);
 
-void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
+void decode_tmd_fast_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
+                      TMD_FAST_WORK *work)
 {
-    u_long attr;
     TmdObjectRecord *tmd;
     TmdPrimitiveRecord *prim;
     int n;
@@ -65,17 +59,16 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
     GsLIGNR = GS_DOBJ_LIGNR(obj->attribute);
     vertices = tmd->linked.vertices;
     GsLIOFF = GS_DOBJ_LIOFF(obj->attribute);
-    attr = *(volatile u_long *)&obj->attribute;
     DivDepth = GS_DOBJ_DIVISION_DEPTH(obj->attribute);
-    TMD_FAST_WORD(work, shift) = shift;
-    TMD_FAST_WORD(work, ot) = ot;
-    GsTON = GS_DOBJ_TON(attr);
-    TMD_FAST_WORD(work, clipx0) = -SCREEN_W / 2;
-    TMD_FAST_WORD(work, clipx1) = SCREEN_W / 2;
-    TMD_FAST_WORD(work, clipy0) = -SCREEN_H / 2;
-    TMD_FAST_WORD(work, clipy1) = SCREEN_H / 2;
-    TMD_FAST_WORD(work, farz) = TMD_FAST_FAR_Z;
-    TMD_FAST_WORD(work, fogz) = TMD_FAST_FOG_Z;
+    GsTON = GS_DOBJ_TON(obj->attribute);
+    work->shift = shift;
+    work->ot = ot;
+    work->clipx0 = -SCREEN_W / 2;
+    work->clipx1 = SCREEN_W / 2;
+    work->clipy0 = -SCREEN_H / 2;
+    work->clipy1 = SCREEN_H / 2;
+    work->farz = TMD_FAST_FAR_Z;
+    work->fogz = TMD_FAST_FOG_Z;
     while (n != 0)
     {
         switch (prim->batch.mode & TMD_PRIMITIVE_MODE_MASK)
@@ -83,28 +76,28 @@ void decode_tmd_fast_(GsDOBJ2 *obj, u_long ot, u_long shift, int work)
         case TMD_PRIM_GT4:
             GsOUT_PACKET_P = fast_tng4_(
                 &prim->gt4, vertices, GsOUT_PACKET_P,
-                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
+                TMD_BATCH_COUNT(prim), work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, gt4);
             continue;
         case TMD_PRIM_FT4:
             GsOUT_PACKET_P = fast_tnf4_(
                 &prim->ft4, vertices, GsOUT_PACKET_P,
-                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
+                TMD_BATCH_COUNT(prim), work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, ft4);
             continue;
         case TMD_PRIM_FT3:
             GsOUT_PACKET_P = fast_tnf3_(
                 &prim->ft3, vertices, GsOUT_PACKET_P,
-                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
+                TMD_BATCH_COUNT(prim), work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, ft3);
             continue;
         case TMD_PRIM_GT3:
             GsOUT_PACKET_P = fast_tng3_(
                 &prim->gt3, vertices, GsOUT_PACKET_P,
-                TMD_BATCH_COUNT(prim), (TMD_FAST_WORK *)work);
+                TMD_BATCH_COUNT(prim), work);
             n -= TMD_BATCH_COUNT(prim);
             prim = TMD_NEXT_BATCH(prim, gt3);
             continue;

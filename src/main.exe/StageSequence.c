@@ -55,10 +55,11 @@
  *    retail's caller-side widening.  Defining this TU's function as `s16`
  *    adds a final sll/sra to the no-event result, one instruction absent from
  *    retail, so this is a measured retail/demo declaration divergence.
- *  - `StageTime` is volatile here so its -100 store remains before the camera
- *    state read.  The camera read is `CamState.Mode`, not a standalone scalar:
- *    retaining the structure base is what gives retail's separate v0 address
- *    and v1 value registers for the lui/lw pair.
+ *  - The camera read is `CamState.Mode`, not a standalone scalar: retaining
+ *    the structure base gives retail's separate v0 address and v1 value
+ *    registers for the lui/lw pair. `StageTime` itself is an ordinary shared
+ *    object; the recovered switch/dataflow keeps its -100 store in place
+ *    without a qualifier.
  *  - The mode-6 distance checks are inline `__builtin_abs` expressions.  A
  *    shared `d` temporary creates a persistent v0/v1 allocation tie; consuming
  *    each subtraction directly reproduces all three retail abs sequences.
@@ -67,7 +68,7 @@
  *    them through a shared base.
  */
 
-extern volatile s32 StageTime;
+extern s32 StageTime;
 extern long EmergencyNotice;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char fmt_dbg_quad[];    /* %d-%d-%d-%d  */

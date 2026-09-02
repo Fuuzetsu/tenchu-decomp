@@ -192,12 +192,6 @@ typedef struct
     long clipy1;   /* 0xa0 */
 } TMD_FAST_WORK;
 
-/* decode_tmd_fast_ must retain an integer workspace parameter, but its
- * scalar stores can still be derived from the typed context layout. */
-#define TMD_FAST_BYTE_OFFSET(member) ((u_long)&((TMD_FAST_WORK *)0)->member)
-#define TMD_FAST_WORD(work, member)                                        \
-    (*(u_long *)((int)(work) + TMD_FAST_BYTE_OFFSET(member)))
-
 enum
 {
     TMD_FAST_FAR_Z = 0x4a98,
