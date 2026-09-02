@@ -183,8 +183,9 @@
  *  - The lightning endpoint is built in two ordinary phases: copy the rotated
  *    direction, then translate it by the request's start position.
  *  - The four pool-claim cases are ReqItemKusuri/Makibishi/Happou's matched
- *    idiom verbatim (cur/it split unnecessary here: single `it`); napalm's
- *    `pp` sits at the found: label like shuriken's nested `param`; reorg
+ *    idiom verbatim. Their PSX.SYM-named `ret` scan cursor is handed to the
+ *    selected `item`; napalm's `pp` sits at the found: label like shuriken's
+ *    nested `param`; reorg
  *    duplicates the
  *    addiu into the loop-exit branch's delay slot for napalm and steals it
  *    into the null-check beqz's slot for shuriken — same source shape.
@@ -257,32 +258,16 @@
     RotateVector(&work.vector, rx, ry, rz)
 
 #define RECLAIM_POOL_ITEM()                                                   \
-    cur->mode = ITEM_MODE_DISPOSE;                                            \
-    cur->proc(cur);                                                           \
-    DeleteConflict(cur->locate);                                              \
-    if (cur->mode != ITEM_MODE_START)                                         \
+    ret->mode = ITEM_MODE_DISPOSE;                                            \
+    ret->proc(ret);                                                           \
+    DeleteConflict(ret->locate);                                              \
+    if (ret->mode != ITEM_MODE_START)                                         \
     {                                                                         \
-        AdtMessageBox(msg_item_dispose_fail, cur->type, (u32)cur->mode);      \
+        AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);      \
     }                                                                         \
-    it = cur;                                                                 \
-    it->owner = 0;                                                            \
-    it->proc = 0
-
-#define SETUP_POOL_ITEM(proc_, model_)                                        \
-    us = p->user;                                                             \
-    ty = p->type;                                                             \
-    it->owner = us;                                                           \
-    it->proc = proc_;                                                         \
-    it->mode = ITEM_MODE_START;                                               \
-    it->type = ty;                                                            \
-    it->locate->locate.coord.t[0] = p->start.vx;                              \
-    st = &p->start;                                                           \
-    it->locate->locate.coord.t[1] = st->vy;                                   \
-    it->locate->locate.coord.t[2] = st->vz;                                   \
-    it->locate->locate.super = 0;                                             \
-    UpdateCoordinate(it->locate);                                             \
-    it->collision.size = 0;                                                   \
-    it->model = model_
+    item = ret;                                                               \
+    item->owner = 0;                                                          \
+    item->proc = 0
 
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
@@ -367,11 +352,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_SHURIKEN:
     {
-        TItem *it;
-        TItem *cur;
-        VECTOR *st;
-        Humanoid *us;
-        s32 ty;
+        TItem *item;
+        TItem *ret;
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
         s32 i;
 
         if (p->user == CamState.Owner)
@@ -384,24 +369,26 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
                 ic++;
                 if (ic >= MAX_ITEMS)
                     ic = 0;
-                cur = items + ic;
-                if (cur->proc == 0)
+                ret = items + ic;
+                if (ret->proc == 0)
                 {
-                    it = cur;
+                    item = ret;
                     goto found_shuriken;
                 }
                 i++;
             } while (i < MAX_ITEMS - 1);
 
-        RECLAIM_POOL_ITEM();
+            RECLAIM_POOL_ITEM();
 
     found_shuriken:
-            param = &it->param.launch;
-            if (it == 0)
+            param = &item->param.launch;
+            if (item == 0)
                 return 0;
-        SETUP_POOL_ITEM(ProcSightShot, SyurikenModel);
+            INITIALIZE_ITEM_FROM_REQUEST(ProcSightShot);
+            item->collision.size = 0;
+            item->model = SyurikenModel;
             param->count = 5;
-            it->owner->item[ITEM_N] = 1;
+            item->owner->item[ITEM_N] = 1;
         }
         else
         {
@@ -517,11 +504,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_KAGINAWA:
     {
-        TItem *it;
-        TItem *cur;
-        VECTOR *st;
-        Humanoid *us;
-        s32 ty;
+        TItem *item;
+        TItem *ret;
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
         s32 i;
 
         i = 0;
@@ -530,10 +517,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             ic++;
             if (ic >= MAX_ITEMS)
                 ic = 0;
-            cur = items + ic;
-            if (cur->proc == 0)
+            ret = items + ic;
+            if (ret->proc == 0)
             {
-                it = cur;
+                item = ret;
                 goto found_kaginawa;
             }
             i++;
@@ -542,10 +529,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         RECLAIM_POOL_ITEM();
 
     found_kaginawa:
-        if (it == 0)
+        if (item == 0)
             return 0;
-        SETUP_POOL_ITEM(ProcKaginawa, 0);
-        it->owner->item[ITEM_N] = 1;
+        INITIALIZE_ITEM_FROM_REQUEST(ProcKaginawa);
+        item->collision.size = 0;
+        item->model = 0;
+        item->owner->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
         CamState.DirectionRY = 0;
@@ -558,11 +547,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     case ITEM_TELEPORT:
     {
-        TItem *it;
-        TItem *cur;
-        VECTOR *st;
-        Humanoid *us;
-        s32 ty;
+        TItem *item;
+        TItem *ret;
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
         s32 i;
 
         i = 0;
@@ -571,10 +560,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             ic++;
             if (ic >= MAX_ITEMS)
                 ic = 0;
-            cur = items + ic;
-            if (cur->proc == 0)
+            ret = items + ic;
+            if (ret->proc == 0)
             {
-                it = cur;
+                item = ret;
                 goto found_teleport;
             }
             i++;
@@ -583,9 +572,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         RECLAIM_POOL_ITEM();
 
     found_teleport:
-        if (it == 0)
+        if (item == 0)
             return 0;
-        SETUP_POOL_ITEM(ProcItemTeleport, 0);
+        INITIALIZE_ITEM_FROM_REQUEST(ProcItemTeleport);
+        item->collision.size = 0;
+        item->model = 0;
         CamState.Mode = CMODE_SIGHT;
         break;
     }
@@ -607,12 +598,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         break;
     case ITEM_NAPALM:
     {
-        TItem *it;
-        TItem *cur;
+        TItem *item;
+        TItem *ret;
         param_napalm *pp;
-        VECTOR *st;
-        Humanoid *us;
-        s32 ty;
+        VECTOR *pos;
+        Humanoid *aowner;
+        s32 atype;
         s32 i;
 
         i = 0;
@@ -621,10 +612,10 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             ic++;
             if (ic >= MAX_ITEMS)
                 ic = 0;
-            cur = items + ic;
-            if (cur->proc == 0)
+            ret = items + ic;
+            if (ret->proc == 0)
             {
-                it = cur;
+                item = ret;
                 goto found_napalm;
             }
             i++;
@@ -633,13 +624,15 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         RECLAIM_POOL_ITEM();
 
     found_napalm:
-        pp = &it->param.napalm;
-        if (it == 0)
+        pp = &item->param.napalm;
+        if (item == 0)
             return 0;
         if ((GameClock & 1) == 0)
             return 0;
-        SETUP_POOL_ITEM(ProcItemNapalm, (ModelType *)sprNapalm);
-        it->param.napalm.vec.vx = p->end.vx - p->start.vx;
+        INITIALIZE_ITEM_FROM_REQUEST(ProcItemNapalm);
+        item->collision.size = 0;
+        item->model = (ModelType *)sprNapalm;
+        item->param.napalm.vec.vx = p->end.vx - p->start.vx;
         pp->vec.vy = p->end.vy - p->start.vy;
         pp->vec.vz = p->end.vz - p->start.vz;
         break;
@@ -658,7 +651,6 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     }
     return 1;
 }
-#undef SETUP_POOL_ITEM
 #undef RECLAIM_POOL_ITEM
 #undef SETUP_ROTATED_DROP
 #undef REQUEST_ROTATED_ITEM

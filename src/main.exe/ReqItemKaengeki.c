@@ -70,18 +70,7 @@ int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
-        atype = p->type;
-        item->owner = aowner;
-        item->proc = ProcItemKaengeki;
-        item->mode = ITEM_MODE_START;
-        item->type = atype;
-        item->locate->locate.coord.t[0] = p->start.vx;
-        pos = &p->start;
-        item->locate->locate.coord.t[1] = pos->vy;
-        item->locate->locate.coord.t[2] = pos->vz;
-        item->locate->locate.super = 0;
-        UpdateCoordinate(item->locate);
+        INITIALIZE_ITEM_FROM_REQUEST(ProcItemKaengeki);
         item->collision.size = 0;
         item->model = (ModelType *)ItemImage[item->type];
     }

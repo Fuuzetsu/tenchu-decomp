@@ -646,6 +646,22 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 
 #define MAX_ITEMS 30
 
+/* ITEM.C's ReqItem* launchers use this same initialization sequence with the
+ * same PSX.SYM-recorded `item`, `p`, `aowner`, `atype`, and `pos` locals. */
+#define INITIALIZE_ITEM_FROM_REQUEST(proc_)                                   \
+    aowner = p->user;                                                        \
+    atype = p->type;                                                         \
+    item->owner = aowner;                                                    \
+    item->proc = proc_;                                                      \
+    item->mode = ITEM_MODE_START;                                            \
+    item->type = atype;                                                      \
+    item->locate->locate.coord.t[0] = p->start.vx;                           \
+    pos = &p->start;                                                         \
+    item->locate->locate.coord.t[1] = pos->vy;                               \
+    item->locate->locate.coord.t[2] = pos->vz;                               \
+    item->locate->locate.super = 0;                                          \
+    UpdateCoordinate(item->locate)
+
 /* Initialize one cubic conflict record.  The caller owns any corresponding
  * gameplay object's cached collision metadata. */
 #define INITIALIZE_CONFLICT_OBJECT(conflict, sz, ofs_y, owner_tag, cmode)      \

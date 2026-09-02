@@ -170,18 +170,7 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         param = &item->param.launch;
         if (item == 0)
             return 0;
-        aowner = p->user;
-        atype = p->type;
-        item->owner = aowner;
-        item->proc = ProcItemHappou;
-        item->mode = ITEM_MODE_START;
-        item->type = atype;
-        item->locate->locate.coord.t[0] = p->start.vx;
-        pos = &p->start;
-        item->locate->locate.coord.t[1] = pos->vy;
-        item->locate->locate.coord.t[2] = pos->vz;
-        item->locate->locate.super = 0;
-        UpdateCoordinate(item->locate);
+        INITIALIZE_ITEM_FROM_REQUEST(ProcItemHappou);
         item->collision.size = 0;
         item->locate->rotate = p->user->model->rotate;
         rot = p->user->model->rotate;

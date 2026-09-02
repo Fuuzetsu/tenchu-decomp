@@ -98,18 +98,7 @@ int ReqItemMakibishi(PARAM_ITEM_DROP *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user;
-        atype = p->type;
-        item->owner = aowner;
-        item->proc = ProcItemMakibishi;
-        item->mode = ITEM_MODE_START;
-        item->type = atype;
-        item->locate->locate.coord.t[0] = p->start.vx;
-        pos = &p->start;
-        item->locate->locate.coord.t[1] = pos->vy;
-        item->locate->locate.coord.t[2] = pos->vz;
-        item->locate->locate.super = 0;
-        UpdateCoordinate(item->locate);
+        INITIALIZE_ITEM_FROM_REQUEST(ProcItemMakibishi);
         item->collision.size = 0;
         item->model = (ModelType *)ItemImage[item->type];
     }
