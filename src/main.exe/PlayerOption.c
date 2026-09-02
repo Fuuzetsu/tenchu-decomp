@@ -73,7 +73,7 @@
  *    search converged to 0 on its own).
  *  - The final store folds the FieldArea assignment into the store expression
  *    (`CamState.Owner->map.area = FieldArea =
- *    FieldIndex->index.nodes;`)
+ *    (AreaNodeType *)FieldIndex->index;`)
  *    rather than two statements: with two statements cc1 scheduled the
  *    independent Owner-reload (for the store's LHS) and the FieldArea load
  *    in the opposite order from the original. The chained form is
@@ -108,7 +108,7 @@ void PlayerOption(void)
         CamState.Owner->map.index = (NodeIndexType *)GlobalAreaMap;
         FieldIndex = (NodeIndexType *)GlobalAreaMap;
         CamState.Owner->map.area = FieldArea =
-            FieldIndex->index.nodes;
+            (AreaNodeType *)FieldIndex->index;
         break;
     case JUMP_POSITION:
         debug_menu_player_jump();

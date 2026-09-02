@@ -26,5 +26,5 @@ void swap_balma_area_map_(void)
     GlobalAreaMap = (AreaMapType *)saved;
     BalmaAreaMap = cur;
     FieldIndex = saved;
-    FieldArea = saved->index.nodes;
+    FieldArea = (AreaNodeType *)saved->index;
 }
