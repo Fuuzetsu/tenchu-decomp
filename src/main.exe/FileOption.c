@@ -61,8 +61,9 @@
  * SystemFlag is gp-relative in this TU (Build.hs maspsxGpExterns + permute.py).
  * EngageLevel/StageID/gNannido are other TUs' smalls -> absolute macros.
  * PSX.SYM records one byte buffer and a `pBuf` cursor, not a variant object.
- * LayoutSaveData gives that 7000-byte work area its primary save-file shape;
- * the music-test and menu cases reinterpret it only where they temporarily
+ * LayoutSaveData gives that 7000-byte work area its primary save-file shape,
+ * and the typed cursor names its enemy and item sections on the save path; the
+ * music-test and menu cases reinterpret it only where they temporarily
  * populate another format. The indexed targets/messages walk then lets loop.c
  * derive the target's three pointers. Naming fmt_num_2 directly keeps its
  * `%hi` half loop-invariant while forming `%lo` at each call, producing the
@@ -119,7 +120,7 @@ void FileOption(void)
     s16 n;
     enum save_storage storage;
     u8 *fname;
-    void *pBuf;
+    LayoutSaveData *pBuf;
     s32 k;
     s32 i;
     TAdtSelect *targets;
@@ -159,8 +160,8 @@ void FileOption(void)
             if (fname != (u8 *)ADT_SELECT_CANCEL)
             {
                 pBuf = &Buf;
-                lePackEnemyLayout(pBuf, ENESIZE);
-                PackItemLayout((u8 *)pBuf + ENESIZE, ITEMSIZE);
+                lePackEnemyLayout(pBuf->enemies, ENESIZE);
+                PackItemLayout(pBuf->items, ITEMSIZE);
                 SaveSI(storage, fname, pBuf, sizeof(Buf));
             }
         }
