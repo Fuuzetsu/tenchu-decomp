@@ -50,7 +50,7 @@ void SetupSpline(MotionManager *mmp)
 
     time = mmp->motion->time;
     spc = mmp->control;
-    spc->key0 = mmp->motion->locate.keyframes;
+    spc->key0 = mmp->motion->locate;
     spc->dd0.pad = time;
     if (time != 0)
     {
@@ -60,7 +60,7 @@ void SetupSpline(MotionManager *mmp)
     for (i = 0; i < mmp->n; i++)
     {
         spc = &mmp->control[i + 1];
-        spc->key0 = mmp->motion->rotate[i].keyframes;
+        spc->key0 = mmp->motion->rotate[i];
         spc->dd0.pad = time;
         if (time != 0)
         {

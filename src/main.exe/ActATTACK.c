@@ -772,10 +772,10 @@ dispatch:
         SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
     align_rotation:
         dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy -
-                    dtM->motion->rotate[MODEL_PART_WAIST].keyframes->y);
+                    dtM->motion->rotate[MODEL_PART_WAIST]->y);
         is_player = Me_MOTION_C == StagePlayer;
         ((*Me_MOTION_C->model->object)->rotate).vy =
-            dtM->motion->rotate[MODEL_PART_WAIST].keyframes->y;
+            dtM->motion->rotate[MODEL_PART_WAIST]->y;
         if (is_player)
         {
             SetCameraMode(CMODE_NORMAL);

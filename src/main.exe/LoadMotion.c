@@ -57,17 +57,17 @@ MotionPackType *LoadMotion(unsigned long *data)
     }
     for (i = 0; i < mpd->n; i++)
     {
-        mpd->motion[i].data =
-            (MotionDataType *)(mpd->motion[i].offset + (s32)mpd);
-        mmp = mpd->motion[i].data;
+        mpd->motion[i] =
+            (MotionDataType *)((s32)mpd->motion[i] + (s32)mpd);
+        mmp = mpd->motion[i];
         if (mmp->n != 0)
         {
-            mmp->locate.keyframes =
-                (MotionElementType *)(mmp->locate.offset + (s32)mmp);
+            mmp->locate =
+                (MotionElementType *)((s32)mmp->locate + (s32)mmp);
             for (j = 0; j < mmp->n; j++)
             {
-                mmp->rotate[j].keyframes =
-                    (MotionElementType *)(mmp->rotate[j].offset +
+                mmp->rotate[j] =
+                    (MotionElementType *)((s32)mmp->rotate[j] +
                                           (s32)mmp);
             }
         }

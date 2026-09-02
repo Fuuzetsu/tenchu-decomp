@@ -144,8 +144,8 @@ void ActSTICKON(void)
             }
 
             dtR->vy += (t - dtR->vy) / -dtM->count;
-            dtM->motion->rotate[MODEL_PART_WAIST].keyframes->y = rv;
-            rotation = dtM->motion->rotate[MODEL_PART_HEAD].keyframes;
+            dtM->motion->rotate[MODEL_PART_WAIST]->y = rv;
+            rotation = dtM->motion->rotate[MODEL_PART_HEAD];
             if (rv & ANGLE_QUADRANT)
             {
                 rotation->y = -rv;
@@ -155,8 +155,8 @@ void ActSTICKON(void)
                 rotation->y = 0;
             }
             GetMoveSpeed(&vect, rv, -300, 0);
-            dtM->motion->locate.keyframes->x = vect.vx;
-            dtM->motion->locate.keyframes->z = vect.vz;
+            dtM->motion->locate->x = vect.vx;
+            dtM->motion->locate->z = vect.vz;
         }
         else if (dtM->loop > 0)
         {

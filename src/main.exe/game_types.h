@@ -890,33 +890,18 @@ struct MotionElementType
 
 typedef struct MotionDataType MotionDataType;
 
-/* AMD links are byte offsets before LoadMotion relocates the archive and
- * typed pointers afterward.  MotionPack links are relative to the pack;
- * keyframe links are relative to their containing MotionDataType. */
-typedef union MotionElementReference MotionElementReference;
-union MotionElementReference
-{
-    s32 offset;
-    MotionElementType *keyframes;
-}; /* 0x04 */
-
-typedef union MotionDataReference MotionDataReference;
-union MotionDataReference
-{
-    s32 offset;
-    MotionDataType *data;
-}; /* 0x04 */
-
+/* AMD files encode these pointer fields as relative byte offsets. LoadMotion
+ * relocates them in place before any motion consumer sees the records. */
 struct MotionDataType
 {
-    u8 n;                              /* 0x00 */
-    u8 sweep;                          /* 0x01 */
-    u8 orderspd;                       /* 0x02 */
-    u8 sidespd;                        /* 0x03 */
-    s16 time;                          /* 0x04 */
-    s16 id;                            /* 0x06 */
-    MotionElementReference locate;    /* 0x08: root keyframes */
-    MotionElementReference rotate[1]; /* 0x0C: per-bone keyframes */
+    u8 n;                         /* 0x00 */
+    u8 sweep;                     /* 0x01 */
+    u8 orderspd;                  /* 0x02 */
+    u8 sidespd;                   /* 0x03 */
+    s16 time;                     /* 0x04 */
+    s16 id;                       /* 0x06 */
+    MotionElementType *locate;    /* 0x08: root keyframes */
+    MotionElementType *rotate[1]; /* 0x0C: per-bone keyframes */
 }; /* 0x10 */
 
 typedef struct MotionRegistType MotionRegistType;
@@ -1006,8 +991,8 @@ struct MotionManager
 typedef struct MotionPackType MotionPackType;
 struct MotionPackType
 {
-    s32 n;                         /* 0x00 */
-    MotionDataReference motion[1]; /* 0x04 */
+    s32 n;                    /* 0x00 */
+    MotionDataType *motion[1]; /* 0x04 */
 }; /* 0x08 */
 
 /* MOTION.C's per-attack tuning row (BattleDB, indexed by warid; official

@@ -215,7 +215,7 @@ draw_done:
                 return;
             }
             rotation =
-                human->motion->motion->rotate[MODEL_PART_HEAD].keyframes;
+                human->motion->motion->rotate[MODEL_PART_HEAD];
             if (head->rotate.vx == rotation->x &&
                 head->rotate.vy == rotation->y)
             {
@@ -225,7 +225,7 @@ draw_done:
             /* The re-walked chain (not rotation->y) is byte-required (the
              * fresh loads are in the bytes; measured). */
             head->rotate.vy =
-                human->motion->motion->rotate[MODEL_PART_HEAD].keyframes->y;
+                human->motion->motion->rotate[MODEL_PART_HEAD]->y;
             UpdateCoordinate(head);
             return;
         }

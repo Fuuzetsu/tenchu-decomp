@@ -46,22 +46,22 @@ short SweepMotion(MotionManager *mmp)
     {
         object = *mmp->model->object;
         object->locate.coord.t[0] +=
-            (mot->locate.keyframes->x - object->locate.coord.t[0]) / count;
+            (mot->locate->x - object->locate.coord.t[0]) / count;
         object->locate.coord.t[2] +=
-            (mot->locate.keyframes->z - object->locate.coord.t[2]) / count;
+            (mot->locate->z - object->locate.coord.t[2]) / count;
         object->locate.coord.t[1] +=
-            (((s32)mmp->model->rotate.pad * mot->locate.keyframes->y >>
+            (((s32)mmp->model->rotate.pad * mot->locate->y >>
                FIXED_SHIFT) -
              object->locate.coord.t[1]) /
             count;
         object->rotate.vx +=
-            (mot->rotate[MODEL_PART_WAIST].keyframes->x - object->rotate.vx) /
+            (mot->rotate[MODEL_PART_WAIST]->x - object->rotate.vx) /
             count;
         object->rotate.vy +=
-            (mot->rotate[MODEL_PART_WAIST].keyframes->y - object->rotate.vy) /
+            (mot->rotate[MODEL_PART_WAIST]->y - object->rotate.vy) /
             count;
         object->rotate.vz +=
-            (mot->rotate[MODEL_PART_WAIST].keyframes->z - object->rotate.vz) /
+            (mot->rotate[MODEL_PART_WAIST]->z - object->rotate.vz) /
             count;
         UpdateCoordinate(object);
     }
@@ -72,11 +72,11 @@ short SweepMotion(MotionManager *mmp)
         {
             object = mmp->model->object[i];
             object->rotate.vx +=
-                (mot->rotate[i].keyframes->x - object->rotate.vx) / count;
+                (mot->rotate[i]->x - object->rotate.vx) / count;
             object->rotate.vy +=
-                (mot->rotate[i].keyframes->y - object->rotate.vy) / count;
+                (mot->rotate[i]->y - object->rotate.vy) / count;
             object->rotate.vz +=
-                (mot->rotate[i].keyframes->z - object->rotate.vz) / count;
+                (mot->rotate[i]->z - object->rotate.vz) / count;
             UpdateCoordinate(object);
         }
     }

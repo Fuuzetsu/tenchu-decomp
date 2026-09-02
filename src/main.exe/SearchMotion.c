@@ -25,7 +25,7 @@
  * SearchMotion (0x8001b514, 0x148 bytes) — id lookup across the three fixed
  * motion pools in priority order (common, then player, then stage), each a
  * plain `for (i = 0; i < mpd->n; i++)` lookup through each relocated
- * `mpd->motion[i].data` reference (LoadMotion.c's proven
+ * `mpd->motion[i]` reference (LoadMotion.c's proven
  * fixed-up-pointer layout) — same short-counter recompute-from-base shape as
  * LoadMotion's relocation loops (cookbook Loops: a short loop counter
  * suppresses strength reduction). `mpd` is reused across all three blocks
@@ -43,9 +43,9 @@ MotionDataType *SearchMotion(short id)
     {
         for (i = 0; i < mpd->n; i++)
         {
-            if (mpd->motion[i].data->id == id)
+            if (mpd->motion[i]->id == id)
             {
-                return mpd->motion[i].data;
+                return mpd->motion[i];
             }
         }
     }
@@ -54,9 +54,9 @@ MotionDataType *SearchMotion(short id)
     {
         for (i = 0; i < mpd->n; i++)
         {
-            if (mpd->motion[i].data->id == id)
+            if (mpd->motion[i]->id == id)
             {
-                return mpd->motion[i].data;
+                return mpd->motion[i];
             }
         }
     }
@@ -65,9 +65,9 @@ MotionDataType *SearchMotion(short id)
     {
         for (i = 0; i < mpd->n; i++)
         {
-            if (mpd->motion[i].data->id == id)
+            if (mpd->motion[i]->id == id)
             {
-                return mpd->motion[i].data;
+                return mpd->motion[i];
             }
         }
     }
