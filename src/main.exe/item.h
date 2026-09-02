@@ -81,6 +81,68 @@ enum melee_attack_timing
     MELEE_ATTACK_DECISION_PERIOD = 16
 };
 
+/* PSX.SYM maps this whole expansion to one source line in AttackGeneral and
+ * AttackLong. AttackIndirect gained the same continuation policy in retail.
+ * The one-shot region and result carrier preserve retail's separate zero and
+ * signed-return paths. */
+#define RETURN_ATTACK_CONTINUATION(input_, range_, aim_)                     \
+    if (Me_THINK_C->status == STAT_ATTACK)                                   \
+    {                                                                         \
+        s16 attack_result_;                                                   \
+        s32 attack_degree_;                                                   \
+                                                                              \
+        do                                                                    \
+        {                                                                     \
+            if (Me_THINK_C->motion->count !=                                 \
+                BattleDB[Me_THINK_C->warid].contfrm)                         \
+            {                                                                 \
+                attack_result_ = 0;                                           \
+                goto attack_continuation_return_;                             \
+            }                                                                 \
+            if (Distance < (range_))                                          \
+            {                                                                 \
+                attack_degree_ = Degree;                                      \
+                if (attack_degree_ < 0)                                       \
+                {                                                             \
+                    attack_degree_ = -attack_degree_;                         \
+                }                                                             \
+                if (attack_degree_ < (aim_))                                  \
+                {                                                             \
+                    goto choose_attack_continuation_;                         \
+                }                                                             \
+            }                                                                 \
+            if (rand() % (EngageLevel + 1) != 0)                             \
+            {                                                                 \
+                attack_result_ = input_;                                      \
+                goto attack_continuation_return_;                             \
+            }                                                                 \
+        } while (0);                                                          \
+                                                                              \
+    choose_attack_continuation_:                                              \
+        if (Degree > 300)                                                     \
+        {                                                                     \
+            input_ = PADLright;                                               \
+        }                                                                     \
+        else                                                                  \
+        {                                                                     \
+            input_ |= PADRleft;                                               \
+            if (Degree < -300)                                                \
+            {                                                                 \
+                input_ = PADLleft;                                            \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                goto attack_continuation_value_;                              \
+            }                                                                 \
+        }                                                                     \
+        input_ |= PADRleft;                                                   \
+                                                                              \
+    attack_continuation_value_:                                               \
+        attack_result_ = input_;                                              \
+    attack_continuation_return_:                                              \
+        return attack_result_;                                                \
+    }
+
 typedef u8 animal_attack_timer;
 enum animal_attack_timing
 {

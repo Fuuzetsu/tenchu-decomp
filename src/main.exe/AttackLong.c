@@ -52,68 +52,10 @@ short AttackLong(void)
 {
     s16 ad;
     s16 pad;
-    s16 attack_result;
     s32 degree;
 
     pad = 0;
-    if (Me_THINK_C->status == STAT_ATTACK)
-    {
-        s32 deg;
-
-        /* One-shot fence: byte-required (collapse measured; see cookbook). */
-        do
-        {
-            if (Me_THINK_C->motion->count !=
-                BattleDB[Me_THINK_C->warid].contfrm)
-            {
-                attack_result = 0;
-                goto attack_return;
-            }
-            if (Distance < 3000)
-            {
-                deg = Degree;
-                if (deg < 0)
-                {
-                    deg = -deg;
-                }
-                if (deg < 1500)
-                {
-                    goto choose_attack;
-                }
-            }
-            if (rand() % (EngageLevel + 1) != 0)
-            {
-                attack_result = pad;
-                goto attack_return;
-            }
-        } while (0);
-
-    choose_attack:
-        /* The doubled |= PADRleft around the goto is byte-required (the
-         * flat else-if respell mismatches; measured). */
-        if (Degree > 300)
-        {
-            pad = PADLright;
-        }
-        else
-        {
-            pad |= PADRleft;
-            if (Degree < -300)
-            {
-                pad = PADLleft;
-            }
-            else
-            {
-                goto attack_value;
-            }
-        }
-        pad |= PADRleft;
-
-    attack_value:
-        attack_result = pad;
-    attack_return:
-        return attack_result;
-    }
+    RETURN_ATTACK_CONTINUATION(pad, 3000, 1500);
 
     if (Me_THINK_C->status == STAT_JUMP)
     {

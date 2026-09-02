@@ -32,15 +32,6 @@
  * range/facing, and applies a small rotation correction for the 0x80 result.
  *
  * Matching notes:
- *  - `pad` is the original s16 local.  `attack_result` is a distinct s16
- *    return island: keeping its three edge assignments separate produces the
- *    target's moves into $v0 before one shared sign-extension tail.
- *  - The one-shot `do` encloses a CONTIGUOUS RANGE of three statements, not
- *    just one `if`.  Its loop notes stop cse/local-copy propagation from
- *    replacing `attack_result = 0` with a copy of the already-zero `$s0`.
- *    A bounded permuter found this final one-byte fix.  This extends the
- *    cookbook's loop-fence rule: guided tooling should enumerate safe
- *    contiguous statement ranges as well as individual statements.
  *  - `close_not_aimed` sits before the long-range block so the 0x1000 island
  *    remains at the target address; a structured if/else moved it earlier.
  *  - Both runtime divisions require maspsx `--expand-div`; this file also
@@ -55,63 +46,10 @@ extern s16 ItemUse(void);
 short AttackIndirect(void)
 {
     s16 pad;
-    s16 attack_result;
     s32 degree;
 
     pad = 0;
-    if (Me_THINK_C->status == STAT_ATTACK)
-    {
-        do
-        {
-            if (Me_THINK_C->motion->count !=
-                BattleDB[Me_THINK_C->warid].contfrm)
-            {
-                attack_result = 0;
-                goto attack_return;
-            }
-            if (Distance < INDIRECT_RANGE)
-            {
-                degree = Degree;
-                if (degree < 0)
-                {
-                    degree = -degree;
-                }
-                if (degree < 500)
-                {
-                    goto choose_attack;
-                }
-            }
-            if (rand() % (EngageLevel + 1) != 0)
-            {
-                attack_result = pad;
-                goto attack_return;
-            }
-        } while (0);
-
-    choose_attack:
-        if (Degree > 300)
-        {
-            pad = PADLright;
-        }
-        else
-        {
-            pad |= PADRleft;
-            if (Degree < -300)
-            {
-                pad = PADLleft;
-            }
-            else
-            {
-                goto attack_value;
-            }
-        }
-        pad |= PADRleft;
-
-    attack_value:
-        attack_result = pad;
-    attack_return:
-        return attack_result;
-    }
+    RETURN_ATTACK_CONTINUATION(pad, INDIRECT_RANGE, 500);
     if (Me_THINK_C->status == STAT_JUMP)
     {
         return pad;
