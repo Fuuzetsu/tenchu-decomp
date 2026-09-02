@@ -153,14 +153,6 @@ enum
     WORLD_RESOURCE_NAME_SIZE = 12
 };
 
-typedef union WorldRecordId
-{
-    s16 raw;
-    s16 clone_source;
-    character_kind enemy;
-    s16 item;
-} WorldRecordId;
-
 typedef struct WorldTransform
 {
     s32 x;
@@ -179,7 +171,7 @@ typedef struct WorldCommonPayload
 } WorldCommonPayload;
 
 /* A named object is replaced in place by its loaded pointer. Empty names
- * instead select an earlier row through WorldRecordId.clone_source. */
+ * instead select an earlier row through the record id. */
 typedef union WorldObjectSource
 {
     u8 name[WORLD_RESOURCE_NAME_SIZE];
@@ -216,7 +208,7 @@ typedef struct WorldEffectPayload
 typedef struct WorldDataType
 {
     world_record_kind mode;
-    WorldRecordId id;
+    s16 id; /* clone row, character kind, or item kind, selected by mode */
     union
     {
         WorldCommonPayload common; /* PSX.SYM's original raw field view */
@@ -385,7 +377,7 @@ short LoadConstruction(u_long *data)
                 }
                 else
                     model = CreateCloneOrnament(
-                        wlddt[wlddt[i].id.clone_source]
+                        wlddt[wlddt[i].id]
                             .real.object.source.model);
 
                 model->locate.coord.t[0] =
@@ -418,7 +410,7 @@ short LoadConstruction(u_long *data)
                 break;
 
             case WLD_RECORD_ENEMY:
-                BreedLife(wlddt[i].id.enemy,
+                BreedLife(wlddt[i].id,
                           wlddt[i].real.placement.transform.x,
                           wlddt[i].real.placement.transform.y,
                           wlddt[i].real.placement.transform.z,
@@ -435,7 +427,7 @@ short LoadConstruction(u_long *data)
 
             case WLD_RECORD_ITEM:
                 memset(&tmp, 0, sizeof(tmp));
-                tmp.type = wlddt[i].id.item;
+                tmp.type = wlddt[i].id;
                 tmp.locate.vx = wlddt[i].real.placement.transform.x;
                 tmp.locate.vy = wlddt[i].real.placement.transform.y;
                 tmp.locate.vz = wlddt[i].real.placement.transform.z;
