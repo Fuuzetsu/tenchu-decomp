@@ -1824,43 +1824,12 @@ enum weapon_attack_class
 #define WEAPON_ATTACK_CLASS(kind) ((kind) >> 4)
 #define N_WEAPON_ATTACK_CLASSES (WEAPON_ATTACK_RANGED + 1)
 
-/* APPEAR.C's per-weapon anchor points, in the weapon model's local space.
- * The original fields are SVECTORs, but two fourth halfwords carry table
- * metadata: confp's is the uniform conflict-box half-extent, and ilup1's is
- * the row's weapon kind (or WEAPON_KIND_END). Preserve vector views for the
- * aggregate copies while exposing those fields to their consumers. */
-typedef union WeaponConflictPoint WeaponConflictPoint;
-union WeaponConflictPoint
-{
-    SVECTOR vector;
-    struct
-    {
-        s16 x;
-        s16 y;
-        s16 z;
-        s16 half_extent;
-    } components;
-}; /* 0x08 */
-
-typedef union WeaponTrailEndpoint WeaponTrailEndpoint;
-union WeaponTrailEndpoint
-{
-    SVECTOR vector;
-    struct
-    {
-        s16 x;
-        s16 y;
-        s16 z;
-        weapon_kind kind;
-    } components;
-}; /* 0x08 */
-
 typedef struct WeaponType WeaponType;
 struct WeaponType
 {
-    WeaponConflictPoint confp; /* 0x00: conflict centre and half-extent */
-    SVECTOR ilup0;              /* 0x08: afterimage trail start */
-    WeaponTrailEndpoint ilup1; /* 0x10: afterimage trail end and row key */
+    SVECTOR confp; /* 0x00: conflict centre; pad is the half-extent */
+    SVECTOR ilup0; /* 0x08: afterimage trail start */
+    SVECTOR ilup1; /* 0x10: trail end; pad is weapon_kind / end sentinel */
 }; /* 0x18 */
 
 /* APPEAR.C's weapon-model database row. */
