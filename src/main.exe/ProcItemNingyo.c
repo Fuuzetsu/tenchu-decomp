@@ -335,9 +335,8 @@ void ProcItemNingyo(TItem *item)
                 }
                 else
                 {
-                    s32 delta_z;
-                    s32 delta_x;
                     s32 knockback_x;
+                    s32 knockback_z;
 
                     memset(&scratch.impact.source_position, 0,
                            sizeof(VECTOR));
@@ -345,20 +344,11 @@ void ProcItemNingyo(TItem *item)
                     scratch.impact.source_position.vy = conflict->position.vy;
                     scratch.impact.source_position.vz = conflict->position.vz;
                     scratch.impact.position = scratch.impact.source_position;
-                    delta_x = -ConflictDistance.vx;
-                    if (delta_x < 0)
-                    {
-                        delta_x += 15;
-                    }
-                    knockback_x = delta_x >> 4;
-                    delta_z = -ConflictDistance.vz;
-                    if (delta_z < 0)
-                    {
-                        delta_z += 15;
-                    }
+                    knockback_x = -ConflictDistance.vx / 16;
+                    knockback_z = -ConflictDistance.vz / 16;
                     param->koro.vx = knockback_x;
                     param->koro.vy = -KNOCKBACK_Y_SPEED;
-                    param->koro.vz = delta_z >> 4;
+                    param->koro.vz = knockback_z;
                     param->koro.hint = 0;
                     param->koro.status = KORO_NORMAL;
                     param->hp--;
@@ -370,19 +360,13 @@ void ProcItemNingyo(TItem *item)
             {
                 s32 x_random;
                 s32 z_random;
-                s32 delta_x;
                 s32 knockback_y;
-                s32 delta_z;
+                s32 knockback_z;
                 s16 knockback_x;
                 s16 x_jitter;
 
                 x_random = rand();
-                delta_x = -ConflictDistance.vx;
-                if (delta_x < 0)
-                {
-                    delta_x += 7;
-                }
-                knockback_x = delta_x >> 3;
+                knockback_x = -ConflictDistance.vx / 8;
                 x_jitter = x_random % KNOCKBACK_SPREAD;
                 knockback_y = 0;
                 if (ConflictDistance.vy >= -NINGYO_COLLISION_SIZE)
@@ -390,17 +374,13 @@ void ProcItemNingyo(TItem *item)
                     knockback_y = -KNOCKBACK_Y_SPEED;
                 }
                 z_random = rand();
-                delta_z = -ConflictDistance.vz;
-                if (delta_z < 0)
-                {
-                    delta_z += 7;
-                }
+                knockback_z = -ConflictDistance.vz / 8;
                 param->koro.vx = knockback_x + x_jitter -
                                  KNOCKBACK_SPREAD / 2;
                 param->koro.vy = knockback_y;
                 param->koro.hint = 0;
                 param->koro.status = KORO_NORMAL;
-                param->koro.vz = (delta_z >> 3) +
+                param->koro.vz = knockback_z +
                                  z_random % KNOCKBACK_SPREAD -
                                  KNOCKBACK_SPREAD / 2;
             }
