@@ -1,6 +1,18 @@
 #include "common.h"
 #include "main.exe.h"
 
+#define DRAW_DECIMAL_STRIP(sprite, value, quotient, base_u)                  \
+    do                                                                       \
+    {                                                                        \
+        (quotient) = (value) / 10;                                           \
+        (base_u) = (sprite)->u;                                              \
+        (sprite)->u = (base_u) + ((value) % 10) * (sprite)->w;               \
+        GsSortSprite((sprite), OTablePt, 0);                                 \
+        (value) = (quotient);                                                \
+        (sprite)->u = (base_u);                                              \
+        (sprite)->x -= 12;                                                   \
+    } while ((quotient) != 0)
+
 /* Draw a minutes/seconds time value and optional separator from a digit sprite. */
 void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
 {
@@ -30,16 +42,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
         negative = 1;
     }
 
-    do
-    {
-        quotient = value / 10;
-        baseU = sprite->u;
-        sprite->u = baseU + (value % 10) * sprite->w;
-        GsSortSprite(sprite, OTablePt, 0);
-        value = quotient;
-        sprite->u = baseU;
-        sprite->x -= 12;
-    } while (quotient != 0);
+    DRAW_DECIMAL_STRIP(sprite, value, quotient, baseU);
 
     if (negative != 0)
     {
@@ -62,16 +65,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
         negative = 1;
     }
 
-    do
-    {
-        quotient = value / 10;
-        baseU = sprite->u;
-        sprite->u = baseU + (value % 10) * sprite->w;
-        GsSortSprite(sprite, OTablePt, 0);
-        value = quotient;
-        sprite->u = baseU;
-        sprite->x -= 12;
-    } while (quotient != 0);
+    DRAW_DECIMAL_STRIP(sprite, value, quotient, baseU);
 
     if (negative != 0)
     {
@@ -96,16 +90,7 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
         lastNegative = 0;
     }
 
-    do
-    {
-        quotient = value / 10;
-        baseU = sprite->u;
-        sprite->u = baseU + (value % 10) * sprite->w;
-        GsSortSprite(sprite, OTablePt, 0);
-        value = quotient;
-        sprite->u = baseU;
-        sprite->x -= 12;
-    } while (quotient != 0);
+    DRAW_DECIMAL_STRIP(sprite, value, quotient, baseU);
 
     if (lastNegative != 0)
     {
