@@ -55,11 +55,10 @@
  *    ordinary 12-byte model-part records. Indexing the nested `p` array by
  *    the loop's own counter gives loop.c one unbiased
  *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
- *  - HenshinItem and HenshinCount use volatile views only to preserve the
- *    original observable load/store sequence.  In particular, the restore
- *    path stores the current-disguise pointer before reloading item->owner,
- *    and HENSHIN_MODE_TRANSFORM finishes its mode/count stores before loading
- *    owner/type.
+ *  - HenshinItem and HenshinCount retain their measured qualifiers. Only the
+ *    two owner-slot reads use a volatile view: mode and type accesses are
+ *    ordinary. This keeps the retail post-store owner reloads without making
+ *    the whole item volatile or introducing a volatile item-pointer local.
  *    The old disguise pointer is copied once before its null/proc checks so
  *    volatility does not introduce redundant global reloads.
  *  - `drop_request` occupies the exact sp+0x10..0x37 slot. The smoke paths
@@ -119,7 +118,7 @@ void ProcItemHenshin(TItem *item)
                 NowReturnNormal(item->owner);
             }
             HenshinItem = 0;
-            ((volatile TItem *)item)->owner->active_item =
+            (*(Humanoid *volatile *)&item->owner)->active_item =
                 ACTIVE_ITEM_NONE;
         }
         item->mode = HENSHIN_MODE_START;
@@ -214,7 +213,6 @@ void ProcItemHenshin(TItem *item)
     {
         s32 part_index;
         HenshinModelSnapshot *snapshot;
-        volatile TItem *volatile_item;
         Humanoid *disguise_owner;
         u16 itemID;
 
@@ -236,13 +234,12 @@ void ProcItemHenshin(TItem *item)
                 part_index++;
             } while (part_index < archive->n);
         }
-        volatile_item = item;
-        volatile_item->mode++;
+        item->mode++;
         HenshinCount = HENSHIN_DURATION;
-        disguise_owner = volatile_item->owner;
+        disguise_owner = *(Humanoid *volatile *)&item->owner;
         /* TItemType is a 32-bit enum; retail deliberately reads its low
          * half. */
-        itemID = *(volatile u16 *)&volatile_item->type;
+        itemID = *(u16 *)&item->type;
         EmergencyNotice = -HENSHIN_DURATION;
         disguise_owner->active_item = itemID;
         return;
