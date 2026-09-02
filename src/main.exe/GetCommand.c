@@ -76,9 +76,7 @@ pad_command GetCommand(PADtype *pad)
             j--;
         } while (j > 0);
         pad->stream[0] = 0;
-        /* The runtime view is an lh where every encoded-pattern read above
-         * is lhu — byte-required (verified against the .s). */
-        return Command[i]->command.runtime;
+        return Command[i]->command;
     }
     return CMD_NONE;
 }

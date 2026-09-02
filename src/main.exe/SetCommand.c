@@ -70,7 +70,7 @@ short SetCommand(PADtype *pad, pad_command cmd)
     while (Command[i] != 0)
     {
         entry = Command[i];
-        found = (entry->command.encoded == cmd);
+        found = ((u16)entry->command == cmd);
         one = 1;
         if (found)
         {

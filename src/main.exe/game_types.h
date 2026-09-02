@@ -146,10 +146,8 @@ struct PadArrangeType
 }; /* 0x10 */
 
 /* PADCMD.C's command table. Each row begins with a command id and is followed
- * by a 0xFFFF-terminated pad-input sequence. The id is compared as an
- * unsigned storage halfword while SetCommand/GetCommand publish it through
- * the signed runtime domain, so retain both views of that one field. Retail
- * has thirteen rows plus the null table terminator (the demo had fewer). */
+ * by a 0xFFFF-terminated pad-input sequence. Retail has thirteen rows plus
+ * the null table terminator (the demo had fewer). */
 typedef s16 pad_command;
 
 enum pad_command_value
@@ -176,17 +174,10 @@ enum
     N_PAD_COMMAND_TABLE_ENTRIES = N_PAD_COMMAND_SEQUENCES + 1
 };
 
-typedef union PadCommandId PadCommandId;
-union PadCommandId
-{
-    u16 encoded;
-    pad_command runtime;
-}; /* 0x02 */
-
 typedef struct PadCommandSequence PadCommandSequence;
 struct PadCommandSequence
 {
-    PadCommandId command; /* 0x00 */
+    pad_command command; /* 0x00 */
     u16 inputs[1];        /* 0x02, 0xFFFF-terminated variable tail */
 };
 
