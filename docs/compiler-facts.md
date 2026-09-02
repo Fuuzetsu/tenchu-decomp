@@ -46,6 +46,11 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   though their CFG matched. Reconstructing them as nested infinite loops—with
   the success trampoline entering the inner loop's post-body count check—keeps
   the exact unrotated CFG and supplies the original weights naturally.
+- **A statement macro's `do { ... } while (0)` is also a real loop scope.**
+  ProcItemNingyo's flattened teardown needed a fake item-pointer identity to
+  recover its s3/s4/s5 priority. Restoring the safe DISPOSE_ITEM statement
+  scope supplies that weight with ordinary source; its collision initializer's
+  statement scope also replaces an empty scheduling fence.
 - **ARRAY_REF gate**: `c-typeck.c:1406` builds an ARRAY_REF only when the operand
   has ARRAY_TYPE **and is not an INDIRECT_REF**. A pointer-to-array cast
   `(*(T (*)[N])p)[i]` is an INDIRECT_REF → index-first arithmetic; a one-field

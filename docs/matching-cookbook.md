@@ -2242,10 +2242,12 @@ irreducible nest: DrawConstruction's 3.
   simpler spelling was measured and fails, because fold collapses them
   before the count: `x|x`, `x&x`, `x^0`, `x*1`, `x+0`. A gated sweep of
   the tree's original identities found most genuinely load-bearing under a
-  removal-only test (removing one costs 12-52 lines) and one redundant PAIR in
-  ProcItemNingyo, where either copy alone is exact but removing both is not —
-  so **when two of these sit in one function, test them together as well as
-  separately**.
+  removal-only test (removing one costs 12-52 lines).  ProcItemNingyo initially
+  appeared to need either one of a redundant pair, but reconstructing the safe
+  disposal statement macro supplied the real loop-depth weight and removed the
+  surviving identity too.  So **when two of these sit in one function, test
+  them together as well as separately, then look for a missing statement-macro
+  scope**.
   Say at the site that it is allocation staging, not arithmetic. But a passing
   removal test does **not** prove the weight itself was source-authored: first
   split any fused producer/update that feeds the identity, then restore any
@@ -2254,7 +2256,9 @@ irreducible nest: DrawConstruction's 3.
   supplies the same allocation boundary and removes both the identity and an
   invented `wrap` local exactly. RestoreItemLayout's missing outer and inner
   infinite-loop scopes had hidden the real loop-depth weights; restoring them
-  removed all three level/x/z identities exactly.
+  removed all three level/x/z identities exactly. ProcItemNingyo's disposal
+  scope likewise removed its item-pointer identity, while a named conflict-
+  initialization operation replaced the adjacent empty one-shot fence.
 - **`*(u16 *)&x` on a field that is ALREADY 16 bits is noise; delete it.**
   The reinterpret only means something when it changes the access: it is
   load-bearing when it narrows a wider field (`GsDOBJ2.attribute` and

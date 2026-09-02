@@ -63,6 +63,8 @@ extern s16 Think1target(void);
  *    scheduling boundary: flattening it swaps the search and roster registers.
  *  - The full cleanup sequence and mode-advance tail remain duplicated at
  *    their semantic exits so late cross-jumping can choose the target copies.
+ *    DISPOSE_ITEM's statement scope changes the fast path's s0/s1 priority,
+ *    so these three cross-jump inputs deliberately remain open-coded.
  */
 
 void ProcItemDokudango(TItem *item)
@@ -110,7 +112,16 @@ void ProcItemDokudango(TItem *item)
         {
             return;
         }
-        DISPOSE_ITEM(item);
+        item->mode = ITEM_MODE_DISPOSE;
+        item->proc(item);
+        DeleteConflict(item->locate);
+        if (item->mode != DOKUDANGO_MODE_ROLL)
+        {
+            AdtMessageBox(msg_item_dispose_fail, item->type,
+                          (u32)item->mode);
+        }
+        item->owner.human = 0;
+        item->proc = 0;
         return;
     }
     else
@@ -423,7 +434,16 @@ void ProcItemDokudango(TItem *item)
             {
                 return;
             }
-            DISPOSE_ITEM(item);
+            item->mode = ITEM_MODE_DISPOSE;
+            item->proc(item);
+            DeleteConflict(item->locate);
+            if (item->mode != DOKUDANGO_MODE_ROLL)
+            {
+                AdtMessageBox(msg_item_dispose_fail, item->type,
+                              (u32)item->mode);
+            }
+            item->owner.human = 0;
+            item->proc = 0;
             return;
         }
 

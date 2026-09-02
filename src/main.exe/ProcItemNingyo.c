@@ -75,11 +75,11 @@ extern short DrawModel(ModelType *objp);
  * Clearing the short-lived request pointer after memset breaks the stack-
  * address CSE that otherwise occupies s3.  Reusing the model pointer for its
  * embedded position then makes the derived-address and all three shared
- * modulus-constant sequences exact. Separate base/result conflict pointers
- * and the constant one-shot make the mode-1 address and constant ordering
- * exact. Two unsigned item identities replace the dispose pair and
- * InsertConflict wrapper: together their six flow references keep item above
- * param and preserve the indirect-call delay slots without CFG artifacts. */
+ * modulus-constant sequences exact.  Separate base/result conflict pointers
+ * and INITIALIZE_CONFLICT_OBJECT preserve the mode-1 address and constant
+ * ordering.  The safe disposal statement scope supplies the source-level
+ * loop weight that keeps item/param/sentinel in s3/s4/s5; flattening that
+ * scope rotates all three registers. */
 void ProcItemNingyo(TItem *item)
 {
     enum
@@ -201,26 +201,11 @@ void ProcItemNingyo(TItem *item)
         }
 
     dispose:
-        /* One extra reference to `item`, folded away after flow.c has
-         * already counted it -- allocation staging, not arithmetic. A
-         * second copy of this used to sit before InsertConflict below;
-         * the two were interchangeable and only one is needed. Simpler
-         * identities do not work: x|x, x&x, x^0, x*1 and x+0 all fold
-         * before the count. */
-        item = (TItem *)(((u32)item + (u32)item) - (u32)item);
         if (item->proc == 0)
         {
             return;
         }
-        item->mode = dispose_mode;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != NINGYO_MODE_WAIT)
-        {
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        }
-        item->owner.human = 0;
-        item->proc = 0;
+        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
         return;
 
     draw_mode0:
@@ -233,9 +218,6 @@ void ProcItemNingyo(TItem *item)
     case NINGYO_MODE_GROW:
     {
         s32 new_conflict_id;
-        s32 collision_size;
-        s32 collision_offset_y;
-        ConflictClass conflict_class;
         ConflictObjectType *conflict_pool;
         ConflictObjectType *conflict;
 
@@ -262,26 +244,20 @@ void ProcItemNingyo(TItem *item)
         new_conflict_id = InsertConflict(item->locate);
         conflict_pool = ConflictObject;
         conflict = conflict_pool + new_conflict_id;
-        collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
-        collision_size = NINGYO_COLLISION_SIZE;
-        /* empty one-shot: a sched1 region fence (an emptied debug print
-         * reads the same way -- see DefaultActionHumanoid's header). */
-        do
         {
-        } while (0);
-        conflict->common.tag = CONFLICT_OWNER_ITEM;
-        conflict_class = CONFLICT_STAND | CONFLICT_SOFT;
-        conflict->offset.components.x = 0;
-        conflict->offset.components.z = 0;
-        conflict->offset.components.y = collision_offset_y;
-        conflict->size.components.z = collision_size;
-        conflict->size.components.y = collision_size;
-        conflict->size.components.x = collision_size;
-        conflict->size.components.class_flags = conflict_class;
-        item->collision.mode = conflict_class;
-        item->collision.size = collision_size;
-        item->collision.ofsY = collision_offset_y;
-        item->collision.pause = 0;
+            s32 collision_size;
+            s32 collision_offset_y;
+
+            collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
+            collision_size = NINGYO_COLLISION_SIZE;
+            INITIALIZE_CONFLICT_OBJECT(
+                conflict, collision_size, collision_offset_y,
+                CONFLICT_OWNER_ITEM, CONFLICT_STAND | CONFLICT_SOFT);
+            item->collision.mode = conflict->size.components.class_flags;
+            item->collision.size = collision_size;
+            item->collision.ofsY = collision_offset_y;
+            item->collision.pause = 0;
+        }
         param->count = FIRST_RETARGET_DELAY;
         item->mode++;
         return;

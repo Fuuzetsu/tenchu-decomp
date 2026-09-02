@@ -33,6 +33,9 @@
  *    `if (item->proc == 0) return item;` rather than `goto found;`: with no
  *    drop-specific code after the loop, cc1 emits the return-value move in
  *    the branch's own delay slot instead of falling into shared code.
+ *  - The final teardown stays open-coded: DISPOSE_ITEM's statement scope
+ *    moves the return-value copy below its two clearing stores, while retail
+ *    establishes the returned pointer first.
  */
 
 TItem *GetFreeItemSlot(void)
@@ -52,6 +55,14 @@ TItem *GetFreeItemSlot(void)
         i++;
     } while (i < MAX_ITEMS - 1);
 
-    DISPOSE_ITEM(item);
+    item->mode = ITEM_MODE_DISPOSE;
+    item->proc(item);
+    DeleteConflict(item->locate);
+    if (item->mode != ITEM_MODE_START)
+    {
+        AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
+    }
+    item->owner.human = 0;
+    item->proc = 0;
     return item;
 }

@@ -522,23 +522,45 @@ extern void *memset(void *s, int c, u32 n);
 /* "item dispose fail   id %d  mode %d" */
 extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
 /* The global item pool. */
-/* The item-teardown sequence ITEM.C pastes at every dispose site: run
- * the handler once in dispose mode, drop the collision entry, report a
- * handler that failed to clear its mode, and free the slot. Macro is
- * reconstruction shorthand for that copy-paste (expands to the
- * identical text). */
-#define DISPOSE_ITEM(item)                                                    \
-    item->mode = ITEM_MODE_DISPOSE;                                           \
-    item->proc(item);                                                         \
-    DeleteConflict(item->locate);                                             \
-    if (item->mode != ITEM_MODE_START)                                        \
+/* Run an item's handler once in dispose mode, drop its collision entry,
+ * report a handler that failed to clear the mode, and free the slot.  The
+ * WITH_MODE form preserves a caller's already-live dispose sentinel. */
+#define DISPOSE_ITEM_WITH_MODE(item, dispose_mode)                            \
+    do                                                                        \
     {                                                                         \
-        AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);    \
-    }                                                                         \
-    item->owner.human = 0;                                                    \
-    item->proc = 0;
+        item->mode = dispose_mode;                                            \
+        item->proc(item);                                                     \
+        DeleteConflict(item->locate);                                         \
+        if (item->mode != ITEM_MODE_START)                                    \
+        {                                                                     \
+            AdtMessageBox(msg_item_dispose_fail, item->type,                  \
+                          (u32)item->mode);                                    \
+        }                                                                     \
+        item->owner.human = 0;                                                \
+        item->proc = 0;                                                       \
+    } while (0)
+
+#define DISPOSE_ITEM(item) DISPOSE_ITEM_WITH_MODE(item, ITEM_MODE_DISPOSE)
 
 #define MAX_ITEMS 30
+
+/* Initialize one cubic conflict record.  The caller owns any corresponding
+ * gameplay object's cached collision metadata. */
+#define INITIALIZE_CONFLICT_OBJECT(conflict, sz, ofs_y, owner_tag, cmode)      \
+    do                                                                        \
+    {                                                                         \
+        ConflictClass conflict_class_;                                        \
+                                                                              \
+        (conflict)->common.tag = owner_tag;                                   \
+        conflict_class_ = cmode;                                              \
+        (conflict)->offset.components.x = 0;                                  \
+        (conflict)->offset.components.z = 0;                                  \
+        (conflict)->offset.components.y = ofs_y;                              \
+        (conflict)->size.components.z = sz;                                   \
+        (conflict)->size.components.y = sz;                                   \
+        (conflict)->size.components.x = sz;                                   \
+        (conflict)->size.components.class_flags = conflict_class_;            \
+    } while (0)
 
 /* Register an item's cubic conflict box and owner tag, then mirror it into
  * the item's own collision record — the block every armed item pastes after
