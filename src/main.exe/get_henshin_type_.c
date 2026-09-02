@@ -31,5 +31,5 @@ u8 get_henshin_type_(short chr, short idx)
     int flag;
 
     flag = (chr == AYAME_0);
-    return HensinT[idx].type[flag];
+    return HensinT[idx][flag];
 }

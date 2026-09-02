@@ -329,10 +329,8 @@ extern HenshinModelSnapshot HenshinSnapshot;
  * guards), then the stage's own faction — Manji cultists, tengu, oni,
  * kabane, kerai, asigaru, sisi. */
 #define N_HENSHIN_STAGE_ROWS (N_STAGE_CONFIGS + 1)
-extern struct
-{
-    compact_character_kind type[N_PLAYABLE_CHARACTERS];
-} HensinT[N_HENSHIN_STAGE_ROWS];
+extern compact_character_kind
+    HensinT[N_HENSHIN_STAGE_ROWS][N_PLAYABLE_CHARACTERS];
 
 typedef struct Humanoid
 {

@@ -45,7 +45,7 @@ void create_ninken_character_(s16 type, s32 stage)
         s32 flag;
 
         flag = (type == AYAME_0);
-        human = BreedLife(HensinT[(s16)stage].type[flag],
+        human = BreedLife(HensinT[(s16)stage][flag],
                           NINKEN_PARK_POS, NINKEN_PARK_POS, NINKEN_PARK_POS, 0);
         model = human->model;
         saved = &HenshinSnapshot;
