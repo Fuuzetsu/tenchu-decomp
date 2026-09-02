@@ -266,7 +266,7 @@ draw_done:
         return;
     }
     if ((human->attribute & ATTR_PHASE) != PHASE_ALERT &&
-        (human->target.archive == StagePlayer->model ||
+        (human->target == (ModelType *)StagePlayer->model ||
          human->motion->mid == MOT_ACTION))
     {
         return;
@@ -276,8 +276,8 @@ draw_done:
                     human->model->object[MODEL_PART_TORSO]->rotate.vy +
                     human->rotate->vy;
     direction = GetDirection(
-        human->target.model->locate.coord.t[0] - human->locate->vx,
-        human->target.model->locate.coord.t[2] - human->locate->vz,
+        human->target->locate.coord.t[0] - human->locate->vx,
+        human->target->locate.coord.t[2] - human->locate->vz,
         (s16)rotation_pair);
     magnitude = direction >= 0 ? direction : -direction;
     if (magnitude >= 1800)
@@ -295,7 +295,7 @@ draw_done:
         head->rotate.vy = direction;
     }
 
-    direction = (human->target.model->locate.coord.t[1] - human->locate->vy) / 2;
+    direction = (human->target->locate.coord.t[1] - human->locate->vy) / 2;
     if (direction != 0)
     {
         if (direction >= -500)

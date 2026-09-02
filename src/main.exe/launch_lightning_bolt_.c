@@ -13,7 +13,7 @@
  * (Me_MOTION_C->model->object[0xd], the same item-TU Humanoid/ModelArchiveType
  * used by publish_ground_point_/NowReturnNormal/dispose_weapon_data_of_char_) towards
  * the target, landing at the target's actual height
- * (Me_MOTION_C->target.model->locate.coord.t[1] — the Y translation of its world
+ * (Me_MOTION_C->target->locate.coord.t[1] — the Y translation of its world
  * matrix) rather than a computed offset.
  *
  * This descriptive retail name is intentional (launches Mei-Oh's lightning
@@ -51,7 +51,7 @@ void launch_lightning_bolt_(s16 frame)
         p.start.vz = start_pos->vz;
         GetMoveSpeed(&move, dtR->vy, ((rand() % 5) * 1000 + 4000), 0);
         p.end.vx = start_pos->vx + move.vx;
-        p.end.vy = Me_MOTION_C->target.model->locate.coord.t[1];
+        p.end.vy = Me_MOTION_C->target->locate.coord.t[1];
         p.end.vz = start_pos->vz + move.vz;
         ReqItemUse(&p);
     }

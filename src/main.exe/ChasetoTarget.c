@@ -46,13 +46,13 @@ short ChasetoTarget(long length)
     /* chase is formed before the target guard: byte-required (the addiu
      * fills the branch's delay slot; measured). */
     chase = &me->chase.point[HUMANOID_CHASE_X];
-    if (me->target.model == 0)
+    if (me->target == 0)
     {
         return 0;
     }
 
-    xx = me->target.model->locate.coord.t[0] + me->chase.point[HUMANOID_CHASE_X] - me->locate->vx;
-    zz = me->target.model->locate.coord.t[2] + chase[HUMANOID_CHASE_Z] - me->locate->vz;
+    xx = me->target->locate.coord.t[0] + me->chase.point[HUMANOID_CHASE_X] - me->locate->vx;
+    zz = me->target->locate.coord.t[2] + chase[HUMANOID_CHASE_Z] - me->locate->vz;
 
     if (((xx >= 0 ? xx : -xx) < 500 &&
          (zz >= 0 ? zz : -zz) < 500) ||

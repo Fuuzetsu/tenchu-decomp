@@ -157,7 +157,7 @@ void AddEnemy(void)
         CurrentEnemyID = leSetEnemy(type, think, x, y, z, r);
         human = BreedLife(type, x, y, z, 0);
         human->model->rotate.vy = r;
-        human->target.archive = CamState.Owner->model;
+        human->target = (ModelType *)CamState.Owner->model;
 
         memset(&spot, 0, sizeof(VECTOR));
         spot.vx = human->model->locate.coord.t[0];

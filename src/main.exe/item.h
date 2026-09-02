@@ -151,15 +151,8 @@ extern struct
     compact_character_kind type[N_PLAYABLE_CHARACTERS];
 } HensinT[N_HENSHIN_STAGE_ROWS];
 
-/* A humanoid can pursue either another articulated character model or a
- * standalone item model.  Both begin with the transform consumed by the
- * target-tracking code. */
-typedef union HumanoidTargetReference HumanoidTargetReference;
-union HumanoidTargetReference
-{
-    ModelType *model;
-    ModelArchiveType *archive;
-}; /* 0x04 */
+/* Target tracking only needs the common ModelType transform prefix. Character
+ * model archives share that prefix and are cast when installed as targets. */
 
 /* THINK handlers use these two words as an X/Z navigation point. A dead
  * humanoid no longer navigates, so spread_blood_pool_ reuses the first word
@@ -199,9 +192,7 @@ typedef struct Humanoid
     TraceLine *trace;         /* 0x70 (SetupTraceLine/ControlTraceLine;
                                  Ghidra's own independently-built Humanoid
                                  also names this exact offset `trace`) */
-    HumanoidTargetReference target; /* 0x74 (launch_lightning_bolt_
-                                       reads target.model's world Y for a
-                                       lightning-bolt end point) */
+    ModelType *target;        /* 0x74 (PSX.SYM's original field type) */
     s32 point[2];             /* 0x78 (ground X/Z spawn position --
                                  BreedLife: point[0]=x via `sw a1,0x78(s0)`,
                                  point[1]=z via `sw s4,0x7C(s0)`; matches

@@ -120,7 +120,7 @@ event_found:
     if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = ACTION_HALT_ACTIVE;
     MotionUpdateMode = 1;
-    StagePlayer->target.model = 0;
+    StagePlayer->target = 0;
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     PadShock(PAD_PORT_1, 0, 0);
     PadProc();

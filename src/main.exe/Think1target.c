@@ -53,7 +53,7 @@ s16 Think1target(void)
     s16 pad;
     s32 distance;
 
-    if (Me_THINK_C->target.model == NULL)
+    if (Me_THINK_C->target == NULL)
     {
 
         pad = 0;
@@ -110,7 +110,7 @@ s16 Think1target(void)
                 {
                     s32 alert_time;
 
-                    Me_THINK_C->target.archive = StagePlayer->model;
+                    Me_THINK_C->target = (ModelType *)StagePlayer->model;
                     Attrib = (Attrib & (u16)~ATTR_PHASE) | PHASE_ALERT;
                     SetNowMotion(Me_THINK_C, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
                     Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
@@ -122,8 +122,8 @@ s16 Think1target(void)
         }
     }
 
-    vx = Me_THINK_C->target.model->locate.coord.t[0] - Me_THINK_C->locate->vx;
-    vz = Me_THINK_C->target.model->locate.coord.t[2] - Me_THINK_C->locate->vz;
+    vx = Me_THINK_C->target->locate.coord.t[0] - Me_THINK_C->locate->vx;
+    vz = Me_THINK_C->target->locate.coord.t[2] - Me_THINK_C->locate->vz;
     distance = SquareRoot0(vx * vx + vz * vz);
     if (distance < 200)
     {
@@ -133,7 +133,7 @@ s16 Think1target(void)
     {
         s32 dy;
 
-        dy = __builtin_abs(Me_THINK_C->target.model->locate.coord.t[1] - Me_THINK_C->locate->vy);
+        dy = __builtin_abs(Me_THINK_C->target->locate.coord.t[1] - Me_THINK_C->locate->vy);
 
         if (dy <= 2000)
         {

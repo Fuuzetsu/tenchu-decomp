@@ -92,14 +92,14 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 
     position = *human->locate;
     n = 1;
-    if (human->target.model == 0)
+    if (human->target == 0)
     {
         return 0;
     }
 
-    vect.vx = human->target.model->locate.coord.t[0] - position.vx;
-    vect.vy = human->target.model->locate.coord.t[1] - position.vy;
-    vect.vz = human->target.model->locate.coord.t[2] - position.vz;
+    vect.vx = human->target->locate.coord.t[0] - position.vx;
+    vect.vy = human->target->locate.coord.t[1] - position.vy;
+    vect.vz = human->target->locate.coord.t[2] - position.vz;
     *distance = SquareRoot0(vect.vx * vect.vx + vect.vy * vect.vy +
                             vect.vz * vect.vz);
 
