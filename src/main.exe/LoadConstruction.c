@@ -468,11 +468,7 @@ short LoadConstruction(u_long *data)
                 long a = mma->object[i]->locate.coord.t[0];
                 long q;
 
-                msize =
-                    /* parent * -14 spelled as the compiler's own
-                     * strength-reduction chain: byte-required (the folded
-                     * multiply mismatches; measured). */
-                    (parent - parent * 8) * 2;
+                msize = -parent * 14;
                 if (a >= 0)
                     q = a / CONSTRUCTION_CELL;
                 else
