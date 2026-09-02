@@ -128,14 +128,14 @@ short AttackGeneral(void)
         return (rand() % (EngageLevel + 1) != 0) ? PADLdown : 0;
     }
 
-    if (Me_THINK_C->actmode.melee == MELEE_ATTACK_CLOSING)
+    if (Me_THINK_C->actmode == MELEE_ATTACK_CLOSING)
     {
         s32 deg;
 
         pad = ChasetoTarget(3000);
         if (pad == 0 || (Attrib & ATTR_HIT) != 0)
         {
-            Me_THINK_C->actmode.melee = MELEE_ATTACK_ENGAGED;
+            Me_THINK_C->actmode = MELEE_ATTACK_ENGAGED;
         }
         if (Distance > 5000)
         {
@@ -183,7 +183,7 @@ short AttackGeneral(void)
 
         /* Mid-sequence alias + mixed spellings: byte-required (measured in
          * AttackLong's identical block). */
-        Me_THINK_C->actmode.melee = MELEE_ATTACK_CLOSING;
+        Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
         me = Me_THINK_C;
         Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
         me->chase.point[HUMANOID_CHASE_X] = 0;
@@ -193,7 +193,7 @@ short AttackGeneral(void)
 
     if ((Attrib & ATTR_WALL) != 0)
     {
-        Me_THINK_C->actmode.melee = MELEE_ATTACK_CLOSING;
+        Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
     }
 
     if (Degree > 500)

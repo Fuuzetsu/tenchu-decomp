@@ -59,16 +59,6 @@ enum animal_attack_timing
     ANIMAL_ATTACK_FULL_STEER_FRAME = 90
 };
 
-/* The original actmode byte is deliberately overloaded by two unrelated
- * THINK_3 controllers. Expose both interpretations without widening the
- * Humanoid layout. */
-typedef union HumanoidActionMode HumanoidActionMode;
-union HumanoidActionMode
-{
-    melee_attack_phase melee;
-    animal_attack_timer animal_timer;
-}; /* 0x01 */
-
 /* Long-running item effects recorded in Humanoid.itmctl by ITEM.C. Zero is
  * the inactive sentinel here, not ITEM_KAGINAWA; only these three item kinds
  * are ever installed in the field. */
@@ -218,7 +208,7 @@ typedef struct Humanoid
                                  Ghidra's own independently-built Humanoid's
                                  `long point[2]` at this offset) */
     HumanoidChaseState chase; /* 0x80: navigation point / blood-pool timer */
-    HumanoidActionMode actmode; /* 0x88: controller-specific progress */
+    u8 actmode;                /* 0x88: controller-specific progress */
     u8 actflg;                /* 0x89 */
     /* Free-running idle counter for the Think1* wander states. It only
      * advances while the character is NOT acting: the act phase is the

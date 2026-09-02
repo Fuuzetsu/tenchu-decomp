@@ -125,12 +125,12 @@ short AttackLong(void)
         return (rand() % (EngageLevel + 1) != 0) ? PADLdown : 0;
     }
 
-    if (Me_THINK_C->actmode.melee == MELEE_ATTACK_CLOSING)
+    if (Me_THINK_C->actmode == MELEE_ATTACK_CLOSING)
     {
         pad = ChasetoTarget(3000);
         if (pad == 0 || (Attrib & ATTR_HIT) != 0)
         {
-            Me_THINK_C->actmode.melee = MELEE_ATTACK_ENGAGED;
+            Me_THINK_C->actmode = MELEE_ATTACK_ENGAGED;
         }
         if (Me_THINK_C->motion->count == 0)
         {
@@ -170,7 +170,7 @@ short AttackLong(void)
 
         /* The mid-sequence alias and mixed spellings are byte-required
          * (uniform spelling recolors the stores; measured). */
-        Me_THINK_C->actmode.melee = MELEE_ATTACK_CLOSING;
+        Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
         me = Me_THINK_C;
         Me_THINK_C->chase.point[HUMANOID_CHASE_Z] = 0;
         me->chase.point[HUMANOID_CHASE_X] = 0;
@@ -180,7 +180,7 @@ short AttackLong(void)
 
     if ((Attrib & ATTR_WALL) != 0)
     {
-        Me_THINK_C->actmode.melee = MELEE_ATTACK_CLOSING;
+        Me_THINK_C->actmode = MELEE_ATTACK_CLOSING;
     }
 
     if (Degree > 300)

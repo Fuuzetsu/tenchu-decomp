@@ -22,7 +22,7 @@
 /*
  * AttackAnimal (0x8002f170, 0xe4 bytes) — animal-enemy attack-decision
  * think-helper, returning a synthesized pad word: while attacking or
- * jumping (status 7/9) it resets `actmode.animal_timer` and returns 0.
+ * jumping (status 7/9) it resets `actmode` and returns 0.
  * Close AND
  * already facing the player (Distance < 2000, |Degree| < 200) it bites —
  * a plain Square press (PADRleft) without touching the timer. Otherwise
@@ -77,7 +77,7 @@ short AttackAnimal(void)
 
     if (Me_THINK_C->status == STAT_ATTACK || Me_THINK_C->status == STAT_JUMP)
     {
-        Me_THINK_C->actmode.animal_timer = ANIMAL_ATTACK_TIMER_RESET;
+        Me_THINK_C->actmode = ANIMAL_ATTACK_TIMER_RESET;
         return 0;
     }
     if (Distance < 2000)
@@ -92,9 +92,9 @@ short AttackAnimal(void)
             return PADRleft; /* bite */
         }
     }
-    Me_THINK_C->actmode.animal_timer++;
+    Me_THINK_C->actmode++;
     pad = GotoPosition(0, 0);
-    am = Me_THINK_C->actmode.animal_timer;
+    am = Me_THINK_C->actmode;
     if (am < ANIMAL_ATTACK_NOTICE_FRAME)
     {
         pad = PADLup;
