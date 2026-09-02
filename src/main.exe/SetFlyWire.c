@@ -38,28 +38,7 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
     int dist;
     int result;
 
-    idx = EFFECT_CURSOR_;
-    i = 0;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        i++;
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-    } while (i < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, i, slot, found);
 
 found:
     param = &slot->param.flywire;

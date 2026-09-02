@@ -38,28 +38,7 @@ void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
     SnowParticleType *particle;
     s16 vz;
 
-    idx = EFFECT_CURSOR_;
-    count = 0;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     slot->param.snow.x = pos->vx;
     particle = &slot->param.snow;

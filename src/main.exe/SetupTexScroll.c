@@ -23,9 +23,9 @@
  * that draws a small animated 2x2-cell water/warp tile grid from a texture
  * page (AddMisc.c passes the just-uploaded TIM's own GsIMAGE plus the two
  * retail scroll velocities). It uses the same round-robin EffectSlot[200]
- * pool search as SetSplash/SetFrame/SetBleed/SetSmoke (see
- * SetSplash.c for the shared indexed do-while idiom). Loop strength reduction
- * creates the target's scan pointer from direct `EffectSlot[idx]` accesses.
+ * pool search as SetSplash/SetFrame/SetBleed/SetSmoke. FIND_EFFECT_SLOT keeps
+ * that shared indexed do-while in one place; loop strength reduction creates
+ * the target's scan pointer from its direct `EffectSlot[idx]` accesses.
  *
  * The found slot's `texscroll` payload is retail's shortened form of the
  * PSX.SYM TexScroll record: it keeps px/py, vx/vy, x/y, sx/sy, and image,
@@ -83,28 +83,7 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
     short j;
     short i;
 
-    idx = EFFECT_CURSOR_;
-    count = 0;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
 {
     u32 scrollYShifted;

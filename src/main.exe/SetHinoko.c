@@ -29,14 +29,10 @@
  *  - Unlike SetBlood in the same TU, retail keeps PSX.SYM's exact
  *    THREE-argument prototype (pos, power, n) — all three registers
  *    ($a0/$a1/$a2) are read at entry and no parameter was dropped.
- *  - Same EffectSlot[200] round-robin search as SetBlood/SetExplosion/
- *    SetImpact (do-while, `slot = &dmy;` sits AFTER the loop). Direct
- *    `EffectSlot[idx]` accesses let loop strength reduction generate the
- *    target's scan pointer instead of exposing that compiler cursor in the source. This
- *    function's own asm has `count = count + 1;` BEFORE the
- *    `if (EffectSlot[idx].proc == 0)` test (the "occupied" branch's delay slot
- *    unconditionally increments count) — SetExplosion's order, not
- *    SetImpact's.
+ *  - FIND_EFFECT_SLOT is the same round-robin search used by SetBlood,
+ *    SetExplosion, and SetImpact. Its direct `EffectSlot[idx]` access lets
+ *    loop strength reduction generate the target's scan pointer instead of
+ *    exposing that compiler cursor in the source.
  *  - The outer "spawn n particles" fill is `while (1) { if (!(i < n)) break;
  *    ...; i++; }`, NOT a hand-rolled goto (that put the generated pool base in
  *    $s3 and shifted every parameter register up by one — 55 bytes of cascade).
@@ -79,28 +75,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         {
             break;
         }
-        count = 0;
-        idx = EFFECT_CURSOR_;
-        do
-        {
-            idx++;
-        if (idx >= N_EFFECT_SLOTS)
-            {
-                idx = 0;
-            }
-            count++;
-            if (EffectSlot[idx].proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                slot = &EffectSlot[idx];
-                goto found;
-            }
-        } while (count < N_EFFECT_SLOTS);
-        slot = &dmy;
+        FIND_EFFECT_SLOT(idx, count, slot, found);
     found:
         param = &slot->param.hinoko;
         param->scale = rand() % FIXED_ONE + FIXED_ONE;

@@ -44,10 +44,10 @@ extern void DrawBleed(TEffectSlot *ef);
  * materializes both bank bases independently. The named base_x/y/z values
  * prevent reassociation of `(position - 60) + rand()%120`,
  * and the full-width `green` local preserves the target's li 0x7f10 before a
- * byte store. The pool's iteration count is PSX.SYM's `i`; direct
- * `EffectSlot[cursor]` accesses let loop strength reduction create the
- * machine-level scan pointer, while `slot` carries only the found/fallback result. The
- * retained `velocity` pointer is also a
+ * byte store. The pool's iteration count is PSX.SYM's `i`;
+ * FIND_EFFECT_SLOT's direct `EffectSlot[cursor]` access lets loop strength
+ * reduction create the machine-level scan pointer, while `slot` carries only
+ * the found/fallback result. The retained `velocity` pointer is also a
  * measured aggregate-copy boundary: spelling its destination directly costs
  * 15 diff lines.
  */
@@ -257,31 +257,9 @@ void DrawGore(TEffectSlot *ef)
         ((SVECTOR *)&temporary)->vz = param->vz / 2;
         *velocity = *(SVECTOR *)&temporary;
 
-        cursor = EFFECT_CURSOR_;
-        i = 0;
-        do
-        {
-            cursor++;
-            if (cursor >= N_EFFECT_SLOTS)
-            {
-                cursor = 0;
-            }
-            i++;
-            if (EffectSlot[cursor].proc == 0)
-            {
-                slot = &EffectSlot[cursor];
-                EFFECT_CURSOR_ = cursor + 1;
-                bleed = &slot->param.bleed;
-                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                goto bleed_found;
-            }
-        } while (i < N_EFFECT_SLOTS);
-        slot = &dmy;
-        bleed = &dmy.param.bleed;
+        FIND_EFFECT_SLOT(cursor, i, slot, bleed_found);
     bleed_found:
+        bleed = &slot->param.bleed;
         slot->param.bleed.pos = position;
         slot->param.bleed.vec = *velocity;
         bleed->time = 7;

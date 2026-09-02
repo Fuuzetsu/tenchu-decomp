@@ -29,17 +29,16 @@
  * root-caused in the gcc-2.8.1 sources with -da RTL dumps — see the cookbook's
  * "loop.c invariant motion is a THRESHOLD economy" section, which this
  * function established):
- *  - Same EffectSlot[200] pool search shape as SetExplosion (do{...}while
- *    (count<200), slot=&dmy AFTER the loop, count++ BEFORE the proc test),
- *    wrapped in an OUTER `do { ... } while (1);` spawning n particles.
- *  - The source indexes `EffectSlot[idx]` directly. Loop strength reduction
+ *  - FIND_EFFECT_SLOT supplies the same pool search as SetExplosion, wrapped
+ *    in an outer `do { ... } while (1);` that spawns n particles.
+ *  - The macro indexes `EffectSlot[idx]` directly. Loop strength reduction
  *    creates one long-lived array-base pseudo, and loop.c hoists its
  *    `lui/addiu` pair into the prologue with the base cached in $s7. The old
  *    source-level `base = EffectSlot` alias was redundant: removing the
  *    declaration, assignment, and every use together preserves the bytes.
  *    The two generated address moves still decay loop.c's move threshold by 3
  *    each
- *    (move_movables: `threshold -= 3` per move), which is EXACTLY what keeps
+ *    (move_movables: `threshold -= 3` per move), which is what keeps
  *    the `time<<16` chain of the bright line un-hoisted later (29 → 23 after
  *    address pair, then the %100 magic; 23*2*3 < 153). Partially rewriting
  *    the scan changes this economy; the whole direct-array graph does not.
@@ -47,13 +46,11 @@
  *    which extension is emitted first (op0 then op1): i-first puts n's
  *    sign-extension pair immediately before the slt, giving it lifetime 2 —
  *    under loop.c's move formula (threshold*savings*lifetime >= insn_count,
- *    29*2*2=116 < 153) it stays IN the loop, where combine folds both
+ *    29*2*2=116 < 153) it stays in the loop, where combine folds both
  *    extensions into the no-sra `sll v0,i,16 / sll v1,n,16 / slt` compare and
  *    `n` stays RAW in $fp. The reversed spelling `if (n <= i)` gives n's pair
  *    lifetime 4 (29*2*4=232 >= 153): loop.c hoists the widening into a
  *    callee-saved register and the compare degrades to sll/sra/slt.
- *  - `count = 0;` is the first statement before the guard; it lands in the
- *    guard's branch delay slot (`beqz / addu a1,zero,zero`).
  *  - `i` must be `short` (PSX.SYM: `reg $s4 short i`) for the double-shift
  *    HImode compare idiom.
  *  - SmokeType reuses ExplosionType's vec@0x0/pos@0x8/rotate@0x18/scale@0x1c
@@ -86,32 +83,11 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
     i = 0;
     do
     {
-        count = 0;
         if (i >= n)
         {
             return;
         }
-        idx = EFFECT_CURSOR_;
-        do
-        {
-            idx++;
-        if (idx >= N_EFFECT_SLOTS)
-            {
-                idx = 0;
-            }
-            count++;
-            if (EffectSlot[idx].proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                slot = &EffectSlot[idx];
-                goto found;
-            }
-        } while (count < N_EFFECT_SLOTS);
-        slot = &dmy;
+        FIND_EFFECT_SLOT(idx, count, slot, found);
     found:
         smoke = &slot->param.smoke;
         r = rand();

@@ -48,16 +48,11 @@
  *    instructions. The complete outer-loop/direct-array graph below keeps
  *    both computations at their source use sites without a hand-written
  *    back edge or an artificial inner one-shot scope.
- *  - The inner EffectSlot[200] search is the same round-robin do-while as
- *    SetExplosion/SetImpact (`slot = &dmy;` sits AFTER the loop). Direct
- *    `EffectSlot[idx]` expressions let loop strength reduction create the
- *    pointer walk visible in the target while preserving PSX.SYM's single
- *    result pointer, `slot`. Verified
- *    from THIS function's own asm (don't assume a sibling's shape): the
- *    "occupied" branch's delay slot unconditionally increments `count`
- *    regardless of outcome, so `count = count + 1;` sits BEFORE the
- *    `if (EffectSlot[idx].proc == 0)` test — SetExplosion's order, not
- *    SetImpact's.
+ *  - The inner search uses FIND_EFFECT_SLOT, preserving PSX.SYM's single
+ *    result pointer, `slot`. Its direct `EffectSlot[idx]` expression lets
+ *    loop strength reduction create the pointer walk visible in the target.
+ *    The old apparent counter/test ordering difference from SetImpact was a
+ *    scheduler artifact; the shared expansion matches both functions.
  *  - The per-particle initializer stores sprite,
  *    scale, rotate, px, py, pz, vx, vy, vz, time (branch), `i++`, a
  *    brightness halfword store, hint, mode, and `proc` last (it lands in
@@ -91,28 +86,7 @@ void SetBlood(VECTOR *pos, short n, short time)
         {
             return;
         }
-        count = 0;
-        idx = EFFECT_CURSOR_;
-        do
-        {
-            idx++;
-            if (idx >= N_EFFECT_SLOTS)
-            {
-                idx = 0;
-            }
-            count++;
-            if (EffectSlot[idx].proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                slot = &EffectSlot[idx];
-                goto found;
-            }
-        } while (count < N_EFFECT_SLOTS);
-        slot = &dmy;
+        FIND_EFFECT_SLOT(idx, count, slot, found);
     found:
         blood = &slot->param.blood;
         blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;

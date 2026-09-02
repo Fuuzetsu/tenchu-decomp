@@ -22,10 +22,10 @@
 
 /*
  * Matching notes (all verified against the original bytes):
- *  - The effect-slot pool search is a bottom-tested do-while over
- *    `EffectSlot[idx]`. Loop strength reduction creates the target's pointer/index
- *    lockstep; neither that scan pointer nor a second result alias belongs in
- *    the source. The pool-full `slot = &dmy` assignment follows the loop.
+ *  - FIND_EFFECT_SLOT expands to a bottom-tested do-while over
+ *    `EffectSlot[idx]`. Loop strength reduction creates the target's
+ *    pointer/index lockstep; neither that scan pointer nor a second result
+ *    alias belongs in the source. The pool-full fallback follows the loop.
  *  - The free-slot cursor-update code (store back to the pool cursor) lives
  *    INSIDE the `if (EffectSlot[idx].proc == 0) { ... }` body, not
  *    after a bare `if (proc==0) break;` — that's what gives the occupied path
@@ -53,28 +53,7 @@ void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)
     BleedType *param;
     u8 r;
 
-    idx = EFFECT_CURSOR_;
-    count = 0;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     param = &slot->param.bleed;
     r = col >> 16;

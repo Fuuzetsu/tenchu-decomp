@@ -27,9 +27,10 @@ extern void DrawImpact(TEffectSlot *ef);
  * are a retail redesign; the source identity is established by adjacency and
  * by installing DrawGore as the effect callback.
  *
- * The two EffectSlot searches intentionally use distinct scoped locals. Each
- * indexes its pool directly; loop strength reduction creates the scan pointer
- * seen in the target, while the named slot is only the found/fallback result.
+ * The two FIND_EFFECT_SLOT calls intentionally use distinct scoped locals.
+ * Each expansion indexes the pool directly; loop strength reduction creates
+ * the scan pointer seen in the target, while the named slot is only the
+ * found/fallback result.
  * The first generated cursor coalesces with the BloodType pointer in $s0;
  * keeping one source cursor live through both searches rotates nearly every
  * scan register.
@@ -73,28 +74,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         int gore_slots_searched;
         BloodType *gore;
 
-        gore_slots_searched = 0;
-        gore_index = EFFECT_CURSOR_;
-        do
-        {
-            gore_index++;
-            if (gore_index >= N_EFFECT_SLOTS)
-            {
-                gore_index = 0;
-            }
-            if (EffectSlot[gore_index].proc == 0)
-            {
-                EFFECT_CURSOR_ = gore_index + 1;
-                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                gore_slot = &EffectSlot[gore_index];
-                goto gore_found;
-            }
-            gore_slots_searched++;
-        } while (gore_slots_searched < N_EFFECT_SLOTS);
-        gore_slot = &dmy;
+        FIND_EFFECT_SLOT(gore_index, gore_slots_searched, gore_slot, gore_found);
     gore_found:
         gore = &gore_slot->param.blood;
         gore->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
@@ -130,29 +110,9 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         end_color = COLOR_GRAY;
         impact_position.vx = local_position->vx;
         impact_position.vy = local_position->vy;
-        impact_slots_searched = 0;
         impact_position.vz = local_position->vz;
-        impact_index = EFFECT_CURSOR_;
-        do
-        {
-            impact_index++;
-            if (impact_index >= N_EFFECT_SLOTS)
-            {
-                impact_index = 0;
-            }
-            if (EffectSlot[impact_index].proc == 0)
-            {
-                EFFECT_CURSOR_ = impact_index + 1;
-                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                impact_slot = &EffectSlot[impact_index];
-                goto impact_found;
-            }
-            impact_slots_searched++;
-        } while (impact_slots_searched < N_EFFECT_SLOTS);
-        impact_slot = &dmy;
+        FIND_EFFECT_SLOT(impact_index, impact_slots_searched,
+                         impact_slot, impact_found);
     impact_found:
         impact_slot->proc = DrawImpact;
         impact_slot->param.impact.px = impact_position.vx;

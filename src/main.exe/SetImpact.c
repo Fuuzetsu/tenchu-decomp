@@ -70,28 +70,7 @@ void SetImpact(VECTOR *pos, short size, short type)
     spd = rand() % 90 + 90;
     start_color = COLOR_GRAY;
     end_color = COLOR_GRAY;
-    count = 0;
-    idx = EFFECT_CURSOR_;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     slot->proc = DrawImpact;
     slot->param.impact.px = pos->vx;

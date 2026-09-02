@@ -8,13 +8,11 @@
  * divides the particle velocity by `divisor` before handing it to DrawSmoke.
  *
  * Matching notes:
- *  - The outer infinite loop and the bottom-tested EffectSlot search mirror
- *    the PSX.SYM-backed SetSmoke sibling. Direct `EffectSlot[idx]` expressions
- *    let loop strength reduction create the target's pool walk; this complete
+ *  - The outer infinite loop and FIND_EFFECT_SLOT mirror the PSX.SYM-backed
+ *    SetSmoke sibling. The macro's direct `EffectSlot[idx]` expression lets
+ *    loop strength reduction create the target's pool walk; this complete
  *    loop/array shape also keeps the spread and divisor extensions at their
  *    use sites instead of hoisting them into the prologue.
- *  - Keeping the pool-full fallback after the scan reproduces the target's
- *    delay-slot increment and compensating decrement.
  *  - Compute the first spread width before taking `&slot->param.smoke`, then put
  *    the positive-width body first. This places the pointer formation in the
  *    branch delay slot and gives both spread arms their target layout.
@@ -43,32 +41,11 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
     i = 0;
     do
     {
-        searched = 0;
         if (i >= count)
         {
             return;
         }
-        idx = EFFECT_CURSOR_;
-        do
-        {
-            idx++;
-            if (idx >= N_EFFECT_SLOTS)
-            {
-                idx = 0;
-            }
-            if (EffectSlot[idx].proc == 0)
-            {
-                EFFECT_CURSOR_ = idx + 1;
-                if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-                {
-                    EFFECT_CURSOR_ = 0;
-                }
-                slot = &EffectSlot[idx];
-                goto found;
-            }
-            searched++;
-        } while (searched < N_EFFECT_SLOTS);
-        slot = &dmy;
+        FIND_EFFECT_SLOT(idx, searched, slot, found);
     found:
         {
             int width;

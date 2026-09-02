@@ -24,20 +24,11 @@
 
 /*
  * Matching notes (all verified against the original bytes):
- *  - Same EffectSlot[200] pool search as SetImpact (see its header): a
- *    real `do { ... } while (count < N_EFFECT_SLOTS);`, not a hand-rolled goto — the
- *    give-up path's `slot = &dmy;` sits AFTER the loop, not inside it, so
- *    loop.c doesn't get a chance to hoist that address. The source indexes
- *    `EffectSlot[idx]`; loop strength reduction creates the target's scan
- *    pointer.
- *  - UNLIKE SetImpact, `count = count + 1;` here comes BEFORE the
- *    `if (slot->proc == 0)` test, not after (both Ghidra's own rendering
- *    and the raw asm's delay-slot fill agree: the branch testing
- *    `EffectSlot[idx].proc` has `count++` in its delay slot, executed regardless of
- *    outcome — only possible if count++ is the statement immediately
- *    preceding the if in source). Each EffectSlot-pool inserter in this TU
- *    apparently wrote this test/increment order slightly differently;
- *    don't assume one sibling's shape for another without checking.
+ *  - This uses the shared FIND_EFFECT_SLOT operation. Its bottom-tested loop,
+ *    direct `EffectSlot[idx]` access, and post-loop fallback give loop.c the
+ *    pointer walk and exhausted-pool path visible in the target. The former
+ *    apparent difference in counter/test order was only instruction
+ *    scheduling; the common expansion matches this function exactly.
  *  - `slot->param` is `ExplosionType` (see DrawExplosion.c/DrawHinoko.c):
  *    Ghidra's `blood.py/pz/scale` and `smoke.*` names are its own wrong
  *    union guess for the same proven offsets (pos@0x8, vec@0x0, time@0x20,
@@ -69,28 +60,7 @@ void SetExplosion(VECTOR *pos, SVECTOR *vect)
     int r;
     short vz;
 
-    count = 0;
-    idx = EFFECT_CURSOR_;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        count++;
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     param = &slot->param.explosion;
     param->scale = FIXED_ONE;

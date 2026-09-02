@@ -25,9 +25,9 @@
  * search shape recurs in SetSplash/SetBleed and every other EffectSlot
  * inserter — see effect.h and this function's comments for the reusable
  * idioms):
- *  - The pool search is a real bottom-tested do-while over `EffectSlot[idx]`.
- *    Loop strength reduction creates the target's scan pointer and wrap reset;
- *    `slot` is only the found/fallback result.
+ *  - FIND_EFFECT_SLOT is a real bottom-tested do-while over
+ *    `EffectSlot[idx]`. Loop strength reduction creates the target's scan
+ *    pointer and wrap reset; `slot` is only the found/fallback result.
  *  - The free-slot cursor-update store lives INSIDE
  *    `if (EffectSlot[idx].proc == 0) { ... }`, not after a bare
  *    `if (proc==0) break;` with the update code after the loop — only the
@@ -53,28 +53,7 @@ void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
     int count;
     FrameType *fp;
 
-    idx = EFFECT_CURSOR_;
-    count = 0;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     fp = &slot->param.frame;
     fp->px = pos->vx;

@@ -28,8 +28,8 @@
  *  - `m = smoke->time - 1` must remain its own statement, as in SetSmoke.
  *    Inlining it lets fold reassociate the subtraction into `sum + 1`, moving
  *    the addiu to the wrong side of the final expression.
- *  - The pool scan uses the SetSmoke/SetExplosion round-robin do-while shape,
- *    with the fallback slot after the loop and the cursor update on success.
+ *  - FIND_EFFECT_SLOT supplies the shared SetSmoke/SetExplosion round-robin
+ *    search, including its full-pool fallback and cursor update.
  */
 extern void DrawSmoke(TEffectSlot *ef);
 
@@ -42,28 +42,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
     int r;
     int m;
 
-    count = 0;
-    idx = EFFECT_CURSOR_;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     smoke = &slot->param.smoke;
     smoke->scale = rand() % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;

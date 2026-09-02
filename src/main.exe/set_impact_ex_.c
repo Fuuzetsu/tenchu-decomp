@@ -52,28 +52,7 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
     ImpactType *param;
     long pz;
 
-    idx = EFFECT_CURSOR_;
-    count = 0;
-    do
-    {
-        idx++;
-        if (idx >= N_EFFECT_SLOTS)
-        {
-            idx = 0;
-        }
-        if (EffectSlot[idx].proc == 0)
-        {
-            EFFECT_CURSOR_ = idx + 1;
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
-            {
-                EFFECT_CURSOR_ = 0;
-            }
-            slot = &EffectSlot[idx];
-            goto found;
-        }
-        count++;
-    } while (count < N_EFFECT_SLOTS);
-    slot = &dmy;
+    FIND_EFFECT_SLOT(idx, count, slot, found);
 found:
     slot->proc = DrawImpact;
     slot->param.impact.px = pos->vx;
