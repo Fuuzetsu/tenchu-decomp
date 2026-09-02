@@ -16,7 +16,7 @@
  *    target's QI field update and SI test expressions without a staging
  *    local. Narrowing the operation through a `u8` local instead introduces
  *    a separate pseudo and an extra move.
- *  - The SetSmoke block's `scratch.smoke.build_pos` component stores are
+ *  - The SetSmoke block's `work.build_pos` component stores are
  *    COMPONENT refs: an in-struct store invalidates cse's
  *    cached `item->locate` load (MEM_IN_STRUCT alias heuristic), reproducing
  *    the per-line reloads; a raw `((s32 *)&build_pos)[n]` spelling is a
@@ -24,8 +24,8 @@
  *    (wrong). Inverse lever in the search setup: `pos = (VECTOR *)
  *    item->locate->locate.coord.t;` reads all three t[] through one pointer
  *    so nothing reloads there.
- *  - Search setup order is `q = &scratch.find; pos = ...; q->i = 0;
- *    find = &scratch.find;` —
+ *  - Search setup order is `q = (TFindItemTarget *)&work; pos = ...;
+ *    q->i = 0; find = (TFindItemTarget *)&work;` —
  *    q's use must precede find's init or the two same-valued pointers
  *    collapse into one register (cse folds find's addiu into `move find,q`
  *    only, keeping both, when something touches q in between).
@@ -83,17 +83,6 @@
 
 #include "item.h"
 
-typedef union
-{
-    TFindItemTarget find;
-    struct
-    {
-        SVECTOR vec;
-        VECTOR pos;
-        VECTOR build_pos;
-    } smoke;
-} ProcItemSmokeScratch;
-
 extern SVECTOR svec_y_n250[];
 
 extern void MoveKorogari(TItem *item, param_korogari *pp);
@@ -107,7 +96,13 @@ void ProcItemSmoke(TItem *item)
     };
     Sprite3D *model;
     param_smoke *param;
-    ProcItemSmokeScratch scratch;
+    /* The later target scan reuses the first 32 bytes of this workspace. */
+    struct
+    {
+        SVECTOR vec;
+        VECTOR pos;
+        VECTOR build_pos;
+    } work;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
@@ -156,13 +151,13 @@ void ProcItemSmoke(TItem *item)
         }
         if ((param->count & 1) == 0)
         {
-            scratch.smoke.vec = svec_y_n250[0];
-            memset(&scratch.smoke.build_pos, 0, sizeof(VECTOR));
-            scratch.smoke.build_pos.vx = item->locate->locate.coord.t[0];
-            scratch.smoke.build_pos.vy = item->locate->locate.coord.t[1];
-            scratch.smoke.build_pos.vz = item->locate->locate.coord.t[2];
-            scratch.smoke.pos = scratch.smoke.build_pos;
-            SetSmoke(&scratch.smoke.pos, &scratch.smoke.vec, 1, 3);
+            work.vec = svec_y_n250[0];
+            memset(&work.build_pos, 0, sizeof(VECTOR));
+            work.build_pos.vx = item->locate->locate.coord.t[0];
+            work.build_pos.vy = item->locate->locate.coord.t[1];
+            work.build_pos.vz = item->locate->locate.coord.t[2];
+            work.pos = work.build_pos;
+            SetSmoke(&work.pos, &work.vec, 1, 3);
         }
         if ((GameClock & 0xf) != 0)
             return;
@@ -176,10 +171,10 @@ void ProcItemSmoke(TItem *item)
             Humanoid *human;
             int dist;
 
-            q = &scratch.find;
+            q = (TFindItemTarget *)&work;
             pos = (VECTOR *)item->locate->locate.coord.t;
             q->i = 0;
-            find = &scratch.find;
+            find = (TFindItemTarget *)&work;
             find->pos.vx = pos->vx;
             find->pos.vy = pos->vy;
             find->pos.vz = pos->vz;
@@ -206,7 +201,7 @@ void ProcItemSmoke(TItem *item)
             check:
                 if (found == 0)
                     return;
-                human = scratch.find.find;
+                human = ((TFindItemTarget *)&work)->find;
                 if (human != item->owner &&
                     human->life != HUMANOID_LIFE_INACTIVE &&
                     human->motion->mid != MOT_DAMAGE_CHOKE)
@@ -222,7 +217,7 @@ void ProcItemSmoke(TItem *item)
                                      human->motion->motion->orderspd,
                                      human->motion->motion->sidespd);
                     }
-                    Sound(scratch.find.find, CHAR_VOICE_HURT);
+                    Sound(((TFindItemTarget *)&work)->find, CHAR_VOICE_HURT);
                 }
                 continue;
             hit:
