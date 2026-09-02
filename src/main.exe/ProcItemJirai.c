@@ -126,10 +126,10 @@ void ProcItemJirai(TItem *item)
         {
             u8 item_count;
 
-            item_count = item->owner.human->item[item->type];
+            item_count = item->owner->item[item->type];
             if (item_count != ITEM_INFINITE)
             {
-                item->owner.human->item[item->type] = item_count + 1;
+                item->owner->item[item->type] = item_count + 1;
             }
             item_proc = item->proc;
             if (item_proc == 0)
@@ -292,7 +292,7 @@ void ProcItemJirai(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner.human = 0;
+        item->owner = 0;
         item->proc = 0;
         return;
     }

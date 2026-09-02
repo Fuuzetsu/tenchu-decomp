@@ -81,9 +81,9 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user.human;
+        aowner = p->user;
         atype = p->type;
-        item->owner.human = aowner;
+        item->owner = aowner;
         item->proc = ProcItemDrop;
         item->mode = ITEM_MODE_START;
         item->type = atype;

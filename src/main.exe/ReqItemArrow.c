@@ -96,7 +96,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
     dir.vz = 0;
     dir.vx = rx;
     dir.vy = ry;
-    SearchItemTarget2(p->user.human, &dir, &p->start, &target);
+    SearchItemTarget2(p->user, &dir, &p->start, &target);
     TAKE_ITEM_SLOT_VIA_CURSOR();
     param = &item->param.arrow;
     if (item == 0)
@@ -105,9 +105,9 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
         Humanoid *aowner;
         s32 atype;
 
-        aowner = p->user.human;
+        aowner = p->user;
         atype = p->type;
-        item->owner.human = aowner;
+        item->owner = aowner;
         item->proc = ProcItemArrow;
         item->mode = ITEM_MODE_START;
         item->type = atype;

@@ -76,12 +76,12 @@ void ProcSightShot(TItem *item)
     dispose_mode = ITEM_MODE_DISPOSE;
     if (item->mode == dispose_mode)
     {
-        item->owner.human->item[ITEM_N] = 0;
+        item->owner->item[ITEM_N] = 0;
         item->mode = ITEM_MODE_START;
         return;
     }
 
-    human = item->owner.human;
+    human = item->owner;
     if (human->item[ITEM_N] == 0)
     {
         u8 item_count;
@@ -106,11 +106,11 @@ void ProcSightShot(TItem *item)
         s32 itemID;
 
         pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-        drop_owner = item->owner.human;
+        drop_owner = item->owner;
         itemID = item->type;
         memset(&param, 0, sizeof(PARAM_ITEM_LAUNCH));
         param.type = itemID;
-        param.user.human = drop_owner;
+        param.user = drop_owner;
         param.start.vx = pos->vx;
         param.start.vy = pos->vy;
         param.start.vz = pos->vz;
@@ -130,7 +130,7 @@ dispose:
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner.human = 0;
+        item->owner = 0;
         item->proc = 0;
     }
     return;
@@ -145,7 +145,7 @@ sight_mode:
     {
         launch->count--;
     }
-    if ((item->owner.human->pad.data & PADRup) != 0)
+    if ((item->owner->pad.data & PADRup) != 0)
     {
         if (launch->count != 0)
         {
@@ -157,13 +157,13 @@ sight_mode:
     }
 
     count = launch->count;
-    model = item->owner.human->model;
+    model = item->owner->model;
     if (count == 0)
     {
         GsRVIEW2 *view;
 
         param.type = item->type;
-        param.user.human = item->owner.human;
+        param.user = item->owner;
         param.start.vx = item->locate->locate.coord.t[0];
         param.start.vy = item->locate->locate.coord.t[1];
         param.start.vz = item->locate->locate.coord.t[2];
@@ -173,7 +173,7 @@ sight_mode:
         rot.vz = 0;
         rot.vx = rx;
         rot.vy = ry;
-        SearchItemTarget2(param.user.human, &rot, (VECTOR *)view, &param.end);
+        SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
         if (item->proc != 0)
         {
             item->mode = dispose_mode;
@@ -184,7 +184,7 @@ sight_mode:
                 AdtMessageBox(msg_item_dispose_fail, item->type,
                               (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
         }
         SetCameraMode(CMODE_LOCK);
@@ -192,11 +192,11 @@ sight_mode:
     else
     {
         param.type = item->type;
-        param.user.human = item->owner.human;
+        param.user = item->owner;
         param.start.vx = item->locate->locate.coord.t[0];
         param.start.vy = item->locate->locate.coord.t[1];
         param.start.vz = item->locate->locate.coord.t[2];
-        SearchItemTarget2(param.user.human, &model->rotate, &param.start,
+        SearchItemTarget2(param.user, &model->rotate, &param.start,
                           &param.end);
         if (item->proc != 0)
         {
@@ -208,7 +208,7 @@ sight_mode:
                 AdtMessageBox(msg_item_dispose_fail, item->type,
                               (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
         }
     }

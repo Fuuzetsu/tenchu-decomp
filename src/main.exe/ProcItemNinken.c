@@ -120,7 +120,7 @@ void ProcItemNinken(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
             return;
         }
@@ -149,14 +149,14 @@ void ProcItemNinken(TItem *item)
                     AdtMessageBox(msg_item_dispose_fail, item->type,
                                   (u32)item->mode);
                 }
-                item->owner.human = 0;
+                item->owner = 0;
                 item->proc = 0;
             }
 
             saved = &scratch.drop.saved;
             launch = &scratch.drop.launch;
             scratch.drop.launch.type = saved->type;
-            launch->user.tag = CONFLICT_OWNER_ITEM;
+            launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
             scratch.drop.launch.start.vx = saved->locate.vx;
             scratch.drop.launch.start.vy = saved->locate.vy;
             scratch.drop.launch.start.vz = saved->locate.vz;
@@ -253,14 +253,14 @@ void ProcItemNinken(TItem *item)
         param->slave->model->locate.coord.t[0] = scratch.spawn.pos.vx;
         param->slave->model->locate.coord.t[1] = scratch.spawn.pos.vy;
         param->slave->model->locate.coord.t[2] = scratch.spawn.pos.vz;
-        param->slave->model->rotate.vx = item->owner.human->model->rotate.vx;
-        param->slave->model->rotate.vy = item->owner.human->model->rotate.vy;
-        param->slave->model->rotate.vz = item->owner.human->model->rotate.vz;
+        param->slave->model->rotate.vx = item->owner->model->rotate.vx;
+        param->slave->model->rotate.vy = item->owner->model->rotate.vy;
+        param->slave->model->rotate.vz = item->owner->model->rotate.vz;
         EquipWeapon(param->slave, WEAPON_SHEATHED);
         SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
         param->slave->attribute &= ~ATTR_PHASE;
         param->slave->attribute = 0;
-        param->slave->target = (ModelType *)item->owner.human->model;
+        param->slave->target = (ModelType *)item->owner->model;
         param->slave->motion->count = 0;
         PlayMotion(param->slave->motion, 1);
         param->slave->attribute &= ~ATTR_SUSPEND;
@@ -289,7 +289,7 @@ void ProcItemNinken(TItem *item)
                     AdtMessageBox(msg_item_dispose_fail, item->type,
                                   (u32)item->mode);
                 }
-                item->owner.human = 0;
+                item->owner = 0;
                 item->proc = 0;
             }
         }
@@ -333,7 +333,7 @@ void ProcItemNinken(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
             return;
         }
@@ -354,10 +354,10 @@ void ProcItemNinken(TItem *item)
             return;
         }
 
-        owner_attribute = item->owner.human->attribute;
-        item->owner.human->attribute = ATTR_SUSPEND;
+        owner_attribute = item->owner->attribute;
+        item->owner->attribute = ATTR_SUSPEND;
         target = GetNearestHumanoid(param->slave, 10000);
-        item->owner.human->attribute = owner_attribute;
+        item->owner->attribute = owner_attribute;
         if (target != 0)
         {
             if ((ModelType *)target->model == param->slave->target)
@@ -381,7 +381,7 @@ void ProcItemNinken(TItem *item)
             SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             param->slave->attribute &= ~ATTR_PHASE;
             SetupThinkFunction(param->slave, THINK_MIX_NONE);
-            param->slave->target = (ModelType *)item->owner.human->model;
+            param->slave->target = (ModelType *)item->owner->model;
             return;
         }
     }

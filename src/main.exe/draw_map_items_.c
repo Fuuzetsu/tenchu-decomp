@@ -72,7 +72,7 @@ void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
             break;
         }
 
-        if (items[i].proc != 0 && items[i].type == ITEM_GOSHIKIMAI && items[i].owner.human == CamState.Owner)
+        if (items[i].proc != 0 && items[i].type == ITEM_GOSHIKIMAI && items[i].owner == CamState.Owner)
         {
             draw_x = (items[i].locate->locate.coord.t[0] / divisor) * cosine +
                      (items[i].locate->locate.coord.t[2] / divisor) * sine;

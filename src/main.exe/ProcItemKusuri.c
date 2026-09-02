@@ -112,7 +112,7 @@ void ProcItemKusuri(TItem *item)
     {
         Humanoid *human;
 
-        human = item->owner.human;
+        human = item->owner;
         if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             MotionDataType *md;
@@ -127,7 +127,7 @@ void ProcItemKusuri(TItem *item)
         {
             ModelArchiveType *arc;
 
-            arc = item->owner.human->model;
+            arc = item->owner->model;
             if (arc->n > MODEL_PART_WEAPON_HAND_1)
                 item->locate->locate.super =
                     &arc->object[MODEL_PART_WEAPON_HAND_1]->locate;
@@ -145,7 +145,7 @@ void ProcItemKusuri(TItem *item)
     {
         MotionManager *mot;
 
-        mot = item->owner.human->motion;
+        mot = item->owner->motion;
         if (mot->mid != MOT_ITEM_DRINK)
         {
             /* animation interrupted: toss the item back out */
@@ -154,11 +154,11 @@ void ProcItemKusuri(TItem *item)
             s32 itemID;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner.human;
+            human = item->owner;
             itemID = item->type;
             memset(&scratch.p, 0, sizeof(scratch.p));
             scratch.p.type = itemID;
-            scratch.p.user.human = human;
+            scratch.p.user = human;
             scratch.p.start.vx = pos->vx;
             scratch.p.start.vy = pos->vy;
             scratch.p.start.vz = pos->vz;
@@ -176,7 +176,7 @@ void ProcItemKusuri(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
             return;
         }
@@ -202,7 +202,7 @@ void ProcItemKusuri(TItem *item)
     case KUSURI_MODE_HEAL:
     {
         i = 0;
-        item->owner.human->life = item->owner.human->lifemax;
+        item->owner->life = item->owner->lifemax;
         while (1)
         {
             if (i >= 0x14)
@@ -210,11 +210,11 @@ void ProcItemKusuri(TItem *item)
             memset(&scratch.bleed.build.pos_build, 0,
                    sizeof(scratch.bleed.build.pos_build));
             scratch.bleed.build.pos_build.vx =
-                item->owner.human->model->locate.coord.t[0] + (rand() % 1000 - 500);
+                item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
             scratch.bleed.build.pos_build.vy =
-                item->owner.human->model->locate.coord.t[1] + (rand() % 1000 - 1200);
+                item->owner->model->locate.coord.t[1] + (rand() % 1000 - 1200);
             scratch.bleed.build.pos_build.vz =
-                item->owner.human->model->locate.coord.t[2] + (rand() % 1000 - 500);
+                item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
             scratch.bleed.pos = scratch.bleed.build.pos_build;
             memset(&scratch.bleed.build.velocity.vec_build, 0,
                    sizeof(scratch.bleed.build.velocity.vec_build));
@@ -225,7 +225,7 @@ void ProcItemKusuri(TItem *item)
                      rand() % 0x10 + 0xf, RGB24(255, 255, 126));
             i++;
         }
-        SoundEx(item->owner.human->locate, SE_MEDICINE);
+        SoundEx(item->owner->locate, SE_MEDICINE);
         ppu = item->proc;
         if (ppu == 0)
             return;

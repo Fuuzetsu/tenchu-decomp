@@ -115,7 +115,7 @@ void ProcItemMakibishi(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
             return;
         }

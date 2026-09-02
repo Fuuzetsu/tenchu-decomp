@@ -34,7 +34,7 @@
  *  - `param_goshikimai.vec` is read with the SAME fresh-vs-cached asymmetry
  *    ReqItemGoshikimai writes it with: vec.vx uses
  *    `item->param.goshikimai` directly, while vec.vy/vec.vz use `param`.
- *  - `item->owner.human->model->object[0xd]` is recomputed in full for EACH of the
+ *  - `item->owner->model->object[0xd]` is recomputed in full for EACH of the
  *    three GetAbsolutePosition calls (three separate jal's in the asm, no
  *    cached model/object pointer) — Ghidra's literal repetition is the
  *    source's real shape, not a decompiler artifact.
@@ -82,7 +82,7 @@ void ProcItemGoshikimai(TItem *item)
     switch (item->mode)
     {
     case GOSHIKIMAI_MODE_START:
-        human = item->owner.human;
+        human = item->owner;
         if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
@@ -95,22 +95,22 @@ void ProcItemGoshikimai(TItem *item)
         return;
 
     case GOSHIKIMAI_MODE_THROW:
-        if (item->owner.human->motion->mid != MOT_ITEM_PLANT)
+        if (item->owner->motion->mid != MOT_ITEM_PLANT)
         {
             item->mode = GOSHIKIMAI_MODE_START;
             return;
         }
-        if (item->owner.human->motion->count != 15)
+        if (item->owner->motion->count != 15)
             return;
         p.type = ITEM_GOSHIKIMAI;
-        p.user.human = item->owner.human;
-        p.start.vx = GetAbsolutePosition(item->owner.human->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vx;
-        p.start.vy = GetAbsolutePosition(item->owner.human->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vy;
-        p.start.vz = GetAbsolutePosition(item->owner.human->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vz;
+        p.user = item->owner;
+        p.start.vx = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vx;
+        p.start.vy = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vy;
+        p.start.vz = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vz;
         p.end.vx = param->vec.vx;
         p.end.vy = param->vec.vy;
         p.end.vz = param->vec.vz;
-        NowReturnNormal(item->owner.human);
+        NowReturnNormal(item->owner);
         if (item->proc != 0)
         {
             item->mode = ITEM_MODE_DISPOSE;
@@ -120,7 +120,7 @@ void ProcItemGoshikimai(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
         }
         ReqItemDrop(&p);

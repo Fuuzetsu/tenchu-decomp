@@ -160,13 +160,13 @@ void ProcItemDrop(TItem *item)
             md = human->motion->motion;
             MoveHumanoid(human, md->orderspd, md->sidespd);
         }
-        item->owner.human = human;
+        item->owner = human;
         item->mode++;
         param->count = 0;
         return;
 
     case DROP_MODE_TRANSFER:
-        if (item->owner.human->motion->mid != MOT_STATE_PICKUP)
+        if (item->owner->motion->mid != MOT_STATE_PICKUP)
         {
             x = rand();
             x = x % 200;
@@ -185,11 +185,11 @@ void ProcItemDrop(TItem *item)
         param->count = cnt;
         if (cnt == 10)
         {
-            SoundEx(item->owner.human->locate, SE_ITEM_TRANSFER);
-            count = item->owner.human->item[item->type];
+            SoundEx(item->owner->locate, SE_ITEM_TRANSFER);
+            count = item->owner->item[item->type];
             if (count != ITEM_INFINITE)
             {
-                item->owner.human->item[item->type] = count + 1;
+                item->owner->item[item->type] = count + 1;
             }
             ppu = item->proc;
             if (ppu == 0)

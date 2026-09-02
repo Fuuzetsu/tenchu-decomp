@@ -263,21 +263,12 @@ typedef struct Humanoid
     *(u16 *)&(model_)->object[MODEL_PART_WAIST]->attribute |=                  \
         MODEL_ATTR_HIDDEN
 
-/* An item owner is normally the Humanoid that launched or placed it.  World
- * items use the same word as an owner tag instead. */
-typedef union ItemOwnerReference ItemOwnerReference;
-union ItemOwnerReference
-{
-    Humanoid *human;
-    ConflictOwnerTag tag;
-}; /* 0x04 */
-
 typedef struct PARAM_ITEM_LAUNCH
 {
-    TItemType type;          /* 0x00 */
-    ItemOwnerReference user; /* 0x04 */
-    VECTOR start;            /* 0x08 */
-    VECTOR end;              /* 0x18 */
+    TItemType type; /* 0x00 */
+    Humanoid *user; /* 0x04 (PSX.SYM's original field type) */
+    VECTOR start;   /* 0x08 */
+    VECTOR end;     /* 0x18 */
 } PARAM_ITEM_LAUNCH; /* 0x28 */
 
 /* PSX.SYM records both names for this request structure. */
@@ -289,10 +280,10 @@ typedef struct PARAM_ITEM_LAUNCH PARAM_ITEM_USE;
  * request. */
 typedef struct PARAM_ITEM_DROP
 {
-    TItemType type;          /* 0x00 */
-    ItemOwnerReference user; /* 0x04 (retail) */
-    VECTOR start;            /* 0x08 */
-    VECTOR vec;              /* 0x18 */
+    TItemType type; /* 0x00 */
+    Humanoid *user; /* 0x04 (retail) */
+    VECTOR start;   /* 0x08 */
+    VECTOR vec;     /* 0x18 */
 } PARAM_ITEM_DROP;  /* 0x28 (demo: 0x24, without user) */
 
 /* ReqItemUse keeps two shared request-sized work areas. Each can hold either
@@ -516,11 +507,11 @@ union ItemModelReference
 
 struct tag_TItem
 {
-    ItemOwnerReference owner;    /* 0x00 */
-    ItemModelReference model;    /* 0x04 */
-    TItemType type;              /* 0x08 */
-    void (*proc)(TItem *);       /* 0x0C */
-    ModelType *locate;           /* 0x10 */
+    Humanoid *owner;         /* 0x00 (PSX.SYM's original field type) */
+    ItemModelReference model; /* 0x04 */
+    TItemType type;           /* 0x08 */
+    void (*proc)(TItem *);    /* 0x0C */
+    ModelType *locate;        /* 0x10 */
     struct
     {
         ConflictClass mode; /* 0x00 */
@@ -587,7 +578,7 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
             AdtMessageBox(msg_item_dispose_fail, item->type,                  \
                           (u32)item->mode);                                    \
         }                                                                     \
-        item->owner.human = 0;                                                \
+        item->owner = 0;                                                \
         item->proc = 0;                                                       \
     } while (0)
 
@@ -681,7 +672,7 @@ found:
         AdtMessageBox(msg_item_dispose_fail, ret->type, (u32)ret->mode);      \
     }                                                                         \
     item = ret;                                                               \
-    item->owner.human = 0;                                                    \
+    item->owner = 0;                                                    \
     item->proc = 0;                                                           \
                                                                               \
 found:

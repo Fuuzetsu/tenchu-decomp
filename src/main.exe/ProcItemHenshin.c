@@ -63,7 +63,7 @@ typedef union
  *    induction pointer and the target's natural +4/+8/+10/+12 offsets.
  *  - HenshinItem and HenshinCount use volatile views only to preserve the
  *    original observable load/store sequence.  In particular, the restore
- *    path stores the current-disguise pointer before reloading item->owner.human,
+ *    path stores the current-disguise pointer before reloading item->owner,
  *    and HENSHIN_MODE_TRANSFORM finishes its mode/count stores before loading
  *    owner/type.
  *    The old disguise pointer is copied once before its null/proc checks so
@@ -93,7 +93,7 @@ void ProcItemHenshin(TItem *item)
     ModelArchiveType *archive;
     ProcItemHenshinScratch scratch;
 
-    human = item->owner.human;
+    human = item->owner;
     archive = human->model;
 
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -121,12 +121,12 @@ void ProcItemHenshin(TItem *item)
                     part_index++;
                 } while (part_index < archive->n);
             }
-            if (item->owner.human->status == STAT_SQUAT)
+            if (item->owner->status == STAT_SQUAT)
             {
-                NowReturnNormal(item->owner.human);
+                NowReturnNormal(item->owner);
             }
             HenshinItem = 0;
-            ((volatile TItem *)item)->owner.human->active_item =
+            ((volatile TItem *)item)->owner->active_item =
                 ACTIVE_ITEM_NONE;
         }
         item->mode = HENSHIN_MODE_START;
@@ -137,7 +137,7 @@ void ProcItemHenshin(TItem *item)
     {
     case HENSHIN_MODE_START:
         SetNowMotion(human, MOT_ITEM_KAENGEKI, MOTION_MOVE_APPLY);
-        Sound(item->owner.human, SE_ITEM_USE);
+        Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
 
@@ -153,11 +153,11 @@ void ProcItemHenshin(TItem *item)
             s32 itemID;
 
             drop_position = GetAbsolutePosition(item->locate, 0, 0, 0);
-            drop_owner = item->owner.human;
+            drop_owner = item->owner;
             itemID = item->type;
             memset(&scratch.drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
             scratch.drop_request.type = itemID;
-            scratch.drop_request.user.human = drop_owner;
+            scratch.drop_request.user = drop_owner;
             scratch.drop_request.start.vx = drop_position->vx;
             scratch.drop_request.start.vy = drop_position->vy;
             scratch.drop_request.start.vz = drop_position->vz;
@@ -176,7 +176,7 @@ void ProcItemHenshin(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
             return;
         }
@@ -208,7 +208,7 @@ void ProcItemHenshin(TItem *item)
                                   previous_disguise->type,
                                   (u32)previous_disguise->mode);
                 }
-                previous_disguise->owner.human = 0;
+                previous_disguise->owner = 0;
                 previous_disguise->proc = 0;
             }
         }
@@ -246,7 +246,7 @@ void ProcItemHenshin(TItem *item)
         volatile_item = item;
         volatile_item->mode++;
         HenshinCount = HENSHIN_DURATION;
-        disguise_owner = volatile_item->owner.human;
+        disguise_owner = volatile_item->owner;
         /* TItemType is a 32-bit enum; retail deliberately reads its low
          * half. */
         itemID = *(volatile u16 *)&volatile_item->type;
@@ -262,16 +262,16 @@ void ProcItemHenshin(TItem *item)
         remaining_count = HenshinCount - 1;
         HenshinCount = remaining_count;
         if ((s16)remaining_count > 0 &&
-            item->owner.human->active_item == item->type &&
-            item->owner.human->status != STAT_DAMAGE &&
-            item->owner.human->status != STAT_DEAD)
+            item->owner->active_item == item->type &&
+            item->owner->status != STAT_DAMAGE &&
+            item->owner->status != STAT_DEAD)
         {
-            if (item->owner.human->status != STAT_ATTACK)
+            if (item->owner->status != STAT_ATTACK)
             {
                 return;
             }
-            if (item->owner.human->motion->loop >= 0 &&
-                item->owner.human->motion->mid < MOT_ATTACK_STEALTH_BACK)
+            if (item->owner->motion->loop >= 0 &&
+                item->owner->motion->mid < MOT_ATTACK_STEALTH_BACK)
             {
                 return;
             }
@@ -290,7 +290,7 @@ void ProcItemHenshin(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner.human = 0;
+        item->owner = 0;
         item->proc = 0;
         return;
     }

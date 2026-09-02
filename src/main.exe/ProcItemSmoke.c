@@ -128,7 +128,7 @@ void ProcItemSmoke(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner.human = 0;
+        item->owner = 0;
         item->proc = 0;
         return;
     }
@@ -207,7 +207,7 @@ void ProcItemSmoke(TItem *item)
                 if (found == 0)
                     return;
                 human = scratch.find.find;
-                if (human != item->owner.human &&
+                if (human != item->owner &&
                     human->life != HUMANOID_LIFE_INACTIVE &&
                     human->motion->mid != MOT_DAMAGE_CHOKE)
                 {

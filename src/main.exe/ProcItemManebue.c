@@ -61,7 +61,7 @@ void ProcItemManebue(TItem *item)
     {
     case MANEBUE_MODE_PLAY:
         EmergencyNotice = 0;
-        item->owner.human->active_item = item->type;
+        item->owner->active_item = item->type;
         SoundEx(0, SE_LURE_FLUTE);
         param->count = MANEBUE_DURATION;
         item->mode++;
@@ -70,7 +70,7 @@ void ProcItemManebue(TItem *item)
         param->count--;
         if (param->count == 0)
         {
-            item->owner.human->active_item = ACTIVE_ITEM_NONE;
+            item->owner->active_item = ACTIVE_ITEM_NONE;
             if (item->proc != 0)
             {
                 DISPOSE_ITEM(item);

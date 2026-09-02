@@ -26,7 +26,7 @@
  *    decrement in one SI pseudo ($v1) and emits the target narrowing at each
  *    switch path; an `u8` local was one instruction short and needed a copy.
  *  - The pickup conversion intentionally mixes pointer and direct spellings:
- *    `launch->user.human` and ReqItemDrop retain the launch pointer in $s0, while
+ *    `launch->user` and ReqItemDrop retain the launch pointer in $s0, while
  *    direct aggregate fields preserve the target stack-relative loads/stores.
  *    The saved-position pointer supplies the sequential source loads. The
  *    aggregate's `param` member retains PSX.SYM's exact name for the
@@ -157,7 +157,7 @@ void ProcItemFire(TItem *item)
             {
                 AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
             }
-            item->owner.human = 0;
+            item->owner = 0;
             item->proc = 0;
         }
         return;
@@ -224,14 +224,14 @@ void ProcItemFire(TItem *item)
                         AdtMessageBox(msg_item_dispose_fail, item->type,
                                       (u32)item->mode);
                     }
-                    item->owner.human = 0;
+                    item->owner = 0;
                     item->proc = 0;
                 }
 
                 saved = &scratch.drop.saved;
                 launch = &scratch.drop.param;
                 scratch.drop.param.type = saved->type;
-                launch->user.tag = CONFLICT_OWNER_ITEM;
+                launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
                 scratch.drop.param.start.vx = saved->locate.vx;
                 scratch.drop.param.start.vy = saved->locate.vy;
                 scratch.drop.param.start.vz = saved->locate.vz;

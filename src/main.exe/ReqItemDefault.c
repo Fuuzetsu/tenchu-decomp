@@ -39,7 +39,7 @@
  *    INDEPENDENT dereferences (no cached pointer temp): each re-does the
  *    `->model` load, matching three separate `lw ...,0x58(v1)` in the asm
  *    with no intervening call to justify caching.
- *  - `pm = param.user.human->model;` (used for the if-condition and reused unreloaded
+ *  - `pm = param.user->model;` (used for the if-condition and reused unreloaded
  *    in the else branch) reads through the just-STORED struct field, not the
  *    raw `user` parameter — the asm reloads it from the local's stack slot
  *    (sp+0x14) right before the branch, which only lines up with reading the
@@ -68,13 +68,13 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     s32 rz;
 
     param.type = ItemID;
-    param.user.human = user;
+    param.user = user;
     param.start.vx = user->model->locate.coord.t[0];
     param.start.vy = user->model->locate.coord.t[1] - THROW_HEIGHT;
     param.start.vz = user->model->locate.coord.t[2];
     v = vec_z_n100[0];
     memset(&v0, 0, sizeof(v0));
-    pm = param.user.human->model;
+    pm = param.user->model;
     if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)
     {
         /* GsRVIEW2 opens with the vp and vr triples laid out as two

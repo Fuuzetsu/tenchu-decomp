@@ -55,7 +55,7 @@
  *    type's `li 22` from filling the steering guard's delay slot and yields
  *    the target load/li/store ordering at the request head.
  *  - The steering writes use direct compound expressions through the owning
- *    `item->owner.human->model` path. A named model assignment instead colors the
+ *    `item->owner->model` path. A named model assignment instead colors the
  *    model into a0.
  *  - The staged vector statements are intentional: copy rotated end to
  *    start, scale start by 12, add the saved origin, double end, then add
@@ -85,9 +85,9 @@ void ProcItemKaengeki(TItem *item)
     mode_index = item->mode;
     if (mode_index == dispose_mode)
     {
-        if (item->owner.human->motion->mid == MOT_ITEM_KAENGEKI)
+        if (item->owner->motion->mid == MOT_ITEM_KAENGEKI)
         {
-            NowReturnNormal(item->owner.human);
+            NowReturnNormal(item->owner);
         }
         item->mode = KAENGEKI_MODE_START;
         return;
@@ -100,7 +100,7 @@ void ProcItemKaengeki(TItem *item)
     {
         Humanoid *human;
 
-        human = item->owner.human;
+        human = item->owner;
         if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
@@ -109,21 +109,21 @@ void ProcItemKaengeki(TItem *item)
             MoveHumanoid(human, human->motion->motion->orderspd,
                          human->motion->motion->sidespd);
         }
-        Sound(item->owner.human, SE_ITEM_USE);
+        Sound(item->owner, SE_ITEM_USE);
         item->mode++;
         return;
     }
 
     case KAENGEKI_MODE_WAIT:
     {
-        if (item->owner.human->motion->count == 0 &&
-            item->owner.human->motion->loop != 0)
+        if (item->owner->motion->count == 0 &&
+            item->owner->motion->loop != 0)
         {
-            SoundEx((VECTOR *)item->owner.human->model->locate.coord.t, SE_FIRE);
+            SoundEx((VECTOR *)item->owner->model->locate.coord.t, SE_FIRE);
             item->mode++;
             param->count = KAENGEKI_DELAY;
         }
-        if (item->owner.human->motion->mid == MOT_ITEM_KAENGEKI)
+        if (item->owner->motion->mid == MOT_ITEM_KAENGEKI)
         {
             return;
         }
@@ -133,11 +133,11 @@ void ProcItemKaengeki(TItem *item)
             s32 itemID;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner.human;
+            human = item->owner;
             itemID = item->type;
             memset(&request, 0, sizeof(request));
             request.type = itemID;
-            request.user.human = human;
+            request.user = human;
             request.start.vx = pos->vx;
             request.start.vy = pos->vy;
             request.start.vz = pos->vz;
@@ -160,7 +160,7 @@ void ProcItemKaengeki(TItem *item)
         ModelArchiveType *model;
         s32 rz;
 
-        if (item->owner.human->motion->mid != MOT_ITEM_KAENGEKI)
+        if (item->owner->motion->mid != MOT_ITEM_KAENGEKI)
         {
             goto dispose;
         }
@@ -169,21 +169,21 @@ void ProcItemKaengeki(TItem *item)
             goto dispose;
         }
 
-        if ((item->owner.human->pad.data & PADLright) != 0)
+        if ((item->owner->pad.data & PADLright) != 0)
         {
-            item->owner.human->model->rotate.vy += 0x20;
+            item->owner->model->rotate.vy += 0x20;
         }
-        else if ((item->owner.human->pad.data & PADLleft) != 0)
+        else if ((item->owner->pad.data & PADLleft) != 0)
         {
-            item->owner.human->model->rotate.vy -= 0x20;
+            item->owner->model->rotate.vy -= 0x20;
         }
 
-        request.user.human = item->owner.human;
+        request.user = item->owner;
         request.type = ITEM_NAPALM;
         request.end.vx = param->end.vx;
         request.end.vy = param->end.vy;
         request.end.vz = param->end.vz;
-        model = item->owner.human->model;
+        model = item->owner->model;
         if (CamState.Owner->model == model && CamState.Mode == CMODE_DIRECTION)
         {
             GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx,
@@ -228,7 +228,7 @@ void ProcItemKaengeki(TItem *item)
         {
             AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
         }
-        item->owner.human = 0;
+        item->owner = 0;
         item->proc = 0;
         return;
     }

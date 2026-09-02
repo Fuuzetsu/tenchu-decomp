@@ -168,14 +168,14 @@ void ProcItemNingyo(TItem *item)
                 ModelType *model;
                 PARAM_ITEM_LAUNCH *request;
 
-                owner = item->owner.human;
+                owner = item->owner;
                 item_type = item->type;
                 model = item->locate;
                 request = &scratch.drop.request;
                 memset(request, 0, sizeof(PARAM_ITEM_LAUNCH));
                 request = 0;
                 scratch.drop.request.type = item_type;
-                scratch.drop.request.user.human = owner;
+                scratch.drop.request.user = owner;
                 {
                     VECTOR *position;
 
@@ -337,7 +337,7 @@ void ProcItemNingyo(TItem *item)
                             AdtMessageBox(msg_item_dispose_fail, item->type,
                                           (u32)item->mode);
                         }
-                        item->owner.human = 0;
+                        item->owner = 0;
                         item->proc = 0;
                     }
                     item->mode++;
