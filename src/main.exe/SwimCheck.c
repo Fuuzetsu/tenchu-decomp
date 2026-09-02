@@ -129,22 +129,7 @@ short SwimCheck(void)
             SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
         }
 
-        if (MotionUpdateMode != 0)
-        {
-            short i;
-
-            i = 0;
-            do
-            {
-                if (CVAhuman[i].human == Me_MOTION_C)
-                {
-                    goto motion_done;
-                }
-                i++;
-            } while (i < N_CVA_HUMANS);
-        }
-        SetNowMotion(Me_MOTION_C, motID, motMODE);
-        motMODE = MOTION_MOVE_UNSET;
+        SET_NOW_MOTION_UNLESS_CVA(goto motion_done);
     motion_done:
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
         reset_alert_duration();

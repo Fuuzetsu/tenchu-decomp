@@ -88,7 +88,6 @@ void ActSTICKON(void)
     short y;
     short rv;
     short pd;
-    short i;
     short t;
 
     model = Me_MOTION_C->model;
@@ -184,18 +183,7 @@ void ActSTICKON(void)
             if ((s8)MOTION_STATUS(motID) == STAT_SQUAT)
             {
                 dtM->mask = MOTION_MASK_ALL;
-                if (MotionUpdateMode != 0)
-                {
-                    for (i = 0; i < N_CVA_HUMANS; i++)
-                    {
-                        if (CVAhuman[i].human == Me_MOTION_C)
-                        {
-                            goto stickon_motion_done;
-                        }
-                    }
-                }
-                SetNowMotion(Me_MOTION_C, motID, motMODE);
-                motMODE = MOTION_MOVE_UNSET;
+                SET_NOW_MOTION_UNLESS_CVA(goto stickon_motion_done);
             stickon_motion_done:
                 dtM->count = -5;
                 break;
@@ -333,18 +321,7 @@ void ActSTICKON(void)
             if ((s8)MOTION_STATUS(motID) == STAT_SQUAT)
             {
                 dtM->mask = MOTION_MASK_ALL;
-                if (MotionUpdateMode != 0)
-                {
-                    for (i = 0; i < N_CVA_HUMANS; i++)
-                    {
-                        if (CVAhuman[i].human == Me_MOTION_C)
-                        {
-                            goto slide_motion_done;
-                        }
-                    }
-                }
-                SetNowMotion(Me_MOTION_C, motID, motMODE);
-                motMODE = MOTION_MOVE_UNSET;
+                SET_NOW_MOTION_UNLESS_CVA(goto slide_motion_done);
             slide_motion_done:
                 dtM->count = -5;
                 break;

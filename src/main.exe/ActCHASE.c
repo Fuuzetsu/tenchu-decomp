@@ -69,23 +69,8 @@ void ActCHASE(void)
         {
             if (Me_MOTION_C->attribute & ATTR_LEDGE)
             {
-                short i;
-
                 SET_MOTION(MOT_STATE_CLIMB, MOTION_MOVE_NONE);
-                if (MotionUpdateMode != 0)
-                {
-                    i = 0;
-                    do
-                    {
-                        if (CVAhuman[i].human == Me_MOTION_C)
-                        {
-                            goto motion_ready;
-                        }
-                        i++;
-                    } while (i < N_CVA_HUMANS);
-                }
-                SetNowMotion(Me_MOTION_C, motID, motMODE);
-                motMODE = MOTION_MOVE_UNSET;
+                SET_NOW_MOTION_UNLESS_CVA(goto motion_ready);
             motion_ready:
                 MoveHumanoid(Me_MOTION_C, 35, 0);
                 if (dtM->mode & MOTION_MODE_CLIMB_ALTERNATE)

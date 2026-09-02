@@ -5,12 +5,8 @@
 #include "game_globals.h"
 #include "music.h"
 
-/* Commit motID/motMODE to the humanoid -- unless a cutscene (CVA) is
- * currently driving them, in which case the script owns the motion and
- * the caller bails out via `escape` instead. Retail copy-pastes this
- * guard at every damage/death motion commit; the macro is
- * reconstruction shorthand for that copy-paste (expands to the
- * identical text). */
+/* Commit motID/motMODE to the humanoid unless a cutscene (CVA) currently
+ * drives it, in which case the caller leaves through `escape`. */
 #define SET_NOW_MOTION_UNLESS_CVA(escape)                                     \
     {                                                                         \
         short i;                                                              \

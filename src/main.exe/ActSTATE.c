@@ -51,7 +51,7 @@ extern int ReqLifeBar(Humanoid *h);
 
 void ActSTATE(void)
 {
-    short i, cleanup_guard;
+    short cleanup_guard;
     long t;
     Humanoid *human;
 
@@ -282,20 +282,7 @@ void ActSTATE(void)
             }
         }
         SET_MOTION(MOT_CHASE, MOTION_MOVE_APPLY);
-        if (MotionUpdateMode != 0)
-        {
-            i = 0;
-            do
-            {
-                if (CVAhuman[i].human == Me_MOTION_C)
-                {
-                    goto motion_ready;
-                }
-                i++;
-            } while (i < N_CVA_HUMANS);
-        }
-        SetNowMotion(Me_MOTION_C, motID, motMODE);
-        motMODE = MOTION_MOVE_UNSET;
+        SET_NOW_MOTION_UNLESS_CVA(goto motion_ready);
     motion_ready:
         Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
         return;

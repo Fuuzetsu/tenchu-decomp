@@ -38,8 +38,6 @@ extern s16 PlayMotion(MotionManager *motion, s16 mode);
 
 void ActACTION(void)
 {
-    short i;
-
     switch (dtM->mid)
     {
     case MOT_ACTION_LOOP:
@@ -134,18 +132,7 @@ void ActACTION(void)
         if (dtM->loop == MOTION_LOOP_DISABLED && dtPAD != 0)
         {
             SET_MOTION(MOT_DAMAGE_GETUP, MOTION_MOVE_APPLY);
-            if (MotionUpdateMode != 0)
-            {
-                i = 0;
-                do
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                        goto motion_ready;
-                    i++;
-                } while (i < N_CVA_HUMANS);
-            }
-            SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = MOTION_MOVE_UNSET;
+            SET_NOW_MOTION_UNLESS_CVA(goto motion_ready);
         motion_ready:
             dtM->count = -0xf;
         }

@@ -210,7 +210,6 @@ void ActKAGI(void)
             ModelType *root;
             ModelType *adjust_root;
             short old_ry;
-            short i;
             u16 sum;
             u32 quantized;
 
@@ -239,18 +238,7 @@ void ActKAGI(void)
             adjust_root->rotate.vy += old_ry - quantized;
             motMODE = MOTION_MOVE_NONE;
             dtM->mask = MOTION_MASK_ALL;
-            if (MotionUpdateMode != 0)
-            {
-                for (i = 0; i < N_CVA_HUMANS; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto motion_active;
-                    }
-                }
-            }
-            SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = MOTION_MOVE_UNSET;
+            SET_NOW_MOTION_UNLESS_CVA(goto motion_active);
 
         motion_active:
             dtM->count >>= 1;

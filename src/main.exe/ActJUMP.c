@@ -48,7 +48,6 @@ void ActJUMP(void)
     MapVector map;
     SVECTOR spd;
     facing_angle ry;
-    short i;
     long level;
     long apex_offset;
     long scaled;
@@ -89,20 +88,7 @@ void ActJUMP(void)
         if (dtL->vy < level)
         {
             SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
-            if (MotionUpdateMode != 0)
-            {
-                i = 0;
-                do
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto landed_motion_done;
-                    }
-                    i++;
-                } while (i < N_CVA_HUMANS);
-            }
-            SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = MOTION_MOVE_UNSET;
+            SET_NOW_MOTION_UNLESS_CVA(goto landed_motion_done);
         landed_motion_done:
             Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             dtM->count >>= 2;
@@ -131,20 +117,7 @@ void ActJUMP(void)
         {
             mid = (u16)motID;
             SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
-            if (MotionUpdateMode != 0)
-            {
-                i = 0;
-                do
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto fall_motion_done;
-                    }
-                    i++;
-                } while (i < N_CVA_HUMANS);
-            }
-            SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = MOTION_MOVE_UNSET;
+            SET_NOW_MOTION_UNLESS_CVA(goto fall_motion_done);
         fall_motion_done:
             if (mid != MOT_JUMP_RUN)
             {
