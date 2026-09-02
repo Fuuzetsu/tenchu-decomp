@@ -781,6 +781,12 @@ if` chain. Its common stage-end transition follows directly, while GCC emits
 the same shared join as retail. This removes six forward gotos and their label
 without changing any of the function's 1,388 bytes.
 
+CHEAT MENU BUFFER RECOVERED (2026-09-02): `CheckCheatCodes` no longer wraps
+its item-name and quantity tables in an invented union. They are the same
+`TAdtSelect` menu buffer populated twice in sequence: first all ITEM_N choices,
+then four quantity choices at the same base. One ordinary maximum-sized array
+expresses that reuse and preserves all 364 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

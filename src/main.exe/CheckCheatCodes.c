@@ -33,6 +33,9 @@
  * second call's delay slot).
  *
  * Matching notes:
+ *  - The two prompts reuse one ITEM_N-entry menu buffer. The quantity table
+ *    simply replaces its first four entries after the item selection; there
+ *    is no variant object or reason for a union.
  *  - Both cheat paths end in SoundEx(0, seid) but written as TWO explicit
  *    per-branch calls (`SoundEx(0, 0x4c)` / `SoundEx(0, 10)`), NOT a shared
  *    `SoundEx(0, seid)` after the if/else. cross-jump merges only the common
@@ -60,21 +63,17 @@ extern s32 memcmp(void *a, void *b, s32 n);
 void CheckCheatCodes(s16 *rec, int n)
 {
     s32 sel;
-    union
-    {
-        TAdtSelect ItemName[ITEM_N];
-        TAdtSelect Num[4];
-    } menu;
+    TAdtSelect menu_options[ITEM_N];
 
     if (memcmp(rec, CheatSeq, n << 1) == 0)
     {
         SoundEx(0, SE_MENU_CONFIRM);
-        __builtin_memcpy(menu.ItemName, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
+        __builtin_memcpy(menu_options, DEBUG_MENU_ITEM_CHOICE_OPTIONS,
                          sizeof(DEBUG_MENU_ITEM_CHOICE_OPTIONS));
-        sel = AdtSelect(str_select_item, menu.ItemName, 0);
-        __builtin_memcpy(menu.Num, sel_quantity, sizeof(sel_quantity));
+        sel = AdtSelect(str_select_item, menu_options, 0);
+        __builtin_memcpy(menu_options, sel_quantity, sizeof(sel_quantity));
         CamState.Owner->item[sel] +=
-            AdtSelect(str_number_of, menu.Num, 0);
+            AdtSelect(str_number_of, menu_options, 0);
         SoundEx(0, SE_ITEM_USE);
     }
     else
