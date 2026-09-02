@@ -71,10 +71,10 @@ do_create:
     if (type >= N_MISC_SPRITE_TYPES)
     {
         AdtMessageBox(msg_unknown_sprite_type);
-        type = 0;
+        type = MISC_SPRITE_FIRE1;
     }
     m->mode = 0;
-    m->param.sprite.type = (u8)type;
+    m->param.sprite.type = (misc_sprite_kind)type;
     return;
 
 do_draw:

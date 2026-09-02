@@ -34,14 +34,6 @@ enum
     MaxMisc = 200
 };
 
-/* Retail table extents shared by InitMisc and the individual processors. */
-enum
-{
-    N_DOOR_TYPES = 11,
-    N_PITFALL_TYPES = 3,
-    N_MISC_SPRITE_TYPES = 2
-};
-
 typedef struct tag_TMisc TMisc;
 
 /* The three authored words carried by a construction-file effect record and
@@ -76,13 +68,49 @@ enum pitfall_mode
     PITFALL_MODE_OPEN = 2
 };
 
+/* The construction-file selectors are indexes into the three tables at the
+ * end of this header.  Each name follows the model/image ids in that row. */
+typedef u8 door_kind;
+enum door_kind
+{
+    DOOR_KIND_MON6 = 0,
+    DOOR_KIND_DOORZ00 = 1,
+    DOOR_KIND_DOORZ01 = 2,
+    DOOR_KIND_MON5 = 3,
+    DOOR_KIND_MON = 4,
+    DOOR_KIND_MON2 = 5,
+    DOOR_KIND_MON3 = 6,
+    DOOR_KIND_MON0 = 7,
+    DOOR_KIND_GMON0 = 8,
+    DOOR_KIND_AKI0 = 9,
+    DOOR_KIND_AKIN = 10,
+    N_DOOR_TYPES
+};
+
+typedef u8 pitfall_kind;
+enum pitfall_kind
+{
+    PITFALL_KIND_OTO_LEFT = 0,
+    PITFALL_KIND_OTO_PAIR = 1,
+    PITFALL_KIND_SINGLE_MODEL = 2,
+    N_PITFALL_TYPES
+};
+
+typedef u8 misc_sprite_kind;
+enum misc_sprite_kind
+{
+    MISC_SPRITE_FIRE1 = 0,
+    MISC_SPRITE_FIRE2 = 1,
+    N_MISC_SPRITE_TYPES
+};
+
 /* The MISC_SPRITE variant of the param union (MISC__181fake's `sprite`
  * member, union MISC__181fake in reference/psxsym-types.h) — a single byte
  * at the union's base offset, reused after CREATE clamps/narrows the raw
  * `init.a` read down to a valid sprite-table index. */
 typedef struct TSprite
 {
-    u8 type; /* 0x0 */
+    misc_sprite_kind type; /* 0x0 */
 } TSprite;
 
 /* The MISC_DOOR variant of the parameter union (PSX.SYM's TDoor). */
@@ -91,7 +119,7 @@ typedef struct TDoor
     ModelType *locate; /* 0x0 */
     s16 r;             /* 0x4 */
     s16 dr;            /* 0x6 */
-    u8 type;           /* 0x8 */
+    door_kind type;    /* 0x8 */
 } TDoor;               /* 0xC */
 
 /* The MISC_SNOWFALL variant of the param union (MISC__181fake's `snowfall`
@@ -163,7 +191,7 @@ typedef struct TPitfall
 {
     ModelType *locate; /* 0x0 */
     s16 r;             /* 0x4 */
-    u8 type;           /* 0x6 */
+    pitfall_kind type; /* 0x6 */
 } TPitfall;
 
 /* Misc-object lifecycle messages named by the demo's PSX.SYM. */

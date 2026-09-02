@@ -67,7 +67,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         if (type >= N_PITFALL_TYPES)
         {
             AdtMessageBox(fmt_unknown_pitfall_type, type);
-            type = 0;
+            type = PITFALL_KIND_OTO_LEFT;
         }
         m->mode = PITFALL_MODE_CLOSED;
         param->r = 0;

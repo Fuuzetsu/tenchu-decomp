@@ -73,7 +73,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     if (type >= N_DOOR_TYPES)
     {
         AdtMessageBox(fmt_unknown_door_type, type);
-        type = 0;
+        type = DOOR_KIND_MON6;
     }
     m->mode = DOOR_MODE_IDLE;
     param->r = 0;
