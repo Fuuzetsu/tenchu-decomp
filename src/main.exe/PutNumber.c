@@ -41,19 +41,10 @@
  *    NumberImage.u (a uchar field) truncates to one byte regardless, so
  *    GCC's standard mod-after-div lowering (reusing the quotient `q` for the
  *    remainder) falls out with no extra casts needed.
- *  - `img = &NumberImage;` must be a SEPARATE statement written AFTER the
- *    very first field access (`base = NumberImage.u;`), not before: the
- *    first access alone materializes NumberImage's address into a fresh
- *    (caller-saved) pseudo, and only the SECOND, NAMED occurrence (`img =
- *    &...`) gets CSE'd into a copy — reproducing the target's `lui/addiu` +
- *    separate `move $s1,$v0` pair. Declaring/assigning `img` FIRST instead
- *    lets cc1 target its home register directly, fusing the two into one
- *    `addiu` and costing 4 bytes (cookbook "Register allocation steering":
- *    two registers holding the same value = an explicit source copy).
- *  - The `img->x=(s16)x; img->y=(s16)y;` pair needed a `do{}while(0)` wrapper
- *    around just those two stores (permuter-found, byte-neutral scheduling
- *    lever — cookbook's do{}while(0) family) to get the entry-block
- *    instruction order right relative to the loop label.
+ *  - Configure the shared atlas's cell width before binding `img`, then read
+ *    the base U coordinate through that drawing cursor. These are the two
+ *    real roles behind the target's global-address materialization and saved
+ *    pointer copy; the x/y stores need no scheduling wrapper.
  *  - The loop-exit test reads `cols` (just assigned from `q`), not `q`
  *    itself, even though they hold the same value — this is the register
  *    that ties out correctly (a bare 2-byte residual otherwise: `bnez a2` in
@@ -74,13 +65,9 @@ void PutNumber(int x, int y, int cols, int n)
     GsSPRITE *img;
     int q;
 
-    base = NumberImage.u;
+    NumberImage.w = NW;
     img = &NumberImage;
-    img->w = NW;
-    /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
-    do
-    {
-    } while (0);
+    base = img->u;
     img->x = (s16)x;
     img->y = (s16)y;
 loop:

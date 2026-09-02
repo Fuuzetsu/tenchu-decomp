@@ -20,11 +20,10 @@
  *
  * The distinct `value` and `quotient` halfword locals preserve the target's
  * caller-saved value copy and callee-saved quotient across GsSortSprite.
- * The one-shot sign-preparation block is also codegen-significant: its loop
- * note gives the saved atlas-U byte enough allocation weight to claim $s1
- * ahead of the sprite pointer, while enclosing the width load produces the
- * target's load-latency sequence `lhu width; li 10; mult` without emitting a
- * runtime branch.
+ * Once the digit loop finishes, `sign_base` is valid whether or not a minus
+ * glyph is needed. Computing it before the sign test naturally fills that
+ * branch's delay slot; the width load and multiplier then form the target's
+ * `lhu width; li 10; mult` sequence without a scheduling wrapper.
  */
 
 void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
@@ -61,14 +60,10 @@ void draw_digits_(GsSPRITE *sp, u32 dist, s16 x, s16 y)
         sp->u = u;
         sp->x -= 0xc;
     } while ((quotient << 16) != 0);
+    sign_base = u & 0xff;
     if (neg)
     {
-        sign_base = u & 0xff;
         width = sp->w;
-        /* empty one-shot: a sched1 region fence (an emptied debug print reads the same way). */
-        do
-        {
-        } while (0);
         multiplier = 10;
         sp->u = sign_base + multiplier * width;
         GsSortSprite(sp, OTablePt, 0);
