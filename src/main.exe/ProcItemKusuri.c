@@ -34,10 +34,8 @@
  *    way (constant pulled onto the remainder).
  *  - PSX.SYM places the interrupted-drop `p` and mode-2 `pos` at sp+16,
  *    and `vec` at sp+32. The local union exposes those exact names and types.
- *    `pos_build` at sp+32 and `vec_build` at sp+40 name the compiler aggregate
- *    temporaries visible in the target's copy sequences. `pos_build` overlaps
- *    the velocity pair safely because its lifetime ends before either vector
- *    is written.
+ *    The work VECTOR at sp+32 is copied into `pos`, then its upper and lower
+ *    short-vector halves build and hold `vec`.
  *  - The dispose tail is written out twice (drop path + mode 2); GCC's
  *    cross-jump merges the common suffix from the jalr on. The null check
  *    reads `ppu = item->proc` but the call is `item->proc(item)` (cse reuses
@@ -88,15 +86,7 @@ void ProcItemKusuri(TItem *item)
         struct
         {
             VECTOR pos;
-            union
-            {
-                VECTOR pos_build;
-                struct
-                {
-                    SVECTOR vec;
-                    SVECTOR vec_build;
-                } velocity;
-            } build;
+            VECTOR build;
         } bleed;
     } scratch;
 
@@ -207,21 +197,21 @@ void ProcItemKusuri(TItem *item)
         {
             if (i >= 0x14)
                 break;
-            memset(&scratch.bleed.build.pos_build, 0,
-                   sizeof(scratch.bleed.build.pos_build));
-            scratch.bleed.build.pos_build.vx =
+            memset(&scratch.bleed.build, 0,
+                   sizeof(scratch.bleed.build));
+            scratch.bleed.build.vx =
                 item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
-            scratch.bleed.build.pos_build.vy =
+            scratch.bleed.build.vy =
                 item->owner->model->locate.coord.t[1] + (rand() % 1000 - 1200);
-            scratch.bleed.build.pos_build.vz =
+            scratch.bleed.build.vz =
                 item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
-            scratch.bleed.pos = scratch.bleed.build.pos_build;
-            memset(&scratch.bleed.build.velocity.vec_build, 0,
-                   sizeof(scratch.bleed.build.velocity.vec_build));
-            scratch.bleed.build.velocity.vec_build.vy = rand() % 10 - 30;
-            scratch.bleed.build.velocity.vec =
-                scratch.bleed.build.velocity.vec_build;
-            SetBleed(&scratch.bleed.pos, &scratch.bleed.build.velocity.vec,
+            scratch.bleed.pos = scratch.bleed.build;
+            memset(&((SVECTOR *)&scratch.bleed.build)[1], 0,
+                   sizeof(SVECTOR));
+            ((SVECTOR *)&scratch.bleed.build)[1].vy = rand() % 10 - 30;
+            *(SVECTOR *)&scratch.bleed.build =
+                ((SVECTOR *)&scratch.bleed.build)[1];
+            SetBleed(&scratch.bleed.pos, (SVECTOR *)&scratch.bleed.build,
                      rand() % 0x10 + 0xf, RGB24(255, 255, 126));
             i++;
         }
