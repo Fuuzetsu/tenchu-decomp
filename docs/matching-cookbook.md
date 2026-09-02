@@ -1808,7 +1808,7 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   before reaching for staging arithmetic.
 - **Mutual multi-variable races: treat the required order as a PERMUTATION
   and use the cheapest lever that produces it** (Codex round-3 playbook,
-  verified on DrawTargetS where ten weight cages fell at once): (1) move
+  first explored on an interim DrawTargetS reconstruction): (1) move
   ONE over-prioritized intruder through the permutation instead of
   boosting every displaced value (a role split on the intruder re-ranked
   DrawTargetS's whole five-way clique); (2) fission at real role
@@ -1827,9 +1827,13 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   into folded sign/mask/arithmetic identities: they are compiler coercion,
   not human source. Until a real dataflow or control-flow recovery replaces
   it, retain the honest operation inside an explicit one-shot boundary.
-  DrawTargetS, DrawConstruction, CreateStage, AfsGetEntry, PutStrain,
+  DrawConstruction, CreateStage, AfsGetEntry, PutStrain,
   update_card_screen_, and mission_score_screen were reverted to that form
-  on 2026-09-02.
+  on 2026-09-02. DrawTargetS was subsequently solved at the higher level:
+  restoring GsSortLine's `unsigned short` priority ABI and writing both line
+  submissions in each real radius arm made GCC recover the exact cross-jump
+  and saved-register permutation with no cages or carriers. Recheck API types
+  and missing branch-local work before tuning an allocator race.
 - **Live-range fission beats ref-weight towers — but the winner must
   CONFLICT with the rival** (DefaultActionHumanoid, 2026-08-31, joint with
   a Codex collaboration): when a variable needs a callee-saved register

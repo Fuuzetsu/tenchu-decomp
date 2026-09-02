@@ -71,7 +71,6 @@
 extern MATRIX GsWSMATRIX;
 
 extern long abs(long value);
-extern void GsSortLine(GsLINE *line, GsOT *ot, u16 priority);
 extern short DrawModel(ModelType *objp);
 
 static inline void GetWireScreenPosition(long x, long y, long z,

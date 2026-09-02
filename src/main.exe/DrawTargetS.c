@@ -36,33 +36,23 @@
  *    plain `long color >> N`), not Ghidra's `(uint)param_4 >> N` (which
  *    would compile to `srl`). Both truncate to the same byte once stored,
  *    but only the signed spelling reproduces the actual opcode.
- *  - `line_ptr`, `ordering_table`, and `priority` are branch-local
- *    call-argument carriers. They put `&line`, the in-place u16 narrowing,
- *    and OTablePt into a0/a2/a1 in both color arms while leaving the four
- *    line-coordinate stores and first jal shared after the join. Long
- *    nearx/neary locals avoid the short addiu-then-move hops; x/y still
- *    update in place as PSX.SYM suggests.
- *  - The one-shot statement boundaries in both arms emit no runtime
- *    branches. They retain the old compiler's allocation priorities while
- *    leaving the four edge calculations as ordinary center +/- radius
- *    operations.
- *  - The call-site declaration takes a full-width priority because both arms
- *    already narrow otz in place. This preserves the target's plain `move
- *    a2,s3` at the second call instead of inserting a redundant mask.
+ *  - Both radius arms submit their two diagonals directly. GCC cross-jumps
+ *    their common tails, while CSE keeps the repeated center +/- radius
+ *    values in the four saved registers seen in the target.
+ *  - GsSortLine's real `unsigned short` priority parameter supplies the
+ *    target's in-place narrowing before the first submission in each arm.
+ *    The narrowed value is then reused by the second call, so no extra mask
+ *    or full-width prototype exception is needed.
  */
-extern void GsSortLine(GsLINE *p, GsOT *ot, long pri);
 
 void DrawTargetS(long x, long y, long z, long color)
 {
     GsLINE line;
-    GsLINE *line_ptr;
-    GsOT *ordering_table;
-    long otz;
-    long nearx, neary;
     long priority;
 
-    z = z >> 2;
-    otz = z < 0 ? 0 : (z >= DEPTH_LIMIT ? DEPTH_LIMIT - 1 : z);
+    z >>= 2;
+    priority = z < 0 ? 0 :
+        (z >= DEPTH_LIMIT ? DEPTH_LIMIT - 1 : z);
 
     line.r = (u8)(color >> 16);
     line.attribute = 0;
@@ -70,64 +60,28 @@ void DrawTargetS(long x, long y, long z, long color)
     line.b = (u8)color;
     if (color < 0)
     {
-        line_ptr = &line;
-        otz = (u16)otz;
-        priority = otz;
-        nearx = x - 20;
-        do
-        {
-            do
-            {
-                neary = y - 20;
-            } while (0);
-        } while (0);
-        do
-        {
-            x = x + 20;
-        } while (0);
-        ordering_table = OTablePt;
-        y = y + 20;
+        line.x0 = x - 20;
+        line.y0 = y - 20;
+        line.x1 = x + 20;
+        line.y1 = y + 20;
+        GsSortLine(&line, OTablePt, priority);
+        line.x0 = x + 20;
+        line.y0 = y - 20;
+        line.x1 = x - 20;
+        line.y1 = y + 20;
+        GsSortLine(&line, OTablePt, priority);
     }
     else
     {
-        line_ptr = &line;
-        otz = (u16)otz;
-        priority = otz;
-        do
-        {
-            nearx = x - 2;
-        } while (0);
-        do
-        {
-            do
-            {
-                neary = y - 2;
-            } while (0);
-        } while (0);
-        do
-        {
-            do
-            {
-                x = x + 2;
-            } while (0);
-        } while (0);
-        ordering_table = OTablePt;
-        do
-        {
-            do
-            {
-                y = y + 2;
-            } while (0);
-        } while (0);
+        line.x0 = x - 2;
+        line.y0 = y - 2;
+        line.x1 = x + 2;
+        line.y1 = y + 2;
+        GsSortLine(&line, OTablePt, priority);
+        line.x0 = x + 2;
+        line.y0 = y - 2;
+        line.x1 = x - 2;
+        line.y1 = y + 2;
+        GsSortLine(&line, OTablePt, priority);
     }
-    line.x0 = nearx;
-    line.y0 = neary;
-    line.x1 = x;
-    line.y1 = y;
-    GsSortLine(line_ptr, ordering_table, priority);
-    line.x0 = x;
-    line.y0 = neary;
-    line.x1 = nearx;
-    line.y1 = y;
-    GsSortLine(&line, OTablePt, otz);
 }

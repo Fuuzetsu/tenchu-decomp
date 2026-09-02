@@ -347,8 +347,7 @@ void GsSetWorkBase(PACKET *work);
 void GsSortObject4(GsDOBJ2 *object, GsOT *ot, int shift,
                    unsigned long *scratch);
 void GsSortSprite(GsSPRITE *sprite, GsOT *ot, unsigned short priority);
-/* DrawTargetS still needs its target-proven full-width declaration; centralize
- * GsSortLine once its canonical unsigned-short call shape is recovered. */
+void GsSortLine(GsLINE *line, GsOT *ot, unsigned short priority);
 void GsSortPoly(void *primitive, GsOT *ot, unsigned short priority);
 void GsClearOt(unsigned short offset, unsigned short point, GsOT *ot);
 void GsDefDispBuff(unsigned short x0, unsigned short y0,

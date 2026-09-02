@@ -694,6 +694,14 @@ folded sign/mask/arithmetic identities as a matching technique; a visible
 compiler boundary is preferable until genuine source structure can replace
 it.
 
+DRAWTARGETS STRUCTURE RECOVERED (2026-09-02): the remaining cages and call
+carriers were artifacts of a wrong local GsSortLine prototype and an
+over-merged source CFG. Restoring PsyQ's unsigned-short priority ABI and
+placing both diagonal submissions in each real radius arm lets GCC perform
+the target's single narrowing, common-tail cross-jump, and saved-register
+allocation naturally. The result is exact with ordinary field assignments
+and no one-shot scopes or arithmetic identities.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

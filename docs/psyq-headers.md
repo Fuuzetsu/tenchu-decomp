@@ -21,12 +21,13 @@ the declarations superseded by those headers, the project compiled and linked
 successfully. Of 708 compiled objects, 707 were byte-identical to the clean-shim
 build.
 
-The sole difference was four bytes in `DrawTargetS`. PsyQ 4.5 declares the
-`GsSortLine` priority as `unsigned short`, which makes GCC emit an `andi` before
-the second call. The retail target has a plain register move. The function
-therefore retains its target-proven, full-width local declaration. This is a
-documented retail/compiler fact, not a reason to alter the shared SDK shim.
-No SDK files from that audit are committed here.
+The audit originally left a four-byte difference in `DrawTargetS`. That proved
+to be a source-reconstruction problem, not an SDK exception: keeping both line
+submissions inside each radius arm lets GCC narrow the priority once, reuse it
+for the second call, and cross-jump the common tails exactly as retail does.
+The clean shim therefore uses PsyQ 4.5's `unsigned short` priority declaration
+for `GsSortLine`, and `DrawTargetS` remains byte-identical without a local
+prototype override. No SDK files from that audit are committed here.
 
 ## Why the SDK is not a fetched dependency
 
@@ -50,9 +51,8 @@ builds.
 A future audit lane may accept a user-supplied, appropriately licensed PsyQ 4.5
 include directory and compile against it locally. Such a lane should never
 vendor or download the SDK. It must preserve the header order above, overlay
-only target-proven exceptions such as `DrawTargetS`, and finish with
-`./Build check`. The default hermetic build should continue to use the clean
-minimal shims.
+only target-proven exceptions, and finish with `./Build check`. The default
+hermetic build should continue to use the clean minimal shims.
 
 The same external installation may supply original `.LIB`/`.OBJ` members to an
 opt-in relocatable build. Headers and library objects solve different problems:

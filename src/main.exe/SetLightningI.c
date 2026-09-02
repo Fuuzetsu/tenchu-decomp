@@ -63,7 +63,6 @@ extern MATRIX GsWSMATRIX;
 extern long abs(long value);
 extern int rand(void);
 extern void *memset(void *dst, int value, u32 size);
-extern void GsSortLine(GsLINE *line, GsOT *ot, u16 priority);
 
 static inline void PrepareLightningScreenPosition(void)
 {
