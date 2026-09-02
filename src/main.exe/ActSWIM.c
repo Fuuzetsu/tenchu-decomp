@@ -240,32 +240,7 @@ void ActSWIM(void)
         SHOW_HUMANOID_BODY_PARTS(item_model, last_item_part, item_part);
     }
 
-    switch (SelectedItem)
-    {
-    case ITEM_SHURIKEN:
-        motID = MOT_SYURI;
-        break;
-    case ITEM_KAGINAWA:
-        motID = MOT_KAGI;
-        break;
-    case ITEM_MAKIBISHI:
-        motID = MOT_ITEM;
-        break;
-    case ITEM_SMOKE:
-        motID = MOT_ITEM_THROW;
-        break;
-    case ITEM_FIRE:
-        motID = MOT_ITEM_THROW;
-        break;
-    case ITEM_JIRAI:
-        motID = MOT_ITEM_PLANT;
-        break;
-    case ITEM_NONE:
-    case ITEM_KAWARIMI:
-        goto item_sound;
-    default:
-        goto item_default;
-    }
+    SELECT_ITEM_USE_MOTION(item_sound, item_default);
     motMODE = MOTION_MOVE_APPLY;
     return;
 

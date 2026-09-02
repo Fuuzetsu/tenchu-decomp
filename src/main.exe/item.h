@@ -36,6 +36,36 @@
  * pad_hold >> 16 and (u8)pad_hold). */
 #define PAD_HOLD(button, frames) (((button) << 16) | (frames))
 
+/* Manual item use either starts one of the shared item motions, reports an
+ * unavailable selection, or lets the item perform its immediate action. */
+#define SELECT_ITEM_USE_MOTION(unavailable_, immediate_)                    \
+    switch (SelectedItem)                                                    \
+    {                                                                        \
+    case ITEM_SHURIKEN:                                                      \
+        motID = MOT_SYURI;                                                   \
+        break;                                                               \
+    case ITEM_KAGINAWA:                                                      \
+        motID = MOT_KAGI;                                                    \
+        break;                                                               \
+    case ITEM_MAKIBISHI:                                                     \
+        motID = MOT_ITEM;                                                    \
+        break;                                                               \
+    case ITEM_SMOKE:                                                         \
+        motID = MOT_ITEM_THROW;                                              \
+        break;                                                               \
+    case ITEM_FIRE:                                                          \
+        motID = MOT_ITEM_THROW;                                              \
+        break;                                                               \
+    case ITEM_JIRAI:                                                         \
+        motID = MOT_ITEM_PLANT;                                              \
+        break;                                                               \
+    case ITEM_NONE:                                                          \
+    case ITEM_KAWARIMI:                                                      \
+        goto unavailable_;                                                   \
+    default:                                                                 \
+        goto immediate_;                                                     \
+    }
+
 /* The three melee Attack* controllers share actmode as a two-phase latch:
  * close on the target until contact, then run the in-range combat policy.
  * AttackAnimal reuses the byte as a pursuit timer instead. */
