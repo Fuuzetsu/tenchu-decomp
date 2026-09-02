@@ -99,7 +99,7 @@ void ProcItemNemuri(TItem *item)
     u8 flight_count;
     s32 rotation_count;
 
-    model = item->model.sprite;
+    model = (Sprite3D *)item->model;
     param = &item->param.napalm;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

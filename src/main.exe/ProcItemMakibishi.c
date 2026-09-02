@@ -14,7 +14,7 @@
  *
  * Matching notes (see also ProcItemDrop.c for the item-TU/ConflictObject
  * conventions this shares):
- *  - `model = item->model.sprite; param = &item->param.drop;` both sit
+ *  - `model = (Sprite3D *)item->model; param = &item->param.drop;` both sit
  *    before the entry mode==ITEM_MODE_DISPOSE test (ProcItemDrop's double
  *    lever): model's
  *    load is sequential, param's addiu fills the entry branch's delay slot.
@@ -82,7 +82,7 @@ void ProcItemMakibishi(TItem *item)
     s32 i;
     s32 conflict_id;
 
-    model = item->model.sprite;
+    model = (Sprite3D *)item->model;
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

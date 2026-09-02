@@ -36,7 +36,7 @@
  * GetAreaMapLevel floor check. It gets ProcItemShinsoku as its processor, but
  * differs from every other twin in three ways (all confirmed against the
  * .s, not just Ghidra):
- *  - `item->model.object` is unconditionally zeroed — no ItemImage[item->type] lookup.
+ *  - `item->model` is unconditionally zeroed — no ItemImage[item->type] lookup.
  *  - the end vector is packed into PSX.SYM's `param_shinsoku.vec`, at
  *    offsets 0/2/4. No hint/status/count writes occur in this function.
  *  - both the "pool exhausted" early return and the normal path return 0
@@ -89,7 +89,7 @@ int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->model.object = 0;
+        item->model = 0;
     }
     param->vec.vx = p->end.vx;
     param->vec.vy = p->end.vy;

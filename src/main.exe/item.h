@@ -496,22 +496,14 @@ typedef struct param_dokudango
     u16 count;           /* 0x14 (retail accesses it with lhu/sh) */
 } param_dokudango;       /* 0x18 */
 
-/* TItem's original model word carries either a ModelType projectile or a
- * Sprite3D item visual. Both variants begin with the same transform layout. */
-typedef union ItemModelReference ItemModelReference;
-union ItemModelReference
-{
-    ModelType *object;
-    Sprite3D *sprite;
-}; /* 0x04 */
-
 struct tag_TItem
 {
-    Humanoid *owner;         /* 0x00 (PSX.SYM's original field type) */
-    ItemModelReference model; /* 0x04 */
-    TItemType type;           /* 0x08 */
-    void (*proc)(TItem *);    /* 0x0C */
-    ModelType *locate;        /* 0x10 */
+    Humanoid *owner;       /* 0x00 (PSX.SYM's original field type) */
+    ModelType *model;      /* 0x04 (PSX.SYM's original field type; Sprite3D
+                               visuals share the transform prefix) */
+    TItemType type;        /* 0x08 */
+    void (*proc)(TItem *); /* 0x0C */
+    ModelType *locate;     /* 0x10 */
     struct
     {
         ConflictClass mode; /* 0x00 */

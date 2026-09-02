@@ -70,7 +70,7 @@
  *    param reproduces the target directly).
  *  - `aowner`/`atype` temps for owner/type, same shape as the other twins (loaded
  *    back-to-back, stored owner/proc/mode/type in that order).
- *  - `item->collision.size = 0; item->model.object = ArrowModel;` immediately precede
+ *  - `item->collision.size = 0; item->model = ArrowModel;` immediately precede
  *    SetupFly, same position/interleaving as ReqItemLaunch.
  */
 extern void ProcItemArrow(TItem *item);
@@ -118,7 +118,7 @@ int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->model.object = ArrowModel;
+        item->model = ArrowModel;
     }
     SetupFly(&param->fly, pos, &target, 0, FIXED_HALF, 300);
     param->count = 5;

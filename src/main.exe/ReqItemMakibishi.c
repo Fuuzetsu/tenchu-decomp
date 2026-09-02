@@ -111,7 +111,7 @@ int ReqItemMakibishi(PARAM_ITEM_DROP *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->model.sprite = ItemImage[item->type];
+        item->model = (ModelType *)ItemImage[item->type];
     }
     x = p->vec.vx;
     y = p->vec.vy;

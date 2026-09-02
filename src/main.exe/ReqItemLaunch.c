@@ -64,7 +64,7 @@
  *    SetupFly's second argument (same "pos survives to a late call" shape as
  *    ReqItemMakibishi's SoundEx(pos, ...)).
  *  - aowner/atype are real temps, same shape as the other twins.
- *  - `item->collision.size = 0; item->model.object = SyurikenModel;` immediately precede
+ *  - `item->collision.size = 0; item->model = SyurikenModel;` immediately precede
  *    SetupFly, same position as the other twins' collision-size/model stores
  *    before their own end-vector tail; the scheduler interleaves these
  *    stores with SetupFly's argument setup (independent instructions).
@@ -83,7 +83,7 @@
  *    the wrong base left a 9-byte pure-reorder residual (same instructions,
  *    same registers, just this store one slot later) even though the
  *    function was already the right LENGTH.
- *  - `ai = SetupAfterimage(item->model.object, 10);` is a real temp: the pointer is
+ *  - `ai = SetupAfterimage(item->model, 10);` is a real temp: the pointer is
  *    stored to `param->effect` AND read six more times for the vector1/
  *    vector2 fields — inlining the call would re-invoke it.
  */
@@ -122,11 +122,11 @@ int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->model.object = SyurikenModel;
+        item->model = SyurikenModel;
     }
     SetupFly(&param->fly, pos, &p->end, FIXED_QUARTER, FIXED_QUARTER, 300);
     item->param.launch.fly.mode = FLY_MODE_ARC;
-    ai = SetupAfterimage(item->model.object, 10);
+    ai = SetupAfterimage(item->model, 10);
     param->effect = ai;
     ai->vector1.vx = 0x14;
     ai->vector1.vy = 0;

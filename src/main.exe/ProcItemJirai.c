@@ -99,7 +99,7 @@ void ProcItemJirai(TItem *item)
     TItem *call_item;
     ProcItemJiraiScratch scratch;
 
-    sprite = item->model.sprite;
+    sprite = (Sprite3D *)item->model;
     param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

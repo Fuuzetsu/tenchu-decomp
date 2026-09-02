@@ -100,7 +100,7 @@ int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
         item->locate->locate.super = 0;
         UpdateCoordinate(item->locate);
         item->collision.size = 0;
-        item->model.sprite = ItemImage[item->type];
+        item->model = (ModelType *)ItemImage[item->type];
     }
     item->param.lightningbolt.start.vx = p->start.vx;
     param->start.vy = p->start.vy;

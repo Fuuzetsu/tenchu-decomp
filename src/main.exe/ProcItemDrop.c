@@ -105,7 +105,7 @@ void ProcItemDrop(TItem *item)
     u8 cnt;
     u8 count;
 
-    model = item->model.sprite;
+    model = (Sprite3D *)item->model;
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
     {

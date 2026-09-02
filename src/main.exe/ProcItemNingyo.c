@@ -210,8 +210,8 @@ void ProcItemNingyo(TItem *item)
 
     draw_mode0:
         UpdateCoordinate(item->locate);
-        item->model.sprite->locate = item->locate->locate;
-        DrawSprite(item->model.sprite);
+        item->model->locate = item->locate->locate;
+        DrawSprite((Sprite3D *)item->model);
         return;
     }
 

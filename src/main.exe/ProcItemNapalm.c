@@ -81,7 +81,7 @@ void ProcItemNapalm(TItem *item)
     s32 ex;
     s32 cid;
 
-    model = item->model.sprite;
+    model = (Sprite3D *)item->model;
     param = &item->param.napalm;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
