@@ -192,7 +192,7 @@ void mission_score_screen(void)
     GsIMAGE image;
     MissionScoreTail tail;
     u_long *tim;
-    u_long *archive;
+    ArcFile *archive;
     GsSPRITE *initSprite;
     GsSPRITE *sprite;
     GsSPRITE *medal;
@@ -245,7 +245,7 @@ void mission_score_screen(void)
     {
         u32 attributeMask;
 
-        archive = FileRead(
+        archive = (ArcFile *)FileRead(
             MISSION_SCORE_RANK_ARCHIVE_PATHS[CHOSEN_LANGUAGE]);
         attributeMask = GS_ATTR_SEMITRANS_ADD;
     score_rank_sprite_init_loop:

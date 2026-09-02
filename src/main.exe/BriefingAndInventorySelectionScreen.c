@@ -98,12 +98,12 @@ extern void briefing_screen_(void);
  * NOTE: keep the helpers inside the guard -- in the stub state cc1 emits
  * unreferenced static inlines as standalone code (+32 insns).
  */
-static inline u_long *LoadHelpArchive(TLinkInfo *q)
+static inline ArcFile *LoadHelpArchive(TLinkInfo *q)
 {
     u8 *paths[N_LANGUAGES];
 
     __builtin_memcpy(paths, ITEM_HELP_ARCHIVE_PATHS, sizeof(paths));
-    return FileRead(paths[q->language]);
+    return (ArcFile *)FileRead(paths[q->language]);
 }
 
 static inline void TimToSprite(u_long *buf, GsSPRITE *sp)
@@ -123,7 +123,7 @@ void BriefingAndInventorySelectionScreen(void)
     u16 cap;
     u16 taken;
     BackGround *bg;
-    u_long *harc;
+    ArcFile *harc;
     GsSPRITE *p;
     ItemHelpImageId help_image;
     TLinkInfo *q;

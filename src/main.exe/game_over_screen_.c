@@ -147,9 +147,9 @@ void game_over_screen_(void)
     GsIMAGE image;
     s16 old_pad;
     BackGround *background;
-    u_long *gov_archive;
+    ArcFile *gov_archive;
     u_long *tim;
-    u_long *fade_archive;
+    ArcFile *fade_archive;
     Sprite3D *fade_sprite;
     u8 *persistent;
     TLinkInfo *language_state;
@@ -210,12 +210,12 @@ void game_over_screen_(void)
     resource_root = path_demo;
     prefix_entry = &GAME_OVER_FADE_PREFIXES[language_state->language];
     sprintf(archive_path, fmt_arc, resource_root, *prefix_entry, suffix);
-    fade_archive = FileRead(archive_path);
+    fade_archive = (ArcFile *)FileRead(archive_path);
     tim = get_tim_from_archive(fade_archive, GAME_OVER_FADE_BACKGROUND);
     background = load_background_(tim);
-    gov_archive = PathFileRead(resource_root,
-                               GAME_OVER_ARCHIVE_PATHS[
-                                   language_state->language]);
+    gov_archive = (ArcFile *)PathFileRead(
+        resource_root,
+        GAME_OVER_ARCHIVE_PATHS[language_state->language]);
     setup_brightness = 0x80;
     tim = get_tim_from_archive(gov_archive, GAME_OVER_TITLE_IMAGE);
     StartDemoInitSprite(tim, &image, &gov_title);

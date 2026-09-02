@@ -56,24 +56,24 @@ extern GsIMAGE Images[N_IMAGES];
 
 GsIMAGE *GetImage(ImageArchiveId index)
 {
-    u_long *pt;
+    ArcFile *archive;
     u_long *adr;
     int i;
 
     if (Images_fInitialize == 0)
     {
-        pt = FileRead(path_image_images_arc);
-        if (((ArcFile *)pt)->count < N_IMAGES)
+        archive = (ArcFile *)FileRead(path_image_images_arc);
+        if (archive->count < N_IMAGES)
         {
             AdtMessageBox(msg_bad_image_file);
         }
         for (i = 0; i < N_IMAGES; i++)
         {
-            adr = get_tim_from_archive(pt, i);
+            adr = get_tim_from_archive(archive, i);
             GetTIMInfo(adr, &Images[i]);
             LoadTIM(adr);
         }
-        vfree(pt);
+        vfree(archive);
         Images_fInitialize = 1;
     }
     if ((unsigned)index >= N_IMAGES)

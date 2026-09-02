@@ -118,7 +118,7 @@
  *  - name/center/param/tmp/size are five separate stack locals: gcc 2.8.1
  *    rounds each BLKmode slot up to 8 bytes, which yields retail's pads
  *    (param@0x128+24, tmp@0x140+24, size@0x158) with no explicit padding.
- *  - The counting loop indexes ((WorldDataType *)data)[i] directly (no
+ *  - The counting loop indexes the typed `wlddt[i]` table directly (no
  *    walker variable): loop.c strength-reduces it to the v1 giv, emitting
  *    the hoisted li 2 before the giv init (target preheader order), and the
  *    giv advance lands in the loop branch delay slot.
@@ -286,7 +286,7 @@ short LoadConstruction(u_long *data)
     {
         do
         {
-            if (((WorldDataType *)data)[i].mode == WLD_RECORD_OBJECT)
+            if (wlddt[i].mode == WLD_RECORD_OBJECT)
                 nModel++;
             i++;
         } while (i < n);

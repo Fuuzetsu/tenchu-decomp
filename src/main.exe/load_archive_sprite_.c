@@ -15,7 +15,7 @@
  */
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
-void load_archive_sprite_(u_long *archive, int idx)
+void load_archive_sprite_(ArcFile *archive, int idx)
 {
     GsIMAGE img;
     u_long *adr;

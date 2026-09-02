@@ -191,7 +191,7 @@ void StageEndScreen(void)
     ScoreStats *layout_record;
     GsSPRITE *icon;
     u_long *tim;
-    u_long *rank_archive;
+    ArcFile *rank_archive;
     enum
     {
         /* What the player picked on the stage-end screen. */
@@ -327,7 +327,7 @@ void StageEndScreen(void)
             ui.background = load_background_(tim);
             vfree(tim);
             rank_archive =
-                FileRead(STAGE_RESULT_RANK_ARCHIVE_PATHS[
+                (ArcFile *)FileRead(STAGE_RESULT_RANK_ARCHIVE_PATHS[
                     ((TLinkInfo *)best_x)->language]);
             tim = get_tim_from_archive(rank_archive,
                                        current.grade);

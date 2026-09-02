@@ -23,32 +23,31 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern char fmt_bad_archive_index[]; /* bad archive index %d */
 
-u_long *get_tim_from_archive(u_long *archive, int idx)
+u_long *get_tim_from_archive(ArcFile *archive, int idx)
 {
-    ArcFile *arc;
     s32 i;
     s32 entry_offset;
 
-    arc = (ArcFile *)archive;
-    if (arc->loaded == ARC_ENTRIES_RELATIVE)
+    if (archive->loaded == ARC_ENTRIES_RELATIVE)
     {
         i = 0;
-        if (arc->count > 0)
+        if (archive->count > 0)
         {
             do
             {
                 entry_offset =
-                    arc->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
-                arc->entry[i].data = (u_long *)((u8 *)arc + entry_offset);
+                    archive->entry[i].offset + ARC_ENTRY_TABLE_OFFSET;
+                archive->entry[i].data =
+                    (u_long *)((u8 *)archive + entry_offset);
                 i++;
-            } while (i < arc->count);
+            } while (i < archive->count);
         }
-        arc->loaded = ARC_ENTRIES_ABSOLUTE;
+        archive->loaded = ARC_ENTRIES_ABSOLUTE;
     }
-    if (idx < 0 || arc->count <= idx)
+    if (idx < 0 || archive->count <= idx)
     {
         AdtMessageBox(fmt_bad_archive_index, idx);
         return 0;
     }
-    return arc->entry[idx].data;
+    return archive->entry[idx].data;
 }
