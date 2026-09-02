@@ -9,15 +9,15 @@
  * colours.  The GTE projects the root quad into work->v, and front-facing
  * quads are handed to subdivide_quad_ through work->frame[0].
  *
- * The top-level volatile qualifiers are a GCC 2.8 stack-read constraint, not
- * a claim that the ordering table is hardware-backed.  A by-value wrapper can
- * remove them here, but makes decode_tmd_adiv_ copy an invented aggregate, so
- * the scalar ABI remains the smaller honest representation.
+ * The remaining top-level volatile qualifier applies only to the incoming
+ * ordering-table pointer. It keeps GCC 2.8's stack read at the use site; the
+ * table itself is ordinary memory. The shift value follows normal by-value
+ * flow and shares `t1` with the later, disjoint GTE scratch address.
  */
 
 u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                    u_long *packet,
-                   int count, volatile u_long shift, GsOT *volatile ot,
+                   int count, u_long shift, GsOT *volatile ot,
                    ADIV_WORK *wp)
 {
     int hwd;
@@ -25,6 +25,8 @@ u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     u_long t0;
     int cd;
     int code;
+    int cnt;
+    int init;
     ADIV_WORK *work;
     u_long t1;
     u_long t2;
@@ -35,27 +37,29 @@ u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     ADIV_VERT *v2;
     ADIV_VERT *v1;
     ADIV_VERT **vp;
-    u_long shiftWord;
 
-    /* These three setup stores retain the workspace's scalar scratch view. */
+    /* These setup stores retain the workspace's scalar scratch view. */
     work = wp;
     hwd = HWD0;
-    ADIV_SCALAR_WORD(work, limit) = 4;
+    init = 4;
+    ADIV_SCALAR_WORD(work, limit) = init;
     frame = &work->frame[0];
     vwd = VWD0;
     vp = frame->vp;
     ADIV_SCALAR_SHORT(work, adivw) = (short)(hwd / 2);
     ADIV_SCALAR_SHORT(work, adivh) = (short)(vwd / 2);
     t0 = (u_long)ot->org;
-    shiftWord = shift;
-    work->adivz = 150;
-    work->shift = shiftWord;
+    t1 = shift;
+    init = 150;
+    work->adivz = init;
+    work->shift = t1;
     setlen(&work->packet, GPU_POLY_GT4_LENGTH);
     code = GPU_POLY_GT4_CODE;
     work->out = packet;
     setcode(&work->packet, code);
     work->org = (u_long *)t0;
-    if (count != 0)
+    cnt = count;
+    if (cnt != 0)
     {
         v0 = &work->v[0];
         v1 = &work->v[1];
@@ -133,9 +137,9 @@ u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                     primitive->stream.texture[1].component.metadata;
                 subdivide_quad_(frame, work, 0);
             }
-            count--;
+            cnt--;
             primitive++;
-        } while (count != 0);
+        } while (cnt != 0);
     }
     return work->out;
 }

@@ -8,13 +8,14 @@
  * typed ADIV_WORK root vertices, copies the record's one colour to all four
  * corners, and passes visible quads to the recursive subdivider.
  *
- * As in adiv_tng4_, volatile applies only to the incoming scalar parameter
- * objects to reproduce GCC 2.8's late stack reads; it has no hardware meaning.
+ * As in adiv_tng4_, the remaining volatile qualifier applies only to the
+ * incoming ordering-table pointer so GCC 2.8 reads that stack argument at its
+ * use site. The table and the ordinary by-value shift are not volatile.
  */
 
 u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
                    u_long *packet,
-                   int count, volatile u_long shift, GsOT *volatile ot,
+                   int count, u_long shift, GsOT *volatile ot,
                    ADIV_WORK *wp)
 {
     int hwd;
@@ -24,7 +25,6 @@ u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
     int code;
     int cnt;
     int init;
-    GsOT *o;
     ADIV_WORK *work;
     u_long t1;
     u_long t2;
@@ -36,7 +36,7 @@ u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
     ADIV_VERT *v1;
     ADIV_VERT **vp;
 
-    /* These three setup stores retain the workspace's scalar scratch view. */
+    /* These setup stores retain the workspace's scalar scratch view. */
     work = wp;
     hwd = HWD0;
     init = 4;
@@ -46,9 +46,8 @@ u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
     vwd = VWD0;
     ADIV_SCALAR_SHORT(work, adivw) = (short)(hwd / 2);
     ADIV_SCALAR_SHORT(work, adivh) = (short)(vwd / 2);
-    o = ot;
     t1 = shift;
-    t0 = (u_long)o->org;
+    t0 = (u_long)ot->org;
     init = 150;
     work->adivz = init;
     setlen(&work->packet, GPU_POLY_GT4_LENGTH);
