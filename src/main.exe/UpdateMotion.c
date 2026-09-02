@@ -35,8 +35,8 @@
  * derives mmp->count (a signed byte, motion->sweep sign-extended) and
  * mmp->loop = 0, clamps mmp->n to min(mmp->model->n, mmp->motion->n), calls
  * SetupSpline(mmp) to reseed the interpolation state, then re-normalizes
- * every bone's rotation (mmp->model->object[i]->rotate, cast to a short[3]
- * array of vx/vy/vz) into canonical range: first snap a value that
+ * every bone's contiguous vx/vy/vz rotation components through the original
+ * `short *xyz` cursor into canonical range: first snap a value that
  * overshot by nearly a half turn back a full turn (abs > 0x800 -> +-0x1000),
  * then reduce it mod 0x1000, keeping the sign (a truncating divide). Returns
  * 1 on success.
@@ -46,8 +46,8 @@
  *    -1 sentinel inside the body. This priority is the reverse of GetMotionID.
  *    Reuse mrp for both tables and i for both searches, the min, and the bone
  *    loop; the PSX.SYM local set has no separate copies.
- *  - Compute each rotation base directly as
- *    (s16 *)&mmp->model->object[i]->rotate. Each component fixup is one
+ *  - Compute each rotation base directly from
+ *    `&mmp->model->object[i]->rotate.vx`. Each component fixup is one
  *    self-referencing assignment, giving one load and one store per pass.
  *  - Keep the min as the ternary motion->n < model->n ? motion->n : model->n.
  *    It loads both operands in SI mode and moves the chosen value. A staged
@@ -112,7 +112,7 @@ s16 UpdateMotion(MotionManager *mmp, motion_id mid)
 
     for (i = 0; i < mmp->model->n; i++)
     {
-        xyz = (s16 *)&mmp->model->object[i]->rotate;
+        xyz = &mmp->model->object[i]->rotate.vx;
         for (j = 0; j < 3; j++)
         {
             t = xyz[j];

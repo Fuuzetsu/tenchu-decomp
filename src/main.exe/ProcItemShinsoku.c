@@ -40,13 +40,13 @@
  * a periodic effect, and restores the normal motion/camera before disposal.
  *
  * Matching notes:
- *  - The stack is two adjacent source objects: `pos` at sp+0x28 and
- *    `work` at sp+0x38. PSX.SYM records the latter as mode-1
- *    PARAM_ITEM_LAUNCH `p`, then mode-2 VECTOR `pos` followed by MapVector
- *    `map`; retail's larger MapVector makes both views exactly 0x28 bytes.
- *    This gives stackplan's exact 0x38-byte working window and 0x78 frame.
+ *  - `pos` occupies sp+0x28. The interrupted-animation request and the
+ *    active movement query are scoped independently, so GCC naturally reuses
+ *    sp+0x38..0x5f for PARAM_ITEM_LAUNCH and then VECTOR plus MapVector.
+ *    This is the lifetime split recorded by PSX.SYM, without a storage union
+ *    or an unrelated aggregate cast.
  *  - `launchp = 0` after memset is a zero-byte CSE eviction. Without that
- *    reassignment, cse2 keeps `&work` in an extra callee-saved register
+ *    reassignment, cse2 keeps `&drop_request` in an extra callee-saved register
  *    through all three rand calls, adding an s5 save/restore and growing the
  *    frame. Eviction makes both call sites re-materialize sp+0x38 like target.
  *  - The movement position is built through direct `pos` writes, then
@@ -80,11 +80,6 @@ void ProcItemShinsoku(TItem *item)
     };
     param_shinsoku *param;
     VECTOR pos;
-    struct
-    {
-        VECTOR pos;
-        MapVector map;
-    } work;
 
     param = &item->param.shinsoku;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -114,26 +109,30 @@ void ProcItemShinsoku(TItem *item)
             s32 rand_x;
             s32 rand_y;
             s32 rand_z;
-            PARAM_ITEM_LAUNCH *launchp;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            launchp = (PARAM_ITEM_LAUNCH *)&work;
-            memset(launchp, 0, sizeof(PARAM_ITEM_LAUNCH));
-            launchp = 0;
-            ((PARAM_ITEM_LAUNCH *)&work)->type = itemID;
-            ((PARAM_ITEM_LAUNCH *)&work)->user = human;
-            ((PARAM_ITEM_LAUNCH *)&work)->start.vx = pos->vx;
-            ((PARAM_ITEM_LAUNCH *)&work)->start.vy = pos->vy;
-            ((PARAM_ITEM_LAUNCH *)&work)->start.vz = pos->vz;
-            rand_x = rand();
-            ((PARAM_ITEM_LAUNCH *)&work)->end.vx = rand_x % 200 - 100;
-            rand_y = rand();
-            ((PARAM_ITEM_LAUNCH *)&work)->end.vy = rand_y % 100 - 200;
-            rand_z = rand();
-            ((PARAM_ITEM_LAUNCH *)&work)->end.vz = rand_z % 200 - 100;
-            ReqItemDrop((PARAM_ITEM_LAUNCH *)&work);
+            {
+                PARAM_ITEM_LAUNCH drop_request;
+                PARAM_ITEM_LAUNCH *launchp;
+
+                launchp = &drop_request;
+                memset(launchp, 0, sizeof(drop_request));
+                launchp = 0;
+                drop_request.type = itemID;
+                drop_request.user = human;
+                drop_request.start.vx = pos->vx;
+                drop_request.start.vy = pos->vy;
+                drop_request.start.vz = pos->vz;
+                rand_x = rand();
+                drop_request.end.vx = rand_x % 200 - 100;
+                rand_y = rand();
+                drop_request.end.vy = rand_y % 100 - 200;
+                rand_z = rand();
+                drop_request.end.vz = rand_z % 200 - 100;
+                ReqItemDrop(&drop_request);
+            }
             if (item->proc == 0)
             {
                 return;
@@ -182,39 +181,44 @@ void ProcItemShinsoku(TItem *item)
         pos.vy += param->vec.vy;
         pos.vz += param->vec.vz;
         apos = &pos;
-        work.pos.vx = apos->vx;
-        work.pos.vy = apos->vy;
-        work.pos.vz = apos->vz;
-        work.pos.vy -= 2000;
-        GetAreaMapVector(GlobalAreaMap,
-                         &work.map,
-                         &work.pos, 500, AREA_LEVEL_DEFAULT);
-        if (work.map.level >= apos->vy - 500)
         {
-            if (work.map.level < apos->vy)
-            {
-                apos->vy = work.map.level;
-            }
-            valid = 1;
-        }
-        else
-        {
-            valid = 0;
-        }
-        if (valid != 0)
-        {
-            item->owner->model->locate.coord.t[0] = pos.vx;
-            item->owner->model->locate.coord.t[1] = pos.vy;
-            item->owner->model->locate.coord.t[2] = pos.vz;
-        }
+            VECTOR query_position;
+            MapVector map;
 
-        if ((param->count & 3) == 0)
-        {
-            work.pos = *MODEL_POSITION(item->owner->model);
-            work.pos.vy -= 300;
-            set_impact_ex_(&work.pos, 0, 2 * FIXED_ONE, 5 * FIXED_ONE,
-                           COLOR_GRAY, 0, 0, -30, 0x10,
-                           IMPACT_SPRITE_SHINSOKU);
+            query_position.vx = apos->vx;
+            query_position.vy = apos->vy;
+            query_position.vz = apos->vz;
+            query_position.vy -= 2000;
+            GetAreaMapVector(GlobalAreaMap,
+                             &map,
+                             &query_position, 500, AREA_LEVEL_DEFAULT);
+            if (map.level >= apos->vy - 500)
+            {
+                if (map.level < apos->vy)
+                {
+                    apos->vy = map.level;
+                }
+                valid = 1;
+            }
+            else
+            {
+                valid = 0;
+            }
+            if (valid != 0)
+            {
+                item->owner->model->locate.coord.t[0] = pos.vx;
+                item->owner->model->locate.coord.t[1] = pos.vy;
+                item->owner->model->locate.coord.t[2] = pos.vz;
+            }
+
+            if ((param->count & 3) == 0)
+            {
+                query_position = *MODEL_POSITION(item->owner->model);
+                query_position.vy -= 300;
+                set_impact_ex_(&query_position, 0, 2 * FIXED_ONE,
+                               5 * FIXED_ONE, COLOR_GRAY, 0, 0, -30, 0x10,
+                               IMPACT_SPRITE_SHINSOKU);
+            }
         }
         if (CamState.Owner == item->owner)
         {

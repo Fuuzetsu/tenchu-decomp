@@ -16,7 +16,7 @@
  *    target's QI field update and SI test expressions without a staging
  *    local. Narrowing the operation through a `u8` local instead introduces
  *    a separate pseudo and an extra move.
- *  - The SetSmoke block's `work.build_pos` component stores are
+ *  - The SetSmoke block's `build_pos` component stores are
  *    COMPONENT refs: an in-struct store invalidates cse's
  *    cached `item->locate` load (MEM_IN_STRUCT alias heuristic), reproducing
  *    the per-line reloads; a raw `((s32 *)&build_pos)[n]` spelling is a
@@ -24,11 +24,13 @@
  *    (wrong). Inverse lever in the search setup: `pos = (VECTOR *)
  *    item->locate->locate.coord.t;` reads all three t[] through one pointer
  *    so nothing reloads there.
- *  - Search setup order is `q = (TFindItemTarget *)&work; pos = ...;
- *    q->i = 0; find = (TFindItemTarget *)&work;` —
+ *  - Search setup order is `q = &search_state; pos = ...;
+ *    q->i = 0; find = &search_state;` —
  *    q's use must precede find's init or the two same-valued pointers
  *    collapse into one register (cse folds find's addiu into `move find,q`
  *    only, keeping both, when something touches q in between).
+ *    The particle locals occupy an inner scope that ends before
+ *    `search_state` begins, so GCC reuses their stack window naturally.
  *  - The inner scan uses a normal exhaustion guard, then assigns `found = 0`
  *    after the loop.  Moving that assignment to the loop top makes it
  *    loop-invariant; loop.c hoists it into the outer loop's head and shifts
@@ -96,13 +98,6 @@ void ProcItemSmoke(TItem *item)
     };
     Sprite3D *model;
     param_smoke *param;
-    /* The later target scan reuses the first 32 bytes of this workspace. */
-    struct
-    {
-        SVECTOR vec;
-        VECTOR pos;
-        VECTOR build_pos;
-    } work;
 
     model = (Sprite3D *)item->model;
     param = &item->param.smoke;
@@ -151,17 +146,24 @@ void ProcItemSmoke(TItem *item)
         }
         if ((param->count & 1) == 0)
         {
-            work.vec = svec_y_n250[0];
-            memset(&work.build_pos, 0, sizeof(VECTOR));
-            work.build_pos.vx = item->locate->locate.coord.t[0];
-            work.build_pos.vy = item->locate->locate.coord.t[1];
-            work.build_pos.vz = item->locate->locate.coord.t[2];
-            work.pos = work.build_pos;
-            SetSmoke(&work.pos, &work.vec, 1, 3);
+            {
+                SVECTOR vec;
+                VECTOR pos;
+                VECTOR build_pos;
+
+                vec = svec_y_n250[0];
+                memset(&build_pos, 0, sizeof(VECTOR));
+                build_pos.vx = item->locate->locate.coord.t[0];
+                build_pos.vy = item->locate->locate.coord.t[1];
+                build_pos.vz = item->locate->locate.coord.t[2];
+                pos = build_pos;
+                SetSmoke(&pos, &vec, 1, 3);
+            }
         }
         if ((GameClock & 0xf) != 0)
             return;
         {
+            TFindItemTarget search_state;
             TFindItemTarget *q;
             TFindItemTarget *find;
             VECTOR *pos;
@@ -171,10 +173,10 @@ void ProcItemSmoke(TItem *item)
             Humanoid *human;
             int dist;
 
-            q = (TFindItemTarget *)&work;
+            q = &search_state;
             pos = MODEL_POSITION(item->locate);
             q->i = 0;
-            find = (TFindItemTarget *)&work;
+            find = &search_state;
             find->pos.vx = pos->vx;
             find->pos.vy = pos->vy;
             find->pos.vz = pos->vz;
@@ -201,7 +203,7 @@ void ProcItemSmoke(TItem *item)
             check:
                 if (found == 0)
                     return;
-                human = ((TFindItemTarget *)&work)->find;
+                human = search_state.find;
                 if (human != item->owner &&
                     human->life != HUMANOID_LIFE_INACTIVE &&
                     human->motion->mid != MOT_DAMAGE_CHOKE)
@@ -217,7 +219,7 @@ void ProcItemSmoke(TItem *item)
                                      human->motion->motion->orderspd,
                                      human->motion->motion->sidespd);
                     }
-                    Sound(((TFindItemTarget *)&work)->find, CHAR_VOICE_HURT);
+                    Sound(search_state.find, CHAR_VOICE_HURT);
                 }
                 continue;
             hit:

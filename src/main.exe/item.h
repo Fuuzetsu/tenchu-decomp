@@ -655,10 +655,8 @@ typedef struct param_shinsoku
     u8 count;     /* 0x08 */
 } param_shinsoku; /* 0x0A */
 
-/* ITEM.C's human-search scratch record (PSX.SYM's own struct TFindItemTarget,
- * reference/psxsym-types.h:3769 — field names are the authors' own). The
- * setup/search blocks in ProcItemSmoke/ProcItemDokudango view a shared stack
- * buffer through this. */
+/* ITEM.C's human-search record (PSX.SYM's own struct TFindItemTarget,
+ * reference/psxsym-types.h:3769 — field names are the authors' own). */
 typedef struct TFindItemTarget
 {
     Humanoid *find; /* 0x00 (the found target) */
