@@ -99,9 +99,9 @@ void ProcItemGun(TItem *item)
     case GUN_MODE_FLASH:
         vec = svec_z_n250[0];
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 2 * FIXED_ONE,
+        SetImpact(MODEL_POSITION(item->locate), 2 * FIXED_ONE,
                   IMPACT_SPRITE_GUN);
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 100, 10, 10, 10, COLOR_GRAY_DARK);
+        SetBleeds(MODEL_POSITION(item->locate), 100, 10, 10, 10, COLOR_GRAY_DARK);
         item->mode++;
         return;
 
@@ -112,11 +112,11 @@ void ProcItemGun(TItem *item)
         Humanoid *IsHuman;
         s32 conflict_id;
 
-        GetVectorRotation((VECTOR *)item->locate->locate.coord.t, &param->vec, &rx, &ry);
+        GetVectorRotation(MODEL_POSITION(item->locate), &param->vec, &rx, &ry);
         vec.vx = rx;
         vec.vy = ry;
         vec.vz = 0;
-        IsHuman = SearchItemTarget2(item->owner, &vec, (VECTOR *)item->locate->locate.coord.t, &target);
+        IsHuman = SearchItemTarget2(item->owner, &vec, MODEL_POSITION(item->locate), &target);
         item->locate->locate.coord.t[0] = target.vx;
         item->locate->locate.coord.t[1] = target.vy;
         item->locate->locate.coord.t[2] = target.vz;

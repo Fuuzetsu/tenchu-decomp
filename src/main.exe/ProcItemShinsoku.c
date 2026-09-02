@@ -210,8 +210,7 @@ void ProcItemShinsoku(TItem *item)
 
         if ((param->count & 3) == 0)
         {
-            work.pos =
-                *(VECTOR *)item->owner->model->locate.coord.t;
+            work.pos = *MODEL_POSITION(item->owner->model);
             work.pos.vy -= 300;
             set_impact_ex_(&work.pos, 0, 2 * FIXED_ONE, 5 * FIXED_ONE,
                            COLOR_GRAY, 0, 0, -30, 0x10,

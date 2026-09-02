@@ -1076,6 +1076,11 @@ struct Sprite3D
     GsSPRITE sprite;      /* 0x68 */
 }; /* 0x8C */
 
+/* Every model-like record above begins with the SDK coordinate object. Its
+ * translation is a three-long VECTOR; expose that shared view once instead
+ * of casting coord.t at every effect, collision, and distance call site. */
+#define MODEL_POSITION(model_) ((VECTOR *)(model_)->locate.coord.t)
+
 /* 3DCTRL.C's tiled background. PSX.SYM supplies the complete layout and
  * original `hundle` spelling; retail confirms the same 0x48-byte record. */
 typedef struct BackGround BackGround;

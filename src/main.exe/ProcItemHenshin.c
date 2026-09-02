@@ -158,7 +158,7 @@ void ProcItemHenshin(TItem *item)
 
         NowReturnNormal(human);
         *(SVECTOR *)&drop_request = svec_y_n50[0];
-        SetSmoke((VECTOR *)archive->locate.coord.t,
+        SetSmoke(MODEL_POSITION(archive),
                  (SVECTOR *)&drop_request, 10, 6);
         {
             TItem *previous_disguise;
@@ -216,7 +216,7 @@ void ProcItemHenshin(TItem *item)
             }
         }
         *(SVECTOR *)&drop_request = svec_y_n50[0];
-        SetSmoke((VECTOR *)archive->locate.coord.t,
+        SetSmoke(MODEL_POSITION(archive),
                  (SVECTOR *)&drop_request, 10, 6);
         if (item->proc == 0)
         {

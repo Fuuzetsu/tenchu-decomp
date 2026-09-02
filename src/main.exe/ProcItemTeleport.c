@@ -70,7 +70,7 @@ void ProcItemTeleport(TItem *item)
         return;
     }
     SnapCameraTargetVector();
-    if (GetVectorDistance((VECTOR *)CamState.Owner->model->locate.coord.t, &CamState.TargetVector) < 20000)
+    if (GetVectorDistance(MODEL_POSITION(CamState.Owner->model), &CamState.TargetVector) < 20000)
     {
         CamState.Owner->model->locate.coord.t[0] = CamState.TargetVector.vx;
         CamState.Owner->model->locate.coord.t[1] = CamState.TargetVector.vy;

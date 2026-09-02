@@ -121,11 +121,11 @@ void ProcItemLightningBolt(TItem *item)
         }
         break;
     }
-    SetLightning(&param->start, (VECTOR *)item->locate->locate.coord.t,
+    SetLightning(&param->start, MODEL_POSITION(item->locate),
                  100, 100, 200);
     if ((GameClock & 3) == 0)
     {
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 200, 20, 10, 20, RGB24(255, 255, 120));
+        SetBleeds(MODEL_POSITION(item->locate), 200, 20, 10, 20, RGB24(255, 255, 120));
         SetImpact(&param->start, 4 * FIXED_ONE, IMPACT_SPRITE_FLASH);
     }
     cnt = param->count;

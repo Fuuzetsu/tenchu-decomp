@@ -120,9 +120,9 @@ void ProcItemLaunch(TItem *item)
     if (cid != CONFLICT_NONE &&
         is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE,
+        SetImpact(MODEL_POSITION(item->locate), 4 * FIXED_ONE,
                   IMPACT_SPRITE_HIT);
-        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
+        SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
         goto dispose;
     }
     if (param->fly.mode == FLY_MODE_ARC)
@@ -130,8 +130,8 @@ void ProcItemLaunch(TItem *item)
     switch (param->fly.p.koro.status)
     {
     case KORO_WALL:
-        SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, COLOR_YELLOW);
-        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
+        SetBleeds(MODEL_POSITION(item->locate), 0, 25, 10, 10, COLOR_YELLOW);
+        SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
         reset_alert_duration();
         return;
 

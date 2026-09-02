@@ -172,7 +172,7 @@ void ProcItemDokudango(TItem *item)
             nearest_target = 0;
             nearest_distance = DOKUDANGO_RANGE;
             search_setup = &search_state;
-            item_position = (VECTOR *)item->locate->locate.coord.t;
+            item_position = MODEL_POSITION(item->locate);
             owner_distance = nearest_distance;
             search_setup->i = 0;
             search_setup->pos.vx = item_position->vx;

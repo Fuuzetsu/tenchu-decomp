@@ -137,10 +137,10 @@ void ProcKaginawa(TItem *item)
         CamState.TargetVector.vx += v.vx;
         CamState.TargetVector.vy += v.vy;
         CamState.TargetVector.vz += v.vz;
-        dist = GetVectorDistance((VECTOR *)CamState.Owner->model->locate.coord.t, &CamState.TargetVector);
+        dist = GetVectorDistance(MODEL_POSITION(CamState.Owner->model), &CamState.TargetVector);
         if (rx > 0 || dist > 15000)
         {
-            CamState.TargetVector = *(VECTOR *)CamState.Owner->model->locate.coord.t;
+            CamState.TargetVector = *MODEL_POSITION(CamState.Owner->model);
         }
         SetCameraMode(CMODE_LOCK);
         item->owner->item[ITEM_N] = 0;

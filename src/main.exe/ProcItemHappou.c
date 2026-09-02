@@ -121,8 +121,8 @@ void ProcItemHappou(TItem *item)
         if (mode == FLY_MODE_ROLL &&
             param->fly.p.koro.status != KORO_NORMAL)
         {
-            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 25, 10, 10, COLOR_YELLOW);
-            SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
+            SetBleeds(MODEL_POSITION(item->locate), 0, 25, 10, 10, COLOR_YELLOW);
+            SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
             if (item->proc != 0)
             {
                 DISPOSE_ITEM(item);
@@ -136,9 +136,9 @@ void ProcItemHappou(TItem *item)
     if (i != CONFLICT_NONE &&
         is_humanoid_on_stage_(ConflictObject[i].common) != 0)
     {
-        SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE,
+        SetImpact(MODEL_POSITION(item->locate), 4 * FIXED_ONE,
                   IMPACT_SPRITE_HIT);
-        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
+        SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
         DeleteConflict(item->locate);
     }
 }

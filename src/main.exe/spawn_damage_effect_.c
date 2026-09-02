@@ -108,6 +108,6 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
                      (SVECTOR *)&work.blood.scratch,
                      100, 10, 30, RGB24(100, 100, 60));
-        SoundEx((VECTOR *)human->model->locate.coord.t, SE_LIGHTNING);
+        SoundEx(MODEL_POSITION(human->model), SE_LIGHTNING);
     }
 }

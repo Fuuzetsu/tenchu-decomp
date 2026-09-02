@@ -292,9 +292,9 @@ void ProcItemNinken(TItem *item)
 
     expire:
         scratch.vec = svec_y_n50[0];
-        SetSmoke((VECTOR *)param->slave->model->locate.coord.t,
+        SetSmoke(MODEL_POSITION(param->slave->model),
                  &scratch.vec, 10, 6);
-        SoundEx((VECTOR *)param->slave->model->locate.coord.t, SE_SMOKE_PUFF);
+        SoundEx(MODEL_POSITION(param->slave->model), SE_SMOKE_PUFF);
         TurnAroundAllItems(param->slave);
         {
             void (*dispose_proc)(TItem *);

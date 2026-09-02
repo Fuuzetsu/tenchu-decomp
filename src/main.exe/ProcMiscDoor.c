@@ -154,7 +154,7 @@ void ProcMiscDoor(TMisc *m, TMiscMessage msg)
                 param->dr = dir;
                 m->mode++;
                 if (param->r == 0)
-                    SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);
+                    SoundEx(MODEL_POSITION(param->locate), SE_MECHANISM);
             }
         }
         break;

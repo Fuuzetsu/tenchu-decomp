@@ -137,7 +137,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                             (void *)CONFLICT_OWNER_DOOR)
                         {
                             m->mode++;
-                            SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);
+                            SoundEx(MODEL_POSITION(param->locate), SE_MECHANISM);
                         }
                     }
                 }

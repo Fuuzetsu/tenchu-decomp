@@ -151,10 +151,10 @@ void ProcItemNingyo(TItem *item)
             param->count = 0;
             item->mode++;
             scratch.drop.smoke_velocity = svec_y_n25[0];
-            SetSmoke((VECTOR *)item->locate->locate.coord.t,
+            SetSmoke(MODEL_POSITION(item->locate),
                      &scratch.drop.smoke_velocity,
                      APPEAR_SMOKE_COUNT, APPEAR_SMOKE_TIME);
-            SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
+            SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
             if (NingyoCount < MAX_ACTIVE_NINGYO)
             {
                 param->hp = ACTIVE_NINGYO_HP;
@@ -179,7 +179,7 @@ void ProcItemNingyo(TItem *item)
                 {
                     VECTOR *position;
 
-                    position = (VECTOR *)model->locate.coord.t;
+                    position = MODEL_POSITION(model);
                     scratch.drop.request.start.vx = position->vx;
                     scratch.drop.request.start.vy = position->vy;
                     scratch.drop.request.start.vz = position->vz;
@@ -294,7 +294,7 @@ void ProcItemNingyo(TItem *item)
                 }
                 human = HumanGroup[human_index];
                 distance_to_decoy = GetVectorDistance(
-                    (VECTOR *)item->locate->locate.coord.t,
+                    MODEL_POSITION(item->locate),
                     human->locate);
                 if (distance_to_decoy < NINGYO_LURE_RANGE &&
                     human->target != 0 &&
@@ -323,9 +323,9 @@ void ProcItemNingyo(TItem *item)
             {
                 if (param->hp == 0)
                 {
-                    SetBleeds((VECTOR *)item->locate->locate.coord.t,
+                    SetBleeds(MODEL_POSITION(item->locate),
                               0, 30, 30, 30, COLOR_YELLOW);
-                    SoundEx((VECTOR *)item->locate->locate.coord.t,
+                    SoundEx(MODEL_POSITION(item->locate),
                             SE_SMOKE_PUFF);
                     if (item->proc != 0)
                     {
@@ -362,7 +362,7 @@ void ProcItemNingyo(TItem *item)
                     param->koro.hint = 0;
                     param->koro.status = KORO_NORMAL;
                     param->hp--;
-                    SoundEx((VECTOR *)item->locate->locate.coord.t,
+                    SoundEx(MODEL_POSITION(item->locate),
                             SE_PROJECTILE_HIT);
                 }
             }

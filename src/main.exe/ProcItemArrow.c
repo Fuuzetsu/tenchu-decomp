@@ -200,8 +200,8 @@ void ProcItemArrow(TItem *item)
                         DISPOSE_ITEM(item);
                         return;
                     }
-                    SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_IMPACT);
-                    SetBleeds((VECTOR *)item->locate->locate.coord.t,
+                    SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
+                    SetBleeds(MODEL_POSITION(item->locate),
                               0, 25, 30, 30, COLOR_YELLOW);
                     param->count = 30;
                     item->mode++;

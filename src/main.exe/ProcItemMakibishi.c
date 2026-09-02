@@ -121,8 +121,8 @@ void ProcItemMakibishi(TItem *item)
         if (i != CONFLICT_NONE &&
             is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
-            SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, RGB24(127, 0, 0));
-            SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);
+            SetBleeds(MODEL_POSITION(item->locate), 0, 20, 10, 15, RGB24(127, 0, 0));
+            SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
             ppu = item->proc;
             if (ppu == 0)
                 return;

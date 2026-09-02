@@ -103,7 +103,7 @@ void ProcItemNemuri(TItem *item)
     {
     case NEMURI_MODE_START:
         SetNowMotion(item->owner, MOT_ITEM_THROW, MOTION_MOVE_APPLY);
-        SoundEx((VECTOR *)item->owner->model->locate.coord.t, SE_SLEEP_DART_THROW);
+        SoundEx(MODEL_POSITION(item->owner->model), SE_SLEEP_DART_THROW);
         item->mode++;
         return;
 
@@ -175,7 +175,7 @@ void ProcItemNemuri(TItem *item)
         rotation_count = param->count;
         model->scale = brightness * 2 + NEMURI_BASE_SCALE;
         model->sprite.rotate = rotation_count * NEMURI_ROTATION_STEP;
-        SetBleeds((VECTOR *)item->locate->locate.coord.t,
+        SetBleeds(MODEL_POSITION(item->locate),
                   bleed_range, 10, bleed_count, 10, bleed_color);
 
         flight_count = param->count + 1;
@@ -220,7 +220,7 @@ void ProcItemNemuri(TItem *item)
                  * position is computed and then never passed anywhere --
                  * SetSmoke below gets the body position instead. */
                 random_position = effect_work;
-                SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
+                SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
 
                 smoke_velocity = (SVECTOR *)&effect_work;
                 *smoke_velocity = svec_y_n150[0];

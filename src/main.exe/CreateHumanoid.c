@@ -120,7 +120,7 @@ Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
     human->status = STAT_NORMAL;
     human->attribute = 0;
     human->model = LoadModelArchive(mad, &World);
-    human->locate = (VECTOR *)human->model->locate.coord.t;
+    human->locate = MODEL_POSITION(human->model);
     human->rotate = &human->model->rotate;
     human->model->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
                               MODEL_ATTR_CULL_FAR;

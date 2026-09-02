@@ -64,7 +64,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
         item->locate->locate.coord.t[2] -= param->vz;
 
         GetAreaMapVector(GlobalAreaMap, &mv,
-                         (VECTOR *)item->locate->locate.coord.t, 500,
+                         MODEL_POSITION(item->locate), 500,
                          AREA_LEVEL_DEFAULT);
         if (param->hint == 0)
         {
@@ -108,7 +108,7 @@ void MoveKorogari(TItem *item, param_korogari *param)
                  * `vec` is in the demo symbols -- an older SetSplash likely
                  * took the splash direction it still loads here. */
                 vec = svec_y_n20[0];
-                SetSplash((VECTOR *)item->locate->locate.coord.t,
+                SetSplash(MODEL_POSITION(item->locate),
                           2 * FIXED_ONE, 2 * FIXED_ONE, 4);
                 param->status = KORO_WATER;
             }

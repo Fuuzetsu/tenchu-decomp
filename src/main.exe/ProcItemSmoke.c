@@ -136,7 +136,7 @@ void ProcItemSmoke(TItem *item)
     case SMOKE_MODE_FUSE:
         if (param->count != 0)
             return;
-        SoundEx((VECTOR *)item->locate->locate.coord.t, SE_SMOKE_PUFF);
+        SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
         param->count = SMOKE_DURATION;
         item->mode++;
         return;
@@ -172,7 +172,7 @@ void ProcItemSmoke(TItem *item)
             int dist;
 
             q = (TFindItemTarget *)&work;
-            pos = (VECTOR *)item->locate->locate.coord.t;
+            pos = MODEL_POSITION(item->locate);
             q->i = 0;
             find = (TFindItemTarget *)&work;
             find->pos.vx = pos->vx;
