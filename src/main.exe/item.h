@@ -163,6 +163,13 @@ enum active_item_kind
     ACTIVE_ITEM_LURE = ITEM_MANEBUE
 };
 
+/* Operations on the reserved tail entry of Humanoid.item[]. */
+enum spare_item_slot_operation
+{
+    SPARE_ITEM_SLOT_CLEAR = 0,
+    SPARE_ITEM_SLOT_QUERY = 1
+};
+
 /*
  * Shared types + externs of the original item translation unit (ProcItem*,
  * ReqItem*). Layouts follow Ghidra's build-verified model; every offset here
@@ -701,6 +708,8 @@ struct tag_TItem
 extern void AttackCancelControl(s16 mode);
 /* Sets the motion globals and forwards to AttackCancelControl. */
 extern void dispose_weapon_data_of_char_(Humanoid *h, int mode);
+extern s32 spare_item_slot_(enum spare_item_slot_operation operation,
+                            Humanoid *human);
 extern s16 UpdateMotion(MotionManager *m, motion_id id);
 extern short DrawSprite(Sprite3D *sprt);
 extern VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);

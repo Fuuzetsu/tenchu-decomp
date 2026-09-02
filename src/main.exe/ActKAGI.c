@@ -68,7 +68,6 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern s32 spare_item_slot_(s32 mode, Humanoid *human);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ActKAGI(void)
@@ -98,7 +97,7 @@ void ActKAGI(void)
             ReqItemUse(&item);
             Sound(Me_MOTION_C, SE_THROW_WEAPON);
         }
-        else if (spare_item_slot_(1, Me_MOTION_C) == 0)
+        else if (spare_item_slot_(SPARE_ITEM_SLOT_QUERY, Me_MOTION_C) == 0)
         {
             VECTOR *target;
             VECTOR *locate;
@@ -126,7 +125,7 @@ void ActKAGI(void)
         }
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
         {
-            spare_item_slot_(0, Me_MOTION_C);
+            spare_item_slot_(SPARE_ITEM_SLOT_CLEAR, Me_MOTION_C);
             SELECT_RETURN_MOTION();
         }
 

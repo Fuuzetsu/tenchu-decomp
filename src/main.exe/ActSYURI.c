@@ -60,7 +60,6 @@
 
 extern Humanoid *Me_MOTION_C;
 
-extern s32 spare_item_slot_(s32 mode, Humanoid *human);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ActSYURI(void)
@@ -96,14 +95,14 @@ void ActSYURI(void)
             ReqItemUse(&item);
             Sound(Me_MOTION_C, SE_THROW_WEAPON);
         }
-        else if (spare_item_slot_(1, Me_MOTION_C) == 0)
+        else if (spare_item_slot_(SPARE_ITEM_SLOT_QUERY, Me_MOTION_C) == 0)
         {
             SET_MOTION(MOT_SYURI_RECOVER, MOTION_MOVE_APPLY);
             Sound(Me_MOTION_C, SE_WEAPON_RECOVER);
         }
         else if (Me_MOTION_C->pad.trig & (PADRleft | PADRdown | PADRright))
         {
-            spare_item_slot_(0, 0);
+            spare_item_slot_(SPARE_ITEM_SLOT_CLEAR, 0);
             SELECT_RETURN_MOTION();
         }
         break;

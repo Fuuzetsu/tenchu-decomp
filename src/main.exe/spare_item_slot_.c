@@ -6,8 +6,9 @@
  * spare_item_slot_ (0x8004a368, 0x80 bytes) — get/set accessor over the LAST
  * slot of Humanoid's per-item-kind count array (item[ITEM_N] — the same
  * index DoInfoViewProc's cursor wraps at, i.e. this repurposes the array's
- * spare slot as a plain flag, not a real item count): mode 0 clears it,
- * mode 1 reports whether it's == 1, anything else complains via
+ * spare slot as a plain flag, not a real item count): SPARE_ITEM_SLOT_CLEAR
+ * clears it, SPARE_ITEM_SLOT_QUERY reports whether it's == 1, and anything
+ * else complains via
  * AdtMessageBox. A NULL humanoid arg defaults to the current camera owner,
  * `CamState.Owner`.
  *
@@ -44,14 +45,9 @@
 extern void AdtMessageBox(char *fmt, ...);
 extern char fmt_not_support_yet[]; /* not support yet %d */
 
-s32 spare_item_slot_(s32 mode, Humanoid *human)
+s32 spare_item_slot_(enum spare_item_slot_operation operation, Humanoid *human)
 {
-    enum
-    {
-        SPARE_ITEM_SLOT_CLEAR = 0,
-        SPARE_ITEM_SLOT_QUERY = 1
-    };
-    switch (mode)
+    switch (operation)
     {
     case SPARE_ITEM_SLOT_CLEAR:
     {
@@ -66,7 +62,7 @@ s32 spare_item_slot_(s32 mode, Humanoid *human)
             human = CamState.Owner;
         return human->item[ITEM_N] == 1;
     default:
-        AdtMessageBox(fmt_not_support_yet, mode);
+        AdtMessageBox(fmt_not_support_yet, operation);
         break;
     }
     return 0;
