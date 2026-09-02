@@ -17,7 +17,8 @@
  * ProcItemManebue.c for the item-TU conventions):
  *  - `ITEM_MODE_DISPOSE` holds ITEM_MODE_DISPOSE in a callee-saved reg ($s4) across calls:
  *    used by the entry test and the drop path's `item->mode = ITEM_MODE_DISPOSE`; mode 2's
- *    dispose rematerializes its 0xff value instead ($s4 is &scratch by then).
+ *    dispose rematerializes its 0xff value instead ($s4 holds the particle
+ *    position workspace by then).
  *  - The dispatch is a real `switch`: it reloads item->mode (fresh index load)
  *    and compares it SIGNED (slti) — an if-ladder CSEs the load and compares
  *    unsigned. Case bodies sit in source order (0, 1, 2).
@@ -27,15 +28,16 @@
  *    duplicated at the entry (jump.c duplicate_loop_exit_test) and then
  *    constant-folded away; the while(1)+break form keeps the original's
  *    top-test + unconditional back-jump while still letting loop.c hoist the
- *    invariants (&scratch, &scratch.bleed.build, the two magic divisors).
+ *    invariants (&build, &pos, and the two magic divisors).
  *  - mode 2's jitter is written `t[n] + (rand() % 1000 - 500)`: fold's
  *    associate step canonicalizes it to the original's (t[n]-500) + rem shape,
  *    whereas writing `t[n] - 500 + rand() % 1000` gets reassociated the wrong
  *    way (constant pulled onto the remainder).
  *  - PSX.SYM places the interrupted-drop `p` and mode-2 `pos` at sp+16,
- *    and `vec` at sp+32. The local union exposes those exact names and types.
- *    The work VECTOR at sp+32 is copied into `pos`, then its upper and lower
- *    short-vector halves build and hold `vec`.
+ *    and `vec` at sp+32. Keeping the launch request and particle workspace in
+ *    their actual switch arms lets GCC reuse those disjoint stack lifetimes;
+ *    no source union is needed. The work VECTOR at sp+32 is copied into `pos`,
+ *    then its now-dead storage builds and holds the short velocity vector.
  *  - The dispose tail is written out twice (drop path + mode 2); GCC's
  *    cross-jump merges the common suffix from the jalr on. The null check
  *    reads `ppu = item->proc` but the call is `item->proc(item)` (cse reuses
@@ -80,15 +82,6 @@ void ProcItemKusuri(TItem *item)
     Sprite3D *model;
     void (*ppu)(TItem *);
     s32 i;
-    union
-    {
-        PARAM_ITEM_LAUNCH p;
-        struct
-        {
-            VECTOR pos;
-            VECTOR build;
-        } bleed;
-    } scratch;
 
     model = (Sprite3D *)item->model;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -142,20 +135,21 @@ void ProcItemKusuri(TItem *item)
             VECTOR *pos;
             Humanoid *human;
             s32 itemID;
+            PARAM_ITEM_LAUNCH p;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(&scratch.p, 0, sizeof(scratch.p));
-            scratch.p.type = itemID;
-            scratch.p.user = human;
-            scratch.p.start.vx = pos->vx;
-            scratch.p.start.vy = pos->vy;
-            scratch.p.start.vz = pos->vz;
-            scratch.p.end.vx = rand() % 200 - 100;
-            scratch.p.end.vy = rand() % 100 - 200;
-            scratch.p.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&scratch.p);
+            memset(&p, 0, sizeof(p));
+            p.type = itemID;
+            p.user = human;
+            p.start.vx = pos->vx;
+            p.start.vy = pos->vy;
+            p.start.vz = pos->vz;
+            p.end.vx = rand() % 200 - 100;
+            p.end.vy = rand() % 100 - 200;
+            p.end.vz = rand() % 200 - 100;
+            ReqItemDrop(&p);
             ppu = item->proc;
             if (ppu == 0)
                 return;
@@ -191,28 +185,30 @@ void ProcItemKusuri(TItem *item)
 
     case KUSURI_MODE_HEAL:
     {
+        VECTOR pos;
+        VECTOR build;
+        SVECTOR *vec;
+
         i = 0;
         item->owner->life = item->owner->lifemax;
         while (1)
         {
             if (i >= 0x14)
                 break;
-            memset(&scratch.bleed.build, 0,
-                   sizeof(scratch.bleed.build));
-            scratch.bleed.build.vx =
-                item->owner->model->locate.coord.t[0] + (rand() % 1000 - 500);
-            scratch.bleed.build.vy =
-                item->owner->model->locate.coord.t[1] + (rand() % 1000 - 1200);
-            scratch.bleed.build.vz =
-                item->owner->model->locate.coord.t[2] + (rand() % 1000 - 500);
-            scratch.bleed.pos = scratch.bleed.build;
-            memset(&((SVECTOR *)&scratch.bleed.build)[1], 0,
-                   sizeof(SVECTOR));
-            ((SVECTOR *)&scratch.bleed.build)[1].vy = rand() % 10 - 30;
-            *(SVECTOR *)&scratch.bleed.build =
-                ((SVECTOR *)&scratch.bleed.build)[1];
-            SetBleed(&scratch.bleed.pos, (SVECTOR *)&scratch.bleed.build,
-                     rand() % 0x10 + 0xf, RGB24(255, 255, 126));
+            memset(&build, 0, sizeof(build));
+            build.vx = item->owner->model->locate.coord.t[0] +
+                       (rand() % 1000 - 500);
+            build.vy = item->owner->model->locate.coord.t[1] +
+                       (rand() % 1000 - 1200);
+            build.vz = item->owner->model->locate.coord.t[2] +
+                       (rand() % 1000 - 500);
+            pos = build;
+            memset(&((SVECTOR *)&build)[1], 0, sizeof(SVECTOR));
+            ((SVECTOR *)&build)[1].vy = rand() % 10 - 30;
+            vec = (SVECTOR *)&build;
+            vec[0] = vec[1];
+            SetBleed(&pos, vec, rand() % 0x10 + 0xf,
+                     RGB24(255, 255, 126));
             i++;
         }
         SoundEx(item->owner->locate, SE_MEDICINE);
