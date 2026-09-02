@@ -66,7 +66,7 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     }
     mad = (ModelArchiveType *)valloc(sizeof(ModelArchiveType));
     adr++;
-    mad->n = ((ModelArchiveCount *)adr)->signed_count;
+    mad->n = *(s16 *)adr;
     adr++;
     i = 0;
     mad->object = (ModelType **)valloc(mad->n * sizeof(ModelType *));

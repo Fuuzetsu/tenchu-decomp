@@ -648,21 +648,12 @@ struct ParentingType
     u32 index; /* 0x0C */
 }; /* 0x10 */
 
-/* On-disk .MAD archive header. The model and ornament loaders use different
- * load widths for the same count halfword, so retain both views explicitly. */
-typedef union ModelArchiveCount ModelArchiveCount;
-union ModelArchiveCount
-{
-    s16 signed_count;
-    u16 unsigned_count;
-};
-
 typedef struct ModelArchiveFile ModelArchiveFile;
 struct ModelArchiveFile
 {
-    u32 signature;             /* 0x00 */
-    ModelArchiveCount count;   /* 0x04 */
-    u16 reserved;              /* 0x06 */
+    u32 signature;              /* 0x00 */
+    s16 count;                  /* 0x04 */
+    u16 reserved;               /* 0x06 */
     ParentingType parenting[1]; /* 0x08, followed by linked TMD files */
 }; /* 0x18 + variable data */
 
