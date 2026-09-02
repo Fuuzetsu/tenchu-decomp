@@ -74,15 +74,7 @@ void RestoreItemLayout(void *buf)
             goto loop1_end;
         if (it->proc != 0)
         {
-            it->mode = ITEM_MODE_DISPOSE;
-            it->proc(it);
-            DeleteConflict(it->locate);
-            if (it->mode != ITEM_MODE_START)
-            {
-                AdtMessageBox(msg_item_dispose_fail, it->type, (u32)it->mode);
-            }
-            it->owner = 0;
-            it->proc = 0;
+            DISPOSE_ITEM(it);
         }
         it++;
         i++;

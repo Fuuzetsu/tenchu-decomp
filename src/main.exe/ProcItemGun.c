@@ -149,15 +149,7 @@ void ProcItemGun(TItem *item)
     case GUN_MODE_FINISH:
         if (item->proc == 0)
             return;
-        item->mode = ITEM_MODE_DISPOSE;
-        item->proc(item);
-        DeleteConflict(item->locate);
-        if (item->mode != GUN_MODE_FLASH)
-        {
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        }
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM(item);
         return;
     }
 }
