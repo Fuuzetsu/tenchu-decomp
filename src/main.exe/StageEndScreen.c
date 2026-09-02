@@ -39,9 +39,8 @@
  * transfer and the later persistent-state byte load. Splitting those uses into
  * semantic block locals changes six instruction bytes; spelling the latter as
  * a direct volatile load grows the function by four bytes.
- * `best_column` similarly exposes the one reused word as a state pointer while
- * the archives are selected and as the best-score X coordinate while drawing,
- * avoiding the old pointer-through-integer casts.
+ * The best-score X carrier is also reused while selecting the archives; it is
+ * a plain 32-bit work word, not a source-level pointer/scalar union.
  */
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
@@ -141,7 +140,7 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
         sprite = &digit;                               \
         value = (value_);                              \
         signed_value = (s16)value;                     \
-        sprite->x = best_column.x;                     \
+        sprite->x = best_x;                            \
         sprite->y = 0x38;                              \
         negative = 0;                                  \
         if (signed_value < 0)                          \
@@ -207,11 +206,7 @@ void StageEndScreen(void)
     s32 layout_index;
     s32 top_y;
     s16 second_x;
-    union
-    {
-        TLinkInfo *state;
-        s32 x;
-    } best_column;
+    s32 best_x;
     s16 item_index;
     u16 pad;
     u16 pressed;
@@ -286,20 +281,20 @@ void StageEndScreen(void)
     }
 
     {
-        /* Weight fence: best_column needs +3 weighted refs — 1 here plus 2 on
+        /* Weight fence: best_x needs +3 weighted refs — 1 here plus 2 on
          * the language test below (both fences load-bearing; the old
          * depth-2 nest here was the only overshoot and is halved). */
         do
         {
-            best_column.state = PSTATE;
+            best_x = TENCHU_PERSISTENT_STATE_ADDRESS;
         } while (0);
-        if (best_column.state->StageNo == STAGE_ID_FREE_PRINCESS)
+        if (((TLinkInfo *)best_x)->StageNo == STAGE_ID_FREE_PRINCESS)
         {
             do
             {
-                if (best_column.state->language == LANG_ENGLISH)
+                if (((TLinkInfo *)best_x)->language == LANG_ENGLISH)
                 {
-                    best_column.state->mission_flags |=
+                    ((TLinkInfo *)best_x)->mission_flags |=
                         MISSION_FLAG_ENGLISH_FINAL_STAGE;
                 }
             } while (0);
@@ -328,15 +323,15 @@ void StageEndScreen(void)
             }
 
             tim = FileRead(STAGE_RESULT_BACKGROUND_PATHS[
-                best_column.state->language]);
+                ((TLinkInfo *)best_x)->language]);
             ui.background = load_background_(tim);
             vfree(tim);
             rank_archive =
                 FileRead(STAGE_RESULT_RANK_ARCHIVE_PATHS[
-                    best_column.state->language]);
+                    ((TLinkInfo *)best_x)->language]);
             tim = get_tim_from_archive(rank_archive,
                                        current.grade);
-            best_column.x = 0x7f;
+            best_x = 0x7f;
             StageEndInitSprite(tim, &image, &rank);
             rank.x = -160;
             rank.y = -120;
@@ -447,7 +442,7 @@ void StageEndScreen(void)
                     x = 0x52;
                     DRAW_SCORE_NUMBER(current.criticalScore, s16, 0, x, top_y);
                 }
-                DRAW_SCORE_NUMBER(best.criticalScore, s16, 0, best_column.x,
+                DRAW_SCORE_NUMBER(best.criticalScore, s16, 0, best_x,
                                   top_y);
 
                 DRAW_SCORE_NUMBER(stats.murders, s32, 1, 10, -0x1a);
@@ -458,7 +453,7 @@ void StageEndScreen(void)
                     x = 0x52;
                     DRAW_SCORE_NUMBER(current.murderScore, s16, 1, x, -0x1a);
                 }
-                DRAW_SCORE_NUMBER(best.murderScore, s16, 1, best_column.x,
+                DRAW_SCORE_NUMBER(best.murderScore, s16, 1, best_x,
                                   -0x1a);
 
                 DRAW_SCORE_NUMBER(stats.findEnemies, s32, 1, 0x1c, 1);
@@ -469,7 +464,7 @@ void StageEndScreen(void)
                     DRAW_SCORE_NUMBER((u16)current.spottedScore, s16, 1, x, 1);
                 }
                 DRAW_SCORE_NUMBER((u16)best.spottedScore, s16, 1,
-                                  best_column.x, 1);
+                                  best_x, 1);
 
                 DRAW_SCORE_NUMBER(stats.friendHits, s32, 1, 0x1c, 0x1a);
                 {
@@ -479,7 +474,7 @@ void StageEndScreen(void)
                     DRAW_SCORE_NUMBER((u16)current.friendPenalty, s16, 1, x, 0x1a);
                 }
                 DRAW_SCORE_NUMBER((u16)best.friendPenalty, s16, 1,
-                                  best_column.x, 0x1a);
+                                  best_x, 0x1a);
 
                 {
                     s32 x;
@@ -577,7 +572,7 @@ void StageEndScreen(void)
     {
         work = TENCHU_PERSISTENT_STATE_ADDRESS;
         work = *(volatile u8 *)(work + 5);
-        if (work != 7)
+        if (work != STAGE_ID_FREE_PRINCESS)
         {
             score_screen_input_();
         }

@@ -23,9 +23,9 @@
  * The final 4-byte residual was not a conflict-free local-alloc floor.  The
  * target itself uses $a0 for three disjoint roles: red's interpolation work,
  * the green/blue start-colour inputs, and the later coordinate pointer.  One
- * reusable `work` union for the colour and coordinate-parent roles gives
- * those loads the pointer call's $a0 preference and reproduces all four
- * register fields without converting the pointer through an integer.
+ * ordinary 32-bit `work` word for the colour and coordinate-parent roles
+ * gives those loads the pointer call's $a0 preference and reproduces all four
+ * register fields. It is not a source-level pointer/scalar union.
  * The colour-lerp locals end/start2/inverse are reused the same way for
  * the px/py/pz captures (and start2 a third time for the OT depth) —
  * same shared-role lever.
@@ -50,11 +50,7 @@ void DrawImpact(TEffectSlot *ef)
     s32 end_raw;
     s32 size;
     s32 priority;
-    union
-    {
-        s32 color;
-        GsCOORDINATE2 *super;
-    } work;
+    s32 work;
 
     param = &ef->param.impact;
     ratio = (param->count << FIXED_SHIFT) / param->time;
@@ -81,8 +77,8 @@ void DrawImpact(TEffectSlot *ef)
     }
     spr->r = (start >> FIXED_SHIFT) + (end_raw * ratio) / FIXED_ONE;
 
-    work.color = param->start_color.channel.g;
-    start2 = work.color * inverse;
+    work = param->start_color.channel.g;
+    start2 = work * inverse;
     end_raw = param->end_color.channel.g;
     if (start2 < 0)
     {
@@ -91,8 +87,8 @@ void DrawImpact(TEffectSlot *ef)
     start2 = start2 >> FIXED_SHIFT;
     spr->g = start2 + (end_raw * ratio) / FIXED_ONE;
 
-    work.color = param->start_color.channel.b;
-    start2 = work.color * inverse;
+    work = param->start_color.channel.b;
+    start2 = work * inverse;
     end_raw = param->end_color.channel.b;
     if (start2 < 0)
     {
@@ -107,14 +103,14 @@ void DrawImpact(TEffectSlot *ef)
     {
     } while (0);
     start2 = param->py;
-    work.super = param->super;
+    work = (s32)param->super;
     inverse = param->pz;
-    if (work.super != 0)
+    if (work != 0)
     {
         *SCREEN_PROJECTION_POINT_X = end;
         *SCREEN_PROJECTION_POINT_Y = start2;
         *SCREEN_PROJECTION_POINT_Z = inverse;
-        GsGetLs(work.super, SCREEN_PROJECTION_MATRIX);
+        GsGetLs((GsCOORDINATE2 *)work, SCREEN_PROJECTION_MATRIX);
         GsSetLsMatrix(SCREEN_PROJECTION_MATRIX);
         scr.vz = (s16)RotTransPers(
             SCREEN_PROJECTION_POINT, (s32 *)&scr,
