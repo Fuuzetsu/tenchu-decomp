@@ -101,7 +101,7 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         ConflictObject[conflict_id].offset.components.x = 0;
         ConflictObject[conflict_id].offset.components.y = 0;
         ConflictObject[conflict_id].offset.components.z = 0;
-        ConflictObject[conflict_id].common.tag = CONFLICT_OWNER_DOOR;
+        ConflictObject[conflict_id].common = (void *)CONFLICT_OWNER_DOOR;
         ConflictObject[conflict_id].size.components.class_flags =
             CONFLICT_SOFT;
         ConflictObject[conflict_id].size.components.x = w;
@@ -133,8 +133,8 @@ void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
                         conflict = ConflictObject;
                         conflict_id =
                             GetConflictResult(param->locate, CONFLICT_NONE);
-                        if (conflict[conflict_id].common.tag !=
-                            CONFLICT_OWNER_DOOR)
+                        if (conflict[conflict_id].common !=
+                            (void *)CONFLICT_OWNER_DOOR)
                         {
                             m->mode++;
                             SoundEx((VECTOR *)param->locate->locate.coord.t, SE_MECHANISM);

@@ -83,7 +83,7 @@
  *    produces the asm's `negu`. `half` and `nhalf` coalesce onto one hard
  *    register (gcc-2.8.1 has no coalescing pass; non-conflicting allocnos simply
  *    land together), so the split costs nothing.
- *  - `ConflictObject[conflict_id].common.human = human;` sits BETWEEN reading
+ *  - `ConflictObject[conflict_id].common = human;` sits BETWEEN reading
  *    `width` and computing its half — matches the store scheduled between the
  *    `lhu` and the resign/divide chain.
  *  - `oldHumans = Humans; Humans = Humans + 1; HumanGroup[oldHumans] = human;` —
@@ -139,7 +139,7 @@ Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
     ConflictObject[conflict_id].offset.components.y =
         nhalf - human->model->rotate.pad;
     ww = human->width;
-    ConflictObject[conflict_id].common.human = human;
+    ConflictObject[conflict_id].common = human;
     ConflictObject[conflict_id].size.components.x =
         ConflictObject[conflict_id].size.components.z =
         (s16)ww / 2;

@@ -23,7 +23,7 @@
  *    "neither 0 nor 1", falling out of the switch reaches the shared draw
  *    tail directly — the SAME tail case 0/case 1 reach via `break`.
  *  - The value shared by KORO_WATER, `item->mode + 1`,
- *    `.common.tag = CONFLICT_OWNER_ITEM`, the conflict class, and
+ *    `.common = CONFLICT_OWNER_ITEM`, the conflict class, and
  *    `item->collision.mode = CONFLICT_HIT` stays live in one register. The
  *    mode increment is consequently `addu` (register), not `addiu`
  *    (immediate), across the DeleteConflict/InsertConflict calls.
@@ -34,7 +34,7 @@
  *    ITEM_MODE_DISPOSE value since nothing carries `ITEM_MODE_DISPOSE` that far — same
  *    asymmetry as ProcItemKusuri's mode-2 vs mode-1 dispose.
  *  - Collision box field-store order (offset x/z/y, then size z/y/x,
- *    then common.tag, then class flags) exactly mirrors ProcItemDrop's
+ *    then common, then class flags) exactly mirrors ProcItemDrop's
  *    KORO_GRAND/KORO_STAY case, just different numbers (100 not 0xb4,
  *    CONFLICT_HIT not CONFLICT_SOFT).
  */
@@ -127,7 +127,7 @@ void ProcItemMakibishi(TItem *item)
         else
             i = GetConflictResult(item->locate, CONFLICT_NONE);
         if (i != CONFLICT_NONE &&
-            is_humanoid_on_stage_(ConflictObject[i].common.human) != 0)
+            is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
             SetBleeds((VECTOR *)item->locate->locate.coord.t, 0, 20, 10, 15, RGB24(127, 0, 0));
             SoundEx((VECTOR *)item->locate->locate.coord.t, SE_PROJECTILE_HIT);

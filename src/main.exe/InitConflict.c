@@ -48,7 +48,7 @@ void InitConflict(void)
     for (i = 0; i < N_CONFLICT_OBJECTS; i++)
     {
         ConflictObject[i].model = 0;
-        ConflictObject[i].common.tag = CONFLICT_OWNER_NONE;
+        ConflictObject[i].common = (void *)CONFLICT_OWNER_NONE;
         ConflictObject[i].position = UnitVector2;
         ConflictObject[i].offset.vector = UnitVector;
         ConflictObject[i].size.vector = UnitVector;

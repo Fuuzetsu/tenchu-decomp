@@ -63,7 +63,7 @@
         ConflictObject[conflict_id].size.components.z = conflict_size;        \
         ConflictObject[conflict_id].size.components.y = conflict_size;        \
         ConflictObject[conflict_id].size.components.x = conflict_size;        \
-        ConflictObject[conflict_id].common.human = owner;                     \
+        ConflictObject[conflict_id].common = owner;                     \
     }
 
 #define SETUP_WEAPON_AFTERIMAGE(hand_)                                        \

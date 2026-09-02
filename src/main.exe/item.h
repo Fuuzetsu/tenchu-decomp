@@ -585,7 +585,7 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     {                                                                         \
         ConflictClass conflict_class_;                                        \
                                                                               \
-        (conflict)->common.tag = owner_tag;                                   \
+        (conflict)->common = (void *)(owner_tag);                             \
         conflict_class_ = cmode;                                              \
         (conflict)->offset.components.x = 0;                                  \
         (conflict)->offset.components.z = 0;                                  \
@@ -607,7 +607,7 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     ConflictObject[n].size.components.z = sz;                                 \
     ConflictObject[n].size.components.y = sz;                                 \
     ConflictObject[n].size.components.x = sz;                                 \
-    ConflictObject[n].common.tag = owner_tag;                                 \
+    ConflictObject[n].common = (void *)(owner_tag);                           \
     ConflictObject[n].size.components.class_flags = cmode;                    \
     item->collision.size = sz;                                                \
     item->collision.ofsY = 0;                                                 \

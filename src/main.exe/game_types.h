@@ -1067,8 +1067,8 @@ struct BattleType
  * result[] entries carry the partner's class bits plus:
  *   CONFLICT_LIVE     — overlap recorded this frame (ComputeAllConflict)
  *   CONFLICT_CONSUMED — already returned once by GetConflictResult */
-/* ConflictObjectType.common holds either a Humanoid owner or one of the
- * ownerless item/door tags. */
+/* ConflictObjectType.common is PSX.SYM's original untyped owner pointer.
+ * Ownerless item and door collisions store the small sentinels below. */
 typedef enum conflict_owner_tag ConflictOwnerTag;
 enum conflict_owner_tag
 {
@@ -1076,14 +1076,6 @@ enum conflict_owner_tag
     CONFLICT_OWNER_ITEM = 1,
     CONFLICT_OWNER_DOOR = 2
 };
-
-typedef union ConflictOwner ConflictOwner;
-union ConflictOwner
-{
-    void *raw; /* PSX.SYM's original common field view */
-    struct Humanoid *human;
-    ConflictOwnerTag tag;
-}; /* 0x04 */
 
 typedef enum conflict_class ConflictClass;
 enum conflict_class
@@ -1137,7 +1129,7 @@ struct ConflictObjectType
     VECTOR position;         /* 0x04 */
     ConflictOffset offset;   /* 0x14 */
     ConflictSize size;       /* 0x1C */
-    ConflictOwner common;    /* 0x24 */
+    void *common;             /* 0x24 */
     u8 result[N_CONFLICT_OBJECTS]; /* 0x28 */
 }; /* 0x78 */
 

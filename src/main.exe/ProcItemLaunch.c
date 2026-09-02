@@ -118,7 +118,7 @@ void ProcItemLaunch(TItem *item)
     else
         cid = GetConflictResult(item->locate, CONFLICT_NONE);
     if (cid != CONFLICT_NONE &&
-        is_humanoid_on_stage_(ConflictObject[cid].common.human) != 0)
+        is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
         SetImpact((VECTOR *)item->locate->locate.coord.t, 4 * FIXED_ONE,
                   IMPACT_SPRITE_HIT);

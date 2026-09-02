@@ -141,7 +141,7 @@ void ProcItemArrow(TItem *item)
         {
             Humanoid *human;
 
-            human = ConflictObject[cid].common.human;
+            human = ConflictObject[cid].common;
             if (is_humanoid_on_stage_(human) != 0)
             {
                 if ((ConflictObject[cid].size.components.class_flags &

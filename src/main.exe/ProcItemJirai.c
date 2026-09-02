@@ -165,7 +165,7 @@ void ProcItemJirai(TItem *item)
         }
         if (conflict_id != CONFLICT_NONE &&
             is_humanoid_on_stage_(
-                ConflictObject[conflict_id].common.human) != 0)
+                ConflictObject[conflict_id].common) != 0)
         {
             s32 new_conflict_id;
             s32 blast_size;
@@ -227,7 +227,7 @@ void ProcItemJirai(TItem *item)
             s32 frame_index;
             s32 human_present;
 
-            hit_human = ConflictObject[conflict_id].common.human;
+            hit_human = ConflictObject[conflict_id].common;
             human_present = is_humanoid_on_stage_(hit_human);
             /* empty 1-shot: a sched1 region fence (an emptied debug print reads the same way). */
             do

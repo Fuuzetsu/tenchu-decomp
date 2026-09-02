@@ -276,7 +276,7 @@ void ProcItemFire(TItem *item)
                 return;
             }
             if (is_humanoid_on_stage_(
-                    ConflictObject[cid].common.human) == 0 &&
+                    ConflictObject[cid].common) == 0 &&
                 ConflictObject[cid].size.components.class_flags !=
                     CONFLICT_HIT)
             {
@@ -321,7 +321,7 @@ void ProcItemFire(TItem *item)
          * class, and the collision mode below -- the same one-register trick
          * as the file's other box and ProcItemArrow's. Separate named
          * constants load fresh immediates and do not match. */
-        ConflictObject[conflict_id].common.tag = mode;
+        ConflictObject[conflict_id].common = (void *)mode;
         ConflictObject[conflict_id].size.components.class_flags = mode;
         item->collision.size = 1500;
         item->collision.ofsY = 0;
@@ -351,7 +351,7 @@ void ProcItemFire(TItem *item)
         {
             Humanoid *human;
 
-            human = ConflictObject[cid].common.human;
+            human = ConflictObject[cid].common;
             if (is_humanoid_on_stage_(human) != 0)
             {
                 ModelType **objects;

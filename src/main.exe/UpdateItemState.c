@@ -93,7 +93,8 @@ loop:
                         conflicts[conflict_id].size.components.z = sz;
                         conflicts[conflict_id].size.components.y = sz;
                         conflicts[conflict_id].size.components.x = sz;
-                        conflicts[conflict_id].common.tag = CONFLICT_OWNER_ITEM;
+                        conflicts[conflict_id].common =
+                            (void *)CONFLICT_OWNER_ITEM;
                         conflicts[conflict_id].size.components.class_flags =
                             mode;
                         item->collision.size = sz;
