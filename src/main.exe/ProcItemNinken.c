@@ -238,7 +238,7 @@ void ProcItemNinken(TItem *item)
         SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
         param->slave->attribute &= ~ATTR_PHASE;
         param->slave->attribute = 0;
-        param->slave->target = (ModelType *)item->owner->model;
+        param->slave->target = &item->owner->model->locate;
         param->slave->motion->count = 0;
         PlayMotion(param->slave->motion, 1);
         param->slave->attribute &= ~ATTR_SUSPEND;
@@ -330,12 +330,12 @@ void ProcItemNinken(TItem *item)
         item->owner->attribute = owner_attribute;
         if (target != 0)
         {
-            if ((ModelType *)target->model == param->slave->target)
+            if (&target->model->locate == param->slave->target)
             {
                 return;
             }
             SetupThinkFunction(param->slave, THINK_MIX_NINKEN);
-            param->slave->target = (ModelType *)target->model;
+            param->slave->target = &target->model->locate;
             param->slave->attribute |= PHASE_ALERT;
             EquipWeapon(param->slave, WEAPON_DRAWN);
             SetNowMotion(param->slave, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
@@ -343,7 +343,7 @@ void ProcItemNinken(TItem *item)
         }
         else
         {
-            if (param->slave->target == item->locate)
+            if (param->slave->target == &item->locate->locate)
             {
                 return;
             }
@@ -351,7 +351,7 @@ void ProcItemNinken(TItem *item)
             SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             param->slave->attribute &= ~ATTR_PHASE;
             SetupThinkFunction(param->slave, THINK_MIX_NONE);
-            param->slave->target = (ModelType *)item->owner->model;
+            param->slave->target = &item->owner->model->locate;
             return;
         }
     }

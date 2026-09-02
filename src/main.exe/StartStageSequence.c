@@ -167,7 +167,7 @@ void StartStageSequence(void)
                 target = StagePlayer->model;
                 human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
                 human->life = HUMANOID_LIFE_INACTIVE;
-                human->target = (ModelType *)target;
+                human->target = &target->locate;
             }
         }
         stg++;

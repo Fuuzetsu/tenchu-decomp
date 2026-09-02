@@ -108,12 +108,12 @@ void AttackControl(void)
                     (enemy->attribute & (ATTR_WEAPON_DRAWN | ATTR_PHASE)) == 0 &&
                     enemy->status != STAT_ITEM && enemy->status != STAT_ACTION)
                 {
-                    ModelType *target;
+                    GsCOORDINATE2 *target;
 
-                    Me_MOTION_C->target = (ModelType *)enemy->model;
+                    Me_MOTION_C->target = &enemy->model->locate;
                     GetTargetDistance(Me_MOTION_C, &mydeg);
                     target = enemy->target;
-                    enemy->target = (ModelType *)StagePlayer->model;
+                    enemy->target = &StagePlayer->model->locate;
                     GetTargetDistance(enemy, &deg);
                     enemy->target = target;
 
@@ -228,7 +228,7 @@ void AttackControl(void)
         human = Me_MOTION_C;
         if (enemy != NULL)
         {
-            human->target = (ModelType *)enemy->model;
+            human->target = &enemy->model->locate;
         }
         else
         {

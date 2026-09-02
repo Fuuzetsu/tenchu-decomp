@@ -121,9 +121,9 @@ void ProcItemNingyo(TItem *item)
                 Humanoid *human;
 
                 human = HumanGroup[human_index];
-                if (human->target == item->locate)
+                if (human->target == &item->locate->locate)
                 {
-                    human->target = (ModelType *)CamState.Owner->model;
+                    human->target = &CamState.Owner->model->locate;
                 }
             }
             NingyoCount--;
@@ -300,11 +300,11 @@ void ProcItemNingyo(TItem *item)
                     human->target != 0 &&
                     distance_to_decoy <
                         GetVectorDistance(
-                            (VECTOR *)human->target->locate.coord.t,
+                            (VECTOR *)human->target->coord.t,
                             human->locate) &&
                     ((u16)human->type & PAGE_MASK) != PAGE_BOSS)
                 {
-                    human->target = item->locate;
+                    human->target = &item->locate->locate;
                 }
                 human_index++;
             }

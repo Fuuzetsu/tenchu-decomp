@@ -161,9 +161,9 @@ void StateTransition(Humanoid *human)
         pad = 0;
         if ((u16)(human->type - PAGE_GUARD) < PAGE_BOSS - PAGE_GUARD)
         {
-            target_dx = human->target->locate.coord.t[0] -
+            target_dx = human->target->coord.t[0] -
                         human->locate->vx;
-            target_dz = human->target->locate.coord.t[2] -
+            target_dz = human->target->coord.t[2] -
                         human->locate->vz;
             target_direction = GetDirection(target_dx, target_dz,
                                             human->rotate->vy);
@@ -201,7 +201,7 @@ void StateTransition(Humanoid *human)
     }
 
     SR = SearchTarget(human, &Distance, &Degree);
-    if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
+    if (Me_THINK_C->target == &StagePlayer->model->locate)
     {
         player_distance = Distance;
     }
@@ -311,7 +311,7 @@ void StateTransition(Humanoid *human)
                     reset_alert_duration();
                     alert_actor = Me_THINK_C;
                     if (alert_actor->type < PAGE_BOSS &&
-                        alert_actor->target == (ModelType *)StagePlayer->model)
+                        alert_actor->target == &StagePlayer->model->locate)
                     {
                         Findenemies++;
                     }
@@ -373,7 +373,7 @@ void StateTransition(Humanoid *human)
                 reset_alert_duration();
                 alert_actor = Me_THINK_C;
                 if (alert_actor->type < PAGE_BOSS &&
-                    alert_actor->target == (ModelType *)StagePlayer->model)
+                    alert_actor->target == &StagePlayer->model->locate)
                 {
                     Findenemies++;
                 }
@@ -394,7 +394,7 @@ void StateTransition(Humanoid *human)
     {
         if (Attrib & ATTR_WEAPON_DRAWN)
         {
-            if (Me_THINK_C->target == (ModelType *)StagePlayer->model)
+            if (Me_THINK_C->target == &StagePlayer->model->locate)
             {
                 StrainRatio = 0;
             }
@@ -433,7 +433,7 @@ void StateTransition(Humanoid *human)
             else
             {
                 attacker = Me_THINK_C;
-                target_dy = attacker->target->locate.coord.t[1] -
+                target_dy = attacker->target->coord.t[1] -
                             attacker->locate->vy;
                 target_dy = target_dy >= 0 ? target_dy : -target_dy;
                 if (target_dy >= ATTACK_HEIGHT_RANGE &&
@@ -460,8 +460,8 @@ void StateTransition(Humanoid *human)
             searcher = Me_THINK_C;
             Attrib = base_attrib | ATTR_SEARCH | PHASE_INVESTIGATE;
             searcher->chase[HUMANOID_CHASE_X] =
-                searcher->target->locate.coord.t[0];
-            last_seen_z = searcher->target->locate.coord.t[2];
+                searcher->target->coord.t[0];
+            last_seen_z = searcher->target->coord.t[2];
             searcher->actscnt = 1;
             searcher->chase[HUMANOID_CHASE_Z] = last_seen_z;
         }
@@ -512,7 +512,7 @@ void StateTransition(Humanoid *human)
             alert_actor = Me_THINK_C;
             if (alert_actor->type < PAGE_BOSS &&
                 (Attrib & ATTR_SEARCH) == 0 &&
-                alert_actor->target == (ModelType *)StagePlayer->model)
+                alert_actor->target == &StagePlayer->model->locate)
             {
                 Findenemies++;
             }

@@ -309,9 +309,10 @@ typedef struct Humanoid
     TraceLine *trace;         /* 0x70 (SetupTraceLine/ControlTraceLine;
                                  Ghidra's own independently-built Humanoid
                                  also names this exact offset `trace`) */
-    ModelType *target;        /* 0x74: PSX.SYM's original field type; character
-                                 archives share its transform prefix and are
-                                 cast when installed as targets */
+    GsCOORDINATE2 *target;    /* 0x74: target world transform. PSX.SYM called
+                                 this ModelType *, but retail installs both
+                                 ModelType and ModelArchiveType objects and
+                                 only consumes their first `locate` member. */
     s32 point[2];             /* 0x78 (ground X/Z spawn position --
                                  BreedLife: point[0]=x via `sw a1,0x78(s0)`,
                                  point[1]=z via `sw s4,0x7C(s0)`; matches

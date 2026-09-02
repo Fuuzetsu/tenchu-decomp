@@ -51,9 +51,9 @@ short ChasetoTarget(long length)
         return 0;
     }
 
-    xx = me->target->locate.coord.t[0] +
+    xx = me->target->coord.t[0] +
          me->chase[HUMANOID_CHASE_X] - me->locate->vx;
-    zz = me->target->locate.coord.t[2] +
+    zz = me->target->coord.t[2] +
          chase[HUMANOID_CHASE_Z] - me->locate->vz;
 
     if (((xx >= 0 ? xx : -xx) < 500 &&

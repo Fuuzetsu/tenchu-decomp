@@ -183,7 +183,7 @@ void ActATTACK(void)
     int wid;
     AfterimageType *ilu;
     ModelType **object;
-    ModelType *target;
+    GsCOORDINATE2 *target;
     BattleType *battle;
     ModelType *hand[N_WEAPON_HANDS];
     union
@@ -232,8 +232,8 @@ void ActATTACK(void)
         short turn;
         short direction;
 
-        direction = GetDirection(target->locate.coord.t[0] - dtL->vx,
-                                 target->locate.coord.t[2] - dtL->vz, dtR->vy);
+        direction = GetDirection(target->coord.t[0] - dtL->vx,
+                                 target->coord.t[2] - dtL->vz, dtR->vy);
         human = Me_MOTION_C;
         turn = human->turn;
         if ((int)direction > (int)turn)
@@ -661,7 +661,7 @@ dispatch:
             CamState.snap_pending = 1;
             return;
         }
-        if ((dtM->loop == 0) && (dtL->vy == Me_MOTION_C->target->locate.coord.t[1]))
+        if ((dtM->loop == 0) && (dtL->vy == Me_MOTION_C->target->coord.t[1]))
         {
             return;
         }
