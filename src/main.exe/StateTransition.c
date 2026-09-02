@@ -83,6 +83,9 @@
  *    target and non-ranged weapon take the same mask path, with unsuitable
  *    attacks falling into the difficulty-based random veto. The positive
  *    suitability test gives retail's mask-before-random block order directly.
+ *  - The special forward-step probe combines its matching-level and small
+ *    absolute-delta tests in one guard. An excessive positive delta is the
+ *    `else if` case, so both outcomes fall naturally into the shared tail.
  */
 
 extern Humanoid *Me_THINK_C;
@@ -619,17 +622,14 @@ void StateTransition(Humanoid *human)
                         AREA_LEVEL_RETURN_DELTA |
                             AREA_LEVEL_FIRST_HIT |
                             AREA_LEVEL_REUSE_CACHED);
-                    if (current_level == Me_THINK_C->map.level)
-                    {
-                        if ((forward_delta >= 0 ? forward_delta
-                                                : -forward_delta) <
+                    if (current_level == Me_THINK_C->map.level &&
+                        (forward_delta >= 0 ? forward_delta
+                                            : -forward_delta) <
                             STEP_DELTA_TOLERANCE)
-                        {
-                            pad = PADLup | PADRdown;
-                            goto tail;
-                        }
+                    {
+                        pad = PADLup | PADRdown;
                     }
-                    if (forward_delta > HIGH_STEP_DELTA)
+                    else if (forward_delta > HIGH_STEP_DELTA)
                     {
                         pad = PADLup | PADRdown;
                     }

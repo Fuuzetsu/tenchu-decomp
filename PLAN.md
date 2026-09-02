@@ -820,6 +820,12 @@ remaining attacks receive the difficulty-based random veto. This natural
 polarity produces retail's mask-before-random layout, removes four gotos and
 three labels, and preserves all 3,776 bytes.
 
+FORWARD-STEP DECISION RECOVERED (2026-09-02): `StateTransition`'s special
+ninja step probe now combines the matching-level and small absolute-delta
+requirements in one guard, with the excessive positive delta as its `else if`.
+The successful tolerance arm no longer jumps over its sibling; both fall into
+the existing outer policy tail, preserving all 3,776 bytes.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,
