@@ -41,10 +41,10 @@
  * Matching notes (docs/matching-cookbook.md):
  *  - BloodSpriteImageIds is the real eight-byte table immediately after the
  *    effect cursor: four interleaved flying/stain image pairs. It is declared
- *    as the packed byte array emitted by the original data object, then viewed
- *    through BloodSpriteImageCatalog while it is copied locally. The array
- *    expression also preserves the retail split-address schedule; declaring
- *    the external symbol as the aggregate itself coalesces those instructions.
+ *    as the packed byte array emitted by the original data object, then copied
+ *    to a local byte array. The array expression also preserves the retail
+ *    split-address schedule; declaring the external symbol as an aggregate
+ *    coalesces those instructions.
  *  - The blood image IDs must stay a flat byte array.  Indexing it with
  *    `i * 2` and `i * 2 + 1` reproduces the target's two independently
  *    formed addresses; caching a row of a two-dimensional array does not.
@@ -62,18 +62,6 @@
  *    function-scoping the explosion array reverses those slots.
  */
 
-struct BloodSpriteImagePair
-{
-    u8 flying;
-    u8 stain;
-};
-
-union BloodSpriteImageCatalog
-{
-    struct BloodSpriteImagePair variant[N_BLOOD_SPRITES];
-    u8 packed[N_BLOOD_SPRITES * sizeof(struct BloodSpriteImagePair)];
-};
-
 extern u8 BloodSpriteImageIds[];
 /* Indexed by impact_sprite and the BOMB_SPRITE_* selectors respectively. */
 extern u8 ImpactSpriteImageIds[MaxImpacts];
@@ -90,27 +78,24 @@ extern void reset_effects_(void);
 
 void InitEffect(void)
 {
-    union BloodSpriteImageCatalog blood_images;
-    union BloodSpriteImageCatalog *blood_src;
-    union BloodSpriteImageCatalog *bloodp;
+    u8 blood_images[N_BLOOD_SPRITES * 2];
     POLY_F4 *poly;
     GsIMAGE *image;
     s16 i;
 
-    blood_src = (union BloodSpriteImageCatalog *)BloodSpriteImageIds;
-    blood_images = *blood_src;
+    __builtin_memcpy(blood_images, BloodSpriteImageIds,
+                     sizeof(blood_images));
     i = 0;
-    bloodp = &blood_images;
     for (; i < N_BLOOD_SPRITES; i++)
     {
         /* Not a flattened image[4][2]: the target recomputes the index and
          * re-adds the base for the second element (addu/addu/lbu 0), where a
          * real 2D or paired-struct access folds it into the load as lbu 1.
          * Both spellings measured 24 lines off. */
-        image = GetImage(bloodp->packed[i * 2]);
+        image = GetImage(blood_images[i * 2]);
         InitSprite(image, &sprBlood[i]);
         sprBlood[i].attribute = GS_ATTR_SEMITRANS_ADD;
-        image = GetImage(bloodp->packed[i * 2 + 1]);
+        image = GetImage(blood_images[i * 2 + 1]);
         InitSprite(image, &sprBloodStay[i]);
         sprBloodStay[i].attribute = GS_ATTR_SEMITRANS_SUBTRACT;
     }
