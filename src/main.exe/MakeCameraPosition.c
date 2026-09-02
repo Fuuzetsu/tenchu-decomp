@@ -115,9 +115,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
         d2 += FIXED_TRUNC_BIAS;
     d3 = (-va.vz + vb.vz) * fwRot;
     target.vry = (d2 >> FIXED_SHIFT) + va.vy;
-    if (d3 < 0)
-        d3 += FIXED_TRUNC_BIAS;
-    target.vrz = (d3 >> FIXED_SHIFT) + va.vz;
+    target.vrz = d3 / FIXED_ONE + va.vz;
 
     AntiWall(&ViewInfo, &target);
     tp = &target;
