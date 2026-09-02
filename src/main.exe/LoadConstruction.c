@@ -125,13 +125,12 @@
  *  - Each of the six /CONSTRUCTION_CELL divisions is `long a, q; if (a >= 0) q = a/CONSTRUCTION_CELL;
  *    else q = a/CONSTRUCTION_CELL - 1; x = q & 7;` — a in a0, quotient in the v0/v1
  *    temps, single andi def into the callee-saved home.
- *  - Both WorldMap cell addresses split into offset-then-+base statements
- *    (`nModel = (z<<2)+((x<<8)+(y<<5)); nModel += (int)WorldMap;`), which
- *    puts the partial sum in the carrier register and orders the final-pass
- *    slot allocno above the strength-reduction giv so the whole retail
- *    register cascade (slot=s2, giv=s3, y=s4, x=s5, magic=s6, i=s7, hi=fp,
- *    msize spilled) falls out at natural priorities, fence-free. The final
- *    accesses nevertheless use the recovered WorldType.top field.
+ *  - Both WorldMap cell pointers use the PSX.SYM-recorded `slot` local and
+ *    are built in two steps: the typed pointer first carries the derived byte
+ *    offset, then receives the WorldMap base. Combining the steps or using a
+ *    direct array address changes the slot/msize register allocation. This
+ *    keeps the actual list accesses typed without reusing the unrelated
+ *    nModel count as an address.
  */
 
 /* WorldDataType.mode says which kind of record this row is, not a phase:
@@ -338,6 +337,7 @@ short LoadConstruction(u_long *data)
 
     {
         int msize;
+        ObjectSlotType **slot;
         ObjectSlotManager *slotman;
 
         i = 0;
@@ -394,18 +394,18 @@ short LoadConstruction(u_long *data)
 
                 GetCenterAndSize((TmdObjectRecord *)model->object.tmd,
                                  &center, &size);
-                nModel = WORLD_MAP_CELL_BYTE_OFFSET(x, y, z);
-                nModel = (u32)((u8 *)WorldMap + nModel);
+                slot = (ObjectSlotType **)WORLD_MAP_CELL_BYTE_OFFSET(x, y, z);
+                slot = (ObjectSlotType **)((u8 *)WorldMap + (u32)slot);
                 slotman = &ModelSlot;
                 shifty = center.vy;
                 msize = size / 2;
                 if (slotman->n >= slotman->max)
                     AdtMessageBox(msg_modelslot_overflow);
                 slotman->slot[slotman->n].model = model;
-                slotman->slot[slotman->n].next = ((WorldType *)nModel)->top;
+                slotman->slot[slotman->n].next = *slot;
                 slotman->slot[slotman->n].ModelSize = msize;
                 slotman->slot[slotman->n].ShiftY = shifty;
-                ((WorldType *)nModel)->top = &slotman->slot[slotman->n];
+                *slot = &slotman->slot[slotman->n];
                 slotman->n++;
                 break;
 
