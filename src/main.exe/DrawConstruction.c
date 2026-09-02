@@ -5,11 +5,18 @@
 #include <psxsdk/libgpu.h>
 #include "tmdfast.h"
 
-#define N_DRAW_BUCKETS 153
-#define N_DRAW_SLOTS 100
-#define CONSTRUCTION_CELL_CENTER_OFFSET (CONSTRUCTION_CELL / 2)
-#define CONSTRUCTION_SCAN_RADIUS_XZ 2
-#define CONSTRUCTION_SCAN_RADIUS_Y 1
+enum construction_draw_geometry
+{
+    N_DRAW_BUCKETS = 153,
+    N_DRAW_SLOTS = 100,
+    CONSTRUCTION_CELL_CENTER_OFFSET = CONSTRUCTION_CELL / 2,
+    CONSTRUCTION_SCAN_RADIUS_XZ = 2,
+    CONSTRUCTION_SCAN_RADIUS_Y = 1,
+    CONSTRUCTION_CELL_VISIBILITY_RADIUS = 0x2BC1,
+    CONSTRUCTION_DEPTH_BUCKET_SHIFT = 8,
+    CONSTRUCTION_DEPTH_BUCKET_BIAS = 11,
+    CONSTRUCTION_LOCAL_OT_OFFSET = 0x37
+};
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -166,9 +173,11 @@ scan_y:
     if (ey < k)
         goto next_x;
     cell_y = k;
-    world_y_offset = (cell_y & WORLD_MAP_AXIS_MASK) << 5;
+    world_y_offset =
+        (cell_y & WORLD_MAP_AXIS_MASK) * WORLD_MAP_Y_BYTE_STRIDE;
     world_base = WorldMap;
-    world_x_offset = (cell_x & WORLD_MAP_AXIS_MASK) << 8;
+    world_x_offset =
+        (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
     l = sz;
 scan_z:
     if (ez < l)
@@ -180,12 +189,14 @@ scan_z:
         {
             visible = IsVisible(cell_x * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
                                 cell_y * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                cell_z * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET, 0x2BC1);
+                                cell_z * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
+                                CONSTRUCTION_CELL_VISIBILITY_RADIUS);
         } while (0);
     } while (0);
     if (visible)
     {
-        cur = ((WorldType *)(((cell_z & WORLD_MAP_AXIS_MASK) << 2) +
+        cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
+                                 WORLD_MAP_Z_BYTE_STRIDE +
                              world_y_offset + world_x_offset +
                              (u32)world_base))
                   ->top;
@@ -201,24 +212,27 @@ scan_z:
             ObjectSlotType **slot;
             OrnamentType *model;
 
-            /* The remaining do/while (0) layers are allocation weight for
-             * three DISTINCT races (measured 2026-08-31): the IsVisible pair
-             * feeds cell_x/cell_y against j (the visibility intruder, which
-             * also demands $s6 reuse across three disjoint roles - fission
-             * cannot co-color it); this outer wrapper and the model/next
-             * store wrapper feed the slot corridor. The two former inner
-             * layers and the ModelSize store wrapper fell to the plimit
-             * consumer identity below. */
+            /* These statement boundaries preserve three independent retail
+             * allocation races: the two IsVisible calls, the depth-bucket
+             * calculation, and insertion into the local draw list. Keep the
+             * ordinary ModelSize assignment inside its original boundary;
+             * it must not be replaced with folded arithmetic. */
             do
             {
-                signed_size = cur->ModelSize;
                 /* IsVisible leaves this object's view-space position behind
                  * for the depth bucket calculation. */
-                bucket = ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
-                           signed_size) >>
-                          8) -
-                         11;
-                plimit = (u16)cur->ModelSize;
+                do
+                {
+                    do
+                    {
+                        signed_size = cur->ModelSize;
+                        bucket = ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
+                                   signed_size) >>
+                                  CONSTRUCTION_DEPTH_BUCKET_SHIFT) -
+                                 CONSTRUCTION_DEPTH_BUCKET_BIAS;
+                        plimit = (u16)cur->ModelSize;
+                    } while (0);
+                } while (0);
                 if (bucket < 0)
                     bucket = 0;
                 /* Offset spelling: byte-required (indexing flips the addu; measured). */
@@ -232,10 +246,10 @@ scan_z:
                     SlotMan.slot[SlotMan.n].model = model;
                     SlotMan.slot[SlotMan.n].next = *slot;
                 } while (0);
-                /* Unsigned identity folded after flow: +2 counted plimit refs
-                 * rank it between slot and model for $s2 (allocation
-                 * staging). */
-                SlotMan.slot[SlotMan.n].ModelSize = (plimit + plimit) - plimit;
+                do
+                {
+                    SlotMan.slot[SlotMan.n].ModelSize = plimit;
+                } while (0);
                 SlotMan.slot[SlotMan.n].ShiftY = 0;
                 *slot = &SlotMan.slot[SlotMan.n];
                 ndl++;
@@ -264,7 +278,7 @@ scan_done:
     packet_base = GsGetWorkBase();
     DrawTMDmode = TMD_BANK_FOG;
     ot = *OTablePt;
-    ot.org += 0x37; /* bias the local OT into the global table's depth window */
+    ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
     cur = DrawList[0];
 draw_near:

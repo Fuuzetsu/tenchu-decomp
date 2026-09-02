@@ -23,7 +23,6 @@
         out = q & WORLD_MAP_AXIS_MASK;                                        \
     }
 
-
 /* Free an ornament archive: every ornament, then the object table, the
  * model data, and the archive record itself. Retail repeats the block
  * for the mission archive and the shared object archive; the macro is
@@ -403,8 +402,8 @@ short LoadConstruction(u_long *data)
 
                 GetCenterAndSize((TmdObjectRecord *)model->object.tmd,
                                  &center, &size);
-                nModel = (z << 2) + ((x << 8) + (y << 5));
-                nModel += (int)WorldMap;
+                nModel = WORLD_MAP_CELL_BYTE_OFFSET(x, y, z);
+                nModel = (u32)((u8 *)WorldMap + nModel);
                 slotman = &ModelSlot;
                 shifty = center.vy;
                 msize = size / 2;
@@ -494,8 +493,8 @@ short LoadConstruction(u_long *data)
             mma->object[i]->object.attribute |=
                 GS_DOBJ_DIVISION_DEPTH_BITS(2);
             UpdateOrnament(mma->object[i], 0);
-            slot = (ObjectSlotType **)((z << 2) + ((x << 8) + (y << 5)));
-            slot = &((WorldType *)((int)slot + (int)WorldMap))->top;
+            slot = (ObjectSlotType **)WORLD_MAP_CELL_BYTE_OFFSET(x, y, z);
+            slot = (ObjectSlotType **)((u8 *)WorldMap + (u32)slot);
             slotman = &ModelSlot;
             model = mma->object[i];
             if (slotman->n >= slotman->max)

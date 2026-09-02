@@ -74,9 +74,9 @@ extern u16 StrainPhase;
  *    lets cc1 form the address directly in `$s1` and loses one instruction.
  *    Reading `base` later through `img` also leaves its `lbu` in the target
  *    slot between the y producer and store.
- *  - A folded `u8` consumer identity at the final `img->u = base` write raises
+ *  - The statement boundary around the final `img->u = base` write raises
  *    `base` above `spr` in global allocation, placing them in the target's
- *    `$s3`/`$s4` respectively without a zero-trip loop.
+ *    `$s3`/`$s4` respectively.
  *  - `phase` is genuinely unsigned: the target passes it to `rsin` with one
  *    `andi`, not a signed `sll`/`sra` pair.
  *
@@ -144,8 +144,10 @@ void PutStrain(s32 x, s32 y)
             newpow = r;
             if (newpow != 0)
                 goto strainloop;
-            /* allocation staging: folded after flow -- not recovered arithmetic */
-            img->u = (base + base) - base;
+            do
+            {
+                img->u = base;
+            } while (0);
         }
 
         /* This is cc1's own signed-divide-by-32 expansion, and unlike

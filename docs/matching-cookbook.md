@@ -1823,10 +1823,13 @@ fence whose depth sweep is FLAT is not a fence — delete it (AddEnemy's
   caller-saved and 2.8.1 will not reliably coalesce it back; (6) prefer
   reordering independent statements inside arms over swapping arms
   (polarity/layout changes); (7) check floor_log2 cliffs before adding
-  refs — lowering a rival is often safer. Staged sign/mask/negate
-  identities that combine folds after flow remain the ref source of last
-  resort; when used, the comment must say they are allocation staging,
-  not recovered arithmetic (DrawTargetS's sign-staged edges).
+  refs — lowering a rival is often safer. Do not turn those extra refs
+  into folded sign/mask/arithmetic identities: they are compiler coercion,
+  not human source. Until a real dataflow or control-flow recovery replaces
+  it, retain the honest operation inside an explicit one-shot boundary.
+  DrawTargetS, DrawConstruction, CreateStage, AfsGetEntry, PutStrain,
+  update_card_screen_, and mission_score_screen were reverted to that form
+  on 2026-09-02.
 - **Live-range fission beats ref-weight towers — but the winner must
   CONFLICT with the rival** (DefaultActionHumanoid, 2026-08-31, joint with
   a Codex collaboration): when a variable needs a callee-saved register

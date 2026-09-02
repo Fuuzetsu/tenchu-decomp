@@ -642,9 +642,10 @@ void mission_score_screen(void)
 
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
-    /* Allocation carrier: keep the persistent-state role ahead of goNext. */
-    /* allocation staging: folded after flow -- not recovered arithmetic */
-    statePtr = (TLinkInfo *)(TENCHU_PERSISTENT_STATE_ADDRESS + (u32)insertedRank - (u32)insertedRank);
+    do
+    {
+        statePtr = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    } while (0);
     if (gfMemory != 0)
     {
         LoadTIMAndFree(PathFileRead(path_image_3, path_font_tim));

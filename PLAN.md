@@ -685,6 +685,15 @@ mutual-race permutation playbook (7 levers) is cookbook doctrine.
 Round 5 in flight: subdivide_quad_ mega-pair, GetAreaMapLevel region
 fence, and a 15-file mid pack.
 
+TASTE CORRECTION (2026-09-02): the folded identities above were useful
+compiler experiments but are not acceptable recovered source. Restored
+ordinary assignments inside the exact one-shot boundaries in DrawTargetS,
+DrawConstruction, CreateStage, AfsGetEntry, PutStrain,
+update_card_screen_, and mission_score_screen. The cookbook now forbids
+folded sign/mask/arithmetic identities as a matching technique; a visible
+compiler boundary is preferable until genuine source structure can replace
+it.
+
 ROUND 5 LANDED + TASTE BAR SET (2026-08-31): eight files shed eleven
 layers for one-line unsigned carriers (PutStrain, RestoreItemLayout
 x3, CreateStage, SetFlyWire, SetupSpline, ProcMiscDoor, AfsGetEntry,

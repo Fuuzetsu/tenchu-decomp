@@ -214,10 +214,10 @@ s32 update_card_screen_(s32 pad)
         } while (0);
         if (!cond)
             next_state = saved_state;
-        /* The unsigned identity is folded after flow; its extra consumer
-         * reference keeps the selected state in $a0 for the shared retail
-         * store (allocation staging, not recovered arithmetic). */
-        McardState = (next_state + next_state) - next_state;
+        do
+        {
+            McardState = next_state;
+        } while (0);
         break;
     case CARD_STATE_NOT_ENOUGH_SPACE_PROMPT:
         McardPage = CARD_PAGE_NOT_ENOUGH_SPACE_CANNOT_SAVE_PROMPT;

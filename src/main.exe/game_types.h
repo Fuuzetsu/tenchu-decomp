@@ -823,6 +823,19 @@ struct WorldType
     ObjectSlotType *top; /* 0x00 */
 }; /* 0x04 */
 
+/* Byte strides of WorldMap[x][y][z]. Some WORLD.C loops build cell addresses
+ * incrementally so the old compiler can keep their scan values in registers;
+ * derive those offsets from the actual grid layout instead of hand-written
+ * 8/5/2-bit shifts. */
+#define WORLD_MAP_Z_BYTE_STRIDE (sizeof(WorldType))
+#define WORLD_MAP_Y_BYTE_STRIDE \
+    (WORLD_MAP_AXIS_SIZE * WORLD_MAP_Z_BYTE_STRIDE)
+#define WORLD_MAP_X_BYTE_STRIDE \
+    (WORLD_MAP_AXIS_SIZE * WORLD_MAP_Y_BYTE_STRIDE)
+#define WORLD_MAP_CELL_BYTE_OFFSET(x, y, z)                                \
+    ((z) * WORLD_MAP_Z_BYTE_STRIDE +                                       \
+     ((x) * WORLD_MAP_X_BYTE_STRIDE + (y) * WORLD_MAP_Y_BYTE_STRIDE))
+
 /* Per-stage transform used by the pause-map overlay. World X/Z coordinates
  * are divided by scale_divisor, rotated in 4.12 angle space, then translated
  * to the map's screen origin. */
