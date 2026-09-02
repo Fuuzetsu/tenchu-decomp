@@ -160,12 +160,13 @@ sight_mode:
         param.start.vy = item->locate->locate.coord.t[1];
         param.start.vz = item->locate->locate.coord.t[2];
         view = &ViewInfo;
-        GetVectorRotation((VECTOR *)view, (VECTOR *)&view->vrx,
+        GetVectorRotation(CAMERA_VIEWPOINT(view), CAMERA_REFERENCE(view),
                           &rx, &ry);
         rot.vz = 0;
         rot.vx = rx;
         rot.vy = ry;
-        SearchItemTarget2(param.user, &rot, (VECTOR *)view, &param.end);
+        SearchItemTarget2(param.user, &rot, CAMERA_VIEWPOINT(view),
+                          &param.end);
         if (item->proc != 0)
         {
             DISPOSE_ITEM_WITH_MODE(item, dispose_mode);

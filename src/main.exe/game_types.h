@@ -1077,8 +1077,8 @@ struct Sprite3D
 }; /* 0x8C */
 
 /* Every model-like record above begins with the SDK coordinate object. Its
- * translation is a three-long VECTOR; expose that shared view once instead
- * of casting coord.t at every effect, collision, and distance call site. */
+ * translation words are consumed through the game's VECTOR API; expose that
+ * shared view once instead of casting coord.t at every call site. */
 #define MODEL_POSITION(model_) ((VECTOR *)(model_)->locate.coord.t)
 
 /* 3DCTRL.C's tiled background. PSX.SYM supplies the complete layout and

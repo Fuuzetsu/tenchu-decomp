@@ -68,7 +68,8 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
     int sy;
     int sz;
 
-    GetVectorRotation((VECTOR *)target, (VECTOR *)&target->vrx, &rx, &ry);
+    GetVectorRotation(CAMERA_VIEWPOINT(target), CAMERA_REFERENCE(target),
+                      &rx, &ry);
     ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vz = 0;
     ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vx = rx;
     ((SVECTOR *)TENCHU_SCRATCHPAD_ADDRESS)->vy = ry;

@@ -218,7 +218,8 @@
 #define GET_THROW_ROTATION(mdl, rx, ry, rz)                                   \
     if (CamState.Owner->model == (mdl) && CamState.Mode == CMODE_DIRECTION)   \
     {                                                                         \
-        GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx,       \
+        GetVectorRotation(CAMERA_VIEWPOINT(&ViewInfo),                       \
+                          CAMERA_REFERENCE(&ViewInfo),                       \
                           &(rx), &(ry));                                      \
         (rz) = 0;                                                             \
     }                                                                         \

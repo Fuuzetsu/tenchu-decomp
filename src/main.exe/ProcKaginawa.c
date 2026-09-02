@@ -106,7 +106,8 @@ void ProcKaginawa(TItem *item)
     }
     else
     {
-        GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+        GetVectorRotation(CAMERA_VIEWPOINT(&ViewInfo),
+                          CAMERA_REFERENCE(&ViewInfo), &rx, &ry);
         if (item->owner->pad.data & PADRup)
         {
             if (rx < 0)
@@ -121,7 +122,8 @@ void ProcKaginawa(TItem *item)
         w.vx += ViewInfo.vpx;
         w.vy += ViewInfo.vpy;
         w.vz += ViewInfo.vpz;
-        trace_ground_((VECTOR *)&ViewInfo, &w, (VECTOR *)&CamState, 0);
+        trace_ground_(CAMERA_VIEWPOINT(&ViewInfo), &w,
+                      &CamState.TargetVector, 0);
         tx = v.vx;
         if (tx < 0)
             tx += 0xF;

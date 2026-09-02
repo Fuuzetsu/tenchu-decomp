@@ -55,8 +55,9 @@ void MakeDif(GsRVIEW2 *vinfo, GsRVIEW2 *target, GsRVIEW2 *vdif)
     }
     else
     {
-        MakeDifSub((VECTOR *)&vinfo->vrx, (VECTOR *)&target->vrx, (VECTOR *)&vdif->vrx,
-                   &ref);
-        MakeDifSub((VECTOR *)vinfo, (VECTOR *)target, (VECTOR *)vdif, &pnt);
+        MakeDifSub(CAMERA_REFERENCE(vinfo), CAMERA_REFERENCE(target),
+                   CAMERA_REFERENCE(vdif), &ref);
+        MakeDifSub(CAMERA_VIEWPOINT(vinfo), CAMERA_VIEWPOINT(target),
+                   CAMERA_VIEWPOINT(vdif), &pnt);
     }
 }

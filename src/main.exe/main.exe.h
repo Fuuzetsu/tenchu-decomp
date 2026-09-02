@@ -99,6 +99,11 @@ enum gpu_blend_mode
 
 extern GsRVIEW2 ViewInfo;
 
+/* GsRVIEW2 keeps its viewpoint and reference coordinates as scalar triples;
+ * the game's vector helpers consume the addresses of those triples. */
+#define CAMERA_VIEWPOINT(view_) ((VECTOR *)(view_))
+#define CAMERA_REFERENCE(view_) ((VECTOR *)&(view_)->vrx)
+
 /* Keep each point-projection member address independently materialized.
  * Directly caching one ScreenProjectionWorkspace pointer makes cc1 fold later
  * members into load displacements, unlike retail's repeated absolute

@@ -77,9 +77,8 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     pm = param.user->model;
     if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)
     {
-        /* GsRVIEW2 opens with the vp and vr triples laid out as two
-         * consecutive VECTOR-shaped blocks — the casts pick them out. */
-        GetVectorRotation((VECTOR *)&ViewInfo, (VECTOR *)&ViewInfo.vrx, &rx, &ry);
+        GetVectorRotation(CAMERA_VIEWPOINT(&ViewInfo),
+                          CAMERA_REFERENCE(&ViewInfo), &rx, &ry);
         rz = 0;
     }
     else

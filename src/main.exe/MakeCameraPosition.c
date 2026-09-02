@@ -104,7 +104,7 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
     TransformCameraPoint(campos + 2, &vc, flag);
     TransformCameraPoint(campos + 3, &vd, flag);
 
-    fwRot = trace_ground_(&vc, &vd, (VECTOR *)&target, 0);
+    fwRot = trace_ground_(&vc, &vd, CAMERA_VIEWPOINT(&target), 0);
 
     d1 = (-va.vx + vb.vx) * fwRot;
     if (d1 < 0)
@@ -134,9 +134,10 @@ s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW
     }
     else
     {
-        MakeDifSub((VECTOR *)&ViewInfo.vrx, (VECTOR *)&tp->vrx,
-                   (VECTOR *)&vDif->vrx, &ref);
-        MakeDifSub((VECTOR *)&ViewInfo, (VECTOR *)tp, (VECTOR *)vDif, &pnt);
+        MakeDifSub(CAMERA_REFERENCE(&ViewInfo), CAMERA_REFERENCE(tp),
+                   CAMERA_REFERENCE(vDif), &ref);
+        MakeDifSub(CAMERA_VIEWPOINT(&ViewInfo), CAMERA_VIEWPOINT(tp),
+                   CAMERA_VIEWPOINT(vDif), &pnt);
     }
 
     return fwRot;
