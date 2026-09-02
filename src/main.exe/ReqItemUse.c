@@ -159,18 +159,6 @@
  *
  * STATUS: MATCHING — all 5272 bytes match.
  *
- * The final residual was a pure register permutation in the 19-word
- * lightningbolt end-vector tail. RTL dumps showed that its block-local
- * sz pseudo was claimed by local-alloc before the other values reached
- * global allocation. Reusing three function-scope SImode scratch words later
- * in the kaginawa case gives global allocation byte-neutral anchors: the
- * start-Z/item-pool workspace holds the items base ($a1), scratch the
- * ProcKaginawa address ($v0), and z the scaled item index ($v1). The typed
- * workspace views separate the otherwise unrelated scalar, pointer, callback,
- * and lightning-end-Y roles without pointer-through-integer casts. Reusing
- * scratch/z for the final lightningbolt sums then produces the retail register
- * coloring and instruction order.
- *
  * Facts proven while matching (all byte-verified):
  *  - PARAM_ITEM_LAUNCH == item.h's PARAM_ITEM_LAUNCH layout {TItemType type;
  *    Humanoid *user; VECTOR start; VECTOR end;} (psxsym size 40 agrees).
@@ -192,6 +180,8 @@
  *    `CamState.Owner` and `CamState.Mode` fields.  `CMODE_SIGHT` names the
  *    latter's retail value 3, and the ordinary member accesses reproduce the
  *    target's split-address schedule without separate alias objects.
+ *  - The lightning endpoint is built in two ordinary phases: copy the rotated
+ *    direction, then translate it by the request's start position.
  *  - The four pool-claim cases are ReqItemKusuri/Makibishi/Happou's matched
  *    idiom verbatim (cur/it split unnecessary here: single `it`); napalm's
  *    `pp` sits at the found: label like shuriken's nested `param`; reorg
@@ -344,18 +334,6 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     u8 c;
     ItemRequestWorkspace param; /* @sp+16: per-case request / vector scratch */
     ItemRequestWorkspace work;  /* @sp+56: drop staging / throw vector */
-    union
-    {
-        s32 end_y;
-        void (*proc)(TItem *);
-    } scratch; /* disjoint callback and lightning-vector scratch views */
-    union
-    {
-        s32 start_z;
-        u8 *item_pool;
-        u32 item_pool_address;
-    } z_workspace; /* disjoint lightning scalar and item-pool base views */
-    s32 z;
 
     c = p->user.human->item[p->type];
     if (c != 0 && c != ITEM_INFINITE)
@@ -496,9 +474,6 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 rx;
         s32 ry;
         s32 rz;
-        s32 sx;
-        s32 t;
-        s32 u;
 
         if (p->user.human == CamState.Owner)
         {
@@ -507,24 +482,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             model = p->user.human->model;
             GET_THROW_ROTATION(model, rx, ry, rz);
             RotateVector(st, rx, ry, rz);
-            sx = p->start.vx;
-            z_workspace.start_z = p->start.vz;
-            t = param.vector.vx;
-            p->end.vx = t;
-            t = param.vector.vy;
-            p->end.vy = t;
-            t = p->end.vx;
-            u = param.vector.vz;
-            t += sx;
-            p->end.vx = t;
-            t = p->end.vy;
-            p->end.vz = u;
-            u = p->start.vy;
-            sx = p->end.vz;
-            scratch.end_y = t + u;
-            z = sx + z_workspace.start_z;
-            p->end.vy = scratch.end_y;
-            p->end.vz = z;
+            p->end.vx = param.vector.vx;
+            p->end.vy = param.vector.vy;
+            p->end.vz = param.vector.vz;
+            p->end.vx += p->start.vx;
+            p->end.vy += p->start.vy;
+            p->end.vz += p->start.vz;
         }
         ReqItemLightningBolt(p);
         break;
@@ -562,14 +525,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         s32 i;
 
         i = 0;
-        z_workspace.item_pool = (u8 *)items;
         do
         {
             ic++;
             if (ic >= MAX_ITEMS)
                 ic = 0;
-            z = ic * sizeof(*items);
-            cur = (TItem *)(z + z_workspace.item_pool_address);
+            cur = items + ic;
             if (cur->proc == 0)
             {
                 it = cur;
@@ -583,12 +544,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     found_kaginawa:
         if (it == 0)
             return 0;
-        /* Its two siblings pass the proc straight to SETUP_POOL_ITEM. This
-         * site shares the function-scope scratch used by the lightning-vector
-         * case; keeping that identity is what matches. Passing ProcKaginawa
-         * directly costs 8 lines. */
-        scratch.proc = ProcKaginawa;
-        SETUP_POOL_ITEM(scratch.proc, object, 0);
+        SETUP_POOL_ITEM(ProcKaginawa, object, 0);
         it->owner.human->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
         CamState.DirectionRX = -0x155;
