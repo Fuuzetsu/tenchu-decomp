@@ -2985,7 +2985,6 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
     SVECTOR scr;
     SVECTOR oldscr;
     GsLINE line;
-    VECTOR sv;
     int next_gen;
     short lr;
     short lg;
@@ -3060,10 +3059,12 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
 
                 if ((rand() & 2) == 0)
                 {
-                    memset(&sv, 0, sizeof(VECTOR));
-                    sv.vx = x;
-                    sv.vy = y;
-                    sv.vz = z;
+                    VECTOR sv = {
+                        .vx = x,
+                        .vy = y,
+                        .vz = z
+                    };
+
                     SetLightningI(&sv, end, next_gen, lr, lg, lb);
                 }
 
