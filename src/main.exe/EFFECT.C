@@ -1117,17 +1117,14 @@ void SetImpact(VECTOR *pos, short size, short type)
     short spd;
     long start_color;
     long end_color;
-    int idx;
     TEffectSlot *slot;
-    int count;
     ImpactType *param;
     long pz;
 
     spd = rand() % 90 + 90;
     start_color = COLOR_GRAY;
     end_color = COLOR_GRAY;
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     slot->proc = DrawImpact;
     slot->param.impact.px = pos->vx;
     param = &slot->param.impact;
