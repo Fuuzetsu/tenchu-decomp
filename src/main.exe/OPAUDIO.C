@@ -9,8 +9,6 @@
  */
 
 extern int CdLastCom(void);
-extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
-extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
 extern void cd_control(u8 command, u8 *param, u8 *result);
 extern void CdaStop(void);
 extern s32 CdaReady(void);

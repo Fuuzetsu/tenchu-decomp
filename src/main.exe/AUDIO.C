@@ -15,23 +15,6 @@
 extern s16 voice;
 extern char msg_sound_setup_failure[]; /* SOUND SETUP FAILURE */
 
-extern u16 SsUtKeyOnV(s16 voice_id, s16 vab_id, s32 program, s32 tone,
-                      s32 note, s32 fine, u32 volume_left,
-                      u32 volume_right);
-extern void SsUtAutoPan(s16 voice_id, s32 start, s16 end, s32 duration);
-extern void SsInit(void);
-extern void SsSetTickMode(int mode);
-extern void SsStart(void);
-extern void SsSetMVol(int volume_left, int volume_right);
-extern void SsSetMono(void);
-extern void SsSetStereo(void);
-extern vab_id SsVabOpenHead(u8 *vab, vab_id requested_id);
-extern void SsVabTransBody(u8 *body, vab_id id);
-extern void SsVabTransCompleted(int flag);
-extern void SsUtAllKeyOff(s32 flag);
-extern void SsVabClose(vab_id id);
-
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

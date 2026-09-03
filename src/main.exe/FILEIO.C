@@ -7,6 +7,7 @@
 #include "vmemory.h"
 #include <psxsdk/libcd.h>
 #include <psxsdk/libgpu.h>
+#include <psxsdk/libsnd.h>
 
 /*
  * Retail FILEIO.C adds three helpers and rearranges the earlier demo
@@ -40,8 +41,6 @@ extern int PCwrite(int fd, void *buf, int size);
 extern void PCinit(void);
 extern void cd_init(void);
 extern void save_pad_analog_(void);
-extern void SsEnd(void);
-extern void SsQuit(void);
 extern void PadStopCom(void);
 extern void MemCardStop(void);
 extern void MemCardEnd(void);

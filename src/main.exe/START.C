@@ -8,6 +8,7 @@
 #include "padcmd.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
+#include <psxsdk/libsnd.h>
 
 /*
  * Retail START.C emits two routines absent from the demo around the surviving
@@ -17,8 +18,6 @@
 extern char fmt_free_memory[];
 extern RECT BriefingVramRect[];
 
-extern void SsSetMono(void);
-extern void SsSetStereo(void);
 extern void SelectStage(TLinkInfo *ps);
 extern void InitFileSystem(file_read_mode mode);
 extern void InitAccessInfo(void);

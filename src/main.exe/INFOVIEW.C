@@ -766,7 +766,6 @@ void CheckCheatCodes(s16 *rec, int n)
 extern short get_pad_active_(s32 arg);
 extern void return_to_menu_(void);
 extern short check_cheat_command_(short pad, short trg);
-extern void SsSetMVol(int voll, int volr);
 
 static void PauseProc(void)
 {

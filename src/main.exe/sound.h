@@ -1,6 +1,8 @@
 #ifndef TENCHU_SOUND_H
 #define TENCHU_SOUND_H
 
+#include <psxsdk/libsnd.h>
+
 /* Byte terminator shared by the voice, music-remap, and generic sound-id
  * tables. */
 #define SOUND_TABLE_END 0xFF
