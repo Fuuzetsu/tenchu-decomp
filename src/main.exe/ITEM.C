@@ -22,6 +22,27 @@
 static u8 fInitial = 0;
 static s32 ic = 0;
 
+static __inline__ TItem *TakeItemSlot(void)
+{
+    TItem *item;
+    s32 i;
+
+    i = 0;
+    do
+    {
+        ic++;
+        if (ic >= MAX_ITEMS)
+            ic = 0;
+        item = items + ic;
+        if (item->proc == 0)
+            return item;
+        i++;
+    } while (i < MAX_ITEMS - 1);
+
+    DISPOSE_ITEM(item);
+    return item;
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -964,9 +985,8 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_drop *param;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.drop;
     if (item == 0)
         return 0;
