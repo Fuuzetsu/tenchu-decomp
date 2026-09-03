@@ -627,22 +627,17 @@ negated. Everything else here is corollaries:
   forward over unrelated blocks to its own stores) — proves the goto IS
   source (ActATTACK `no_motion`, briefing_screen_'s brightness ladder). And
   a `goto L;` immediately followed by `L:` is a no-op — delete it.
-- **A value-typed function cast on ONE call is a cross-jump blocker, not an
-  indirect call**: `((s16 (*)(ModelType *))DeleteConflict)(...)` still emits a
-  plain `jal` — but typing that one call as a call_value makes its call insn
-  rtx-unequal to the sibling void calls, so jump2 cannot merge its
-  `[jal; j end]` tail with an identical sibling's (ActATTACK's hand_kind
-  dispatch keeps three identical DeleteConflict tails separate; ActSTATE's
-  SetCameraMode likewise). Verified against the retail bytes AND gcc 2.8.1's
-  own jump.c: find_cross_jump compares CALL_INSN_FUNCTION_USAGE (the
-  argument-register use list) plus the pattern code, so an argument-COUNT
-  asymmetry blocks a merge against one partner — but a call with two
-  potential partners of different arities (ActATTACK: default's 1-arg
-  fallthrough AND case 3's 2-arg jump, both measured) can only differ from
-  both via the pattern code, i.e. value-typing (call_value vs call) — the
-  cast. The demo build has no such construct (plain jal everywhere); an
-  earlier in-repo note claiming the cast forced a jalr was wrong, and a
-  block-scope conflicting extern is a cc1 error.
+- **A call fingerprint can diagnose a cross-jump without describing the
+  source**: a value-typed cast or extra argument changes a `CALL_INSN`'s result
+  mode or `CALL_INSN_FUNCTION_USAGE`, even when the emitted `jal` is identical.
+  ActATTACK once used both tricks to keep five DeleteConflict calls separate,
+  but that was matching scaffolding, not credible source. The exact human
+  recovery uses the proper `void DeleteConflict(ModelType *)` prototype and a
+  parameterized inline cleanup: `ClearAttackEffects(ATTACK_CANCEL_CONFLICTS)`
+  specializes naturally inside ActATTACK, while the same implementation with
+  a runtime mode also emits AttackCancelControl exactly. Inspect nearby
+  routines for a shared semantic operation before retaining an ABI lie merely
+  because its RTL fingerprint explains the bytes.
 - **Decode `<<16 >>N` compounds as fused narrowing casts**: combine merges a
   narrowing cast's sll/sra pair with an adjacent shift, so retail's
   `sll 16; sra 18` is source `(s16)x >> 2` (an lhu-read wants `(s16)(u16)x`),
@@ -706,10 +701,10 @@ negated. Everything else here is corollaries:
   keeps an exceptional copy distinct where if/fences/unreferenced labels cannot
   (StateTransition; `case-fence` mechanises the two-way form). Algebraically
   equal affine tails can be kept distinct with different spellings
-  (`mul-affine-shape`, briefing_screen_). Machine-identical calls can be different
-  to jump2 (result mode / USAGE fingerprint — ActATTACK's five DeleteConflicts;
-  rtlguide prints call fingerprints; changing a shared prototype needs semantic
-  review).
+  (`mul-affine-shape`, briefing_screen_). Machine-identical calls can be
+  different to jump2 through their result mode or usage fingerprint, but treat
+  that as a diagnostic rather than a source license: ActATTACK's former cast
+  and fake arguments disappeared once its shared inline cleanup was recovered.
 - **Direct terminal global tails beat a named value local**: write the complete
   `motID = K; D_80097F0E = 1; return;` at each edge; short-lived HImode
   producers take `$v0` and jump2 merges only the common suffix onto the

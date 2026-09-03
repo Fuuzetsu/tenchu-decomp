@@ -2,9 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 
-#define DeleteConflict DeleteConflict_prototype
 #include "main.exe.h"
-#undef DeleteConflict
 
 #include "appear.h"
 #include "humanoid.h"
@@ -40,8 +38,6 @@ extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *param);
 extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *param);
 extern void TurnAroundAllItems(Humanoid *human);
 extern int rand(void);
-extern void DeleteConflict();
-
 short SwimCheck(void);
 short FallCheck(void);
 short HangCheck(void);
@@ -3230,6 +3226,35 @@ void ActCHASE(void)
         Sound(Me_MOTION_C, CHAR_SE_ATTACK);                                   \
     }
 
+static inline void ClearAttackEffects(s16 mode)
+{
+    if (mode & ATTACK_CANCEL_CONFLICTS)
+    {
+        switch (Me_MOTION_C->wpatk)
+        {
+        case FIST:
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
+            break;
+        case JAW:
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
+            break;
+        case NO_WEAPON:
+            break;
+        default:
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
+            break;
+        }
+    }
+    if (mode & ATTACK_CANCEL_AFTERIMAGES)
+    {
+        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
+        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_1);
+    }
+    dtM->mask = MOTION_MASK_ALL;
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -3850,7 +3875,7 @@ dispatch:
         return;
     }
     {
-        int hand_kind;
+        weapon_kind hand_kind;
 
         if (battle->mid == 0)
         {
@@ -3889,30 +3914,7 @@ dispatch:
         }
         else if (dtM->count == battle->atke)
         {
-            short kind;
-
-            kind = Me_MOTION_C->wpatk;
-            switch (kind)
-            {
-            case FIST:
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0], hand_kind);
-                /* The cast and extra arguments in sibling calls are reconstruction
-                 * scaffolding that prevents GCC from merging these switch tails. Retail
-                 * preserves all five calls, but the original structural distinction remains
-                 * unresolved. */
-                ((s16 (*)(ModelType *))DeleteConflict)(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
-                break;
-            case JAW:
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0], hand_kind);
-                break;
-            case NO_WEAPON:
-                break;
-            default:
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0], hand_kind);
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
-                break;
-            }
-            dtM->mask = MOTION_MASK_ALL;
+            ClearAttackEffects(ATTACK_CANCEL_CONFLICTS);
         }
         if ((dtM->count < battle->atke) && ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST))
         {

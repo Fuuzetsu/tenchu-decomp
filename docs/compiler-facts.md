@@ -701,9 +701,11 @@ Two lanes have "remembered" gcc code that does not exist (a cost comparison in
   CODE_LABEL** (it skips labels only in stream 2) — a referenced `case` label is
   a hard cross-jump fence (StateTransition).
 - **Cross-jump compares whole insns**: a `CALL_INSN`'s result mode and
-  `CALL_INSN_FUNCTION_USAGE` distinguish machine-identical `jal`s (ActATTACK);
-  algebraically equal `x*3+480` vs `(x+160)*3` do not present the same suffix
-  (briefing_screen_).
+  `CALL_INSN_FUNCTION_USAGE` can distinguish machine-identical `jal`s. This
+  explained ActATTACK's former prototype/cast scaffold, but its human recovery
+  was a parameterized inline cleanup using the proper callee prototype.
+  Algebraically equal `x*3+480` vs `(x+160)*3` likewise do not present the same
+  suffix (briefing_screen_).
 - **`jump_optimize(insns,1,1,0)` — the only cross_jump=1 call (toplev.c:3548) —
   runs AFTER combine and AFTER allocation**: never infer pre-jump2 block
   structure or allocation constraints from final asm (subdivide_quad_ 494→8→0;
