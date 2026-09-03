@@ -4335,13 +4335,13 @@ void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz)
 void RotateVector(VECTOR *vec, int rx, int ry, int rz)
 {
     MATRIX SMAT;
-    SVECTOR rot;
+    SVECTOR rot = {
+        .vx = (short)rx,
+        .vy = (short)ry,
+        .vz = (short)rz
+    };
     VECTOR vo;
 
-    memset(&rot, 0, sizeof(rot));
-    rot.vx = (short)rx;
-    rot.vy = (short)ry;
-    rot.vz = (short)rz;
     RotMatrixYXZ(&rot, &SMAT);
     ApplyMatrixLV(&SMAT, vec, &vo);
     setVector(vec, vo.vx, vo.vy, vo.vz);
