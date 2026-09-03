@@ -147,14 +147,16 @@ TEXT_FOFF, TEXT_VADDR = 0x800, 0x80011000
 def carve_extent(name):
     """(addr, size) from the splat carve, or None.
 
-    Every game function has a `c` subsegment, so the distance to the NEXT
-    subsegment is the function's true extent. The symbol gap is not: a `D_` label
-    or a jump table sitting inside a function truncates it, and a short window is
-    how `cd_open` once reported "0 differing bytes" while 4 bytes differed past
-    its end. Two Ghidra `functions.tsv` sizes are also wrong (LoadCard,
-    FUN_800593a0) -- the carve is right where the export lies.
+    Every game translation unit has a `c` subsegment, so the distance to the
+    NEXT subsegment is its true text extent. Within a reconstructed unit, member
+    boundaries come from the next member's retail address. The symbol gap is not
+    reliable: a `D_` label or a jump table sitting inside a function truncates
+    it, and a short window is how `cd_open` once reported "0 differing bytes"
+    while 4 bytes differed past its end. Ghidra's function sizes can also omit
+    a return delay slot or include a neighbouring label.
     """
-    y = open(YAML).read()
+    with open(YAML) as stream:
+        y = stream.read()
     offs = sorted(int(m.group(1) or m.group(2), 16) for m in SUBSEG.finditer(y))
     pat = re.compile(rf"^\s+- \[0x([0-9A-Fa-f]+),\s*c,\s*{re.escape(name)}\]", re.M)
     m = pat.search(y)
@@ -162,11 +164,30 @@ def carve_extent(name):
         unit = SU.explicit_unit_for_function(name)
         if unit is None:
             return None
+        unit_pat = re.compile(
+            rf"^\s+- \[0x([0-9A-Fa-f]+),\s*c,\s*{re.escape(unit.stem)}\]",
+            re.M,
+        )
+        unit_match = unit_pat.search(y)
+        addresses = {}
         with open(FUNCTIONS) as stream:
             for line in stream:
                 fields = line.rstrip("\n").split("\t")
-                if len(fields) >= 3 and fields[2] == name:
-                    return int(fields[0], 16), int(fields[1])
+                if len(fields) >= 3:
+                    addresses[fields[2]] = int(fields[0], 16)
+        if name not in addresses:
+            return None
+        index = unit.functions.index(name)
+        if index + 1 < len(unit.functions):
+            next_name = unit.functions[index + 1]
+            if next_name in addresses:
+                return addresses[name], addresses[next_name] - addresses[name]
+        if unit_match:
+            unit_off = int(unit_match.group(1), 16)
+            next_off = next((off for off in offs if off > unit_off), None)
+            if next_off is not None:
+                unit_end = next_off - TEXT_FOFF + TEXT_VADDR
+                return addresses[name], unit_end - addresses[name]
         return None
     off = int(m.group(1), 16)
     nxt = next((o for o in offs if o > off), None)

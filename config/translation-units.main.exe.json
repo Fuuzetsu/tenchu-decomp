@@ -73,6 +73,29 @@
         "Think2confirm",
         "Think2contact"
       ]
+    },
+    {
+      "source": "APPEAR.C",
+      "functions": [
+        "SetupAppearance",
+        "SetupCharacterParameter",
+        "BreedLife",
+        "GetWeaponData",
+        "SetupWeapon",
+        "GetAttackDBID",
+        "DisposeWeapon",
+        "EquipWeapon"
+      ],
+      "debug_symbol_order": [
+        "SetupAppearance",
+        "SetupCharacterParameter",
+        "BreedLife",
+        "GetAttackDBID",
+        "GetWeaponData",
+        "SetupWeapon",
+        "DisposeWeapon",
+        "EquipWeapon"
+      ]
     }
   ]
 }

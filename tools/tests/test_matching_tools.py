@@ -4728,6 +4728,34 @@ AFTER = 0x80089F08;
 
 
 class MatchDiffArtifactTests(unittest.TestCase):
+    def test_combined_member_extent_uses_retail_boundaries(self):
+        yaml = "  - [0x1000, c, UNIT]\n  - [0x1040, c, After]\n"
+        functions = (
+            "80011800\t12\tFirst\n"
+            "80011820\t8\tSecond\n"
+        )
+        with tempfile.NamedTemporaryFile("w+", delete=False) as y, \
+                tempfile.NamedTemporaryFile("w+", delete=False) as f:
+            y.write(yaml)
+            f.write(functions)
+            yaml_path = y.name
+            functions_path = f.name
+        unit = matchdiff.SU.SourceUnit("UNIT.C", ("First", "Second"))
+        try:
+            with mock.patch.object(matchdiff, "YAML", yaml_path), \
+                    mock.patch.object(matchdiff, "FUNCTIONS", functions_path), \
+                    mock.patch.object(matchdiff.SU, "explicit_unit_for_function",
+                                      return_value=unit):
+                self.assertEqual(
+                    matchdiff.carve_extent("First"), (0x80011800, 0x20)
+                )
+                self.assertEqual(
+                    matchdiff.carve_extent("Second"), (0x80011820, 0x20)
+                )
+        finally:
+            os.unlink(yaml_path)
+            os.unlink(functions_path)
+
     def test_exact_source_completion_rejects_guards_and_inline_asm(self):
         source = """#ifndef NON_MATCHING
 INCLUDE_ASM("stub", F);

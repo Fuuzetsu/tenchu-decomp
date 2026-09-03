@@ -318,7 +318,7 @@
 800299d0	212	SetupTraceLine
 80029aa4	1024	SetupAppearance
 80029ea4	372	SetupCharacterParameter
-8002a018	628	BreedLife
+8002a018	632	BreedLife
 8002a290	500	GetWeaponData
 8002a484	1128	SetupWeapon
 8002a8ec	140	GetAttackDBID

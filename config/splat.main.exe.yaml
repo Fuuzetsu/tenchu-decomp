@@ -120,9 +120,7 @@ segments:
       - [0xE24, data]
       - { start: 0xE28, type: .rodata, name: ItemControl, linker_section_order: .data }
       - [0xE58, data]
-      - { start: 0x1018, type: .rodata, name: SetupWeapon, linker_section_order: .data }
-      - [0x10EC, data]
-      - { start: 0x10F0, type: .rodata, name: EquipWeapon, linker_section_order: .data }
+      - { start: 0x1018, type: .rodata, name: APPEAR, linker_section_order: .data }
       - [0x1160, data]
       - { start: 0x13E0, type: .rodata, name: CameraType1, linker_section_order: .data }
       - { start: 0x1450, type: .rodata, name: SetCameraMode, linker_section_order: .data }
@@ -327,14 +325,7 @@ segments:
       - [0x18F94, c, GetTargetDistance]
       - [0x19064, c, GetNearestHumanoid]
       - [0x191D0, c, SetupTraceLine]
-      - [0x192A4, c, SetupAppearance]
-      - [0x196A4, c, SetupCharacterParameter]
-      - [0x19818, c, BreedLife]
-      - [0x19A90, c, GetWeaponData]
-      - [0x19C84, c, SetupWeapon]
-      - [0x1A0EC, c, GetAttackDBID]
-      - [0x1A178, c, DisposeWeapon]
-      - [0x1A1E0, c, EquipWeapon]
+      - [0x192A4, c, APPEAR]
       - [0x1A2D0, c, StateTransition]
       - [0x1B190, c, GotoPosition]
       - [0x1B370, c, ChasetoTarget]

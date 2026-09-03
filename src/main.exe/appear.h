@@ -1,8 +1,7 @@
 #ifndef APPEAR_H
 #define APPEAR_H
 
-/* APPEAR.C's recovered interface, shared because the original source file is
- * reconstructed as several translation units. */
+/* APPEAR.C's recovered interface. */
 struct Humanoid;
 
 /* EquipWeapon's requested visible state. */
@@ -18,7 +17,7 @@ enum
     APPEARANCE_STAGE_NONE = -1
 };
 
-/* APPEAR.C-private originally; extern because that source is split here. */
+/* APPEAR.C-private originally; externally linked while its storage is raw. */
 extern short NowStage;
 
 extern void SetupAppearance(character_kind character, short stage);
