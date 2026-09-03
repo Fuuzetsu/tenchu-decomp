@@ -26,8 +26,6 @@
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-extern SVECTOR svec_y_n100[]; /* {0,-100,0} */
-
 enemy_layout_index leFindEnemy(void)
 {
     int i;
@@ -65,7 +63,11 @@ enemy_layout_index leFindEnemy(void)
 
     if (find != ENEMY_LAYOUT_NONE)
     {
-        SVECTOR pow = svec_y_n100[0];
+        SVECTOR pow = {
+            .vx = 0,
+            .vy = -100,
+            .vz = 0
+        };
         VECTOR pos = {
             .vx = enemy[find].x,
             .vy = enemy[find].y,

@@ -885,6 +885,8 @@ segments:
       - { start: 0x87250, type: .sdata, name: DrawSplash, linker_section_order: .text }
       - { start: 0x87258, type: .sdata, name: spawn_damage_effect_, linker_section_order: .text }
       - { start: 0x87260, type: data, linker_section_order: .text }
+      - { start: 0x872BC, type: .sdata, name: leFindEnemy, linker_section_order: .text }
+      - { start: 0x872C4, type: data, linker_section_order: .text }
       - { start: 0x872D0, type: .sdata, name: MoveKorogari, linker_section_order: .text }
       - { start: 0x872D8, type: .sdata, name: ProcItemSmoke, linker_section_order: .text }
       - { start: 0x872E0, type: data, linker_section_order: .text }
