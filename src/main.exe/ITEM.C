@@ -5570,8 +5570,6 @@ found:
 
 extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
                                    VECTOR *start, VECTOR *target);
-extern SVECTOR svec_z_n250[];
-extern SVECTOR svec_z_150[];
 
 void ProcItemGun(TItem *item)
 {
@@ -5594,7 +5592,11 @@ void ProcItemGun(TItem *item)
     switch (item->mode)
     {
     case GUN_MODE_FLASH:
-        vec = svec_z_n250[0];
+        vec = (SVECTOR){
+            .vx = 0,
+            .vy = 0,
+            .vz = -250
+        };
         RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
         SetImpact(MODEL_POSITION(item->locate), 2 * FIXED_ONE,
                   IMPACT_SPRITE_GUN);
@@ -5622,9 +5624,11 @@ void ProcItemGun(TItem *item)
         SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
                            CONFLICT_HIT);
         {
-            SVECTOR vec;
-
-            vec = svec_z_150[0];
+            SVECTOR vec = {
+                .vx = 0,
+                .vy = 0,
+                .vz = 150
+            };
             RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
             if (IsHuman != 0)
             {
@@ -5650,9 +5654,6 @@ void ProcItemGun(TItem *item)
         return;
     }
 }
-
-SVECTOR svec_z_n250[] = {{ .vx = 0, .vy = 0, .vz = -250 }};
-SVECTOR svec_z_150[] = {{ .vx = 0, .vy = 0, .vz = 150 }};
 
 extern void ProcItemGun(TItem *item);
 
