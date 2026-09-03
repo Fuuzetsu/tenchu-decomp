@@ -189,6 +189,48 @@
         "UpdateSplineControl",
         "GetSpline"
       ]
+    },
+    {
+      "source": "MISC.C",
+      "functions": [
+        "InitMisc",
+        "proc_misc_bonfire_",
+        "proc_misc_sound_",
+        "ProcMiscDoor",
+        "ProcMiscPitfall",
+        "ProcMiscSnowfall",
+        "AddMisc",
+        "DoMiscProc",
+        "ResetAllMisc",
+        "ProcMiscFire",
+        "proc_misc_puff_",
+        "ProcMiscSprite"
+      ],
+      "definition_order": [
+        "InitMisc",
+        "ProcMiscFire",
+        "proc_misc_bonfire_",
+        "proc_misc_sound_",
+        "proc_misc_puff_",
+        "ProcMiscDoor",
+        "ProcMiscPitfall",
+        "ProcMiscSnowfall",
+        "ProcMiscSprite",
+        "AddMisc",
+        "DoMiscProc",
+        "ResetAllMisc"
+      ],
+      "debug_symbol_order": [
+        "ResetAllMisc",
+        "InitMisc",
+        "ProcMiscFire",
+        "ProcMiscDoor",
+        "ProcMiscPitfall",
+        "ProcMiscSnowfall",
+        "ProcMiscSprite",
+        "AddMisc",
+        "DoMiscProc"
+      ]
     }
   ]
 }

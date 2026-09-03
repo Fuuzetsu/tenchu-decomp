@@ -18,6 +18,7 @@ class SourceUnitTests(unittest.TestCase):
             "units": [{
                 "source": "WORLD.C",
                 "functions": ["First", "Second"],
+                "definition_order": ["Second", "First"],
                 "debug_symbol_order": ["Second", "DemoOnly", "First"],
             }],
         }))
@@ -32,6 +33,7 @@ class SourceUnitTests(unittest.TestCase):
             unit = su.unit_for_function("Second", manifest)
             self.assertEqual(unit.source, "WORLD.C")
             self.assertEqual(unit.functions, ("First", "Second"))
+            self.assertEqual(unit.definition_order, ("Second", "First"))
             self.assertEqual(
                 unit.debug_symbol_order, ("Second", "DemoOnly", "First")
             )
@@ -92,12 +94,28 @@ class SourceUnitTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "duplicate"):
                 su.load_units(path)
 
+    def test_rejects_definition_order_that_is_not_a_permutation(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "units.json"
+            path.write_text(json.dumps({
+                "schema": 1,
+                "units": [{
+                    "source": "A.C",
+                    "functions": ["First", "Second"],
+                    "definition_order": ["First"],
+                }],
+            }))
+            with self.assertRaisesRegex(ValueError, "permutation"):
+                su.load_units(path)
+
     def test_live_units_retain_debug_order_and_follow_retail_order(self) -> None:
-        debug_by_unit: dict[str, list[str]] = {}
+        debug_by_unit: dict[str, list[tuple[int, str]]] = {}
         for line in (su.ROOT / "reference/psxsym-tu-map.tsv").read_text().splitlines():
             fields = line.split("\t")
             if len(fields) == 10 and not line.startswith("#"):
-                debug_by_unit.setdefault(fields[2], []).append(fields[9])
+                debug_by_unit.setdefault(fields[2], []).append(
+                    (int(fields[3]), fields[9])
+                )
         retail = {}
         for line in (su.ROOT / "config/functions.main.exe.tsv").read_text().splitlines():
             fields = line.split("\t")
@@ -106,7 +124,8 @@ class SourceUnitTests(unittest.TestCase):
 
         for unit in su.load_units():
             self.assertEqual(
-                list(unit.debug_symbol_order), debug_by_unit[unit.source]
+                list(unit.debug_symbol_order),
+                [name for _line, name in sorted(debug_by_unit[unit.source])],
             )
             self.assertEqual(
                 list(unit.functions),
@@ -119,7 +138,7 @@ class SourceUnitTests(unittest.TestCase):
                 )
             source = (su.ROOT / "src/main.exe" / unit.source).read_text()
             positions = []
-            for name in unit.functions:
+            for name in unit.definition_order:
                 definition = re.search(
                     rf"^[^#\n;{{}}]*\b{re.escape(name)}\s*"
                     rf"\([^;{{}}]*\)\s*\{{",

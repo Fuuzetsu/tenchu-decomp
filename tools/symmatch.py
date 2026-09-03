@@ -6,7 +6,12 @@ for an *earlier, lost build*.  Its addresses are useless against retail, but two
 structural facts survive:
 
 * the linker emits each translation unit contiguously, and
-* within a TU the compiler emits functions in source order.
+* each build has a stable text-emission order within a translation unit.
+
+That emission order is normally source order, but GCC 2.8 defers some
+address-taken ``static inline`` copies until the end of the object.  Both sides
+of this matcher are address-ordered, so those copies remain in their true
+emission positions rather than being mistaken for source-line order.
 
 So: tag every retail function whose name we already share with the demo, cut the
 retail address-ordered list into runs that agree on TU, and inside each run align

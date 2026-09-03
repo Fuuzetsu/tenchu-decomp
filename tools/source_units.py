@@ -29,6 +29,7 @@ class SourceUnit:
     source: str
     functions: tuple[str, ...]
     debug_symbol_order: tuple[str, ...] = ()
+    definition_order: tuple[str, ...] = ()
 
     @property
     def stem(self) -> str:
@@ -64,6 +65,7 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
         source = entry.get("source")
         functions = entry.get("functions")
         debug_order = entry.get("debug_symbol_order", [])
+        definition_order = entry.get("definition_order", functions)
         if (
             not isinstance(source, str)
             or Path(source).name != source
@@ -74,13 +76,21 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
             raise ValueError(f"{where}: functions must be a non-empty list")
         if not isinstance(debug_order, list):
             raise ValueError(f"{where}: debug_symbol_order must be a list")
+        if not isinstance(definition_order, list):
+            raise ValueError(f"{where}: definition_order must be a list")
         if any(not isinstance(name, str) or not IDENTIFIER.match(name)
-               for name in functions + debug_order):
+               for name in functions + debug_order + definition_order):
             raise ValueError(f"{where}: invalid function name")
         if len(functions) != len(set(functions)):
             raise ValueError(f"{where}: duplicate function in retail order")
         if len(debug_order) != len(set(debug_order)):
             raise ValueError(f"{where}: duplicate function in debug-symbol order")
+        if len(definition_order) != len(set(definition_order)):
+            raise ValueError(f"{where}: duplicate function in definition order")
+        if set(definition_order) != set(functions):
+            raise ValueError(
+                f"{where}: definition_order must be a permutation of functions"
+            )
 
         stem = Path(source).stem
         duplicate_functions = seen_functions.intersection(functions)
@@ -90,7 +100,12 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
         seen_sources.add(source)
         seen_stems.add(stem)
         seen_functions.update(functions)
-        units.append(SourceUnit(source, tuple(functions), tuple(debug_order)))
+        units.append(SourceUnit(
+            source,
+            tuple(functions),
+            tuple(debug_order),
+            tuple(definition_order),
+        ))
     return tuple(units)
 
 

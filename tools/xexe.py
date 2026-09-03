@@ -273,9 +273,10 @@ def scan(exe: str, exact: bool, min_size: int, funcs=None):
 def adjacency(hits) -> int:
     """How many hits are immediately followed by another hit, end-to-end.
 
-    Functions keep their source order within a translation unit, so a long run of
-    end-to-end hits is independent evidence that the boundaries and addresses are
-    right. (vinit/vgetmaxsize/vgetfreesize/vcalloc do exactly this in trial.exe.)
+    Functions largely keep their text-emission order within a translation unit,
+    so a long run of end-to-end hits is independent evidence that the boundaries
+    and addresses are right. (vinit/vgetmaxsize/vgetfreesize/vcalloc do exactly
+    this in trial.exe.)
     """
     ends = {h[2] + h[3] for h in hits}
     starts = {h[2] for h in hits}

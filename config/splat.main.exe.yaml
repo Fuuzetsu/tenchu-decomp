@@ -129,8 +129,8 @@ segments:
       - [0x19CC, data]
       - { start: 0x1AEC, type: .rodata, name: ReqItemUse, linker_section_order: .data }
       - [0x1B50, data]
-      # AddMisc's switch jump table (vram 0x800127E8), same scheme.
-      - { start: 0x1FE8, type: .rodata, name: AddMisc, linker_section_order: .data }
+      # MISC.C's AddMisc switch jump table (vram 0x800127E8), same scheme.
+      - { start: 0x1FE8, type: .rodata, name: MISC, linker_section_order: .data }
       - [0x2008, data]
       - { start: 0x2058, type: .rodata, name: StageSequence, linker_section_order: .data }
       - [0x207C, data]
@@ -502,18 +502,7 @@ segments:
       - [0x3B894, c, PutItemCursor]
       - [0x3B8E4, c, PutItemIcon]
       - [0x3B938, c, PutNumber]
-      - [0x3B9E8, c, InitMisc]
-      - [0x3BB50, c, proc_misc_bonfire_]
-      - [0x3BD9C, c, proc_misc_sound_]
-      - [0x3BF38, c, ProcMiscDoor]
-      - [0x3C36C, c, ProcMiscPitfall]
-      - [0x3C6D0, c, ProcMiscSnowfall]
-      - [0x3C93C, c, AddMisc]
-      - [0x3CB50, c, DoMiscProc]
-      - [0x3CD14, c, ResetAllMisc]
-      - [0x3CD70, c, ProcMiscFire]
-      - [0x3CED4, c, proc_misc_puff_]
-      - [0x3D074, c, ProcMiscSprite]
+      - [0x3B9E8, c, MISC]
       - [0x3D170, c, StartStageSequence]
       - [0x3D758, c, StageSequence]
       - [0x3DE24, c, UpdateEvent]
@@ -838,7 +827,6 @@ segments:
       - { start: 0x8730C, type: data, linker_section_order: .text }
       - { start: 0x87388, type: .sdata, name: AddItem2, linker_section_order: .text }
       - { start: 0x87390, type: data, linker_section_order: .text }
-      - { start: 0x87448, type: .sdata, name: ProcMiscFire, linker_section_order: .text }
-      - { start: 0x87450, type: .sdata, name: proc_misc_bonfire_, linker_section_order: .text }
+      - { start: 0x87448, type: .sdata, name: MISC, linker_section_order: .text }
       - { start: 0x87458, type: data, linker_section_order: .text }
   - [0x87800]

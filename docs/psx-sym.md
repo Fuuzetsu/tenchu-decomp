@@ -127,16 +127,20 @@ lines, p90 83. Useful as a sanity prior on how much C a body should be.
 
 The decomp began with one artificial C file and linker input per function.
 `config/translation-units.main.exe.json` records original-style translation
-units as they are reconstructed. Its `functions` list is the definition order
-proved by the retail executable; `debug_symbol_order` independently preserves
-the earlier demo's source-line order from `reference/psxsym-tu-map.tsv`.
+units as they are reconstructed. Its `functions` list is the text-emission
+order proved by the retail executable. `definition_order`, when present,
+records the order of definitions in the reconstructed retail source, while
+`debug_symbol_order` independently preserves the earlier demo's source-line
+order from `reference/psxsym-tu-map.tsv`.
 
 Those orders can disagree. `WORLD.C`, for example, was substantially rearranged
 between the demo and retail builds, gained two retail-only load helpers, and no
 longer contains demo-only `PointInTri` or `jt_init4` in its retail text range.
-Because this compiler emits functions in definition order, the retail order must
-win in the compilable source. Keeping both lists makes that conclusion explicit
-and testable instead of losing the debug evidence or forcing a linker-order hack.
+There is also a compiler-level exception: GCC 2.8 can defer address-taken
+`static inline` copies until the end of the object. `MISC.C` proves this in the
+demo, where `ProcMiscFire` and `ProcMiscSprite` have early source lines but late
+text addresses. Keeping all three orders makes the evidence explicit and
+testable without arranging the source to imitate linker output.
 
 Original source filenames retain their upper-case spelling. Splat continues to
 generate lower-case `.c` intermediary/object names; the build resolves those to
@@ -261,7 +265,8 @@ That still does not map either earlier build directly to retail.
 Two structural facts do:
 
 * the linker emits each translation unit **contiguously**, and
-* within a TU the compiler emits functions in **source order**.
+* each build records a stable **text-emission order** within that unit (normally
+  source order, with deferred inline copies as a known exception).
 
 Retail `main.exe` reproduces the demo's 31 TUs as 36 contiguous blocks. That is what
 makes name recovery possible at all.
@@ -274,7 +279,7 @@ below.
 
 | tool | signal | control precision | good for |
 |---|---|---|---|
-| `tools/symmatch.py` | TU + source order, Needleman-Wunsch, scored on frame size / saved-reg mask / code size | frame+mask agree on only **63%** of anchors | game code inside the 31 debug TUs |
+| `tools/symmatch.py` | TU + text-emission order, Needleman-Wunsch, scored on frame size / saved-reg mask / code size | frame+mask agree on only **63%** of anchors | game code inside the 31 debug TUs |
 | `tools/xbuildnames.py` | normalized instruction identity vs demo `PSX.EXE` | **96.6%** (357 control pairs) | library / support code, unedited bodies |
 | `tools/callmatch.py` | multiset of named `jal` targets | **98.0%** (99 control pairs) | anything whose body was rewritten |
 
