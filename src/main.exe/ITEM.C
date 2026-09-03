@@ -3604,7 +3604,7 @@ void ProcItemHenshin(TItem *item)
             drop_position = GetAbsolutePosition(item->locate, 0, 0, 0);
             drop_owner = item->owner;
             itemID = item->type;
-            memset(&drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
+            drop_request = (PARAM_ITEM_LAUNCH){0};
             drop_request.type = itemID;
             drop_request.user = drop_owner;
             drop_request.start.vx = drop_position->vx;
