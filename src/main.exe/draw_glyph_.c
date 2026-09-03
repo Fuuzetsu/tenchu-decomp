@@ -1,11 +1,10 @@
 #include "common.h"
 #include "main.exe.h"
 #include "font.h"
+#include "images.h"
 #include <psxsdk/libgpu.h>
 
 extern GsIMAGE FONT_IMAGE_;
-/* Retail calls this through an old-style declaration; images.h is absent. */
-extern void SetupImageToPolyGT4();
 
 void draw_glyph_(void *ot, short x, short y0, u32 code)
 {
@@ -64,10 +63,8 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
         nudge = FONT_NUDGE_NONE;
     }
     {
-        short y = y0 + nudge;
-        s32 y_arg = y;
-        s32 x_arg = x;
-        SetupImageToPolyGT4(&img, ply, x_arg, y_arg);
+        int y = (short)(y0 + nudge);
+        SetupImageToPolyGT4(&img, ply, x, y);
     }
     AddPrim(ot, ply);
 }

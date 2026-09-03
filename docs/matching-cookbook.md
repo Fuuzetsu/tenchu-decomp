@@ -2182,17 +2182,16 @@ irreducible nest: DrawConstruction's 3.
   both the integer sum and `object` alias. Removing its separately cached
   global base is a different experiment and fails by two instructions.
 - **Removing a declaration can gate green by falling back to an IMPLICIT
-  one.** Auditing the four K&R `extern void f();` redeclarations in the
-  tree, three of them compiled and matched with the line deleted — but
-  two of those were deleting the only declaration in scope, so the call
-  silently became implicitly declared. `PutNumber` really is
-  `(int,int,int,int)` called with three arguments (retail's own sloppiness;
-  the target sets no $a3) and nothing prototypes it; `draw_glyph_` does
-  not include images.h at all. Both are now documented as
-  deliberately-kept. **Before believing a prototype change, check the
-  real prototype is actually in scope.** The fourth,
-  StateTransition's `reset_alert_duration(life)` on a `(void)` function,
-  was genuine noise and is gone.
+  one.** Never count that as a cleanup: first make the real prototype visible,
+  then recover any surrounding source shape needed to retain the bytes. The
+  two apparent retail exceptions both yielded to whole-interface analysis.
+  `PutNumber` dropped the demo's unused fourth parameter, matching every
+  three-argument retail caller. `SetupImageToPolyGT4` widened its public screen
+  coordinates from `short` to `int` and narrows them once inside the packet
+  builder; that lets draw_glyph_ include images.h and use an ordinary typed
+  call. StateTransition's former `reset_alert_duration(life)` call was simply
+  a wrong extra argument. Treat an old-style declaration as an unresolved API
+  mismatch, not evidence that the original programmers wanted unchecked calls.
 - **When a change moves a CALL, count `jal` in both, not call sites in
   the source.** Cross-jumping merges identical arm tails, so the source
   and the binary legitimately disagree: ActACTION now writes five
