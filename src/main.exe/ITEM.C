@@ -4022,9 +4022,8 @@ static int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_kaengeki *param;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.kaengeki;
     if (item == 0)
         return 0;
