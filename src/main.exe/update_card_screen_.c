@@ -8,15 +8,7 @@ extern card_state McardState;
 extern s16 McardPage;
 extern s16 McardRetry;
 
-/* Retail uses swapped pointer types and an s16 return declaration here;
- * the definition is s32 update_card_message_(s16 *, u16 *). */
-extern s16 update_card_message_(u16 *state, s16 *page);
-extern card_result check_card_file_(char *name);
-extern card_result SaveCard(s32 target, u8 *name, void *mem, s32 size,
-                            s16 write_data);
-extern s32 draw_card_help_(s32 page, s32 pad);
-
-s32 update_card_screen_(s32 pad)
+s16 update_card_screen_(s32 pad)
 {
     u16 saved_state;
     s16 value;
@@ -188,7 +180,7 @@ s32 update_card_screen_(s32 pad)
             McardState = CARD_STATE_SHOW_CHECKING;
             break;
     default:
-        value = update_card_message_((u16 *)&McardState, &McardPage);
+        value = update_card_message_(&McardState, (card_page *)&McardPage);
         if (value == 0)
         {
             McardPage = CARD_PAGE_NONE;

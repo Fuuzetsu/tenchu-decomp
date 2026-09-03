@@ -1,11 +1,9 @@
 #include "common.h"
 #include "main.exe.h"
 #include "graphics.h"
+#include "memcard.h"
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
-
-/* Retail declares this s16 here although the definition returns s32. */
-extern s16 update_card_screen_(s32 input);
 
 void score_screen_input_(void)
 {

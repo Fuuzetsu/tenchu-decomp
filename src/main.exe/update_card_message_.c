@@ -5,10 +5,7 @@
 extern s16 McardStateFlag;
 extern s16 McardRetryCount;
 
-extern card_result ChkCard(void);
-extern card_result FormatCard(void);
-
-s32 update_card_message_(s16 *state, u16 *message)
+s16 update_card_message_(card_state *state, card_page *message)
 {
     s32 cmd;
     enum card_result result;
