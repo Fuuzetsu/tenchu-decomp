@@ -7449,7 +7449,6 @@ void TurnAroundAllItems(Humanoid *user)
 {
     s32 i;
     s32 j;
-    PARAM_ITEM_LAUNCH p;
 
     i = 0;
     while (1)
@@ -7468,16 +7467,20 @@ void TurnAroundAllItems(Humanoid *user)
             pos = GetAbsolutePosition(user->model->object[MODEL_PART_WAIST], 0, 0, 0);
             human = user;
             itemID = i;
-            memset(&p, 0, sizeof(p));
-            p.type = itemID;
-            p.user = human;
-            p.start.vx = pos->vx;
-            p.start.vy = pos->vy;
-            p.start.vz = pos->vz;
-            p.end.vx = rand() % 200 - 100;
-            p.end.vy = rand() % 100 - 200;
-            p.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&p);
+            {
+                PARAM_ITEM_LAUNCH p = {
+                    .type = itemID,
+                    .user = human
+                };
+
+                p.start.vx = pos->vx;
+                p.start.vy = pos->vy;
+                p.start.vz = pos->vz;
+                p.end.vx = rand() % 200 - 100;
+                p.end.vy = rand() % 100 - 200;
+                p.end.vz = rand() % 200 - 100;
+                ReqItemDrop(&p);
+            }
             j++;
         }
         user->item[i] = 0;
