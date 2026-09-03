@@ -4263,8 +4263,7 @@ void ActJUMP(void)
         if (dtL->vy < level)
         {
             SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
-            SET_NOW_MOTION_UNLESS_CVA(goto landed_motion_done);
-        landed_motion_done:
+            SetNowMotionUnlessCva();
             Sound(Me_MOTION_C, CHAR_VOICE_HURT);
             dtM->count >>= 2;
             if (Me_MOTION_C == StagePlayer)
@@ -4292,8 +4291,7 @@ void ActJUMP(void)
         {
             mid = (u16)motID;
             SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
-            SET_NOW_MOTION_UNLESS_CVA(goto fall_motion_done);
-        fall_motion_done:
+            SetNowMotionUnlessCva();
             if (mid != MOT_JUMP_RUN)
             {
                 if (mid != MOT_JUMP_FLIP)
