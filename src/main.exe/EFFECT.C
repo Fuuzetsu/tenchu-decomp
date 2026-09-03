@@ -3802,13 +3802,10 @@ void set_fade_(u8 r, u8 g, u8 b, long priority)
 void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
 {
     long z;
-    int idx;
     TEffectSlot *slot;
-    int count;
     FrameType *fp;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     fp = &slot->param.frame;
     fp->px = pos->vx;
     fp->py = pos->vy;
