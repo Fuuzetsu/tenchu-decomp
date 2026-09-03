@@ -2946,7 +2946,7 @@ static inline void GetLightningScreenPosition(long x, long y, long z,
         (s32 *)TENCHU_SCRATCHPAD(0x10));
 }
 
-void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short b)
+static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g, short b)
 {
     enum
     {
