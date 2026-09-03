@@ -226,23 +226,19 @@ void *vrealloc(void *pt, u32 size)
                     vhp->next = nb;
                     *nb = vh;
                 }
+                return newp;
             }
-            else
-                goto giveup;
         }
-        else
+
+        newp = valloc(size << 2);
+        if (pt != 0)
         {
-        giveup:
-            newp = valloc(size << 2);
-            if (pt != 0)
-            {
-                mask = vsize(pt);
-                if (size < mask)
-                    mask = size;
-                memcpy(newp, pt, mask);
-            }
-            vfree(pt);
+            mask = vsize(pt);
+            if (size < mask)
+                mask = size;
+            memcpy(newp, pt, mask);
         }
+        vfree(pt);
     }
     return newp;
 }
