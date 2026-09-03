@@ -548,6 +548,45 @@
         "Camera",
         "CameraDirection"
       ]
+    },
+    {
+      "source": "HUMAN.C",
+      "functions": [
+        "CreateHumanoid",
+        "ControlHumanoid",
+        "DefaultActionHumanoid",
+        "SearchTarget",
+        "ControlTraceLine",
+        "KillHumanoid",
+        "ControlAllHumanoid",
+        "draw_visible_characters_",
+        "GetHumanoid",
+        "is_humanoid_on_stage_",
+        "MoveHumanoid",
+        "GetMoveSpeed",
+        "GetDirection",
+        "GetTargetDistance",
+        "GetNearestHumanoid",
+        "SetupTraceLine"
+      ],
+      "debug_symbol_order": [
+        "CreateHumanoid",
+        "KillAllHumanoid",
+        "KillHumanoid",
+        "ControlAllHumanoid",
+        "ControlHumanoid",
+        "DefaultActionHumanoid",
+        "GetHumanoid",
+        "MoveHumanoid",
+        "GetMoveSpeed",
+        "GetDirection",
+        "GetTargetDistance",
+        "GetNearestHumanoid",
+        "SearchTarget",
+        "SetupTraceLine",
+        "RestartTraceLine",
+        "ControlTraceLine"
+      ]
     }
   ]
 }
