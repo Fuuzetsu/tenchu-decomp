@@ -162,46 +162,44 @@ void ControlHumanoid(Humanoid *human)
     HumanActionControl(human);
     if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)
     {
-        if (SkipFrame != 0)
+        if (SkipFrame == 0)
         {
-            goto skip_draw;
-        }
-        if (human == StagePlayer)
-        {
-            FntPrint(fmt_dbg_pos, human->type,
-                     human->locate->vx / 1000,
-                     human->locate->vy / 1000,
-                     human->locate->vz / 1000);
-            FntPrint(fmt_dbg_word, (u16)human->attribute, (u8)human->status);
-            FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
-                     human->motion->loop, human->motion->count);
-            FntPrint(fmt_dbg_rot, human->rotate->vy,
-                     human->model->object[MODEL_PART_WAIST]->id);
+            if (human == StagePlayer)
+            {
+                FntPrint(fmt_dbg_pos, human->type,
+                         human->locate->vx / 1000,
+                         human->locate->vy / 1000,
+                         human->locate->vz / 1000);
+                FntPrint(fmt_dbg_word, (u16)human->attribute,
+                         (u8)human->status);
+                FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
+                         human->motion->loop, human->motion->count);
+                FntPrint(fmt_dbg_rot, human->rotate->vy,
+                         human->model->object[MODEL_PART_WAIST]->id);
+            }
         }
     }
 
-    if (SkipFrame == 0)
+    if (SkipFrame != 0)
     {
-        goto do_draw;
-    }
-skip_draw:
-    m = 0;
-    goto draw_done;
-do_draw:
-    if (human != StagePlayer)
-    {
-        s32 clip;
-
-        GsGetLs(&model->locate, &mat);
-        GsSetLsMatrix(&mat);
-        clip = DrawClip((ModelType *)model, 0);
         m = 0;
-        if (clip >= 0)
+    }
+    else
+    {
+        if (human != StagePlayer)
         {
-            m = -1;
+            s32 clip;
+
+            GsGetLs(&model->locate, &mat);
+            GsSetLsMatrix(&mat);
+            clip = DrawClip((ModelType *)model, 0);
+            m = 0;
+            if (clip >= 0)
+            {
+                m = -1;
+            }
         }
     }
-draw_done:
 
     PlayMotion(human->motion, human->status == STAT_ATTACK ? -1 : m);
     human->slocate = *human->locate;
