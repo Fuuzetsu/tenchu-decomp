@@ -2065,8 +2065,7 @@ void ActACTION(void)
         if (dtM->loop == MOTION_LOOP_DISABLED && dtPAD != 0)
         {
             SET_MOTION(MOT_DAMAGE_GETUP, MOTION_MOVE_APPLY);
-            SET_NOW_MOTION_UNLESS_CVA(goto motion_ready);
-        motion_ready:
+            SetNowMotionUnlessCva();
             dtM->count = -0xf;
         }
         break;
