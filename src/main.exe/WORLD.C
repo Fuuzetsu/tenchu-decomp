@@ -72,7 +72,6 @@ extern char fmt_illigal_stage_id[]; /* illigal stage id %d */
 extern char path_stage_con[];       /* STAGE.CON */
 
 static void DestroyTraceLine(TraceLine *trace);
-extern void DoBriefingAndInventorySelection(void);
 static short LoadConstruction(u_long *data);
 
 void CreateStage(stage_id StageNo, int CharType)

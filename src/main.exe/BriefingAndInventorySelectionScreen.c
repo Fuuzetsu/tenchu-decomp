@@ -21,7 +21,6 @@ extern char NUMBER_TIM_PATH[];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
 extern int check_cheat_command_(s16 pad, s16 newpress);
-extern void briefing_screen_(void);
 
 static inline ArcFile *LoadHelpArchive(TLinkInfo *q)
 {

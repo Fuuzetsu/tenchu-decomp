@@ -17,9 +17,6 @@ extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 CHOSEN_LANGUAGE;
 
-extern void StageEndScreen(void);
-extern void SelectStage(TLinkInfo *ps);
-
 void debug_menu_stage_option(void)
 {
     /* The row values, with the labels DEBUG_MENU_STAGE_OPTIONS actually

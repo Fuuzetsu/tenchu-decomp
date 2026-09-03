@@ -8,6 +8,7 @@
 #include "camera.h"
 #include "infoview.h"
 #include "world.h"
+#include "gameflow.h"
 #include "game_globals.h"
 #include "music.h"
 
