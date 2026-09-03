@@ -99,7 +99,16 @@ void ProcItemJirai(TItem *item)
             }
             call_item = item;
             item->mode = ITEM_MODE_DISPOSE;
-            goto dispose;
+            item_proc(call_item);
+            DeleteConflict(item->locate);
+            if (item->mode != JIRAI_MODE_PLACE)
+            {
+                AdtMessageBox(msg_item_dispose_fail, item->type,
+                              (u32)item->mode);
+            }
+            item->owner = 0;
+            item->proc = 0;
+            return;
         }
 
         DeleteConflict(item->locate);
@@ -239,7 +248,6 @@ void ProcItemJirai(TItem *item)
         }
         call_item = item;
         item->mode = ITEM_MODE_DISPOSE;
-    dispose:
         item_proc(call_item);
         DeleteConflict(item->locate);
         if (item->mode != JIRAI_MODE_PLACE)
