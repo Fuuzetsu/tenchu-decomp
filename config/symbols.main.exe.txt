@@ -4076,6 +4076,7 @@ fmt_playmusic_fail_chan_id = 0x800134BC;
 CamPosCriticalHit = 0x80089F50;
 scratch_rot_1f800040 = 0x1f800040;
 scratch_trans_1f800094 = 0x1f800094;
+scratch_trans_z_1f80009c = 0x1f80009c;
 path_demo_loading_tim = 0x8001118C;
 path_demo_load_ten_tim = 0x800111B0;
 fmt_owner_r = 0x80011BA4;

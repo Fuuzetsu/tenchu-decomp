@@ -44,6 +44,7 @@ extern char str_newline[];    /* "\n" */
 /* Views into the rotation and translation parts of a scratchpad matrix. */
 extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
+extern s32 scratch_trans_z_1f80009c;
 
 extern long GetVectorLength(long dx, long dy, long dz);
 
@@ -615,7 +616,7 @@ static s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
                  (MATRIX *)TENCHU_SCRATCHPAD(0x80));
     scratch_trans_1f800094[0] = orgpos->vx;
     scratch_trans_1f800094[1] = orgpos->vy;
-    scratch_trans_1f800094[2] = orgpos->vz;
+    scratch_trans_z_1f80009c = orgpos->vz;
     SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
 
