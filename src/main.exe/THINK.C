@@ -1713,11 +1713,16 @@ s16 Think3chase(void)
                 }
             }
             AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
-            goto return_result;
+        }
+        else
+        {
+            result = AttackFunc[WEAPON_ATTACK_CLASS(Me->wpatk)]();
         }
     }
-    result = AttackFunc[WEAPON_ATTACK_CLASS(Me->wpatk)]();
-return_result:
+    else
+    {
+        result = AttackFunc[WEAPON_ATTACK_CLASS(Me->wpatk)]();
+    }
     return result;
 }
 
