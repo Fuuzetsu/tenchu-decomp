@@ -4434,17 +4434,15 @@ long CGetLevel(AreaNodeType **hint, long x, long y, long z, unsigned long flag)
     else if (node->dy != 0)
     {
         ret = ComputeAreaLevel(node, x10, z10);
-        if (ret == (u32)LEVEL_NONE)
+        if (ret != (u32)LEVEL_NONE)
         {
-            goto done;
+            ret *= 10;
         }
-        ret = ret * 10;
     }
     else
     {
         ret = node->y * 10;
     }
-done:
     return ret;
 }
 
