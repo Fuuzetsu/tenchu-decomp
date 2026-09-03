@@ -1699,8 +1699,6 @@ extern void *memset(void *s, s32 c, u32 n);
 void leAddPath(enemy_layout_index id, s32 x, s32 y, s32 z)
 {
     TEnemyLayout *e;
-    VECTOR pos;
-    SVECTOR pow;
 
     if ((u32)id < MAX_ENEMIES)
     {
@@ -1711,16 +1709,20 @@ void leAddPath(enemy_layout_index id, s32 x, s32 y, s32 z)
             (&e->path[0])[e->nPath].vy = y;
             (&e->path[0])[e->nPath].vz = z;
             e->nPath++;
-            memset(&pos, 0, sizeof(pos));
-            pos.vx = x;
-            pos.vy = y;
-            pos.vz = z;
-            pow = (SVECTOR){
-                .vx = 0,
-                .vy = -100,
-                .vz = 0
-            };
-            SetExplosion(&pos, &pow);
+            {
+                VECTOR pos = {
+                    .vx = x,
+                    .vy = y,
+                    .vz = z
+                };
+                SVECTOR pow = {
+                    .vx = 0,
+                    .vy = -100,
+                    .vz = 0
+                };
+
+                SetExplosion(&pos, &pow);
+            }
         }
     }
 }
