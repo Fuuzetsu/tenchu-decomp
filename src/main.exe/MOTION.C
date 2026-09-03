@@ -4162,8 +4162,7 @@ void ActSTATE(void)
             }
         }
         SET_MOTION(MOT_CHASE, MOTION_MOVE_APPLY);
-        SET_NOW_MOTION_UNLESS_CVA(goto motion_ready);
-    motion_ready:
+        SetNowMotionUnlessCva();
         Sound(Me_MOTION_C, SE_ACROBATIC_MOVE);
         return;
 
