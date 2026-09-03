@@ -2553,14 +2553,10 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
 {
     TEffectSlot *slot;
     FlyWireType *param;
-    int idx;
-    int i;
     int dist;
     int result;
 
-    FIND_EFFECT_SLOT(idx, i, slot, found);
-
-found:
+    slot = GetFreeEffectSlot();
     param = &slot->param.flywire;
     param->start = *start;
     param->end = *end;
