@@ -327,7 +327,7 @@ typedef struct
     long pad08;          /* 0x08 */
     long shift;          /* 0x0c OT bucket shift */
     u_long *org;         /* 0x10 ot->org */
-    u_long *out;         /* 0x14 output packet cursor (the return value) */
+    PACKET *out;         /* 0x14 output packet cursor (the return value) */
     long zmax;           /* 0x18 max SZ, then the OTZ bucket index */
     long zmin;           /* 0x1c min SZ */
     long adivz;          /* 0x20 subdivide-when-nearer-than threshold (0x96) */

@@ -36,7 +36,7 @@
         work->otp = (u_long *)slot;                                           \
         *(u32 *)pk = *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;          \
         *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;                   \
-        work->out += GPU_POLY_GT3_WORDS;                                      \
+        work->out += sizeof(GpuPolyGT3Packet);                                \
     }
 
 /* Average one edge before recursing; the first vertex supplies the OT depth. */
@@ -63,7 +63,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     ADIV_WORK *work;
     short s;
     u16 u;
-    u_long *tail;
+    PACKET *tail;
     int zA;
     int zB;
     int zC;
@@ -348,7 +348,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                         *(u32 *)pk =
                             *slot & GPU_DMA_ADDRESS_MASK | GPU_DMA_TAG_GT3;
                         *(u32 *)work->otp = (u32)pk & GPU_DMA_ADDRESS_MASK;
-                        tail = work->out + GPU_POLY_GT3_WORDS;
+                        tail = work->out + sizeof(GpuPolyGT3Packet);
                     }
                 }
                 work->out = tail;

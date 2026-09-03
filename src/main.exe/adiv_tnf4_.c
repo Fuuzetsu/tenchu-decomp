@@ -3,8 +3,8 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
-                   u_long *packet,
+PACKET *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
+                   PACKET *packet,
                    int count, u_long shift, GsOT *volatile ot,
                    ADIV_WORK *wp)
 {
