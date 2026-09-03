@@ -29,7 +29,6 @@
  * END PSX.SYM */
 
 extern MATRIX GsWSMATRIX;
-extern SVECTOR svec_y_n20_2[];
 
 void DrawSplash(TEffectSlot *ef)
 {
@@ -78,7 +77,11 @@ void DrawSplash(TEffectSlot *ef)
                 param->mode++;
                 {
                     VECTOR pos = {param->px, param->py, param->pz};
-                    SVECTOR direction = svec_y_n20_2[0];
+                    SVECTOR direction = {
+                        .vx = 0,
+                        .vy = -20,
+                        .vz = 0
+                    };
 
                     SetBleedsDir(&pos, &direction, 100, 6, 30, RGB24(144, 152, 160));
                 }

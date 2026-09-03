@@ -3622,7 +3622,6 @@ CamVecR = 0x80097A30;
 EFFECT_CURSOR_ = 0x80097a3c;
 BloodSpriteImageIds = 0x80097A40;
 ImpactSpriteImageIds = 0x80097a48;
-svec_y_n20_2 = 0x80097a50;
 svec_y_n60 = 0x80097a58;
 ScreenRect = 0x80097A60;
 str_map = 0x80097a98;
