@@ -222,7 +222,8 @@ s32 camera_terrain_pitch_(Humanoid *human)
  *     reg   $s1       long ip
  * END PSX.SYM */
 
-void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest, TMakeDifInfo *info)
+static void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest,
+                       TMakeDifInfo *info)
 {
     s32 dx, dy, dz;
     s32 len;
