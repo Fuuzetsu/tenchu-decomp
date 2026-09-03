@@ -474,10 +474,10 @@ byte-identical; a changed normal link gets a changed header.
 ## Full-link growth proof
 
 `./Build check-relink-growth` inserts a temporary `0x10004`-byte PROGBITS input
-immediately after the real `main.c.o` input and runs the complete linker and
+immediately after the real `START.c.o` input and runs the complete linker and
 finalizer. The fixture has no assigned address and is neither a patch nor a
-trampoline; it occupies the same ordinary input boundary that added code would
-occupy. Before linking, the probe mirrors Shake's recursive union of user and
+trampoline; it occupies an ordinary source-unit input boundary. Before linking,
+the probe mirrors Shake's recursive union of user and
 generated `reloc/**/*.c` sources, including nested helpers and one user override
 per shared relative path; it neither misses generated inputs nor admits stale
 objects. The current proof reports:
@@ -563,7 +563,7 @@ TENCHU_SMOKE PASS entry=1 main=1 frames=5 loops=2 cycles=220072300ULL
 This completed in about 6.7 seconds in the recorded environment. The probe
 reads the entry from the grown PS-X header and `main`/`PadProc` from the grown
 ELF; it does not copy retail addresses into Lua. Because the growth fixture is
-inserted *after* `main.c.o`, `main` intentionally remains `0x800162a4`, while
+inserted *after* `START.c.o`, `main` intentionally remains `0x800162a4`, while
 the entry moves to `0x80070260` and downstream `PadProc` moves to
 `0x8002adac`.
 

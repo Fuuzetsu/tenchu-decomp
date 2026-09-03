@@ -160,9 +160,7 @@ segments:
       - [0x400C, data]
       - { start: 0x4874, type: .rodata, name: Gssub_make_matrix, linker_section_order: .data }
       - [0x4900, data]
-      - [0x5934, c, InitPersistentState]
-      - [0x5AA4, c, main]
-      - [0x5CE0, c, DoBriefingAndInventorySelection]
+      - [0x5934, c, START]
       - [0x5D6C, c, VALLOC]
       - [0x6694, c, 3DCTRL]
       - [0x8364, c, AUDIO]

@@ -482,6 +482,19 @@
         "LoadCard",
         "SaveCard"
       ]
+    },
+    {
+      "source": "START.C",
+      "functions": [
+        "InitPersistentState",
+        "main",
+        "DoBriefingAndInventorySelection"
+      ],
+      "debug_symbol_order": [
+        "MakeArcData",
+        "LoadTIMarc",
+        "main"
+      ]
     }
   ]
 }

@@ -4,9 +4,9 @@
 The normal relink already substitutes relocation-bearing C, canonical assembly,
 and reviewed data objects.  This tool makes that claim executable for positive
 growth: it inserts one temporary PROGBITS input immediately after ``main``'s
-real text input, links the complete executable with GNU ``ld``, finalizes the
-PS-X EXE header, and checks every downstream contract against the unmodified
-normal relink.
+source unit, links the complete executable with GNU ``ld``, finalizes the PS-X
+EXE header, and checks every downstream contract against the unmodified normal
+relink.
 
 The fixture is deliberately not a patch or trampoline.  Its bytes occupy the
 same genuine input boundary that extra instructions at the end of ``main``
@@ -72,19 +72,23 @@ MANIFEST = Path("config/reloc-data.main.exe.json")
 RAW_DATA_DIR = Path(".shake/gen/main.exe/asm/data")
 OUTPUT_DIR = Path(".shake/build/reloc-growth-probe")
 
-ANCHOR_INPUT = ".shake/build/main.exe/main.c.o(.text);"
+MAIN_UNIT = source_units.unit_for_function("main").stem
+ANCHOR_OBJECT = f"{MAIN_UNIT}.c.o"
+ANCHOR_INPUT = f".shake/build/main.exe/{ANCHOR_OBJECT}(.text);"
 PROBE_SYMBOL = "__tenchu_growth_probe"
-FIRST_SHIFTED_SYMBOL = "DoBriefingAndInventorySelection"
+FIRST_SHIFTED_SYMBOL = "valloc"
 
-# These names deliberately cross ownership/provenance boundaries.  ``main`` is
-# before the inserted bytes; every name in SHIFTED_SYMBOLS is after them.
+# These names deliberately cross ownership/provenance boundaries. Everything
+# in main's source unit is before the inserted bytes; every name in
+# SHIFTED_SYMBOLS is after them.
 UNCHANGED_SYMBOLS = (
     "__load_start",
     "main",
+    "DoBriefingAndInventorySelection",
 )
 SHIFTED_SYMBOLS = (
     # game C
-    "DoBriefingAndInventorySelection",
+    "valloc",
     "ActivateHumans",
     "AdtSelect",
     # CRT/PsyQ and the entry point
@@ -893,7 +897,7 @@ def render(report: ProbeReport) -> str:
     return "\n".join(
         (
             "reloc-growth-probe: ordinary GNU ld growth verified",
-            f"  inserted text: +0x{report.growth:x} after main.c.o",
+            f"  inserted text: +0x{report.growth:x} after {ANCHOR_OBJECT}",
             f"  downstream representatives: {report.shifted_symbols} moved",
             f"  section-owned layout symbols: {report.owned_symbols} checked",
             f"  compiler target pairs: {report.compiler_relocations} linked; "

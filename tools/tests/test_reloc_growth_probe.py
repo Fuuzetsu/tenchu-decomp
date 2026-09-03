@@ -147,20 +147,20 @@ class RelocGrowthProbeTests(unittest.TestCase):
             ):
                 reloc_growth_probe.extension_object_inputs(root)
 
-    def test_injects_one_ordinary_input_after_main(self) -> None:
-        source = """\
+    def test_injects_one_ordinary_input_after_main_unit(self) -> None:
+        source = f"""\
 SECTIONS
-{
+{{
     main = .;
-    .shake/build/main.exe/main.c.o(.text);
+    {reloc_growth_probe.ANCHOR_INPUT}
     next = .;
-}
+}}
 """
         result = reloc_growth_probe.inject_probe(source, Path("/tmp/probe.o"))
-        main_index = result.index("main.c.o(.text);")
+        anchor_index = result.index(reloc_growth_probe.ANCHOR_INPUT)
         probe_index = result.index("/tmp/probe.o(.text);")
         next_index = result.index("next = .;")
-        self.assertLess(main_index, probe_index)
+        self.assertLess(anchor_index, probe_index)
         self.assertLess(probe_index, next_index)
         self.assertNotIn("0x800", result)
 

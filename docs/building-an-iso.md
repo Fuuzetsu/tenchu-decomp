@@ -140,7 +140,7 @@ TENCHU_SMOKE PASS entry=1 main=1 frames=5 loops=2 cycles=1528346866ULL
 That run logged `execute \TENCHU\MENU.EXE;1` followed by
 `execute \TENCHU\MAIN.EXE;1`. The harness reads the executable entry from the
 grown PS-X header and resolves `main` and `PadProc` from its ELF. Since the
-fixture is inserted after `main.c.o`, `main` intentionally remains
+fixture is inserted after `START.c.o`, `main` intentionally remains
 `0x800162a4`; the entry moved to `0x80070260` and `PadProc` to `0x8002adac`.
 
 The probe forces a debugger-enabled interpreter and software GPU, uses isolated

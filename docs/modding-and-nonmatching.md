@@ -165,7 +165,7 @@ audit reports zero movable absolute symbols, literal jumps, adjacent address
 pairs, or data pointers.
 
 `check-relink` also performs a real GNU-ld link with `0x10004` bytes inserted
-after `main.c.o`. That proof checks 7,706 owned symbols, all 208 loaded pointers,
+after `START.c.o`. That proof checks 7,706 owned symbols, all 208 loaded pointers,
 HI16 carry behavior, BSS movement, dynamic allocator shrinkage, and a changed
 PS-X entry/load size. The linker chose PC `0x80070260` and `t_size=0x97000` for
 the grown fixture; no per-function slot, cave, trampoline, or fixed downstream
