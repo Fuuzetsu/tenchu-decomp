@@ -257,7 +257,7 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
 
 static inline void InitMusicLocation(CdlLOC *location, u8 minute, u8 second)
 {
-    memset(location, 0, sizeof(CdlLOC));
+    *location = (CdlLOC){0};
     location->minute = minute;
     location->second = second;
     CdIntToPos(CdPosToInt(location) * 2 + OFFSET, location);
