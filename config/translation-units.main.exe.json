@@ -96,6 +96,19 @@
         "DisposeWeapon",
         "EquipWeapon"
       ]
+    },
+    {
+      "source": "SEMNG.C",
+      "functions": [
+        "SoundEx",
+        "SetupSoundEffect",
+        "Sound"
+      ],
+      "debug_symbol_order": [
+        "SetupSoundEffect",
+        "SoundEx",
+        "Sound"
+      ]
     }
   ]
 }
