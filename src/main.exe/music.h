@@ -1,6 +1,8 @@
 #ifndef TENCHU_MUSIC_H
 #define TENCHU_MUSIC_H
 
+#include <psxsdk/libcd.h>
+
 /* Logical ids stored in event data and MusicIdByTrack. The names through
  * STAGE_OPEN8A are the original demo enum. Retail's stage-10/11 ESD roots
  * request 126/127 (MUSIC_EVENT_ID_BASE + 26/27), and MusicIdByTrack maps those
@@ -126,6 +128,12 @@ struct TVoiceTable
 extern TMusicTable MusicTable[MUSIC_TRACK_COUNT];
 /* Physical track -> logical MusicId, followed by SOUND_TABLE_END. */
 extern u8 MusicIdByTrack[MUSIC_TRACK_COUNT + 1];
+extern int CdaPlayXA(u8 *filename, CdlLOC *start, CdlLOC *end, u8 channel,
+                     int mode);
+extern void CdaStop(void);
+extern int CdaGetCurrentLength(void);
+extern int CdaReady(void);
+extern void set_cda_volume_(u8 volume_left, u8 volume_right);
 extern void _PlayMusic(int cue, int mode);
 extern void PlayVoice(int id);
 extern void PlayMusicFormID(s32 event_audio_id);

@@ -9,8 +9,6 @@
  */
 
 extern void cd_control(u8 command, u8 *param, u8 *result);
-extern void CdaStop(void);
-extern s32 CdaReady(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

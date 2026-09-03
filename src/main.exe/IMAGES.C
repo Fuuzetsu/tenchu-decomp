@@ -57,9 +57,6 @@ extern char path_tenchu_ending_exe_1[];   /* cdrom:\\TENCHU\\ENDING.EXE;1 */
 extern char path_tenchu_trial_exe_1[];    /* cdrom:\\TENCHU\\TRIAL.EXE;1 */
 extern char fmt_bad_process_id[];         /* "bad process id %x" */
 
-extern void CdaStop(void);
-extern void set_cda_volume_(u8 voll, u8 volr);
-extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);
 extern void LoadExecEx(u8 *file, u32 stack, u32 size);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
