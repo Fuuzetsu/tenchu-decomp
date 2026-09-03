@@ -1896,8 +1896,6 @@ static void DrawGore(TEffectSlot *ef)
         SVECTOR *velocity;
         long color;
         long green;
-        int cursor;
-        int i;
         TEffectSlot *slot;
         BleedType *bleed;
 
@@ -1986,8 +1984,7 @@ static void DrawGore(TEffectSlot *ef)
         ((SVECTOR *)&temporary)->vz = param->vz / 2;
         *velocity = *(SVECTOR *)&temporary;
 
-        FIND_EFFECT_SLOT(cursor, i, slot, bleed_found);
-    bleed_found:
+        slot = GetFreeEffectSlot();
         bleed = &slot->param.bleed;
         slot->param.bleed.pos = position;
         slot->param.bleed.vec = *velocity;
