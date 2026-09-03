@@ -3,8 +3,8 @@
 #include "tmdfast.h"
 #include "gte.h"
 
-u_long *fast_tnf4_(TmdTexturedFlatQuadRecord *record, VERT *vertices,
-                   u_long *packet,
+PACKET *fast_tnf4_(TmdTexturedFlatQuadRecord *record, VERT *vertices,
+                   PACKET *packet,
                    int count, TMD_FAST_WORK *wp)
 {
     TMD_FAST_WORK *work;
@@ -224,7 +224,7 @@ u_long *fast_tnf4_(TmdTexturedFlatQuadRecord *record, VERT *vertices,
             setlen(&prim->packet, GPU_POLY_GT4_LENGTH);
             *(GpuPolyGT4Packet *)packet = *prim;
             *otSlot = (u_long)packet & GPU_DMA_ADDRESS_MASK;
-            packet += GPU_POLY_GT4_WORDS;
+            packet += sizeof(GpuPolyGT4Packet);
 
         next:
             count--;
