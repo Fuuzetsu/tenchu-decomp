@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "action.h"
 #include "sound.h"
 #include "humanoid.h"
 #include "item.h"
@@ -35,7 +36,6 @@ extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void PadShock(s32 port, s32 power, s32 time);
 extern s32 CdaGetCurrentLength(void);
 extern void CdaStop(void);
-extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern int ReqLifeBar(Humanoid *h);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 extern void set_fade_(u8 arg0, u8 arg1, u8 arg2, long arg3);

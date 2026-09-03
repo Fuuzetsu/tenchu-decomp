@@ -621,7 +621,6 @@ extern void AttackCancelControl(s16 mode);
 extern void dispose_weapon_data_of_char_(Humanoid *h, int mode);
 extern s32 spare_item_slot_(enum spare_item_slot_operation operation,
                             Humanoid *human);
-extern s16 UpdateMotion(MotionManager *m, motion_id id);
 extern short DrawSprite(Sprite3D *sprt);
 extern VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);
 extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);

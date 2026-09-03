@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "action.h"
 #include "item.h"
 #include "images.h"
 #include "appear.h"

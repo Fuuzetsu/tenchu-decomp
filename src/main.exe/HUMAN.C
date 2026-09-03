@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "action.h"
 #include "appear.h"
 #include "humanoid.h"
 #include "item.h"
@@ -26,7 +27,6 @@ extern void *vcalloc(u32 size, u8 c);
 extern void vfree(void *p);
 extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
 extern void DisposeModelArchive(ModelArchiveType *mad);
-extern void DisposeMotionManager(MotionManager *mm);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void StateTransition(Humanoid *human);
 extern void DrawShadow(Humanoid *human);
@@ -34,7 +34,6 @@ extern void register_character_death(Humanoid *human);
 extern void spread_blood_pool_(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
 extern s32 DrawClip(ModelType *model, s32 *xy);
-extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void swap_balma_area_map_(void);
 extern short DrawModelArchive(ModelArchiveType *mad, long gap);
 extern short DrawOrnament(OrnamentType *objp);

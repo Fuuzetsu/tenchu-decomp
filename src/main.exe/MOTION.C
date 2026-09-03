@@ -4,6 +4,7 @@
 
 #include "main.exe.h"
 
+#include "action.h"
 #include "appear.h"
 #include "humanoid.h"
 #include "item.h"
@@ -26,7 +27,6 @@ extern s32 StickonItem;
 extern int ReqLifeBar(Humanoid *human);
 extern void reset_alert_duration(void);
 extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
-extern s16 PlayMotion(MotionManager *motion, s16 mode);
 extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 extern void UpdateOrnament(OrnamentType *ornament, short rotation);
 extern short DrawOrnament(OrnamentType *ornament);
