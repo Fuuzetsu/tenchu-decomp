@@ -6104,45 +6104,7 @@ void publish_ground_point_(void)
 
 void AttackCancelControl(s16 mode)
 {
-    weapon_kind weapon;
-    ModelType *model;
-
-    if ((mode & ATTACK_CANCEL_CONFLICTS) != 0)
-    {
-        weapon = Me_MOTION_C->wpatk;
-        switch (weapon)
-        {
-        case FIST:
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-            model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
-            break;
-        case JAW:
-            model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
-            break;
-        case NO_WEAPON:
-            goto no_conflict;
-        default:
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-            model = Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1];
-            break;
-        }
-        DeleteConflict(model);
-    }
-no_conflict:
-    if ((mode & ATTACK_CANCEL_AFTERIMAGES) != 0)
-    {
-        if (Me_MOTION_C->illusion[WEAPON_HAND_0] != 0)
-        {
-            DisposeAfterimage(Me_MOTION_C->illusion[WEAPON_HAND_0]);
-            Me_MOTION_C->illusion[WEAPON_HAND_0] = 0;
-        }
-        if (Me_MOTION_C->illusion[WEAPON_HAND_1] != 0)
-        {
-            DisposeAfterimage(Me_MOTION_C->illusion[WEAPON_HAND_1]);
-            Me_MOTION_C->illusion[WEAPON_HAND_1] = 0;
-        }
-    }
-    dtM->mask = MOTION_MASK_ALL;
+    ClearAttackEffects(mode);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
