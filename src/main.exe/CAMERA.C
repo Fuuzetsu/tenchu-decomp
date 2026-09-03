@@ -984,7 +984,7 @@ void SetCameraMode(TCameraMode mode)
         } while (0);
         scratch_trans_1f800094[0] = pos->vx;
         scratch_trans_1f800094[1] = pos->vy;
-        scratch_trans_1f800094[2] = pos->vz;
+        scratch_trans_z_1f80009c = pos->vz;
         SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
         SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
         do
