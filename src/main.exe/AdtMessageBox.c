@@ -34,10 +34,11 @@ void AdtMessageBox(char *fmt, ...)
     {
         if (fmt[1] != '#')
         {
-            if (fmt[1] != '$')
-                goto skip;
-            mode = ADT_MESSAGE_NO_WAIT;
-            fmt += 2;
+            if (fmt[1] == '$')
+            {
+                mode = ADT_MESSAGE_NO_WAIT;
+                fmt += 2;
+            }
         }
         else
         {
@@ -45,7 +46,6 @@ void AdtMessageBox(char *fmt, ...)
             fmt += 2;
         }
     }
-skip:
     /* Holding Select+Start skips ADT message boxes. */
     if ((AdtPadRead(0) & PADselect) && (AdtPadRead(0) & PADstart))
         return;
