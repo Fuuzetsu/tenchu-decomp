@@ -4338,19 +4338,10 @@ static void ProcItemNinken(TItem *item)
 
         count = param->count - 1;
         param->count = count;
-            /* The u16 countdown fires at zero and again after wrapping to 0xffff. */
-        if ((count << 16) <= 0)
-        {
-            goto expire;
-        }
-        slave = param->slave;
-        if (slave->life <= 0)
-        {
-            goto expire;
-        }
-        if ((slave->attribute & ATTR_SUSPEND) != 0)
-        {
-        expire:
+        /* The u16 countdown fires at zero and again after wrapping to 0xffff. */
+        if ((count << 16) <= 0 ||
+            (slave = param->slave)->life <= 0 ||
+            (slave->attribute & ATTR_SUSPEND) != 0)
         {
             SVECTOR vec = {
                 .vx = 0,
@@ -4373,7 +4364,6 @@ static void ProcItemNinken(TItem *item)
                 return;
             }
         }
-    }
 
     {
         s32 owner_attribute;
