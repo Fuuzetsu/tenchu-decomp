@@ -7,6 +7,7 @@
 #include "vmemory.h"
 #include <psxsdk/libcd.h>
 #include <psxsdk/libgpu.h>
+#include <psxsdk/libpad.h>
 #include <psxsdk/libsnd.h>
 
 /*
@@ -41,7 +42,6 @@ extern int PCwrite(int fd, void *buf, int size);
 extern void PCinit(void);
 extern void cd_init(void);
 extern void save_pad_analog_(void);
-extern void PadStopCom(void);
 extern void MemCardStop(void);
 extern void MemCardEnd(void);
 extern void set_boot_exec_(u8 *file, u32 stack, u32 size);

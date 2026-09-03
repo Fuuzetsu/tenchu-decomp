@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "padcmd.h"
+#include <psxsdk/libpad.h>
 
 /*
  * Retail PADCMD.C adds six helpers, drops the demo SetPad routine, and
@@ -11,15 +12,8 @@
 extern u8 Anakon;
 extern u8 align[6];
 
-extern int PadInfoMode(int port, int mode, int unused);
-extern int PadGetState(int port);
-extern int PadSetAct(int port, u8 *data, int len);
-extern int PadSetActAlign(int port, u8 *data);
 extern void MemCardInit(int unit);
 extern void MemCardStart(void);
-extern void PadInitDirect(void *buf1, void *buf2);
-extern void PadStartCom(void);
-extern void PadSetMainMode(int port, int mode, int lock);
 
 extern TPadPort *get_pad_record_(s32 port);
 
