@@ -1363,7 +1363,7 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-void DrawSplash(TEffectSlot *ef)
+static void DrawSplash(TEffectSlot *ef)
 {
     SplashType *param;
     GsSPRITE *spr;
