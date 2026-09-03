@@ -10,4 +10,11 @@ int PadSetAct(int port, unsigned char *actuators, int length);
 int PadSetActAlign(int port, unsigned char *alignment);
 int PadSetMainMode(int port, int mode, int lock);
 
+void PAD_init(char *buffer0, long length0, char *buffer1, long length1);
+void InitPAD2(char *buffer0, long length0, char *buffer1, long length1);
+void PAD_init2(char *buffer0, long length0, char *buffer1, long length1);
+void kernel_start_pad_(void);
+void _patch_pad(void);
+void _remove_ChgclrPAD(void);
+
 #endif

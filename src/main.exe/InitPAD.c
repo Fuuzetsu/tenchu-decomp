@@ -1,15 +1,11 @@
 #include "common.h"
 #include "main.exe.h"
+#include <psxsdk/libpad.h>
 
-extern void _remove_ChgclrPAD(void);
-extern void _patch_pad(void);
 /* The game's RAM-resident copy of the kernel StartPad routine (B(13h)
  * shape: critical section, SysDeq/SysEnqIntRP(1, element) with the pad
  * handlers, return 1) — the patched pad path calls it directly instead
  * of the BIOS StartPAD2 stub. Invented name. */
-extern void kernel_start_pad_(void);
-extern void InitPAD2(char *buf0, long len0, char *buf1, long len1);
-
 extern s32 PadInitFlag;
 
 long InitPAD(char *buf0, long len0, char *buf1, long len1)

@@ -1,10 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-
-extern void _remove_ChgclrPAD(void);
-extern void _patch_pad(void);
-extern void kernel_start_pad_(void);
-extern void PAD_init2(char *buf0, long len0, char *buf1, long len1);
+#include <psxsdk/libpad.h>
 
 extern s32 PadInitFlag;
 
