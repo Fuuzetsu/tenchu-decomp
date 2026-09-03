@@ -382,5 +382,3 @@ extern int TotalIO;
 extern POLY_GT4 AccessImage;
 
 extern void SetupSoundEffect(character_kind character, short stage);
-extern void eval_spline_gte_(SVECTOR *out, SplineControlType *spc,
-                             SVECTOR *basis);

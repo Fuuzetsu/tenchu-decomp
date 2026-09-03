@@ -9,5 +9,7 @@ void DisposeMotionManager(MotionManager *motion);
 short GetMotionID(MotionManager *motion, motion_id id);
 s16 UpdateMotion(MotionManager *motion, motion_id id);
 short PlayMotion(MotionManager *motion, short mode);
+void eval_spline_gte_(SVECTOR *out, SplineControlType *control,
+                      SVECTOR *basis);
 
 #endif
