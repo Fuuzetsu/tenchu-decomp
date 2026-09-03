@@ -8,6 +8,7 @@
 #include "images.h"
 #include "appear.h"
 #include "effect.h"
+#include "font.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
 #include "tmdfile.h"
@@ -73,7 +74,6 @@ static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
 static short LoadConstruction(u_long *data);
-extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void CVAsetup(void);
 

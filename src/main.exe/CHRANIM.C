@@ -6,6 +6,7 @@
 #include "adt.h"
 #include "action.h"
 #include "effect.h"
+#include "font.h"
 #include "sound.h"
 #include "humanoid.h"
 #include "item.h"
@@ -30,10 +31,6 @@ extern s16 CVAflag;
 extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
-
-extern void SetupTelop(u8 *telop, s16 line);
-extern s32 telop_text_width_(u8 *str);
-extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
 
 s16 CVAsequence(s16 sid);
 s16 CVAupdate(void);

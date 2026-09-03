@@ -388,4 +388,3 @@ extern long GetTargetDistance(struct Humanoid *human, short *deg);
 
 extern u_long *GetArcData(int index);
 extern u_long *get_tim_from_archive(ArcFile *archive, int idx);
-extern void load_font_image_into_global(GsIMAGE *image);

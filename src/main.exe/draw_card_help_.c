@@ -1,6 +1,7 @@
 #include "common.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "font.h"
 #include "images.h"
 #include "memcard.h"
 
@@ -10,10 +11,6 @@ extern s16 McardStateFlag;
 extern s32 McardPageNow;
 extern s32 McardAnswered;
 extern u8 *McardPageText;
-
-extern void SetupTelop(u8 *telop, short line);
-extern s32 telop_text_width_(u8 *str);
-extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
 
 s32 draw_card_help_(s32 page, s32 pad)
 {

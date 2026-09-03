@@ -6,7 +6,7 @@
 
 extern GsIMAGE FONT_IMAGE_;
 
-void draw_glyph_(void *ot, short x, short y0, u32 code)
+void draw_glyph_(GsOT_TAG *ot, s32 x, s32 y0, u32 code)
 {
     u16 cell;
     POLY_GT4 *ply;
@@ -64,7 +64,7 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
     }
     {
         int y = (short)(y0 + nudge);
-        SetupImageToPolyGT4(&img, ply, x, y);
+        SetupImageToPolyGT4(&img, ply, (short)x, y);
     }
     AddPrim(ot, ply);
 }

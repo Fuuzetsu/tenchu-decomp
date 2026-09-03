@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "font.h"
 
 extern GsIMAGE FONT_IMAGE_;
 

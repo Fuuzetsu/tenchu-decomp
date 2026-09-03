@@ -3,7 +3,6 @@
 #include "font.h"
 
 extern u8 FontWidth[];
-extern void draw_glyph_(GsOT_TAG *org, s32 x, s32 y, u32 ch);
 
 void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
 {
