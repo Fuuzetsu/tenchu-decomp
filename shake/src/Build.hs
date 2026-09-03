@@ -562,12 +562,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ChasetoTarget" = ["Me_THINK_C", "Attrib", "Distance"]
     syms "AUDIO" = ["voice"]
     syms "SetupTexScroll" = ["EFFECT_CURSOR_", "TexScrollX", "TexScrollY"]
-    syms "AVCameraSetup" = ["CVAnow", "CameraTarget"]
-    syms "AVCameraControl" = ["CameraPanMode", "CameraSpeed", "CameraTarget"]
-    syms "CVAsequence" = ["CVAdata", "CVAnow", "CameraTarget", "CVAflag", "CVAtime"]
-    syms "CVAupdate" = ["CVAnow", "CVAflag", "CameraTarget", "CameraPanMode", "CameraSpeed", "CVAdata"]
-    syms "CVArun" = ["CVAtime", "CVAnow"]
-    syms "CVAsetup" = ["CVAdata"]
+    syms "CHRANIM" = ["CVAdata", "CVAnow", "CameraTarget", "CVAflag", "CVAtime", "CameraPanMode", "CameraSpeed"]
     syms "CreateHumanoid" = ["Humans"]
     -- PutItemList.c is also part of the info-view TU; it defines/uses both
     -- selected-item-kind smalls gp-relatively.
@@ -731,7 +726,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "create_ninken_character_" = ["NINKEN_CHARACTER_PTR"]
     syms "spread_blood_pool_" = ["BLOOD_POOL_MODEL_"]
     syms "debug_output_edit_camera_settings" = ["DEBUG_PAD_HELD_", "DEBUG_PAD_PRESS_", "DEBUG_CAMERA_INDEX_", "DEBUG_CAMERA_BASE_"]
-    syms "debug_menu_file_animation_test" = ["CVAdata"]
     syms _ = []
 
 as :: FilePath

@@ -134,9 +134,9 @@ segments:
       - [0x2008, data]
       - { start: 0x2058, type: .rodata, name: STAGE, linker_section_order: .data }
       - [0x207C, data]
-      - { start: 0x2E64, type: .rodata, name: CVAupdate, linker_section_order: .data }
-      - [0x2E88, data]
-      - { start: 0x2E8C, type: .rodata, name: AVCameraControl, linker_section_order: .data }
+      # CHRANIM.C's CVAupdate and AVCameraControl switch tables, including
+      # the compiler's intervening alignment word.
+      - { start: 0x2E64, type: .rodata, name: CHRANIM, linker_section_order: .data }
       - [0x2EB0, data]
       # BriefingAndInventorySelectionScreen's switch jump table (vram
       # 0x80013B30): linked from the C object's .rodata so the compiled table
@@ -439,14 +439,7 @@ segments:
       - [0x3E1D8, c, IMAGES]
       - [0x3EFB4, c, OPAUDIO]
       - [0x3F470, c, SEMNG]
-      - [0x3F798, c, CVAsetup]
-      - [0x3F9B0, c, debug_menu_file_animation_test]
-      - [0x3FAB4, c, CVAsequence]
-      - [0x3FE28, c, CVAupdate]
-      - [0x40660, c, CVArun]
-      - [0x40874, c, AVCameraSetup]
-      - [0x40A28, c, AVCameraControl]
-      - [0x40C1C, c, DrawTelop]
+      - [0x3F798, c, CHRANIM]
       - [0x40CD0, c, nop_514d0_]
       - [0x40CD8, c, score_screen_input_]
       - [0x40DB0, c, draw_time_]

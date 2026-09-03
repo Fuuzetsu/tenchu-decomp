@@ -283,12 +283,7 @@ GP_EXTERNS = {
     "KillHumanoid": ["Humans"],
     "GetNearestHumanoid": ["Humans"],
     "APPEAR": ["NowStage", "ARMOUR_EQUIPPED_", "sstage", "smode"],
-    "AVCameraSetup": ["CVAnow", "CameraTarget"],
-    "AVCameraControl": ["CameraPanMode", "CameraSpeed", "CameraTarget"],
-    "CVAsequence": ["CVAdata", "CVAnow", "CameraTarget", "CVAflag", "CVAtime"],
-    "CVAupdate": ["CVAnow", "CVAflag", "CameraTarget", "CameraPanMode", "CameraSpeed", "CVAdata"],
-    "CVArun": ["CVAtime", "CVAnow"],
-    "CVAsetup": ["CVAdata"],
+    "CHRANIM": ["CVAdata", "CVAnow", "CameraTarget", "CVAflag", "CVAtime", "CameraPanMode", "CameraSpeed"],
     "SetSnow": ["EFFECT_CURSOR_"],
     "SetImpact": ["EFFECT_CURSOR_"],
     "SetExplosion": ["EFFECT_CURSOR_"],
@@ -431,7 +426,6 @@ GP_EXTERNS = {
     "create_ninken_character_": ["NINKEN_CHARACTER_PTR"],
     "spread_blood_pool_": ["BLOOD_POOL_MODEL_"],
     "debug_output_edit_camera_settings": ["DEBUG_PAD_HELD_", "DEBUG_PAD_PRESS_", "DEBUG_CAMERA_INDEX_", "DEBUG_CAMERA_BASE_"],
-    "debug_menu_file_animation_test": ["CVAdata"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
