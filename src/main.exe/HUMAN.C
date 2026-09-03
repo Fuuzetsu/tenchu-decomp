@@ -807,11 +807,18 @@ enum sight_profile
     N_SIGHT_PROFILES
 };
 
-/* The two sight-range rows (retail data @ 0x80086b7c): row 0 for a
- * walking player {sight 16000, clear 10000, gone 20000}, row 1 when the
- * player sneaks {12000, 7000, 16000} — crouching or wall-pressing cuts
- * every enemy's perception ranges by roughly a quarter. */
-extern SearchSight searchsight[N_SIGHT_PROFILES];
+static SearchSight searchsight[N_SIGHT_PROFILES] = {
+    {
+        .sight_distance = 16000,
+        .clear_distance = 10000,
+        .far_distance = 20000
+    },
+    {
+        .sight_distance = 12000,
+        .clear_distance = 7000,
+        .far_distance = 16000
+    }
+};
 
 search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 {

@@ -290,16 +290,16 @@ relocBssTailAsm = relocBssDir </> "generated" </> "87458.bss.s"
 relocBssTailObject = relocBssDir </> "obj" </> "87458.bss.s.o"
 
 -- Reviewed pointer-bearing data copies used by the composed normal relink.
--- The recovered .sdata carves split the former 75F64 tail. Its final 87458
--- fragment is transformed here first, then the BSS lane applies its NOBITS
--- split to that copy so both transformations survive in one object.
+-- Recovered C data splits the former 75F64 tail into successive raw fragments.
+-- Its final 87458 fragment is transformed here first, then the BSS lane applies
+-- its NOBITS split to that copy so both transformations survive in one object.
 relocIntegratedDataDir :: FilePath
 relocIntegratedDataDir = relocBssDir </> "data"
 
 relocDataNames :: [String]
 relocDataNames =
   [ "E58", "1160", "1490", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
-    "75F64", "87458"
+    "76394", "87458"
   ]
 
 relocDataTailName :: String

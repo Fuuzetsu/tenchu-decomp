@@ -71,8 +71,8 @@ DEFAULT_OBJECT_SOURCES = {
         ".shake/build/reloc-bss/data/400C.data.s",
     ".shake/build/reloc-bss/obj/4900.data.s.o":
         ".shake/build/reloc-bss/data/4900.data.s",
-    ".shake/build/reloc-bss/obj/75F64.data.s.o":
-        ".shake/build/reloc-bss/data/75F64.data.s",
+    ".shake/build/reloc-bss/obj/76394.data.s.o":
+        ".shake/build/reloc-bss/data/76394.data.s",
     ".shake/build/relink/obj/87458.bss.s.o":
         ".shake/build/relink/layout/87458.bss.s",
     # The retail-exact structural lane uses the same transformed data but a

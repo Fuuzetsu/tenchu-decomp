@@ -263,7 +263,7 @@ class RewriteTests(unittest.TestCase):
                 "37A8.data.s",
                 "400C.data.s",
                 "4900.data.s",
-                "75F64.data.s",
+                "76394.data.s",
                 "87458.data.s",
             },
         )
