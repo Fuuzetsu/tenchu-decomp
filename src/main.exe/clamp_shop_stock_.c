@@ -1,8 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
-
 void clamp_shop_stock_(TLinkInfo *ps)
 {
     int i;

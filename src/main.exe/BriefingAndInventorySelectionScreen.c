@@ -15,7 +15,6 @@
 
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 ARMOUR_USED; /* persistent blob 0x1a: blocks re-buying ITEM_ARMOUR */
-extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 extern char NUMBER_TIM_PATH[];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
