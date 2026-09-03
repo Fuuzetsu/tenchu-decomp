@@ -3922,9 +3922,7 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
                     s32 rotate, s32 rotate_speed, s32 time,
                     enum impact_sprite type)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     ImpactType *param;
     long pz;
     u16 stored_rotation = rotate;
@@ -3932,8 +3930,7 @@ void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
     u16 stored_time = time;
     u16 stored_type = type;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     slot->proc = DrawImpact;
     slot->param.impact.px = pos->vx;
     param = &slot->param.impact;

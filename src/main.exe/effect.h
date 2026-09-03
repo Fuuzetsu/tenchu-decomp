@@ -380,35 +380,6 @@ static __inline__ TEffectSlot *GetFreeEffectSlot(void)
     return &dmy;
 }
 
-/* Shared round-robin effect-slot selection. The operation is recovered from
- * the producers; its name is reconstructed. It sets `slot` to the next free
- * entry, or to the discard slot when the pool is full. This expands to several
- * statements, so use it only as a stand-alone statement and put the supplied
- * continuation label immediately after it. */
-#define FIND_EFFECT_SLOT(idx, count, slot, found)                            \
-    idx = EFFECT_CURSOR_;                                                    \
-    count = 0;                                                               \
-    do                                                                        \
-    {                                                                         \
-        idx++;                                                               \
-        if (idx >= N_EFFECT_SLOTS)                                           \
-        {                                                                     \
-            idx = 0;                                                         \
-        }                                                                     \
-        if (EffectSlot[idx].proc == 0)                                       \
-        {                                                                     \
-            EFFECT_CURSOR_ = idx + 1;                                        \
-            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)                            \
-            {                                                                 \
-                EFFECT_CURSOR_ = 0;                                          \
-            }                                                                 \
-            slot = &EffectSlot[idx];                                         \
-            goto found;                                                      \
-        }                                                                     \
-        count++;                                                             \
-    } while (count < N_EFFECT_SLOTS);                                        \
-    slot = &dmy
-
 /* Retail's sprite selector banks initialized together in InitEffect. */
 enum
 {
