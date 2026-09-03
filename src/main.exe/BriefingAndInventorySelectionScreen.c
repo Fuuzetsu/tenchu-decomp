@@ -242,7 +242,7 @@ void BriefingAndInventorySelectionScreen(void)
         }
         if (newpress == PADstart)
         {
-            goto quit;
+            break;
         }
         StartDrawing();
         DrawBG(bg);
@@ -525,7 +525,6 @@ void BriefingAndInventorySelectionScreen(void)
         EndDrawing(0);
     } while (1);
 
-quit:
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
     if (PSTATE->selItem[ITEM_MANEBUE] != 0)
