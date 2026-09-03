@@ -779,7 +779,7 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg = (BackGround *)valloc(sizeof(BackGround));
     bg->id = CONFLICT_NONE;
     bg->attribute = 0;
-    memset(bg, 0, sizeof(GsBG));
+    bg->hundle = (GsBG){0};
 
     raw_pmode = image->pmode;
     bg->hundle.r = bg->hundle.g = bg->hundle.b = 0x80;
