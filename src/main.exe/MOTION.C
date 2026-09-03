@@ -4585,7 +4585,13 @@ void ActSQUAT(void)
             dtV->vx = 0;
             break;
         }
-        goto move_if_stationary;
+        if (dtV->vx == 0 && dtV->vz == 0)
+        {
+            MoveHumanoid(Me_MOTION_C,
+                         Me_MOTION_C->motion->motion->orderspd,
+                         Me_MOTION_C->motion->motion->sidespd);
+        }
+        break;
 
     case MOT_SQUAT_WALK_R:
         if (dtM->count == 1)
@@ -4604,7 +4610,13 @@ void ActSQUAT(void)
             dtV->vx = 0;
             break;
         }
-        goto move_if_stationary;
+        if (dtV->vx == 0 && dtV->vz == 0)
+        {
+            MoveHumanoid(Me_MOTION_C,
+                         Me_MOTION_C->motion->motion->orderspd,
+                         Me_MOTION_C->motion->motion->sidespd);
+        }
+        break;
 
     case MOT_SQUAT_WALK_L:
         if (dtM->count == 1)
@@ -4623,7 +4635,6 @@ void ActSQUAT(void)
             dtV->vx = 0;
             break;
         }
-    move_if_stationary:
         if (dtV->vx == 0 && dtV->vz == 0)
         {
             MoveHumanoid(Me_MOTION_C,
