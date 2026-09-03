@@ -48,6 +48,7 @@
 #define CdlStatPlay 0x80
 
 #include <types.h>
+#include <psxsdk/libapi.h>
 
 /* Minimal PsyQ 4.5 ABI declarations; see docs/psyq-headers.md. */
 
@@ -84,6 +85,7 @@ typedef struct
 } CdlFILE;
 
 int CdInit(void);
+int CdLastCom(void);
 void CdFlush(void);
 CdlFILE *CdSearchFile(CdlFILE *file, char *name);
 CdlLOC *CdIntToPos(int sector, CdlLOC *position);
@@ -93,6 +95,8 @@ int CdControlF(u_char command, u_char *param);
 int CdGetSector(void *address, int size);
 int CdPosToInt(CdlLOC *position);
 int CdReady(int mode, u_char *result);
+EXEC *CdReadExec(u_char *name);
+int CdReadSync(int mode, u_char *result);
 int CdSync(int mode, u_char *result);
 
 #endif

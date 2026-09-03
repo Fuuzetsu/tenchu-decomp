@@ -8,7 +8,6 @@
  * moved them behind CdaStop and added the volume helpers which follow them.
  */
 
-extern int CdLastCom(void);
 extern void cd_control(u8 command, u8 *param, u8 *result);
 extern void CdaStop(void);
 extern s32 CdaReady(void);
