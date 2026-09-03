@@ -22,7 +22,6 @@ extern Humanoid *Me_MOTION_C;
 extern MapVector map;
 extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
-extern s16 damagemotion[N_DAMAGE_MOTIONS];
 extern s32 PlayerSSR;
 extern s32 StickonItem;
 
@@ -753,6 +752,16 @@ static inline void SnapToWaistConflict(void)
 
 void DamageControl(void)
 {
+    static motion_id damagemotion[N_DAMAGE_MOTIONS] = {
+        MOT_DAMAGE,
+        MOT_DAMAGE_FRONT_MID,
+        MOT_DAMAGE_FRONT_HEAVY,
+        MOT_DAMAGE_LAUNCH_BACK,
+        MOT_DAMAGE_BACK_LIGHT,
+        MOT_DAMAGE_BACK_LIGHT,
+        MOT_DAMAGE_BACK_HEAVY,
+        MOT_DAMAGE_LAUNCH_FORE
+    };
     MotionManager *mmp;
     short did;
     short deg;
