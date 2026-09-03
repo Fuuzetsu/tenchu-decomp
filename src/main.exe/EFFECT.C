@@ -1313,14 +1313,11 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
             {
                 VECTOR *pos = &npos;
                 int time = btime;
-                int idx;
                 TEffectSlot *slot;
-                int count;
                 BleedType *param;
                 u8 r;
 
-                FIND_EFFECT_SLOT(idx, count, slot, found);
-            found:
+                slot = GetFreeEffectSlot();
                 n--;
                 param = &slot->param.bleed;
                 r = col >> 16;
