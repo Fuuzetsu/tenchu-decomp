@@ -879,15 +879,12 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
 
 void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     SmokeType *smoke;
     int r;
     int m;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     smoke = &slot->param.smoke;
     smoke->scale = rand() % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;
     smoke->rotate = (rand() % 360) * FIXED_ONE;

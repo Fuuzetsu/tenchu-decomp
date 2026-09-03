@@ -352,6 +352,34 @@ extern TEffectSlot EffectSlot[N_EFFECT_SLOTS];
 extern int EFFECT_CURSOR_; /* the pool's round-robin cursor */
 extern TEffectSlot dmy;                                     /* pool-full fallback write target, discarded */
 
+static __inline__ TEffectSlot *GetFreeEffectSlot(void)
+{
+    int i;
+    int count;
+
+    i = EFFECT_CURSOR_;
+    count = 0;
+    do
+    {
+        i++;
+        if (i >= N_EFFECT_SLOTS)
+        {
+            i = 0;
+        }
+        if (EffectSlot[i].proc == 0)
+        {
+            EFFECT_CURSOR_ = i + 1;
+            if (EFFECT_CURSOR_ >= N_EFFECT_SLOTS)
+            {
+                EFFECT_CURSOR_ = 0;
+            }
+            return &EffectSlot[i];
+        }
+        count++;
+    } while (count < N_EFFECT_SLOTS);
+    return &dmy;
+}
+
 /* Shared round-robin effect-slot selection. The operation is recovered from
  * the producers; its name is reconstructed. It sets `slot` to the next free
  * entry, or to the discard slot when the pool is full. This expands to several
