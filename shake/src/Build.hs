@@ -6,7 +6,6 @@
 import Control.Monad (when)
 import qualified Data.Aeson as A
 import Data.Binary (Binary)
-import Data.Functor ((<&>))
 import Data.Hashable (Hashable)
 import Data.List (intercalate, isPrefixOf, sort)
 import qualified Data.Set as Set
@@ -1341,14 +1340,18 @@ objRules = do
         header = srcDir </> target </> target <.> "h"
         genPath = genDir </> target </> "src" </> file
         srcPath = srcDir </> target </> file
+        originalStylePath = replaceExtension srcPath "C"
     _generatedFiles <- getGeneratedFiles targetGen
 
-    -- If corresponding file is in `src` then use it, otherwise use it from gen
-    -- dir.
-    src <-
-      doesFileExist srcPath <&> \case
-        True -> srcPath
-        False -> genPath
+    -- Splat names the generated intermediary `<unit>.c`; reconstructed original
+    -- translation units retain their DOS-era upper-case `<UNIT>.C` spelling.
+    -- Prefer either checked-in spelling before falling back to splat's stub.
+    hasLowerSource <- doesFileExist srcPath
+    hasOriginalStyleSource <- doesFileExist originalStylePath
+    let src
+          | hasLowerSource = srcPath
+          | hasOriginalStyleSource = originalStylePath
+          | otherwise = genPath
 
     orderOnly [header]
     -- Make sure we have generated sources. Whether and what we need from them
