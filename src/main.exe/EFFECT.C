@@ -22,8 +22,6 @@ extern s16 TexScrollX;
 extern s16 TexScrollY;
 extern RECT ScreenRect; /* {0,0,320,480}: both pages */
 
-extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
-
 void reset_effects_(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

@@ -17,6 +17,9 @@ enum area_level_mode_flag
 #define CONFLICT_NONE (-1)
 
 /* CONFLICT.C's shared floor query, using the original promoted mode ABI. */
+extern AreaMapType *LoadAreaMap(AreaMapType *data);
+extern void DisposeAreaMap(AreaMapType *area);
+extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
                             int mode);
 extern long CGetLevel(AreaNodeType **hint, long x, long y, long z,
@@ -29,5 +32,8 @@ extern conflict_id InsertConflict(ModelType *model);
 extern void DeleteConflict(ModelType *model);
 extern void ComputeAllConflict(void);
 extern conflict_id GetConflictResult(ModelType *model, conflict_id index);
+
+extern AreaMapType *load_balma_area_map_(AreaMapType *data);
+extern void swap_balma_area_map_(void);
 
 #endif

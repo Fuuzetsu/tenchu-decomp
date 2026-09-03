@@ -1,8 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern AreaMapType *LoadAreaMap(AreaMapType *adr);
-
 AreaMapType *load_balma_area_map_(AreaMapType *adr)
 {
     NodeIndexType *cur;

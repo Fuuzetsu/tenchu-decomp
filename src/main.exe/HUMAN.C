@@ -26,7 +26,6 @@ extern char fmt_dbg_pair[];       /* ~c080%02x/%d%d  */
 extern char fmt_dbg_rot[];
 
 extern void HumanActionControl(Humanoid *human);
-extern void swap_balma_area_map_(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

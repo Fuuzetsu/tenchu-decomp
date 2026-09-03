@@ -570,10 +570,6 @@ extern char fmt_acm[];                  /* %s.ACM */
 extern char fmt_tim[];                  /* %s.TIM */
 extern char path_map_mad[];             /* map.mad */
 
-extern void DisposeAreaMap(AreaMapType *area);
-extern AreaMapType *LoadAreaMap(AreaMapType *data);
-extern AreaMapType *load_balma_area_map_(AreaMapType *data);
-
 static short LoadConstruction(u_long *data)
 {
     enum
