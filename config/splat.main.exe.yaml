@@ -132,7 +132,7 @@ segments:
       # MISC.C's AddMisc switch jump table (vram 0x800127E8), same scheme.
       - { start: 0x1FE8, type: .rodata, name: MISC, linker_section_order: .data }
       - [0x2008, data]
-      - { start: 0x2058, type: .rodata, name: StageSequence, linker_section_order: .data }
+      - { start: 0x2058, type: .rodata, name: STAGE, linker_section_order: .data }
       - [0x207C, data]
       - { start: 0x2E64, type: .rodata, name: CVAupdate, linker_section_order: .data }
       - [0x2E88, data]
@@ -503,12 +503,7 @@ segments:
       - [0x3B8E4, c, PutItemIcon]
       - [0x3B938, c, PutNumber]
       - [0x3B9E8, c, MISC]
-      - [0x3D170, c, StartStageSequence]
-      - [0x3D758, c, StageSequence]
-      - [0x3DE24, c, UpdateEvent]
-      - [0x3DF94, c, calculate_score]
-      - [0x3E0F4, c, SetupStageSequence]
-      - [0x3E164, c, init_score_stats]
+      - [0x3D170, c, STAGE]
       - [0x3E1D8, c, InitSprite]
       - [0x3E2F0, c, SetupImageToPolyFT4]
       - [0x3E410, c, SetupImageToPolyGT4]

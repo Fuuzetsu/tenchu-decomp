@@ -571,8 +571,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     -- "PutMap latch" DoInfoViewProc.c also references) plus the wipe
     -- position pair.
     syms "PutMap" = ["PutMapMode", "MapSlideX", "MapSlideY"]
-    -- UpdateEvent.c is also part of the original STAGE.C TU.
-    syms "UpdateEvent" = ["StageEvent", "StagePlayer"]
+    syms "STAGE" = ["StageEvent", "StageTime", "FriendHits", "Murders", "Findenemies", "Criticals", "Event", "StagePlayer", "StageCitizens", "StageEnemies", "StageBosses"]
     syms "KillHumanoid" = ["Humans"]
     syms "GetNearestHumanoid" = ["Humans"]
     syms "JumpControl" = ["dtL", "dtM", "motID", "Me_MOTION_C", "motMODE", "dtV", "dtPAD"]
@@ -626,7 +625,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "PrepareAccess" = ["AccessPower"]
     syms "load_balma_area_map_" = ["GlobalAreaMap", "FieldIndex", "BalmaAreaMap", "FieldArea"]
     syms "publish_ground_point_" = ["Me_MOTION_C", "dtL"]
-    syms "init_score_stats" = ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"]
     syms "is_humanoid_on_stage_" = ["Humans"]
     syms "THINK_2" = ["Attrib", "Me_THINK_C", "Degree"]
     syms "draw_visible_characters_" = ["VISIBLE_ENEMIES_"]
@@ -644,7 +642,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReturnNormal" = ["Me_MOTION_C", "motID", "motMODE"]
     syms "DrawOrnament" = ["OTablePt"]
     syms "debug_msg_open_" = ["AdtMsgPtr"]
-    syms "SetupStageSequence" = ["StageEvent", "StagePlayer"]
     syms "AttackGunControl" = ["dtM", "Me_MOTION_C"]
     syms "ThinkBasicHuman1" = ["Me_THINK_C"]
     syms "StartDrawing" = ["DrawingPage", "OTablePt", "GameClock"]
@@ -710,8 +707,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SwimCheck" = ["Me_MOTION_C", "motID", "dtM", "dtL", "motMODE", "MotionUpdateMode"]
     syms "ActivateHumans" = ["ThinkBudgetRaw", "ThinkBudget", "ThinkCount", "StageID"]
     syms "ProcItemNingyo" = ["NingyoCount", "NingyoModel"]
-    syms "StartStageSequence" = ["StageEvent", "StageTime", "FriendHits", "Murders", "Findenemies", "Criticals", "Event", "StagePlayer", "StageCitizens", "StageEnemies", "StageBosses"]
-    syms "StageSequence" = ["StagePlayer", "Event", "StageTime", "Findenemies", "Murders", "Criticals", "StageEnemies", "StageBosses", "FriendHits", "StageCitizens"]
     syms "AddEnemy" = ["CurrentEnemyID"]
     syms "draw_card_help_" = ["McardPageNow", "McardHelp", "McardAnswered", "McardPageText", "McardSprite", "McardStateFlag"]
     syms "LoadConstruction" = ["mma", "ObjectArc", "StageID"]

@@ -231,6 +231,23 @@
         "AddMisc",
         "DoMiscProc"
       ]
+    },
+    {
+      "source": "STAGE.C",
+      "functions": [
+        "StartStageSequence",
+        "StageSequence",
+        "UpdateEvent",
+        "calculate_score",
+        "SetupStageSequence",
+        "init_score_stats"
+      ],
+      "debug_symbol_order": [
+        "SetupStageSequence",
+        "StartStageSequence",
+        "StageSequence",
+        "UpdateEvent"
+      ]
     }
   ]
 }
