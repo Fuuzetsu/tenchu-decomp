@@ -258,7 +258,7 @@ GP_EXTERNS = {
     "IMAGES": ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "ToraVoiceXaName", "IntroVoiceXaName", "ArcData", "Images_fInitialize"],
     "PutStrain": ["StrainPhase"],
     "Think3hitaway": ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"],
-    "Camera": ["Projection"],
+    "CAMERA": ["DEBUG_PAD_HELD_", "DEBUG_PAD_PRESS_", "DEBUG_CAMERA_INDEX_", "DEBUG_CAMERA_BASE_", "Projection"],
     "AttackContinuousCheck": ["dtM", "Me_MOTION_C"],
     "THINK_4": ["Me_THINK_C", "Attrib", "SR", "EmergencyNotice", "Degree"],
     "WeaponHitWeapon": ["Me_MOTION_C", "dtM"],
@@ -341,7 +341,6 @@ GP_EXTERNS = {
     "AttackGunControl": ["dtM", "Me_MOTION_C"],
     "ThinkBasicHuman1": ["Me_THINK_C"],
     "AttackPQD": ["Me_MOTION_C", "dtM"],
-    "initialise_default_player_cameras_": ["DEBUG_CAMERA_BASE_"],
     "GetHumanoid": ["Humans"],
     "AttackAnimal": ["Me_THINK_C", "Distance", "Degree"],
     "StickonCheck": ["Me_MOTION_C", "dtL", "motID", "motMODE"],
@@ -425,7 +424,6 @@ GP_EXTERNS = {
     "Think3area": ["Me_THINK_C", "Distance", "SR", "Attrib", "Degree"],
     "create_ninken_character_": ["NINKEN_CHARACTER_PTR"],
     "spread_blood_pool_": ["BLOOD_POOL_MODEL_"],
-    "debug_output_edit_camera_settings": ["DEBUG_PAD_HELD_", "DEBUG_PAD_PRESS_", "DEBUG_CAMERA_INDEX_", "DEBUG_CAMERA_BASE_"],
 }
 
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
@@ -435,7 +433,7 @@ MASPSX_EXTRA = {
     "ACTION": ["--expand-div"],
     "3DCTRL": ["--expand-div"],
     "UpdateTexScroll": ["--expand-div"],
-    "MakeDifSub": ["--expand-div"],
+    "CAMERA": ["--expand-div"],
     "DrawFlyWire": ["--expand-div"],
     "DrawBleed": ["--expand-div"],
     "DrawFrame": ["--expand-div"],
@@ -481,7 +479,6 @@ MASPSX_EXTRA = {
     "Think3attack": ["--expand-div"],
     "DrawSplash": ["--expand-div"],
     "SetFlyWire": ["--expand-div"],
-    "camera_terrain_pitch_": ["--expand-div"],
     "ArrangeLocalMatrix": ["--expand-div"],
     "spawn_smoke_burst_": ["--expand-div"],
     "ActDEAD": ["--expand-div"],

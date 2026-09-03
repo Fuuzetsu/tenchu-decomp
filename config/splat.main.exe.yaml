@@ -122,8 +122,7 @@ segments:
       - [0xE58, data]
       - { start: 0x1018, type: .rodata, name: APPEAR, linker_section_order: .data }
       - [0x1160, data]
-      - { start: 0x13E0, type: .rodata, name: CameraType1, linker_section_order: .data }
-      - { start: 0x1450, type: .rodata, name: SetCameraMode, linker_section_order: .data }
+      - { start: 0x13E0, type: .rodata, name: CAMERA, linker_section_order: .data }
       - [0x1490, data]
       - { start: 0x199C, type: .rodata, name: WORLD, linker_section_order: .data }
       - [0x19CC, data]
@@ -265,19 +264,7 @@ segments:
       - [0x1F198, c, Think1sleep]
       - [0x1F224, c, THINK_2]
       - [0x1F2BC, c, SuccessionAttack]
-      - [0x1F3C8, c, SnapCameraTargetVector]
-      - [0x1F59C, c, camera_terrain_pitch_]
-      - [0x1F8B4, c, MakeDifSub]
-      - [0x1FB90, c, AntiWall]
-      - [0x1FE44, c, push_from_walls_]
-      - [0x1FF6C, c, debug_output_edit_camera_settings]
-      - [0x201E0, c, MakeCameraPosition]
-      - [0x20474, c, CameraType1]
-      - [0x20EB8, c, SetCameraMode]
-      - [0x211F8, c, Camera]
-      - [0x21470, c, CameraDirection]
-      - [0x217CC, c, initialise_default_player_cameras_]
-      - [0x21888, c, MakeDif]
+      - [0x1F3C8, c, CAMERA]
       - [0x21984, c, InitEffect]
       - [0x21D0C, c, DrawTargetS]
       - [0x21E10, c, UpdateTexScroll]

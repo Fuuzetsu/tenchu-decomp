@@ -518,6 +518,36 @@
         "SetupTelop",
         "DrawTelop"
       ]
+    },
+    {
+      "source": "CAMERA.C",
+      "functions": [
+        "SnapCameraTargetVector",
+        "camera_terrain_pitch_",
+        "MakeDifSub",
+        "AntiWall",
+        "push_from_walls_",
+        "debug_output_edit_camera_settings",
+        "MakeCameraPosition",
+        "CameraType1",
+        "SetCameraMode",
+        "Camera",
+        "CameraDirection",
+        "initialise_default_player_cameras_",
+        "MakeDif"
+      ],
+      "debug_symbol_order": [
+        "SetCameraMode",
+        "QuakeCamera",
+        "SnapCameraTargetVector",
+        "MakeDifSub",
+        "MakeDif",
+        "AntiWall",
+        "MakeCameraPosition",
+        "CameraType1",
+        "Camera",
+        "CameraDirection"
+      ]
     }
   ]
 }
