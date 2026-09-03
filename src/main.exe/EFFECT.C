@@ -2073,13 +2073,10 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
     RotTrans(local_position, &world_position, transform_flags);
 
     {
-        int gore_index;
         TEffectSlot *gore_slot;
-        int gore_slots_searched;
         BloodType *gore;
 
-        FIND_EFFECT_SLOT(gore_index, gore_slots_searched, gore_slot, gore_found);
-    gore_found:
+        gore_slot = GetFreeEffectSlot();
         gore = &gore_slot->param.blood;
         gore->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
         gore->scale = GORE_INITIAL_SCALE;
@@ -2102,9 +2099,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
 
     if (impact_phase == 0)
     {
-        int impact_index;
         TEffectSlot *impact_slot;
-        int impact_slots_searched;
         ImpactType *impact;
         long impact_pz;
         long start_color;
@@ -2115,9 +2110,7 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
         impact_position.vx = local_position->vx;
         impact_position.vy = local_position->vy;
         impact_position.vz = local_position->vz;
-        FIND_EFFECT_SLOT(impact_index, impact_slots_searched,
-                         impact_slot, impact_found);
-    impact_found:
+        impact_slot = GetFreeEffectSlot();
         impact_slot->proc = DrawImpact;
         impact_slot->param.impact.px = impact_position.vx;
         impact = &impact_slot->param.impact;
