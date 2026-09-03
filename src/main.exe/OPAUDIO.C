@@ -13,8 +13,6 @@ extern void SsSetSerialAttr(u8 a, u8 b, u8 c);
 extern void SsSetSerialVol(u8 a, u8 voll, u8 volr);
 extern void cd_control(u8 command, u8 *param, u8 *result);
 extern void CdaStop(void);
-extern void VSync(s32 mode);
-extern void VSyncCallback(void (*func)(void));
 extern s32 CdaReady(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

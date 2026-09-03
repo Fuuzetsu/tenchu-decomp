@@ -20,7 +20,6 @@ extern RECT BriefingVramRect[];
 extern void SsSetMono(void);
 extern void SsSetStereo(void);
 extern void SelectStage(TLinkInfo *ps);
-extern void ResetCallback(void);
 extern void InitFileSystem(file_read_mode mode);
 extern void InitAccessInfo(void);
 extern void InitConflict(void);

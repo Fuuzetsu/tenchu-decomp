@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "adt.h"
 
-extern s32 VSync(s32 mode);
-
 extern char str_select_item_2[]; /* select item */
 extern char fmt_count_pair[];    /*  (%d/%d) */
 extern char fmt_str[];           /* %s */

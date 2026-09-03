@@ -34,7 +34,6 @@ extern char msg_no_image_pack_data[]; /* NO IMAGE PACK DATA */
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void GsSetNearClip(s32 near);
-extern s32 VSync(s32 mode);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 

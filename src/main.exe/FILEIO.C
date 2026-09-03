@@ -25,7 +25,6 @@ extern char path_tenchu_data[];      /* TENCHU\\DATA */
 extern char path_demo_loading_tim[];  /* K:\WORK\CDIMAGE\DEMO\loading.tim */
 extern char path_demo_load_ten_tim[]; /* K:\WORK\CDIMAGE\DEMO\load_ten.tim */
 
-extern void VSyncCallback(void (*f)(void));
 extern TAFSFileHandle *AfsOpen(TAFS *handle, char *path);
 extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
 extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);
@@ -46,7 +45,6 @@ extern void SsQuit(void);
 extern void PadStopCom(void);
 extern void MemCardStop(void);
 extern void MemCardEnd(void);
-extern void StopCallback(void);
 extern void set_boot_exec_(u8 *file, u32 stack, u32 size);
 extern void run_exec_file(u8 *name, u32 stack, u32 size);
 

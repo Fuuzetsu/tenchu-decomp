@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern int VSync(int mode);
-
 void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length)
 {
     CdDataSector sectorBuf;

@@ -37,4 +37,17 @@
 #define PADstart PADh
 #define PADselect PADk
 
+int CheckCallback(void);
+void PadInit(int mode);
+u_long PadRead(int id);
+void PadStop(void);
+int ResetCallback(void);
+int RestartCallback(void);
+int StopCallback(void);
+int VSync(int mode);
+int VSyncCallback(void (*callback)(void));
+int VSyncCallbacks(int channel, void (*callback)(void));
+long GetVideoMode(void);
+long SetVideoMode(long mode);
+
 #endif

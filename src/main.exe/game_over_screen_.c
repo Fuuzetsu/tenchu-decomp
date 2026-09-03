@@ -86,7 +86,6 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
 extern char fmt_arc[];                    /* %s%s%c.Arc */
 extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
-extern s32 VSync(s32 mode);
 extern BackGround *load_background_(u_long *tim);
 /* Retail declares shade as s16 here; tile_sprite_ defines it as u16. */
 extern void tile_sprite_(Sprite3D *sprite, s16 shade);
