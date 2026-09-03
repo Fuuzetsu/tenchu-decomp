@@ -831,7 +831,9 @@ void AVCameraControl(void)
             ry = base_angle - speed;
         }
         GetMoveSpeed(&vect, ry, len, 0);
-        goto apply_eye_xz;
+        ViewInfo.vpx = ViewInfo.vrx + vect.vx;
+        ViewInfo.vpz = ViewInfo.vrz + vect.vz;
+        break;
     case CAMERA_PAN_UP:
     case CAMERA_PAN_DOWN:
         ViewInfo.vpy += (CameraPanMode == CAMERA_PAN_UP)
@@ -849,8 +851,6 @@ void AVCameraControl(void)
             len += CameraSpeed;
         }
         GetMoveSpeed(&vect, ry, len, 0);
-
-    apply_eye_xz:
         ViewInfo.vpx = ViewInfo.vrx + vect.vx;
         ViewInfo.vpz = ViewInfo.vrz + vect.vz;
         break;
