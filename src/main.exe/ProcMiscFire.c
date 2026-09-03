@@ -18,13 +18,8 @@
  *     stack sp+24     struct VECTOR pos
  * END PSX.SYM */
 
-extern SVECTOR svec_y_n35[];
-
 void ProcMiscFire(TMisc *m, TMiscMessage msg)
 {
-    SVECTOR vec;
-    VECTOR pos;
-
     switch (msg)
     {
     case MM_CREATE:
@@ -43,7 +38,13 @@ void ProcMiscFire(TMisc *m, TMiscMessage msg)
         m->count--;
         if (m->count < 1)
         {
-            vec = svec_y_n35[0];
+            SVECTOR vec = {
+                .vx = 0,
+                .vy = -35,
+                .vz = 0
+            };
+            VECTOR pos;
+
             pos.vx = m->x;
             pos.vy = m->y;
             pos.vz = m->z;

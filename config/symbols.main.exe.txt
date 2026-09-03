@@ -3646,7 +3646,6 @@ svec_z_150 = 0x80097B14;
 SelectedItem = 0x80097b1e;
 ItemCursor = 0x80097b20;
 Misc_fInitial = 0x80097c44;
-svec_y_n35 = 0x80097C48;
 svec_y_n60_2 = 0x80097C50;
 StagePlayer = 0x80097c60;
 StageTime = 0x80097c64;
