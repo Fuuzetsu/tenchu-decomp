@@ -2948,8 +2948,7 @@ void ActCHASE(void)
             if (Me_MOTION_C->attribute & ATTR_LEDGE)
             {
                 SET_MOTION(MOT_STATE_CLIMB, MOTION_MOVE_NONE);
-                SET_NOW_MOTION_UNLESS_CVA(goto motion_ready);
-            motion_ready:
+                SetNowMotionUnlessCva();
                 MoveHumanoid(Me_MOTION_C, 35, 0);
                 if (dtM->mode & MOTION_MODE_CLIMB_ALTERNATE)
                 {
