@@ -67,8 +67,6 @@ typedef struct
 extern Humanoid *Me_MOTION_C;
 extern Humanoid *DeadHumanoid;
 extern DeadEvent *DeadEvents[N_STEALTH_DEATH_MOTIONS];
-extern SVECTOR svec_y_n200_z_n240[];
-
 extern s32 rand(void);
 extern void *memset(void *dst, s32 value, u32 size);
 extern s16 PlayMotion(MotionManager *motion, s16 mode);
@@ -259,7 +257,11 @@ ordinary_dead:
 blood_effect:
     if ((dtM->count & 4) && blood != -1)
     {
-        gore_position = svec_y_n200_z_n240[0];
+        gore_position = (SVECTOR){
+            .vx = 0,
+            .vy = -200,
+            .vz = -240
+        };
         memset(&gore_velocity, 0, sizeof(gore_velocity));
         gore_velocity.vy = -blds;
         gore_velocity.vz = -bldo;

@@ -3593,7 +3593,6 @@ MotionPack = 0x800976f8;
 PlayerMotion = 0x80097700;
 SplineFracOld = 0x80097708;
 DeadHumanoid = 0x8009770C;
-svec_y_n200_z_n240 = 0x8009771C;
 Humans = 0x80097724;
 VISIBLE_ENEMIES_ = 0x80097726;
 NowStage = 0x800979a0;
