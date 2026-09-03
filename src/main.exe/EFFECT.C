@@ -2305,15 +2305,12 @@ static void DrawExplosion(TEffectSlot *ef)
 
 void SetExplosion(VECTOR *pos, SVECTOR *vect)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     ExplosionType *param;
     int r;
     short vz;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     param = &slot->param.explosion;
     param->scale = FIXED_ONE;
     r = rand();
