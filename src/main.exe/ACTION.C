@@ -412,24 +412,23 @@ void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
             key = next;
         } while (next->time < cnt);
         spc->key0 = next - 1;
+        UpdateSplineControl(spc);
     }
     else
     {
         key = spc->key0;
-        if (key->time <= cnt)
+        if (key->time > cnt)
         {
-            goto skip;
+            do
+            {
+                next = key - 1;
+                spc->key0 = next;
+                key = next;
+            } while (cnt < next->time);
+            spc->key1 = next + 1;
+            UpdateSplineControl(spc);
         }
-        do
-        {
-            next = key - 1;
-            spc->key0 = next;
-            key = next;
-        } while (cnt < next->time);
-        spc->key1 = next + 1;
     }
-    UpdateSplineControl(spc);
-skip:
     SplineFrac = (s16)(((cnt - spc->key0->time) * SPLINE_FRACTION_SCALE) /
                        (spc->key1->time - spc->key0->time));
     if ((s32)SplineFracOld != (s32)SplineFrac)
