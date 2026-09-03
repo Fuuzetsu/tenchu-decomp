@@ -4847,7 +4847,7 @@ void ProcItemFire(TItem *item)
                 PARAM_ITEM_STAY *saved;
                 PARAM_ITEM_LAUNCH *launch;
 
-                memset(&rparam, 0, sizeof(PARAM_ITEM_STAY));
+                rparam = (PARAM_ITEM_STAY){0};
                 rparam.type = item->type;
                 rparam.locate.vx = model->locate.coord.t[0];
                 rparam.locate.vy = model->locate.coord.t[1];
