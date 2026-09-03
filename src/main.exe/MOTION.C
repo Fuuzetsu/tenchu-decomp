@@ -3827,8 +3827,7 @@ dispatch:
         CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         dtM->mask = MOTION_MASK_ALL;
-        SET_NOW_MOTION_UNLESS_CVA(goto align_rotation);
-    align_rotation:
+        SetNowMotionUnlessCva();
         dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy -
                     dtM->motion->rotate[MODEL_PART_WAIST]->y);
         is_player = Me_MOTION_C == StagePlayer;
