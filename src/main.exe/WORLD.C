@@ -605,7 +605,6 @@ short LoadConstruction(u_long *data)
     unsigned char name[256];
     SVECTOR center;
     PARAM_ITEM_STAY param;
-    PARAM_ITEM_STAY tmp;
     int size;
 
     ObjectID = 0;
@@ -761,7 +760,9 @@ short LoadConstruction(u_long *data)
                 break;
 
             case WLD_RECORD_ITEM:
-                memset(&tmp, 0, sizeof(tmp));
+            {
+                PARAM_ITEM_STAY tmp = {0};
+
                 tmp.type = wlddt[i].id;
                 tmp.locate.vx = wlddt[i].real.placement.transform.x;
                 tmp.locate.vy = wlddt[i].real.placement.transform.y;
@@ -769,6 +770,7 @@ short LoadConstruction(u_long *data)
                 param = tmp;
                 ReqItemStay(&param);
                 break;
+            }
             }
             i++;
         }
