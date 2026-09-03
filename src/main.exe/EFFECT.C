@@ -3899,14 +3899,11 @@ void SetSplash(VECTOR *pos, short sx, short sy, int speed)
 
 void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     BleedType *param;
     u8 r;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     param = &slot->param.bleed;
     r = col >> 16;
     slot->param.bleed.pos = *pos;
