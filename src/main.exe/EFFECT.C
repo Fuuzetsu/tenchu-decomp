@@ -3820,14 +3820,11 @@ void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
 
 void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
 {
-    int idx;
-    int count;
     TEffectSlot *slot;
     SnowParticleType *particle;
     s16 vz;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     slot->param.snow.x = pos->vx;
     particle = &slot->param.snow;
     particle->y = pos->vy;
