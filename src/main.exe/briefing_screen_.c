@@ -27,8 +27,6 @@ extern DemoScreenAssets BriefingAssets[N_LANGUAGES][N_STAGE_CONFIGS];
 extern s16 BriefingLimit[N_LANGUAGES][N_STAGE_CONFIGS];
 extern s16 StageScrollAdj[N_LANGUAGES][N_STAGE_CONFIGS];
 
-extern void draw_shade_quad_(void *ot, s32 r, s32 g, s32 b);
-
 static inline void TimToDemoSprite(u_long *file, GsIMAGE *image,
                                    GsSPRITE *sprite)
 {

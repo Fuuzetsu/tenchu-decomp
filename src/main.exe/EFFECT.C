@@ -3577,7 +3577,7 @@ end:
     PutDrawEnv(&o_draw);
 }
 
-void draw_shade_quad_(void *ot, s8 r, s8 g, s8 b)
+void draw_shade_quad_(void *ot, s32 r, s32 g, s32 b)
 {
     POLY_XF4 *ply;
 

@@ -454,6 +454,7 @@ void set_impact_ex_(VECTOR *position, GsCOORDINATE2 *parent,
                     enum impact_sprite type);
 
 void FadeOutDirect(short time, short attribute, u8 r, u8 g, u8 b);
+void draw_shade_quad_(void *ordering_table, s32 r, s32 g, s32 b);
 void clear_screen_(void);
 void set_fade_(u8 r, u8 g, u8 b, long priority);
 void DrawTargetS(long x, long y, long z, long color);
