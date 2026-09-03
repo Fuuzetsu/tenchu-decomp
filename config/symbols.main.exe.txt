@@ -3630,7 +3630,6 @@ svec_y_n100 = 0x80097ABC;
 StageID = 0x80097ac4;
 Item_fInitial = 0x80097ac8;
 ic = 0x80097acc;
-svec_y_n250 = 0x80097AD8;
 NingyoCount = 0x80097AE0;
 svec_y_n25 = 0x80097AE4;
 HenshinItem = 0x80097AEC;

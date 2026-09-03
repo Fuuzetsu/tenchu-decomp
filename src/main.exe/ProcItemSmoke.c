@@ -34,8 +34,6 @@
 
 #include "item.h"
 
-extern SVECTOR svec_y_n250[];
-
 extern void MoveKorogari(TItem *item, param_korogari *pp);
 
 void ProcItemSmoke(TItem *item)
@@ -96,7 +94,11 @@ void ProcItemSmoke(TItem *item)
         if ((param->count & 1) == 0)
         {
             {
-                SVECTOR vec = svec_y_n250[0];
+                SVECTOR vec = {
+                    .vx = 0,
+                    .vy = -250,
+                    .vz = 0
+                };
                 VECTOR pos = {
                     .vx = item->locate->locate.coord.t[0],
                     .vy = item->locate->locate.coord.t[1],
