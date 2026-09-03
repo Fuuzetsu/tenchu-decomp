@@ -11,25 +11,23 @@ extern void ChangeClearPAD(long mode);
  * handlers, return 1) — the patched pad path calls it directly instead
  * of the BIOS StartPAD2 stub. Invented name. */
 extern void kernel_start_pad_(void);
-extern void InitPAD2(u_long a, u_long b, u_long c, u_long d);
+extern void InitPAD2(char *buf0, long len0, char *buf1, long len1);
 
 extern s32 PadInitFlag;
 
-void InitPAD(u_long a, u_long b, u_long c, u_long d)
+long InitPAD(char *buf0, long len0, char *buf1, long len1)
 {
-    int new_var;
-
     _remove_ChgclrPAD();
     EnterCriticalSection();
     _patch_pad();
     ExitCriticalSection();
     ChangeClearPAD(0);
     kernel_start_pad_();
-    InitPAD2(a, b, c, d);
-    new_var = 1;
-    PadInitFlag = new_var;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
+    InitPAD2(buf0, len0, buf1, len1);
+    PadInitFlag = 1;
+    /* Keeps the flag store in the function body under the original scheduler. */
     do
     {
     } while (0);
+    return 1;
 }
