@@ -2368,7 +2368,7 @@ found:
 
 /* Originally static in EFFECT.C; global here because SetHinoko is split into
  * a separate translation unit and stores this function's address. */
-void DrawHinoko(TEffectSlot *ef)
+static void DrawHinoko(TEffectSlot *ef)
 {
     enum
     {
