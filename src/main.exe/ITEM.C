@@ -262,18 +262,19 @@ void RestoreItemLayout(void *buf)
                         if (level != sentinel &&
                             abs(level - param.locate.vy) < 1000)
                         {
-                            goto search_success;
+                            param.locate.vx = x;
+                            param.locate.vz = z;
+                            break;
                         }
                         offs += 2;
                         k++;
                         continue;
                     }
-                search_check:
-                    if (k == 4)
-                    {
-                        goto skip_stay;
-                    }
                     break;
+                }
+                if (k == 4)
+                {
+                    goto skip_stay;
                 }
             }
             param.locate.vy = level;
@@ -283,11 +284,6 @@ void RestoreItemLayout(void *buf)
         slot++;
         i++;
         continue;
-
-    search_success:
-        param.locate.vx = x;
-        param.locate.vz = z;
-        goto search_check;
     }
 }
 
