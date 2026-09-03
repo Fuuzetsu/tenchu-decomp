@@ -46,9 +46,11 @@ ABSOLUTE_SYMBOL_RE = re.compile(
     r"^\s*([A-Za-z_.$][A-Za-z0-9_.$]*)\s*=\s*"
     r"(0[xX][0-9A-Fa-f]+);\s*(?:[#].*)?$"
 )
+# A source filename need not be a C identifier: the original 3DCTRL.C starts
+# with a digit. Combined units are anchored with their first function below.
 GAME_INPUT_RE = re.compile(
     r"^(?P<indent>\s*)\S*/main\.exe/"
-    r"(?P<name>[A-Za-z_][A-Za-z0-9_]*)\.c\.o\(\.text\);\s*$"
+    r"(?P<name>[A-Za-z0-9_]+)\.c\.o\(\.text\);\s*$"
 )
 
 

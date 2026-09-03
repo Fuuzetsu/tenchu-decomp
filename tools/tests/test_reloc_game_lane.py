@@ -63,6 +63,17 @@ SECTIONS
         )
         self.assertNotIn("Sdk = .;", output)
 
+    def test_numeric_unit_stem_uses_first_function_as_anchor(self) -> None:
+        source = self.LINKER.replace("First.c.o", "3DCTRL.c.o")
+        output, anchors = lane.rewrite_linker(source, expected_inputs=2)
+
+        self.assertEqual(anchors, ["InitGraphicsSystem", "StaticLeaf"])
+        self.assertIn(
+            "  InitGraphicsSystem = .;\n"
+            "  .shake/build/main.exe/3DCTRL.c.o(.text);",
+            output,
+        )
+
     def test_requires_expected_complete_inventory(self) -> None:
         with self.assertRaisesRegex(lane.LaneError, "expected 3 game inputs"):
             lane.rewrite_linker(self.LINKER, expected_inputs=3)
