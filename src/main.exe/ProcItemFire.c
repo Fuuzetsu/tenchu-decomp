@@ -44,8 +44,6 @@
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
-
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time);
@@ -198,7 +196,11 @@ void ProcItemFire(TItem *item)
     {
         {
             s32 conflict_id;
-            SVECTOR vec = svec_y_n25[0];
+            SVECTOR vec = {
+                .vx = 0,
+                .vy = -25,
+                .vz = 0
+            };
             VECTOR pos = {
                 .vx = item->locate->locate.coord.t[0],
                 .vy = item->locate->locate.coord.t[1],

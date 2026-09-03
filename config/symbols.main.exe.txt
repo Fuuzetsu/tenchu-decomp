@@ -3629,7 +3629,6 @@ StageID = 0x80097ac4;
 Item_fInitial = 0x80097ac8;
 ic = 0x80097acc;
 NingyoCount = 0x80097AE0;
-svec_y_n25 = 0x80097AE4;
 HenshinItem = 0x80097AEC;
 HenshinCount = 0x80097AF0;
 svec_y_n50 = 0x80097AF4;
