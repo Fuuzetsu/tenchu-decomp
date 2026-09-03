@@ -26,7 +26,6 @@ extern char fmt_num_2[]; /* %d */                                /* "%d" */
 extern char str_select_camera_owner[]; /* select camera owner */ /* "select camera owner" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern void sprintf(char *s, char *fmt, ...);
 
 void SelectCameraOwnerOption(void)
 {

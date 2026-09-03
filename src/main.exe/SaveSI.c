@@ -67,8 +67,6 @@ extern char msg_card_error[];     /* "card error %d" */
 extern char msg_create_error[];   /* "file create error %d" */
 extern char msg_write_error[];    /* "file write error %d" */
 
-extern void *memcpy(void *dst, const void *src, u32 size);
-extern int sprintf(char *buf, char *fmt, ...);
 extern s32 PCcreat(char *name, s32 mode);
 extern s32 PCwrite(s32 fd, void *data, s32 size);
 extern s32 PCclose(s32 fd);

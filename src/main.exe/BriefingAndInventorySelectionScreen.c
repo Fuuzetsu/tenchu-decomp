@@ -17,7 +17,6 @@ extern ShopItemDefault SHOP_ITEM_DEFAULTS[];
 extern char NUMBER_TIM_PATH[];
 extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
-extern int rand(void);
 extern BackGround *load_background_(u_long *tim);
 extern void exec_process_(int arg);
 extern short DrawBG(BackGround *bg);

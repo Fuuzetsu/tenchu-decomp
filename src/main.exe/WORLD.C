@@ -848,7 +848,6 @@ static short LoadConstruction(u_long *data)
  *     param $a3       long s
  * END PSX.SYM */
 
-extern s32 abs(s32 x);
 
 int IsVisible(s32 x, s32 y, s32 z, s32 s)
 {
@@ -1750,7 +1749,6 @@ void leResetPath(enemy_layout_index id)
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-extern void *memcpy(void *s1, void *s2, u32 n);
 
 void leRestoreEnemyLayout(void *buf)
 {

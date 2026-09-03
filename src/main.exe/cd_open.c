@@ -7,8 +7,6 @@ extern char fmt_cd_file[];             /* %s;1 */
 extern char str_open_out_of_handle[];  /* open:out of handle */
 extern char msg_open_file_not_found[]; /* open:file not found */
 
-extern int sprintf(char *buf, char *fmt, ...);
-extern int puts(char *s);
 
 FILE *cd_open(char *name)
 {

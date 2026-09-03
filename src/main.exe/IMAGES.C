@@ -56,7 +56,6 @@ extern char path_tenchu_trial_exe_1[];    /* cdrom:\\TENCHU\\TRIAL.EXE;1 */
 extern char fmt_bad_process_id[];         /* "bad process id %x" */
 
 extern void CdaStop(void);
-extern int sprintf(char *buf, char *fmt, ...);
 extern void SsSetMVol(int voll, int volr);
 extern void set_cda_volume_(u8 voll, u8 volr);
 extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);

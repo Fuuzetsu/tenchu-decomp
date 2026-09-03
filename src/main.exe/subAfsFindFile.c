@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern int strncmp(const char *a, const char *b, u32 n);
 
 u32 subAfsFindFile(TAFS *handle, char *name, u32 mask)
 {

@@ -55,7 +55,6 @@ extern void CdaStop(void);
 extern void SetupStageSequence(void);
 extern void CVAsetup(void);
 extern void debug_menu_file_animation_test(void);
-extern void sprintf(char *s, char *fmt, ...);
 extern void load_layout(s32 no);
 
 void FileOption(void)

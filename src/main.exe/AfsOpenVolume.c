@@ -3,8 +3,6 @@
 #include "filesystem.h"
 
 extern void AfsInit(TAFS *handle);
-extern u32 strlen(const char *s);
-extern char *strcpy(char *dst, const char *src);
 extern char *strcat(char *dst, const char *src);
 /* Retail calls the one-argument FILE * definition through this stale
  * two-argument int declaration. */

@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern int puts(char *s);
 extern char msg_cd_getsize_invalid_handle[]; /* "cd_getsize:invalid handle" */
 
 int cd_getsize(FILE *f)

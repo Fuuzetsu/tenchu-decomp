@@ -28,7 +28,6 @@
 extern s16 TelopFont[];
 
 extern s16 *Krom2RawAdd(u32 code);
-extern void *memset(void *dst, int value, u32 size);
 
 void SetupTelop(u8 *telop, short line)
 {

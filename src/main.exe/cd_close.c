@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern int puts(char *s);
 extern char msg_close_invalid_handle[]; /* "close:invalid handle" */
 
 int cd_close(FILE *f)

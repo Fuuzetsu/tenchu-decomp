@@ -2,11 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern char *strncpy(char *dst, const char *src, u32 n);
-extern char *strcpy(char *dst, const char *src);
-extern int strncmp(const char *a, const char *b, u32 n);
-extern int sprintf(char *dst, const char *fmt, ...);
-extern int toupper(int c);
 extern char AfsPathFormat[];
 
 static __inline__ void AfsFilenameFixInline(char *path)

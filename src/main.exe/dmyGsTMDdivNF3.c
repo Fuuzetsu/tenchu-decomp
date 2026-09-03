@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern int printf(const char *fmt, ...);
 extern char str_dmyTMDdivNF3[]; /* "TMDdivNF3\n" */
 extern s32 warn_dmyTMDdivNF3;
 

@@ -28,9 +28,6 @@ extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
-extern int sprintf(char *buf, char *fmt, ...);
-extern int strlen(char *s);
-extern char *strcpy(char *dst, const char *src);
 extern short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void LoadTIMpackAndFree(u_long *adr);

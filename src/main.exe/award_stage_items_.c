@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern s32 rand(void);
 
 void award_stage_items_(TLinkInfo *state, ScoreResult *result)
 {

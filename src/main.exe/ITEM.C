@@ -52,7 +52,6 @@ static s32 ic = 0;
 
 extern VECTOR vec_z_n17000;
 
-extern long abs(long x);
 
 static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR *target)
 {

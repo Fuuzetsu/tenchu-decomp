@@ -32,7 +32,6 @@ extern char path_anim[];       /* K:\\WORK\\CDIMAGE\\ANIM\\ */
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void UpdateEvent(s16 n, s16 id);
 extern s16 CVAsequence(s16 sid);
-extern void sprintf(char *s, char *fmt, ...);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

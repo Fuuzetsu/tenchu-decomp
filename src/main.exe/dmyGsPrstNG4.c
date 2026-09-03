@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern int printf(const char *fmt, ...);
 extern char str_dmyPrstNG4[]; /* "PrstNG4\n" */
 extern s32 warn_dmyPrstNG4;
 

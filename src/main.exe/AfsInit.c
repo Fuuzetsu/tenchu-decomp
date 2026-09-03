@@ -4,7 +4,6 @@
 #include "vmemory.h"
 
 extern void AdtMessageBox(char *fmt, ...);
-extern void *memset(void *s, int c, u32 n);
 extern char msg_afsinit_not_enough_memory[]; /* "AfsInit: not enough memory!" */
 
 void AfsInit(TAFS *handle)

@@ -85,7 +85,6 @@ extern char fmt_arc[];                    /* %s%s%c.Arc */
 extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 extern s32 VSync(s32 mode);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern int sprintf(char *buffer, char *format, ...);
 extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 /* Retail declares shade as s16 here; tile_sprite_ defines it as u16. */

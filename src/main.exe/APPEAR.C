@@ -29,8 +29,6 @@ extern char fmt_mad[];                        /* %s%s.MAD */
 extern char fmt_tmd[];                        /* %s%s.TMD */
 extern char path_human_weapon[];              /* K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\ */
 
-extern int strcmp(const char *a, const char *b);
-extern int sprintf(char *dst, const char *fmt, ...);
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

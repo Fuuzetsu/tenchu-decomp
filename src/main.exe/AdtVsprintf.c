@@ -1,8 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern u32 strlen(const char *s);
-extern int sprintf(char *dst, const char *fmt, ...);
 
 int AdtVsprintf(s32 *args, char *dst, u32 size, char *fmt)
 {

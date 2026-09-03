@@ -23,7 +23,6 @@ extern char str_player_select[];   /* player select */
 extern char str_stage_select[];    /* stage select */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern int sprintf(char *buf, char *fmt, ...);
 
 void SelectStage(TLinkInfo *ps)
 {

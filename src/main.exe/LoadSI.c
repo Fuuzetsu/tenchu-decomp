@@ -32,8 +32,6 @@ extern char fmt_card_name[];       /* "%s%d_%s" */
 extern char msg_file_read_error[]; /* "file read error" */
 extern char msg_card_error[];      /* "card error %d" */
 
-extern void *memcpy(void *dst, void *src, u32 n);
-extern void sprintf(char *s, char *fmt, ...);
 extern void AdtMessageBox(char *fmt, ...);
 
 void *LoadSI(enum save_storage storage, u8 *name)

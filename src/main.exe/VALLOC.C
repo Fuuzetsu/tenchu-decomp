@@ -10,9 +10,6 @@
 extern char msg_out_of_memory[];       /* "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n" */
 extern char msg_double_memory_release[]; /* "DOUBLE MEMORY RELEASE" */
 
-extern int sprintf(char *buf, char *fmt, ...);
-extern void *memcpy(void *dst, void *src, u32 n);
-extern void *memset(void *s, int c, u32 n);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

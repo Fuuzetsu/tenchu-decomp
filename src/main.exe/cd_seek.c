@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern int puts(char *s);
 extern char msg_cd_seek_invalid_handle[]; /* "cd_seek:invalid handle" */
 
 int cd_seek(FILE *f, int offset, TSeekMode whence)

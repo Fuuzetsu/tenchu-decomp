@@ -12,9 +12,6 @@
 extern char CardPathFormat[];
 extern char str_sjis_title[];
 
-extern void *memset(void *dst, s32 value, u32 size);
-extern void *memcpy(void *dst, const void *src, u32 size);
-extern int sprintf(char *buf, char *fmt, ...);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

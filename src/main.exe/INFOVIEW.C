@@ -701,7 +701,6 @@ extern s16 CheatSeq[];
 extern s16 ForbiddenCommand[21];
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern s32 memcmp(void *a, void *b, s32 n);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

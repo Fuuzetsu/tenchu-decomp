@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-extern int toupper(int c);
 
 void AfsFilenameFix(char *path)
 {

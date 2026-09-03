@@ -12,7 +12,6 @@
 extern short PlaySE(SoundEffect *se, short pt, long dv);
 extern void DisposeSE(SoundEffect *se);
 extern SoundEffect *SetupSE(u8 *vab);
-extern int sprintf(char *dst, const char *fmt, ...);
 
 extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[N_LANGUAGES];

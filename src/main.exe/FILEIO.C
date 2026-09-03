@@ -40,8 +40,6 @@ extern int PCcreat(char *name, int mode);
 extern int PCwrite(int fd, void *buf, int size);
 extern void PCinit(void);
 extern void cd_init(void);
-extern int strncmp(const char *a, const char *b, u32 n);
-extern int sprintf(char *buf, char *fmt, ...);
 extern void save_pad_analog_(void);
 extern void SsEnd(void);
 extern void SsQuit(void);
