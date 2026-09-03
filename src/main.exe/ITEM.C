@@ -236,9 +236,8 @@ void RestoreItemLayout(void *buf)
             return;
         if (slot->type != ITEM_NONE)
         {
-            PARAM_ITEM_STAY tmp;
+            PARAM_ITEM_STAY tmp = {0};
 
-            memset(&tmp, 0, sizeof(PARAM_ITEM_STAY));
             tmp.type = slot->type;
             tmp.locate = slot->locate;
             param = tmp;
