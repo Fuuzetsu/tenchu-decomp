@@ -12,26 +12,6 @@
 #include "game_globals.h"
 #include "music.h"
 
-/* Commit motID/motMODE to the humanoid unless a cutscene (CVA) currently
- * drives it, in which case the caller leaves through `escape`. */
-#define SET_NOW_MOTION_UNLESS_CVA(escape)                                     \
-    {                                                                         \
-        short i;                                                              \
-                                                                              \
-        if (MotionUpdateMode != 0)                                            \
-        {                                                                     \
-            for (i = 0; i < N_CVA_HUMANS; i++)                                \
-            {                                                                 \
-                if (CVAhuman[i].human == Me_MOTION_C)                         \
-                {                                                             \
-                    escape;                                                   \
-                }                                                             \
-            }                                                                 \
-        }                                                                     \
-        SetNowMotion(Me_MOTION_C, motID, motMODE);                            \
-        motMODE = MOTION_MOVE_UNSET;                                          \
-    }
-
 /* Clamp a >>2 screen depth into [0, DEPTH_LIMIT - 1] for the OT sort;
  * the copy-paste block every sprite-effect renderer carries (macro is
  * reconstruction shorthand, expands to the identical text). */
