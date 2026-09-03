@@ -3284,8 +3284,6 @@ void DrawShadow(Humanoid *human)
              human->motion->mid == MOT_ATTACK_DIVE_LAND) &&
             human->map.height == 0 && (GameClock & 1) != 0)
         {
-            s32 idx;
-            s32 count;
             TEffectSlot *slot;
             SplashType *param;
             s32 z;
@@ -3304,8 +3302,7 @@ void DrawShadow(Humanoid *human)
                 position->vz += rand() % 200 - 100;
             }
 
-            FIND_EFFECT_SLOT(idx, count, slot, found);
-        found:
+            slot = GetFreeEffectSlot();
             param = &slot->param.splash;
             param->px = position->vx;
             param->py = position->vy;
