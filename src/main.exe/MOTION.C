@@ -20,9 +20,7 @@
 
 extern Humanoid *Me_MOTION_C;
 extern MapVector map;
-extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
-extern s32 PlayerSSR;
 extern s32 StickonItem;
 
 short SwimCheck(void);

@@ -18,7 +18,6 @@
  */
 
 extern s32 StageTime;
-extern s32 AttackActionCount;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern ScoreResult STAGE_SCORE_COMPONENTS;
 

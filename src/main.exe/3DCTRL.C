@@ -19,7 +19,6 @@
  */
 
 extern GsOT_TAG ZSortTable[N_DRAW_PAGES][N_OT_TAGS];
-extern s32 DepthPoint;
 extern s32 SlightPoint;
 extern u8 Packet[][PACKET_PAGE_SIZE];
 extern u32 PacketUsed;

@@ -13,7 +13,6 @@
  * retail order, with both orders recorded in the translation-unit manifest.
  */
 
-extern s16 ARMOUR_EQUIPPED_;
 extern character_kind smode;
 extern s16 sstage;
 extern u8 str_rikimaua[];                     /* RIKIMAUA */

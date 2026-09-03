@@ -65,7 +65,6 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-extern s32 DepthPoint;
 extern u8 *TITLE_SPRITES_PTRS[N_LANGUAGES];
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char fmt_illigal_stage_id[]; /* illigal stage id %d */

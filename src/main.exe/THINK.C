@@ -173,8 +173,6 @@ enum think4_search_timing
 extern s32 ProbeLevelLow;
 extern s32 ProbeLevelHigh;
 extern u16 ProbeAttrib[2];
-extern s32 PlayerSSR;
-
 /* Retail declares the pressed word as s16 here; the definition uses u16. */
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
 

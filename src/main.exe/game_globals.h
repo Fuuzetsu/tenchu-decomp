@@ -57,6 +57,9 @@ extern short StageEnemies;
 extern short StageCitizens;
 /* Retail adds this halfword counter beside the PSX.SYM-recorded set. */
 extern short StageBosses;
+extern s16 ARMOUR_EQUIPPED_;
+extern s32 PlayerSSR;
+extern s32 AttackActionCount;
 /* SearchTarget result/state code (-2..2), not a distance. The value
  * names are invented from the return contexts: */
 enum
