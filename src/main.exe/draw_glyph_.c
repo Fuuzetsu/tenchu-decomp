@@ -46,15 +46,12 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
     img.pw = FONT_GLYPH_WIDTH;
     img.ph = FONT_GLYPH_HEIGHT;
     img.py += row * FONT_GLYPH_HEIGHT;
-    if (raw - FONT_UPPER_BLOCK_FIRST < FONT_CODE_BLOCK_SIZE)
+    if (raw - FONT_UPPER_BLOCK_FIRST < FONT_CODE_BLOCK_SIZE &&
+        raw != FONT_NUDGE_EXEMPT)
     {
         nudge = FONT_NUDGE_UPPER;
-        if (raw != FONT_NUDGE_EXEMPT)
-        {
-            goto nudge_done;
-        }
     }
-    if (raw - FONT_EXTENDED_BLOCK_FIRST < FONT_CODE_BLOCK_SIZE)
+    else if (raw - FONT_EXTENDED_BLOCK_FIRST < FONT_CODE_BLOCK_SIZE)
     {
         nudge = FONT_NUDGE_EXTENDED;
         if (raw == FONT_RAISED_CODE)
@@ -66,7 +63,6 @@ void draw_glyph_(void *ot, short x, short y0, u32 code)
     {
         nudge = FONT_NUDGE_NONE;
     }
-nudge_done:
     {
         short y = y0 + nudge;
         s32 y_arg = y;
