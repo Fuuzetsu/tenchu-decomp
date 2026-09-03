@@ -309,17 +309,14 @@ void UpdateTexScroll(TEffectSlot *ef)
 
 void SetupTexScroll(GsIMAGE *img, short vx, short vy)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     TexScroll *tscr;
     s16 scrollX;
     short scrollY;
     short j;
     short i;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
 {
     u32 scrollYShifted;
     int sx;
