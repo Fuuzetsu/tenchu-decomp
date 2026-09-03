@@ -269,34 +269,31 @@ void ProcItemNinken(TItem *item)
         {
             goto expire;
         }
-        if ((slave->attribute & ATTR_SUSPEND) == 0)
+        if ((slave->attribute & ATTR_SUSPEND) != 0)
         {
-            goto active;
-        }
-
-    expire:
-    {
-        SVECTOR vec;
-
-        vec = svec_y_n50[0];
-        SetSmoke(MODEL_POSITION(param->slave->model),
-                 &vec, 10, 6);
-        SoundEx(MODEL_POSITION(param->slave->model), SE_SMOKE_PUFF);
-        TurnAroundAllItems(param->slave);
+        expire:
         {
-            void (*dispose_proc)(TItem *);
+            SVECTOR vec;
 
-            dispose_proc = item->proc;
-            if (dispose_proc == 0)
+            vec = svec_y_n50[0];
+            SetSmoke(MODEL_POSITION(param->slave->model),
+                     &vec, 10, 6);
+            SoundEx(MODEL_POSITION(param->slave->model), SE_SMOKE_PUFF);
+            TurnAroundAllItems(param->slave);
             {
+                void (*dispose_proc)(TItem *);
+
+                dispose_proc = item->proc;
+                if (dispose_proc == 0)
+                {
+                    return;
+                }
+                DISPOSE_ITEM(item);
                 return;
             }
-            DISPOSE_ITEM(item);
-            return;
         }
     }
 
-    active:
     {
         s32 owner_attribute;
         Humanoid *target;
