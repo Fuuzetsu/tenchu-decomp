@@ -103,8 +103,8 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
     if ((u32)size > sizeof(block.payload))
     {
         AdtMessageBox(msg_size_too_large);
-        goto done;
     }
+    else
     {
         u8 *icon3;
         u8 *icon2;
@@ -250,14 +250,16 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
             create_result != CARD_RESULT_FILE_EXISTS)
         {
             msg = msg_create_error;
-            goto done;
         }
-        memcpy(data, mem, size);
-        MemCardWriteFile(chan, (char *)fn, &block, 0, sizeof(block));
-        MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
-        if (result != CARD_RESULT_SUCCESS)
+        else
         {
-            msg = msg_write_error;
+            memcpy(data, mem, size);
+            MemCardWriteFile(chan, (char *)fn, &block, 0, sizeof(block));
+            MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
+            if (result != CARD_RESULT_SUCCESS)
+            {
+                msg = msg_write_error;
+            }
         }
     }
 
