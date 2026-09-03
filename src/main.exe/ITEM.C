@@ -605,8 +605,6 @@ void MoveKorogari(TItem *item, param_korogari *param)
  *     reg   $a2       struct param_korogari * param
  * END PSX.SYM */
 
-extern void MoveKorogari(TItem *item, param_korogari *param);
-
 static void MoveFly(TItem *item, param_fly *param)
 {
     s32 x, y, z, q, q2, w9, w8, d2, k, nv;
@@ -791,7 +789,6 @@ skip_default:
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern void MoveKorogari(TItem *item, param_korogari *pp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemDrop(TItem *item)
@@ -942,8 +939,6 @@ void ProcItemDrop(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemDrop(TItem *item);
-
 int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -1010,8 +1005,6 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
  * END PSX.SYM */
 
 
-extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
-                                   VECTOR *start, VECTOR *target);
 extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
 
 void ProcSightShot(TItem *item)
@@ -1320,7 +1313,6 @@ void ProcItemTeleport(TItem *item)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void MoveKorogari(TItem *item, param_korogari *pp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemMakibishi(TItem *item)
@@ -1419,8 +1411,6 @@ void ProcItemMakibishi(TItem *item)
  *     extern struct tag_TItem items[30];
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
-
-extern void ProcItemMakibishi(TItem *item);
 
 int ReqItemMakibishi(PARAM_ITEM_DROP *p)
 {
@@ -1744,8 +1734,6 @@ void ProcItemShinsoku(TItem *item)
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-extern void ProcItemShinsoku(TItem *item);
-
 int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -1801,8 +1789,6 @@ int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-
-extern void MoveKorogari(TItem *item, param_korogari *pp);
 
 void ProcItemSmoke(TItem *item)
 {
@@ -1982,8 +1968,6 @@ void ProcItemSmoke(TItem *item)
  *     extern struct tag_TItem items[30];
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
-
-extern void ProcItemSmoke(TItem *item);
 
 int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
 {
@@ -2221,8 +2205,6 @@ void ProcItemKusuri(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemKusuri(TItem *item);
-
 int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -2361,8 +2343,6 @@ void ProcItemKawarimi(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemKawarimi(TItem *item);
-
 int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -2425,7 +2405,6 @@ int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1target(void);
 
@@ -2864,8 +2843,6 @@ void ProcItemDokudango(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemDokudango(TItem *item);
-
 int ReqItemDokudango(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -3047,8 +3024,6 @@ void ProcItemGosin(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemGosin(TItem *item);
-
 int ReqItemGosin(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -3071,7 +3046,6 @@ int ReqItemGosin(PARAM_ITEM_LAUNCH *p)
 
 static u8 NingyoCount = 0;
 
-extern void MoveKorogari(TItem *item, param_korogari *param);
 extern short DrawModel(ModelType *objp);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -3461,8 +3435,6 @@ void ProcItemNingyo(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemNingyo(TItem *item);
-
 int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -3734,8 +3706,6 @@ void ProcItemHenshin(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemHenshin(TItem *item);
-
 int ReqItemHenshin(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -3866,8 +3836,6 @@ void ProcItemGoshikimai(TItem *item)
  *     extern struct tag_TItem items[30];
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
-
-extern void ProcItemGoshikimai(TItem *item);
 
 int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
 {
@@ -4107,8 +4075,6 @@ void ProcItemKaengeki(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemKaengeki(TItem *item);
-
 int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -4162,7 +4128,6 @@ int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 
 extern Humanoid *NINKEN_CHARACTER_PTR;
 
-extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void set_model_hide_(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, TThinkType think);
@@ -4511,8 +4476,6 @@ void ProcItemNinken(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemNinken(TItem *item);
-
 int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -4575,7 +4538,6 @@ int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
 
@@ -4665,10 +4627,6 @@ void ProcItemHappou(TItem *item)
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-extern void ProcItemHappou(TItem *item);
-extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
-                                   VECTOR *start, VECTOR *target);
-extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 extern int rand(void);
 
 int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
@@ -4769,7 +4727,6 @@ int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time);
 extern void reset_alert_duration(void);
@@ -5039,8 +4996,6 @@ void ProcItemFire(TItem *item)
  *     extern struct tag_TItem items[30];
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
-
-extern void ProcItemFire(TItem *item);
 
 int ReqItemFire(PARAM_ITEM_LAUNCH *p)
 {
@@ -5365,7 +5320,6 @@ void ProcItemNemuri(TItem *item)
  *     extern struct Sprite3D *sprSmoke;
  * END PSX.SYM */
 
-extern void ProcItemNemuri(TItem *item);
 int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -5412,9 +5366,6 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  *     extern long GameClock;
  * END PSX.SYM */
-
-extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
-                                   VECTOR *start, VECTOR *target);
 
 void ProcItemLightningBolt(TItem *item)
 {
@@ -5509,8 +5460,6 @@ void ProcItemLightningBolt(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemLightningBolt(TItem *item);
-
 int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -5567,9 +5516,6 @@ found:
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-
-extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
-                                   VECTOR *start, VECTOR *target);
 
 void ProcItemGun(TItem *item)
 {
@@ -5654,8 +5600,6 @@ void ProcItemGun(TItem *item)
         return;
     }
 }
-
-extern void ProcItemGun(TItem *item);
 
 void ReqItemGun(PARAM_ITEM_LAUNCH *p)
 {
@@ -5879,7 +5823,6 @@ void ProcItemNapalm(TItem *item)
  * END PSX.SYM */
 
 
-extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
 extern void reset_alert_duration(void);
@@ -6154,9 +6097,6 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
  *     extern struct ModelType *SyurikenModel;
  * END PSX.SYM */
 
-extern void ProcItemLaunch(TItem *item);
-extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
-
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
@@ -6320,11 +6260,8 @@ void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
  * END PSX.SYM */
 
 
-extern void MoveFly(TItem *item, param_fly *param);
 extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
-extern void ArrangeLocalMatrix(ModelType *model, MATRIX *t);
-
 void ProcItemArrow(TItem *item)
 {
     enum
@@ -6541,11 +6478,6 @@ void ProcItemArrow(TItem *item)
  *     extern struct tag_TItem items[30];
  *     extern struct ModelType *ArrowModel;
  * END PSX.SYM */
-
-extern void ProcItemArrow(TItem *item);
-extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
-                                   VECTOR *start, VECTOR *target);
-extern void SetupFly(param_fly *param, VECTOR *start, VECTOR *end, s32 a4, s32 a5, s32 a6);
 
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
@@ -6874,8 +6806,6 @@ void ProcItemJirai(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemJirai(TItem *item);
-
 int ReqItemJirai(PARAM_ITEM_DROP *p)
 {
     TItem *item;
@@ -7113,34 +7043,6 @@ extern VECTOR vec_y_n120_z_n120[]; /* {0,-120,-120} */
 extern VECTOR vec_z_n4096[];       /* {0,0,-4096} */
 extern VECTOR vec_z_n1000[];       /* {0,0,-1000} */
 extern VECTOR vec_z_n500[];        /* {0,0,-500} */
-
-extern Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
-                                   VECTOR *start, VECTOR *target);
-extern void ProcSightShot(TItem *item);
-extern void ProcKaginawa(TItem *item);
-extern void ProcItemTeleport(TItem *item);
-extern void ProcItemNapalm(TItem *item);
-extern int ReqItemMakibishi(PARAM_ITEM_DROP *p);
-extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemNemuri(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemNingyo(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemNinken(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemHappou(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemFire(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemJirai(PARAM_ITEM_DROP *p);
-extern int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemKusuri(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemGosin(PARAM_ITEM_LAUNCH *p);
-extern void ReqItemGun(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemArrow(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemHenshin(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemManebue(PARAM_ITEM_LAUNCH *p);
 
 int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 {
@@ -7499,9 +7401,6 @@ void TurnAroundAllItems(Humanoid *user)
  *     extern long GameClock;
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
-
-extern void InitializeItem(void);
-extern void UpdateItemState(void);
 
 void DoItemProc(void)
 {
