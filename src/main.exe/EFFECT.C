@@ -3863,13 +3863,10 @@ void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)
 void SetSplash(VECTOR *pos, short sx, short sy, int speed)
 {
     long z;
-    int idx;
     TEffectSlot *slot;
-    int count;
     SplashType *fp;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     slot->param.splash.px = pos->vx;
     fp = &slot->param.splash;
     fp->py = pos->vy;
