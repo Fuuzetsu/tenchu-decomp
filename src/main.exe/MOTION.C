@@ -463,8 +463,7 @@ short HangCheck(void)
     }
     motID = MOT_HANG_CATCH;
     motMODE = MOTION_MOVE_APPLY;
-    SET_NOW_MOTION_UNLESS_CVA(goto found);
-found:
+    SetNowMotionUnlessCva();
     Sound(Me_MOTION_C, SE_LEDGE_GRIP);
     if (StagePlayer != Me_MOTION_C)
     {
