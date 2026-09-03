@@ -9,10 +9,6 @@
  * order, with both orders recorded in the translation-unit manifest.
  */
 
-extern short PlaySE(SoundEffect *se, short pt, long dv);
-extern void DisposeSE(SoundEffect *se);
-extern SoundEffect *SetupSE(u8 *vab);
-
 extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[N_LANGUAGES];
 extern char fmt_stage_vab[]; /* %sSTAGE%d%c.VAB */

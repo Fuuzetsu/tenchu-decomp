@@ -1,6 +1,7 @@
 #ifndef TENCHU_SOUND_H
 #define TENCHU_SOUND_H
 
+#include <types.h>
 #include <psxsdk/libsnd.h>
 
 /* Byte terminator shared by the voice, music-remap, and generic sound-id
@@ -45,6 +46,12 @@ enum
 #define SOUND_SPATIAL_DIRECTION(value) \
     ((value) >> SOUND_SPATIAL_DIRECTION_SHIFT)
 #define SOUND_SPATIAL_VOLUME(value) ((value) & SOUND_VOLUME_MAX)
+
+extern short PlaySE(struct SoundEffect *effect, short sound_id,
+                    long spatial_value);
+extern struct SoundEffect *SetupSE(u8 *vab);
+extern void DisposeSE(struct SoundEffect *effect);
+extern void InitSoundEffect(void);
 
 /* Inferred handles for retail sound slots. None of these names survive in
  * PSX.SYM or the game data; they summarize the gameplay role of each known
