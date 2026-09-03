@@ -3690,31 +3690,35 @@ static s16 SuccessionAttack(s32 dist, s16 deg)
         raw = (int)Degree;
         raw = __builtin_abs(raw);
         t = raw < d;
-        if (t)
-            goto in_range;
+        if (!t)
+        {
+            t = rand();
+            lev = EngageLevel + 1;
+            if (t % lev != 0)
+            {
+                goto ret;
+            }
+        }
     }
-    t = rand();
-    lev = EngageLevel + 1;
-    if (t % lev != 0)
+    else
     {
-        goto ret;
+        t = rand();
+        lev = EngageLevel + 1;
+        if (t % lev != 0)
+        {
+            goto ret;
+        }
     }
-in_range:
     if (Degree > 300)
     {
         buttons = PADLright;
     }
     else
     {
-        buttons |= PADRleft;
         if (Degree < -300)
         {
             /* The signed view keeps PADLleft in addiu's immediate range. */
             buttons = (s16)PADLleft;
-        }
-        else
-        {
-            goto ret;
         }
     }
     buttons |= PADRleft;
