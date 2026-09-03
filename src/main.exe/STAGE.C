@@ -16,7 +16,6 @@
 
 extern s32 StageTime;
 extern s32 AttackActionCount;
-extern long EmergencyNotice;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern ScoreResult STAGE_SCORE_COMPONENTS;
 
@@ -31,7 +30,6 @@ extern char path_anim[];       /* K:\\WORK\\CDIMAGE\\ANIM\\ */
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void UpdateEvent(s16 n, s16 id);
 extern s16 CVAsequence(s16 sid);
-extern void *memset(void *s, s32 c, u32 n);
 extern void vfree(void *p);
 extern void sprintf(char *s, char *fmt, ...);
 

@@ -995,7 +995,6 @@ static void PutMap(void)
  *     extern unsigned char PutMapMode;
  * END PSX.SYM */
 
-extern s16 VISIBLE_ENEMIES_;
 /* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
 extern u8 fInitialize;
 

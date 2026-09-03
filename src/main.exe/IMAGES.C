@@ -54,8 +54,6 @@ extern char path_tenchu_ending_exe_1[];   /* cdrom:\\TENCHU\\ENDING.EXE;1 */
 extern char path_tenchu_trial_exe_1[];    /* cdrom:\\TENCHU\\TRIAL.EXE;1 */
 extern char fmt_bad_process_id[];         /* "bad process id %x" */
 
-extern void *memset(void *s, s32 c, u32 n);
-extern void AdtMessageBox(char *fmt, ...);
 extern void CdaStop(void);
 extern int sprintf(char *buf, char *fmt, ...);
 extern void SsSetMVol(int voll, int volr);

@@ -1201,7 +1201,6 @@ enum construction_draw_geometry
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-extern MATRIX GsWSMATRIX;
 extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
 extern char msg_overload[];
 extern char fmt_objs_d[]; /* objs D%d/%d; */
@@ -1687,7 +1686,6 @@ void leLayoutEnemy(enemy_layout_mode mode)
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-extern void *memset(void *s, s32 c, u32 n);
 
 void leAddPath(enemy_layout_index id, s32 x, s32 y, s32 z)
 {
@@ -1784,7 +1782,6 @@ void leRestoreEnemyLayout(void *buf)
  *     extern struct TEnemyLayout enemy[30];
  * END PSX.SYM */
 
-extern void AdtMessageBox(char *fmt, ...);
 extern char fmt_enemy_storing_size_too[]; /* enemy storing size too small %d/%d */
 
 void lePackEnemyLayout(void *buf, long size)

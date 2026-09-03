@@ -180,12 +180,10 @@ extern s16 Think2confirm(void);
 extern s16 think_alarm_reaction_(void);
 extern s16 Think3firstattack(void);
 extern s16 Think3escape(void);
-extern s16 GotoPosition(s32 vx, s32 vz);
 /* Retail declares the pressed word as s16 here; the definition uses u16. */
 extern s16 update_pressed_buttons(PADtype *pad, s16 pressed);
 extern s16 Think1ninja(void);
 extern s32 remap_buttons_(s16 pad);
-extern s32 rand(void);
 
 void StateTransition(Humanoid *human)
 {

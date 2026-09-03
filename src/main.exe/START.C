@@ -12,7 +12,6 @@
  * main function. The manifest records the distinct retail and demo orders.
  */
 
-extern control_scheme ControlScheme;
 extern char fmt_free_memory[];
 extern RECT BriefingVramRect[];
 
@@ -30,7 +29,6 @@ extern void InitSoundEffect(void);
 extern void DemoPatchInit(void);
 extern void CreateStage(stage_id stage, s32 chr);
 extern void clear_pad_send_(void);
-extern void PadProc(void);
 /* Retail calls the s32-returning definition through an s16 declaration. */
 extern short StageSequence(void);
 extern void StageEndScreen(void);

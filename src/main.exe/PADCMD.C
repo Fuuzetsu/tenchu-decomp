@@ -21,7 +21,6 @@ extern void PadInitDirect(void *buf1, void *buf2);
 extern void PadStartCom(void);
 extern void PadSetMainMode(int port, int mode, int lock);
 extern int VSync(int mode);
-extern void *memset(void *s, int c, u32 n);
 
 extern TPadPort *get_pad_record_(s32 port);
 

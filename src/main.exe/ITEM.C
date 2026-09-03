@@ -194,7 +194,6 @@ void PackItemLayout(void *buf, s32 size)
  * its small-data addressing. */
 extern short DropOffsets[4]; /* {dx,dz} probe pairs x1000 */
 
-extern void *memset(void *s, int c, u32 n);
 
 void RestoreItemLayout(void *buf)
 {
@@ -4627,7 +4626,6 @@ void ProcItemHappou(TItem *item)
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-extern int rand(void);
 
 static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
@@ -7520,7 +7518,6 @@ int ReqItemStay(PARAM_ITEM_STAY *p)
     return 1;
 }
 
-extern void AdtMessageBox(char *fmt, ...);
 extern char fmt_not_support_yet[]; /* not support yet %d */
 
 s32 spare_item_slot_(enum spare_item_slot_operation operation, Humanoid *human)

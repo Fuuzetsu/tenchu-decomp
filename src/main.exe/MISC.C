@@ -20,11 +20,8 @@ extern ModelType *LoadModel(u_long *adr);
 extern void DisposeModel(ModelType *model);
 extern short DrawModel(ModelType *objp);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern short DrawSprite(Sprite3D *sprt);
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
 extern void SetupTexScroll(GsIMAGE *im, short vx, short vy);
-extern void AdtMessageBox(char *fmt, ...);
-extern s32 rand(void);
 
 /*
  * The demo line records order the shared routines as ResetAllMisc, InitMisc,
