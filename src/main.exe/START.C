@@ -20,7 +20,6 @@ extern RECT BriefingVramRect[];
 
 extern void SelectStage(TLinkInfo *ps);
 extern void InitConflict(void);
-extern void InitializeInfoView(void);
 extern void DemoPatchInit(void);
 extern void CreateStage(stage_id stage, s32 chr);
 /* Retail calls the s32-returning definition through an s16 declaration. */
@@ -30,7 +29,6 @@ extern void game_over_screen_(void);
 extern void Camera(void);
 extern void ActivateHumans(void);
 extern void DrawConstruction(void);
-extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);
 extern void BriefingAndInventorySelectionScreen(void);
 

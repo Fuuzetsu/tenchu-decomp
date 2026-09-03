@@ -26,7 +26,6 @@
 
 extern char str_player_option[]; /* player option */ /* "player option" */
 
-extern void debug_menu_player_jump(void);
 extern void StartStageSequence(void);
 
 void PlayerOption(void)

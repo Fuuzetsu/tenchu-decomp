@@ -75,7 +75,6 @@ extern BackGround *load_background_(u_long *data);
 static short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
-extern void ResetInfoview(s32 stage);
 extern void load_layout(s32 layout);
 extern void CVAsetup(void);
 extern void SetupStageSequence(void);

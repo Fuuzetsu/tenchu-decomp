@@ -24,6 +24,25 @@ extern TAdtSelect DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES[5];
 extern TAdtSelect DEBUG_MENU_STAGE_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_PLAYER_CHOICE_OPTIONS[7];
 
+extern int ReqLifeBar(struct Humanoid *human);
+extern void InitializeInfoView(void);
+extern void DoInfoViewProc(void);
+extern void ResetInfoview(int stage);
+extern void CheckCheatCodes(s16 *records, int count);
+extern void DemoPatchInit(void);
+extern void return_to_menu_proc_(void);
+
+extern void LayoutEnemyOption(void);
+extern void FileOption(void);
+extern void PlayerOption(void);
+extern void debug_menu_stage_option(void);
+extern void debug_menu_player_jump(void);
+extern void SelectCameraOwnerOption(void);
+extern void AddEnemy(void);
+extern void return_to_menu_(void);
+
+extern void PutItemIcon(int item_id, short x, short y, short scale);
+extern void PutItemCursor(short x, short y, short size, int rotation_delta);
 /* Retail dropped the demo function's unused fourth parameter. */
 void PutNumber(int x, int y, int value);
 

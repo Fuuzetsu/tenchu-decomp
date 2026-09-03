@@ -135,7 +135,6 @@ static void init_lifebar_(void)
 extern u8 fInitialize;
 
 extern void leResetEnemyLayout(void);
-extern void ResetInfoview(s32 stage);
 
 void InitializeInfoView(void)
 {
@@ -764,7 +763,6 @@ void CheckCheatCodes(s16 *rec, int n)
 
 /* Retail declares s16(s32) here; get_pad_active_ defines u8(s16). */
 extern short get_pad_active_(s32 arg);
-extern void return_to_menu_(void);
 extern short check_cheat_command_(short pad, short trg);
 
 static void PauseProc(void)
@@ -1000,10 +998,6 @@ extern char msg_clear_ok[]; /* "clear ok?" */
 extern char str_select_option[]; /* "select option" */
 extern char str_opt[]; /* "opt" — the effect-menu title */
 
-extern void LayoutEnemyOption(void);
-extern void FileOption(void);
-extern void PlayerOption(void);
-extern void debug_menu_stage_option(void);
 
 static inline void ItemAddMenu(void)
 {
@@ -1202,7 +1196,6 @@ void ResetInfoview(int stage)
     }
 }
 
-extern void return_to_menu_(void);
 
 void return_to_menu_proc_(void)
 {

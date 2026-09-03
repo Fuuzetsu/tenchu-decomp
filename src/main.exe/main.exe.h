@@ -5,6 +5,7 @@
 #include "humanoid.h"
 #include "think.h"
 #include "padcmd.h"
+#include "infoview.h"
 #include "game_globals.h"
 #include "music.h"
 
@@ -323,8 +324,6 @@ extern GsSPRITE KehaiImage[N_KEHAI_IMAGES];
 extern GsSPRITE MapImage;
 extern LifeBarEntry LifeBar[nLifeBar];
 extern TLifeBarStyle LifeBarStyle[N_LIFE_BAR_STYLES];
-extern void PutItemIcon(int ItemID, short x, short y, short scale);
-extern void PutItemCursor(short x, short y, short size, int rotdif);
 extern GsOT *OTablePt;
 /* Double-buffered GPU ordering tables and 64 KiB packet arenas. */
 #define N_DRAW_PAGES 2
