@@ -58,20 +58,20 @@ void PadProc(void)
     if (ct > 0)
     {
         PadShock(PAD_PORT_1, 1,
-                     PadArrange.pow * (PadArrange.attack - ct) /
-                         PadArrange.attack);
+                 PadArrange.pow * (PadArrange.attack - ct) /
+                     PadArrange.attack);
+        PadArrange.time++;
+        return;
     }
-    else
-    {
-        ct += PadArrange.release;
-        if (ct <= 0)
-            goto motor_off;
-        PadShock(PAD_PORT_1, 0,
-                     PadArrange.pow * ct / PadArrange.release);
-    }
-    PadArrange.time++;
-    return;
 
-motor_off:
+    ct += PadArrange.release;
+    if (ct > 0)
+    {
+        PadShock(PAD_PORT_1, 0,
+                 PadArrange.pow * ct / PadArrange.release);
+        PadArrange.time++;
+        return;
+    }
+
     PadShock(PAD_PORT_1, 0, 0);
 }
