@@ -760,10 +760,6 @@ void CheckCheatCodes(s16 *rec, int n)
  *     extern short Findenemies;
  * END PSX.SYM */
 
-/* Retail declares s16(s32) here; get_pad_active_ defines u8(s16). */
-extern short get_pad_active_(s32 arg);
-extern short check_cheat_command_(short pad, short trg);
-
 static void PauseProc(void)
 {
     s16 pad;
@@ -800,7 +796,7 @@ static void PauseProc(void)
         opad = trig;
         if (cur == (PADstart | PADselect))
             return_to_menu_();
-        com = check_cheat_command_(cur, trig);
+        com = (s16)check_cheat_command_(cur, trig);
         /* Motion ids above the taunt (0x713) are the stealth-kill
          * finishers — no cheating mid-finisher. */
         if (CamState.Owner->status == STAT_ATTACK && CamState.Owner->motion->mid > MOT_ATTACK_TAUNT)

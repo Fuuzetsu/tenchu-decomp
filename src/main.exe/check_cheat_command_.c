@@ -2,7 +2,7 @@
 #include "main.exe.h"
 #include "padcmd.h"
 
-s16 check_cheat_command_(u16 buttons, s16 newly_pressed)
+enum cheat_command check_cheat_command_(s16 buttons, s16 newly_pressed)
 {
     s32 combination_index;
     CheatCommandSequence *entry;

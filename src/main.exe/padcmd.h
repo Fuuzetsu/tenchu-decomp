@@ -96,8 +96,11 @@ enum cheat_command
                                * Cir Right Squ Left Cro Down Tri Up */
 };
 
+extern enum cheat_command check_cheat_command_(s16 buttons,
+                                                s16 newly_pressed);
 extern void GetPadXY(short no, short *x, short *y);
 extern short GetPad(short no);
+extern short get_pad_active_(short controller);
 extern pad_command GetCommand(struct PADtype *pad);
 extern short SetCommand(struct PADtype *pad, pad_command cmd);
 extern void ComPad(int port, u8 *report);

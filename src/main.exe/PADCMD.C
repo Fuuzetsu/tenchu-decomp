@@ -349,7 +349,7 @@ short GetPad(short no)
     return *button;
 }
 
-u8 get_pad_active_(short arg0)
+short get_pad_active_(short arg0)
 {
     s32 port = arg0 << 4;
     TPadPort *pad = &PadPort[port >> PAD_PORT_INDEX_SHIFT]
