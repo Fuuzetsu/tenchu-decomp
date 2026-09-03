@@ -71,6 +71,24 @@ static void (*ActionFunc[N_CHARACTER_STATUSES])(void) = {
     ActDEAD
 };
 
+static __inline__ void SetNowMotionUnlessCva(void)
+{
+    short i;
+
+    if (MotionUpdateMode != 0)
+    {
+        for (i = 0; i < N_CVA_HUMANS; i++)
+        {
+            if (CVAhuman[i].human == Me_MOTION_C)
+            {
+                return;
+            }
+        }
+    }
+    SetNowMotion(Me_MOTION_C, motID, motMODE);
+    motMODE = MOTION_MOVE_UNSET;
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -242,8 +260,7 @@ short SwimCheck(void)
             SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
         }
 
-        SET_NOW_MOTION_UNLESS_CVA(goto motion_done);
-    motion_done:
+        SetNowMotionUnlessCva();
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
         reset_alert_duration();
         goto return_one;
