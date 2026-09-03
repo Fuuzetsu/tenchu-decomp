@@ -2352,18 +2352,14 @@ void ActSWIM(void)
             if ((dtPAD & (PADLleft | PADLright)) != 0)
                 turn_swimmer(SWIM_STEER_REVERSE);
             movement_speed = -SWIM_SPEED;
+            MoveHumanoid(Me_MOTION_C, movement_speed, 0);
+            break;
         }
         else
         {
-            goto set_swim_idle;
+            SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
+            break;
         }
-
-        MoveHumanoid(Me_MOTION_C, movement_speed, 0);
-        break;
-
-    set_swim_idle:
-        SET_MOTION(MOT_SWIM, MOTION_MOVE_APPLY);
-        break;
 
     case MOT_SWIM_EXIT:
         if (dtM->count == 1)
