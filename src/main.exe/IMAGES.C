@@ -366,8 +366,8 @@ void PlayVoice(int id)
     CdlLOC end;
 
     __builtin_memcpy(tables, EventVoiceTables, sizeof(tables));
-    memset(&start, 0, sizeof(start));
-    memset(&end, 0, sizeof(end));
+    start = (CdlLOC){0};
+    end = (CdlLOC){0};
 
     if (id >= VOICE_ID_INTRO_BASE)
     {
