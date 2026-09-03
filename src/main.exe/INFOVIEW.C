@@ -133,7 +133,6 @@ extern u8 fInitialize;
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void leResetEnemyLayout(void);
 extern void ResetInfoview(s32 stage);
-extern void init_lifebar_(void);
 
 void InitializeInfoView(void)
 {
@@ -412,9 +411,6 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
  * Globals it touches, as the original declared them:
  *     extern struct INFOVIEW__198fake LifeBar[4];
  * END PSX.SYM */
-
-extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax,
-                       life_bar_style style);
 
 s32 PutLifeBarS(void)
 {
@@ -770,8 +766,6 @@ void CheckCheatCodes(s16 *rec, int n)
 extern short get_pad_active_(s32 arg);
 extern void return_to_menu_(void);
 extern short check_cheat_command_(short pad, short trg);
-extern void CheckCheatCodes(s16 *rec, int n);
-extern void DrawPause(int frame);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 
@@ -1013,20 +1007,11 @@ extern char str_select_option[]; /* "select option" */
 extern char str_opt[]; /* "opt" — the effect-menu title */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
-extern void InitializeInfoView(void);
 extern void LayoutEnemyOption(void);
-extern void AddItem2(void);
 extern void ClearItemLayout(void);
 extern void FileOption(void);
 extern void PlayerOption(void);
 extern void debug_menu_stage_option(void);
-extern void PauseProc(void);
-extern void PutItemList(void);
-extern void PutLifeBar(s32 x, s32 y, s32 life, s32 lifemax,
-                       life_bar_style style);
-extern int PutLifeBarS(void);
-extern void PutStrain(s32 x, s32 y);
-extern void PutMap(void);
 
 static inline void ItemAddMenu(void)
 {
