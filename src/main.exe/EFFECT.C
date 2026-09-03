@@ -981,7 +981,7 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
  *     reg   $s0       struct Sprite3D * spr
  * END PSX.SYM */
 
-void DrawImpact(TEffectSlot *ef)
+static void DrawImpact(TEffectSlot *ef)
 {
     ImpactType *param;
     GsSPRITE *spr;
