@@ -9,7 +9,6 @@
  * order, with both orders recorded in the translation-unit manifest.
  */
 
-extern u8 CHOSEN_LANGUAGE;
 extern char *STAGE_SOUND_PREFICES[N_LANGUAGES];
 extern char fmt_stage_vab[]; /* %sSTAGE%d%c.VAB */
 

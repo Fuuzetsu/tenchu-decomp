@@ -13,9 +13,7 @@ extern char fmt_layout_no[]; /* layout number + kill/spot stats debug dump */
 extern char str_by_rnd[];                          /* "(by rnd.)" */
 extern char EMPTY_STRING[];
 
-extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
-extern u8 CHOSEN_LANGUAGE;
 
 void debug_menu_stage_option(void)
 {

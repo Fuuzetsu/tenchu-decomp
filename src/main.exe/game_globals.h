@@ -35,6 +35,13 @@ extern unsigned char gfMemory;
  * skipped while it is up. No other bit of the byte is used. */
 #define GAME_RETRY_REPLAY 1
 extern unsigned char GameRetry;
+/* Named byte views into PersistentState, retained alongside the structured
+ * TLinkInfo view because the original code accesses both forms directly. */
+extern compact_character_kind CHOSEN_CHARACTER;
+extern compact_stage_id CHOSEN_STAGE;
+extern game_language CHOSEN_LANGUAGE;
+/* STAGE_LAYOUT_NUMBER remains declared at each caller: FileOption's
+ * incomplete-array view is required to reproduce its non-small-data access. */
 extern TSystemFlag SystemFlag;
 /* Retail's MOTION_ID_NONE sentinel is entry 104; the demo table had 78. */
 extern BattleType BattleDB[105];

@@ -19,7 +19,6 @@ typedef struct
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo[]; /* K:\\WORK\\CDIMAGE\\DEMO\\ */
 /* The adjacent retail symbols prove four complete StageConfig language rows. */

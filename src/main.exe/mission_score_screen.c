@@ -18,9 +18,6 @@ typedef struct
     BackGround *background;
 } MissionScoreTail;
 
-extern u8 CHOSEN_CHARACTER;
-extern compact_stage_id CHOSEN_STAGE;
-extern u8 CHOSEN_LANGUAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 
 extern char NUMBER_TIM_PATH[];

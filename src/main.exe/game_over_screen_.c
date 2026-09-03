@@ -81,7 +81,6 @@ enum game_over_state
         }                                                                     \
     } while (0)
 
-extern u8 CHOSEN_CHARACTER;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
 extern char fmt_arc[];                    /* %s%s%c.Arc */

@@ -17,8 +17,6 @@
  * earlier source-line order independently.
  */
 
-extern u8 CHOSEN_LANGUAGE;
-
 /* Retail retains VoiceXaName and adds one filename pointer per localization. */
 extern u8 *VoiceXaName;
 extern u8 *VoiceXaNameF;

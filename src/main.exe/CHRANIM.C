@@ -30,7 +30,6 @@ extern char str_event_test[];      /* event test */
 extern u8 TelopText[];
 extern s16 CVAflag;
 extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
-extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
