@@ -1061,7 +1061,7 @@ void ProcSightShot(TItem *item)
         pos = GetAbsolutePosition(item->locate, 0, 0, 0);
         drop_owner = item->owner;
         itemID = item->type;
-        memset(&param, 0, sizeof(PARAM_ITEM_LAUNCH));
+        param = (PARAM_ITEM_LAUNCH){0};
         param.type = itemID;
         param.user = drop_owner;
         param.start.vx = pos->vx;
