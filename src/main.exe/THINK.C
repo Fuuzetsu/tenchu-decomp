@@ -2352,54 +2352,54 @@ static short AttackShort(void)
         {
             status_raw = (s32)pad;
         }
-        if (status_human->motion->count ==
+        if (status_human->motion->count !=
             BattleDB[status_human->warid].contfrm)
         {
-            goto attack_continue;
-        }
-        attack_result = 0;
-        goto attack_return;
-
-    attack_continue:
-        if (Distance < 2000)
-        {
-            status_degree = Degree;
-            if (status_degree < 0)
-            {
-                status_degree = -status_degree;
-            }
-            if (status_degree < 1000)
-            {
-                goto choose_attack;
-            }
-        }
-        if (rand() % (EngageLevel + 1) != 0)
-        {
-            attack_result = status_raw;
-            goto attack_return;
-        }
-
-    choose_attack:
-        if (Degree > 300)
-        {
-            status_raw = PADLright;
+            attack_result = 0;
         }
         else
         {
-            status_raw |= PADRleft;
-            if (Degree < -300)
+            if (Distance < 2000)
             {
-                status_raw = (s16)PADLleft;
+                status_degree = Degree;
+                if (status_degree < 0)
+                {
+                    status_degree = -status_degree;
+                }
+                if (status_degree >= 1000 &&
+                    rand() % (EngageLevel + 1) != 0)
+                {
+                    attack_result = status_raw;
+                    goto attack_return;
+                }
+            }
+            else if (rand() % (EngageLevel + 1) != 0)
+            {
+                attack_result = status_raw;
+                goto attack_return;
+            }
+
+            if (Degree > 300)
+            {
+                status_raw = PADLright;
             }
             else
             {
-                goto attack_value;
+                status_raw |= PADRleft;
+                if (Degree < -300)
+                {
+                    status_raw = (s16)PADLleft;
+                }
+                else
+                {
+                    goto attack_value;
+                }
             }
-        }
-        status_raw |= PADRleft;
+            status_raw |= PADRleft;
 
-    attack_value:
-        attack_result = status_raw;
+        attack_value:
+            attack_result = status_raw;
+        }
     attack_return:
         return (s16)attack_result;
     }
