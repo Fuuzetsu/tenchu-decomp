@@ -2592,47 +2592,45 @@ void ActKAGI(void)
             u32 quantized;
 
             human = Me_MOTION_C;
-            if ((human->attribute &
-                 (ATTR_PUSH | ATTR_HIT | ATTR_NOFLOOR | ATTR_WALL | ATTR_BUOYANT)) == 0)
+            if (human->attribute &
+                (ATTR_PUSH | ATTR_HIT | ATTR_NOFLOOR | ATTR_WALL | ATTR_BUOYANT))
             {
-                goto make_wire;
-            }
-            root = human->model->object[MODEL_PART_WAIST];
-            rotation = dtR;
-            old_ry = rotation->vy;
-            sum = old_ry + root->rotate.vy;
-            quantized = sum & ANGLE_QUADRANT_MASK;
-            rotation->vy = sum;
-            if (sum & ANGLE_HALF_QUADRANT)
-            {
-                quantized += ANGLE_QUADRANT;
-            }
-            rotation->vy = quantized;
-            /* Retail writes vy before immediately replacing it with the quantized value. */
-            adjust_root = human->model->object[MODEL_PART_WAIST];
-            motID = MOT_STATE_FALL;
-            adjust_root->rotate.vy += old_ry - quantized;
-            motMODE = MOTION_MOVE_NONE;
-            dtM->mask = MOTION_MASK_ALL;
-            SET_NOW_MOTION_UNLESS_CVA(goto motion_active);
+                root = human->model->object[MODEL_PART_WAIST];
+                rotation = dtR;
+                old_ry = rotation->vy;
+                sum = old_ry + root->rotate.vy;
+                quantized = sum & ANGLE_QUADRANT_MASK;
+                rotation->vy = sum;
+                if (sum & ANGLE_HALF_QUADRANT)
+                {
+                    quantized += ANGLE_QUADRANT;
+                }
+                rotation->vy = quantized;
+                /* Retail writes vy before immediately replacing it with the quantized value. */
+                adjust_root = human->model->object[MODEL_PART_WAIST];
+                motID = MOT_STATE_FALL;
+                adjust_root->rotate.vy += old_ry - quantized;
+                motMODE = MOTION_MOVE_NONE;
+                dtM->mask = MOTION_MASK_ALL;
+                SET_NOW_MOTION_UNLESS_CVA(goto motion_active);
 
-        motion_active:
-            dtM->count >>= 1;
-            if (Me_MOTION_C->map.vector != MAP_PROBE_ALL)
-            {
-                dtV->vz = 0;
-                dtV->vx = 0;
+            motion_active:
+                dtM->count >>= 1;
+                if (Me_MOTION_C->map.vector != MAP_PROBE_ALL)
+                {
+                    dtV->vz = 0;
+                    dtV->vx = 0;
+                }
+                else
+                {
+                    dtV->vx >>= 1;
+                    dtV->vz >>= 1;
+                }
+                dtV->vy = 0;
+                return;
             }
-            else
-            {
-                dtV->vx >>= 1;
-                dtV->vz >>= 1;
-            }
-            dtV->vy = 0;
-            return;
         }
 
-    make_wire:
         while (__builtin_abs(v.vx) > KAGI_STEP_MAX || __builtin_abs(v.vy) > KAGI_STEP_MAX ||
                __builtin_abs(v.vz) > KAGI_STEP_MAX)
         {
