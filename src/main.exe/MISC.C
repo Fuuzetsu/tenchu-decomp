@@ -638,38 +638,35 @@ static void ProcMiscPitfall(TMisc *m, TMiscMessage msg)
         int conflict_id;
         int mode;
 
-        /* The promoted temporary selects signed slti after the lbu. */
         mode = m->mode;
-        if (mode != PITFALL_MODE_OPENING)
+        switch (mode)
         {
-            if (mode < PITFALL_MODE_OPEN)
+        case PITFALL_MODE_CLOSED:
+            if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
             {
-                if (mode == PITFALL_MODE_CLOSED)
+                conflict = ConflictObject;
+                conflict_id =
+                    GetConflictResult(param->locate, CONFLICT_NONE);
+                if (conflict[conflict_id].common !=
+                    (void *)CONFLICT_OWNER_DOOR)
                 {
-                    if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
-                    {
-                        /* Preserve the array base across the call. */
-                        conflict = ConflictObject;
-                        conflict_id =
-                            GetConflictResult(param->locate, CONFLICT_NONE);
-                        if (conflict[conflict_id].common !=
-                            (void *)CONFLICT_OWNER_DOOR)
-                        {
-                            m->mode++;
-                            SoundEx(MODEL_POSITION(param->locate), SE_MECHANISM);
-                        }
-                    }
+                    m->mode++;
+                    SoundEx(MODEL_POSITION(param->locate), SE_MECHANISM);
                 }
             }
-        }
-        else
-        {
-            param->r += 0xaa;
+            break;
+
+        case PITFALL_MODE_OPENING:
+            param->r += ANGLE_QUADRANT / 6;
             if (param->r >= ANGLE_QUADRANT)
             {
                 param->r = ANGLE_QUADRANT;
                 m->mode++;
             }
+            break;
+
+        case PITFALL_MODE_OPEN:
+            break;
         }
 
         model = PitfallData[param->type].Model[0];
