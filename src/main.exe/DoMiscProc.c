@@ -52,28 +52,22 @@ void DoMiscProc(void)
             proc = p->proc;
             if (proc != 0)
             {
-                if (__builtin_abs(view->vrx - p->x) < LEN)
+                if (__builtin_abs(view->vrx - p->x) < LEN &&
+                    __builtin_abs(view->vry - p->y) < LEN &&
+                    __builtin_abs(view->vrz - p->z) < LEN)
                 {
-                    if (__builtin_abs(view->vry - p->y) < LEN)
+                    if (p->pause != MISC_ACTIVE)
                     {
-                        if (__builtin_abs(view->vrz - p->z) < LEN)
-                        {
-                            if (p->pause != MISC_ACTIVE)
-                            {
-                                proc(p, MM_RESUME);
-                                p->pause = MISC_ACTIVE;
-                            }
-                            goto next;
-                        }
+                        proc(p, MM_RESUME);
+                        p->pause = MISC_ACTIVE;
                     }
                 }
-                if (p->pause == MISC_ACTIVE)
+                else if (p->pause == MISC_ACTIVE)
                 {
                     p->proc(p, MM_PAUSE);
                     p->pause = MISC_PAUSED;
                 }
             }
-        next:
             i++;
             p++;
             if (i < MaxMisc)
