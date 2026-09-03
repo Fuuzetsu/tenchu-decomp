@@ -2488,7 +2488,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-void DrawFlyWire(TEffectSlot *ef)
+static void DrawFlyWire(TEffectSlot *ef)
 {
     enum
     {
