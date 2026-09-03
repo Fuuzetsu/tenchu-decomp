@@ -331,7 +331,12 @@ void ProcItemDokudango(TItem *item)
 
             if (is_humanoid_on_stage_(param->eater) == 0)
             {
-                goto dispose_poison;
+                if (item->proc == 0)
+                {
+                    return;
+                }
+                DISPOSE_ITEM(item);
+                return;
             }
             eater = param->eater;
             eating_motion = eater->motion;
@@ -389,30 +394,35 @@ void ProcItemDokudango(TItem *item)
 
             if (is_humanoid_on_stage_(param->eater) == 0)
             {
-                goto dispose_poison;
+                if (item->proc == 0)
+                {
+                    return;
+                }
+                DISPOSE_ITEM(item);
+                return;
             }
             poison_countdown = param->count - 1;
             param->count = poison_countdown;
             if ((poison_countdown << 16) == 0)
             {
-                goto dispose_poison;
-            }
-            poisoned_eater = param->eater;
-            if (poisoned_eater->life > 0)
-            {
-                goto poison_active;
-            }
-        dispose_poison:
-        {
-            if (item->proc == 0)
-            {
+                if (item->proc == 0)
+                {
+                    return;
+                }
+                DISPOSE_ITEM(item);
                 return;
             }
-            DISPOSE_ITEM(item);
-            return;
-        }
+            poisoned_eater = param->eater;
+            if (poisoned_eater->life <= 0)
+            {
+                if (item->proc == 0)
+                {
+                    return;
+                }
+                DISPOSE_ITEM(item);
+                return;
+            }
 
-        poison_active:
             if (poisoned_eater->status == STAT_DAMAGE ||
                 poisoned_eater->status == STAT_STATE ||
                 poisoned_eater->status == STAT_ATTACK ||
