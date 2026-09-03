@@ -909,17 +909,8 @@ int IsVisible(s32 x, s32 y, s32 z, s32 s)
     q2 = (view_space->vy * PROJECTION_DISTANCE) / zs;
     fail = 0;
     aq = abs(q0);
-    if (qs + SXW < aq)
-        goto failed;
-
-    zs = abs(q2);
-    if (qs + SYW < zs)
-        goto failed;
-    goto done;
-
-failed:
-    fail = 1;
-done:
+    if (qs + SXW < aq || qs + SYW < abs(q2))
+        fail = 1;
     return !fail;
 }
 
