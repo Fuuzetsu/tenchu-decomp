@@ -63,14 +63,14 @@ extern char fmt_illigal_stage_id[]; /* illigal stage id %d */
 extern char path_stage_con[];       /* STAGE.CON */
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
-extern void DestroyTraceLine(TraceLine *trace);
+static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
 extern void vfree(void *ptr);
 extern void clear_screen_(void);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *bg);
-extern short LoadConstruction(u_long *data);
+static short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void ResetInfoview(s32 stage);
@@ -585,7 +585,7 @@ extern AreaMapType *load_balma_area_map_(AreaMapType *data);
 extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
 extern void jt_init4(void);
 
-short LoadConstruction(u_long *data)
+static short LoadConstruction(u_long *data)
 {
     enum
     {
@@ -1837,7 +1837,7 @@ int leRemoveEnemy(void)
  *     param $a0       struct TraceLine * t
  * END PSX.SYM */
 
-void DestroyTraceLine(TraceLine *t)
+static void DestroyTraceLine(TraceLine *t)
 {
     if (t != 0)
     {
