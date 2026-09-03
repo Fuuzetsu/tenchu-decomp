@@ -116,6 +116,36 @@ static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start,
     return ret;
 }
 
+static __inline__ Humanoid *FindItemTarget(TFindItemTarget *find)
+{
+    int i;
+    Humanoid *target;
+    int dist;
+
+    i = find->i;
+    for (;;)
+    {
+        if (i >= Humans)
+        {
+            return 0;
+        }
+        target = HumanGroup[i];
+        if (target->life > 0 && target->motion->mid != MOT_ACTION &&
+            (target->attribute & ATTR_SUSPEND) == 0)
+        {
+            dist = GetVectorDistance(&find->pos, target->locate);
+            if (dist < find->find_dist)
+            {
+                find->find = target;
+                find->dist = dist;
+                find->i = i + 1;
+                return find->find;
+            }
+        }
+        i++;
+    }
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -1854,11 +1884,8 @@ void ProcItemSmoke(TItem *item)
             TFindItemTarget *q;
             TFindItemTarget *find;
             VECTOR *pos;
-            int i;
-            Humanoid *target;
-            Humanoid *found;
+            character_status status;
             Humanoid *human;
-            int dist;
 
             q = &search_state;
             pos = MODEL_POSITION(item->locate);
@@ -1868,58 +1895,28 @@ void ProcItemSmoke(TItem *item)
             find->pos.vy = pos->vy;
             find->pos.vz = pos->vz;
             find->find_dist = 2000;
-            while (1)
+            while (FindItemTarget(find) != 0)
             {
-                i = find->i;
-                while (1)
-                {
-                    if (i >= Humans)
-                    {
-                        break;
-                    }
-                    target = HumanGroup[i];
-                    if (target->life > 0 && target->motion->mid != MOT_ACTION && (target->attribute & ATTR_SUSPEND) == 0)
-                    {
-                        dist = GetVectorDistance(&find->pos, target->locate);
-                        if (dist < find->find_dist)
-                            goto hit;
-                    }
-                    i++;
-                }
-                found = 0;
-            check:
-                if (found == 0)
-                    return;
                 human = search_state.find;
                 if (human != item->owner &&
                     human->life != HUMANOID_LIFE_INACTIVE &&
                     human->motion->mid != MOT_DAMAGE_CHOKE)
                 {
-                    i = STAT_DAMAGE;
+                    status = STAT_DAMAGE;
                     if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
                     {
                         dispose_weapon_data_of_char_(human,
                                                      ATTACK_CANCEL_ALL);
                         UpdateMotion(human->motion, MOT_DAMAGE_CHOKE);
-                        human->status = i;
+                        human->status = status;
                         MoveHumanoid(human,
                                      human->motion->motion->orderspd,
                                      human->motion->motion->sidespd);
                     }
                     Sound(search_state.find, CHAR_VOICE_HURT);
                 }
-                continue;
-            hit:
-                found = target;
-                /* Empty loop retained for code layout; its original source construct is unknown. */
-                do
-                {
-                } while (0);
-                find->find = target;
-                find->dist = dist;
-                find->i = i + 1;
-                goto check;
             }
+            return;
         }
     }
 }
