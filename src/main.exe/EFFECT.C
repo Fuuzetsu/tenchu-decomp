@@ -4302,13 +4302,13 @@ long GetVectorLength(long dx, long dy, long dz)
 void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz)
 {
     MATRIX SMAT;
-    SVECTOR rot;
+    SVECTOR rot = {
+        .vx = (short)rx,
+        .vy = (short)ry,
+        .vz = (short)rz
+    };
     SVECTOR vo;
 
-    memset(&rot, 0, sizeof(rot));
-    rot.vx = (short)rx;
-    rot.vy = (short)ry;
-    rot.vz = (short)rz;
     RotMatrixYXZ(&rot, &SMAT);
     ApplyMatrixSV(&SMAT, vec, &vo);
     setVector(vec, vo.vx, vo.vy, vo.vz);
