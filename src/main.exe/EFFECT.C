@@ -2418,9 +2418,7 @@ static void DrawHinoko(TEffectSlot *ef)
 
 void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     ExplosionType *param;
     short i;
     int r;
@@ -2432,8 +2430,7 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         {
             break;
         }
-        FIND_EFFECT_SLOT(idx, count, slot, found);
-    found:
+        slot = GetFreeEffectSlot();
         param = &slot->param.hinoko;
         param->scale = rand() % FIXED_ONE + FIXED_ONE;
         param->rotate = (rand() % 360) * FIXED_ONE;
