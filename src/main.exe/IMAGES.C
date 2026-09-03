@@ -188,8 +188,10 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
  *     reg   $t0       short th
  * END PSX.SYM */
 
-void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
+void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, int x_arg, int y_arg)
 {
+    short x;
+    short y;
     s32 tp;
     s32 sh;
     s32 tw;
@@ -199,6 +201,9 @@ void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, short x, short y)
     u8 ty;
     u32 pw;
     u32 th;
+
+    x = x_arg;
+    y = y_arg;
 
     SetPolyGT4(ply);
     tp = TIM_PIXEL_MODE((u16)image->pmode);

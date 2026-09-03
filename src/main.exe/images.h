@@ -110,6 +110,6 @@ extern GsIMAGE *GetImage(ImageArchiveId id);
 extern void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply,
                                 short x, short y);
 extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply,
-                                short x, short y);
+                                int x, int y);
 
 #endif
