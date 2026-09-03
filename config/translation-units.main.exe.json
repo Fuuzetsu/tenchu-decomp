@@ -804,6 +804,58 @@
         "ActDAMAGE",
         "ActDEAD"
       ]
+    },
+    {
+      "source": "INFOVIEW.C",
+      "functions": [
+        "ReqLifeBar",
+        "init_lifebar_",
+        "InitializeInfoView",
+        "PutStrain",
+        "PutLifeBar",
+        "PutLifeBarS",
+        "PutItemList",
+        "AddItem2",
+        "DrawPause",
+        "CheckCheatCodes",
+        "PauseProc",
+        "PutMap",
+        "DoInfoViewProc",
+        "ResetInfoview",
+        "return_to_menu_proc_",
+        "DemoPatchInit",
+        "PutItemCursor",
+        "PutItemIcon",
+        "PutNumber"
+      ],
+      "debug_symbol_order": [
+        "ReqLifeBar",
+        "InitializeInfoView",
+        "PutNumber",
+        "PutStrain",
+        "PutLifeBar",
+        "PutLifeBarS",
+        "PutItemIcon",
+        "PutItemCursor",
+        "PutItemList",
+        "SaveSI",
+        "LoadSI",
+        "SelectStage",
+        "AddEnemy",
+        "SelectCameraOwnerOption",
+        "LayoutEnemyOption",
+        "AddItem2",
+        "FileOption",
+        "PlayerOption",
+        "LoadExecEx",
+        "DemoPatchInit",
+        "DemoPatchProc",
+        "DrawPause",
+        "PauseProc",
+        "PutMap",
+        "ResetInfoview",
+        "DoInfoViewProc"
+      ]
     }
   ]
 }

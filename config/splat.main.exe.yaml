@@ -258,25 +258,7 @@ segments:
       - [0x39C2C, c, GetFreeItemSlot]
       - [0x39D00, c, ClearItemLayout]
       - [0x39D98, c, get_henshin_type_]
-      - [0x39DCC, c, ReqLifeBar]
-      - [0x39EBC, c, init_lifebar_]
-      - [0x39F90, c, InitializeInfoView]
-      - [0x3A0F0, c, PutStrain]
-      - [0x3A338, c, PutLifeBar]
-      - [0x3A554, c, PutLifeBarS]
-      - [0x3A5E4, c, PutItemList]
-      - [0x3A7DC, c, AddItem2]
-      - [0x3A98C, c, DrawPause]
-      - [0x3AB54, c, CheckCheatCodes]
-      - [0x3ACC0, c, PauseProc]
-      - [0x3B048, c, PutMap]
-      - [0x3B25C, c, DoInfoViewProc]
-      - [0x3B7A4, c, ResetInfoview]
-      - [0x3B824, c, return_to_menu_proc_]
-      - [0x3B844, c, DemoPatchInit]
-      - [0x3B894, c, PutItemCursor]
-      - [0x3B8E4, c, PutItemIcon]
-      - [0x3B938, c, PutNumber]
+      - [0x39DCC, c, INFOVIEW]
       - [0x3B9E8, c, MISC]
       - [0x3D170, c, STAGE]
       - [0x3E1D8, c, IMAGES]
@@ -567,7 +549,7 @@ segments:
       - { start: 0x872FC, type: .sdata, name: ProcItemFire, linker_section_order: .text }
       - { start: 0x87304, type: .sdata, name: ProcItemNemuri, linker_section_order: .text }
       - { start: 0x8730C, type: data, linker_section_order: .text }
-      - { start: 0x87388, type: .sdata, name: AddItem2, linker_section_order: .text }
+      - { start: 0x87388, type: .sdata, name: INFOVIEW, linker_section_order: .text }
       - { start: 0x87390, type: data, linker_section_order: .text }
       - { start: 0x87448, type: .sdata, name: MISC, linker_section_order: .text }
       - { start: 0x87458, type: data, linker_section_order: .text }
