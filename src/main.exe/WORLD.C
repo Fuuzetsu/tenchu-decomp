@@ -1261,172 +1261,173 @@ have_z:
     *CONSTRUCTION_VISIBILITY_VIEW = ViewInfo;
 
     {
-    WorldType(*world_base)[WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE];
-    int cell_x;
-    int cell_y;
-    int cell_z;
-    int world_y_offset;
-    int world_x_offset;
-    int visible;
+        WorldType(*world_base)[WORLD_MAP_AXIS_SIZE][WORLD_MAP_AXIS_SIZE];
+        int cell_x;
+        int cell_y;
+        int cell_z;
+        int world_y_offset;
+        int world_x_offset;
+        int visible;
 
-    j = sx;
-scan_x:
-    if (ex < j)
-        goto scan_done;
-    cell_x = j;
-    k = sy;
-scan_y:
-    if (ey < k)
-        goto next_x;
-    cell_y = k;
-    world_y_offset =
-        (cell_y & WORLD_MAP_AXIS_MASK) * WORLD_MAP_Y_BYTE_STRIDE;
-    world_base = WorldMap;
-    world_x_offset =
-        (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
-    l = sz;
-scan_z:
-    if (ez < l)
-        goto next_y;
-    cell_z = l;
-    do
-    {
-        do
+        j = sx;
+    scan_x:
+        if (j <= ex)
         {
-            visible = IsVisible(cell_x * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                cell_y * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                cell_z * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                CONSTRUCTION_CELL_VISIBILITY_RADIUS);
-        } while (0);
-    } while (0);
-    if (visible)
-    {
-        cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
-                                 WORLD_MAP_Z_BYTE_STRIDE +
-                             world_y_offset + world_x_offset +
-                             (u32)world_base))
-                  ->top;
-    scan_cur:
-        if (cur == 0)
-            goto next_z;
-        if (IsVisible(cur->model->locate.coord.t[0],
-                      cur->model->locate.coord.t[1] + cur->ShiftY,
-                      cur->model->locate.coord.t[2], cur->ModelSize))
-        {
-            int bucket;
-            int signed_size;
-            ObjectSlotType **slot;
-            OrnamentType *model;
-
-            do
+            cell_x = j;
+            k = sy;
+        scan_y:
+            if (k <= ey)
             {
-                /* IsVisible leaves this object's view-space position behind
-                 * for the depth bucket calculation. */
-                do
+                cell_y = k;
+                world_y_offset =
+                    (cell_y & WORLD_MAP_AXIS_MASK) * WORLD_MAP_Y_BYTE_STRIDE;
+                world_base = WorldMap;
+                world_x_offset =
+                    (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
+                l = sz;
+            scan_z:
+                if (l <= ez)
                 {
+                    cell_z = l;
                     do
                     {
-                        signed_size = cur->ModelSize;
-                        bucket = ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
-                                   signed_size) >>
-                                  CONSTRUCTION_DEPTH_BUCKET_SHIFT) -
-                                 CONSTRUCTION_DEPTH_BUCKET_BIAS;
-                        plimit = (u16)cur->ModelSize;
+                        do
+                        {
+                            visible = IsVisible(cell_x * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
+                                                cell_y * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
+                                                cell_z * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
+                                                CONSTRUCTION_CELL_VISIBILITY_RADIUS);
+                        } while (0);
                     } while (0);
-                } while (0);
-                if (bucket < 0)
-                    bucket = 0;
-                slot = (ObjectSlotType **)(bucket * sizeof(*slot) + (u32)DrawList);
-                model = cur->model;
+                    if (visible)
+                    {
+                        cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
+                                                 WORLD_MAP_Z_BYTE_STRIDE +
+                                             world_y_offset + world_x_offset +
+                                             (u32)world_base))
+                                  ->top;
+                    scan_cur:
+                        if (cur != 0)
+                        {
+                            if (IsVisible(cur->model->locate.coord.t[0],
+                                          cur->model->locate.coord.t[1] + cur->ShiftY,
+                                          cur->model->locate.coord.t[2], cur->ModelSize))
+                            {
+                                int bucket;
+                                int signed_size;
+                                ObjectSlotType **slot;
+                                OrnamentType *model;
 
-                if (SlotMan.n >= SlotMan.max)
-                    AdtMessageBox(msg_modelslot_overflow);
-                do
-                {
-                    SlotMan.slot[SlotMan.n].model = model;
-                    SlotMan.slot[SlotMan.n].next = *slot;
-                } while (0);
-                do
-                {
-                    SlotMan.slot[SlotMan.n].ModelSize = plimit;
-                } while (0);
-                SlotMan.slot[SlotMan.n].ShiftY = 0;
-                *slot = &SlotMan.slot[SlotMan.n];
-                ndl++;
-                SlotMan.n++;
-            } while (0);
+                                do
+                                {
+                                    /* IsVisible leaves this object's view-space position behind
+                                     * for the depth bucket calculation. */
+                                    do
+                                    {
+                                        do
+                                        {
+                                            signed_size = cur->ModelSize;
+                                            bucket = ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
+                                                       signed_size) >>
+                                                      CONSTRUCTION_DEPTH_BUCKET_SHIFT) -
+                                                     CONSTRUCTION_DEPTH_BUCKET_BIAS;
+                                            plimit = (u16)cur->ModelSize;
+                                        } while (0);
+                                    } while (0);
+                                    if (bucket < 0)
+                                        bucket = 0;
+                                    slot = (ObjectSlotType **)(bucket * sizeof(*slot) + (u32)DrawList);
+                                    model = cur->model;
+
+                                    if (SlotMan.n >= SlotMan.max)
+                                        AdtMessageBox(msg_modelslot_overflow);
+                                    do
+                                    {
+                                        SlotMan.slot[SlotMan.n].model = model;
+                                        SlotMan.slot[SlotMan.n].next = *slot;
+                                    } while (0);
+                                    do
+                                    {
+                                        SlotMan.slot[SlotMan.n].ModelSize = plimit;
+                                    } while (0);
+                                    SlotMan.slot[SlotMan.n].ShiftY = 0;
+                                    *slot = &SlotMan.slot[SlotMan.n];
+                                    ndl++;
+                                    SlotMan.n++;
+                                } while (0);
+                            }
+                            ndt++;
+                            cur = cur->next;
+                            goto scan_cur;
+                        }
+                    }
+                    l++;
+                    goto scan_z;
+                }
+                k++;
+                goto scan_y;
+            }
+            j++;
+            goto scan_x;
         }
-        ndt++;
-        cur = cur->next;
-        goto scan_cur;
-    }
-next_z:
-    l++;
-    goto scan_z;
-next_y:
-    k++;
-    goto scan_y;
-next_x:
-    j++;
-    goto scan_x;
     }
     {
-    GsOT ot;
-    PACKET *packet_base;
+        GsOT ot;
+        PACKET *packet_base;
 
-scan_done:
-    packet_base = GsGetWorkBase();
-    DrawTMDmode = TMD_BANK_FOG;
-    ot = *OTablePt;
-    ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
+        packet_base = GsGetWorkBase();
+        DrawTMDmode = TMD_BANK_FOG;
+        ot = *OTablePt;
+        ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
-    cur = DrawList[0];
-draw_near:
-    if (cur == 0)
-        goto draw_far_start;
-    if (cur->model != 0)
-    {
-        GsGetLs(&cur->model->locate,
-                (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        GsSortObject4(&cur->model->object, &ot, 2,
-                      (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
-    }
-    cur = cur->next;
-    goto draw_near;
+        cur = DrawList[0];
+    draw_near:
+        if (cur != 0)
+        {
+            if (cur->model != 0)
+            {
+                GsGetLs(&cur->model->locate,
+                        (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+                GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+                GsSortObject4(&cur->model->object, &ot, 2,
+                              (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
+            }
+            cur = cur->next;
+            goto draw_near;
+        }
 
-draw_far_start:
-    j = 1;
-draw_bucket:
-    if (j >= N_DRAW_BUCKETS)
-        goto draw_done;
-    cur = DrawList[j];
-draw_far:
-    if (cur == 0)
-        goto next_bucket;
-    if (cur->model != 0)
-    {
-        GsGetLs(&cur->model->locate,
-                (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-        DrawTMD(&cur->model->object, OTablePt, 0);
-    }
-    if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
-        goto overload;
-    cur = cur->next;
-    goto draw_far;
-next_bucket:
-    j++;
-    goto draw_bucket;
+        j = 1;
+    draw_bucket:
+        if (j < N_DRAW_BUCKETS)
+        {
+            cur = DrawList[j];
+        draw_far:
+            if (cur != 0)
+            {
+                if (cur->model != 0)
+                {
+                    GsGetLs(&cur->model->locate,
+                            (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+                    GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+                    DrawTMD(&cur->model->object, OTablePt, 0);
+                }
+                if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
+                    goto overload;
+                cur = cur->next;
+                goto draw_far;
+            }
+            j++;
+            goto draw_bucket;
+        }
 
-draw_done:
-    if (GetPad(PAD_CONTROLLER_1) & PADselect)
-    {
-        FntPrint(str_map);
-        FntPrint(fmt_objs_d, ndl, ndt);
-        FntPrint(str_newline_2);
-        FntPrint(fmt_pk_size, GsGetWorkBase() - packet_base);
-    }
+    draw_done:
+        if (GetPad(PAD_CONTROLLER_1) & PADselect)
+        {
+            FntPrint(str_map);
+            FntPrint(fmt_objs_d, ndl, ndt);
+            FntPrint(str_newline_2);
+            FntPrint(fmt_pk_size, GsGetWorkBase() - packet_base);
+        }
     }
 }
 
