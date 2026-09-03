@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "graphics.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
 

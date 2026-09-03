@@ -1,6 +1,9 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "model.h"
+#include "tim.h"
+#include "graphics.h"
 #include "effect.h"
 #include "score.h"
 #include "appear.h"
@@ -16,9 +19,7 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char NUMBER_TIM_PATH[];
 extern void mission_score_screen(s32 stage);
 extern BackGround *load_background_(u_long *tim);
-extern short DrawBG(BackGround *bg);
 extern void draw_time_(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
-extern void DisposeBG(BackGround *background);
 extern void award_stage_items_(TLinkInfo *state, ScoreResult *result);
 extern void score_screen_input_(void);
 extern void exec_process_(s32 state);

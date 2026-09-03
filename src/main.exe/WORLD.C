@@ -1,6 +1,9 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "timpack.h"
+#include "tim.h"
+#include "graphics.h"
 #include "adt.h"
 #include "images.h"
 #include "appear.h"
@@ -69,8 +72,6 @@ extern void SetDepthQ(s32 dqa, s32 dqb);
 static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
-extern short DrawBG(BackGround *bg);
-extern void DisposeBG(BackGround *bg);
 static short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
@@ -574,7 +575,6 @@ extern char path_map_mad[];             /* map.mad */
 
 extern void DisposeAreaMap(AreaMapType *area);
 extern void ResetAllMisc(void);
-extern void LoadTIMpackAndFree(u_long *data);
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
 extern AreaMapType *load_balma_area_map_(AreaMapType *data);
 extern void jt_init4(void);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "graphics.h"
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 

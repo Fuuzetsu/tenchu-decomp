@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "tim.h"
 #include "adt.h"
 #include "effect.h"
 #include "misc.h"
@@ -18,7 +19,6 @@ extern char msg_unknown_sprite_type[];  /* unknown sprite type */
 extern u8 *MiscTimNames[7];
 extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 
-extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 /*
  * The demo line records order the shared routines as ResetAllMisc, InitMisc,

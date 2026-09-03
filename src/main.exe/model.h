@@ -60,4 +60,10 @@ void UpdateCoordinate2(ModelType *model);
 VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);
 long DrawClip(ModelType *model, long *xy);
 
+Sprite3D *SetupSprite(Sprite3D *sprite, GsIMAGE *image);
+short DrawSprite(Sprite3D *sprite);
+BackGround *SetupBG(GsIMAGE *image, short width, short height);
+short DrawBG(BackGround *background);
+void DisposeBG(BackGround *background);
+
 #endif

@@ -13,4 +13,8 @@ typedef struct
 #define TIM_PACK_IMAGE(offset_base, offset_entry)                  \
     TIM_FILE_IMAGE((u8 *)(offset_base) + *(offset_entry))
 
+short LoadTIMpack(unsigned long *data);
+void LoadTIMpackAndFree(u_long *data);
+short GetTIMpackInfo(unsigned long *data, GsIMAGE *image, int index);
+
 #endif

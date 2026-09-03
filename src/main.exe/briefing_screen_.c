@@ -1,6 +1,9 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "model.h"
+#include "tim.h"
+#include "graphics.h"
 #include "effect.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libcd.h>
@@ -27,9 +30,7 @@ extern s16 StageScrollAdj[N_LANGUAGES][N_STAGE_CONFIGS];
 extern BackGround *load_background_(u_long *tim);
 extern void exec_process_(s32 arg0);
 extern s32 CdaGetCurrentLength(void);
-extern short DrawBG(BackGround *bg);
 extern void draw_shade_quad_(void *ot, s32 r, s32 g, s32 b);
-extern void DisposeBG(BackGround *bg);
 
 static inline void TimToDemoSprite(u_long *file, GsIMAGE *image,
                                    GsSPRITE *sprite)

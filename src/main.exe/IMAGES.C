@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "model.h"
 #include "adt.h"
 #include "images.h"
 #include "item.h"
@@ -60,8 +61,6 @@ extern void CdaStop(void);
 extern void SsSetMVol(int voll, int volr);
 extern void set_cda_volume_(u8 voll, u8 volr);
 extern int CdaPlayXA(u8 *fname, CdlLOC *start, CdlLOC *end, u8 channel, int mode);
-extern BackGround *SetupBG(GsIMAGE *image, s16 w, s16 h);
-extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void LoadExecEx(u8 *file, u32 stack, u32 size);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

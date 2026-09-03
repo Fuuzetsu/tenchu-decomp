@@ -22,7 +22,6 @@ extern s16 TexScrollX;
 extern s16 TexScrollY;
 extern RECT ScreenRect; /* {0,0,320,480}: both pages */
 
-extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 extern int VSync(int mode);

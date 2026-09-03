@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "graphics.h"
 #include "adt.h"
 #include "images.h"
 #include "item.h"
@@ -36,7 +37,6 @@ extern void GsSetNearClip(s32 near);
 extern s32 VSync(s32 mode);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
-extern short LoadTIMpack(unsigned long *adr);
 
 /* Keep this literal until the persistent word's declaration is recovered. */
 #define STARTING_RNG_SEED (*(s32 *)TENCHU_PERSISTENT_RNG_ADDRESS)

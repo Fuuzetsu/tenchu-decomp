@@ -2,6 +2,8 @@
 #include <psxsdk/libgpu.h>
 #include "tuning.h"
 #include "main.exe.h"
+#include "model.h"
+#include "tim.h"
 #include "adt.h"
 #include "effect.h"
 #include "infoview.h"
@@ -132,7 +134,6 @@ static void init_lifebar_(void)
 
 extern u8 fInitialize;
 
-extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void leResetEnemyLayout(void);
 extern void ResetInfoview(s32 stage);
 

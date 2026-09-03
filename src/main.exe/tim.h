@@ -2,6 +2,7 @@
 #define TENCHU_TIM_H
 
 #include "common.h"
+#include <psxsdk/libgpu.h>
 
 typedef struct TIMBlockPosition TIMBlockPosition;
 typedef struct TIMBlockSize TIMBlockSize;
@@ -67,5 +68,9 @@ enum tim_mode_flag
 #define TIM_HAS_CLUT(mode) (((mode) >> TIM_CLUT_FLAG_SHIFT) & 1)
 #define TIM_FILE_IMAGE(file) \
     ((u_long *)&((TIMFile *)(file))->image.mode)
+
+s16 GetTIMInfo(u_long *data, GsIMAGE *image);
+short LoadTIM(u_long *data);
+void LoadTIMAndFree(u_long *data);
 
 #endif

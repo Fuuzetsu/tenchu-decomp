@@ -623,7 +623,6 @@ extern void AttackCancelControl(s16 mode);
 extern void dispose_weapon_data_of_char_(Humanoid *h, int mode);
 extern s32 spare_item_slot_(enum spare_item_slot_operation operation,
                             Humanoid *human);
-extern short DrawSprite(Sprite3D *sprt);
 void PackItemLayout(void *buffer, s32 size);
 void RestoreItemLayout(void *buffer);
 void InitializeItem(void);

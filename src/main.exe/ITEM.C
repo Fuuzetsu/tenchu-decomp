@@ -315,7 +315,6 @@ void RestoreItemLayout(void *buf)
 
 extern GsSPRITE SpriteGoshikimai;
 
-extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void InitializeItem(void)
 {

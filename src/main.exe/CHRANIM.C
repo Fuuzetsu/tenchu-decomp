@@ -1,6 +1,8 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "timpack.h"
+#include "graphics.h"
 #include "adt.h"
 #include "action.h"
 #include "effect.h"
@@ -29,9 +31,6 @@ extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
-extern short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx);
-extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern void LoadTIMpackAndFree(u_long *adr);
 extern void PadShock(s32 port, s32 power, s32 time);
 extern s32 CdaGetCurrentLength(void);
 extern void CdaStop(void);

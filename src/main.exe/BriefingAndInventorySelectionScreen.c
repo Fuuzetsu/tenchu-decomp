@@ -1,6 +1,9 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "model.h"
+#include "tim.h"
+#include "graphics.h"
 #include "effect.h"
 #include "infoview.h"
 #include "images.h"
@@ -19,8 +22,6 @@ extern s16 CARRY_30_ITEMS_CHEAT_APPLIED; /* gp-relative (TU-local .sdata) */
 
 extern BackGround *load_background_(u_long *tim);
 extern void exec_process_(int arg);
-extern short DrawBG(BackGround *bg);
-extern void DisposeBG(BackGround *bg);
 extern int check_cheat_command_(s16 pad, s16 newpress);
 extern void briefing_screen_(void);
 

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "graphics.h"
 #include "filesystem.h"
 #include "adt.h"
 #include "effect.h"
@@ -21,7 +22,6 @@ extern void SsSetStereo(void);
 extern void SelectStage(TLinkInfo *ps);
 extern void ResetCallback(void);
 extern void InitFileSystem(file_read_mode mode);
-extern void InitGraphicsSystem(void);
 extern void InitAccessInfo(void);
 extern void InitConflict(void);
 extern void InitializeInfoView(void);

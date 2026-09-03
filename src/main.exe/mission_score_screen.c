@@ -1,6 +1,9 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "model.h"
+#include "tim.h"
+#include "graphics.h"
 #include "effect.h"
 #include "score.h"
 #include "misc.h"
@@ -25,8 +28,6 @@ extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
 extern BackGround *load_background_(u_long *tim);
-extern short DrawBG(BackGround *bg);
-extern void DisposeBG(BackGround *background);
 extern void draw_time_(GsSPRITE *number, s32 value, s32 x, s32 y,
                        s32 mode);
 extern void score_screen_input_(void);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tim.h"
 #include "adt.h"
 #include "filesystem.h"
 #include "images.h"
