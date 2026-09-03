@@ -102,7 +102,12 @@ void ProcItemNingyo(TItem *item)
     MoveKorogari(item, &param->koro);
     if (param->koro.status == KORO_WATER)
     {
-        goto dispose;
+        if (item->proc == 0)
+        {
+            return;
+        }
+        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
+        return;
     }
 
     switch (item->mode)
@@ -129,7 +134,6 @@ void ProcItemNingyo(TItem *item)
                 {
                     param->hp = ACTIVE_NINGYO_HP;
                     NingyoCount++;
-                    goto draw_mode0;
                 }
                 else
                 {
@@ -161,22 +165,16 @@ void ProcItemNingyo(TItem *item)
                         rand() % DROP_HORIZONTAL_SPREAD -
                         DROP_HORIZONTAL_SPREAD / 2;
                     ReqItemDrop(&launch_request);
+
+                    if (item->proc == 0)
+                    {
+                        return;
+                    }
+                    DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
+                    return;
                 }
             }
-            else
-            {
-                goto draw_mode0;
-            }
 
-        dispose:
-            if (item->proc == 0)
-            {
-                return;
-            }
-            DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
-            return;
-
-        draw_mode0:
             UpdateCoordinate(item->locate);
             item->model->locate = item->locate->locate;
             DrawSprite((Sprite3D *)item->model);
