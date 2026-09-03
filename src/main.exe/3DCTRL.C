@@ -37,7 +37,6 @@ extern s32 VSync(s32 mode);
 extern void srand(u32 seed);
 extern void *valloc(u32 size);
 extern void vfree(void *p);
-extern void *memset(void *s, s32 c, u32 n);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 extern short LoadTIMpack(unsigned long *adr);
@@ -604,7 +603,7 @@ Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image)
         dim = (ModelType *)sprt;
         INITIALIZE_MODEL_STATE(dim, &World.locate);
         sprt->scale = FIXED_ONE;
-        memset(&sprt->sprite, 0, sizeof(GsSPRITE));
+        sprt->sprite = (GsSPRITE){0};
         sprt->sprite.attribute = 0;
         sprt->sprite.r = sprt->sprite.g = sprt->sprite.b = 0x80;
         sprt->sprite.scalex = sprt->sprite.scaley = FIXED_ONE;
