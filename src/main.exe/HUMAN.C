@@ -478,7 +478,6 @@ short DefaultActionHumanoid(Humanoid *human)
                     ReqLifeBar(human);
                 }
             }
-            goto ground_motion;
         }
     }
     else if (vector->vy > 0 || map->level == LEVEL_NONE)
@@ -493,7 +492,6 @@ short DefaultActionHumanoid(Humanoid *human)
         }
         vector->vy = 0;
     }
-    ground_motion:
     if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
     {
         SetNowMotion(human, MOT_DEAD, MOTION_MOVE_APPLY);
