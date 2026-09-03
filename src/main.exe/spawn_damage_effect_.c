@@ -8,12 +8,9 @@
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void DrawFrame(TEffectSlot *ef);
 
-extern SVECTOR svec_y_n60[];
-
 /*
  * The union models mutually exclusive stack scratch for the two branches;
- * the original source form is still uncertain. svec_y_n60 remains
- * unknown-bound because a scalar declaration changes its addressing.
+ * the original source form is still uncertain.
  */
 void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
 {
@@ -82,7 +79,11 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         work.blood.pos = work.blood.scratch;
         position_base = &work.blood.pos;
 
-        *(SVECTOR *)&work.blood.scratch = svec_y_n60[0];
+        *(SVECTOR *)&work.blood.scratch = (SVECTOR){
+            .vx = 0,
+            .vy = -60,
+            .vz = 0
+        };
         time = rand() % 60 + 60;
         position = position_base;
 
