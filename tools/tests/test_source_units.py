@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 import tempfile
 import unittest
 
 from tools import source_units as su
+from tools import rtldump
 
 
 class SourceUnitTests(unittest.TestCase):
@@ -89,6 +91,58 @@ class SourceUnitTests(unittest.TestCase):
             }))
             with self.assertRaisesRegex(ValueError, "duplicate"):
                 su.load_units(path)
+
+    def test_live_units_retain_debug_order_and_follow_retail_order(self) -> None:
+        debug_by_unit: dict[str, list[str]] = {}
+        for line in (su.ROOT / "reference/psxsym-tu-map.tsv").read_text().splitlines():
+            fields = line.split("\t")
+            if len(fields) == 10 and not line.startswith("#"):
+                debug_by_unit.setdefault(fields[2], []).append(fields[9])
+        retail = {}
+        for line in (su.ROOT / "config/functions.main.exe.tsv").read_text().splitlines():
+            fields = line.split("\t")
+            if len(fields) >= 3 and not line.startswith("#"):
+                retail[fields[2]] = (int(fields[0], 16), int(fields[1]))
+
+        for unit in su.load_units():
+            self.assertEqual(
+                list(unit.debug_symbol_order), debug_by_unit[unit.source]
+            )
+            self.assertEqual(
+                list(unit.functions),
+                sorted(unit.functions, key=lambda name: retail[name][0]),
+            )
+            for left, right in zip(unit.functions, unit.functions[1:]):
+                self.assertEqual(
+                    retail[left][0] + retail[left][1], retail[right][0],
+                    f"{unit.source}: gap between {left} and {right}",
+                )
+            source = (su.ROOT / "src/main.exe" / unit.source).read_text()
+            positions = []
+            for name in unit.functions:
+                definition = re.search(
+                    rf"^[^#\n;{{}}]*\b{re.escape(name)}\s*"
+                    rf"\([^;{{}}]*\)\s*\{{",
+                    source,
+                    re.M,
+                )
+                self.assertIsNotNone(definition, f"missing {name} in {unit.source}")
+                positions.append(definition.start())
+            self.assertEqual(positions, sorted(positions))
+
+    def test_rtl_dump_is_focused_to_one_combined_unit_member(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            raw = Path(temporary) / "unit.i.greg"
+            raw.write_text(
+                ";; Function First\nfirst facts\n\n"
+                ";; Function Second\nsecond facts\n"
+            )
+            focused = rtldump.isolate_function_dump(
+                str(raw), "Second", temporary
+            )
+            self.assertEqual(
+                Path(focused).read_text(), ";; Function Second\nsecond facts\n"
+            )
 
 
 if __name__ == "__main__":

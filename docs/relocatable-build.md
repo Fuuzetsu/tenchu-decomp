@@ -121,7 +121,8 @@ script is an exactness oracle, not the modding layout.
 `./Build relink` produces `.shake/build/tenchu/main_relink.exe` by a distinct,
 ordinary GNU `ld` link. It does not patch slots, reserve caves, insert
 trampolines, or restore changed function sizes at artificial boundaries. The
-linker owns the 555 game inputs, the complete CRT/SDK text, initialized data,
+linker owns the C inputs containing all 555 game functions, the complete CRT/SDK
+text, initialized data,
 `_gp`, BSS/heap boundaries, and the dynamic allocator reservation. The PS-X EXE
 finalizer then derives the entry point, load address, loaded size, and sector
 padding from the linked ELF.

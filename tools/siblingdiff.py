@@ -53,6 +53,7 @@ import subprocess
 import sys
 
 import function_inventory as FI
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -83,11 +84,11 @@ def load_functions(tsv=TSV, symbols=SYMBOLS, splat=SPLAT):
             m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
             if m:
                 symname[int(m.group(2), 16)] = m.group(1)
-    carved_names = FI.load_splat_c_names(splat)
+    rows, _ = FI.overlay_current_names(FI.load_functions(tsv), splat)
     out = []
-    for addr, size, name in FI.load_functions(tsv):
+    for addr, size, name in rows:
         if TEXT_START <= addr < TEXT_END and size >= 8:
-            name = carved_names.get(addr, symname.get(addr, name))
+            name = symname.get(addr, name)
             out.append((addr, size, name))
     return out
 
@@ -122,10 +123,9 @@ def psx_text_start(path):
 def matched_names():
     """Functions with real C (no INCLUDE_ASM) in src/main.exe/."""
     names = set()
-    for f in os.listdir(SRC):
-        if f.endswith(".c") and not re.search(
-                r"^\s*INCLUDE_ASM", open(os.path.join(SRC, f)).read(), re.M):
-            names.add(f[:-2])
+    for name, path, _unit in SU.iter_function_sources(SRC):
+        if not SU.source_has_asm_fallback(path, name):
+            names.add(name)
     return names
 
 
@@ -459,9 +459,10 @@ def main():
             sib = ranked[0][1]
         sa, ssz = byname[sib]
         print(f"target  {args.target}  ({tsz} bytes)")
+        sibling_source = SU.source_for_function(sib, SRC)
         print(f"sibling {sib}  ({ssz} bytes)  "
               f"sim {dict((m, j) for j, m in ranked)[sib]:.2f}"
-              f"  -> src/main.exe/{sib}.c")
+              f"  -> {sibling_source}")
         print("candidates: " + ", ".join(
             f"{m}({j:.2f})" for j, m in ranked[:args.top]))
         print()
@@ -506,9 +507,9 @@ def main():
                     print(f"  tgt: {tgt[k]}")
 
     if not args.demo and not args.no_c:
-        p = os.path.join(SRC, sib + ".c")
-        if os.path.exists(p):
-            print(f"\n===== src/main.exe/{sib}.c (transcribe, then edit the diffs) =====")
+        p = SU.source_for_function(sib, SRC)
+        if p.exists():
+            print(f"\n===== {p} (transcribe, then edit the diffs) =====")
             sys.stdout.write(open(p).read())
 
 

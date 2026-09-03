@@ -50,7 +50,8 @@ SYMBOL_ENTRY = struct.Struct("<IIIBBH")
 REL_ENTRY = struct.Struct("<II")
 
 EXPECTED_TEXT_SHRINK = 0
-EXPECTED_LINKER_REFERENCES = 4
+REQUIRED_LINKER_SECTIONS = frozenset({".bss", ".data", ".rodata", ".text"})
+OPTIONAL_LINKER_SECTIONS = frozenset({".sbss", ".sdata"})
 FIRST_SDK_TEXT_INPUT = ".shake/build/main.exe/LIBAPI_4F9D4.s.o(.text);"
 SHN_ABS = 0xFFF1
 SDK_TEXT_START = 0x800601D4
@@ -123,6 +124,7 @@ class Symbol:
     name: str
     value: int
     section_index: int
+    size: int = 0
 
 
 @dataclass(frozen=True)
@@ -442,11 +444,12 @@ class ElfObject:
         table = self._slice(symbol_table.offset, symbol_table.size, "symbol table")
         self.symbols: list[Symbol] = []
         for offset in range(0, len(table), entry_size):
-            name_offset, value, _size, _info, _other, section_index = (
+            name_offset, value, size, _info, _other, section_index = (
                 SYMBOL_ENTRY.unpack_from(table, offset)
             )
             self.symbols.append(
-                Symbol(self._cstring(strings, name_offset), value, section_index)
+                Symbol(self._cstring(strings, name_offset), value, section_index,
+                       size)
             )
 
     def _slice(self, offset: int, size: int, description: str) -> bytes:
@@ -584,6 +587,39 @@ def find_literal_pool_capacity(text: bytes) -> list[int]:
     return findings
 
 
+def function_object_view(
+    elf: ElfObject, name: str
+) -> tuple[bytes, list[Relocation], int]:
+    """Return one function's text and rebased relocations from an ELF object.
+
+    Reconstructed translation units can contain many functions.  The relocation
+    contracts remain function-local, so use the ELF function symbol to slice a
+    combined object; older unit-test fakes and one-function artifacts without a
+    function symbol retain the whole-object fallback.
+    """
+    text = elf.section_data(".text")
+    relocations = elf.relocations(".rel.text")
+    try:
+        symbol = elf.symbol(name)
+    except (AuditError, KeyError):
+        return text, relocations, 0
+    if symbol.size <= 0:
+        return text, relocations, 0
+    start = symbol.value
+    end = start + symbol.size
+    if start < 0 or end > len(text):
+        raise AuditError(
+            f"{name}: object symbol range 0x{start:x}+0x{symbol.size:x} "
+            "is outside .text"
+        )
+    local_relocations = [
+        Relocation(relocation.offset - start, relocation.type, relocation.symbol)
+        for relocation in relocations
+        if start <= relocation.offset < end
+    ]
+    return text[start:end], local_relocations, start
+
+
 def verify_contract(
     elf: ElfObject,
     spec: ObjectSpec,
@@ -591,14 +627,13 @@ def verify_contract(
     *,
     strict_layout: bool = True,
 ) -> str:
-    text = elf.section_data(".text")
+    text, relocations, _function_offset = function_object_view(elf, description)
     expected_size = ALLOCATOR_TEXT_SIZES.get(description)
     if strict_layout and expected_size is not None and len(text) != expected_size:
         raise AuditError(
             f"{description}: transformed text is 0x{len(text):x} bytes, "
             f"expected exact-size 0x{expected_size:x}"
         )
-    relocations = elf.relocations(".rel.text")
     hi_offsets = {
         relocation.offset
         for relocation in relocations
@@ -745,12 +780,7 @@ def rewrite_linker(
     for name in REPLACEMENT_OBJECT_SPECS:
         old = str(reference_objects[name])
         new = str(variant_objects[name])
-        count = output.count(old)
-        if count != EXPECTED_LINKER_REFERENCES:
-            raise AuditError(
-                f"linker contains {count} references to {old}, "
-                f"expected {EXPECTED_LINKER_REFERENCES}"
-            )
+        verify_linker_object_sections(output, reference_objects[name])
         output = output.replace(old, new)
 
     lines = output.splitlines(keepends=True)
@@ -769,6 +799,49 @@ def rewrite_linker(
                 padded.append(f"{indent}LONG(0x00000000);{newline}")
         padded.append(line)
     return "".join(padded)
+
+
+def verify_linker_object_sections(source: str, path: Path) -> tuple[str, ...]:
+    """Require one normal linker input per section owned by an object.
+
+    Splat emits the four ordinary C sections even when some are empty.  A
+    reconstructed source unit can additionally own carved small-data sections,
+    as WORLD.C does, so a fixed number of textual object references is not a
+    valid invariant once original translation units are restored.
+    """
+
+    rendered = str(path)
+    pattern = re.compile(
+        rf"^[ \t]*{re.escape(rendered)}\((?P<section>[^)]+)\);[ \t]*$",
+        re.MULTILINE,
+    )
+    sections = tuple(match.group("section") for match in pattern.finditer(source))
+    textual_count = source.count(rendered)
+    if len(sections) != textual_count:
+        raise AuditError(
+            f"linker has an unrecognised reference to {rendered}; "
+            "expected object(section); input lines"
+        )
+
+    counts = Counter(sections)
+    missing = sorted(REQUIRED_LINKER_SECTIONS - counts.keys())
+    repeated = sorted(section for section, count in counts.items() if count != 1)
+    unsupported = sorted(
+        counts.keys() - REQUIRED_LINKER_SECTIONS - OPTIONAL_LINKER_SECTIONS
+    )
+    if missing or repeated or unsupported:
+        details = []
+        if missing:
+            details.append("missing " + ", ".join(missing))
+        if repeated:
+            details.append("repeated " + ", ".join(repeated))
+        if unsupported:
+            details.append("unsupported " + ", ".join(unsupported))
+        raise AuditError(
+            f"linker section inventory for {rendered} is invalid: "
+            + "; ".join(details)
+        )
+    return sections
 
 
 def text_shrink(
@@ -938,7 +1011,9 @@ def verify_linked_relocations(
     reports: list[str] = []
     for function_name, spec in OBJECT_SPECS.items():
         obj = ElfObject(objects[function_name])
-        relocations = obj.relocations(".rel.text")
+        object_text, relocations, _function_offset = function_object_view(
+            obj, function_name
+        )
         function_address = variant.symbol(function_name).value
         for target_name in spec.targets:
             target_relocations = [
@@ -955,7 +1030,6 @@ def verify_linked_relocations(
                 raise AuditError(
                     f"{function_name}: expected at least one {target_name} LO16 addend"
                 )
-            object_text = obj.section_data(".text")
             addends = {
                 sign_extend_16(
                     instruction_word(object_text, relocation.offset, function_name)
@@ -1032,12 +1106,10 @@ def verify_normal_link(
         raise AuditError(f"normal-C text change {shrink} is not word-aligned")
 
     for name, path in objects.items():
-        count = linker_source.count(str(path))
-        if count != EXPECTED_LINKER_REFERENCES:
-            raise AuditError(
-                f"normal linker contains {count} references to {path} for {name}, "
-                f"expected {EXPECTED_LINKER_REFERENCES}"
-            )
+        try:
+            verify_linker_object_sections(linker_source, path)
+        except AuditError as error:
+            raise AuditError(f"normal linker object for {name}: {error}") from error
 
     lines = linker_source.splitlines()
     markers = [index for index, line in enumerate(lines) if FIRST_SDK_TEXT_INPUT in line]

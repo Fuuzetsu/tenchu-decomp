@@ -25,6 +25,7 @@ and the lane found it only by dumping the raw target `.s`). For ORDER questions 
 import argparse, tempfile, os, re, subprocess, sys
 
 from matchlock import MatchToolBusy, matching_tool_lock
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -36,7 +37,13 @@ OURS = ".shake/build/tenchu/main.exe"
 MAP = ".shake/build/tenchu/main.exe.map"
 SYMBOLS = "config/symbols.main.exe.txt"
 YAML = "config/splat.main.exe.yaml"
+FUNCTIONS = "config/functions.main.exe.tsv"
 OBJDUMP = "mipsel-unknown-linux-gnu-objdump"
+NM = "mipsel-unknown-linux-gnu-nm"
+
+
+def source_path(name):
+    return str(SU.source_for_function(name))
 
 
 def source_completion_blockers(path):
@@ -58,19 +65,41 @@ def source_completion_blockers(path):
 
 
 def linked_text_size(name):
-    """Bytes the linker actually placed for <name>.c.o's .text, from the map.
+    """Bytes the compiler emitted for ``name``, from its linked C object.
 
     Independent of the byte comparison: if this disagrees with the carve extent,
     the DRAFT is the wrong length, full stop -- and everything after it in the
     image has shifted. Catches the case where a NON_MATCHING shadow build reports
     a spurious whole-image MATCH on a split/override function (matchdiff once
     printed `MATCH! 0 differing bytes` for a 456-byte draft in a 460-byte slot).
-    Returns None if the map has no such line (e.g. a pure-asm function).
+    Returns None if neither the object symbol nor a valid one-function map row
+    is available (for example, a pure-assembly function).
     """
-    if not os.path.exists(MAP):
+    unit = SU.unit_for_function(name)
+    object_path = os.path.join(
+        ".shake/build/main.exe", unit.stem + ".c.o"
+    )
+    if os.path.exists(object_path):
+        result = subprocess.run(
+            [NM, "-S", object_path], capture_output=True, text=True
+        )
+        if result.returncode == 0:
+            symbol = re.compile(
+                r"^\s*[0-9a-fA-F]+\s+([0-9a-fA-F]+)\s+[Tt]\s+"
+                + re.escape(name) + r"$", re.M
+            )
+            match = symbol.search(result.stdout)
+            if match:
+                return int(match.group(1), 16)
+
+    # Old/stale artifacts and assembly-backed functions may lack a readable C
+    # object. The map fallback is valid only for one-function objects: a
+    # combined object's .text size is not any one member's size.
+    if unit.combined or not os.path.exists(MAP):
         return None
     obj = re.compile(
-        r"^\s*\.text\s+0x[0-9a-fA-F]+\s+0x([0-9a-fA-F]+)\s+.*/" + re.escape(name) + r"\.c\.o\b")
+        r"^\s*\.text\s+0x[0-9a-fA-F]+\s+0x([0-9a-fA-F]+)\s+.*/"
+        + re.escape(unit.stem) + r"\.c\.o\b")
     total = None
     for line in open(MAP, errors="replace"):
         m = obj.match(line)
@@ -102,7 +131,11 @@ def is_carved(name):
     would happily print MATCH for a .c that is never even linked. Five functions
     sat in the tree as bogus "matches" that way.
     """
-    pat = re.compile(rf"^\s+- \[0x[0-9A-Fa-f]+,\s*c,\s*{re.escape(name)}\]", re.M)
+    unit = SU.unit_for_function(name)
+    pat = re.compile(
+        rf"^\s+- \[0x[0-9A-Fa-f]+,\s*c,\s*{re.escape(unit.stem)}\]",
+        re.M,
+    )
     return bool(pat.search(open(YAML).read()))
 
 
@@ -126,6 +159,14 @@ def carve_extent(name):
     pat = re.compile(rf"^\s+- \[0x([0-9A-Fa-f]+),\s*c,\s*{re.escape(name)}\]", re.M)
     m = pat.search(y)
     if not m:
+        unit = SU.explicit_unit_for_function(name)
+        if unit is None:
+            return None
+        with open(FUNCTIONS) as stream:
+            for line in stream:
+                fields = line.rstrip("\n").split("\t")
+                if len(fields) >= 3 and fields[2] == name:
+                    return int(fields[0], 16), int(fields[1])
         return None
     off = int(m.group(1), 16)
     nxt = next((o for o in offs if o > off), None)
@@ -355,7 +396,7 @@ def main():
         # NON_MATCHING) trivially matches in the default build (the stub IS the
         # original bytes), so build ITS draft to compare what we're iterating on.
         env = dict(os.environ)
-        srcp = os.path.join("src/main.exe", args.name + ".c")
+        srcp = source_path(args.name)
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
         r = run_build(env)
@@ -375,7 +416,7 @@ def main():
             sys.exit(f"matchdiff: ./Build FAILED (rc={r.returncode}), "
                      f"log: {BUILD_LOG}\n{tail}")
 
-    srcp = os.path.join("src/main.exe", args.name + ".c")
+    srcp = source_path(args.name)
     guarded = os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read()
     if guarded and linked_nonmatching_stub(args.name):
         sys.exit(

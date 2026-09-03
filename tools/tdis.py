@@ -52,7 +52,7 @@ def main():
     need_ours = args.ours or args.both
     if need_ours and not args.no_build:
         env = dict(os.environ)
-        srcp = os.path.join("src/main.exe", args.name + ".c")
+        srcp = matchdiff.source_path(args.name)
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
         import subprocess

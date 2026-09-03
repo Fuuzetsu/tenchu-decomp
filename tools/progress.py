@@ -4,8 +4,8 @@
   tools/progress.py            human-readable report
   tools/progress.py --json     machine-readable (frogress-style categories)
 
-"Matched" = a function that is CARVED (has a `c` subsegment, so its .c is
-actually linked) AND whose src/main.exe/<Name>.c contains no INCLUDE_ASM. The
+"Matched" = a function whose owning C translation unit is CARVED and whose
+definition does not delegate to INCLUDE_ASM. The
 carve check matters: an un-carved function's bytes come from a raw data blob, so
 a bogus .c sitting next to it changes nothing and used to be counted as matched
 (five were). Function inventory
@@ -19,6 +19,7 @@ converted PSY-Q .OBJs) as library identification improves.
 import argparse, json, os, re
 
 import function_inventory as FI
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -66,13 +67,10 @@ def main():
     matched_addrs = set()
     matched = set()
     orphans = []
-    for f in sorted(os.listdir(SRC)):
-        if not f.endswith(".c"):
+    for name, path, unit in SU.iter_function_sources(SRC):
+        if SU.source_has_asm_fallback(path, name):
             continue
-        if re.search(r"^\s*INCLUDE_ASM", open(os.path.join(SRC, f)).read(), re.M):
-            continue
-        name = f[:-2]
-        if name not in carved:
+        if unit.stem not in carved:
             orphans.append(name)     # pure C but never linked — NOT matched
             continue
         matched.add(name)

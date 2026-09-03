@@ -26,6 +26,8 @@ single .s piece), it says so and changes nothing — reverse.py's seed is fine.
 """
 import argparse, os, re, subprocess, sys
 
+import source_units as SU
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -260,6 +262,11 @@ def main():
                     help="dry run: write neither the .c nor the yaml; print the carve")
     args = ap.parse_args()
     name = args.name
+
+    unit = SU.explicit_unit_for_function(name)
+    if unit is not None:
+        sys.exit(f"split-scaffold: {name} is already owned by {unit.source}; "
+                 "refusing to replace a combined-unit member")
 
     fstart, fend = func_bounds(name)
     pieces = stub_pieces(name)

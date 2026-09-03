@@ -33,7 +33,9 @@ good for.
 Caveats: the demo span is an earlier build's, so treat a single outlier as
 a lead, not proof; functions absent from PSX.SYM are skipped.
 """
-import argparse, csv, glob, re, statistics, os
+import argparse, csv, re, statistics, os
+
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -62,8 +64,21 @@ def load():
 def statement_lines(path, name):
     code = re.sub(r"/\*.*?\*/", " ", open(path).read(), flags=re.S)
     code = re.sub(r"//[^\n]*", " ", code)
-    i = code.find("\n%s(" % name)
-    body = code[code.find("{", i):] if i >= 0 else code
+    match = re.search(rf"\b{re.escape(name)}\s*\([^;{{}}]*\)\s*\{{", code)
+    if not match:
+        return 0
+    start = code.index("{", match.start())
+    depth = 0
+    end = len(code)
+    for index in range(start, len(code)):
+        if code[index] == "{":
+            depth += 1
+        elif code[index] == "}":
+            depth -= 1
+            if depth == 0:
+                end = index + 1
+                break
+    body = code[start:end]
     return len([l for l in body.split("\n")
                 if re.search(r";|\b(if|else|while|for|switch|case|do|return|goto)\b", l)
                 and not l.strip().startswith("extern")])
@@ -76,8 +91,8 @@ def main():
     args = ap.parse_args()
     demo, retail = load()
     rows = []
-    for p in sorted(glob.glob("src/main.exe/*.c")):
-        name = os.path.basename(p)[:-2]
+    for name, path, _unit in SU.iter_function_sources("src/main.exe"):
+        p = str(path)
         if name not in demo or name not in retail:
             continue
         dsz, span = demo[name]

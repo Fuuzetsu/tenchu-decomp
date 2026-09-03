@@ -41,6 +41,7 @@ import time
 from matchlock import MatchToolBusy, matching_tool_lock
 import matchdiff
 import proclife
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -248,6 +249,7 @@ def draft_shape(name):
 # shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
 # small globals the function's ORIGINAL translation unit defined).
 GP_EXTERNS = {
+    "WORLD": ["StageID", "mma", "ObjectArc", "ThinkBudgetRaw", "ThinkBudget", "ThinkCount"],
     "vmemoryGC": ["virtual_memory_pool"],
     "ComputeAllConflict": ["ConflictObjects"],
     "PlayVoice": ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "ToraVoiceXaName", "IntroVoiceXaName"],
@@ -479,6 +481,7 @@ GP_EXTERNS = {
 # Per-function extra maspsx flags — MUST mirror `extra` in Build.hs
 # maspsxGpExterns (e.g. --expand-div for TUs that divide by a variable).
 MASPSX_EXTRA = {
+    "WORLD": ["--expand-div"],
     "UpdateTexScroll": ["--expand-div"],
     "MakeDifSub": ["--expand-div"],
     "DrawFlyWire": ["--expand-div"],
@@ -978,9 +981,16 @@ def main():
         args.force_early = True
         args.rest.remove("--force-early")
     name = args.name
-    src = f"src/main.exe/{name}.c"
+    unit = SU.unit_for_function(name)
+    src = str(SU.source_for_function(name))
     if not os.path.exists(src):
         sys.exit(f"permute: {src} not found")
+    if unit.combined:
+        sys.exit(
+            f"permute: {name} is one member of {unit.source}; stochastic "
+            "one-function object comparison is not valid for a combined "
+            "translation unit. Use rtlguide/autorules or edit it directly."
+        )
 
     work = os.path.join(".shake", "permuter", name)
     csh = os.path.join(work, "compile.sh")

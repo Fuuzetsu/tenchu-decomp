@@ -43,6 +43,7 @@ import sys
 
 import asmdiff
 import matchdiff
+import source_units as SU
 from matchlock import MatchToolBusy, matching_tool_lock
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,7 +66,7 @@ REG_RE = re.compile(r"\b\$?(" + "|".join(ALLOCATABLE) + r")\b")
 
 def is_guarded(name):
     """Whether <name>.c hides its C behind the NON_MATCHING guard."""
-    path = os.path.join("src", "main.exe", name + ".c")
+    path = str(SU.source_for_function(name))
     if not os.path.exists(path):
         return False
     with open(path, errors="replace") as stream:

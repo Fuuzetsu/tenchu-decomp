@@ -11,6 +11,11 @@ from __future__ import annotations
 
 import re
 
+try:
+    from tools import source_units as SU
+except ModuleNotFoundError:
+    import source_units as SU  # type: ignore[no-redef]
+
 
 VB = 0x80011000
 FO = 0x800
@@ -86,10 +91,14 @@ def overlay_current_names(
     count is the number of names that actually changed.
     """
     current = load_splat_c_names(splat_path)
+    containers = {unit.stem for unit in SU.load_units() if unit.combined}
     changed = 0
     out = []
     for addr, size, old in funcs:
-        new = current.get(addr, old)
+        candidate = current.get(addr)
+        # A combined C carve is named for its translation unit, not for the
+        # first function at that address. Keep the reviewed function name.
+        new = old if candidate in containers else (candidate or old)
         changed += new != old
         out.append((addr, size, new))
     return out, changed

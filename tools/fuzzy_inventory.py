@@ -6,19 +6,21 @@ import hashlib
 import os
 import re
 
+import source_units as SU
+
 GUARD = re.compile(r"^\s*#\s*ifndef\s+NON_MATCHING\b", re.M)
 
 
 def guarded_sources(src_dir: str) -> dict[str, str]:
     out = {}
-    for filename in sorted(os.listdir(src_dir)):
-        if not filename.endswith(".c"):
-            continue
-        path = os.path.join(src_dir, filename)
+    for name, source, unit in SU.iter_function_sources(src_dir):
+        path = str(source)
         with open(path) as fh:
             text = fh.read()
-        if GUARD.search(text):
-            out[filename[:-2]] = path
+        if GUARD.search(text) and (
+            not unit.combined or SU.source_has_asm_fallback(path, name)
+        ):
+            out[name] = path
     return out
 
 

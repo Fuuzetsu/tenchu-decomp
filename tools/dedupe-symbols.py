@@ -28,7 +28,7 @@ SYM = re.compile(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;")
 def referenced_names():
     """Every identifier appearing in our sources — a name used there must stay."""
     out = set()
-    for pat in ("src/main.exe/*.c", "src/main.exe/*.h"):
+    for pat in ("src/main.exe/*.c", "src/main.exe/*.C", "src/main.exe/*.h"):
         for f in glob.glob(os.path.join(ROOT, pat)):
             out |= set(re.findall(r"[A-Za-z_$][\w$]*", open(f).read()))
     return out

@@ -18,6 +18,7 @@ image, disassembled in one objdump pass. Run inside the nix devShell.
 import argparse, os, re, subprocess, sys
 
 import function_inventory as FI
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -46,11 +47,11 @@ def load_functions(tsv=TSV, symbols=SYMBOLS, splat=SPLAT):
             m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
             if m:
                 symname[int(m.group(2), 16)] = m.group(1)
-    carved_names = FI.load_splat_c_names(splat)
     out = []
-    for addr, size, name in FI.load_functions(tsv):
+    rows, _ = FI.overlay_current_names(FI.load_functions(tsv), splat)
+    for addr, size, name in rows:
         if TEXT_START <= addr < TEXT_END and size >= 8:
-            name = carved_names.get(addr, symname.get(addr, name))
+            name = symname.get(addr, name)
             out.append((addr, size, name))
     return out
 
@@ -58,10 +59,9 @@ def load_functions(tsv=TSV, symbols=SYMBOLS, splat=SPLAT):
 def matched_names():
     """Functions with real C (no INCLUDE_ASM) in src/main.exe/."""
     names = set()
-    for f in os.listdir(SRC):
-        if f.endswith(".c"):
-            if not re.search(r"^\s*INCLUDE_ASM", open(os.path.join(SRC, f)).read(), re.M):
-                names.add(f[:-2])
+    for name, path, _unit in SU.iter_function_sources(SRC):
+        if not SU.source_has_asm_fallback(path, name):
+            names.add(name)
     return names
 
 
@@ -83,13 +83,11 @@ def parked_names():
     the same way (FUN_8005961c/FUN_80059b08 and FUN_80059ff4/FUN_8005a3cc, both 1.00).
     """
     names = set()
-    for f in os.listdir(SRC):
-        if not f.endswith(".c"):
-            continue
-        body = open(os.path.join(SRC, f)).read()
-        if re.search(r"^\s*INCLUDE_ASM", body, re.M) and \
+    for name, path, _unit in SU.iter_function_sources(SRC):
+        body = open(path).read()
+        if SU.source_has_asm_fallback(path, name) and \
            re.search(r"#\s*ifndef\s+NON_MATCHING", body):
-            names.add(f[:-2])
+            names.add(name)
     return names
 
 
@@ -136,7 +134,7 @@ TU_RE = re.compile(rb"([A-Z0-9_]+\.C):\d+")
 
 def original_tu(name):
     """The function's original TU per its PSX.SYM header, or None."""
-    path = os.path.join("src", "main.exe", name + ".c")
+    path = SU.source_for_function(name)
     if not os.path.exists(path):
         return None
     with open(path, "rb") as stream:
@@ -345,7 +343,8 @@ def main():
     for j, m in rows[:args.top]:
         tu = original_tu(m)
         tag = f"  [{tu}]" if tu else ""
-        print(f"{j:5.2f}  {m} ({byname[m][1]} bytes) — src/main.exe/{m}.c{tag}")
+        print(f"{j:5.2f}  {m} ({byname[m][1]} bytes) — "
+              f"{SU.source_for_function(m)}{tag}")
     verdict(args.name, rows, byname)
 
 

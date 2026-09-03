@@ -33,6 +33,8 @@ import os
 import re
 import sys
 
+import source_units as SU
+
 import asmdiff
 from matchlock import MatchToolBusy, matching_tool_lock
 import matchdiff
@@ -1467,7 +1469,7 @@ def _byte_counts(addr, size):
 
 
 def build_candidate(name):
-    path = os.path.join("src", "main.exe", name + ".c")
+    path = str(SU.source_for_function(name))
     env = dict(os.environ)
     if os.path.exists(path) and "ifndef NON_MATCHING" in open(path).read():
         env["NON_MATCHING"] = name
@@ -1488,9 +1490,10 @@ def validate_reused_build(name):
     while the processed text exposes the default nonmatching include; validate
     both before treating a cached image as evidence.
     """
-    source = os.path.join(ROOT, "src", "main.exe", name + ".c")
+    source = os.path.join(ROOT, str(SU.source_for_function(name)))
+    unit_name = SU.unit_for_function(name).stem
     processed = os.path.join(ROOT, ".shake", "processed", "main.exe",
-                             name + ".c")
+                             unit_name + ".c")
     linked = os.path.join(ROOT, ".shake", "build", "tenchu", "main.exe")
     missing = [path for path in (source, processed, linked)
                if not os.path.exists(path)]
@@ -1548,7 +1551,7 @@ def diagnose(name, build=True, rtl=True):
         guide["loop_boundary_source_lines"] = {}
         return guide
 
-    src = os.path.join("src", "main.exe", name + ".c")
+    src = str(SU.source_for_function(name))
     draft = os.path.exists(src) and "ifndef NON_MATCHING" in open(src).read()
     result = rtldump.compile_rtl(name, ["all"], draft=draft,
                                  debug_lines=True, assemble=True)

@@ -157,7 +157,8 @@ unaligned opaque packed data, whose current known cases are covered by the
 reviewed manifest and shifted growth proof. See the
 [exact coverage](relocatable-build.md#mandatory-input-object-relocation-audit).
 
-The composed linker owns all 555 game inputs, the complete CRT/SDK stream,
+The composed linker owns the C inputs containing all 555 game functions, the
+complete CRT/SDK stream,
 initialized data, `_gp`, BSS, allocator boundaries, and the PS-X header. The
 reviewed data transform supplies 208 `R_MIPS_32` pointer records. The widened
 audit reports zero movable absolute symbols, literal jumps, adjacent address

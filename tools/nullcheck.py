@@ -33,6 +33,7 @@ import sys
 import tempfile
 
 import rtldump
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -64,7 +65,7 @@ def main():
     args = ap.parse_args()
     name = args.name
 
-    path = os.path.join("src", "main.exe", name + ".c")
+    path = str(SU.source_for_function(name))
     if not os.path.exists(path):
         sys.exit(f"nullcheck: {path} not found")
     with open(path, errors="replace") as stream:

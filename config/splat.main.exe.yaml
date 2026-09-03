@@ -127,7 +127,7 @@ segments:
       - { start: 0x13E0, type: .rodata, name: CameraType1, linker_section_order: .data }
       - { start: 0x1450, type: .rodata, name: SetCameraMode, linker_section_order: .data }
       - [0x1490, data]
-      - { start: 0x199C, type: .rodata, name: LoadConstruction, linker_section_order: .data }
+      - { start: 0x199C, type: .rodata, name: WORLD, linker_section_order: .data }
       - [0x19CC, data]
       - { start: 0x1AEC, type: .rodata, name: ReqItemUse, linker_section_order: .data }
       - [0x1B50, data]
@@ -451,27 +451,7 @@ segments:
       - [0x297B0, c, draw_sprite_pair_]
       - [0x29948, c, draw_sprite_coord_]
       - [0x29AA8, c, DrawSpriteXYZ]
-      - [0x29BA0, c, CreateStage]
-      - [0x29F84, c, LoadOrnamentArchive]
-      - [0x2A1BC, c, GetCenterAndSize]
-      - [0x2A360, c, LoadConstruction]
-      - [0x2AE04, c, IsVisible]
-      - [0x2B00C, c, ActivateHumans]
-      - [0x2B654, c, DrawConstruction]
-      - [0x2BC70, c, leFindEnemy]
-      - [0x2BE14, c, leLayoutEnemy]
-      - [0x2C15C, c, leAddPath]
-      - [0x2C24C, c, leResetPath]
-      - [0x2C278, c, leRestoreEnemyLayout]
-      - [0x2C2A4, c, lePackEnemyLayout]
-      - [0x2C2EC, c, leRemoveEnemy]
-      - [0x2C344, c, DestroyTraceLine]
-      - [0x2C37C, c, leSetEnemy]
-      - [0x2C408, c, leClearLayout]
-      - [0x2C44C, c, leResetEnemyLayout]
-      - [0x2C478, c, load_layout]
-      - [0x2C504, c, load_save_slot_]
-      - [0x2C55C, c, DisposeOrnamentArchive]
+      - [0x29BA0, c, WORLD]
       - [0x2C5E4, c, SearchItemTarget2]
       - [0x2C8BC, c, PackItemLayout]
       - [0x2C974, c, RestoreItemLayout]
@@ -885,7 +865,7 @@ segments:
       - { start: 0x87250, type: .sdata, name: DrawSplash, linker_section_order: .text }
       - { start: 0x87258, type: .sdata, name: spawn_damage_effect_, linker_section_order: .text }
       - { start: 0x87260, type: data, linker_section_order: .text }
-      - { start: 0x872BC, type: .sdata, name: leFindEnemy, linker_section_order: .text }
+      - { start: 0x872BC, type: .sdata, name: WORLD, linker_section_order: .text }
       - { start: 0x872C4, type: data, linker_section_order: .text }
       - { start: 0x872D0, type: .sdata, name: MoveKorogari, linker_section_order: .text }
       - { start: 0x872D8, type: .sdata, name: ProcItemSmoke, linker_section_order: .text }

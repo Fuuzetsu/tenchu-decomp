@@ -1,0 +1,54 @@
+{
+  "schema": 1,
+  "units": [
+    {
+      "source": "WORLD.C",
+      "functions": [
+        "CreateStage",
+        "LoadOrnamentArchive",
+        "GetCenterAndSize",
+        "LoadConstruction",
+        "IsVisible",
+        "ActivateHumans",
+        "DrawConstruction",
+        "leFindEnemy",
+        "leLayoutEnemy",
+        "leAddPath",
+        "leResetPath",
+        "leRestoreEnemyLayout",
+        "lePackEnemyLayout",
+        "leRemoveEnemy",
+        "DestroyTraceLine",
+        "leSetEnemy",
+        "leClearLayout",
+        "leResetEnemyLayout",
+        "load_layout",
+        "load_save_slot_",
+        "DisposeOrnamentArchive"
+      ],
+      "debug_symbol_order": [
+        "CreateStage",
+        "LoadOrnamentArchive",
+        "DisposeOrnamentArchive",
+        "GetCenterAndSize",
+        "LoadConstruction",
+        "PointInTri",
+        "IsVisible",
+        "ActivateHumans",
+        "DrawConstruction",
+        "leResetEnemyLayout",
+        "leClearLayout",
+        "leFindEnemy",
+        "leSetEnemy",
+        "DestroyTraceLine",
+        "leLayoutEnemy",
+        "leRemoveEnemy",
+        "lePackEnemyLayout",
+        "leRestoreEnemyLayout",
+        "leResetPath",
+        "leAddPath",
+        "jt_init4"
+      ]
+    }
+  ]
+}

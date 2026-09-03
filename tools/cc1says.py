@@ -49,6 +49,8 @@ import os
 import re
 import sys
 
+import source_units as SU
+
 import rtldump
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -150,7 +152,7 @@ def main():
                          ".lreg's 46 rows from a lane that needed exactly those.")
     args = ap.parse_args()
 
-    path = os.path.join("src", "main.exe", args.name + ".c")
+    path = str(SU.source_for_function(args.name))
     if not os.path.exists(path):
         sys.exit(f"cc1says: {path} not found")
     with open(path, errors="replace") as stream:

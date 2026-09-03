@@ -16,6 +16,8 @@ Ghidra export's function list changes.
 """
 import os, re, subprocess, sys
 
+import source_units as SU
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -74,10 +76,9 @@ def main():
     stems = os.path.join(WORK, "unmatched")
     os.makedirs(stems, exist_ok=True)
     matched = set()
-    for f in os.listdir("src/main.exe"):
-        if f.endswith(".c"):
-            if not re.search(r"^\s*INCLUDE_ASM", open(os.path.join("src/main.exe", f)).read(), re.M):
-                matched.add(f[:-2])
+    for name, path, _unit in SU.iter_function_sources("src/main.exe"):
+        if not SU.source_has_asm_fallback(path, name):
+            matched.add(name)
     for f in os.listdir(stems):
         os.unlink(os.path.join(stems, f))
     for _, _, name in funcs:

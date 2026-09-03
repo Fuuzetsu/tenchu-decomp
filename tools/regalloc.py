@@ -45,6 +45,7 @@ Run inside the nix devShell.
 import argparse, os, re, subprocess, sys, tempfile
 
 import rtldump
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -196,7 +197,7 @@ def conflicts_with_hard_register(analysis, pseudo, hard_register):
 def preprocess(name):
     """Preprocess src/main.exe/<name>.c the way the build does; returns text.
     Diagnoses the DRAFT of a NON_MATCHING partial."""
-    path = os.path.join(SRC, name + ".c")
+    path = str(SU.source_for_function(name, SRC))
     if not os.path.exists(path):
         sys.exit(f"regalloc: {path} not found")
     nm = ["-DNON_MATCHING"] if "ifndef NON_MATCHING" in open(path).read() else []
@@ -1328,7 +1329,7 @@ def main():
         pp = open(args.target).read()
         default_func = None
     else:
-        path = os.path.join(SRC, args.target + ".c")
+        path = str(SU.source_for_function(args.target, SRC))
         if not os.path.exists(path):
             sys.exit(f"regalloc: {path} not found")
         draft = "ifndef NON_MATCHING" in open(path).read()

@@ -165,7 +165,7 @@ def main():
     if not args.no_build:
         # Build a NON_MATCHING partial's draft (not its trivially-matching stub).
         env = dict(os.environ)
-        srcp = os.path.join("src/main.exe", args.name + ".c")
+        srcp = matchdiff.source_path(args.name)
         if os.path.exists(srcp) and "ifndef NON_MATCHING" in open(srcp).read():
             env["NON_MATCHING"] = args.name
         log = os.path.join(tempfile.gettempdir(), "tenchu-asmdiff-build.log")

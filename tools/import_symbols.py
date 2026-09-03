@@ -163,7 +163,7 @@ def apply_renames(renames):
     # C sources/headers: whole-word (identifier) references.
     ident = re.compile(rf"\b({alt})\b")
     srcs = [os.path.join(SRC_DIR, f) for f in os.listdir(SRC_DIR)
-            if f.endswith((".c", ".h"))]
+            if os.path.splitext(f)[1].lower() in (".c", ".h")]
     for f in srcs:
         c = open(f).read()
         open(f, "w").write(ident.sub(lambda m: rep(m, 1), c))

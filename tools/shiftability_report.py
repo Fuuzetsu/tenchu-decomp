@@ -37,6 +37,7 @@ try:
         reloc_c_literals,
         reloc_growth_probe,
         reloc_input_audit,
+        source_units,
     )
 except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
     import ram_layout  # type: ignore[no-redef]
@@ -44,6 +45,7 @@ except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
     import reloc_c_literals  # type: ignore[no-redef]
     import reloc_growth_probe  # type: ignore[no-redef]
     import reloc_input_audit  # type: ignore[no-redef]
+    import source_units  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -166,13 +168,16 @@ def collect_layout(root: Path, elf_path: Path = NORMAL_ELF) -> dict[str, object]
 
 
 def _object_paths(root: Path) -> tuple[dict[str, Path], dict[str, Path]]:
+    unit_manifest = root / "config/translation-units.main.exe.json"
     objects = {
         name: root / ".shake/reloc-c-literals" / f"{name}.o"
         for name in reloc_c_literals.REPLACEMENT_OBJECT_SPECS
     }
     objects.update(
         {
-            name: root / ".shake/build/main.exe" / f"{name}.c.o"
+            name: root
+            / ".shake/build/main.exe"
+            / f"{source_units.unit_for_function(name, unit_manifest).stem}.c.o"
             for name in reloc_c_literals.ORDINARY_OBJECT_SPECS
         }
     )
@@ -255,9 +260,17 @@ def collect_compiler_references(root: Path) -> dict[str, object]:
 
 def collect_source_debt(root: Path) -> dict[str, object]:
     source_root = root / "src/main.exe"
+    unit_manifest = root / "config/translation-units.main.exe.json"
+
+    def source_path(name: str) -> str:
+        return source_units.source_for_function(
+            name, source_root, unit_manifest
+        ).relative_to(root).as_posix()
+
     discovered: dict[str, list[int]] = {}
     sources = sorted(
-        set(source_root.rglob("*.c")) | set(source_root.rglob("*.h"))
+        set(source_root.rglob("*.c")) | set(source_root.rglob("*.C"))
+        | set(source_root.rglob("*.h"))
     )
     for source in sources:
         lines = [
@@ -269,7 +282,7 @@ def collect_source_debt(root: Path) -> dict[str, object]:
             discovered[source.relative_to(root).as_posix()] = lines
 
     expected_conditional_paths = {
-        f"src/main.exe/{name}.c"
+        source_path(name)
         for name, debt in reloc_c_literals.SOURCE_VARIANT_DEBT.items()
         if debt.category == reloc_c_literals.SOURCE_RECONSTRUCTION
     }
@@ -284,7 +297,7 @@ def collect_source_debt(root: Path) -> dict[str, object]:
 
     entries = []
     for name, debt in sorted(reloc_c_literals.SOURCE_VARIANT_DEBT.items()):
-        path = f"src/main.exe/{name}.c"
+        path = source_path(name)
         if debt.category == reloc_c_literals.SOURCE_RECONSTRUCTION:
             sites = discovered[path]
             interface = "per_source_conditional"

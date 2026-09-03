@@ -226,18 +226,17 @@ def merge_hits(main_hits, demo_hits):
 def matched_set() -> set[str]:
     """The functions we have already byte-matched (same rule as tools/progress.py)."""
     import re
+    import source_units as SU
 
     yaml = open("config/splat.main.exe.yaml").read()
     carved = set(re.findall(r"^\s+- \[0x[0-9A-Fa-f]+,\s*c,\s*(\S+)\]", yaml, re.M))
     out = set()
     src = "src/main.exe"
-    for f in os.listdir(src):
-        if not f.endswith(".c"):
+    for name, path, unit in SU.iter_function_sources(src):
+        if SU.source_has_asm_fallback(path, name):
             continue
-        if re.search(r"^\s*INCLUDE_ASM", open(os.path.join(src, f)).read(), re.M):
-            continue
-        if f[:-2] in carved:
-            out.add(f[:-2])
+        if unit.stem in carved:
+            out.add(name)
     return out
 
 

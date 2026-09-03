@@ -121,6 +121,23 @@ class ContractTests(unittest.TestCase):
         symbolic = struct.pack("<II", 0x3C020000, 0x24420000)
         self.assertEqual(audit.find_literal_pool_capacity(symbolic), [])
 
+    def test_slices_a_function_out_of_a_combined_object(self) -> None:
+        prefix = instruction(0x0F, 0x8009)
+        body = instruction(0x0F) + instruction(0x09)
+        elf = FakeElf(
+            prefix + body,
+            [
+                audit.Relocation(4, audit.R_MIPS_HI16, "Target"),
+                audit.Relocation(8, audit.R_MIPS_LO16, "Target"),
+            ],
+            {
+                "Example": audit.Symbol("Example", 4, 1, len(body)),
+                "Target": audit.Symbol("Target", 0, audit.SHN_UNDEF),
+            },
+        )
+        report = audit.verify_contract(elf, self.SPEC, "Example")
+        self.assertIn("Target HI16=1 LO16=1", report)
+
 
 class AllocatorAssemblyTransformTests(unittest.TestCase):
     def test_abi_pair_reconstructs_values_across_low_half_boundaries(self) -> None:
@@ -380,17 +397,40 @@ class LinkerRewriteTests(unittest.TestCase):
         self.assertNotIn("LONG(0x00000000);", output)
         self.assertIn(audit.FIRST_SDK_TEXT_INPUT, output)
 
+    def test_substitutes_reconstructed_unit_small_data_section(self) -> None:
+        references = self.mappings("old")
+        variants = self.mappings("new")
+        source = self.linker(references).replace(
+            audit.FIRST_SDK_TEXT_INPUT,
+            f"{references['vinit']}(.sdata);\n  {audit.FIRST_SDK_TEXT_INPUT}",
+        )
+        output = audit.rewrite_linker(
+            source, references, variants, padding=0
+        )
+        self.assertEqual(output.count(str(variants["vinit"])), 5)
+        self.assertEqual(output.count(str(variants["valloc"])), 4)
+
     def test_rejects_incomplete_object_inventory_in_linker(self) -> None:
         references = self.mappings("old")
         variants = self.mappings("new")
         source = self.linker(references).replace(str(references["vinit"]), "missing")
-        with self.assertRaisesRegex(audit.AuditError, "references.*expected 4"):
+        with self.assertRaisesRegex(audit.AuditError, "section inventory.*missing"):
             audit.rewrite_linker(
                 source,
                 references,
                 variants,
                 padding=audit.EXPECTED_TEXT_SHRINK,
             )
+
+    def test_rejects_duplicate_object_section_in_linker(self) -> None:
+        references = self.mappings("old")
+        variants = self.mappings("new")
+        source = self.linker(references).replace(
+            audit.FIRST_SDK_TEXT_INPUT,
+            f"{references['vinit']}(.text);\n  {audit.FIRST_SDK_TEXT_INPUT}",
+        )
+        with self.assertRaisesRegex(audit.AuditError, "repeated \\.text"):
+            audit.rewrite_linker(source, references, variants, padding=0)
 
     def test_rejects_unexpected_net_text_change(self) -> None:
         references = self.mappings("old")

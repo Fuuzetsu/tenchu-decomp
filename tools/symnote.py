@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stamp each src/main.exe/<Name>.c with the original source's own facts.
+"""Stamp each reconstructed function with the original source's own facts.
 
 tools/matcher-prompt.py shows these at agent-launch time, but the facts belong
 next to the code: a human reading a parked NON_MATCHING file, or an agent that
@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse, os, re, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import source_units as SU
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(REPO)
@@ -201,13 +202,30 @@ def render(name, protos, tu, locals_, cand) -> str | None:
             f" * docs/psx-sym.md. Do not hand-edit.\n *\n{body}\n * {END}")
 
 
-def stamp(path: str, block: str) -> bool:
+def named_block(text: str, name: str):
+    """Return the PSX.SYM block belonging to ``name``, if present."""
+    signature = re.compile(
+        rf"^\s*\*\s+(?:static\s+)?[^;\n]*\b{re.escape(name)}\s*\(", re.M
+    )
+    return next(
+        (match for match in BLOCK.finditer(text)
+         if signature.search(match.group(0))),
+        None,
+    )
+
+
+def stamp(path: str, block: str, name: str) -> bool:
     txt = open(path).read()
-    if BLOCK.search(txt):
-        new = BLOCK.sub(lambda _: block, txt, count=1)
+    current = named_block(txt, name)
+    if current:
+        new = txt[:current.start()] + block + txt[current.end():]
     else:
-        incs = list(INCLUDE.finditer(txt))
-        at = incs[-1].end() if incs else 0
+        span = body_span(txt, name)
+        if span is not None:
+            at = span[0]
+        else:
+            incs = list(INCLUDE.finditer(txt))
+            at = incs[-1].end() if incs else 0
         rest = txt[at:].lstrip("\n")
         sep = "\n\n" if at else ""
         new = txt[:at] + sep + block + "\n\n" + rest
@@ -295,7 +313,7 @@ def main() -> None:
 
     protos, tu, locals_, cand = load()
     names = args.names or (
-        [f[:-2] for f in sorted(os.listdir(SRC)) if f.endswith(".c")]
+        [name for name, _path, _unit in SU.iter_function_sources(SRC)]
         if (args.all or args.check or args.params or args.rename_params) else [])
     if not names:
         ap.error("give function names, or --all / --check / --params / --rename-params")
@@ -303,7 +321,7 @@ def main() -> None:
     if args.params or args.rename_params:
         rows = []
         for n in names:
-            path = f"{SRC}/{n}.c"
+            path = str(SU.source_for_function(n, SRC))
             if n not in protos or not os.path.exists(path):
                 continue
             ours = c_params(path, n)
@@ -321,7 +339,8 @@ def main() -> None:
                 if a != b:
                     print(f"      {a}  ->  {b}")
             if args.rename_params:
-                ok, why = rename_params(f"{SRC}/{n}.c", n, ours, theirs)
+                ok, why = rename_params(str(SU.source_for_function(n, SRC)),
+                                        n, ours, theirs)
                 if ok:
                     done += 1
                 else:
@@ -336,7 +355,7 @@ def main() -> None:
 
     stale, wrote, skipped = [], 0, 0
     for n in names:
-        path = f"{SRC}/{n}.c"
+        path = str(SU.source_for_function(n, SRC))
         if not os.path.exists(path):
             continue
         block = render(n, protos, tu, locals_, cand)
@@ -346,17 +365,21 @@ def main() -> None:
             # proved to be misattributed) -- drop it rather than leave it stale
             if args.write:
                 txt = open(path).read()
-                if BLOCK.search(txt):
-                    open(path, "w").write(re.sub(r"\n*" + BLOCK.pattern + r"\n*", "\n\n",
-                                                 txt, count=1, flags=re.S))
+                current = named_block(txt, n)
+                if current:
+                    lo = len(txt[:current.start()].rstrip("\n"))
+                    hi = current.end()
+                    while hi < len(txt) and txt[hi] == "\n":
+                        hi += 1
+                    open(path, "w").write(txt[:lo] + "\n\n" + txt[hi:])
                     wrote += 1
             continue
         if args.check:
-            cur = BLOCK.search(open(path).read())
+            cur = named_block(open(path).read(), n)
             if not cur or cur.group(0) != block:
                 stale.append(n)
         elif args.write:
-            wrote += stamp(path, block)
+            wrote += stamp(path, block, n)
     if args.check:
         print(f"symnote: {len(stale)} stale/missing blocks" +
               (": " + ", ".join(stale[:10]) if stale else ""))

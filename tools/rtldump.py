@@ -43,10 +43,16 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+
+try:
+    from tools import source_units as SU
+except ModuleNotFoundError:
+    import source_units as SU  # type: ignore[no-redef]
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -81,6 +87,31 @@ PASS_FLAG = {
     "greg": "-dg", "sched2": "-dR", "jump2": "-dJ", "dbr": "-dd", "reorg": "-dd",
     "all": "-da",
 }
+
+
+FUNCTION_DUMP_HEADER = re.compile(r"^;; Function ([A-Za-z_][A-Za-z0-9_]*)\s*$",
+                                  re.M)
+
+
+def isolate_function_dump(path: str, name: str, outdir: str) -> str:
+    """Return a dump containing only ``name`` when cc1 compiled a whole TU."""
+    with open(path, errors="replace") as stream:
+        text = stream.read()
+    headers = list(FUNCTION_DUMP_HEADER.finditer(text))
+    if len(headers) <= 1:
+        return path
+    header = next((match for match in headers if match.group(1) == name), None)
+    if header is None:
+        raise RuntimeError(f"{path}: cc1 dump has no Function {name} section")
+    following = next(
+        (match.start() for match in headers if match.start() > header.start()),
+        len(text),
+    )
+    suffix = path.rsplit(".", 1)[-1]
+    focused = os.path.join(outdir, f"{name}.target.{suffix}")
+    with open(focused, "w") as stream:
+        stream.write(text[header.start():following])
+    return focused
 DEFAULT_PASSES = ["greg", "lreg", "jump", "combine"]
 
 # Key the dump directory to THIS worktree, at a STABLE path.
@@ -172,7 +203,7 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
     cc = cc_executable_for(name)
     which(cc)
     cpp = shutil.which(CPP) or which("cpp")
-    src = src or os.path.join("src", "main.exe", name + ".c")
+    src = src or str(SU.source_for_function(name))
     if not os.path.exists(src):
         raise FileNotFoundError(src)
     with open(src, errors="replace") as stream:
@@ -195,7 +226,7 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
     for old in os.listdir(outdir):
         if old.startswith(prefix) or old in {
                 os.path.basename(sfile), name + ".maspsx.s", name + ".o",
-                name + ".objdump"}:
+                name + ".objdump"} or old.startswith(name + ".target."):
             try:
                 os.unlink(os.path.join(outdir, old))
             except FileNotFoundError:
@@ -219,10 +250,12 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
     if not os.path.exists(sfile):
         raise RuntimeError(f"cc1 produced no .s (rc={r.returncode}):\n{err}")
 
-    dumps = sorted(os.path.join(outdir, f) for f in os.listdir(outdir)
-                   if f.startswith(prefix))
+    raw_dumps = sorted(os.path.join(outdir, f) for f in os.listdir(outdir)
+                       if f.startswith(prefix))
+    dumps = [isolate_function_dump(path, name, outdir) for path in raw_dumps]
     result = dict(outdir=outdir, preprocessed=ic, asm=sfile, dumps=dumps,
-                  stderr=err, guarded_stub=guarded_stub and not draft)
+                  raw_dumps=raw_dumps, stderr=err,
+                  guarded_stub=guarded_stub and not draft)
 
     if assemble:
         if not debug_lines:
@@ -231,12 +264,13 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
         assembler = which("mipsel-unknown-linux-gnu-as")
         objdump = which("mipsel-unknown-linux-gnu-objdump")
         gp_externs, extra, as_flags = _load_maspsx_config()
+        unit_name = SU.unit_for_function(name).stem
         processed = stem + ".maspsx.s"
         obj = stem + ".o"
         listing = stem + ".objdump"
         maspsx_cmd = ["maspsx", "--aspsx-version=2.77", "-G8",
-                      *extra.get(name, [])]
-        for sym in gp_externs.get(name, []):
+                      *extra.get(unit_name, extra.get(name, []))]
+        for sym in gp_externs.get(unit_name, gp_externs.get(name, [])):
             maspsx_cmd += ["--gp-extern", sym]
         with open(sfile) as inp, open(processed, "w") as out:
             r = subprocess.run(maspsx_cmd, stdin=inp, stdout=out,
@@ -258,7 +292,7 @@ def compile_rtl(name, passes=None, draft=False, src=None, debug_lines=False,
 
 def is_guarded(name, src=None):
     """Whether <name>.c hides its C behind the NON_MATCHING guard."""
-    src = src or os.path.join("src", "main.exe", name + ".c")
+    src = src or str(SU.source_for_function(name))
     if not os.path.exists(src):
         return False
     with open(src, errors="replace") as stream:

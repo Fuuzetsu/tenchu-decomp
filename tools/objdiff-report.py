@@ -16,9 +16,8 @@ matched `.c` files), so CI needs only Python — no nix, no cc1, no ELF build.
   tools/objdiff-report.py --include-sdk         include the PsyQ SDK block too
   tools/objdiff-report.py --stdout              print JSON to stdout
 
-"Matched" is defined exactly as in tools/progress.py: a function that is CARVED
-(has a `c` subsegment in the splat yaml, so its `.c` is actually linked) AND
-whose src/main.exe/<Name>.c has no INCLUDE_ASM. Each function becomes one
+"Matched" is defined exactly as in tools/progress.py: a function whose owning
+C translation unit is carved and whose definition has no INCLUDE_ASM. Each function becomes one
 objdiff *unit* (per-function granularity); units are tagged into the `game` /
 `sdk` progress categories. u64 measure/size/address fields are JSON strings and
 u32/float fields are numbers — the encoding objdiff's prost+serde emits and
@@ -33,6 +32,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import function_inventory as FI
 import fuzzy_inventory as FZI
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -152,18 +152,15 @@ def load_matched():
                             open(YAML).read(), re.M))
     matched_addrs = set()
     addr_to_cfile = {}
-    for f in sorted(os.listdir(SRC)):
-        if not f.endswith(".c"):
+    for name, path, unit in SU.iter_function_sources(SRC):
+        if unit.stem not in carved:
             continue
-        name = f[:-2]
-        if name not in carved:
-            continue
-        if re.search(r"^\s*INCLUDE_ASM", open(os.path.join(SRC, f)).read(), re.M):
+        if SU.source_has_asm_fallback(path, name):
             continue
         if name in sym_addr:
             a = sym_addr[name]
             matched_addrs.add(a)
-            addr_to_cfile[a] = f"{SRC}/{f}"
+            addr_to_cfile[a] = str(path)
     return matched_addrs, addr_to_cfile, sym_addr
 
 
@@ -187,7 +184,7 @@ def load_fuzzy(sym_addr):
             continue          # no score (e.g. a build failure) -> leave at 0%
         a = sym_addr[p[0]]
         fuzzy_by_addr[a] = float(p[1])
-        src_by_addr[a] = f"{SRC}/{p[0]}.c"
+        src_by_addr[a] = str(SU.source_for_function(p[0], SRC))
     return fuzzy_by_addr, src_by_addr
 
 

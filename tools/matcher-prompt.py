@@ -18,6 +18,7 @@ import argparse
 import bisect, os, re, subprocess, sys
 
 import function_inventory as FI
+import source_units as SU
 import triage
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -411,9 +412,16 @@ def main():
     # -> tools/clonematch.py instead.)
     if near and near[0][0] >= 0.99:
         twin = near[0][1]
+        twin_source = SU.source_for_function(twin)
+        clone_step = (
+            f"copy the {twin} definition from {twin_source} into "
+            f"src/main.exe/{name}.c"
+            if SU.unit_for_function(twin).combined
+            else f"cp {twin_source} src/main.exe/{name}.c"
+        )
         print(f"# NEAR-CLONE of {twin} (findsimilar {near[0][0]:.2f}) — DON'T spawn "
               f"a full agent; do this inline (~2 min):")
-        print(f"#   1. cp src/main.exe/{twin}.c src/main.exe/{name}.c  (substitute "
+        print(f"#   1. {clone_step}  (substitute "
               f"the function name; item Req/Proc twins also swap Proc<Twin>-><this>)")
         print(f"#   2. tools/reverse.py {name} --ghidra-export .shake/ghidra-export "
               f"  (carve — let it run its check); ./Build; tools/maspsxflags.py {name} "
@@ -425,7 +433,7 @@ def main():
               f"true clone), fall back to the full agent prompt below.\n#")
         # still print the full prompt below as a fallback
 
-    examples = ", ".join(f"src/main.exe/{n}.c ({s:.2f})" for s, n in near) or \
+    examples = ", ".join(f"{SU.source_for_function(n)} ({s:.2f})" for s, n in near) or \
         "(run tools/findsimilar.py to pick worked examples)"
     ex_names = [n for _, n in near]
 
@@ -434,7 +442,7 @@ def main():
              f"function: **{name}** @ {addr:#010x} ({size} bytes).")
     if status:
         P.append(f"\n**THIS FUNCTION IS ALREADY PARKED — a draft exists. Read "
-                 f"src/main.exe/{name}.c BEFORE anything else, and pick up from its "
+                 f"{SU.source_for_function(name)} BEFORE anything else, and pick up from its "
                  f"banked checkpoint; do NOT re-derive it.** Its own STATUS line says:\n"
                  f"    {status}\n"
                  f"Treat that as a HYPOTHESIS, not a fact — park prose has been wrong "
@@ -453,7 +461,7 @@ def main():
     P.append("")
     P.append("FIRST read, in order: .claude/agents/matcher.md (your contract), "
              "docs/matching-cookbook.md (workflow + Iteration protocol + rules)"
-             + (", then " + ", ".join(f"src/main.exe/{n}.c" for n in ex_names)
+             + (", then " + ", ".join(str(SU.source_for_function(n)) for n in ex_names)
                 + (f" and src/main.exe/{header}" if header else "")
                 if ex_names else "") + ".")
     P.append("")

@@ -81,7 +81,7 @@ def gather_prototypes_and_globals():
 
     # --- matched C definitions: pull their signatures ---
     for fn in sorted(os.listdir(SRC_DIR)):
-        if not fn.endswith(".c"):
+        if os.path.splitext(fn)[1].lower() != ".c":
             continue
         text = open(os.path.join(SRC_DIR, fn)).read()
         if "INCLUDE_ASM" in text:

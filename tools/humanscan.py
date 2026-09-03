@@ -19,6 +19,8 @@ import pathlib
 import re
 import sys
 
+import source_units as SU
+
 SRC = pathlib.Path(__file__).resolve().parent.parent / "src/main.exe"
 
 PATTERNS = [
@@ -62,7 +64,7 @@ def main():
 
     rows = []
     dump_files = []
-    for p in sorted(SRC.glob("*.c")):
+    for p in SU.iter_source_files(SRC):
         raw = p.read_text(errors="replace")
         guarded = re.search(r"^\s*INCLUDE_ASM\(", raw, re.M) is not None
         if not guarded and any(m in raw for m in DUMP_MARKERS):

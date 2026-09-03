@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import tempfile
 import unittest
 
 from tools import gen_debug_gdb as g
@@ -27,6 +28,27 @@ class ParseNmTests(unittest.TestCase):
         self.assertEqual(syms["F"], 0x80040500)
 
 
+class ObjectInventoryTests(unittest.TestCase):
+    def test_source_union_normalises_uppercase_c_and_excludes_stale_objects(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            user = root / "src"
+            generated = root / "gen"
+            objects = root / "objects"
+            user.mkdir()
+            generated.mkdir()
+            objects.mkdir()
+            (user / "WORLD.C").write_text("void CreateStage(void) {}\n")
+            (generated / "WORLD.c").write_text("generated\n")
+            (generated / "Other.c").write_text("generated\n")
+            (objects / "FormerMember.c.o").touch()
+
+            self.assertEqual(
+                g.objects_for_source_roots(objects, [user, generated]),
+                [objects / "Other.c.o", objects / "WORLD.c.o"],
+            )
+
+
 class BuildScriptTests(unittest.TestCase):
     def test_emits_absolute_paths_and_a_source_directory(self) -> None:
         symbols = {"ProcItemKusuri": 0x80040500, "PadProc": 0x8001ADA4}
@@ -51,6 +73,13 @@ class BuildScriptTests(unittest.TestCase):
         self.assertEqual(count, 1)
         self.assertIn("Game.c.o", script)
         self.assertNotIn("Sdk.c.o", script)
+
+    def test_combined_object_uses_its_first_retail_function_as_base(self) -> None:
+        symbols = {"CreateStage": 0x8003A3A0}
+        objs = [Path("d/WORLD.c.o")]
+        script, count = g.build_script(symbols, objs, "d", "/repo")
+        self.assertEqual(count, 1)
+        self.assertIn("WORLD.c.o -s .text 0x8003a3a0", script)
 
 
 if __name__ == "__main__":

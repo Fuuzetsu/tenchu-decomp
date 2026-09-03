@@ -123,6 +123,25 @@ file, which nothing bounds — when the implied code density is at least 2 bytes
 line (verified spans sit at a median of 13.3). 431 of 442 survive; median 24 source
 lines, p90 83. Useful as a sanity prior on how much C a body should be.
 
+## Reconstructing the original source files
+
+The decomp began with one artificial C file and linker input per function.
+`config/translation-units.main.exe.json` records original-style translation
+units as they are reconstructed. Its `functions` list is the definition order
+proved by the retail executable; `debug_symbol_order` independently preserves
+the earlier demo's source-line order from `reference/psxsym-tu-map.tsv`.
+
+Those orders can disagree. `WORLD.C`, for example, was substantially rearranged
+between the demo and retail builds, gained two retail-only load helpers, and no
+longer contains demo-only `PointInTri` or `jt_init4` in its retail text range.
+Because this compiler emits functions in definition order, the retail order must
+win in the compilable source. Keeping both lists makes that conclusion explicit
+and testable instead of losing the debug evidence or forcing a linker-order hack.
+
+Original source filenames retain their upper-case spelling. Splat continues to
+generate lower-case `.c` intermediary/object names; the build resolves those to
+the checked-in `.C` source.
+
 ## Putting the facts in front of the code
 
 `tools/matcher-prompt.py` injects the prototype, TU, storage class, locals and
@@ -135,10 +154,10 @@ $ tools/symnote.py --write --all     # stamp/refresh every src/main.exe/*.c
 $ tools/symnote.py --check --all     # non-zero if any block is stale (CI)
 ```
 
-It inserts one `BEGIN PSX.SYM … END PSX.SYM` comment after the last `#include`,
-regenerated in place and idempotent. **434 of 557 files carry one**; the other 123 are
-functions PSX.SYM never described. Comments change no bytes, so `./Build check` is the
-gate.
+It inserts one `BEGIN PSX.SYM … END PSX.SYM` comment beside each described
+function, regenerated in place and idempotent. A reconstructed translation unit
+therefore contains one block per member rather than one block per physical file.
+Comments change no bytes, so `./Build check` is the gate.
 
 ### Reading a stamped block
 

@@ -114,6 +114,7 @@ import re
 import sys
 
 import rtldump
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -161,7 +162,7 @@ def main():
     if args.which == "sched1":
         args.which = "sched"
 
-    path = os.path.join("src", "main.exe", args.name + ".c")
+    path = str(SU.source_for_function(args.name))
     if not os.path.exists(path):
         sys.exit(f"schedtrace: {path} not found")
     with open(path, errors="replace") as stream:

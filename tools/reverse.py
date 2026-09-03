@@ -20,6 +20,8 @@ The Ghidra export dir is what ExportDecomp.java wrote (functions.tsv + c/*.c).
 """
 import argparse, os, re, subprocess, sys
 
+import source_units as SU
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -348,6 +350,11 @@ def main():
                          "have taken. Use it only when you are about to run the check "
                          "yourself anyway.")
     args = ap.parse_args()
+
+    unit = SU.explicit_unit_for_function(args.name)
+    if unit is not None:
+        sys.exit(f"reverse: {args.name} is already owned by {unit.source}; "
+                 "refusing to create a duplicate one-function source/carve")
 
     ghidra_c = None
     if args.ghidra_export:

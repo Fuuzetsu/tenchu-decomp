@@ -28,6 +28,7 @@ Run inside the nix devShell.
 import argparse, os, re, subprocess, sys
 
 import function_inventory as FI
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -57,10 +58,10 @@ def load_functions(tsv=TSV, symbols=SYMBOLS, splat=YAML):
             m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
             if m:
                 symname[int(m.group(2), 16)] = m.group(1)
-    carved_names = FI.load_splat_c_names(splat)
+    rows, _ = FI.overlay_current_names(FI.load_functions(tsv), splat)
     return sorted(
-        (a, s, carved_names.get(a, symname.get(a, n)))
-        for a, s, n in FI.load_functions(tsv)
+        (a, s, symname.get(a, n))
+        for a, s, n in rows
         if TEXT_START <= a < TEXT_END and s >= 8
         and re.match(r"^[A-Za-z_]\w*$", n)
     )
@@ -92,8 +93,8 @@ def load():
 
 
 def matched(name):
-    f = os.path.join(SRC, name + ".c")
-    return os.path.exists(f) and not re.search(r"^\s*INCLUDE_ASM", open(f).read(), re.M)
+    path = SU.source_for_function(name, SRC)
+    return path.exists() and not SU.source_has_asm_fallback(path, name)
 
 
 # `STATUS: NON_MATCHING — <reason>` (em dash, en dash or ASCII hyphen).
@@ -123,11 +124,11 @@ def parked(name):
         return ("handwritten-asm CANONICAL — the original was assembly "
                 "(cc1-invariant tells); the asm is the faithful source form, "
                 "never a matching target (docs/gte-policy.md)")
-    f = os.path.join(SRC, name + ".c")
-    if not os.path.exists(f):
+    f = SU.source_for_function(name, SRC)
+    if not f.exists():
         return None
     src = open(f).read()
-    if not re.search(r"^\s*INCLUDE_ASM", src, re.M):
+    if not SU.source_has_asm_fallback(f, name):
         return None  # matched
     if "NON_MATCHING" not in src:
         return None  # fresh carve / in-progress draft
@@ -400,7 +401,7 @@ def main():
         p = parked(n)
         if p:
             print(f"  PARKED: {p}")
-            print(f"          (read {os.path.join(SRC, n + '.c')} before reviving)")
+            print(f"          (read {SU.source_for_function(n)} before reviving)")
         print("  relevant cookbook sections:")
         for sec, w in docs_for(f) or [("(base rules)", "small/plain function")]:
             print(f"    - {sec}: {w}")

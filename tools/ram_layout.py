@@ -393,7 +393,7 @@ def source_literal_findings(
         authority = (root / DEFAULT_HEADER).resolve()
         selected = sorted(
             path
-            for pattern in ("*.c", "*.h")
+            for pattern in ("*.c", "*.C", "*.h")
             for path in source_root.rglob(pattern)
             if path.resolve() != authority
         )

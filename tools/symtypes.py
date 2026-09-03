@@ -21,6 +21,11 @@ import re
 import subprocess
 import sys
 
+try:
+    from tools import source_units as SU
+except ModuleNotFoundError:
+    import source_units as SU  # type: ignore[no-redef]
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SRC = ROOT / "src" / "main.exe"
 REF = ROOT / "reference" / "psxsym-globals.h"
@@ -161,7 +166,7 @@ def locals_audit(only: str | None):
     for func, recs in theirs.items():
         if only and func != only:
             continue
-        path = SRC / f"{func}.c"
+        path = SU.source_for_function(func, SRC)
         if not path.exists():
             continue
         ours = our_locals(path, func)
@@ -240,7 +245,8 @@ def main() -> None:
     rows.sort()
     if args.uses:
         hits = subprocess.run(
-            ["git", "grep", "-n", rf"\b{args.uses}\b", "--", "src/main.exe/*.c"],
+            ["git", "grep", "-n", rf"\b{args.uses}\b", "--",
+             "src/main.exe/*.c", "src/main.exe/*.C"],
             cwd=ROOT, capture_output=True, text=True).stdout
         print(hits or f"no .c uses of {args.uses}")
         return

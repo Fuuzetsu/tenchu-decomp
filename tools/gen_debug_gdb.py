@@ -25,6 +25,11 @@ from pathlib import Path
 import subprocess
 import sys
 
+try:
+    from tools import source_units as SU
+except ModuleNotFoundError:
+    import source_units as SU  # type: ignore[no-redef]
+
 ROOT = Path(__file__).resolve().parent.parent
 MAIN_RAM_LO = 0x80010000
 MAIN_RAM_HI = 0x80200000
@@ -49,6 +54,23 @@ def parse_nm(text: str) -> dict[str, int]:
     return out
 
 
+def objects_for_source_roots(
+    debug_obj_dir: Path, source_roots: list[Path]
+) -> list[Path]:
+    """Map the current C-source union to debug objects, excluding stale output."""
+
+    relative_sources: set[Path] = set()
+    for source_root in source_roots:
+        if not source_root.is_dir():
+            continue
+        relative_sources.update(
+            source.relative_to(source_root).with_suffix(".c")
+            for source in source_root.rglob("*")
+            if source.is_file() and source.suffix.lower() == ".c"
+        )
+    return sorted(debug_obj_dir / f"{source}.o" for source in relative_sources)
+
+
 def build_script(symbols: dict[str, int], debug_objs: list[Path],
                  obj_dir: str, source_root: str) -> tuple[str, int]:
     # Absolute paths: VSCode's cppdbg runs gdb with an unspecified cwd, so
@@ -62,7 +84,9 @@ def build_script(symbols: dict[str, int], debug_objs: list[Path],
     ]
     count = 0
     for obj in sorted(debug_objs):
-        function = obj.name[:-4] if obj.name.endswith(".c.o") else obj.stem
+        object_stem = obj.name[:-4] if obj.name.endswith(".c.o") else obj.stem
+        unit = SU.explicit_unit_for_stem(object_stem)
+        function = unit.functions[0] if unit else object_stem
         address = symbols.get(function)
         if address is None or not MAIN_RAM_LO <= address < MAIN_RAM_HI:
             continue
@@ -75,6 +99,20 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--elf", type=Path, required=True)
     parser.add_argument("--debug-obj-dir", type=Path, required=True)
+    parser.add_argument(
+        "--debug-object",
+        action="append",
+        default=[],
+        type=Path,
+        help="current debug object to load (repeatable; otherwise scan the directory)",
+    )
+    parser.add_argument(
+        "--source-root",
+        action="append",
+        default=[],
+        type=Path,
+        help="current C source tree used to exclude stale debug objects",
+    )
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--nm", default="mipsel-unknown-linux-gnu-nm")
     args = parser.parse_args(argv)
@@ -87,7 +125,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"gen-debug-gdb: {error}", file=sys.stderr)
         return 1
     symbols = parse_nm(nm)
-    debug_objs = sorted(args.debug_obj_dir.glob("*.c.o"))
+    if args.debug_object:
+        debug_objs = sorted(args.debug_object)
+    elif args.source_root:
+        debug_objs = objects_for_source_roots(args.debug_obj_dir, args.source_root)
+    else:
+        debug_objs = sorted(args.debug_obj_dir.glob("*.c.o"))
     script, count = build_script(
         symbols, debug_objs, str(args.debug_obj_dir), str(ROOT)
     )

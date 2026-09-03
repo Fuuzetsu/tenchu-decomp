@@ -102,6 +102,7 @@ import subprocess
 import sys
 
 import rtldump
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -736,7 +737,7 @@ def main():
     if args.which == "sched1":
         args.which = "sched"
 
-    src = os.path.join("src", "main.exe", args.name + ".c")
+    src = str(SU.source_for_function(args.name))
     if not os.path.exists(src):
         sys.exit(f"sched-deps: {src} not found")
     draft = rtldump.is_guarded(args.name, src) and not args.stub

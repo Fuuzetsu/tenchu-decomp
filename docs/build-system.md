@@ -112,7 +112,7 @@ stays main-only because `tools/matchdiff.py` calls it once per iteration.
 
 `check-reloc-game` is an opt-in exact-at-retail proof lane. It generates a
 filtered symbol script and a linker script with section-relative anchors for
-all 555 game inputs, then writes
+the C inputs owning all 555 game functions, then writes
 `.shake/build/tenchu/main_reloc_game.exe{,.elf}`. It remains a useful bounded
 oracle, but `relink` is the complete size-changing composition; do not infer the
 current project state from the deliberately limited game-only artifact.

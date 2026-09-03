@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools import reloc_c_literals, reloc_data, reloc_growth_probe
+from tools import reloc_c_literals, reloc_data, reloc_growth_probe, source_units
 
 
 @dataclass(frozen=True)
@@ -50,7 +50,8 @@ class RelocGrowthProbeTests(unittest.TestCase):
         for name in reloc_c_literals.ORDINARY_OBJECT_SPECS:
             self.assertEqual(
                 reloc_growth_probe.C_OBJECTS[name],
-                Path(".shake/build/main.exe") / f"{name}.c.o",
+                Path(".shake/build/main.exe")
+                / f"{source_units.unit_for_function(name).stem}.c.o",
             )
         for name in reloc_c_literals.REPLACEMENT_OBJECT_SPECS:
             self.assertEqual(

@@ -7,8 +7,7 @@ assignments overwrite the symbols from the relocatable game objects.  This
 tool creates an opt-in pair of scripts that instead:
 
 * removes every absolute symbol in the retail game-code range; and
-* emits a section-relative public anchor immediately before each artificial
-  one-function game input.
+* emits a section-relative public anchor immediately before each game C input.
 
 The anchors are required even when an object already exports its function:
 several original functions were ``static`` and remain local symbols after the
@@ -27,10 +26,18 @@ from pathlib import Path
 import re
 import tempfile
 
+try:
+    from tools import source_units as SU
+except ModuleNotFoundError:
+    import source_units as SU  # type: ignore[no-redef]
+
 
 GAME_TEXT_START = 0x80016134
 GAME_TEXT_END = 0x800601D4
-EXPECTED_GAME_INPUTS = 555
+EXPECTED_GAME_FUNCTIONS = 555
+EXPECTED_GAME_INPUTS = EXPECTED_GAME_FUNCTIONS - sum(
+    len(unit.functions) - 1 for unit in SU.load_units()
+)
 
 TEXT_START_MARKER = "main_exe_TEXT_START = .;"
 FIRST_SDK_OWNER = "/LIBAPI_4F9D4.s.o(.text);"
@@ -109,9 +116,11 @@ def rewrite_linker(
         if in_game_text:
             match = GAME_INPUT_RE.fullmatch(line.rstrip("\r\n"))
             if match is not None:
-                name = match.group("name")
+                object_name = match.group("name")
+                unit = SU.explicit_unit_for_stem(object_name)
+                name = unit.functions[0] if unit else object_name
                 if name in anchors:
-                    raise LaneError(f"duplicate game input {name}")
+                    raise LaneError(f"duplicate game input anchor {name}")
                 newline = "\r\n" if line.endswith("\r\n") else "\n"
                 output.append(f"{match.group('indent')}{name} = .;{newline}")
                 anchors.append(name)

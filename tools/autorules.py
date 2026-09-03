@@ -46,6 +46,7 @@ import proclife
 from contextlib import contextmanager
 
 from matchlock import MatchToolBusy, matching_tool_lock
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -101,7 +102,7 @@ def _target_gp_symbols(name):
 # ---------------------------------------------------------------------------
 
 def load(name):
-    path = os.path.join(SRC, name + ".c")
+    path = str(SU.source_for_function(name, SRC))
     if not os.path.exists(path):
         sys.exit(f"autorules: {path} not found")
     text = open(path).read()
@@ -8305,8 +8306,8 @@ def _run_owned(args, **kwargs):
 
 
 def _source_override_var(name):
-    """Shake's per-function staged-source environment oracle."""
-    return SOURCE_OVERRIDE_PREFIX + name
+    """Shake's per-translation-unit staged-source environment oracle."""
+    return SOURCE_OVERRIDE_PREFIX + SU.unit_for_function(name).stem
 
 
 
@@ -8353,7 +8354,7 @@ def staged_candidate(name, original):
 def score(name, partial, source_override=None):
     env = dict(os.environ)
     if partial:
-        env["NON_MATCHING"] = name
+        env["NON_MATCHING"] = SU.unit_for_function(name).stem
     override_var = _source_override_var(name)
     if source_override is None:
         env.pop(override_var, None)

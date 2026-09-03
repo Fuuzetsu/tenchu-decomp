@@ -31,13 +31,21 @@ import sys
 from typing import Iterable
 
 try:
-    from tools import psxexe, ram_layout, reloc_audit, reloc_c_literals, reloc_data
+    from tools import (
+        psxexe,
+        ram_layout,
+        reloc_audit,
+        reloc_c_literals,
+        reloc_data,
+        source_units,
+    )
 except ModuleNotFoundError:  # Direct invocation adds tools/, not the repo root.
     import psxexe  # type: ignore[no-redef]
     import ram_layout  # type: ignore[no-redef]
     import reloc_audit  # type: ignore[no-redef]
     import reloc_c_literals  # type: ignore[no-redef]
     import reloc_data  # type: ignore[no-redef]
+    import source_units  # type: ignore[no-redef]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -96,7 +104,8 @@ C_OBJECTS = {
     name: Path(".shake/reloc-c-literals") / f"{name}.o"
     for name in reloc_c_literals.REPLACEMENT_OBJECT_SPECS
 } | {
-    name: Path(".shake/build/main.exe") / f"{name}.c.o"
+    name: Path(".shake/build/main.exe")
+    / f"{source_units.unit_for_function(name).stem}.c.o"
     for name in reloc_c_literals.ORDINARY_OBJECT_SPECS
 }
 

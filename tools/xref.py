@@ -15,6 +15,7 @@ Run inside the nix devShell.
 import argparse, os, re, subprocess, sys
 
 import function_inventory as FI
+import source_units as SU
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -50,10 +51,9 @@ def functions(tsv=TSV, splat=SPLAT):
 
 def matched_names():
     names = set()
-    for f in os.listdir(SRC):
-        if f.endswith(".c") and not re.search(
-                r"^\s*INCLUDE_ASM", open(os.path.join(SRC, f)).read(), re.M):
-            names.add(f[:-2])
+    for name, path, _unit in SU.iter_function_sources(SRC):
+        if not SU.source_has_asm_fallback(path, name):
+            names.add(name)
     return names
 
 

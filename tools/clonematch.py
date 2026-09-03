@@ -17,6 +17,8 @@ parametrization. Run inside the nix devShell.
 """
 import argparse, os, re, subprocess, sys
 
+import source_units as SU
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
 
@@ -47,15 +49,20 @@ def functions():
 
 
 def is_matched(name):
-    f = os.path.join(SRC, name + ".c")
-    return os.path.exists(f) and not re.search(
-        r"^\s*INCLUDE_ASM", open(f).read(), re.M)
+    path = SU.source_for_function(name, SRC)
+    return path.exists() and not SU.source_has_asm_fallback(path, name)
 
 
 def clone_c(src_name, dst_name, dst_addr):
     """The matched C with the function identifier substituted src->dst, and a
     fresh header (substitute FIRST so the header's `clone of <src>` survives)."""
-    txt = open(os.path.join(SRC, src_name + ".c")).read()
+    unit = SU.unit_for_function(src_name)
+    if unit.combined:
+        raise ValueError(
+            f"{src_name} belongs to {unit.source}; clonematch cannot copy a "
+            "whole multi-function translation unit as one function"
+        )
+    txt = open(SU.source_for_function(src_name, SRC)).read()
     txt = re.sub(rf"\b{re.escape(src_name)}\b", dst_name, txt)
     header = (f"/* {dst_name} (0x{dst_addr:08x}) — byte-identical clone of "
               f"{src_name} (tools/clonematch.py). */")

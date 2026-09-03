@@ -80,7 +80,7 @@ mainDebugGdb, mainRelinkDebugGdb :: FilePath
 mainDebugGdb = mainExe <.> "debug.gdb"
 mainRelinkDebugGdb = mainRelinkExe <.> "debug.gdb"
 
--- | Opt-in proof link where the 555 game inputs own their public symbols.
+-- | Opt-in proof link where the game C inputs own their public symbols.
 -- It is retail-sized and byte-exact; SDK/header/BSS relocation is later work.
 mainRelocGameExe, mainRelocGameElf, mainRelocGameMap :: FilePath
 mainRelocGameExe = buildDir </> "tenchu" </> "main_reloc_game.exe"
@@ -134,7 +134,11 @@ relocCLiteralAssembly name = relocCLiteralDir </> name <.> "s"
 relocCLiteralObject name = relocCLiteralDir </> name <.> "o"
 
 relocCLiteralReferenceObject :: String -> FilePath
-relocCLiteralReferenceObject name = buildDir </> "main.exe" </> name <.> "c.o"
+relocCLiteralReferenceObject name =
+  buildDir </> "main.exe" </> objectName name <.> "c.o"
+  where
+    objectName "ActivateHumans" = "WORLD"
+    objectName member = member
 
 relocCLiteralAuditObject :: String -> FilePath
 relocCLiteralAuditObject name
@@ -436,8 +440,6 @@ compilerSdataPoolTool = "tools" </> "compiler_sdata_pool.py"
 compilerSdataPool :: FilePath -> Maybe CompilerSdataPool
 compilerSdataPool src = pool (takeBaseName src)
   where
-    pool "leFindEnemy" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n100" [0, -100, 0] True)
-    pool "leAddPath" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n100" [0, -100, 0] False)
     pool "ProcItemNingyo" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] True)
     pool "ProcItemJirai" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] False)
     pool "ProcItemFire" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] False)
@@ -524,6 +526,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "DrawImpact" = ["--expand-div"]
     extra "draw_fade_" = ["--expand-div"]
     extra "draw_map_items_" = ["--expand-div"]
+    extra "WORLD" = ["--expand-div"]
     extra _ = []
     -- Think1sleep.c is a fragment of the original think TU, which defines these.
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "EmergencyNotice"]
@@ -735,6 +738,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "draw_card_help_" = ["McardPageNow", "McardHelp", "McardAnswered", "McardPageText", "McardSprite", "McardStateFlag"]
     syms "LoadConstruction" = ["mma", "ObjectArc", "StageID"]
     syms "CreateStage" = ["StageID"]
+    syms "WORLD" = ["StageID", "mma", "ObjectArc", "ThinkBudgetRaw", "ThinkBudget", "ThinkCount"]
     syms "SetWire" = ["ModelHook"]
     syms "think_alarm_reaction_" = ["Me_THINK_C", "Attrib", "EmergencyNotice", "Degree", "Distance"]
     syms "ActCHASE" = ["Me_MOTION_C", "dtM", "dtPAD", "MotionUpdateMode", "motID", "motMODE", "dtL", "dtR", "dtCMD"]
@@ -1026,8 +1030,9 @@ cppFlags =
     "-DHACKS"
   ]
 
--- | Per-file NON_MATCHING opt-in. @NON_MATCHING=Name1,Name2 ./Build@ (or
--- @NON_MATCHING=all@) compiles those files' @#else@ draft instead of their
+-- | Per-translation-unit NON_MATCHING opt-in.
+-- @NON_MATCHING=Name1,Name2 ./Build@ (or @NON_MATCHING=all@) compiles those
+-- units' @#else@ draft instead of their
 -- @INCLUDE_ASM@ stub, so a work-in-progress function can be built (and
 -- byte-compared) without hand-editing the source. Unset (the default) keeps
 -- every stub, i.e. the green byte-identical image. @getEnv@ is Shake-tracked,
@@ -1039,9 +1044,9 @@ nonMatchingFlags src = do
   pure ["-DNON_MATCHING" | mval == Just "all" || takeBaseName src `elem` names]
 
 -- | Matching tools may compile a staged candidate without rewriting the
--- checked-in source file.  The variable is deliberately per function: changing
--- one candidate invalidates only that file's preprocessing rule, rather than
--- making every C object depend on one global override value.
+-- checked-in source file.  The variable is deliberately per translation unit:
+-- changing one candidate invalidates only that unit's preprocessing rule,
+-- rather than making every C object depend on one global override value.
 --
 -- This is an internal tool interface, e.g.
 -- @TENCHU_MATCH_SOURCE_ProcItemFire=.shake/autorules-.../ProcItemFire.c@.
@@ -1533,6 +1538,8 @@ mainExtraRules = do
         cmd_ "python3" tool
           [ "--elf", elf,
             "--debug-obj-dir", debugObjDir,
+            "--source-root", tgSrcDir t,
+            "--source-root", genD </> "src",
             "--out", out
           ]
 
@@ -1549,7 +1556,7 @@ mainExtraRules = do
   -- sequentially, but config/symbols.main.exe.txt overwrites the game objects'
   -- symbols with retail absolute addresses. Generate alternate scripts which
   -- remove those game-range assignments and add `name = .` before each of the
-  -- 555 artificial one-function inputs. The latter also exports original
+  -- the reconstructed game C inputs. The latter also exports original
   -- `static` leaves across our artificial object split without changing C.
   [relocGameLinker, relocGameSymbols] &%> \_outs -> do
     let t = mainTarget
