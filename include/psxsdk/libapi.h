@@ -30,4 +30,8 @@ void ExitCriticalSection(void);
 long Krom2RawAdd(u_long code);
 void ChangeClearPAD(long mode);
 
+void _new_card(void);
+long _card_write(long channel, long block, unsigned char *buffer);
+long _card_clear(long channel);
+
 #endif
