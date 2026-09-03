@@ -3563,17 +3563,15 @@ void FadeOutDirect(short time, short attrib, u8 r, u8 g, u8 b)
     ply.ply.x3 = o_disp.disp.w;
     ply.ply.y3 = o_disp.disp.h;
 loop:
-    if (time == 0)
+    if (time != 0)
     {
-        goto end;
+        DrawPrim((u8 *)&ply.ply);
+        DrawPrim((u8 *)&ply.tpage);
+        DrawSync(0);
+        VSync(0);
+        time--;
+        goto loop;
     }
-    DrawPrim((u8 *)&ply.ply);
-    DrawPrim((u8 *)&ply.tpage);
-    DrawSync(0);
-    VSync(0);
-    time--;
-    goto loop;
-end:
     PutDrawEnv(&o_draw);
 }
 
