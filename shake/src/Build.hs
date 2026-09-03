@@ -415,6 +415,27 @@ maspsx = "maspsx"
 maspsxFlags :: [String]
 maspsxFlags = ["--aspsx-version=2.77", "-G8"]
 
+-- | GCC pooled identical automatic aggregate initializers across each original
+-- translation unit. Our one-function object split loses that context and would
+-- emit duplicate @$LC@ storage for every natural C initializer. For evidenced
+-- shared constants, a strict post-maspsx filter gives the owner's anonymous
+-- constant a build-only name and redirects later users to it. This restores the
+-- original compiler behaviour without exposing a made-up global in C.
+data CompilerSdataPool = CompilerSdataPool
+  { compilerPoolSymbol :: String,
+    compilerPoolHalfwords :: [Int],
+    compilerPoolOwner :: Bool
+  }
+
+compilerSdataPoolTool :: FilePath
+compilerSdataPoolTool = "tools" </> "compiler_sdata_pool.py"
+
+compilerSdataPool :: FilePath -> Maybe CompilerSdataPool
+compilerSdataPool src = pool (takeBaseName src)
+  where
+    pool "leFindEnemy" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n100" [0, -100, 0] True)
+    pool _ = Nothing
+
 -- | Per-file @--gp-extern SYM@ flags (our nix/maspsx-gp-extern.patch). ASPSX
 -- $gp-addresses only symbols *defined* in the file being assembled; externs are
 -- always absolute (@lui $at@). Verified in the original binary: the think TU
@@ -1348,8 +1369,22 @@ objRules = do
     (ccExe, objectCc) <- askOracle (OriginalObjectCcProfile processed)
     withTempFile $ \ccOut -> do
       cmd_ (FileStdin processed) (FileStdout ccOut) ccExe (ccFlags <> objectCc)
-      cmd_ (FileStdin ccOut) (FileStdout out) maspsx
-        (maspsxFlags <> gpFlags)
+      case compilerSdataPool processed of
+        Nothing ->
+          cmd_ (FileStdin ccOut) (FileStdout out) maspsx
+            (maspsxFlags <> gpFlags)
+        Just CompilerSdataPool {compilerPoolSymbol, compilerPoolHalfwords, compilerPoolOwner} -> do
+          need [compilerSdataPoolTool]
+          withTempFile $ \maspsxOut -> do
+            cmd_ (FileStdin ccOut) (FileStdout maspsxOut) maspsx
+              (maspsxFlags <> gpFlags)
+            cmd_ "python3" compilerSdataPoolTool
+              [ "--symbol", compilerPoolSymbol,
+                "--halfwords", intercalate "," (map show compilerPoolHalfwords),
+                if compilerPoolOwner then "--owner" else "--user",
+                maspsxOut,
+                out
+              ]
 
   buildDir <//> "*.c.o" %> \out -> do
     let fileComponent = makeRelative buildDir out
