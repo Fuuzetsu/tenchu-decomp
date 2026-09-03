@@ -26,7 +26,6 @@ extern void CreateStage(stage_id stage, s32 chr);
 extern short StageSequence(void);
 extern void StageEndScreen(void);
 extern void game_over_screen_(void);
-extern void Camera(void);
 extern void ActivateHumans(void);
 extern void DrawConstruction(void);
 extern void BriefingAndInventorySelectionScreen(void);

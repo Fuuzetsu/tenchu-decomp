@@ -5,6 +5,7 @@
 #include "humanoid.h"
 #include "think.h"
 #include "padcmd.h"
+#include "camera.h"
 #include "infoview.h"
 #include "game_globals.h"
 #include "music.h"
@@ -378,7 +379,6 @@ extern int AccessPower;
 extern int TotalIO;
 extern POLY_GT4 AccessImage;
 
-extern void SetCameraMode(TCameraMode mode);
 extern void SetupSoundEffect(character_kind character, short stage);
 extern short NowReturnNormal(struct Humanoid *human);
 extern void eval_spline_gte_(SVECTOR *out, SplineControlType *spc,

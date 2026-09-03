@@ -1252,8 +1252,6 @@ void ProcKaginawa(TItem *item)
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-extern void SnapCameraTargetVector(void);
-
 void ProcItemTeleport(TItem *item)
 {
     void (*ppu)(TItem *);
