@@ -23,7 +23,6 @@ extern void InitConflict(void);
 extern void InitializeInfoView(void);
 extern void DemoPatchInit(void);
 extern void CreateStage(stage_id stage, s32 chr);
-extern void clear_pad_send_(void);
 /* Retail calls the s32-returning definition through an s16 declaration. */
 extern short StageSequence(void);
 extern void StageEndScreen(void);

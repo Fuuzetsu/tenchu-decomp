@@ -35,7 +35,6 @@ extern int PCclose(int fd);
 extern int PCcreat(char *name, int mode);
 extern int PCwrite(int fd, void *buf, int size);
 extern void PCinit(void);
-extern void save_pad_analog_(void);
 extern void set_boot_exec_(u8 *file, u32 stack, u32 size);
 extern void run_exec_file(u8 *name, u32 stack, u32 size);
 

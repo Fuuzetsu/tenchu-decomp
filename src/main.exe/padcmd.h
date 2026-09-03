@@ -100,6 +100,15 @@ extern void GetPadXY(short no, short *x, short *y);
 extern short GetPad(short no);
 extern pad_command GetCommand(struct PADtype *pad);
 extern short SetCommand(struct PADtype *pad, pad_command cmd);
+extern void ComPad(int port, u8 *report);
+extern void PadProc(void);
+extern long GetRealPad(int port);
+extern void save_pad_analog_(void);
 extern s32 remap_buttons_(s16 pad);
+extern void InitPadControl(void);
+extern void PadShock(s32 port, s32 power, s32 duration);
+extern void PadShockAR(int port, int power, int attack, int release);
+extern void clear_pad_send_(void);
+extern struct TPadPort *get_pad_record_(s32 port);
 
 #endif

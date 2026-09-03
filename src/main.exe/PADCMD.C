@@ -13,8 +13,6 @@
 extern u8 Anakon;
 extern u8 align[6];
 
-extern TPadPort *get_pad_record_(s32 port);
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

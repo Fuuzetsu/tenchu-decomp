@@ -31,7 +31,6 @@ extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
-extern void PadShock(s32 port, s32 power, s32 time);
 extern int ReqLifeBar(Humanoid *h);
 extern void SetupTelop(u8 *telop, s16 line);
 extern void DrawConstruction(void);

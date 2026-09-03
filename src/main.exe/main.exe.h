@@ -4,6 +4,7 @@
 #include "conflict.h"
 #include "humanoid.h"
 #include "think.h"
+#include "padcmd.h"
 #include "game_globals.h"
 #include "music.h"
 
@@ -46,9 +47,6 @@
 
 #include "ram_layout.h"
 
-extern void PadProc(void);
-extern void PadShockAR(int port, int pow, int attack, int release);
-extern long GetRealPad(int port);
 extern TPadPort PadPort[PAD_PORT_COUNT][PAD_SLOTS_PER_PORT];
 extern PadCommandSequence *Command[N_PAD_COMMAND_TABLE_ENTRIES];
 /* The two standard PSY-Q pad receive buffers InitPAD registers. */
