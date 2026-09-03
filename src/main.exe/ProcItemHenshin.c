@@ -36,7 +36,6 @@
 
 extern TItem *HenshinItem;
 extern u16 HenshinCount;
-extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 enum henshin_mode
 {
@@ -129,7 +128,11 @@ void ProcItemHenshin(TItem *item)
         }
 
         NowReturnNormal(human);
-        *(SVECTOR *)&drop_request = svec_y_n50[0];
+        *(SVECTOR *)&drop_request = (SVECTOR){
+            .vx = 0,
+            .vy = -50,
+            .vz = 0
+        };
         SetSmoke(MODEL_POSITION(archive),
                  (SVECTOR *)&drop_request, 10, 6);
         {
@@ -186,7 +189,11 @@ void ProcItemHenshin(TItem *item)
                 return;
             }
         }
-        *(SVECTOR *)&drop_request = svec_y_n50[0];
+        *(SVECTOR *)&drop_request = (SVECTOR){
+            .vx = 0,
+            .vy = -50,
+            .vz = 0
+        };
         SetSmoke(MODEL_POSITION(archive),
                  (SVECTOR *)&drop_request, 10, 6);
         if (item->proc == 0)

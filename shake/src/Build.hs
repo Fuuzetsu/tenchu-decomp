@@ -438,6 +438,7 @@ compilerSdataPool src = pool (takeBaseName src)
     pool "ProcItemNingyo" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] True)
     pool "ProcItemJirai" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] False)
     pool "ProcItemFire" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] False)
+    pool "ProcItemHenshin" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n50" [0, -50, 0] True)
     pool _ = Nothing
 
 -- | Per-file @--gp-extern SYM@ flags (our nix/maspsx-gp-extern.patch). ASPSX
