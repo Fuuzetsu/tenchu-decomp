@@ -47,40 +47,44 @@ void *LoadSI(enum save_storage storage, u8 *name)
     {
         sprintf(fn, fmt_concat, ImagePath, name);
         ret = FileRead(fn);
-        goto return_result;
     }
-    msg = 0;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
-    do
+    else
     {
-    } while (0);
-    ret = valloc(BLOCKSIZE);
-    MemCardAccept(MEMCARD_CHANNEL_0);
-    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
-    if (result != CARD_RESULT_SUCCESS && result != CARD_RESULT_NEW_CARD)
-    {
-        msg = msg_card_error;
-        vfree(ret);
-        ret = 0;
-        goto done;
+        msg = 0;
+        /* Empty loop retained for code layout; its original source construct is unknown. */
+        do
+        {
+        } while (0);
+        ret = valloc(BLOCKSIZE);
+        MemCardAccept(MEMCARD_CHANNEL_0);
+        MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
+        if (result != CARD_RESULT_SUCCESS && result != CARD_RESULT_NEW_CARD)
+        {
+            msg = msg_card_error;
+            vfree(ret);
+            ret = 0;
+        }
+        else
+        {
+            sprintf(fn, fmt_card_name, CID, StageID, name);
+            MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, &block, 0,
+                            sizeof(block));
+            MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
+            if (result != CARD_RESULT_SUCCESS)
+            {
+                msg = msg_file_read_error;
+                vfree(ret);
+                ret = 0;
+            }
+            else
+            {
+                memcpy(ret, block.payload, sizeof(block.payload));
+            }
+        }
+        if (msg != 0)
+        {
+            AdtMessageBox(msg, result);
+        }
     }
-    sprintf(fn, fmt_card_name, CID, StageID, name);
-    MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, &block, 0,
-                    sizeof(block));
-    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
-    if (result != CARD_RESULT_SUCCESS)
-    {
-        msg = msg_file_read_error;
-        vfree(ret);
-        ret = 0;
-        goto done;
-    }
-    memcpy(ret, block.payload, sizeof(block.payload));
-done:
-    if (msg != 0)
-    {
-        AdtMessageBox(msg, result);
-    }
-return_result:
     return ret;
 }
