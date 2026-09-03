@@ -140,7 +140,7 @@ class SourceUnitTests(unittest.TestCase):
             positions = []
             for name in unit.definition_order:
                 definition = re.search(
-                    rf"^[^#\n;{{}}]*\b{re.escape(name)}\s*"
+                    rf"^(?:static\s+)?[A-Za-z_][^#\n;{{}}]*\b{re.escape(name)}\s*"
                     rf"\([^;{{}}]*\)\s*\{{",
                     source,
                     re.M,
