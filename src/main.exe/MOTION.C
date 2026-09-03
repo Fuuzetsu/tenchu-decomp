@@ -1971,14 +1971,8 @@ void ActACTION(void)
             return;
         if (dtPAD == 0)
             return;
-        if (Me_MOTION_C == StagePlayer)
-            SetCameraMode(CMODE_NORMAL);
-        if (Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN)
-        {
-            SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-            return;
-        }
-        goto set_normal_motion;
+        SELECT_RETURN_MOTION();
+        return;
 
     case MOT_ACTION_FIDGET_A:
     case MOT_ACTION_FIDGET_B:
@@ -2082,14 +2076,7 @@ void ActACTION(void)
             return;
         if (dtM->loop == 0)
             return;
-        if (Me_MOTION_C == StagePlayer)
-            SetCameraMode(CMODE_NORMAL);
-        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) == 0)
-            goto set_normal_motion;
-        SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-        return;
-    set_normal_motion:
-        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
+        SELECT_RETURN_MOTION();
         return;
     }
 }
