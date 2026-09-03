@@ -337,7 +337,7 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
 {
     s32 pos;
 
-    memset(loc, 0, sizeof(CdlLOC));
+    *loc = (CdlLOC){0};
     loc->minute = min;
     loc->second = sec;
     pos = CdPosToInt(loc);
