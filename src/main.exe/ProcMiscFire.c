@@ -25,37 +25,40 @@ void ProcMiscFire(TMisc *m, TMiscMessage msg)
     SVECTOR vec;
     VECTOR pos;
 
-    if (msg == MM_CREATE)
-        goto do_create;
-    if (MM_DO <= msg)
-        goto do_check;
-    return;
-
-do_create:
-    m->mode = 0;
-    m->count = 10;
-    return;
-
-do_check:
-    if (m->mode != 0)
-        return;
-    m->count--;
-    if (m->count < 1)
+    switch (msg)
     {
-        vec = svec_y_n35[0];
-        pos.vx = m->x;
-        pos.vy = m->y;
-        pos.vz = m->z;
-        SetExplosion(&pos, &vec);
-        vec.vx = 75;
-        vec.vy = 180;
-        vec.vz = 75;
-        SetHinoko(&pos, &vec, 10);
-        vec.vx = 0;
-        vec.vy = -200;
-        vec.vz = 0;
-        SetSmoke(&pos, &vec, 20, 6);
-        m->count = rand() % 150;
-        SoundEx(&pos, SE_FIRE);
+    case MM_CREATE:
+        m->mode = 0;
+        m->count = 10;
+        break;
+
+    case MM_DESTROY:
+    case MM_PAUSE:
+    case MM_RESUME:
+        break;
+
+    default:
+        if (m->mode != 0)
+            break;
+        m->count--;
+        if (m->count < 1)
+        {
+            vec = svec_y_n35[0];
+            pos.vx = m->x;
+            pos.vy = m->y;
+            pos.vz = m->z;
+            SetExplosion(&pos, &vec);
+            vec.vx = 75;
+            vec.vy = 180;
+            vec.vz = 75;
+            SetHinoko(&pos, &vec, 10);
+            vec.vx = 0;
+            vec.vy = -200;
+            vec.vz = 0;
+            SetSmoke(&pos, &vec, 20, 6);
+            m->count = rand() % 150;
+            SoundEx(&pos, SE_FIRE);
+        }
+        break;
     }
 }
