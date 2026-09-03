@@ -183,6 +183,8 @@ void DoInfoViewProc(void)
                 if (i < 0)
                     i = ITEM_N;
             } while (CamState.Owner->item[i] == 0 && i != c);
+            ItemCursor = i;
+            SoundEx(0, SE_UI_CURSOR);
         }
         else if ((trig & PADL2) != 0)
         {
@@ -196,15 +198,11 @@ void DoInfoViewProc(void)
                 if (i > ITEM_N)
                     i = 0;
             } while (CamState.Owner->item[i] == 0 && i != c);
+            ItemCursor = i;
+            SoundEx(0, SE_UI_CURSOR);
         }
-        else
-        {
-            goto nosel;
-        }
-        ItemCursor = i;
-        SoundEx(0, SE_UI_CURSOR);
     }
-nosel:
+
     if (GameClock > 10)
     {
         PauseProc();
