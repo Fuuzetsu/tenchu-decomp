@@ -400,30 +400,30 @@ static void ProcMiscDoor(TMisc *m, TMiscMessage msg)
     switch (msg)
     {
     case MM_CREATE:
-{
-    s32 type;
-    s32 t;
-
-    type = m->param.hinged_init.type;
-    t = m->param.hinged_init.rotation;
-    if (type >= N_DOOR_TYPES)
     {
-        AdtMessageBox(fmt_unknown_door_type, type);
-        type = DOOR_KIND_MON6;
+        s32 type;
+        s32 rotation;
+
+        type = m->param.hinged_init.type;
+        rotation = m->param.hinged_init.rotation;
+        if (type >= N_DOOR_TYPES)
+        {
+            AdtMessageBox(fmt_unknown_door_type, type);
+            type = DOOR_KIND_MON6;
+        }
+        m->mode = DOOR_MODE_IDLE;
+        param->r = 0;
+        param->type = type;
+        param->locate = LoadModel(0);
+        param->locate->locate.coord.t[0] = m->x;
+        param->locate->locate.coord.t[1] = m->y;
+        param->locate->locate.coord.t[2] = m->z;
+        param->locate->rotate.vx = 0;
+        param->locate->rotate.vy = rotation;
+        param->locate->rotate.vz = 0;
+        UpdateCoordinate(param->locate);
+        return;
     }
-    m->mode = DOOR_MODE_IDLE;
-    param->r = 0;
-    param->type = type;
-    param->locate = LoadModel(0);
-    param->locate->locate.coord.t[0] = m->x;
-    param->locate->locate.coord.t[1] = m->y;
-    param->locate->locate.coord.t[2] = m->z;
-    param->locate->rotate.vx = 0;
-    param->locate->rotate.vy = t;
-    param->locate->rotate.vz = 0;
-    UpdateCoordinate(param->locate);
-    return;
-}
 
     case MM_DESTROY:
         DeleteConflict(param->locate);
@@ -435,115 +435,112 @@ static void ProcMiscDoor(TMisc *m, TMiscMessage msg)
         return;
 
     case MM_RESUME:
-{
-    s32 cid;
-    s32 t;
-    s16 w;
+    {
+        s32 conflict_id;
+        s32 height;
+        s16 width;
 
-    cid = InsertConflict(param->locate);
-    ConflictObject[cid].offset.vx = 0;
-    t = DoorData[param->type].HitSize;
-    ConflictObject[cid].offset.vz = 0;
-    ConflictObject[cid].offset.vy = -t / 2;
-    w = DoorData[param->type].HitSize;
-    ConflictObject[cid].common = (void *)CONFLICT_OWNER_DOOR;
-    ConflictObject[cid].size.pad = CONFLICT_SOFT;
-    ConflictObject[cid].size.vy = w;
-    w = (w / 3) * 2;
-    ConflictObject[cid].size.vz =
-        ConflictObject[cid].size.vx = w;
-    param->r = 0;
-    return;
-}
+        conflict_id = InsertConflict(param->locate);
+        ConflictObject[conflict_id].offset.vx = 0;
+        height = DoorData[param->type].HitSize;
+        ConflictObject[conflict_id].offset.vz = 0;
+        ConflictObject[conflict_id].offset.vy = -height / 2;
+        width = DoorData[param->type].HitSize;
+        ConflictObject[conflict_id].common = (void *)CONFLICT_OWNER_DOOR;
+        ConflictObject[conflict_id].size.pad = CONFLICT_SOFT;
+        ConflictObject[conflict_id].size.vy = width;
+        width = (width / 3) * 2;
+        ConflictObject[conflict_id].size.vz =
+            ConflictObject[conflict_id].size.vx = width;
+        param->r = 0;
+        return;
+    }
 
     default:
-{
-    s32 w;
-    ModelType *model;
-
-    switch (m->mode)
     {
-    case DOOR_MODE_IDLE:
-        if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
+        s32 width;
+        ModelType *model;
+
+        switch (m->mode)
         {
-            s32 cid;
-
-            cid = GetConflictResult(param->locate, CONFLICT_NONE);
-            if (ConflictObject[cid].common != (void *)CONFLICT_OWNER_DOOR)
+        case DOOR_MODE_IDLE:
+            if ((param->locate->attribute & MODEL_ATTR_CONFLICT) != 0)
             {
-                s32 t;
-                s32 dir;
+                s32 conflict_id;
 
-                t = ratan2(
-                    ConflictObject[cid].position.vz -
-                        param->locate->locate.coord.t[2],
-                    ConflictObject[cid].position.vx -
-                        param->locate->locate.coord.t[0]);
-                t += param->locate->rotate.vy;
-                dir = ((t + 2 * ANGLE_FULL) % ANGLE_FULL) <= ANGLE_HALF;
-                if (dir != 0)
-                    dir = DOOR_ANGLE_STEP;
-                else
-                    dir = -DOOR_ANGLE_STEP;
-                param->dr = dir;
-                m->mode++;
-                if (param->r == 0)
-                    SoundEx(MODEL_POSITION(param->locate), SE_MECHANISM);
+                conflict_id = GetConflictResult(param->locate, CONFLICT_NONE);
+                if (ConflictObject[conflict_id].common !=
+                    (void *)CONFLICT_OWNER_DOOR)
+                {
+                    s32 relative_angle;
+
+                    relative_angle = ratan2(
+                        ConflictObject[conflict_id].position.vz -
+                            param->locate->locate.coord.t[2],
+                        ConflictObject[conflict_id].position.vx -
+                            param->locate->locate.coord.t[0]);
+                    relative_angle += param->locate->rotate.vy;
+                    if (((relative_angle + 2 * ANGLE_FULL) % ANGLE_FULL) <=
+                        ANGLE_HALF)
+                        param->dr = DOOR_ANGLE_STEP;
+                    else
+                        param->dr = -DOOR_ANGLE_STEP;
+                    m->mode++;
+                    if (param->r == 0)
+                        SoundEx(MODEL_POSITION(param->locate), SE_MECHANISM);
+                }
             }
+            break;
+
+        case DOOR_MODE_OPENING:
+        {
+            s32 angle;
+
+            angle = __builtin_abs(param->r);
+            if (angle < DOOR_OPEN_ANGLE)
+                param->r += param->dr;
+            else
+                m->mode = DOOR_MODE_IDLE;
         }
         break;
+        }
+        {
+            s32 angle;
 
-    case DOOR_MODE_OPENING:
-    {
-        s32 r;
+            width = DoorData[param->type].HitSize;
+            angle = __builtin_abs(param->r);
+            width -= (width * angle) / DOOR_OPENING_OFFSET_DIVISOR;
+            model = DoorData[param->type].Model[0];
+        }
+        if (model != (ModelType *)MODEL_ARCHIVE_NONE)
+        {
+            GsCOORDINATE2 *parent;
 
-        r = param->r;
-        if (r < 0)
-            r = -r;
-        if (r < DOOR_OPEN_ANGLE)
-            param->r += param->dr;
-        else
-            m->mode = DOOR_MODE_IDLE;
+            parent = &param->locate->locate;
+            model->locate.coord.t[0] = -width;
+            model->locate.coord.t[1] = 0;
+            model->locate.coord.t[2] = 0;
+            model->locate.super = parent;
+            model->rotate.vy = param->r;
+            UpdateCoordinate(model);
+            DrawModel(model);
+        }
+
+        model = DoorData[param->type].Model[1];
+        if (model != (ModelType *)MODEL_ARCHIVE_NONE)
+        {
+            GsCOORDINATE2 *parent;
+
+            parent = &param->locate->locate;
+            model->locate.coord.t[0] = width;
+            model->locate.coord.t[1] = 0;
+            model->locate.coord.t[2] = 0;
+            model->locate.super = parent;
+            model->rotate.vy = -param->r;
+            UpdateCoordinate(model);
+            DrawModel(model);
+        }
     }
-    break;
-    }
-    {
-        s32 r;
-
-        w = DoorData[param->type].HitSize;
-        r = __builtin_abs(param->r);
-        w -= (w * r) / DOOR_OPENING_OFFSET_DIVISOR;
-        model = DoorData[param->type].Model[0];
-    }
-    if (model != (ModelType *)MODEL_ARCHIVE_NONE)
-    {
-        GsCOORDINATE2 *parent;
-
-        parent = &param->locate->locate;
-        model->locate.coord.t[0] = -w;
-        model->locate.coord.t[1] = 0;
-        model->locate.coord.t[2] = 0;
-        model->locate.super = parent;
-        model->rotate.vy = param->r;
-        UpdateCoordinate(model);
-        DrawModel(model);
-    }
-
-    model = DoorData[param->type].Model[1];
-    if (model != (ModelType *)MODEL_ARCHIVE_NONE)
-    {
-        GsCOORDINATE2 *parent;
-
-        parent = &param->locate->locate;
-        model->locate.coord.t[0] = w;
-        model->locate.coord.t[1] = 0;
-        model->locate.coord.t[2] = 0;
-        model->locate.super = parent;
-        model->rotate.vy = -param->r;
-        UpdateCoordinate(model);
-        DrawModel(model);
-    }
-}
     }
 }
 
