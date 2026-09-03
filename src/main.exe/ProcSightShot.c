@@ -64,14 +64,14 @@ void ProcSightShot(TItem *item)
             human->item[item->type] = item_count + 1;
         }
         SetCameraMode(CMODE_DIRECTION);
-        goto dispose;
+        if (item->proc != 0)
+        {
+            DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
+        }
+        return;
     }
 
-    if (human->motion->mid == MOT_SYURI)
-    {
-        goto sight_mode;
-    }
-
+    if (human->motion->mid != MOT_SYURI)
     {
         VECTOR *pos;
         Humanoid *drop_owner;
@@ -90,16 +90,14 @@ void ProcSightShot(TItem *item)
         param.end.vy = rand() % 100 - 200;
         param.end.vz = rand() % 200 - 100;
         ReqItemDrop(&param);
+
+        if (item->proc != 0)
+        {
+            DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
+        }
+        return;
     }
 
-dispose:
-    if (item->proc != 0)
-    {
-        DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
-    }
-    return;
-
-sight_mode:
 {
     u8 count;
     ModelArchiveType *model;
