@@ -25,9 +25,6 @@ extern char fmt_dbg_word[];       /* ~c880%04x=%02x  */
 extern char fmt_dbg_pair[];       /* ~c080%02x/%d%d  */
 extern char fmt_dbg_rot[];
 
-extern void SetupThinkFunction(Humanoid *human, TThinkType type);
-extern void StateTransition(Humanoid *human);
-extern void register_character_death(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
 extern void swap_balma_area_map_(void);
 

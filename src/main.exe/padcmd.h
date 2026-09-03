@@ -100,5 +100,6 @@ extern void GetPadXY(short no, short *x, short *y);
 extern short GetPad(short no);
 extern pad_command GetCommand(struct PADtype *pad);
 extern short SetCommand(struct PADtype *pad, pad_command cmd);
+extern s32 remap_buttons_(s16 pad);
 
 #endif

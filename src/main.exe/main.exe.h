@@ -3,6 +3,7 @@
 #include "filesystem.h"
 #include "conflict.h"
 #include "humanoid.h"
+#include "think.h"
 #include "game_globals.h"
 #include "music.h"
 
@@ -54,7 +55,6 @@ extern PadCommandSequence *Command[N_PAD_COMMAND_TABLE_ENTRIES];
 extern unsigned char ComBuf[PAD_PORT_COUNT][PAD_REPORT_BUFFER_SIZE];
 extern PadArrangeType PadArrange;
 
-extern s16 GotoPosition(s32 vx, s32 vz);
 /* Retail permits 40 actors and reserves 0xA0 bytes before the next global. */
 #define MAX_HUMANS 40
 extern struct Humanoid *HumanGroup[MAX_HUMANS];

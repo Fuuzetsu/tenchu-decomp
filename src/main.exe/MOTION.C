@@ -26,7 +26,6 @@ extern s32 PlayerSSR;
 extern s32 StickonItem;
 
 extern int ReqLifeBar(Humanoid *human);
-extern void reset_alert_duration(void);
 short SwimCheck(void);
 short FallCheck(void);
 short HangCheck(void);

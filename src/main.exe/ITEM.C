@@ -2397,7 +2397,6 @@ static int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern s16 Think1target(void);
 
 static inline void restore_dokudango_target(TItem *item,
                                              param_dokudango *param)
@@ -4118,7 +4117,6 @@ static int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 extern Humanoid *NINKEN_CHARACTER_PTR;
 
 extern void set_model_hide_(Humanoid *human, s16 hide);
-extern void SetupThinkFunction(Humanoid *human, TThinkType think);
 
 static void ProcItemNinken(TItem *item)
 {
@@ -4710,7 +4708,6 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern void reset_alert_duration(void);
 
 void ProcItemFire(TItem *item)
 {
@@ -5015,7 +5012,6 @@ int ReqItemFire(PARAM_ITEM_LAUNCH *p)
     return 1;
 }
 
-extern s16 Think1sleep(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -5802,7 +5798,6 @@ void ProcItemNapalm(TItem *item)
  * END PSX.SYM */
 
 
-extern void reset_alert_duration(void);
 
 void ProcItemLaunch(TItem *item)
 {
@@ -6488,7 +6483,6 @@ found:
     return 1;
 }
 
-extern void reset_alert_duration(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
