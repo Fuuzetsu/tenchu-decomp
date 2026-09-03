@@ -4,7 +4,6 @@
 #include "item.h"
 #include "sound.h"
 
-extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
 extern u8 NingyoCount;
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
@@ -125,7 +124,11 @@ void ProcItemNingyo(TItem *item)
 
                 param->count = 0;
                 item->mode++;
-                smoke_velocity = svec_y_n25[0];
+                smoke_velocity = (SVECTOR){
+                    .vx = 0,
+                    .vy = -25,
+                    .vz = 0
+                };
                 SetSmoke(MODEL_POSITION(item->locate),
                          &smoke_velocity,
                          APPEAR_SMOKE_COUNT, APPEAR_SMOKE_TIME);

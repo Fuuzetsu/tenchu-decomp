@@ -890,6 +890,8 @@ segments:
       - { start: 0x872D0, type: .sdata, name: MoveKorogari, linker_section_order: .text }
       - { start: 0x872D8, type: .sdata, name: ProcItemSmoke, linker_section_order: .text }
       - { start: 0x872E0, type: data, linker_section_order: .text }
+      - { start: 0x872E4, type: .sdata, name: ProcItemNingyo, linker_section_order: .text }
+      - { start: 0x872EC, type: data, linker_section_order: .text }
       - { start: 0x872FC, type: .sdata, name: ProcItemFire, linker_section_order: .text }
       - { start: 0x87304, type: .sdata, name: ProcItemNemuri, linker_section_order: .text }
       - { start: 0x8730C, type: data, linker_section_order: .text }

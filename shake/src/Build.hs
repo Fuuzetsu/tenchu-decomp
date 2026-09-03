@@ -435,6 +435,7 @@ compilerSdataPool src = pool (takeBaseName src)
   where
     pool "leFindEnemy" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n100" [0, -100, 0] True)
     pool "leAddPath" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n100" [0, -100, 0] False)
+    pool "ProcItemNingyo" = Just (CompilerSdataPool "__compiler_sdata_pool_y_n25" [0, -25, 0] True)
     pool _ = Nothing
 
 -- | Per-file @--gp-extern SYM@ flags (our nix/maspsx-gp-extern.patch). ASPSX
