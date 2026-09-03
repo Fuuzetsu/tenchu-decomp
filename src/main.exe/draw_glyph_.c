@@ -4,8 +4,6 @@
 #include "images.h"
 #include <psxsdk/libgpu.h>
 
-extern GsIMAGE FONT_IMAGE_;
-
 void draw_glyph_(GsOT_TAG *ot, s32 x, s32 y0, u32 code)
 {
     u16 cell;

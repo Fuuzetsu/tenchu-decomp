@@ -66,6 +66,9 @@ enum telop_pixel_color
     TELOP_PIXEL_WHITE = 0x7FFF
 };
 
+extern u8 FontWidth[];
+extern GsIMAGE FONT_IMAGE_;
+
 extern void SetupTelop(u8 *telop, short line);
 extern s32 telop_text_width_(u8 *text);
 extern void draw_glyph_(GsOT_TAG *ot, s32 x, s32 y, u32 code);

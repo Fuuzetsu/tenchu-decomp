@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "font.h"
 
-extern u8 FontWidth[];
-
 s32 telop_text_width_(u8 *str)
 {
     s32 width;

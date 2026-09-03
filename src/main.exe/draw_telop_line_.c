@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "font.h"
 
-extern u8 FontWidth[];
-
 void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str)
 {
     s32 cursor;
