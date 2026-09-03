@@ -52,28 +52,26 @@ int ReqLifeBar(Humanoid *h)
             break;
         }
     }
-    if (g == -1)
+    if (g != -1)
     {
-        goto ret_zero;
+        LifeBar[g].target = h;
+        LifeBar[g].style = LIFE_BAR_STYLE_ENEMY;
+        LifeBar[g].life = h->life;
+        LifeBar[g].max = h->lifemax;
+        if (h->life == 0)
+        {
+            LifeBar[g].count = 100;
+        }
+        else
+        {
+            LifeBar[g].count = 300;
+        }
+        if (LifeBar[g].max < 1)
+        {
+            LifeBar[g].max = 1;
+        }
+        return 1;
     }
-    LifeBar[g].target = h;
-    LifeBar[g].style = LIFE_BAR_STYLE_ENEMY;
-    LifeBar[g].life = h->life;
-    LifeBar[g].max = h->lifemax;
-    if (h->life == 0)
-    {
-        LifeBar[g].count = 100;
-    }
-    else
-    {
-        LifeBar[g].count = 300;
-    }
-    if (LifeBar[g].max < 1)
-    {
-        LifeBar[g].max = 1;
-    }
-    return 1;
-ret_zero:
     return 0;
 }
 
