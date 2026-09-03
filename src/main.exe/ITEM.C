@@ -52,7 +52,7 @@ extern VECTOR vec_z_n17000;
 
 extern long abs(long x);
 
-Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR *target)
+static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR *target)
 {
     int i;
     int dist;
@@ -474,7 +474,7 @@ void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
  *     extern short RefrectMove[16][2];
  * END PSX.SYM */
 
-void MoveKorogari(TItem *item, param_korogari *param)
+static void MoveKorogari(TItem *item, param_korogari *param)
 {
     MapVector mv;
     SVECTOR vec;
@@ -689,7 +689,7 @@ static inline long SubFlyJitter(long mid, long half, long range)
     return mid - half;
 }
 
-void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
+static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
 {
     long len;
     long v8;
@@ -1473,9 +1473,9 @@ found:
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-extern void ProcItemManebue(TItem *item);
+static void ProcItemManebue(TItem *item);
 
-int ReqItemManebue(PARAM_ITEM_LAUNCH *p)
+static int ReqItemManebue(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     s32 i;
@@ -1734,7 +1734,7 @@ void ProcItemShinsoku(TItem *item)
  *     extern struct tag_TItem items[30];
  * END PSX.SYM */
 
-int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
+static int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_shinsoku *param;
@@ -2205,7 +2205,7 @@ void ProcItemKusuri(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
+static int ReqItemKusuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     s32 i;
@@ -2343,7 +2343,7 @@ void ProcItemKawarimi(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
+static int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     s32 i;
@@ -3024,7 +3024,7 @@ void ProcItemGosin(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemGosin(PARAM_ITEM_LAUNCH *p)
+static int ReqItemGosin(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     s32 i;
@@ -3086,7 +3086,7 @@ extern short DrawModel(ModelType *objp);
  *     extern struct SVECTOR ConflictDistance;
  * END PSX.SYM */
 
-void ProcItemNingyo(TItem *item)
+static void ProcItemNingyo(TItem *item)
 {
     enum
     {
@@ -3435,7 +3435,7 @@ void ProcItemNingyo(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
+static int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_ningyo *param;
@@ -3524,7 +3524,7 @@ enum
     HENSHIN_DURATION = 600
 };
 
-void ProcItemHenshin(TItem *item)
+static void ProcItemHenshin(TItem *item)
 {
     ModelArchiveType *archive;
     PARAM_ITEM_LAUNCH drop_request;
@@ -3706,7 +3706,7 @@ void ProcItemHenshin(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemHenshin(PARAM_ITEM_LAUNCH *p)
+static int ReqItemHenshin(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     s32 i;
@@ -3745,7 +3745,7 @@ int ReqItemHenshin(PARAM_ITEM_LAUNCH *p)
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-void ProcItemGoshikimai(TItem *item)
+static void ProcItemGoshikimai(TItem *item)
 {
     enum
     {
@@ -3837,7 +3837,7 @@ void ProcItemGoshikimai(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
+static int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_goshikimai *param;
@@ -3890,7 +3890,7 @@ int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
 
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
-void ProcItemKaengeki(TItem *item)
+static void ProcItemKaengeki(TItem *item)
 {
     enum
     {
@@ -4075,7 +4075,7 @@ void ProcItemKaengeki(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
+static int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_kaengeki *param;
@@ -4133,7 +4133,7 @@ extern void set_model_hide_(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, TThinkType think);
 extern void TurnAroundAllItems(Humanoid *human);
 
-void ProcItemNinken(TItem *item)
+static void ProcItemNinken(TItem *item)
 {
     enum
     {
@@ -4476,7 +4476,7 @@ void ProcItemNinken(TItem *item)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
+static int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_ninken *param;
@@ -4629,7 +4629,7 @@ void ProcItemHappou(TItem *item)
 
 extern int rand(void);
 
-int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
+static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
     enum
     {
@@ -6153,7 +6153,7 @@ found:
  *     reg   $t1       long u
  * END PSX.SYM */
 
-void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
+static void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
 {
     enum
     {
@@ -7447,7 +7447,7 @@ void DoItemProc(void)
  *     extern long EmergencyNotice;
  * END PSX.SYM */
 
-void ProcItemManebue(TItem *item)
+static void ProcItemManebue(TItem *item)
 {
     enum
     {
