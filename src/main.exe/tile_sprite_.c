@@ -2,7 +2,7 @@
 #include "main.exe.h"
 #include "images.h"
 
-void tile_sprite_(Sprite3D *g, u16 shade)
+void tile_sprite_(Sprite3D *g, s16 shade)
 {
     GsSPRITE *sp;
     u32 flags;
@@ -13,7 +13,7 @@ void tile_sprite_(Sprite3D *g, u16 shade)
     s32 width;
     s32 height;
 
-    signedShade = (s16)shade;
+    signedShade = shade;
     width = 160;
     height = 120;
     flags = g->sprite.attribute & ~GS_ATTR_SEMITRANS_MASK;

@@ -116,6 +116,7 @@ extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply,
                                 int x, int y);
 extern void InitializeImage(void);
 extern BackGround *load_background_(u_long *tim);
+extern void tile_sprite_(Sprite3D *sprite, s16 shade);
 extern void exec_process_(int process_id);
 
 #endif
