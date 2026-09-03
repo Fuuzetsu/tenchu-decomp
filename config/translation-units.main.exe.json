@@ -430,6 +430,40 @@
         "LoadFromMEMORY",
         "LoadFromCDROM"
       ]
+    },
+    {
+      "source": "PADCMD.C",
+      "functions": [
+        "ComPad",
+        "PadProc",
+        "GetCommand",
+        "SetCommand",
+        "GetPad",
+        "get_pad_active_",
+        "update_pressed_buttons",
+        "GetRealPad",
+        "save_pad_analog_",
+        "remap_buttons_",
+        "InitPadControl",
+        "PadShock",
+        "PadShockAR",
+        "GetPadXY",
+        "clear_pad_send_",
+        "get_pad_record_"
+      ],
+      "debug_symbol_order": [
+        "InitPadControl",
+        "PadShock",
+        "ComPad",
+        "PadShockAR",
+        "PadProc",
+        "GetRealPad",
+        "GetPadXY",
+        "GetPad",
+        "SetPad",
+        "GetCommand",
+        "SetCommand"
+      ]
     }
   ]
 }
