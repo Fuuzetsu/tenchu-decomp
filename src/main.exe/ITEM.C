@@ -2112,21 +2112,24 @@ void ProcItemKusuri(TItem *item)
             VECTOR *pos;
             Humanoid *human;
             s32 itemID;
-            PARAM_ITEM_LAUNCH p;
 
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(&p, 0, sizeof(p));
-            p.type = itemID;
-            p.user = human;
-            p.start.vx = pos->vx;
-            p.start.vy = pos->vy;
-            p.start.vz = pos->vz;
-            p.end.vx = rand() % 200 - 100;
-            p.end.vy = rand() % 100 - 200;
-            p.end.vz = rand() % 200 - 100;
-            ReqItemDrop(&p);
+            {
+                PARAM_ITEM_LAUNCH p = {
+                    .type = itemID,
+                    .user = human
+                };
+
+                p.start.vx = pos->vx;
+                p.start.vy = pos->vy;
+                p.start.vz = pos->vz;
+                p.end.vx = rand() % 200 - 100;
+                p.end.vy = rand() % 100 - 200;
+                p.end.vz = rand() % 200 - 100;
+                ReqItemDrop(&p);
+            }
             ppu = item->proc;
             if (ppu == 0)
                 return;
