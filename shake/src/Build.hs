@@ -189,8 +189,8 @@ realeditSymbols = realeditLayoutDir </> "symbols.main.exe.txt"
 realeditUndefined = realeditLayoutDir </> "undefined_symbols_auto.main.exe.txt"
 
 realeditTailAsm, realeditTailObject :: FilePath
-realeditTailAsm = realeditDir </> "generated" </> "75F64.bss.s"
-realeditTailObject = realeditDir </> "obj" </> "75F64.bss.s.o"
+realeditTailAsm = realeditDir </> "generated" </> "87458.bss.s"
+realeditTailObject = realeditDir </> "obj" </> "87458.bss.s.o"
 
 realeditOverridePreprocessed, realeditOverrideAssembly, realeditOverrideObject :: FilePath
 realeditOverridePreprocessed = realeditDir </> "PadProc.i"
@@ -272,25 +272,29 @@ relocBssSymbols = relocBssDir </> "symbols.main.exe.txt"
 relocBssUndefined = relocBssDir </> "undefined_symbols_auto.main.exe.txt"
 
 relocBssTailAsm, relocBssTailObject :: FilePath
-relocBssTailAsm = relocBssDir </> "generated" </> "75F64.bss.s"
+relocBssTailAsm = relocBssDir </> "generated" </> "87458.bss.s"
 -- Keep this below an extra directory so the ordinary generated-asm wildcard
 -- cannot mistake it for a splat-owned target input.
-relocBssTailObject = relocBssDir </> "obj" </> "75F64.bss.s.o"
+relocBssTailObject = relocBssDir </> "obj" </> "87458.bss.s.o"
 
 -- Reviewed pointer-bearing data copies used by the composed normal relink.
--- 75F64 is transformed here first, then the BSS lane applies its NOBITS split
--- to that copy so both transformations survive in one object.
+-- The recovered .sdata carves split the former 75F64 tail. Its final 87458
+-- fragment is transformed here first, then the BSS lane applies its NOBITS
+-- split to that copy so both transformations survive in one object.
 relocIntegratedDataDir :: FilePath
 relocIntegratedDataDir = relocBssDir </> "data"
 
 relocDataNames :: [String]
 relocDataNames =
   [ "E58", "1160", "1490", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
-    "75F64"
+    "75F64", "87458"
   ]
 
+relocDataTailName :: String
+relocDataTailName = "87458"
+
 relocDataTargetNames :: [String]
-relocDataTargetNames = filter (/= "75F64") relocDataNames
+relocDataTargetNames = filter (/= relocDataTailName) relocDataNames
 
 relocDataAsm, relocDataObject :: String -> FilePath
 relocDataAsm name = relocIntegratedDataDir </> name <.> "data.s"
@@ -300,8 +304,8 @@ relocDataAsms, relocDataObjects :: [FilePath]
 relocDataAsms = map relocDataAsm relocDataNames
 relocDataObjects = map relocDataObject relocDataTargetNames
 
-relocData75F64Asm :: FilePath
-relocData75F64Asm = relocDataAsm "75F64"
+relocDataTailAsm :: FilePath
+relocDataTailAsm = relocDataAsm relocDataTailName
 
 -- | Growth-capable composition.  Unlike the retail-exact BSS oracle above,
 -- this linker chain consumes the reviewed symbolic allocator objects without
@@ -326,8 +330,8 @@ normalRelinkSymbols = normalRelinkDir </> "layout" </> "symbols.main.exe.txt"
 
 normalRelinkUndefined, normalRelinkTailAsm, normalRelinkTailObject :: FilePath
 normalRelinkUndefined = normalRelinkDir </> "layout" </> "undefined_symbols_auto.main.exe.txt"
-normalRelinkTailAsm = normalRelinkDir </> "layout" </> "75F64.bss.s"
-normalRelinkTailObject = normalRelinkDir </> "obj" </> "75F64.bss.s.o"
+normalRelinkTailAsm = normalRelinkDir </> "layout" </> "87458.bss.s"
+normalRelinkTailObject = normalRelinkDir </> "obj" </> "87458.bss.s.o"
 
 -- | The modded (non-matching) build: hooked functions patched in place by
 -- tools/mkmod.py, so it stays the same size as main.exe (disc rebuild is faithful).
@@ -1778,7 +1782,7 @@ mainExtraRules = do
       cmd_ as asFlags ["--MD", depFile, "-o", out, source]
       neededAsmDeps depFile
 
-  -- Second normal-link proof: turn the zero-filled end of 75F64 into a real
+  -- Second normal-link proof: turn the zero-filled end of 87458 into a real
   -- NOBITS input, move every C .bss input into a following NOLOAD output, and
   -- reserve the fixed virtual-memory pool explicitly. Inputs are generated
   -- from the canonical SDK-prefix lane, which already composes with the
@@ -1788,8 +1792,8 @@ mainExtraRules = do
         genD = tgGenDir t
         tBuildDir = tgBuildDir t
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
-        tailSource = relocData75F64Asm
-        oldTailObject = tgBuildDir t </> "data" </> "75F64.data.s.o"
+        tailSource = relocDataTailAsm
+        oldTailObject = tgBuildDir t </> "data" </> relocDataTailName <.> "data.s.o"
         replacementArgs = concatMap
           (\name ->
             [ "--replace-object",
@@ -1890,7 +1894,7 @@ mainExtraRules = do
         genD = tgGenDir t
         tBuildDir = tgBuildDir t
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
-        oldTailObject = tBuildDir </> "data" </> "75F64.data.s.o"
+        oldTailObject = tBuildDir </> "data" </> relocDataTailName <.> "data.s.o"
         replacementArgs = concatMap
           (\name ->
             [ "--replace-object",
@@ -1911,14 +1915,14 @@ mainExtraRules = do
           (\name -> ["--ordinary-c-object-glob", modRelinkObject name])
           overrideNames
     need [ normalRelinkSdkLinker, normalRelinkSdkSymbols, undefinedSymbols,
-           relocData75F64Asm, tool, ramLayoutTool, ramLayoutHeader ]
+           relocDataTailAsm, tool, ramLayoutTool, ramLayoutHeader ]
     liftIO $ IO.createDirectoryIfMissing True (takeDirectory normalRelinkLinker)
     cmd_ "python3" tool $
       [ "generate",
         "--linker-in", normalRelinkSdkLinker,
         "--symbols-in", normalRelinkSdkSymbols,
         "--undefined-in", undefinedSymbols,
-        "--tail-in", relocData75F64Asm,
+        "--tail-in", relocDataTailAsm,
         "--dynamic-pool",
         "--strict-orphans",
         "--linker-out", normalRelinkLinker,
@@ -2014,7 +2018,7 @@ mainExtraRules = do
         genD = tgGenDir t
         tBuildDir = tgBuildDir t
         undefinedSymbols = genD </> metaDir </> "undefined_symbols_auto.main.exe.txt"
-        oldTailObject = tBuildDir </> "data" </> "75F64.data.s.o"
+        oldTailObject = tBuildDir </> "data" </> relocDataTailName <.> "data.s.o"
         replacementArgs = concatMap
           (\name ->
             [ "--replace-object",
@@ -2025,14 +2029,14 @@ mainExtraRules = do
         tool = "tools" </> "reloc_bss_lane.py"
     _generatedFiles <- getGeneratedFiles (tgGen t)
     need [ normalRelinkSdkLinker, normalRelinkSdkSymbols, undefinedSymbols,
-           relocData75F64Asm, tool, ramLayoutTool, ramLayoutHeader ]
+           relocDataTailAsm, tool, ramLayoutTool, ramLayoutHeader ]
     liftIO $ IO.createDirectoryIfMissing True realeditLayoutDir
     cmd_ "python3" tool $
       [ "generate",
         "--linker-in", normalRelinkSdkLinker,
         "--symbols-in", normalRelinkSdkSymbols,
         "--undefined-in", undefinedSymbols,
-        "--tail-in", relocData75F64Asm,
+        "--tail-in", relocDataTailAsm,
         "--dynamic-pool",
         "--strict-orphans",
         "--linker-out", realeditLinker,

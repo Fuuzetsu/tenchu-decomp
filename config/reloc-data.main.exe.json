@@ -1794,7 +1794,7 @@
       "symbol": "gpu_system_revision_string"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097c98",
       "source_owner": "IntroVoiceXaName",
       "target_file": "207C.data.s",
@@ -1803,7 +1803,7 @@
       "symbol": "voice_intro_xa_name"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097c9c",
       "source_owner": "ToraVoiceXaName",
       "target_file": "207C.data.s",
@@ -1812,7 +1812,7 @@
       "symbol": "voice_tora_xa_name"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097ca0",
       "source_owner": "VoiceXaName",
       "target_file": "207C.data.s",
@@ -1821,7 +1821,7 @@
       "symbol": "voice_event_english_xa_name"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097ca4",
       "source_owner": "VoiceXaNameF",
       "target_file": "207C.data.s",
@@ -1830,7 +1830,7 @@
       "symbol": "voice_event_french_xa_name"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097ca8",
       "source_owner": "VoiceXaNameI",
       "target_file": "207C.data.s",
@@ -1839,7 +1839,7 @@
       "symbol": "voice_event_italian_xa_name"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097cac",
       "source_owner": "VoiceXaNameJ",
       "target_file": "207C.data.s",
@@ -1848,7 +1848,7 @@
       "symbol": "voice_event_japanese_xa_name"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097d04",
       "source_owner": "TENCHU_ID",
       "target_file": "33C4.data.s",
@@ -1857,7 +1857,7 @@
       "symbol": "tenchu_card_id_prefix"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097d8c",
       "source_owner": "CID",
       "target_file": "37A8.data.s",
@@ -1866,7 +1866,7 @@
       "symbol": "stage_card_id_prefix"
     },
     {
-      "source_file": "75F64.data.s",
+      "source_file": "87458.data.s",
       "source_address": "0x80097e98",
       "source_owner": "AdtMsgPtr",
       "target_file": null,

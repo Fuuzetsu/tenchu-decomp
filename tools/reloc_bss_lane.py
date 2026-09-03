@@ -8,7 +8,8 @@ places those zeros (and their labels) in a PROGBITS input section.
 
 This opt-in proof rewrites only generated build products:
 
-* the zero tail of ``72CD0.data.s`` becomes a NOBITS ``.bss`` section;
+* the final generated data fragment's zero tail becomes a NOBITS ``.bss``
+  section;
 * the generated linker's zero-sized BSS input list moves into a real NOLOAD
   output section following initialized data;
 * every script-assigned symbol in the loaded MAIN.EXE image is allowed to come
@@ -335,28 +336,6 @@ def rebase_persistent_assignments(
 def transform_tail_source(source: str) -> tuple[str, set[str]]:
     lines = source.splitlines(keepends=True)
 
-    gp_starts = [
-        index
-        for index, line in enumerate(lines)
-        if line.rstrip("\r\n") == f"dlabel {GP_STORAGE_SYMBOL}"
-    ]
-    gp_ends = [
-        index
-        for index, line in enumerate(lines)
-        if line.rstrip("\r\n") == f"enddlabel {GP_STORAGE_SYMBOL}"
-    ]
-    if len(gp_starts) != 1 or len(gp_ends) != 1 or gp_starts[0] >= gp_ends[0]:
-        raise LaneError(
-            f"expected one complete {GP_STORAGE_SYMBOL} data object for the _gp alias"
-        )
-    gp_start, gp_end = gp_starts[0], gp_ends[0]
-    newline = "\r\n" if lines[gp_start].endswith("\r\n") else "\n"
-    lines.insert(gp_start, f"dlabel _gp{newline}")
-    # ``gp_end`` was measured before the opening alias was inserted, so the
-    # owner's closing line is now at gp_end + 1. Close the outer alias after it;
-    # both object symbols then cover the same bytes without emitting any data.
-    lines.insert(gp_end + 2, f"enddlabel _gp{newline}")
-
     marker_indices = [
         index
         for index, line in enumerate(lines)
@@ -659,9 +638,17 @@ def rewrite_linker(
     newline = "\r\n" if lines[brace_index].endswith("\r\n") else "\n"
     body_indent = _indent_of(lines[brace_index]) + "    "
     lines.insert(brace_index + 1, f"{body_indent}__load_start = .;{newline}")
+    # The compiler-generated .sdata carves can split the initialized tail from
+    # the later zero/BSS fragment. Keep the ABI name attached to its real
+    # section-owned object in the linker instead of requiring both labels to
+    # live in the same assembly input.
+    lines.insert(
+        brace_index + 2,
+        f"{body_indent}_gp = {GP_STORAGE_SYMBOL};{newline}",
+    )
     for alias, owner, addend in reversed(INITIALIZED_INTERIOR_ALIASES):
         lines.insert(
-            brace_index + 2,
+            brace_index + 3,
             f"{body_indent}{alias} = {owner} + 0x{addend:x};{newline}",
         )
 
@@ -817,7 +804,8 @@ def generate(
     missing_tail = sorted(padding_symbols - tail_bss_labels)
     if missing_tail:
         raise LaneError(
-            "padding-range BSS symbols lack labels in 72CD0: " + ", ".join(missing_tail)
+            "padding-range BSS symbols lack labels in the tail input: "
+            + ", ".join(missing_tail)
         )
 
     aliases = [

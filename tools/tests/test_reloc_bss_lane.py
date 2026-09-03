@@ -151,13 +151,8 @@ enddlabel World
 
     def test_moves_zero_tail_to_nobits_without_rewriting_data(self) -> None:
         output, labels = lane.transform_tail_source(self.SOURCE)
-        self.assertIn(
-            "dlabel _gp\ndlabel BriefingVramRect\n"
-            "    .word 0x010002c0\n"
-            "    .word 0x01000100\n"
-            "enddlabel BriefingVramRect\nenddlabel _gp\n",
-            output,
-        )
+        self.assertNotIn("dlabel _gp", output)
+        self.assertIn("dlabel BriefingVramRect", output)
         self.assertIn(
             '.word 1\nenddlabel Initialized\n.section .bss, "aw", @nobits\n\n'
             "nonmatching OTablePt",
@@ -168,13 +163,6 @@ enddlabel World
     def test_requires_one_known_split_marker(self) -> None:
         with self.assertRaisesRegex(lane.LaneError, "expected one"):
             lane.transform_tail_source(self.SOURCE.replace("nonmatching OTablePt", ""))
-
-    def test_requires_the_section_owned_gp_storage_object(self) -> None:
-        with self.assertRaisesRegex(lane.LaneError, "BriefingVramRect"):
-            lane.transform_tail_source(
-                self.SOURCE.replace("BriefingVramRect", "UnknownRect")
-            )
-
 
 class LinkerRewriteTests(unittest.TestCase):
     LINKER = """\
@@ -214,6 +202,7 @@ SECTIONS
         )
         self.assertNotIn("_gp = 0x80097698", output)
         self.assertIn("__load_start = .;", output)
+        self.assertIn("_gp = BriefingVramRect;", output)
         self.assertIn("PutMapMode = D_80097BA0 + 0x11;", output)
         self.assertIn("new/72CD0.reloc.s.o(.data);", output)
         self.assertIn(".main_exe_bss (NOLOAD)", output)
@@ -698,8 +687,8 @@ replacement_bss_suffix:
                 f"""\
 .section .data,"wa"
 .space 0x{lane.GP_ADDRESS - lane.MAIN_LOAD_ADDRESS:x}
-.globl _gp
-_gp:
+.globl BriefingVramRect
+BriefingVramRect:
 .word 0
 .space 0x{0x80097BA0 - lane.GP_ADDRESS - 4:x}
 .globl D_80097BA0

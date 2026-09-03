@@ -7,11 +7,13 @@ directives: 22 pointers are little-endian fields emitted as four `.byte`
 directives in `StageConfig`, and one aligned pointer value targets an unaligned
 cursor two bytes into a BSS buffer.
 
-There are two pointer-source files and ten files once exact target-label owners
+There are three pointer-source files and eleven files once exact target-label owners
 are included:
 
 - `1490.data.s` contains 22 `StageConfig` name/path pointers;
-- `75F64.data.s` contains the other 186 pointer words; and
+- `75F64.data.s` contains 177 other pointer words;
+- `87458.data.s` contains the final 9 pointer words after the recovered
+  compiler-generated `.sdata` sections; and
 - targets span those files plus `E58`, `1160`, `207C`, `2EB0`, `33C4`, `37A8`,
   `400C`, and `4900`.
 
@@ -173,13 +175,13 @@ the touched objects, and performs the controlled links described below:
 
 ```console
 $ ./Build check-reloc-data
-reloc-data-lane: verified 208 R_MIPS_32 pointer words, 135 exact targets, and 3 link layouts across 10 files
+reloc-data-lane: verified 208 R_MIPS_32 pointer words, 135 exact targets, and 3 link layouts across 11 files
 check-reloc-data: reviewed pointer tables are retail-exact and shift-relocatable
 ```
 
-`./Build relink` composes all ten replacements: `E58`, `1160`, `1490`, `207C`,
-`2EB0`, `33C4`, `37A8`, `400C`, `4900`, and `75F64`. The BSS transform runs
-after the `75F64` pointer rewrite so both changes survive in one object. The
+`./Build relink` composes all eleven replacements: `E58`, `1160`, `1490`,
+`207C`, `2EB0`, `33C4`, `37A8`, `400C`, `4900`, `75F64`, and `87458`. The BSS
+transform runs after the `87458` pointer rewrite so both changes survive in one object. The
 standalone gate remains the stricter per-record controlled-shift oracle.
 
 ## Binutils proof

@@ -71,13 +71,15 @@ DEFAULT_OBJECT_SOURCES = {
         ".shake/build/reloc-bss/data/400C.data.s",
     ".shake/build/reloc-bss/obj/4900.data.s.o":
         ".shake/build/reloc-bss/data/4900.data.s",
-    ".shake/build/relink/obj/75F64.bss.s.o":
-        ".shake/build/relink/layout/75F64.bss.s",
+    ".shake/build/reloc-bss/obj/75F64.data.s.o":
+        ".shake/build/reloc-bss/data/75F64.data.s",
+    ".shake/build/relink/obj/87458.bss.s.o":
+        ".shake/build/relink/layout/87458.bss.s",
     # The retail-exact structural lane uses the same transformed data but a
     # separate combined tail.  This lets an explicit alternate ELF/linker audit
     # work without weakening the normal-relink defaults above.
-    ".shake/build/reloc-bss/obj/75F64.bss.s.o":
-        ".shake/build/reloc-bss/generated/75F64.bss.s",
+    ".shake/build/reloc-bss/obj/87458.bss.s.o":
+        ".shake/build/reloc-bss/generated/87458.bss.s",
 }
 
 LINKER_OBJECT_RE = re.compile(r"(?P<object>[^\s;()]+\.o)\s*\(")
