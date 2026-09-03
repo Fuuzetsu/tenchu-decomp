@@ -817,9 +817,7 @@ static void DrawSmoke(TEffectSlot *ef)
 void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
 {
     short i;
-    int idx;
     TEffectSlot *slot;
-    int count;
     SmokeType *smoke;
     int r;
     int m;
@@ -831,8 +829,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         {
             return;
         }
-        FIND_EFFECT_SLOT(idx, count, slot, found);
-    found:
+        slot = GetFreeEffectSlot();
         smoke = &slot->param.smoke;
         r = rand();
         smoke->scale = r % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;
