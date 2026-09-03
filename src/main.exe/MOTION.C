@@ -40,7 +40,6 @@ extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *param);
 extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *param);
 extern void TurnAroundAllItems(Humanoid *human);
 extern int rand(void);
-extern void *memset(void *dst, s32 value, u32 size);
 extern void DeleteConflict();
 
 short SwimCheck(void);
@@ -5705,8 +5704,6 @@ void ActDEAD(void)
     DeadEvent *pp;
     VECTOR p;
     SVECTOR v;
-    SVECTOR gore_position;
-    SVECTOR gore_velocity;
 
     model = Me_MOTION_C->model;
     blood = -1;
@@ -5879,14 +5876,17 @@ ordinary_dead:
 blood_effect:
     if ((dtM->count & 4) && blood != -1)
     {
-        gore_position = (SVECTOR){
+        SVECTOR gore_position = {
             .vx = 0,
             .vy = -200,
             .vz = -240
         };
-        memset(&gore_velocity, 0, sizeof(gore_velocity));
-        gore_velocity.vy = -blds;
-        gore_velocity.vz = -bldo;
+        SVECTOR gore_velocity = {
+            .vx = 0,
+            .vy = -blds,
+            .vz = -bldo
+        };
+
         if (blds == 0)
         {
             gore_position.vx = 0;
