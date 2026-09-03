@@ -22,8 +22,6 @@
  *     extern short RefrectMove[16][2];
  * END PSX.SYM */
 
-extern SVECTOR svec_y_n20[]; /* {0,-20,0} */
-
 void MoveKorogari(TItem *item, param_korogari *param)
 {
     MapVector mv;
@@ -92,7 +90,11 @@ void MoveKorogari(TItem *item, param_korogari *param)
             {
                 /* Retail retains this dead copy; the demo symbols suggest an older
                  * SetSplash accepted the direction. */
-                vec = svec_y_n20[0];
+                vec = (SVECTOR){
+                    .vx = 0,
+                    .vy = -20,
+                    .vz = 0
+                };
                 SetSplash(MODEL_POSITION(item->locate),
                           2 * FIXED_ONE, 2 * FIXED_ONE, 4);
                 param->status = KORO_WATER;
