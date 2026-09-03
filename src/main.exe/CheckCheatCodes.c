@@ -4,16 +4,6 @@
 #include "item.h"
 #include "sound.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct TCameraStatus CamState;
- *     extern enum TSystemFlag SystemFlag;
- * END PSX.SYM */
-
 extern char str_select_item[]; /* select item */
 extern char str_number_of[];   /* number of */
 /* Retail data: Left Right Left Right, Cross x2, Circle x2, Square x2,
@@ -27,6 +17,16 @@ extern s16 ForbiddenCommand[21];
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern s32 memcmp(void *a, void *b, s32 n);
+
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
+ *
+ * Globals it touches, as the original declared them:
+ *     extern struct TCameraStatus CamState;
+ *     extern enum TSystemFlag SystemFlag;
+ * END PSX.SYM */
 
 void CheckCheatCodes(s16 *rec, int n)
 {

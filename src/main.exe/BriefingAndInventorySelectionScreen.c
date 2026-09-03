@@ -5,16 +5,6 @@
 #include "padcmd.h"
 #include "sound.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern struct GsOT *OTablePt;
- *     extern short SkipFrame;
- * END PSX.SYM */
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
@@ -52,6 +42,16 @@ static inline void TimToSprite(u_long *buf, GsSPRITE *sp)
     GetTIMInfo(buf, &tim);
     InitSprite(&tim, sp);
 }
+
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
+ *
+ * Globals it touches, as the original declared them:
+ *     extern struct GsOT *OTablePt;
+ *     extern short SkipFrame;
+ * END PSX.SYM */
 
 void BriefingAndInventorySelectionScreen(void)
 {

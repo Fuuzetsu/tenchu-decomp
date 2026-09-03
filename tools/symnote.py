@@ -207,9 +207,27 @@ def named_block(text: str, name: str):
     signature = re.compile(
         rf"^\s*\*\s+(?:static\s+)?[^;\n]*\b{re.escape(name)}\s*\(", re.M
     )
+    blocks = list(BLOCK.finditer(text))
+    signed = next(
+        (match for match in blocks if signature.search(match.group(0))),
+        None,
+    )
+    if signed is not None:
+        return signed
+
+    any_signature = re.compile(
+        r"^\s*\*\s+(?:static\s+)?[^;\n]*\b[A-Za-z_]\w*\s*\(", re.M
+    )
+    following_definition = re.compile(
+        rf"^\s*[A-Za-z_][\w \t*]*\b{re.escape(name)}\s*\([^)]*\)\s*\{{"
+    )
     return next(
-        (match for match in BLOCK.finditer(text)
-         if signature.search(match.group(0))),
+        (
+            match
+            for match in blocks
+            if not any_signature.search(match.group(0))
+            and following_definition.match(text[match.end():])
+        ),
         None,
     )
 

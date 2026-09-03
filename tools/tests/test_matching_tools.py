@@ -366,6 +366,35 @@ class FunctionInventoryTests(unittest.TestCase):
             (0x80089D94, "short (*Think1Func[10])()", 0x28),
         )
 
+    def test_symnote_associates_globals_only_block_with_following_function(self):
+        text = f"""{symnote.BEGIN} — generated
+ *
+ * Globals it touches:
+ *     extern int Example;
+ * {symnote.END}
+
+int RetailOnly(void)
+{{
+    return Example;
+}}
+"""
+        self.assertIsNotNone(symnote.named_block(text, "RetailOnly"))
+        self.assertIsNone(symnote.named_block(text, "SomeOtherFunction"))
+
+    def test_symnote_does_not_reassign_a_signed_block_by_position(self):
+        text = f"""{symnote.BEGIN} — generated
+ *
+ * void DemoFunction(void);
+ * {symnote.END}
+
+int RetailOnly(void)
+{{
+    return 0;
+}}
+"""
+        self.assertIsNotNone(symnote.named_block(text, "DemoFunction"))
+        self.assertIsNone(symnote.named_block(text, "RetailOnly"))
+
     def test_xref_uses_current_c_names_with_ghidra_extents(self):
         with tempfile.TemporaryDirectory() as td:
             funcs = os.path.join(td, "functions.tsv")

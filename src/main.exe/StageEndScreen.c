@@ -6,21 +6,6 @@
 #include "item.h"
 #include "images.h"
 
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- *
- * Globals it touches, as the original declared them:
- *     extern int StageID;
- *     extern struct GsOT *OTablePt;
- *     extern long GameClock;
- *     extern struct Sprite3D *ItemImage[25];
- *     extern short SkipFrame;
- *     extern struct TCameraStatus CamState;
- *     extern unsigned char gfMemory;
- * END PSX.SYM */
-
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 extern u8 CHOSEN_CHARACTER;
@@ -151,6 +136,21 @@ static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
             sprite->u = sign_base_u;                   \
         }                                              \
     }
+
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
+ *
+ * Globals it touches, as the original declared them:
+ *     extern int StageID;
+ *     extern struct GsOT *OTablePt;
+ *     extern long GameClock;
+ *     extern struct Sprite3D *ItemImage[25];
+ *     extern short SkipFrame;
+ *     extern struct TCameraStatus CamState;
+ *     extern unsigned char gfMemory;
+ * END PSX.SYM */
 
 void StageEndScreen(void)
 {
