@@ -5,7 +5,9 @@
 #include "adt.h"
 #include "effect.h"
 #include "item.h"
+#include "misc.h"
 #include "padcmd.h"
+#include "sound.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libsnd.h>

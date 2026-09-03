@@ -12,6 +12,7 @@
 #include "humanoid.h"
 #include "item.h"
 #include "model.h"
+#include "misc.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
