@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern int cd_read(FILE *f, void *buffer, int length);
 extern char str_afs_vol_200[]; /* "AFS_VOL_200" */
 
 int AfsGetHeader(TAFS *handle)

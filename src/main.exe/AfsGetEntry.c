@@ -4,7 +4,6 @@
 #include "filesystem.h"
 #include "vmemory.h"
 
-extern int cd_read(FILE *f, void *buffer, int length);
 extern char msg_afsgetentry_empty_index[]; /* AfsGetEntry: empty index */
 extern char msg_afsgetenty_no_memory[];    /* AfsGetEnty: memory not enough! */
 extern char msg_afsgetentry_no_memory[];   /* AfsGetEntry: memory not enough! */

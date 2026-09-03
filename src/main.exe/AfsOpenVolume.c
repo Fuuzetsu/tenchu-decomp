@@ -3,13 +3,9 @@
 #include "adt.h"
 #include "filesystem.h"
 
-extern void AfsInit(TAFS *handle);
-extern char *strcat(char *dst, const char *src);
 /* Retail calls the one-argument FILE * definition through this stale
  * two-argument int declaration. */
 extern int cd_open(char *name, int mode);
-extern int AfsGetHeader(TAFS *handle);
-extern int AfsGetEntry(TAFS *handle);
 extern char str_ext_vol[];                    /* .VOL */
 extern char msg_afsvolume_open_err[];         /* "AfsOpenVolume: %s open err\n" */
 extern char msg_afsopenvolume_header_error[]; /* AfsOpenVolume: Header error */

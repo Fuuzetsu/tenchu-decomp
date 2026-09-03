@@ -157,6 +157,36 @@ extern file_read_mode ReadMode;
 /* FILEIO.C's ten-slot CD handle pool, named by the demo symbol data. */
 extern FILE FileHandlePool[N_CD_FILE_HANDLES];
 
+void cd_init(void);
+void cd_control(u8 command, u8 *param, u8 *result);
+int cd_close(FILE *file);
+int cd_getsize(FILE *file);
+int cd_read(FILE *file, void *buffer, int length);
+void cd_read_at_(void *buffer, int sector, int count);
+void cd_read_sectors_(u8 *buffer, s32 sector, s32 byte_offset, s32 length);
 int cd_seek(FILE *f, int offset, TSeekMode whence);
+int cd_tell(FILE *file);
+
+void AfsFilenameFix(char *path);
+TAFSElement *AfsFindFile(TAFS *volume, char *path, u32 flags);
+int AfsOpenVolume(TAFS *volume, char *path);
+void AfsInit(TAFS *volume);
+int AfsFileSize(TAFS *volume, TAFSFileHandle *file);
+TAFSFileHandle *AfsOpen(TAFS *volume, char *path);
+int AfsClose(TAFSFileHandle *file);
+u32 AfsRead(TAFS *volume, TAFSFileHandle *file, void *buffer, u32 length);
+int AfsGetEntry(TAFS *volume);
+int AfsGetHeader(TAFS *volume);
+
+void InitFileSystem(file_read_mode mode);
+void InitAccessInfo(void);
+u_long *FileRead(u8 *filename);
+u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
+int FileWrite(u8 *filename, void *data, long size);
+void LoadExecEx(u8 *file, u32 stack, u32 size);
+u_long *LoadFromDEVPC(u8 *filename);
+u_long *LoadFromMEMORY(u8 *filename);
+u_long *LoadFromCDROM(u8 *filename);
+void PrepareAccess(void);
 
 #endif

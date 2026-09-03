@@ -28,11 +28,6 @@ extern char path_tenchu_data[];      /* TENCHU\\DATA */
 extern char path_demo_loading_tim[];  /* K:\WORK\CDIMAGE\DEMO\loading.tim */
 extern char path_demo_load_ten_tim[]; /* K:\WORK\CDIMAGE\DEMO\load_ten.tim */
 
-extern TAFSFileHandle *AfsOpen(TAFS *handle, char *path);
-extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
-extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);
-extern int AfsClose(TAFSFileHandle *fd);
-extern int AfsOpenVolume(TAFS *handle, char *path);
 extern int PCopen(char *name, int mode, int share);
 extern int PClseek(int fd, int offset, TSeekMode whence);
 extern int PCread(int fd, void *buf, int size);
@@ -40,14 +35,9 @@ extern int PCclose(int fd);
 extern int PCcreat(char *name, int mode);
 extern int PCwrite(int fd, void *buf, int size);
 extern void PCinit(void);
-extern void cd_init(void);
 extern void save_pad_analog_(void);
 extern void set_boot_exec_(u8 *file, u32 stack, u32 size);
 extern void run_exec_file(u8 *name, u32 stack, u32 size);
-
-extern u_long *LoadFromMEMORY(u8 *filename);
-extern u_long *LoadFromDEVPC(u8 *filename);
-extern u_long *LoadFromCDROM(u8 *filename);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

@@ -19,8 +19,6 @@ extern char fmt_free_memory[];
 extern RECT BriefingVramRect[];
 
 extern void SelectStage(TLinkInfo *ps);
-extern void InitFileSystem(file_read_mode mode);
-extern void InitAccessInfo(void);
 extern void InitConflict(void);
 extern void InitializeInfoView(void);
 extern void InitSoundEffect(void);

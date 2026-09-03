@@ -3,7 +3,6 @@
 #include "adt.h"
 #include "filesystem.h"
 
-extern TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags);
 extern char msg_afsopen_not_found[]; /* "AfsOpen: %s not found\n" */
 extern char msg_afsopen_no_handle[]; /* "AfsOpen: no more handle\n[%s]" */
 

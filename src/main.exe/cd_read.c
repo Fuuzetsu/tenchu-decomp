@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "filesystem.h"
 
-extern void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length);
 extern char msg_cd_read_invalid_handle[]; /* "cd_read:invalid handle" */
 
 int cd_read(FILE *f, void *buffer, int length)

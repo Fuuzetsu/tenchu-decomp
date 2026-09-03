@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "filesystem.h"
 #include <psxsdk/libcd.h>
 #include <psxsdk/libsnd.h>
 
@@ -8,7 +9,6 @@
  * moved them behind CdaStop and added the volume helpers which follow them.
  */
 
-extern void cd_control(u8 command, u8 *param, u8 *result);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

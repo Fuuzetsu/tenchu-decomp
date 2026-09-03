@@ -1,5 +1,6 @@
 #include <psxsdk/libgs.h>
 #include "game_types.h"
+#include "filesystem.h"
 #include "conflict.h"
 #include "humanoid.h"
 #include "game_globals.h"
@@ -390,8 +391,6 @@ extern enemy_layout_index leFindEnemy(void);
 extern void leLayoutEnemy(enemy_layout_mode mode);
 extern int leRemoveEnemy(void);
 
-extern u_long *FileRead(u8 *filename);
-extern u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
 extern u_long *GetArcData(int index);
 extern u_long *get_tim_from_archive(ArcFile *archive, int idx);
 extern void load_font_image_into_global(GsIMAGE *image);

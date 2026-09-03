@@ -1,7 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
-
-extern void cd_read_sectors_(u8 *buffer, s32 sector, s32 byteOffset, s32 length);
+#include "filesystem.h"
 
 void cd_read_at_(void *buffer, int sector, int count)
 {

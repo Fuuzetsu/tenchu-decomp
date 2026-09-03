@@ -3,7 +3,6 @@
 #include "adt.h"
 #include "filesystem.h"
 
-extern int cd_read(FILE *f, void *buffer, int length);
 extern char msg_afsread_invalid_handle[]; /* "AfsRead: invalid handle" */
 
 u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length)
