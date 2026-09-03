@@ -435,7 +435,7 @@ DRAWENV *PutDrawEnv(DRAWENV *env);
 DRAWENV *SetDefDrawEnv(DRAWENV *env, int x, int y, int w, int h);
 
 int FntOpen(int x, int y, int w, int h, int isbg, int n);
-int FntPrint();
+int FntPrint(char *format, ...);
 u_long *FntFlush(int id);
 void FntLoad(int tx, int ty);
 int ResetGraph(int mode);
