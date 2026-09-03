@@ -400,6 +400,36 @@
         "LoadTIMpack",
         "GetTIMpackInfo"
       ]
+    },
+    {
+      "source": "FILEIO.C",
+      "functions": [
+        "cbAccess",
+        "stop_access_meter_",
+        "FileRead",
+        "draw_loading_splash_",
+        "InitFileSystem",
+        "PathFileRead",
+        "FileWrite",
+        "LoadExecEx",
+        "InitAccessInfo",
+        "LoadFromDEVPC",
+        "LoadFromMEMORY",
+        "LoadFromCDROM",
+        "PrepareAccess"
+      ],
+      "debug_symbol_order": [
+        "InitFileSystem",
+        "InitAccessInfo",
+        "cbAccess",
+        "PrepareAccess",
+        "FileRead",
+        "PathFileRead",
+        "FileWrite",
+        "LoadFromDEVPC",
+        "LoadFromMEMORY",
+        "LoadFromCDROM"
+      ]
     }
   ]
 }
