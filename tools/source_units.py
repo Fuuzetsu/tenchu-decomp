@@ -30,6 +30,7 @@ class SourceUnit:
     functions: tuple[str, ...]
     debug_symbol_order: tuple[str, ...] = ()
     definition_order: tuple[str, ...] = ()
+    debug_sources: tuple[str, ...] = ()
 
     @property
     def stem(self) -> str:
@@ -66,6 +67,7 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
         functions = entry.get("functions")
         debug_order = entry.get("debug_symbol_order", [])
         definition_order = entry.get("definition_order", functions)
+        debug_sources = entry.get("debug_sources", [source])
         if (
             not isinstance(source, str)
             or Path(source).name != source
@@ -78,6 +80,17 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
             raise ValueError(f"{where}: debug_symbol_order must be a list")
         if not isinstance(definition_order, list):
             raise ValueError(f"{where}: definition_order must be a list")
+        if (
+            not isinstance(debug_sources, list)
+            or not debug_sources
+            or any(
+                not isinstance(debug_source, str)
+                or Path(debug_source).name != debug_source
+                or Path(debug_source).suffix.lower() != ".c"
+                for debug_source in debug_sources
+            )
+        ):
+            raise ValueError(f"{where}: debug_sources must be C filenames")
         if any(not isinstance(name, str) or not IDENTIFIER.match(name)
                for name in functions + debug_order + definition_order):
             raise ValueError(f"{where}: invalid function name")
@@ -87,6 +100,8 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
             raise ValueError(f"{where}: duplicate function in debug-symbol order")
         if len(definition_order) != len(set(definition_order)):
             raise ValueError(f"{where}: duplicate function in definition order")
+        if len(debug_sources) != len(set(debug_sources)):
+            raise ValueError(f"{where}: duplicate debug source")
         if set(definition_order) != set(functions):
             raise ValueError(
                 f"{where}: definition_order must be a permutation of functions"
@@ -105,6 +120,7 @@ def load_units(manifest: str | Path = DEFAULT_MANIFEST) -> tuple[SourceUnit, ...
             tuple(functions),
             tuple(debug_order),
             tuple(definition_order),
+            tuple(debug_sources),
         ))
     return tuple(units)
 

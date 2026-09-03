@@ -131,7 +131,10 @@ units as they are reconstructed. Its `functions` list is the text-emission
 order proved by the retail executable. `definition_order`, when present,
 records the order of definitions in the reconstructed retail source, while
 `debug_symbol_order` independently preserves the earlier demo's source-line
-order from `reference/psxsym-tu-map.tsv`.
+order from `reference/psxsym-tu-map.tsv`. If a retail unit combines several
+demo source fragments, `debug_sources` records those filenames in inclusion
+order; `THINK.C`, for example, carries the evidence from `THINK.C` and
+`THINK_1.C` through `THINK_4.C`.
 
 Those orders can disagree. `WORLD.C`, for example, was substantially rearranged
 between the demo and retail builds, gained two retail-only load helpers, and no

@@ -50,10 +50,6 @@ extern short StageEnemies;
 extern short StageCitizens;
 /* Retail adds this halfword counter beside the PSX.SYM-recorded set. */
 extern short StageBosses;
-extern long Distance;
-extern short Degree;
-extern HumanoidAttribute Attrib;
-/* Raw flag-bit view for THINK.C sites whose retail loads are unsigned. */
 /* SearchTarget result/state code (-2..2), not a distance. The value
  * names are invented from the return contexts: */
 enum
@@ -64,8 +60,6 @@ enum
     SR_SEEN = 1,    /* clear sight (inside clear_distance) */
     SR_GLIMPSE = 2  /* perceived beyond clear distance (the "?" case) */
 };
-extern search_result SR;
-extern PADtype *Pad;
 /* Retail stores a leading NULL followed by one pointer per stage
  * configuration. stage1appearance through stage9appearance retain PSX.SYM's
  * names; stages 10 and 11 are retail additions named by that sequence. */

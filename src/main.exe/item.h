@@ -100,76 +100,6 @@ struct BowTimingEntry
 extern struct BowTimingEntry BowTiming[N_BOW_TIMING_WINDOWS];
 extern void AttackBowControl(s16 timing_window);
 
-/* PSX.SYM maps this whole expansion to one source line in AttackGeneral and
- * AttackLong. AttackIndirect gained the same continuation policy in retail.
- * The one-shot region and result carrier preserve retail's separate zero and
- * signed-return paths. */
-#define RETURN_ATTACK_CONTINUATION(input_, range_, aim_)                     \
-    if (Me_THINK_C->status == STAT_ATTACK)                                   \
-    {                                                                         \
-        s16 attack_result_;                                                   \
-        s32 attack_degree_;                                                   \
-                                                                              \
-        do                                                                    \
-        {                                                                     \
-            if (Me_THINK_C->motion->count !=                                 \
-                BattleDB[Me_THINK_C->warid].contfrm)                         \
-            {                                                                 \
-                attack_result_ = 0;                                           \
-                goto attack_continuation_return_;                             \
-            }                                                                 \
-            if (Distance < (range_))                                          \
-            {                                                                 \
-                attack_degree_ = Degree;                                      \
-                if (attack_degree_ < 0)                                       \
-                {                                                             \
-                    attack_degree_ = -attack_degree_;                         \
-                }                                                             \
-                if (attack_degree_ < (aim_))                                  \
-                {                                                             \
-                    goto choose_attack_continuation_;                         \
-                }                                                             \
-            }                                                                 \
-            if (rand() % (EngageLevel + 1) != 0)                             \
-            {                                                                 \
-                attack_result_ = input_;                                      \
-                goto attack_continuation_return_;                             \
-            }                                                                 \
-        } while (0);                                                          \
-                                                                              \
-    choose_attack_continuation_:                                              \
-        if (Degree > 300)                                                     \
-        {                                                                     \
-            input_ = PADLright;                                               \
-        }                                                                     \
-        else                                                                  \
-        {                                                                     \
-            input_ |= PADRleft;                                               \
-            if (Degree < -300)                                                \
-            {                                                                 \
-                input_ = PADLleft;                                            \
-            }                                                                 \
-            else                                                              \
-            {                                                                 \
-                goto attack_continuation_value_;                              \
-            }                                                                 \
-        }                                                                     \
-        input_ |= PADRleft;                                                   \
-                                                                              \
-    attack_continuation_value_:                                               \
-        attack_result_ = input_;                                              \
-    attack_continuation_return_:                                              \
-        return attack_result_;                                                \
-    }
-
-typedef u8 animal_attack_timer;
-enum animal_attack_timing
-{
-    ANIMAL_ATTACK_TIMER_RESET = 0,
-    ANIMAL_ATTACK_NOTICE_FRAME = 30,
-    ANIMAL_ATTACK_FULL_STEER_FRAME = 90
-};
-
 /* Long-running item effects recorded in Humanoid.itmctl by ITEM.C. Zero is
  * the inactive sentinel here, not ITEM_KAGINAWA; only these three item kinds
  * are ever installed in the field. */
@@ -204,62 +134,10 @@ typedef struct tag_TItem TItem;
 struct AreaNodeType;
 struct AfterimageType;
 
-/* THINK_4.C's original short-returning dispatch tables. These callbacks are
- * virtual-controller policies, not decision-enum queries: each returns the
- * 16-bit PAD button word the character should produce for this frame.
- * StateTransition selects think[PHASE_*], filters its result, and feeds it to
- * update_pressed_buttons; HumanActionControl then exposes human->pad.data as
- * dtPAD to the ordinary Act* motion handlers. ThinkBasicHuman1/2 prove the
- * shared interface by forwarding the two physical controllers through it.
- * PSX.SYM supplies the callbacks' element type and exact table bounds. */
+/* THINK.C callbacks synthesize a 16-bit PAD word for one frame.
+ * StateTransition installs and filters them before updating the pad state. */
 typedef s16 (*ThinkFunc)(void);
-extern ThinkFunc Think1Func[N_THINK1_PROGRAMS];
-extern ThinkFunc Think2Func[N_THINK2_PROGRAMS];
-extern ThinkFunc Think3Func[N_THINK3_PROGRAMS];
-extern ThinkFunc Think4Func[N_THINK4_PROGRAMS];
 extern ThinkDBtype ThinkDB[20];
-extern ThinkFunc AttackFunc[N_WEAPON_ATTACK_CLASSES];
-
-/* Think1watch/Think1target act on the ticks where actcnt's low bits are
- * clear, so the character looks around once per this many idle ticks. */
-enum think_idle_timing
-{
-    THINK_IDLE_PERIOD = 0x80,
-    THINK_IDLE_TURN_LIMIT = 10
-};
-
-/* Advance the shared idle-look cycle and produce this frame's virtual pad. */
-#define UPDATE_IDLE_LOOK_PAD(pad_)                                          \
-    {                                                                        \
-        (pad_) = 0;                                                          \
-        if ((Me_THINK_C->actcnt & (THINK_IDLE_PERIOD - 1)) == 0)            \
-        {                                                                    \
-            (pad_) = PADLleft;                                               \
-            if (Me_THINK_C->actflg != 0)                                    \
-            {                                                                \
-                (pad_) = PADLright;                                          \
-            }                                                                \
-            if (Me_THINK_C->actscnt++ > THINK_IDLE_TURN_LIMIT)              \
-            {                                                                \
-                Me_THINK_C->actflg = rand() & 1;                            \
-                Me_THINK_C->actscnt = 0;                                    \
-                Me_THINK_C->actcnt++;                                       \
-            }                                                                \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-            Me_THINK_C->actcnt++;                                           \
-        }                                                                    \
-    }
-
-/* Think4contact and Think4chase share the same investigation lifetime and
- * arrival rule. Think4chase actively steers only at the start of that wait. */
-enum think4_search_timing
-{
-    THINK4_INITIAL_STEER_TICKS = 30,
-    THINK4_ABANDON_TICKS = 91,
-    THINK4_ARRIVAL_DISTANCE = 1000
-};
 
 /* The henshin disguise's saved model state. PSX.SYM recovers the original
  * field names and its fifteen-part capacity; retail keeps the same layout. */

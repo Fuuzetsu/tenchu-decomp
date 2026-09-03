@@ -17,7 +17,7 @@
 // gating on byte-identical `./Build check`. Do not add new guessed duplicates
 // of something the recovered symbols already name. (Completed example:
 // the guessed `character_state` cluster WAS item.h's official Humanoid and
-// has been fully retired — all Me_THINK_C derefs use `struct Humanoid` and
+// has been fully retired — all Me derefs use `struct Humanoid` and
 // its official fields, and the ~314-line cluster was deleted from this file.
 // The offset-aligned field map is kept for reference:
 // reference/character_state-to-humanoid.tsv.)
@@ -487,7 +487,8 @@ enum think2_program
 {
     THINK2_CONFIRM = 3,
     THINK2_CONTACT = 4,
-    N_THINK2_PROGRAMS = THINK2_CONTACT + 1
+    THINK2_ALARM_REACTION = 5,
+    N_THINK2_PROGRAMS = THINK2_ALARM_REACTION + 1
 };
 
 enum think3_program

@@ -34,6 +34,7 @@ class SourceUnitTests(unittest.TestCase):
             self.assertEqual(unit.source, "WORLD.C")
             self.assertEqual(unit.functions, ("First", "Second"))
             self.assertEqual(unit.definition_order, ("Second", "First"))
+            self.assertEqual(unit.debug_sources, ("WORLD.C",))
             self.assertEqual(
                 unit.debug_symbol_order, ("Second", "DemoOnly", "First")
             )
@@ -108,6 +109,22 @@ class SourceUnitTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "permutation"):
                 su.load_units(path)
 
+    def test_retains_debug_source_fragments(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "units.json"
+            path.write_text(json.dumps({
+                "schema": 1,
+                "units": [{
+                    "source": "THINK.C",
+                    "functions": ["First", "Second"],
+                    "debug_sources": ["THINK.C", "THINK_1.C"],
+                }],
+            }))
+            self.assertEqual(
+                su.load_units(path)[0].debug_sources,
+                ("THINK.C", "THINK_1.C"),
+            )
+
     def test_live_units_retain_debug_order_and_follow_retail_order(self) -> None:
         debug_by_unit: dict[str, list[tuple[int, str]]] = {}
         for line in (su.ROOT / "reference/psxsym-tu-map.tsv").read_text().splitlines():
@@ -123,9 +140,14 @@ class SourceUnitTests(unittest.TestCase):
                 retail[fields[2]] = (int(fields[0], 16), int(fields[1]))
 
         for unit in su.load_units():
+            debug_order = [
+                name
+                for debug_source in unit.debug_sources
+                for _line, name in sorted(debug_by_unit[debug_source])
+            ]
             self.assertEqual(
                 list(unit.debug_symbol_order),
-                [name for _line, name in sorted(debug_by_unit[unit.source])],
+                debug_order,
             )
             self.assertEqual(
                 list(unit.functions),
