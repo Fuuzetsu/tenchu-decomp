@@ -688,7 +688,6 @@ static void DrawPause(int frame)
     }
 }
 
-extern char str_select_item[]; /* select item */
 extern char str_number_of[];   /* number of */
 /* Retail data: Left Right Left Right, Cross x2, Circle x2, Square x2,
  * Triangle x2 — the debug item-grant code. */
@@ -983,11 +982,6 @@ static void PutMap(void)
  *     extern unsigned char PutMapMode;
  * END PSX.SYM */
 
-/* gp-relative — defined by this (info-view) TU; Build.hs maspsxGpExterns */
-extern u8 fInitialize;
-
-extern char str_select_item[]; /* "select item" */
-extern char str_number_of[]; /* "number of" */
 extern char str_item_layout_option[]; /* "item layout option" */
 extern char msg_clear_ok[]; /* "clear ok?" */
 extern char str_select_option[]; /* "select option" */

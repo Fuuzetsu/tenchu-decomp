@@ -1181,7 +1181,6 @@ enum construction_draw_geometry
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-extern char msg_modelslot_overflow[]; /* ModelSlot Overflow */
 extern char msg_overload[];
 extern char fmt_objs_d[]; /* objs D%d/%d; */
 extern char fmt_pk_size[];

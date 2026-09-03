@@ -4112,8 +4112,6 @@ static int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
  *     extern long GameClock;
  * END PSX.SYM */
 
-extern Humanoid *NINKEN_CHARACTER_PTR;
-
 static void ProcItemNinken(TItem *item)
 {
     enum
@@ -6997,7 +6995,6 @@ int ReqItemJirai(PARAM_ITEM_DROP *p)
     RotateVector(&work.vector, rx, ry, rz)
 
 /* Per-item-type throw/offset vector constants (ITEM.C file data). */
-extern VECTOR vec_z_n100[];        /* {0,0,-100} */
 extern VECTOR vec_z_100[];         /* {0,0,100} */
 extern VECTOR vec_z_n60[];         /* {0,0,-60} */
 extern VECTOR vec_y_n120_z_n240[]; /* {0,-120,-240} */
