@@ -1339,7 +1339,7 @@ resolve_hit:
         }
         SET_MOTION(MOT_DEAD_DROWN, MOTION_MOVE_APPLY);
     }
-    SET_NOW_MOTION_UNLESS_CVA(return);
+    SetNowMotionUnlessCva();
     return;
 }
 
