@@ -787,8 +787,6 @@ skip_default:
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern s32 is_humanoid_on_stage_(Humanoid *h);
-
 void ProcItemDrop(TItem *item)
 {
     enum
@@ -1309,8 +1307,6 @@ void ProcItemTeleport(TItem *item)
  * Globals it touches, as the original declared them:
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
-
-extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemMakibishi(TItem *item)
 {
@@ -2401,7 +2397,6 @@ static int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
  *     extern short ActionHalt;
  * END PSX.SYM */
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1target(void);
 
 static inline void restore_dokudango_target(TItem *item,
@@ -4122,7 +4117,6 @@ static int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 
 extern Humanoid *NINKEN_CHARACTER_PTR;
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void set_model_hide_(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, TThinkType think);
 
@@ -4531,8 +4525,6 @@ static int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern s32 is_humanoid_on_stage_(Humanoid *h);
-
 void ProcItemHappou(TItem *item)
 {
     ModelType *model;
@@ -4718,7 +4710,6 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void reset_alert_duration(void);
 
 void ProcItemFire(TItem *item)
@@ -5024,7 +5015,6 @@ int ReqItemFire(PARAM_ITEM_LAUNCH *p)
     return 1;
 }
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1sleep(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -5607,7 +5597,6 @@ void ReqItemGun(PARAM_ITEM_LAUNCH *p)
     item->param.gun.vec = p->end;
 }
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -5813,7 +5802,6 @@ void ProcItemNapalm(TItem *item)
  * END PSX.SYM */
 
 
-extern s32 is_humanoid_on_stage_(Humanoid *h);
 extern void reset_alert_duration(void);
 
 void ProcItemLaunch(TItem *item)
@@ -6248,7 +6236,6 @@ static void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
  * END PSX.SYM */
 
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 void ProcItemArrow(TItem *item)
 {
     enum
@@ -6501,7 +6488,6 @@ found:
     return 1;
 }
 
-extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void reset_alert_duration(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

@@ -198,6 +198,8 @@ extern struct Humanoid *CreateHumanoid(character_kind type,
 extern void KillHumanoid(struct Humanoid *human);
 extern short ControlAllHumanoid(void);
 extern void ControlHumanoid(struct Humanoid *human);
+extern void draw_visible_characters_(void);
+extern s32 is_humanoid_on_stage_(struct Humanoid *human);
 extern short DefaultActionHumanoid(struct Humanoid *human);
 extern short SetNowMotion(struct Humanoid *human, motion_id mid,
                           motion_move_mode move);

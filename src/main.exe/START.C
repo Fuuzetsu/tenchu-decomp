@@ -33,7 +33,6 @@ extern void ActivateHumans(void);
 extern void DrawConstruction(void);
 extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);
-extern void draw_visible_characters_(void);
 extern void BriefingAndInventorySelectionScreen(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
