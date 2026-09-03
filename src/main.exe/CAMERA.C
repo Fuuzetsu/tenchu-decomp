@@ -596,7 +596,8 @@ static inline void TransformCameraPoint(SVECTOR *point, VECTOR *result,
     RotTrans(point, result, flag);
 }
 
-s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot, SVECTOR *campos, GsRVIEW2 *vDif)
+static s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
+                              SVECTOR *campos, GsRVIEW2 *vDif)
 {
     GsRVIEW2 target;
     GsRVIEW2 *tp;
