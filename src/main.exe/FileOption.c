@@ -48,14 +48,10 @@ extern char str_select_music[]; /* "select music" */
 extern char str_layout_no[]; /* "layout no" */
 extern char fmt_num_2[]; /* "%d" */
 
-extern void lePackEnemyLayout(void *buf, long size);
-extern void load_save_slot_(enum save_storage storage, u8 *name);
 extern void InitializeImage(void);
 extern void SetupStageSequence(void);
 extern void CVAsetup(void);
 extern void debug_menu_file_animation_test(void);
-extern void load_layout(s32 no);
-
 void FileOption(void)
 {
     enum FileOptionChoice

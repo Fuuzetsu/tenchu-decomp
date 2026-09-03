@@ -3,6 +3,7 @@
 #include "adt.h"
 #include "item.h"
 #include "infoview.h"
+#include "layout_save.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

@@ -9,6 +9,7 @@
 #include "infoview.h"
 #include "images.h"
 #include "item.h"
+#include "layout_save.h"
 #include "misc.h"
 #include "padcmd.h"
 #include "sound.h"
@@ -133,8 +134,6 @@ static void init_lifebar_(void)
  * END PSX.SYM */
 
 extern u8 fInitialize;
-
-extern void leResetEnemyLayout(void);
 
 void InitializeInfoView(void)
 {
