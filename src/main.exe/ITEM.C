@@ -5914,8 +5914,7 @@ static void UpdateItemState(void)
     conflicts = ConflictObject;
     item = items;
 loop:
-    if (i >= MAX_ITEMS)
-        goto done;
+    if (i < MAX_ITEMS)
     {
         if (item->proc != 0)
         {
@@ -5963,7 +5962,6 @@ loop:
         i++;
         goto loop;
     }
-done:;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
