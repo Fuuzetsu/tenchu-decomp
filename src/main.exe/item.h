@@ -732,31 +732,9 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     item->collision.mode = cmode;                                             \
     item->collision.pause = 0;
 
-/* The launcher preamble every ReqItem* repeats: round-robin the pool
- * cursor `ic` to the next free slot, force-disposing the slot it lands
- * on when all 30 are live, leaving `item` set and `found:` planted.
- * Macro is reconstruction shorthand (expands to the identical text). */
-#define TAKE_ITEM_SLOT()                                                      \
-    i = 0;                                                                    \
-    do                                                                        \
-    {                                                                         \
-        ic++;                                                                 \
-        if (ic >= MAX_ITEMS)                                                  \
-            ic = 0;                                                           \
-        item = items + ic;                                                    \
-        if (item->proc == 0)                                                  \
-            goto found;                                                       \
-        i++;                                                                  \
-    } while (i < MAX_ITEMS - 1);                                              \
-                                                                              \
-    DISPOSE_ITEM(item);                                                       \
-                                                                              \
-found:
-/* The same launcher preamble, in the cursor variant some ReqItem* use: the
- * scan keeps its recovered `ret` cursor and only publishes `item` once.
- * This gives cc1 two pseudos where TAKE_ITEM_SLOT() gives it one (adopting
- * the single-variable macro in those files costs 40 diff lines). The caller
- * places the supplied continuation label immediately after the operation. */
+/* Some launchers keep a separate scan cursor and only publish `item` once.
+ * The caller places the supplied continuation label immediately after the
+ * operation. */
 #define TAKE_ITEM_SLOT_VIA_CURSOR(found_)                                     \
     i = 0;                                                                    \
     do                                                                        \
