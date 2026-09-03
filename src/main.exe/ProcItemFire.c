@@ -45,7 +45,6 @@
  * END PSX.SYM */
 
 extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
-extern SVECTOR svec_y_n30[];
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
@@ -99,7 +98,11 @@ void ProcItemFire(TItem *item)
                 .vz = item->locate->locate.coord.t[2] +
                     (rand() % (nr * 2) - nr)
             };
-            SVECTOR vec = svec_y_n30[0];
+            SVECTOR vec = {
+                .vx = 0,
+                .vy = -30,
+                .vz = 0
+            };
 
             SetBleed(&pos, &vec, rand() % 20, COLOR_YELLOW);
         }
