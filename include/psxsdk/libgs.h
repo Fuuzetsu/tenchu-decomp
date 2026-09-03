@@ -339,6 +339,7 @@ void GsInitGraph(unsigned short x, unsigned short y, unsigned short intmode,
 void GsInit3D(void);
 void GsMapModelingData(unsigned long *model);
 void GsSetProjection(long distance);
+void GsSetNearClip(long distance);
 void GsSetLightMode(int mode);
 void GsSetFogParam(GsFOGPARAM *fog);
 void GsSetAmbient(long r, long g, long b);
@@ -364,6 +365,8 @@ void GsLinkObject4(unsigned long model, GsDOBJ2 *object, int index);
 int GsSetRefView2(GsRVIEW2 *view);
 void GsSetLsMatrix(MATRIX *matrix);
 void GsInitFixBg16(GsBG *background, unsigned long *work);
+void GsSortFixBg16(GsBG *background, unsigned long *work, GsOT *ot,
+                   unsigned short priority);
 PACKET *GsGetWorkBase(void);
 
 PACKET *GsA4divNF3(TMD_P_NF3 *primitive, VERT *vertices, PACKET *packet,

@@ -4,5 +4,6 @@
 void InitGraphicsSystem(void);
 void StartDrawing(void);
 void EndDrawing(short sync);
+void SetDepthQ(s32 dqa, s32 dqb);
 
 #endif

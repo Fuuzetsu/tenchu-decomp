@@ -44,6 +44,9 @@ enum
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libgs.h>
 
+void jt_init4(void);
+void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
+
 /* Header of one same-format run in the linked primitive stream. */
 typedef struct
 {

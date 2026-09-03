@@ -32,11 +32,6 @@ extern char msg_no_background_image_data[]; /* NO BACKGROUND IMAGE DATA */
 extern char msg_no_image_data[]; /* NO IMAGE DATA */
 extern char msg_no_image_pack_data[]; /* NO IMAGE PACK DATA */
 
-extern void SetDepthQ(s32 dqa, s32 dqb);
-extern void GsSetNearClip(s32 near);
-extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
-extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
-
 /* Keep this literal until the persistent word's declaration is recovered. */
 #define STARTING_RNG_SEED (*(s32 *)TENCHU_PERSISTENT_RNG_ADDRESS)
 
@@ -1290,7 +1285,7 @@ short DrawBG(BackGround *bg)
     {
         return 0;
     }
-    GsSortFixBg16(bg, bg->work, OTablePt, bg->sz);
+    GsSortFixBg16(&bg->hundle, bg->work, OTablePt, bg->sz);
     return 1;
 }
 

@@ -55,6 +55,8 @@ void SetColorMatrix(MATRIX *m);
 void SetTransMatrix(MATRIX *m);
 void SetBackColor(long rbk, long gbk, long bbk);
 void SetFarColor(long rfc, long gfc, long bfc);
+void SetDQA(long dqa);
+void SetDQB(long dqb);
 void InitGeom(void);
 void SetGeomOffset(long ofx, long ofy);
 void SetGeomScreen(long h);

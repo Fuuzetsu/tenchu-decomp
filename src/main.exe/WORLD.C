@@ -68,7 +68,6 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char fmt_illigal_stage_id[]; /* illigal stage id %d */
 extern char path_stage_con[];       /* STAGE.CON */
 
-extern void SetDepthQ(s32 dqa, s32 dqb);
 static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
@@ -574,7 +573,6 @@ extern char path_map_mad[];             /* map.mad */
 extern void DisposeAreaMap(AreaMapType *area);
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
 extern AreaMapType *load_balma_area_map_(AreaMapType *data);
-extern void jt_init4(void);
 
 static short LoadConstruction(u_long *data)
 {
@@ -1198,7 +1196,6 @@ extern char fmt_pk_size[];
 extern char str_map[]; /* map: */
 extern char str_newline_2[];
 
-extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 void DrawConstruction(void)
 {
     short j;

@@ -23,7 +23,6 @@ extern s16 TexScrollY;
 extern RECT ScreenRect; /* {0,0,320,480}: both pages */
 
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
-extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 
 void reset_effects_(void);
 
