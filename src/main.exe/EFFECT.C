@@ -15,12 +15,6 @@
  * The translation-unit manifest retains the earlier source-line order.
  */
 
-extern u8 BloodSpriteImageIds[];
-/* Indexed by impact_sprite and the BOMB_SPRITE_* selectors respectively. */
-extern u8 ImpactSpriteImageIds[MaxImpacts];
-extern ImageArchiveId ExplosionSpriteImageIds[N_EXPLOSION_SPRITES];
-extern ImageArchiveId FrameSpriteImageIds[MaxFrames];
-
 extern ModelType *BLOOD_POOL_MODEL_;
 extern s16 TexScrollX;
 extern s16 TexScrollY;
@@ -69,13 +63,20 @@ void reset_effects_(void);
 
 void InitEffect(void)
 {
-    u8 blood_images[N_BLOOD_SPRITES * 2];
+    u8 blood_images[N_BLOOD_SPRITES * 2] = {
+        IMG_BLOOD_FLY_0,
+        IMG_BLOOD_STAY_0,
+        IMG_BLOOD_FLY_1,
+        IMG_BLOOD_STAY_1,
+        IMG_BLOOD_FLY_2,
+        IMG_BLOOD_STAY_2,
+        IMG_BLOOD_FLY_3,
+        IMG_BLOOD_STAY_3
+    };
     POLY_F4 *poly;
     GsIMAGE *image;
     s16 i;
 
-    __builtin_memcpy(blood_images, BloodSpriteImageIds,
-                     sizeof(blood_images));
     i = 0;
     for (; i < N_BLOOD_SPRITES; i++)
     {
@@ -93,26 +94,45 @@ void InitEffect(void)
     sprSplash.attribute = GS_ATTR_SEMITRANS_ADD;
     sprSplash.my = sprSplash.h;
 
-    i = 0;
-    while (1)
     {
-        if (i >= MaxFrames)
-            break;
-        image = GetImage(FrameSpriteImageIds[i]);
-        InitSprite(image, &sprFrame[i]);
-        sprFrame[i].attribute = GS_ATTR_SEMITRANS_ADD;
-        i++;
+        static ImageArchiveId frame_images[MaxFrames] = {
+            IMG_FRAME0,
+            IMG_FRAME1,
+            IMG_FRAME2,
+            IMG_FRAME3
+        };
+
+        i = 0;
+        while (1)
+        {
+            if (i >= MaxFrames)
+                break;
+            image = GetImage(frame_images[i]);
+            InitSprite(image, &sprFrame[i]);
+            sprFrame[i].attribute = GS_ATTR_SEMITRANS_ADD;
+            i++;
+        }
     }
 
-    i = 0;
-    while (1)
     {
-        if (i >= MaxImpacts)
-            break;
-        image = GetImage(ImpactSpriteImageIds[i]);
-        InitSprite(image, &sprImpact[i]);
-        sprImpact[i].attribute = GS_ATTR_SEMITRANS_ADD;
-        i++;
+        static u8 impact_images[MaxImpacts] = {
+            IMG_GUNFIRE,
+            IMG_GUARD,
+            IMG_HIT,
+            IMG_SHINSOKU,
+            IMG_GOSIN
+        };
+
+        i = 0;
+        while (1)
+        {
+            if (i >= MaxImpacts)
+                break;
+            image = GetImage(impact_images[i]);
+            InitSprite(image, &sprImpact[i]);
+            sprImpact[i].attribute = GS_ATTR_SEMITRANS_ADD;
+            i++;
+        }
     }
 
     poly = &plyBleed;
@@ -142,7 +162,6 @@ void InitEffect(void)
     }
 
     {
-        ImageArchiveId img[N_EXPLOSION_SPRITES];
         Sprite3D *sprite;
 
         i = 0;
@@ -150,11 +169,18 @@ void InitEffect(void)
         {
             if (i >= N_EXPLOSION_SPRITES)
                 break;
-            __builtin_memcpy(img, ExplosionSpriteImageIds, sizeof(img));
-            image = GetImage(img[i]);
-            sprite = SetupSprite((Sprite3D *)0, image);
-            sprBomb[i] = sprite;
-            sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
+            {
+                ImageArchiveId explosion_images[N_EXPLOSION_SPRITES] = {
+                    IMG_BOMB0,
+                    IMG_BOMB1,
+                    IMG_BOMB2
+                };
+
+                image = GetImage(explosion_images[i]);
+                sprite = SetupSprite((Sprite3D *)0, image);
+                sprBomb[i] = sprite;
+                sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
+            }
             i++;
         }
     }

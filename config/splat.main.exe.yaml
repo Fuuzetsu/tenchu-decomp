@@ -123,7 +123,8 @@ segments:
       - { start: 0x1018, type: .rodata, name: APPEAR, linker_section_order: .data }
       - [0x1160, data]
       - { start: 0x13E0, type: .rodata, name: CAMERA, linker_section_order: .data }
-      - [0x1490, data]
+      - { start: 0x1490, type: .rodata, name: EFFECT, linker_section_order: .data }
+      - [0x149C, data]
       - { start: 0x199C, type: .rodata, name: WORLD, linker_section_order: .data }
       - [0x19CC, data]
       - { start: 0x1AEC, type: .rodata, name: ReqItemUse, linker_section_order: .data }
@@ -612,9 +613,11 @@ segments:
       - { start: 0x75F64, type: data, linker_section_order: .text }
       - { start: 0x7637C, type: .data, name: HUMAN, linker_section_order: .text }
       - { start: 0x76394, type: data, linker_section_order: .text }
+      - { start: 0x797E0, type: .data, name: EFFECT, linker_section_order: .text }
+      - { start: 0x797F0, type: data, linker_section_order: .text }
       - { start: 0x86F1C, type: .sdata, name: ActDEAD, linker_section_order: .text }
       - { start: 0x86F24, type: data, linker_section_order: .text }
-      - { start: 0x87250, type: .sdata, name: EFFECT, linker_section_order: .text }
+      - { start: 0x87240, type: .sdata, name: EFFECT, linker_section_order: .text }
       - { start: 0x87260, type: data, linker_section_order: .text }
       - { start: 0x872BC, type: .sdata, name: WORLD, linker_section_order: .text }
       - { start: 0x872C4, type: data, linker_section_order: .text }

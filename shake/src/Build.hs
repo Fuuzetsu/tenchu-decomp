@@ -298,8 +298,8 @@ relocIntegratedDataDir = relocBssDir </> "data"
 
 relocDataNames :: [String]
 relocDataNames =
-  [ "E58", "1160", "1490", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
-    "76394", "87458"
+  [ "E58", "1160", "149C", "207C", "2EB0", "33C4", "37A8", "400C", "4900",
+    "76394", "797F0", "87458"
   ]
 
 relocDataTailName :: String

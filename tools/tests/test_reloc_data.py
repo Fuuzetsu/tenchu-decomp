@@ -254,7 +254,7 @@ class RewriteTests(unittest.TestCase):
                 if entry.target_file is not None
             },
             {
-                "1490.data.s",
+                "149C.data.s",
                 "E58.data.s",
                 "1160.data.s",
                 "207C.data.s",
@@ -264,6 +264,7 @@ class RewriteTests(unittest.TestCase):
                 "400C.data.s",
                 "4900.data.s",
                 "76394.data.s",
+                "797F0.data.s",
                 "87458.data.s",
             },
         )
