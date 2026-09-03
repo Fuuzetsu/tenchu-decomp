@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 
-extern u_long DivDepth;
-
 extern u_long *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive,
                           VERT *vertices,
                           u_long *packet, u_short count, u_long shift,

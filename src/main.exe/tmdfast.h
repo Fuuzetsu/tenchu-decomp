@@ -44,6 +44,8 @@ enum
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libgs.h>
 
+extern u_long DivDepth;
+
 void jt_init4(void);
 void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 
