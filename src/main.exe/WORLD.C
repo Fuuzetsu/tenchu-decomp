@@ -76,7 +76,6 @@ extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void ResetInfoview(s32 stage);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
-extern void create_ninken_character_(s16 type, s32 stage);
 extern void load_layout(s32 layout);
 extern void CVAsetup(void);
 extern void SetupStageSequence(void);
@@ -576,7 +575,6 @@ extern char path_map_mad[];             /* map.mad */
 
 extern void DisposeAreaMap(AreaMapType *area);
 extern void ResetAllMisc(void);
-extern void ClearItemLayout(void);
 extern void LoadTIMpackAndFree(u_long *data);
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
 extern AreaMapType *load_balma_area_map_(AreaMapType *data);
@@ -1944,7 +1942,6 @@ void leResetEnemyLayout(void)
 }
 
 
-extern void RestoreItemLayout(void *buf);
 extern char msg_load_layout_error[]; /* load layout error */
 extern u8 *LayoutNames[N_STAGE_LAYOUTS];
 

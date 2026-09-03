@@ -36,13 +36,11 @@ extern void game_over_screen_(void);
 extern void Camera(void);
 extern void ActivateHumans(void);
 extern void DrawConstruction(void);
-extern void DoItemProc(void);
 extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);
 extern void draw_visible_characters_(void);
 extern void *valloc(u32 size);
 extern void vfree(void *p);
-extern void ResetInventory(void);
 extern void BriefingAndInventorySelectionScreen(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

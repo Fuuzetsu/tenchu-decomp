@@ -622,13 +622,36 @@ extern void dispose_weapon_data_of_char_(Humanoid *h, int mode);
 extern s32 spare_item_slot_(enum spare_item_slot_operation operation,
                             Humanoid *human);
 extern short DrawSprite(Sprite3D *sprt);
-extern int ReqItemDrop(PARAM_ITEM_LAUNCH *p);
-extern int ReqItemStay(PARAM_ITEM_STAY *p);
-extern void ReqItemDefault(Humanoid *user, TItemType item);
-extern TItemType GetItemType(s32 conflict_id);
 extern void AdtMessageBox(char *fmt, ...);
 extern int rand(void);
 extern void *memset(void *s, int c, u32 n);
+
+void PackItemLayout(void *buffer, s32 size);
+void RestoreItemLayout(void *buffer);
+void InitializeItem(void);
+void ResetInventory(void);
+void create_ninken_character_(s16 type, s32 stage);
+void draw_map_items_(s32 x, s32 z, MapPlacementType *placement);
+
+int ReqItemDrop(PARAM_ITEM_LAUNCH *request);
+int ReqItemMakibishi(PARAM_ITEM_DROP *request);
+int ReqItemSmoke(PARAM_ITEM_LAUNCH *request);
+int ReqItemDokudango(PARAM_ITEM_LAUNCH *request);
+int ReqItemFire(PARAM_ITEM_LAUNCH *request);
+int ReqItemNemuri(PARAM_ITEM_LAUNCH *request);
+int ReqItemLightningBolt(PARAM_ITEM_LAUNCH *request);
+void ReqItemGun(PARAM_ITEM_LAUNCH *request);
+void ReqItemDefault(Humanoid *user, TItemType item);
+int ReqItemLaunch(PARAM_ITEM_LAUNCH *request);
+int ReqItemArrow(PARAM_ITEM_LAUNCH *request);
+int ReqItemJirai(PARAM_ITEM_DROP *request);
+int ReqItemUse(PARAM_ITEM_LAUNCH *request);
+int ReqItemStay(PARAM_ITEM_STAY *request);
+
+void TurnAroundAllItems(Humanoid *user);
+void DoItemProc(void);
+void ClearItemLayout(void);
+TItemType GetItemType(s32 conflict_id);
 
 static inline void ClearItemLaunchRequest(PARAM_ITEM_LAUNCH *request)
 {

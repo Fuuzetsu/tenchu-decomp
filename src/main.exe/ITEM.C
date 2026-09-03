@@ -1004,7 +1004,6 @@ int ReqItemDrop(PARAM_ITEM_LAUNCH *p)
  * END PSX.SYM */
 
 
-extern int ReqItemLaunch(PARAM_ITEM_LAUNCH *p);
 
 void ProcSightShot(TItem *item)
 {
@@ -3885,7 +3884,6 @@ static int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
  * END PSX.SYM */
 
 
-extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 static void ProcItemKaengeki(TItem *item)
 {
@@ -4128,7 +4126,6 @@ extern Humanoid *NINKEN_CHARACTER_PTR;
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void set_model_hide_(Humanoid *human, s16 hide);
 extern void SetupThinkFunction(Humanoid *human, TThinkType think);
-extern void TurnAroundAllItems(Humanoid *human);
 
 static void ProcItemNinken(TItem *item)
 {
@@ -6025,7 +6022,6 @@ done:;
  * END PSX.SYM */
 
 extern VECTOR vec_z_n100[]; /* {0,0,-100} */
-extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 
 void ReqItemDefault(Humanoid *user, TItemType ItemID)
 {

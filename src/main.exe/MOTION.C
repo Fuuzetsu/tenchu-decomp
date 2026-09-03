@@ -27,12 +27,6 @@ extern s32 StickonItem;
 
 extern int ReqLifeBar(Humanoid *human);
 extern void reset_alert_duration(void);
-extern int ReqItemUse(PARAM_ITEM_LAUNCH *param);
-extern int ReqItemMakibishi(PARAM_ITEM_DROP *param);
-extern int ReqItemFire(PARAM_ITEM_LAUNCH *param);
-extern int ReqItemSmoke(PARAM_ITEM_LAUNCH *param);
-extern int ReqItemDokudango(PARAM_ITEM_LAUNCH *param);
-extern void TurnAroundAllItems(Humanoid *human);
 short SwimCheck(void);
 short FallCheck(void);
 short HangCheck(void);

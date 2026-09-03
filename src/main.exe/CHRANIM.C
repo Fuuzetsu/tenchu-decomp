@@ -41,7 +41,6 @@ extern void CdaStop(void);
 extern int ReqLifeBar(Humanoid *h);
 extern void SetupTelop(u8 *telop, s16 line);
 extern void DrawConstruction(void);
-extern void DoItemProc(void);
 extern void DoMiscProc(void);
 extern void draw_visible_characters_(void);
 extern void Camera(void);

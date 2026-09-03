@@ -896,7 +896,6 @@ extern s32 MapSlideX;
 extern s32 MapSlideY;
 extern MapPlacementType MapPlacement[N_STAGE_CONFIGS];
 
-extern void draw_map_items_(s32 x, s32 z, MapPlacementType *placement);
 
 static void PutMap(void)
 {
@@ -1006,7 +1005,6 @@ extern char str_opt[]; /* "opt" — the effect-menu title */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void LayoutEnemyOption(void);
-extern void ClearItemLayout(void);
 extern void FileOption(void);
 extern void PlayerOption(void);
 extern void debug_menu_stage_option(void);
