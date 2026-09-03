@@ -2744,31 +2744,21 @@ static short AttackGeneral(void)
     {
         s32 deg;
 
-        do
+        deg = Degree;
+        if (deg < 0)
         {
-            deg = Degree;
-            if (deg < 0)
+            deg = -deg;
+        }
+        if (deg < 1200 && rand() % (EngageLevel + 1) == 0 &&
+            GameClock > AttackActionCount)
+        {
+            AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
+            if (rand() % 3 == 0)
             {
-                deg = -deg;
+                pad = PADLdown;
             }
-            if (deg >= 1200)
-            {
-                break;
-            }
-            if (rand() % (EngageLevel + 1) != 0)
-            {
-                break;
-            }
-            if (GameClock > AttackActionCount)
-            {
-                AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
-                if (rand() % 3 == 0)
-                {
-                    pad = PADLdown;
-                }
-                return pad | PADRleft;
-            }
-        } while (0);
+            return pad | PADRleft;
+        }
     }
 
     {
