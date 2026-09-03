@@ -5,6 +5,7 @@
 #include "sound.h"
 #include "humanoid.h"
 #include "item.h"
+#include "model.h"
 #include <psxsdk/libgpu.h>
 
 /*

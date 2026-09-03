@@ -4,6 +4,7 @@
 #include "appear.h"
 #include "humanoid.h"
 #include "item.h"
+#include "model.h"
 #include "sound.h"
 #include "afterimage.h"
 #include "tmdfast.h"
@@ -25,18 +26,13 @@ extern char fmt_dbg_rot[];
 extern void *valloc(u32 size);
 extern void *vcalloc(u32 size, u8 c);
 extern void vfree(void *p);
-extern ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt);
-extern void DisposeModelArchive(ModelArchiveType *mad);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void StateTransition(Humanoid *human);
 extern void DrawShadow(Humanoid *human);
 extern void register_character_death(Humanoid *human);
 extern void spread_blood_pool_(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
-extern s32 DrawClip(ModelType *model, s32 *xy);
 extern void swap_balma_area_map_(void);
-extern short DrawModelArchive(ModelArchiveType *mad, long gap);
-extern short DrawOrnament(OrnamentType *objp);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

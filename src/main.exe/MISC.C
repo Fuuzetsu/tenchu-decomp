@@ -6,6 +6,7 @@
 #include "misc.h"
 #include "images.h"
 #include "item.h"
+#include "model.h"
 #include "tmdfast.h"
 
 extern char fmt_unknown_door_type[];    /* unknown door type %d */
@@ -16,9 +17,6 @@ extern char msg_unknown_sprite_type[];  /* unknown sprite type */
 extern u8 *MiscTimNames[7];
 extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 
-extern ModelType *LoadModel(u_long *adr);
-extern void DisposeModel(ModelType *model);
-extern short DrawModel(ModelType *objp);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
 extern void SetupTexScroll(GsIMAGE *im, short vx, short vy);

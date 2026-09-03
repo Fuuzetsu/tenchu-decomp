@@ -3,6 +3,7 @@
 #include "appear.h"
 #include "humanoid.h"
 #include "item.h"
+#include "model.h"
 #include "score.h"
 #include "stage.h"
 #include <psxsdk/libgpu.h>

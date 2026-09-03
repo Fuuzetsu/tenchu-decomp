@@ -5,6 +5,7 @@
 #include "images.h"
 #include "item.h"
 #include "misc.h"
+#include "model.h"
 #include "sound.h"
 #include "tmdfast.h"
 #include "tuning.h"
@@ -21,10 +22,8 @@ extern s16 TexScrollY;
 extern RECT ScreenRect; /* {0,0,320,480}: both pages */
 
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern ModelType *LoadModel(u_long *adr);
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long abs(long value);
-extern short DrawModel(ModelType *objp);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *p);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 extern int VSync(int mode);

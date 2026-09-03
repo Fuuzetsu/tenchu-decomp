@@ -7,6 +7,7 @@
 #include <psxsdk/libgpu.h>
 #include "tmdfile.h"
 #include "misc.h"
+#include "model.h"
 #include "vmemory.h"
 #include "padcmd.h"
 #include "tmdfast.h"
@@ -222,8 +223,6 @@ void CreateStage(stage_id StageNo, int CharType)
  * END PSX.SYM */
 
 extern void *valloc(u32 size);
-extern void UpdateOrnament(OrnamentType *objp, short ry);
-extern OrnamentType *LoadOrnament(u_long *adr);
 extern char msg_no_model_archive_data_2[]; /* NO MODEL ARCHIVE DATA */
 
 OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)
@@ -578,11 +577,9 @@ extern char path_map_mad[];             /* map.mad */
 extern void DisposeAreaMap(AreaMapType *area);
 extern void ResetAllMisc(void);
 extern void ClearItemLayout(void);
-extern void DisposeOrnament(OrnamentType *model);
 extern void LoadTIMpackAndFree(u_long *data);
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
 extern AreaMapType *load_balma_area_map_(AreaMapType *data);
-extern OrnamentType *CreateCloneOrnament(OrnamentType *model);
 extern void jt_init4(void);
 
 static short LoadConstruction(u_long *data)

@@ -3,6 +3,7 @@
 #include "action.h"
 #include "item.h"
 #include "images.h"
+#include "model.h"
 #include "appear.h"
 #include "tuning.h"
 #include "sound.h"
@@ -314,7 +315,6 @@ void RestoreItemLayout(void *buf)
 
 extern GsSPRITE SpriteGoshikimai;
 
-extern ModelType *LoadModel(u_long *adr);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 void InitializeItem(void)
@@ -3046,7 +3046,6 @@ static int ReqItemGosin(PARAM_ITEM_LAUNCH *p)
 
 static u8 NingyoCount = 0;
 
-extern short DrawModel(ModelType *objp);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -4538,7 +4537,6 @@ static int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
  *     extern struct ConflictObjectType ConflictObject[64];
  * END PSX.SYM */
 
-extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
 
 void ProcItemHappou(TItem *item)
@@ -5822,7 +5820,6 @@ void ProcItemNapalm(TItem *item)
  * END PSX.SYM */
 
 
-extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *h);
 extern void reset_alert_duration(void);
 
@@ -6259,7 +6256,6 @@ static void ArrangeLocalMatrix(ModelType *model, MATRIX *t)
  * END PSX.SYM */
 
 
-extern short DrawModel(ModelType *objp);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 void ProcItemArrow(TItem *item)
 {

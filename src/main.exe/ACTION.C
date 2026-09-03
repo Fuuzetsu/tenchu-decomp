@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "action.h"
 #include "item.h"
+#include "model.h"
 
 /*
  * Demo ACTION.C orders these routines as LoadMotion, SearchMotion,

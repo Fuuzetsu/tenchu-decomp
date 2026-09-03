@@ -382,7 +382,6 @@ extern POLY_GT4 AccessImage;
 
 extern void SetCameraMode(TCameraMode mode);
 extern void SetupSoundEffect(character_kind character, short stage);
-extern void UpdateCoordinate(ModelType *dim);
 extern short NowReturnNormal(struct Humanoid *human);
 extern void eval_spline_gte_(SVECTOR *out, SplineControlType *spc,
                              SVECTOR *basis);

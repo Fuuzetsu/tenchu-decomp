@@ -39,4 +39,25 @@
         (ornament_)->locate.flg = 0;                                         \
     }
 
+short DrawModel(ModelType *model);
+ModelType *LoadModel(u_long *data);
+void DisposeModel(ModelType *model);
+ModelType *CreateCloneModel(ModelType *model);
+
+ModelArchiveType *LoadModelArchive(u_long *data, ModelType *parent);
+short DrawModelArchive(ModelArchiveType *archive, long gap);
+ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *archive);
+void DisposeModelArchive(ModelArchiveType *archive);
+
+OrnamentType *LoadOrnament(u_long *data);
+short DrawOrnament(OrnamentType *ornament);
+void DisposeOrnament(OrnamentType *ornament);
+OrnamentType *CreateCloneOrnament(OrnamentType *ornament);
+void UpdateOrnament(OrnamentType *ornament, short rotation);
+
+void UpdateCoordinate(ModelType *model);
+void UpdateCoordinate2(ModelType *model);
+VECTOR *GetAbsolutePosition(ModelType *model, short x, short y, short z);
+long DrawClip(ModelType *model, long *xy);
+
 #endif
