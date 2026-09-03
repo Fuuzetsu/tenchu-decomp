@@ -464,6 +464,24 @@
         "GetCommand",
         "SetCommand"
       ]
+    },
+    {
+      "source": "MEMCARD.C",
+      "functions": [
+        "SaveCard",
+        "ChkCard",
+        "check_card_file_",
+        "DeleteCard",
+        "FormatCard",
+        "LoadCard"
+      ],
+      "debug_symbol_order": [
+        "ChkCard",
+        "DeleteCard",
+        "FormatCard",
+        "LoadCard",
+        "SaveCard"
+      ]
     }
   ]
 }
