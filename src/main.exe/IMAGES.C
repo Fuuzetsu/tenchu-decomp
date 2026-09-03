@@ -84,7 +84,7 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     s32 texture_mode;
     s32 width_shift;
 
-    memset(sprite, 0, sizeof(GsSPRITE));
+    *sprite = (GsSPRITE){0};
     sprite->b = 0x80;
     sprite->g = 0x80;
     sprite->r = 0x80;
