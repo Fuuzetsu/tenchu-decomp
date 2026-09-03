@@ -109,6 +109,35 @@
         "SoundEx",
         "Sound"
       ]
+    },
+    {
+      "source": "CONFLICT.C",
+      "functions": [
+        "LoadAreaMap",
+        "ComputeAreaLevel",
+        "GetAreaMapLevel",
+        "GetAreaMapVector",
+        "GetAreaMapPassage",
+        "InitConflict",
+        "InsertConflict",
+        "DeleteConflict",
+        "ComputeAllConflict",
+        "GetConflictResult",
+        "DisposeAreaMap"
+      ],
+      "debug_symbol_order": [
+        "LoadAreaMap",
+        "DisposeAreaMap",
+        "ComputeAreaLevel",
+        "GetAreaMapLevel",
+        "GetAreaMapVector",
+        "GetAreaMapPassage",
+        "InitConflict",
+        "InsertConflict",
+        "DeleteConflict",
+        "ComputeAllConflict",
+        "GetConflictResult"
+      ]
     }
   ]
 }

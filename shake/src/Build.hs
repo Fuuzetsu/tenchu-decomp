@@ -461,14 +461,13 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
     -- in the image can change.
-    extra "GetAreaMapLevel" = ["--expand-div"]
+    extra "CONFLICT" = ["--expand-div"]
     extra "bow_shoot_logic" = ["--expand-div"]
     extra "Think3escape" = ["--expand-div"]
     extra "think_alarm_reaction_" = ["--expand-div"]
     extra "UpdateTexScroll" = ["--expand-div"]
     extra "DrawSprite" = ["--expand-div"]
     extra "DrawSpriteXYZ" = ["--expand-div"]
-    extra "ComputeAreaLevel" = ["--expand-div"]
     extra "PadProc" = ["--expand-div"]
     extra "IsVisible" = ["--expand-div"]
     extra "PutLifeBar" = ["--expand-div"]
@@ -532,7 +531,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "Think1sleep" = ["Me_THINK_C", "SR", "Attrib", "EmergencyNotice"]
     syms "DrawSprite" = ["OTablePt"]
     syms "SetImpact" = ["EFFECT_CURSOR_"]
-    syms "GetAreaMapVector" = ["FieldAttrib", "FieldArea", "FieldIndex"]
+    -- CONFLICT.C's original small globals still live in the raw data carve.
+    syms "CONFLICT" = ["GlobalAreaMap", "FieldIndex", "FieldArea", "AreaMapLastY", "FieldAttrib", "ConflictModel", "ConflictObjects", "ConflictDistance"]
     syms "SetSnow" = ["EFFECT_CURSOR_"]
     syms "stop_access_meter_" = ["AccessPower"]
     syms "valloc" = ["virtual_memory_pool"]
@@ -541,7 +541,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "DrawModelArchive" = ["SkipFrame", "OTablePt"]
     syms "Camera" = ["Projection"]
     syms "vmemoryGC" = ["virtual_memory_pool"]
-    syms "ComputeAllConflict" = ["ConflictObjects"]
     syms "PlayVoice" = ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "ToraVoiceXaName", "IntroVoiceXaName"]
     syms "PutStrain" = ["StrainPhase"]
     syms "Think3hitaway" = ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"]
@@ -558,7 +557,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SetBleedsDir" = ["EFFECT_CURSOR_"]
     syms "spawn_damage_effect_" = ["EFFECT_CURSOR_"]
     syms "ChasetoTarget" = ["Me_THINK_C", "Attrib", "Distance"]
-    syms "GetAreaMapPassage" = ["FieldArea", "FieldIndex"]
     syms "PlaySE" = ["voice"]
     syms "SetupTexScroll" = ["EFFECT_CURSOR_", "TexScrollX", "TexScrollY"]
     syms "AVCameraSetup" = ["CVAnow", "CameraTarget"]
@@ -590,9 +588,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReqItemDrop" = ["ic"]
     -- GetFreeItemSlot.c is also part of the original item TU (same counter).
     syms "GetFreeItemSlot" = ["ic"]
-    -- GetAreaMapLevel.c is part of the original area-map TU, which defines
-    -- these small globals (.sdata around 0x80097ec0).
-    syms "GetAreaMapLevel" = ["FieldIndex", "FieldArea", "AreaMapLastY", "FieldAttrib"]
     -- DoInfoViewProc.c is part of the original info-view TU, which defines
     -- these smalls (fInitialize / item cursor / PutMap latch).
     syms "DoInfoViewProc" = ["fInitialize", "ItemCursor", "PutMapMode"]
@@ -627,13 +622,8 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReqItemArrow" = ["ic", "ArrowModel"]
     syms "ReqItemHappou" = ["ic"]
     syms "ProcItemHappou" = ["HappouModel"]
-    syms "DeleteConflict" = ["ConflictObjects"]
-    syms "InsertConflict" = ["ConflictObjects"]
-    syms "GetConflictResult" = ["ConflictObjects", "ConflictDistance", "ConflictModel"]
-    syms "DisposeAreaMap" = ["GlobalAreaMap"]
     syms "NowReturnNormal" = ["Me_MOTION_C", "motID", "motMODE"]
     syms "vinit" = ["virtual_memory_pool"]
-    syms "LoadAreaMap" = ["GlobalAreaMap", "FieldIndex", "FieldArea"]
     syms "DrawBG" = ["OTablePt"]
     syms "PrepareAccess" = ["AccessPower"]
     syms "load_balma_area_map_" = ["GlobalAreaMap", "FieldIndex", "BalmaAreaMap", "FieldArea"]
@@ -690,7 +680,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "SearchMotion" = ["CommonMotion", "PlayerMotion", "StageMotion"]
     syms "GetSpline" = ["SplineFracOld", "SplineFrac", "SplineRow"]
     syms "GetImage" = ["Images_fInitialize"]
-    syms "InitConflict" = ["ConflictModel", "ConflictObjects"]
     syms "ControlAllHumanoid" = ["Humans", "VISIBLE_ENEMIES_"]
     syms "ControlHumanoid" = ["VISIBLE_ENEMIES_"]
     syms "SuccessionAttack" = ["Me_THINK_C", "Distance", "Degree", "EngageLevel"]
