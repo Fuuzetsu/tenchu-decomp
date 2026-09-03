@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "item.h"
 #include "padcmd.h"
+#include <psxsdk/libmcrd.h>
 #include <psxsdk/libpad.h>
 
 /*
@@ -11,9 +12,6 @@
 
 extern u8 Anakon;
 extern u8 align[6];
-
-extern void MemCardInit(int unit);
-extern void MemCardStart(void);
 
 extern TPadPort *get_pad_record_(s32 port);
 
