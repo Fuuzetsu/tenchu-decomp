@@ -244,34 +244,35 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                             node = (AreaNodeType *)(n * (long)sizeof(AreaNodeType) +
                                                     (long)list);
                         inner:
-                            if (z < node->z1)
-                                goto next;
-                            if (node->x1 <= x && x <= node->x2 && z <= node->z2)
+                            if (z >= node->z1)
                             {
-                                FieldIndex = index;
-                                FieldArea = node;
-                                if (first_hit)
+                                if (node->x1 <= x && x <= node->x2 && z <= node->z2)
                                 {
-                                    if (node->division == AREA_DIVISION_ALL)
-                                        yy = node->y;
-                                    else
-                                        yy = ComputeAreaLevel(node, x, z);
-                                    FieldAttrib = FieldArea->attribute;
-                                    goto next;
-                                }
-                                sy = ComputeAreaLevel(node, x, z);
-                                if ((yy == (u32)LEVEL_NONE || sy < yy) && y2 <= sy)
-                                {
-                                    FieldAttrib = FieldArea->attribute;
-                                    yy = sy;
-                                    if (FieldAttrib & MAP_RESULT_FINAL)
+                                    FieldIndex = index;
+                                    FieldArea = node;
+                                    if (first_hit)
+                                    {
+                                        if (node->division == AREA_DIVISION_ALL)
+                                            yy = node->y;
+                                        else
+                                            yy = ComputeAreaLevel(node, x, z);
+                                        FieldAttrib = FieldArea->attribute;
                                         goto next;
+                                    }
+                                    sy = ComputeAreaLevel(node, x, z);
+                                    if ((yy == (u32)LEVEL_NONE || sy < yy) && y2 <= sy)
+                                    {
+                                        FieldAttrib = FieldArea->attribute;
+                                        yy = sy;
+                                        if (FieldAttrib & MAP_RESULT_FINAL)
+                                            goto next;
+                                    }
                                 }
+                                n++;
+                                node++;
+                                if (n < nn)
+                                    goto inner;
                             }
-                            n++;
-                            node++;
-                            if (n < nn)
-                                goto inner;
                         }
                     }
                 next:
