@@ -146,9 +146,9 @@ void ProcItemJirai(TItem *item)
         {
             SVECTOR velocity = svec_y_n25[0];
             VECTOR position = {
-                item->locate->locate.coord.t[0],
-                item->locate->locate.coord.t[1],
-                item->locate->locate.coord.t[2]
+                .vx = item->locate->locate.coord.t[0],
+                .vy = item->locate->locate.coord.t[1],
+                .vz = item->locate->locate.coord.t[2]
             };
 
             SetExplosion(&position, &velocity);
@@ -213,9 +213,9 @@ void ProcItemJirai(TItem *item)
                     frame_index++;
                     {
                         VECTOR position = {
-                            rand() % 200 - 100,
-                            rand() % 200 - 100,
-                            rand() % 200 - 100
+                            .vx = rand() % 200 - 100,
+                            .vy = rand() % 200 - 100,
+                            .vz = rand() % 200 - 100
                         };
 
                         SetFrame(&position, 3 * FIXED_ONE,

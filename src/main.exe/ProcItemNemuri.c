@@ -187,18 +187,18 @@ void ProcItemNemuri(TItem *item)
                 {
                     /* Retail computes this jittered position but never uses it. */
                     VECTOR random_position = {
-                        rand() % 200 - 100,
-                        rand() % 200 - 100,
-                        rand() % 200 - 100
+                        .vx = rand() % 200 - 100,
+                        .vy = rand() % 200 - 100,
+                        .vz = rand() % 200 - 100
                     };
 
                     SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
                     {
                         SVECTOR smoke_velocity = svec_y_n150[0];
                         VECTOR smoke_position = {
-                            hit_human->model->locate.coord.t[0],
-                            hit_human->model->locate.coord.t[1],
-                            hit_human->model->locate.coord.t[2]
+                            .vx = hit_human->model->locate.coord.t[0],
+                            .vy = hit_human->model->locate.coord.t[1],
+                            .vz = hit_human->model->locate.coord.t[2]
                         };
 
                         SetSmoke(&smoke_position, &smoke_velocity, 10, 30);

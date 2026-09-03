@@ -29,14 +29,14 @@ void SnapCameraTargetVector(void)
         VSHIFT = 5
     };
     VECTOR v = {
-        ViewInfo.vpx,
-        ViewInfo.vpy,
-        ViewInfo.vpz
+        .vx = ViewInfo.vpx,
+        .vy = ViewInfo.vpy,
+        .vz = ViewInfo.vpz
     };
     SVECTOR sv = {
-        (s16)ViewInfo.vrx - (s16)ViewInfo.vpx,
-        (s16)ViewInfo.vry - (s16)ViewInfo.vpy,
-        (s16)ViewInfo.vrz - (s16)ViewInfo.vpz
+        .vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx,
+        .vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy,
+        .vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz
     };
     SVECTOR sv2;
     VECTOR *target;

@@ -34,7 +34,11 @@ normal:
         return;
 
     {
-        VECTOR pos = {m->x, m->y, m->z};
+        VECTOR pos = {
+            .vx = m->x,
+            .vy = m->y,
+            .vz = m->z
+        };
 
         SoundEx(&pos, sched->sound_index + MISC_SOUND_ID_BASE);
     }

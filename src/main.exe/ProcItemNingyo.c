@@ -194,9 +194,9 @@ void ProcItemNingyo(TItem *item)
             param->count++;
             {
                 VECTOR scale = {
-                    param->count << GROWTH_SCALE_SHIFT,
-                    param->count << GROWTH_SCALE_SHIFT,
-                    param->count << GROWTH_SCALE_SHIFT
+                    .vx = param->count << GROWTH_SCALE_SHIFT,
+                    .vy = param->count << GROWTH_SCALE_SHIFT,
+                    .vz = param->count << GROWTH_SCALE_SHIFT
                 };
 
                 RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
@@ -309,9 +309,9 @@ void ProcItemNingyo(TItem *item)
                     s32 knockback_x;
                     s32 knockback_z;
                     VECTOR position = {
-                        conflict->position.vx,
-                        conflict->position.vy,
-                        conflict->position.vz
+                        .vx = conflict->position.vx,
+                        .vy = conflict->position.vy,
+                        .vz = conflict->position.vz
                     };
 
                     knockback_x = -ConflictDistance.vx / 16;

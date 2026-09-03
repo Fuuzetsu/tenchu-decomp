@@ -57,17 +57,17 @@ void DrawFlyWire(TEffectSlot *ef)
     case FLYWIRE_MODE_STRAIGHTEN:
     {
         VECTOR pos = {
-            ((param->center.vx *
-              (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
-             (param->NCenter.vx * param->count)) /
+            .vx = ((param->center.vx *
+                    (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
+                   (param->NCenter.vx * param->count)) /
                 FLYWIRE_STRAIGHTEN_FRAMES,
-            ((param->center.vy *
-              (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
-             (param->NCenter.vy * param->count)) /
+            .vy = ((param->center.vy *
+                    (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
+                   (param->NCenter.vy * param->count)) /
                 FLYWIRE_STRAIGHTEN_FRAMES,
-            ((param->center.vz *
-              (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
-             (param->NCenter.vz * param->count)) /
+            .vz = ((param->center.vz *
+                    (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
+                   (param->NCenter.vz * param->count)) /
                 FLYWIRE_STRAIGHTEN_FRAMES
         };
 

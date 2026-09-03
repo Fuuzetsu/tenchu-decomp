@@ -67,9 +67,9 @@ enemy_layout_index leFindEnemy(void)
     {
         SVECTOR pow = svec_y_n100[0];
         VECTOR pos = {
-            enemy[find].x,
-            enemy[find].y,
-            enemy[find].z
+            .vx = enemy[find].x,
+            .vy = enemy[find].y,
+            .vz = enemy[find].z
         };
 
         SetExplosion(&pos, &pow);

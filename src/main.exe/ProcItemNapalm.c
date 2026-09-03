@@ -132,9 +132,9 @@ void ProcItemNapalm(TItem *item)
                 model = *objects;
                 {
                     VECTOR pos = {
-                        rand() % 200 - 100,
-                        rand() % 200 - 100,
-                        rand() % 200 - 100
+                        .vx = rand() % 200 - 100,
+                        .vy = rand() % 200 - 100,
+                        .vz = rand() % 200 - 100
                     };
 
                     SetFrame(&pos, 3 * FIXED_ONE, 60,

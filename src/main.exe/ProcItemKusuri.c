@@ -144,14 +144,18 @@ void ProcItemKusuri(TItem *item)
                 break;
             {
                 VECTOR pos = {
-                    item->owner->model->locate.coord.t[0] +
+                    .vx = item->owner->model->locate.coord.t[0] +
                         (rand() % 1000 - 500),
-                    item->owner->model->locate.coord.t[1] +
+                    .vy = item->owner->model->locate.coord.t[1] +
                         (rand() % 1000 - 1200),
-                    item->owner->model->locate.coord.t[2] +
+                    .vz = item->owner->model->locate.coord.t[2] +
                         (rand() % 1000 - 500)
                 };
-                SVECTOR vec = {0, rand() % 10 - 30, 0};
+                SVECTOR vec = {
+                    .vx = 0,
+                    .vy = rand() % 10 - 30,
+                    .vz = 0
+                };
 
                 SetBleed(&pos, &vec, rand() % 0x10 + 0xf,
                          RGB24(255, 255, 126));

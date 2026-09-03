@@ -55,18 +55,18 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
         }
         {
             VECTOR npos = {
-                pos->vx + (grange2 > 0 ? rand() % grange2 - g : -g),
-                pos->vy + (grange2 > 0 ? rand() % grange2 - g : -g),
-                pos->vz + (grange2 > 0 ? rand() % grange2 - g : -g)
+                .vx = pos->vx + (grange2 > 0 ? rand() % grange2 - g : -g),
+                .vy = pos->vy + (grange2 > 0 ? rand() % grange2 - g : -g),
+                .vz = pos->vz + (grange2 > 0 ? rand() % grange2 - g : -g)
             };
             SVECTOR v = {
-                srange * 2 > 0
+                .vx = srange * 2 > 0
                     ? rand() % (srange * 2) - srange
                     : -srange,
-                srange * 2 > 0
+                .vy = srange * 2 > 0
                     ? rand() % (srange * 2) - srange
                     : z2 - srange,
-                srange * 2 > 0
+                .vz = srange * 2 > 0
                     ? rand() % (srange * 2) - srange
                     : z3 - srange
             };

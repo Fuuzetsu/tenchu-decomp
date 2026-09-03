@@ -194,9 +194,9 @@ void ActivateHumans(void)
                 else if (human->status != STAT_DEAD && ((u16)human->attribute & ATTR_FLOAT) == 0)
                 {
                     VECTOR query = {
-                        human->point[HUMANOID_HOME_X],
-                        human->locate->vy - 1500,
-                        human->point[HUMANOID_HOME_Z]
+                        .vx = human->point[HUMANOID_HOME_X],
+                        .vy = human->locate->vy - 1500,
+                        .vz = human->point[HUMANOID_HOME_Z]
                     };
                     s32 level;
 

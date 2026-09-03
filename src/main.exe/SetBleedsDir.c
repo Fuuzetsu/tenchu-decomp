@@ -47,17 +47,21 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         }
         {
             VECTOR npos = {
-                pos->vx + (grange * 2 > 0
-                               ? rand() % (grange * 2) - grange
-                               : -grange),
-                pos->vy + (grange * 2 > 0
-                               ? rand() % (grange * 2) - grange
-                               : -grange),
-                pos->vz + (grange * 2 > 0
-                               ? rand() % (grange * 2) - grange
-                               : -grange)
+                .vx = pos->vx + (grange * 2 > 0
+                                     ? rand() % (grange * 2) - grange
+                                     : -grange),
+                .vy = pos->vy + (grange * 2 > 0
+                                     ? rand() % (grange * 2) - grange
+                                     : -grange),
+                .vz = pos->vz + (grange * 2 > 0
+                                     ? rand() % (grange * 2) - grange
+                                     : -grange)
             };
-            SVECTOR v = {vec->vx, vec->vy, vec->vz};
+            SVECTOR v = {
+                .vx = vec->vx,
+                .vy = vec->vy,
+                .vz = vec->vz
+            };
 
             if (time - time / 8 > 0)
             {

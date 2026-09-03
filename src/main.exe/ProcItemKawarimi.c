@@ -54,14 +54,18 @@ void ProcItemKawarimi(TItem *item)
                 break;
             {
                 VECTOR position = {
-                    item->owner->model->locate.coord.t[0] +
+                    .vx = item->owner->model->locate.coord.t[0] +
                         (rand() % 1000 - 500),
-                    item->owner->model->locate.coord.t[1] +
+                    .vy = item->owner->model->locate.coord.t[1] +
                         (rand() % 1000 - 1200),
-                    item->owner->model->locate.coord.t[2] +
+                    .vz = item->owner->model->locate.coord.t[2] +
                         (rand() % 1000 - 500)
                 };
-                SVECTOR velocity = {0, rand() % 10 - 30, 0};
+                SVECTOR velocity = {
+                    .vx = 0,
+                    .vy = rand() % 10 - 30,
+                    .vz = 0
+                };
 
                 SetBleed(&position, &velocity,
                          rand() % 16 + 15, RGB24(100, 200, 220));

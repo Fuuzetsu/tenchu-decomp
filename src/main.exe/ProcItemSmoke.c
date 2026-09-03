@@ -98,9 +98,9 @@ void ProcItemSmoke(TItem *item)
             {
                 SVECTOR vec = svec_y_n250[0];
                 VECTOR pos = {
-                    item->locate->locate.coord.t[0],
-                    item->locate->locate.coord.t[1],
-                    item->locate->locate.coord.t[2]
+                    .vx = item->locate->locate.coord.t[0],
+                    .vy = item->locate->locate.coord.t[1],
+                    .vz = item->locate->locate.coord.t[2]
                 };
 
                 SetSmoke(&pos, &vec, 1, 3);

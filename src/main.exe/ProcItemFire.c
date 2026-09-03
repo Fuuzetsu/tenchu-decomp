@@ -92,11 +92,11 @@ void ProcItemFire(TItem *item)
     {
         {
             VECTOR pos = {
-                item->locate->locate.coord.t[0] +
+                .vx = item->locate->locate.coord.t[0] +
                     (rand() % (nr * 2) - nr),
-                item->locate->locate.coord.t[1] +
+                .vy = item->locate->locate.coord.t[1] +
                     (rand() % (nr * 2) - nr),
-                item->locate->locate.coord.t[2] +
+                .vz = item->locate->locate.coord.t[2] +
                     (rand() % (nr * 2) - nr)
             };
             SVECTOR vec = svec_y_n30[0];
@@ -197,9 +197,9 @@ void ProcItemFire(TItem *item)
             s32 conflict_id;
             SVECTOR vec = svec_y_n25[0];
             VECTOR pos = {
-                item->locate->locate.coord.t[0],
-                item->locate->locate.coord.t[1],
-                item->locate->locate.coord.t[2]
+                .vx = item->locate->locate.coord.t[0],
+                .vy = item->locate->locate.coord.t[1],
+                .vz = item->locate->locate.coord.t[2]
             };
 
             SetExplosion(&pos, &vec);
@@ -266,9 +266,9 @@ void ProcItemFire(TItem *item)
                 model = *objects;
                 {
                     VECTOR pos = {
-                        rand() % 200 - 100,
-                        rand() % 200 - 100,
-                        rand() % 200 - 100
+                        .vx = rand() % 200 - 100,
+                        .vy = rand() % 200 - 100,
+                        .vz = rand() % 200 - 100
                     };
 
                     SetFrame(&pos, 3 * FIXED_ONE, 120,

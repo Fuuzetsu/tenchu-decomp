@@ -36,14 +36,22 @@ do_draw:
 
     if ((GameClock & 0xF) == 0)
     {
-        VECTOR bleed_pos = {m->x, m->y, m->z};
+        VECTOR bleed_pos = {
+            .vx = m->x,
+            .vy = m->y,
+            .vz = m->z
+        };
 
         SetBleedsDir(&bleed_pos, direction, 100, 10, 30, RGB24(100, 100, 60));
     }
 
     if (GameClock % 79 == 0)
     {
-        VECTOR pos = {m->x, m->y, m->z};
+        VECTOR pos = {
+            .vx = m->x,
+            .vy = m->y,
+            .vz = m->z
+        };
 
         SoundEx(&pos, SE_BONFIRE);
     }

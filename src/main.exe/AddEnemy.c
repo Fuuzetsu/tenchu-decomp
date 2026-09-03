@@ -138,9 +138,9 @@ void AddEnemy(void)
 
     {
         VECTOR pos = {
-            human->model->locate.coord.t[0],
-            human->model->locate.coord.t[1] - 1200,
-            human->model->locate.coord.t[2]
+            .vx = human->model->locate.coord.t[0],
+            .vy = human->model->locate.coord.t[1] - 1200,
+            .vz = human->model->locate.coord.t[2]
         };
 
         SetBleeds(&pos, 400, 0, 50, 30, COLOR_WHITE);

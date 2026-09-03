@@ -52,14 +52,14 @@ void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
         if ((GameClock & 3) == 0)
         {
             SVECTOR velocity = {
-                rand() % 20 - 10,
-                rand() % 50 + 50,
-                rand() % 20 - 10
+                .vx = rand() % 20 - 10,
+                .vy = rand() % 50 + 50,
+                .vz = rand() % 20 - 10
             };
             VECTOR position = {
-                ViewInfo.vrx + (rand() % SNOW_SPAN - SNOW_RANGE),
-                ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN),
-                ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE)
+                .vx = ViewInfo.vrx + (rand() % SNOW_SPAN - SNOW_RANGE),
+                .vy = ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN),
+                .vz = ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE)
             };
 
             SetSnow(&position, &velocity, FIXED_ONE, SNOW_SPRITE_DEFAULT);
