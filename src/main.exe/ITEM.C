@@ -6106,7 +6106,7 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
     param.start.vy = user->model->locate.coord.t[1] - THROW_HEIGHT;
     param.start.vz = user->model->locate.coord.t[2];
     v = vec_z_n100[0];
-    memset(&v0, 0, sizeof(v0));
+    v0 = (VECTOR){0};
     pm = param.user->model;
     if (CamState.Owner->model == pm && CamState.Mode == CMODE_DIRECTION)
     {
