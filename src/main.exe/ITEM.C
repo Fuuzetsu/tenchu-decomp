@@ -4407,9 +4407,8 @@ static int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
     param_ninken *param;
     s32 x;
     s32 z;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.ninken;
     if (item == 0)
         return 0;
