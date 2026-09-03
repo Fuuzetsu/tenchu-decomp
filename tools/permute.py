@@ -261,7 +261,7 @@ GP_EXTERNS = {
     "WeaponHitWeapon": ["Me_MOTION_C", "dtM"],
     "DrawModelArchive": ["SkipFrame", "OTablePt"],
     "SetupTexScroll": ["EFFECT_CURSOR_", "TexScrollX", "TexScrollY"],
-    "PlaySE": ["voice"],
+    "AUDIO": ["voice"],
     "SetBleedsDir": ["EFFECT_CURSOR_"],
     "spawn_damage_effect_": ["EFFECT_CURSOR_"],
     "ChasetoTarget": ["Me_THINK_C", "Attrib", "Distance"],

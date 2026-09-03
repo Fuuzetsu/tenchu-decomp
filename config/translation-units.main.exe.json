@@ -138,6 +138,22 @@
         "ComputeAllConflict",
         "GetConflictResult"
       ]
+    },
+    {
+      "source": "AUDIO.C",
+      "functions": [
+        "PlaySE",
+        "InitSoundEffect",
+        "SetupSE",
+        "DisposeSE"
+      ],
+      "debug_symbol_order": [
+        "InitSoundEffect",
+        "SetupSE",
+        "DisposeSE",
+        "PlaySE",
+        "StopSE"
+      ]
     }
   ]
 }
