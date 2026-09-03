@@ -347,7 +347,8 @@ extern MotionPackType *MotionPack;
 extern MotionPackType *CommonMotion;
 extern MotionPackType *PlayerMotion;
 extern MotionPackType *StageMotion;
-extern SVECTOR SplineTable[N_SPLINE_BASIS_ROWS];
+/* ACTION.C-private in the demo; externally linked while its storage is raw. */
+extern SVECTOR HermiteTable[N_SPLINE_BASIS_ROWS];
 extern s16 SplineFracOld;
 extern s16 SplineFrac;
 extern SVECTOR *SplineRow;

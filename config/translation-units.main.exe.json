@@ -154,6 +154,41 @@
         "PlaySE",
         "StopSE"
       ]
+    },
+    {
+      "source": "ACTION.C",
+      "functions": [
+        "SearchMotion",
+        "UpdateMotion",
+        "HoldMotion",
+        "SweepMotion",
+        "ActiveMotion",
+        "UpdateSplineControl",
+        "GetSpline",
+        "LoadMotion",
+        "SetupMotionRegist",
+        "SetupMotionManager",
+        "DisposeMotionManager",
+        "GetMotionID",
+        "PlayMotion",
+        "SetupSpline"
+      ],
+      "debug_symbol_order": [
+        "LoadMotion",
+        "SearchMotion",
+        "SetupMotionRegist",
+        "SetupMotionManager",
+        "DisposeMotionManager",
+        "GetMotionID",
+        "UpdateMotion",
+        "PlayMotion",
+        "HoldMotion",
+        "SweepMotion",
+        "ActiveMotion",
+        "SetupSpline",
+        "UpdateSplineControl",
+        "GetSpline"
+      ]
     }
   ]
 }
