@@ -1159,7 +1159,7 @@ found:
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-void DrawBleed(TEffectSlot *ef)
+static void DrawBleed(TEffectSlot *ef)
 {
     BleedType *param = &ef->param.bleed;
     SVECTOR scr;
