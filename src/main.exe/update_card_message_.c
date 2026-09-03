@@ -2,9 +2,6 @@
 #include "main.exe.h"
 #include "memcard.h"
 
-extern s16 McardStateFlag;
-extern s16 McardRetryCount;
-
 s16 update_card_message_(card_state *state, card_page *message)
 {
     s32 cmd;

@@ -228,6 +228,22 @@ extern s16 update_card_message_(card_state *state, card_page *message);
 extern s16 update_card_screen_(s32 pad);
 
 struct Sprite3D;
+/* Save-screen state shared by the split INFOVIEW implementations.  McardPage
+ * stays a raw signed halfword; update_card_message_ receives a typed view at
+ * the call boundary, while drawing reads the stored value as signed. */
+extern char *McardFile;
+extern u_long *McardVramSave;
+extern u8 *McardHelp;
+extern struct Sprite3D *McardSprite;
+extern s16 McardStateFlag;
+extern card_state McardState;
+extern s16 McardPage;
+extern s16 McardRetry;
+extern s16 McardRetryCount;
+extern s32 McardPageNow;
+extern s32 McardAnswered;
+extern u8 *McardPageText;
+
 extern struct Sprite3D *McardButtons[N_MCARD_BUTTON_SPRITES];
 extern s32 setup_card_screen_(s16 operation);
 extern s32 draw_card_help_(s32 page, s32 pad);

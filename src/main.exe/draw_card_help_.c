@@ -5,13 +5,6 @@
 #include "images.h"
 #include "memcard.h"
 
-extern u8 *McardHelp;
-extern Sprite3D *McardSprite;
-extern s16 McardStateFlag;
-extern s32 McardPageNow;
-extern s32 McardAnswered;
-extern u8 *McardPageText;
-
 s32 draw_card_help_(s32 page, s32 pad)
 {
     s32 page_num;

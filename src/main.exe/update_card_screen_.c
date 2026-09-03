@@ -2,12 +2,6 @@
 #include "main.exe.h"
 #include "memcard.h"
 
-extern char *McardFile;
-extern s16 McardStateFlag;
-extern card_state McardState;
-extern s16 McardPage;
-extern s16 McardRetry;
-
 s16 update_card_screen_(s32 pad)
 {
     u16 saved_state;

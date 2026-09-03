@@ -15,10 +15,6 @@
 #define MCARD_VRAM_W 0x40
 #define MCARD_VRAM_H 0x100
 
-extern u_long *McardVramSave;
-extern u8 *McardHelp;
-extern Sprite3D *McardSprite;
-
 extern char path_demo_start_card_j[];       /* K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt */
 extern char path_demo_start_mcard_tim[];    /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim */
 extern char path_demo_start_mbuttonj_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mbuttonj.tim */
