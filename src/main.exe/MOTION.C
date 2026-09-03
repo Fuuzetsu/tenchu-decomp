@@ -845,8 +845,7 @@ void DamageControl(void)
                 reset_alert_duration();
             }
         }
-        SET_NOW_MOTION_UNLESS_CVA(goto attack_cancel);
-    attack_cancel:
+        SetNowMotionUnlessCva();
         AttackCancelControl(ATTACK_CANCEL_ALL);
         return;
     }
