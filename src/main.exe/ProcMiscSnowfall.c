@@ -26,54 +26,43 @@
  *     extern struct GsRVIEW2 ViewInfo;
  * END PSX.SYM */
 
-extern void *memset(void *s, int c, u32 n);
-
 void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
 {
     TSnowfall *param = &m->param.snowfall;
 
-    if (msg == MM_CREATE)
+    switch (msg)
     {
-        goto do_create;
+    case MM_CREATE:
+    {
+        s32 w = m->param.snowfall.w;
+        s32 h = m->param.snowfall.h;
+
+        m->mode = 0;
+        param->w = w;
+        param->h = h;
+        break;
     }
-    if (MM_DO <= msg)
-    {
-        goto do_tick;
-    }
-    return;
 
-do_create:
-{
-    s32 w;
-    s32 h;
+    case MM_DESTROY:
+    case MM_PAUSE:
+    case MM_RESUME:
+        break;
 
-    w = m->param.snowfall.w;
-    h = m->param.snowfall.h;
-    m->mode = 0;
-    param->w = w;
-    param->h = h;
-}
-    return;
+    default:
+        if ((GameClock & 3) == 0)
+        {
+            SVECTOR velocity = {
+                rand() % 20 - 10,
+                rand() % 50 + 50,
+                rand() % 20 - 10
+            };
+            VECTOR position = {
+                ViewInfo.vrx + (rand() % SNOW_SPAN - SNOW_RANGE),
+                ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN),
+                ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE)
+            };
 
-do_tick:
-    if ((GameClock & 3) == 0)
-    {
-        SVECTOR vel;
-        SVECTOR jitter;
-        VECTOR pos;
-        VECTOR posRaw;
-
-        memset(&jitter, 0, sizeof(jitter));
-        jitter.vx = rand() % 20 - 10;
-        jitter.vy = rand() % 50 + 50;
-        jitter.vz = rand() % 20 - 10;
-        vel = jitter;
-
-        memset(&posRaw, 0, sizeof(posRaw));
-        posRaw.vx = ViewInfo.vrx + (rand() % SNOW_SPAN - SNOW_RANGE);
-        posRaw.vy = ViewInfo.vry + (rand() % SNOW_RANGE - SNOW_SPAN);
-        posRaw.vz = ViewInfo.vrz + (rand() % SNOW_SPAN - SNOW_RANGE);
-        pos = posRaw;
-        SetSnow(&pos, &vel, FIXED_ONE, SNOW_SPRITE_DEFAULT);
+            SetSnow(&position, &velocity, FIXED_ONE, SNOW_SPRITE_DEFAULT);
+        }
     }
 }
