@@ -598,11 +598,10 @@ void AddItem2(void)
     }
 
     {
-        PARAM_ITEM_STAY param;
+        PARAM_ITEM_STAY param = {
+            .type = n
+        };
         SVECTOR vec;
-
-        memset(&param, 0, sizeof(param));
-        param.type = n;
 
         sx = rsin(CamState.Owner->model->rotate.vy) * 1000;
         pm = CamState.Owner->model;
