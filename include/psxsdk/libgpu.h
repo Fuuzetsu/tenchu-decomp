@@ -442,6 +442,7 @@ int ResetGraph(int mode);
 void SetDispMask(int mask);
 
 void AddPrim(void *ot, void *p);
+void ClearOTagR(u_long *ot, int length);
 void DrawOTag(u_long *p);
 int ClearImage(RECT *rect, u_char r, u_char g, u_char b);
 int ClearImage2(RECT *rect, u_char r, u_char g, u_char b);
