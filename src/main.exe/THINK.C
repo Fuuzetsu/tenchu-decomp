@@ -753,6 +753,12 @@ tail:
 
 s16 GotoPosition(s32 vx, s32 vz)
 {
+    enum
+    {
+        FORWARD_AIM_TOLERANCE = 500,
+        WALL_PROBE_Y_OFFSET = 500,
+        SIDESTEP_HOLD_TICKS = 30
+    };
     u16 dir;
     s32 turn;
     s32 result;
@@ -782,7 +788,7 @@ s16 GotoPosition(s32 vx, s32 vz)
     {
         adir = -adir;
     }
-    if (adir < 500)
+    if (adir < FORWARD_AIM_TOLERANCE)
     {
         result |= PADLup;
     }
@@ -807,14 +813,14 @@ s16 GotoPosition(s32 vx, s32 vz)
                              0, Me->width);
                 d1 = GetAreaMapLevel(GlobalAreaMap,
                                      Me->locate->vx + local.vx,
-                                     Me->locate->vy - 500,
+                                     Me->locate->vy - WALL_PROBE_Y_OFFSET,
                                      Me->locate->vz + local.vz,
                                      AREA_LEVEL_RETURN_DELTA |
                                          AREA_LEVEL_FIRST_HIT |
                                          AREA_LEVEL_REUSE_CACHED);
                 d2 = GetAreaMapLevel(GlobalAreaMap,
                                      Me->locate->vx - local.vx,
-                                     Me->locate->vy - 500,
+                                     Me->locate->vy - WALL_PROBE_Y_OFFSET,
                                      Me->locate->vz - local.vz,
                                      AREA_LEVEL_RETURN_DELTA |
                                          AREA_LEVEL_FIRST_HIT |
@@ -824,13 +830,13 @@ s16 GotoPosition(s32 vx, s32 vz)
                 if ((result & PADLright) && (d1 != cached))
                 {
                     d2 = PADLright << 16;
-                    goto apply;
+                    d2 |= SIDESTEP_HOLD_TICKS;
+                    Me->pad_hold = d2;
                 }
-                if ((result & PADLleft) && (d2 != (u32)LEVEL_NONE))
+                else if ((result & PADLleft) && (d2 != (u32)LEVEL_NONE))
                 {
                     d2 = (u32)PADLleft << 16;
-                apply:
-                    d2 |= 30;
+                    d2 |= SIDESTEP_HOLD_TICKS;
                     Me->pad_hold = d2;
                 }
                 else
