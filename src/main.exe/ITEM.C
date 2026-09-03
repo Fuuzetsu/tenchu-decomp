@@ -3786,9 +3786,8 @@ static int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_goshikimai *param;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.goshikimai;
     if (item == 0)
         return 0;
