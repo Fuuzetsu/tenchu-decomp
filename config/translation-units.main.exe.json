@@ -248,6 +248,25 @@
         "StageSequence",
         "UpdateEvent"
       ]
+    },
+    {
+      "source": "OPAUDIO.C",
+      "functions": [
+        "cbCheckCD",
+        "CdaPlayXA",
+        "CdaStop",
+        "CdaGetCurrentLength",
+        "CdaReady",
+        "set_cda_volume_",
+        "apply_cda_attr_"
+      ],
+      "debug_symbol_order": [
+        "CdaGetCurrentLength",
+        "CdaReady",
+        "cbCheckCD",
+        "CdaPlayXA",
+        "CdaStop"
+      ]
     }
   ]
 }
