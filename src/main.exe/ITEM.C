@@ -556,25 +556,22 @@ static void MoveKorogari(TItem *item, param_korogari *param)
         {
             param->vx /= 2;
             param->vz /= 2;
-            if (mv.level == LEVEL_NONE || mv.height > 1500)
+            if (mv.level != LEVEL_NONE && mv.height <= 1500)
             {
-                goto bounce;
-            }
+                item->locate->locate.coord.t[1] = mv.level;
+                if (param->vy < 46)
+                {
+                    param->status = KORO_STAY;
+                    return;
+                }
 
-            item->locate->locate.coord.t[1] = mv.level;
-            if (param->vy < 46)
-            {
-                param->status = KORO_STAY;
+                param->vx += RefrectMove[mv.vector][0] * (rand() % 25 + 25);
+                param->vz += RefrectMove[mv.vector][1] * (rand() % 25 + 25);
+                param->status = KORO_GRAND;
+                param->vy = -abs(param->vy) / 2;
                 return;
             }
-
-            param->vx += RefrectMove[mv.vector][0] * (rand() % 25 + 25);
-            param->vz += RefrectMove[mv.vector][1] * (rand() % 25 + 25);
-            param->status = KORO_GRAND;
-            param->vy = -abs(param->vy) / 2;
-            return;
         }
-    bounce:
         param->vy = abs(param->vy) / 2 + (rand() % 25 + 25);
         param->status = KORO_WALL;
         return;
