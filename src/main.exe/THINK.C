@@ -1128,6 +1128,12 @@ s16 Think1random(void)
 
 s16 Think1ninja(void)
 {
+    enum
+    {
+        PATH_CHECK_DELAY = 30,
+        SAFE_STEP_DELTA = 500,
+        BLOCKING_STEP_DELTA = 6100
+    };
     u8 actscnt;
     s16 result;
 
@@ -1138,7 +1144,7 @@ s16 Think1ninja(void)
     }
     actscnt = Me->actscnt;
     Me->actscnt++;
-    if (actscnt > 30)
+    if (actscnt > PATH_CHECK_DELAY)
     {
         result = Think1random();
         if (Me->motion->mid == MOT_MOVE &&
@@ -1160,22 +1166,12 @@ s16 Think1ninja(void)
                                  Me->locate->vz + move.vz,
                                  AREA_LEVEL_RETURN_DELTA | AREA_LEVEL_FIRST_HIT |
                                      AREA_LEVEL_REUSE_CACHED);
-            if (d1 == Me->map.level)
+            if ((d1 == Me->map.level &&
+                 __builtin_abs(d2) < SAFE_STEP_DELTA) ||
+                d2 > BLOCKING_STEP_DELTA)
             {
-                s32 abs_d2;
-
-                abs_d2 = (d2 >= 0) ? d2 : -d2;
-                if (abs_d2 < 500)
-                {
-                    goto set_1040;
-                }
+                result = PADLup | PADRdown;
             }
-            if (d2 <= 6100)
-            {
-                return result;
-            }
-        set_1040:
-            result = PADLup | PADRdown;
         }
     }
     return result;
