@@ -3,7 +3,6 @@
 
 extern char fmt_reading_exec[];
 extern char msg_exe_read_ok[];
-extern void cb_nop_(void);
 void run_exec_file(u8 *name, u32 stack, u32 size)
 {
     EXEC *exec;

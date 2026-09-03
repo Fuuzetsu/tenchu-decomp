@@ -2,6 +2,7 @@
 #define TENCHU_FILESYSTEM_H
 
 #include <psxsdk/libcd.h>
+#include <psxsdk/libsn.h>
 
 /* FILEIO.C/AFS types recorded in the demo's PSX.SYM. */
 typedef struct TFileHandle TFileHandle;
@@ -184,6 +185,9 @@ u_long *FileRead(u8 *filename);
 u_long *PathFileRead(u8 *resource_prefix, u8 *resource_name);
 int FileWrite(u8 *filename, void *data, long size);
 void LoadExecEx(u8 *file, u32 stack, u32 size);
+void set_boot_exec_(u8 *file, u32 stack, u32 size);
+void run_exec_file(u8 *name, u32 stack, u32 size);
+void cb_nop_(void);
 u_long *LoadFromDEVPC(u8 *filename);
 u_long *LoadFromMEMORY(u8 *filename);
 u_long *LoadFromCDROM(u8 *filename);

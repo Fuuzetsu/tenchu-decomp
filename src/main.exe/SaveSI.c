@@ -69,10 +69,6 @@ extern char msg_card_error[];     /* "card error %d" */
 extern char msg_create_error[];   /* "file create error %d" */
 extern char msg_write_error[];    /* "file write error %d" */
 
-extern s32 PCcreat(char *name, s32 mode);
-extern s32 PCwrite(s32 fd, void *data, s32 size);
-extern s32 PCclose(s32 fd);
-
 void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
 {
     s32 fd;
