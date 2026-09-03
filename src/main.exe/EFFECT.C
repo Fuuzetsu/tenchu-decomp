@@ -1595,7 +1595,7 @@ void DrawSnow(TEffectSlot *ef)
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-void DrawFrame(TEffectSlot *ef)
+static void DrawFrame(TEffectSlot *ef)
 {
     enum
     {
