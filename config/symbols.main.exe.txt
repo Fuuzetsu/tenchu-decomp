@@ -3625,7 +3625,6 @@ ImpactSpriteImageIds = 0x80097a48;
 ScreenRect = 0x80097A60;
 str_map = 0x80097a98;
 str_newline_2 = 0x80097aa0;
-svec_y_n100 = 0x80097ABC;
 StageID = 0x80097ac4;
 Item_fInitial = 0x80097ac8;
 ic = 0x80097acc;
