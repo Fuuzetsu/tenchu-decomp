@@ -6,8 +6,6 @@ extern char msg_exe_read_ok[];
 extern void cb_nop_(void);
 extern EXEC *CdReadExec(u8 *name);
 extern int CdReadSync(s32 mode, u8 *result);
-extern void Exec(EXEC *exec, s32 argc, char **argv);
-
 void run_exec_file(u8 *name, u32 stack, u32 size)
 {
     EXEC *exec;

@@ -27,8 +27,6 @@
 
 extern s16 TelopFont[];
 
-extern s16 *Krom2RawAdd(u32 code);
-
 void SetupTelop(u8 *telop, short line)
 {
     s16 bitmap[TELOP_BITMAP_SIZE][TELOP_BITMAP_SIZE];
@@ -82,7 +80,7 @@ void SetupTelop(u8 *telop, short line)
             }
             else
             {
-                font = Krom2RawAdd((telop[n] << 8) | telop[n + 1]);
+                font = (s16 *)Krom2RawAdd((telop[n] << 8) | telop[n + 1]);
             }
 
             if (font != (s16 *)-1)

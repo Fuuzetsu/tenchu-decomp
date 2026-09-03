@@ -2,10 +2,7 @@
 #include "main.exe.h"
 
 extern void _remove_ChgclrPAD(void);
-extern void EnterCriticalSection(void);
 extern void _patch_pad(void);
-extern void ExitCriticalSection(void);
-extern void ChangeClearPAD(long mode);
 /* The game's RAM-resident copy of the kernel StartPad routine (B(13h)
  * shape: critical section, SysDeq/SysEnqIntRP(1, element) with the pad
  * handlers, return 1) — the patched pad path calls it directly instead
