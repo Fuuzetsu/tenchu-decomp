@@ -215,16 +215,16 @@ void RestoreItemLayout(void *buf)
         i = 0;
         it = items;
     loop1:
-        if (i >= MAX_ITEMS)
-            goto loop1_end;
-        if (it->proc != 0)
+        if (i < MAX_ITEMS)
         {
-            DISPOSE_ITEM(it);
+            if (it->proc != 0)
+            {
+                DISPOSE_ITEM(it);
+            }
+            it++;
+            i++;
+            goto loop1;
         }
-        it++;
-        i++;
-        goto loop1;
-    loop1_end:;
     }
 
     i = 0;
