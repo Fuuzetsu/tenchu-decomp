@@ -3784,7 +3784,6 @@ str_blank_line = 0x80097EA0;
 str_arrow = 0x80097EA4;
 str_spaces = 0x80097EA8;
 str_newline_4 = 0x80097EAC;
-svec_y_n600 = 0x80097B88;
 PutMapMode = 0x80097BB1;
 str_opt = 0x80097C40;
 TargetSprite = 0x800C0600;

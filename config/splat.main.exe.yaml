@@ -889,6 +889,8 @@ segments:
       - { start: 0x872E0, type: data, linker_section_order: .text }
       - { start: 0x87304, type: .sdata, name: ProcItemNemuri, linker_section_order: .text }
       - { start: 0x8730C, type: data, linker_section_order: .text }
+      - { start: 0x87388, type: .sdata, name: AddItem2, linker_section_order: .text }
+      - { start: 0x87390, type: data, linker_section_order: .text }
       - { start: 0x87448, type: .sdata, name: ProcMiscFire, linker_section_order: .text }
       - { start: 0x87450, type: data, linker_section_order: .text }
   - [0x87800]

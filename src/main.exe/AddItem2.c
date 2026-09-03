@@ -22,7 +22,6 @@
  * END PSX.SYM */
 
 extern char str_select_item[]; /* "select item" */
-extern SVECTOR svec_y_n600[];                    /* smoke-puff velocity/offset const */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
@@ -68,7 +67,11 @@ void AddItem2(void)
             param.locate.vy = h;
             param.locate.vz = z;
             ReqItemStay(&param);
-            vec = svec_y_n600[0];
+            vec = (SVECTOR){
+                .vx = 0,
+                .vy = -600,
+                .vz = 0
+            };
             SetSmoke(&param.locate, &vec, 3, 10);
         }
     }
