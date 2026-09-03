@@ -397,5 +397,8 @@ extern long HWD0, VWD0;
 extern u_long GsLMODE, GsLIGNR, GsLIOFF, GsTON;
 extern long GsADIVZ;
 extern short GsADIVW, GsADIVH;
+/* State shared by the split GS_107.OBJ and GS_121.OBJ implementations. */
+extern MATRIX _LC;
+extern short GsORGOFSX, GsORGOFSY;
 
 #endif

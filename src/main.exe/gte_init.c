@@ -1,10 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
 
-/* Private libgs state owned by the complete GS_121.OBJ member. */
-extern short GsORGOFSX;
-extern short GsORGOFSY;
-
 void gte_init(void)
 {
     InitGeom();
