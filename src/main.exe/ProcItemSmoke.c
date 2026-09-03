@@ -96,16 +96,13 @@ void ProcItemSmoke(TItem *item)
         if ((param->count & 1) == 0)
         {
             {
-                SVECTOR vec;
-                VECTOR pos;
-                VECTOR build_pos;
+                SVECTOR vec = svec_y_n250[0];
+                VECTOR pos = {
+                    item->locate->locate.coord.t[0],
+                    item->locate->locate.coord.t[1],
+                    item->locate->locate.coord.t[2]
+                };
 
-                vec = svec_y_n250[0];
-                memset(&build_pos, 0, sizeof(VECTOR));
-                build_pos.vx = item->locate->locate.coord.t[0];
-                build_pos.vy = item->locate->locate.coord.t[1];
-                build_pos.vz = item->locate->locate.coord.t[2];
-                pos = build_pos;
                 SetSmoke(&pos, &vec, 1, 3);
             }
         }

@@ -136,30 +136,26 @@ void ProcItemKusuri(TItem *item)
 
     case KUSURI_MODE_HEAL:
     {
-        VECTOR pos;
-        VECTOR build;
-        SVECTOR *vec;
-
         i = 0;
         item->owner->life = item->owner->lifemax;
         while (1)
         {
             if (i >= 0x14)
                 break;
-            memset(&build, 0, sizeof(build));
-            build.vx = item->owner->model->locate.coord.t[0] +
-                       (rand() % 1000 - 500);
-            build.vy = item->owner->model->locate.coord.t[1] +
-                       (rand() % 1000 - 1200);
-            build.vz = item->owner->model->locate.coord.t[2] +
-                       (rand() % 1000 - 500);
-            pos = build;
-            memset(&((SVECTOR *)&build)[1], 0, sizeof(SVECTOR));
-            ((SVECTOR *)&build)[1].vy = rand() % 10 - 30;
-            vec = (SVECTOR *)&build;
-            vec[0] = vec[1];
-            SetBleed(&pos, vec, rand() % 0x10 + 0xf,
-                     RGB24(255, 255, 126));
+            {
+                VECTOR pos = {
+                    item->owner->model->locate.coord.t[0] +
+                        (rand() % 1000 - 500),
+                    item->owner->model->locate.coord.t[1] +
+                        (rand() % 1000 - 1200),
+                    item->owner->model->locate.coord.t[2] +
+                        (rand() % 1000 - 500)
+                };
+                SVECTOR vec = {0, rand() % 10 - 30, 0};
+
+                SetBleed(&pos, &vec, rand() % 0x10 + 0xf,
+                         RGB24(255, 255, 126));
+            }
             i++;
         }
         SoundEx(item->owner->locate, SE_MEDICINE);

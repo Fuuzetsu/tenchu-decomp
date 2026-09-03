@@ -123,8 +123,6 @@ void ProcItemNapalm(TItem *item)
             {
                 ModelType **objects;
                 ModelType *model;
-                VECTOR pos;
-                VECTOR random_pos;
 
                 objects = human->model->object;
                 if (human->model->n > 0)
@@ -132,13 +130,16 @@ void ProcItemNapalm(TItem *item)
                     objects += rand() % human->model->n;
                 }
                 model = *objects;
-                memset(&random_pos, 0, sizeof(VECTOR));
-                random_pos.vx = rand() % 200 - 100;
-                random_pos.vy = rand() % 200 - 100;
-                random_pos.vz = rand() % 200 - 100;
-                pos = random_pos;
-                SetFrame(&pos, 3 * FIXED_ONE, 60,
-                         &model->locate);
+                {
+                    VECTOR pos = {
+                        rand() % 200 - 100,
+                        rand() % 200 - 100,
+                        rand() % 200 - 100
+                    };
+
+                    SetFrame(&pos, 3 * FIXED_ONE, 60,
+                             &model->locate);
+                }
             }
         }
 

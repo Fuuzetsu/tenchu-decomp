@@ -91,32 +91,17 @@ void ProcItemFire(TItem *item)
 
     {
         {
-            VECTOR *position;
-            SVECTOR *vec;
-            s32 random_x;
-            s32 random_y;
-            s32 random_z;
-            s32 base_x;
-            s32 base_y;
-            s32 base_z;
-            VECTOR pos;
-            VECTOR work;
+            VECTOR pos = {
+                item->locate->locate.coord.t[0] +
+                    (rand() % (nr * 2) - nr),
+                item->locate->locate.coord.t[1] +
+                    (rand() % (nr * 2) - nr),
+                item->locate->locate.coord.t[2] +
+                    (rand() % (nr * 2) - nr)
+            };
+            SVECTOR vec = svec_y_n30[0];
 
-            vec = (SVECTOR *)&work;
-            memset(&work, 0, sizeof(VECTOR));
-            random_x = rand();
-            base_x = item->locate->locate.coord.t[0] - nr;
-            work.vx = base_x + random_x % (nr * 2);
-            random_y = rand();
-            base_y = item->locate->locate.coord.t[1] - nr;
-            work.vy = base_y + random_y % (nr * 2);
-            random_z = rand();
-            base_z = item->locate->locate.coord.t[2] - nr;
-            work.vz = base_z + random_z % (nr * 2);
-            pos = work;
-            *vec = svec_y_n30[0];
-            position = &pos;
-            SetBleed(position, vec, rand() % 20, COLOR_YELLOW);
+            SetBleed(&pos, &vec, rand() % 20, COLOR_YELLOW);
         }
     }
 
@@ -210,16 +195,13 @@ void ProcItemFire(TItem *item)
     {
         {
             s32 conflict_id;
-            SVECTOR vec;
-            VECTOR pos;
-            VECTOR pos_buf;
+            SVECTOR vec = svec_y_n25[0];
+            VECTOR pos = {
+                item->locate->locate.coord.t[0],
+                item->locate->locate.coord.t[1],
+                item->locate->locate.coord.t[2]
+            };
 
-            vec = svec_y_n25[0];
-            memset(&pos_buf, 0, sizeof(VECTOR));
-            pos_buf.vx = item->locate->locate.coord.t[0];
-            pos_buf.vy = item->locate->locate.coord.t[1];
-            pos_buf.vz = item->locate->locate.coord.t[2];
-            pos = pos_buf;
             SetExplosion(&pos, &vec);
 
             vec.vx = 75;
@@ -276,21 +258,22 @@ void ProcItemFire(TItem *item)
             {
                 ModelType **objects;
                 ModelType *model;
-                VECTOR pos;
-                VECTOR random_pos;
                 objects = human->model->object;
                 if (human->model->n > 0)
                 {
                     objects += rand() % human->model->n;
                 }
                 model = *objects;
-                memset(&random_pos, 0, sizeof(VECTOR));
-                random_pos.vx = rand() % 200 - 100;
-                random_pos.vy = rand() % 200 - 100;
-                random_pos.vz = rand() % 200 - 100;
-                pos = random_pos;
-                SetFrame(&pos, 3 * FIXED_ONE, 120,
-                         &model->locate);
+                {
+                    VECTOR pos = {
+                        rand() % 200 - 100,
+                        rand() % 200 - 100,
+                        rand() % 200 - 100
+                    };
+
+                    SetFrame(&pos, 3 * FIXED_ONE, 120,
+                             &model->locate);
+                }
             }
         }
         return;

@@ -28,8 +28,6 @@
 
 extern SVECTOR svec_y_n100[]; /* {0,-100,0} */
 
-extern void *memset(void *s, s32 c, u32 n);
-
 enemy_layout_index leFindEnemy(void)
 {
     int i;
@@ -38,9 +36,6 @@ enemy_layout_index leFindEnemy(void)
     int r;
     int rr;
     int dx, dy, dz;
-    SVECTOR pow;
-    VECTOR pos;
-    VECTOR epos;
 
     find = ENEMY_LAYOUT_NONE;
     r = 2000;
@@ -70,12 +65,13 @@ enemy_layout_index leFindEnemy(void)
 
     if (find != ENEMY_LAYOUT_NONE)
     {
-        pow = svec_y_n100[0];
-        memset(&epos, 0, sizeof(epos));
-        epos.vx = enemy[find].x;
-        epos.vy = enemy[find].y;
-        epos.vz = enemy[find].z;
-        pos = epos;
+        SVECTOR pow = svec_y_n100[0];
+        VECTOR pos = {
+            enemy[find].x,
+            enemy[find].y,
+            enemy[find].z
+        };
+
         SetExplosion(&pos, &pow);
     }
 

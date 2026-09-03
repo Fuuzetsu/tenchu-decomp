@@ -193,15 +193,13 @@ void ActivateHumans(void)
                 }
                 else if (human->status != STAT_DEAD && ((u16)human->attribute & ATTR_FLOAT) == 0)
                 {
-                    VECTOR query;
-                    VECTOR work;
+                    VECTOR query = {
+                        human->point[HUMANOID_HOME_X],
+                        human->locate->vy - 1500,
+                        human->point[HUMANOID_HOME_Z]
+                    };
                     s32 level;
 
-                    memset(&work, 0, sizeof(work));
-                    work.vx = human->point[HUMANOID_HOME_X];
-                    work.vy = human->locate->vy - 1500;
-                    work.vz = human->point[HUMANOID_HOME_Z];
-                    query = work;
                     if (GetVectorDistance(&query, &vc) > DEACTIVATE_RADIUS)
                     {
                         level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,

@@ -28,23 +28,20 @@ void SnapCameraTargetVector(void)
     {
         VSHIFT = 5
     };
-    VECTOR v;
-    SVECTOR sv;
+    VECTOR v = {
+        ViewInfo.vpx,
+        ViewInfo.vpy,
+        ViewInfo.vpz
+    };
+    SVECTOR sv = {
+        (s16)ViewInfo.vrx - (s16)ViewInfo.vpx,
+        (s16)ViewInfo.vry - (s16)ViewInfo.vpy,
+        (s16)ViewInfo.vrz - (s16)ViewInfo.vpz
+    };
     SVECTOR sv2;
     VECTOR *target;
     s32 t1, t2, t3;
 
-    memset(&sv, 0, sizeof(sv) + sizeof(sv2));
-    ((VECTOR *)&sv)->vx = ViewInfo.vpx;
-    ((VECTOR *)&sv)->vy = ViewInfo.vpy;
-    ((VECTOR *)&sv)->vz = ViewInfo.vpz;
-    v = *(VECTOR *)&sv;
-
-    memset(&sv2, 0, sizeof(sv2));
-    sv2.vx = (s16)ViewInfo.vrx - (s16)ViewInfo.vpx;
-    sv2.vy = (s16)ViewInfo.vry - (s16)ViewInfo.vpy;
-    sv2.vz = (s16)ViewInfo.vrz - (s16)ViewInfo.vpz;
-    sv = sv2;
     VectorNormalSS(&sv, &sv2);
 
     t1 = sv2.vx;

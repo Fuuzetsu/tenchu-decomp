@@ -33,14 +33,10 @@
  * END PSX.SYM */
 
 extern void DrawBleed(TEffectSlot *ef);
-extern void *memset(void *s, int c, u32 n);
 
 void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long col)
 {
-    VECTOR npos;
-    VECTOR work;
     int grange2;
-    long b;
     int g;
     int z2, z3;
     int half;
@@ -57,93 +53,57 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
         {
             return;
         }
-        memset(&work, 0, sizeof(VECTOR));
-        b = pos->vx;
-        if (grange2 > 0)
         {
-            work.vx = b + (rand() % grange2 - g);
-        }
-        else
-        {
-            work.vx = b - g;
-        }
-        b = pos->vy;
-        if (grange2 > 0)
-        {
-            work.vy = b + (rand() % grange2 - g);
-        }
-        else
-        {
-            work.vy = b - g;
-        }
-        b = pos->vz;
-        if (grange2 > 0)
-        {
-            work.vz = b + (rand() % grange2 - g);
-        }
-        else
-        {
-            work.vz = b - g;
-        }
-        npos = work;
-        memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
-        if (srange * 2 > 0)
-        {
-            ((SVECTOR *)&work)[1].vx = rand() % (srange * 2) - srange;
-        }
-        else
-        {
-            ((SVECTOR *)&work)[1].vx = -srange;
-        }
-        if (srange * 2 > 0)
-        {
-            ((SVECTOR *)&work)[1].vy = rand() % (srange * 2) - srange;
-        }
-        else
-        {
-            ((SVECTOR *)&work)[1].vy = z2 - srange;
-        }
-        if (srange * 2 > 0)
-        {
-            ((SVECTOR *)&work)[1].vz = rand() % (srange * 2) - srange;
-        }
-        else
-        {
-            ((SVECTOR *)&work)[1].vz = z3 - srange;
-        }
-        *(SVECTOR *)&work = ((SVECTOR *)&work)[1];
-        half = time / 2;
-        rem = time - half;
-        if (rem > 0)
-        {
-            btime = rand() % rem + half;
-        }
-        else
-        {
-            btime = half;
-        }
-        {
-            VECTOR *pos = &npos;
-            int time = btime;
-            int idx;
-            TEffectSlot *slot;
-            int count;
-            BleedType *param;
-            u8 r;
+            VECTOR npos = {
+                pos->vx + (grange2 > 0 ? rand() % grange2 - g : -g),
+                pos->vy + (grange2 > 0 ? rand() % grange2 - g : -g),
+                pos->vz + (grange2 > 0 ? rand() % grange2 - g : -g)
+            };
+            SVECTOR v = {
+                srange * 2 > 0
+                    ? rand() % (srange * 2) - srange
+                    : -srange,
+                srange * 2 > 0
+                    ? rand() % (srange * 2) - srange
+                    : z2 - srange,
+                srange * 2 > 0
+                    ? rand() % (srange * 2) - srange
+                    : z3 - srange
+            };
 
-            FIND_EFFECT_SLOT(idx, count, slot, found);
-        found:
-            n--;
-            param = &slot->param.bleed;
-            r = col >> 16;
-            slot->param.bleed.pos = *pos;
-            slot->param.bleed.vec = *(SVECTOR *)&work;
-            param->r = r;
-            param->g = col >> 8;
-            param->time = time;
-            param->b = col;
-            param->mode = 0;
-            slot->proc = DrawBleed;
+            half = time / 2;
+            rem = time - half;
+            if (rem > 0)
+            {
+                btime = rand() % rem + half;
+            }
+            else
+            {
+                btime = half;
+            }
+            {
+                VECTOR *pos = &npos;
+                int time = btime;
+                int idx;
+                TEffectSlot *slot;
+                int count;
+                BleedType *param;
+                u8 r;
+
+                FIND_EFFECT_SLOT(idx, count, slot, found);
+            found:
+                n--;
+                param = &slot->param.bleed;
+                r = col >> 16;
+                slot->param.bleed.pos = *pos;
+                slot->param.bleed.vec = v;
+                param->r = r;
+                param->g = col >> 8;
+                param->time = time;
+                param->b = col;
+                param->mode = 0;
+                slot->proc = DrawBleed;
+            }
         }
     } while (1);
 }

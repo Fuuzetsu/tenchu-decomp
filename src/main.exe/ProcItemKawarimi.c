@@ -21,9 +21,6 @@
 
 #include "item.h"
 
-/* PSX.SYM names the particle output `pos` and `vec`. The temporary position
- * is copied out before its storage is reused as two short vectors for the
- * velocity build. */
 void ProcItemKawarimi(TItem *item)
 {
     enum
@@ -35,8 +32,6 @@ void ProcItemKawarimi(TItem *item)
     };
     param_drop *param;
     s32 particle_index;
-    VECTOR position;
-    VECTOR work;
 
     param = &item->param.drop;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -57,22 +52,20 @@ void ProcItemKawarimi(TItem *item)
         {
             if (particle_index >= 0x14)
                 break;
-            memset(&work, 0, sizeof(VECTOR));
-            work.vx =
-                item->owner->model->locate.coord.t[0] +
-                (rand() % 1000 - 500);
-            work.vy =
-                item->owner->model->locate.coord.t[1] +
-                (rand() % 1000 - 1200);
-            work.vz =
-                item->owner->model->locate.coord.t[2] +
-                (rand() % 1000 - 500);
-            position = work;
-            memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
-            ((SVECTOR *)&work)[1].vy = rand() % 10 - 30;
-            ((SVECTOR *)&work)[0] = ((SVECTOR *)&work)[1];
-            SetBleed(&position, (SVECTOR *)&work,
-                     rand() % 16 + 15, RGB24(100, 200, 220));
+            {
+                VECTOR position = {
+                    item->owner->model->locate.coord.t[0] +
+                        (rand() % 1000 - 500),
+                    item->owner->model->locate.coord.t[1] +
+                        (rand() % 1000 - 1200),
+                    item->owner->model->locate.coord.t[2] +
+                        (rand() % 1000 - 500)
+                };
+                SVECTOR velocity = {0, rand() % 10 - 30, 0};
+
+                SetBleed(&position, &velocity,
+                         rand() % 16 + 15, RGB24(100, 200, 220));
+            }
             particle_index++;
         }
         {

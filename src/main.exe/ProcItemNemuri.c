@@ -178,56 +178,55 @@ void ProcItemNemuri(TItem *item)
             if (is_humanoid_on_stage_(hit_human) != 0 &&
                 hit_human != item->owner)
             {
-                VECTOR random_position;
-                VECTOR effect_work;
-                VECTOR smoke_position;
-                VECTOR smoke_position_build;
-                SVECTOR *smoke_velocity;
                 s16 hit_life;
 
                 if (hit_human->model->n > 0)
                 {
                     rand();
                 }
-                memset(&effect_work, 0, sizeof(VECTOR));
-                effect_work.vx = rand() % 200 - 100;
-                effect_work.vy = rand() % 200 - 100;
-                effect_work.vz = rand() % 200 - 100;
-                /* Retail computes and copies this jittered position but never uses it. */
-                random_position = effect_work;
-                SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
-
-                smoke_velocity = (SVECTOR *)&effect_work;
-                *smoke_velocity = svec_y_n150[0];
-                memset(&smoke_position_build, 0, sizeof(VECTOR));
-                smoke_position_build.vx = hit_human->model->locate.coord.t[0];
-                smoke_position_build.vy = hit_human->model->locate.coord.t[1];
-                smoke_position_build.vz = hit_human->model->locate.coord.t[2];
-                smoke_position = smoke_position_build;
-                SetSmoke(&smoke_position, smoke_velocity, 10, 30);
-
-                hit_life = hit_human->life;
-                if (hit_life > 0 && hit_human->motion->mid != MOT_ACTION)
                 {
-                    if ((hit_human->type & PAGE_MASK) != PAGE_BOSS &&
-                        hit_life != inactive_sentinel)
+                    /* Retail computes this jittered position but never uses it. */
+                    VECTOR random_position = {
+                        rand() % 200 - 100,
+                        rand() % 200 - 100,
+                        rand() % 200 - 100
+                    };
+
+                    SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
                     {
-                        EquipWeapon(hit_human, WEAPON_SHEATHED);
-                        SetNowMotion(hit_human, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
-                        hit_human->think[0] = Think1sleep;
-                        hit_human->attribute &= ~ATTR_PHASE;
-                    }
-                    SetNowMotion(hit_human, MOT_ACTION, MOTION_MOVE_APPLY);
-                    Sound(hit_human, CHAR_VOICE_HURT);
-                }
+                        SVECTOR smoke_velocity = svec_y_n150[0];
+                        VECTOR smoke_position = {
+                            hit_human->model->locate.coord.t[0],
+                            hit_human->model->locate.coord.t[1],
+                            hit_human->model->locate.coord.t[2]
+                        };
 
-                item_proc = item->proc;
-                if (item_proc == 0)
-                {
+                        SetSmoke(&smoke_position, &smoke_velocity, 10, 30);
+                    }
+
+                    hit_life = hit_human->life;
+                    if (hit_life > 0 && hit_human->motion->mid != MOT_ACTION)
+                    {
+                        if ((hit_human->type & PAGE_MASK) != PAGE_BOSS &&
+                            hit_life != inactive_sentinel)
+                        {
+                            EquipWeapon(hit_human, WEAPON_SHEATHED);
+                            SetNowMotion(hit_human, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
+                            hit_human->think[0] = Think1sleep;
+                            hit_human->attribute &= ~ATTR_PHASE;
+                        }
+                        SetNowMotion(hit_human, MOT_ACTION, MOTION_MOVE_APPLY);
+                        Sound(hit_human, CHAR_VOICE_HURT);
+                    }
+
+                    item_proc = item->proc;
+                    if (item_proc == 0)
+                    {
+                        return;
+                    }
+                    DISPOSE_ITEM(item);
                     return;
                 }
-                DISPOSE_ITEM(item);
-                return;
             }
         }
 

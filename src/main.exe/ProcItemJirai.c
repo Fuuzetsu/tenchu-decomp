@@ -144,19 +144,13 @@ void ProcItemJirai(TItem *item)
     case JIRAI_MODE_EXPLODE:
     {
         {
-            SVECTOR velocity;
-            VECTOR position;
-            VECTOR position_build;
+            SVECTOR velocity = svec_y_n25[0];
+            VECTOR position = {
+                item->locate->locate.coord.t[0],
+                item->locate->locate.coord.t[1],
+                item->locate->locate.coord.t[2]
+            };
 
-            velocity = svec_y_n25[0];
-            memset(&position_build, 0, sizeof(VECTOR));
-            position_build.vx =
-                item->locate->locate.coord.t[0];
-            position_build.vy =
-                item->locate->locate.coord.t[1];
-            position_build.vz =
-                item->locate->locate.coord.t[2];
-            position = position_build;
             SetExplosion(&position, &velocity);
             velocity.vx = 75;
             velocity.vy = 200;
@@ -206,9 +200,6 @@ void ProcItemJirai(TItem *item)
                 {
                     ModelType **model_objects;
                     ModelType *model;
-                    VECTOR position;
-                    VECTOR random_position_build;
-
                     if (frame_index >= JIRAI_FRAME_EFFECT_COUNT)
                     {
                         break;
@@ -219,21 +210,18 @@ void ProcItemJirai(TItem *item)
                         model_objects += rand() % hit_human->model->n;
                     }
                     model = *model_objects;
-                    memset(&random_position_build, 0, sizeof(VECTOR));
                     frame_index++;
-                    do
                     {
-                        random_position_build.vx =
-                            rand() % 200 - 100;
-                        random_position_build.vy =
-                            rand() % 200 - 100;
-                        random_position_build.vz =
-                            rand() % 200 - 100;
-                    } while (0);
-                    position = random_position_build;
-                    SetFrame(&position, 3 * FIXED_ONE,
-                             rand() % 60 + 60,
-                             &model->locate);
+                        VECTOR position = {
+                            rand() % 200 - 100,
+                            rand() % 200 - 100,
+                            rand() % 200 - 100
+                        };
+
+                        SetFrame(&position, 3 * FIXED_ONE,
+                                 rand() % 60 + 60,
+                                 &model->locate);
+                    }
                 }
             }
         }

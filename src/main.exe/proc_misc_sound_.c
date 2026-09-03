@@ -3,14 +3,11 @@
 #include "misc.h"
 
 extern s32 rand(void);
-extern void *memset(void *dst, s32 c, u32 n);
 
 void proc_misc_sound_(TMisc *m, TMiscMessage msg)
 {
     MiscSoundSchedule *sched;
     MiscSoundSchedule tmp;
-    VECTOR pos;
-    VECTOR snd;
     s32 lo;
 
     sched = &m->param.sound;
@@ -36,12 +33,11 @@ normal:
     if (sched->next > GameClock)
         return;
 
-    memset(&snd, 0, sizeof(snd));
-    snd.vx = m->x;
-    snd.vy = m->y;
-    snd.vz = m->z;
-    pos = snd;
-    SoundEx(&pos, sched->sound_index + MISC_SOUND_ID_BASE);
+    {
+        VECTOR pos = {m->x, m->y, m->z};
+
+        SoundEx(&pos, sched->sound_index + MISC_SOUND_ID_BASE);
+    }
 
     if (sched->max_delay - sched->min_delay > 0)
     {

@@ -190,20 +190,18 @@ void ProcItemNingyo(TItem *item)
             s32 new_conflict_id;
             ConflictObjectType *conflict_pool;
             ConflictObjectType *conflict;
-            VECTOR scale;
-            VECTOR source_scale;
 
             param->count++;
-            memset(&source_scale, 0, sizeof(VECTOR));
-            source_scale.vx =
-                param->count << GROWTH_SCALE_SHIFT;
-            source_scale.vy =
-                param->count << GROWTH_SCALE_SHIFT;
-            source_scale.vz =
-                param->count << GROWTH_SCALE_SHIFT;
-            scale = source_scale;
-            RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
-            ScaleMatrix(&item->locate->locate.coord, &scale);
+            {
+                VECTOR scale = {
+                    param->count << GROWTH_SCALE_SHIFT,
+                    param->count << GROWTH_SCALE_SHIFT,
+                    param->count << GROWTH_SCALE_SHIFT
+                };
+
+                RotMatrixYXZ(&item->locate->rotate, &item->locate->locate.coord);
+                ScaleMatrix(&item->locate->locate.coord, &scale);
+            }
             item->locate->locate.flg = 0;
             NingyoModel->locate = item->locate->locate;
             DrawModel(NingyoModel);
@@ -310,14 +308,12 @@ void ProcItemNingyo(TItem *item)
                 {
                     s32 knockback_x;
                     s32 knockback_z;
-                    VECTOR position;
-                    VECTOR source_position;
+                    VECTOR position = {
+                        conflict->position.vx,
+                        conflict->position.vy,
+                        conflict->position.vz
+                    };
 
-                    memset(&source_position, 0, sizeof(VECTOR));
-                    source_position.vx = conflict->position.vx;
-                    source_position.vy = conflict->position.vy;
-                    source_position.vz = conflict->position.vz;
-                    position = source_position;
                     knockback_x = -ConflictDistance.vx / 16;
                     knockback_z = -ConflictDistance.vz / 16;
                     param->koro.vx = knockback_x;

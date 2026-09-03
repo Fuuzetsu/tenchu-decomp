@@ -42,7 +42,6 @@ extern u8 str_cancel_2[];               /* cancel */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern int sprintf(char *buf, char *fmt, ...);
-extern void *memset(void *s, int c, u32 n);
 extern enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x,
                                      s32 y, s32 z, s16 r);
 
@@ -128,24 +127,22 @@ void AddEnemy(void)
         think = think | AdtSelect(str_custom_think_setting, ItemName, 0);
     } while (think != THINK_MIX_PLAYER && think != THINK_MIX_PAD2 && ++r < 4);
 
+    x = CamState.Owner->model->locate.coord.t[0];
+    y = CamState.Owner->model->locate.coord.t[1];
+    z = CamState.Owner->model->locate.coord.t[2];
+    r = CamState.Owner->model->rotate.vy;
+    CurrentEnemyID = leSetEnemy(type, think, x, y, z, r);
+    human = BreedLife(type, x, y, z, 0);
+    human->model->rotate.vy = r;
+    human->target = &CamState.Owner->model->locate;
+
     {
-        VECTOR pos;
-        VECTOR spot;
+        VECTOR pos = {
+            human->model->locate.coord.t[0],
+            human->model->locate.coord.t[1] - 1200,
+            human->model->locate.coord.t[2]
+        };
 
-        x = CamState.Owner->model->locate.coord.t[0];
-        y = CamState.Owner->model->locate.coord.t[1];
-        z = CamState.Owner->model->locate.coord.t[2];
-        r = CamState.Owner->model->rotate.vy;
-        CurrentEnemyID = leSetEnemy(type, think, x, y, z, r);
-        human = BreedLife(type, x, y, z, 0);
-        human->model->rotate.vy = r;
-        human->target = &CamState.Owner->model->locate;
-
-        memset(&spot, 0, sizeof(VECTOR));
-        spot.vx = human->model->locate.coord.t[0];
-        spot.vy = human->model->locate.coord.t[1] - 1200;
-        spot.vz = human->model->locate.coord.t[2];
-        pos = spot;
         SetBleeds(&pos, 400, 0, 50, 30, COLOR_WHITE);
     }
 }

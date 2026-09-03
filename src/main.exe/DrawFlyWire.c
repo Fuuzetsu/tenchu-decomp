@@ -22,8 +22,6 @@
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-extern void *memset(void *s, int c, u32 n);
-
 void DrawFlyWire(TEffectSlot *ef)
 {
     enum
@@ -31,7 +29,6 @@ void DrawFlyWire(TEffectSlot *ef)
         FLYWIRE_STRAIGHTEN_FRAMES = 5
     };
     FlyWireType *param;
-    VECTOR pos;
 
     param = &ef->param.flywire;
     switch (param->mode)
@@ -59,23 +56,21 @@ void DrawFlyWire(TEffectSlot *ef)
     }
     case FLYWIRE_MODE_STRAIGHTEN:
     {
-        VECTOR tmp;
-        s16 count;
+        VECTOR pos = {
+            ((param->center.vx *
+              (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
+             (param->NCenter.vx * param->count)) /
+                FLYWIRE_STRAIGHTEN_FRAMES,
+            ((param->center.vy *
+              (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
+             (param->NCenter.vy * param->count)) /
+                FLYWIRE_STRAIGHTEN_FRAMES,
+            ((param->center.vz *
+              (FLYWIRE_STRAIGHTEN_FRAMES - param->count)) +
+             (param->NCenter.vz * param->count)) /
+                FLYWIRE_STRAIGHTEN_FRAMES
+        };
 
-        memset(&tmp, 0, sizeof(VECTOR));
-        count = param->count;
-        tmp.vx = ((param->center.vx * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +
-                  (param->NCenter.vx * count)) /
-                 FLYWIRE_STRAIGHTEN_FRAMES;
-        count = param->count;
-        tmp.vy = ((param->center.vy * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +
-                  (param->NCenter.vy * count)) /
-                 FLYWIRE_STRAIGHTEN_FRAMES;
-        count = param->count;
-        tmp.vz = ((param->center.vz * (FLYWIRE_STRAIGHTEN_FRAMES - count)) +
-                  (param->NCenter.vz * count)) /
-                 FLYWIRE_STRAIGHTEN_FRAMES;
-        pos = tmp;
         SetWire(&param->start, &param->end, &pos, FIXED_ONE);
         if (param->count >= FLYWIRE_STRAIGHTEN_FRAMES)
         {

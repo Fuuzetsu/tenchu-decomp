@@ -33,14 +33,10 @@
  * END PSX.SYM */
 
 extern void DrawBleed(TEffectSlot *ef);
-extern void *memset(void *s, int c, u32 n);
 extern int rand(void);
 
 void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, long col)
 {
-    VECTOR npos;
-    VECTOR work;
-    long b;
     int btime;
 
     do
@@ -49,74 +45,51 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
         {
             return;
         }
-        memset(&work, 0, sizeof(VECTOR));
-        b = pos->vx;
-        if (grange * 2 > 0)
         {
-            work.vx =
-                b + (rand() % (grange * 2) - grange);
-        }
-        else
-        {
-            work.vx = b - grange;
-        }
-        b = pos->vy;
-        if (grange * 2 > 0)
-        {
-            work.vy =
-                b + (rand() % (grange * 2) - grange);
-        }
-        else
-        {
-            work.vy = b - grange;
-        }
-        b = pos->vz;
-        if (grange * 2 > 0)
-        {
-            work.vz =
-                b + (rand() % (grange * 2) - grange);
-        }
-        else
-        {
-            work.vz = b - grange;
-        }
-        npos = work;
-        memset(&((SVECTOR *)&work)[1], 0, sizeof(SVECTOR));
-        ((SVECTOR *)&work)[1].vx = vec->vx;
-        ((SVECTOR *)&work)[1].vy = vec->vy;
-        ((SVECTOR *)&work)[1].vz = vec->vz;
-        *(SVECTOR *)&work = ((SVECTOR *)&work)[1];
+            VECTOR npos = {
+                pos->vx + (grange * 2 > 0
+                               ? rand() % (grange * 2) - grange
+                               : -grange),
+                pos->vy + (grange * 2 > 0
+                               ? rand() % (grange * 2) - grange
+                               : -grange),
+                pos->vz + (grange * 2 > 0
+                               ? rand() % (grange * 2) - grange
+                               : -grange)
+            };
+            SVECTOR v = {vec->vx, vec->vy, vec->vz};
 
-        if (time - time / 8 > 0)
-        {
-            btime = rand() % (time - time / 8) + time / 8;
-        }
-        else
-        {
-            btime = time / 8;
-        }
-        {
-            VECTOR *pos = &npos;
-            int time = btime;
-            int idx;
-            TEffectSlot *slot;
-            int count;
-            BleedType *param;
-            u8 r;
+            if (time - time / 8 > 0)
+            {
+                btime = rand() % (time - time / 8) + time / 8;
+            }
+            else
+            {
+                btime = time / 8;
+            }
+            {
+                VECTOR *pos = &npos;
+                int time = btime;
+                int idx;
+                TEffectSlot *slot;
+                int count;
+                BleedType *param;
+                u8 r;
 
-            FIND_EFFECT_SLOT(idx, count, slot, found);
-        found:
-            n--;
-            param = &slot->param.bleed;
-            r = col >> 16;
-            slot->param.bleed.pos = *pos;
-            slot->param.bleed.vec = *(SVECTOR *)&work;
-            param->r = r;
-            param->g = col >> 8;
-            param->time = time;
-            param->b = col;
-            param->mode = 0;
-            slot->proc = DrawBleed;
+                FIND_EFFECT_SLOT(idx, count, slot, found);
+            found:
+                n--;
+                param = &slot->param.bleed;
+                r = col >> 16;
+                slot->param.bleed.pos = *pos;
+                slot->param.bleed.vec = v;
+                param->r = r;
+                param->g = col >> 8;
+                param->time = time;
+                param->b = col;
+                param->mode = 0;
+                slot->proc = DrawBleed;
+            }
         }
     } while (1);
 }
