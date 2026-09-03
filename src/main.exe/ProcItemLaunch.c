@@ -87,7 +87,11 @@ void ProcItemLaunch(TItem *item)
         SetImpact(MODEL_POSITION(item->locate), 4 * FIXED_ONE,
                   IMPACT_SPRITE_HIT);
         SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
-        goto dispose;
+        if (item->proc != 0)
+        {
+            DISPOSE_ITEM(item);
+        }
+        return;
     }
     if (param->fly.mode == FLY_MODE_ARC)
         return;
@@ -121,11 +125,10 @@ void ProcItemLaunch(TItem *item)
     }
 
     case KORO_WATER:
-        dispose:
-            if (item->proc != 0)
-            {
-                DISPOSE_ITEM(item);
-            }
-            return;
+        if (item->proc != 0)
+        {
+            DISPOSE_ITEM(item);
         }
+        return;
     }
+}
