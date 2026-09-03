@@ -4806,7 +4806,7 @@ void ActSQUAT(void)
         return;
 
     item_default:
-        ReqItemDefault(Me_MOTION_C, SelectedItem);
+        ReqItemDefault(Me_MOTION_C, (TItemType)SelectedItem);
         return;
     }
 
