@@ -2264,6 +2264,11 @@ s16 Think3firstattack(void)
 
 static s16 ItemUse(void)
 {
+    enum
+    {
+        SHURIKEN_AIM_TOLERANCE = 100,
+        FIRE_AIM_TOLERANCE = 300
+    };
     Humanoid *me;
     s16 id;
 
@@ -2284,32 +2289,22 @@ static s16 ItemUse(void)
     }
 
     me = Me;
-    if (me->item[ITEM_SHURIKEN] != 0)
+    if (me->item[ITEM_SHURIKEN] == 0 ||
+        __builtin_abs(Degree) >= SHURIKEN_AIM_TOLERANCE)
+    {
+        if (me->item[ITEM_FIRE] == 0 ||
+            __builtin_abs(Degree) >= FIRE_AIM_TOLERANCE)
+        {
+            return;
+        }
+        id = MOT_ITEM_THROW;
+    }
+    else
     {
         id = MOT_SYURI;
-        if (__builtin_abs(Degree) < 100)
-        {
-            goto do_motion;
-        }
     }
 
-    if (me->item[ITEM_FIRE] == 0)
-    {
-        goto end;
-    }
-
-    id = MOT_ITEM_THROW;
-    if (__builtin_abs(Degree) < 300)
-    {
-        goto do_motion;
-    }
-    goto end;
-
-do_motion:
     SetNowMotion(me, id, MOTION_MOVE_APPLY);
-    return;
-
-end:
     return;
 }
 
