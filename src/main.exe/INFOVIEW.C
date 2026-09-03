@@ -1320,7 +1320,7 @@ void PutItemIcon(s32 ItemID, short x, short y, short scale)
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
-void PutNumber(int x, int y, int cols, int n)
+void PutNumber(int x, int y, int cols)
 {
     enum
     {

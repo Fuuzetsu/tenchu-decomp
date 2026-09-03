@@ -24,4 +24,7 @@ extern TAdtSelect DEBUG_MENU_FILE_LOAD_STOCK_LAYOUT_CHOICES[5];
 extern TAdtSelect DEBUG_MENU_STAGE_OPTIONS[11];
 extern TAdtSelect DEBUG_MENU_PLAYER_CHOICE_OPTIONS[7];
 
+/* Retail dropped the demo function's unused fourth parameter. */
+void PutNumber(int x, int y, int value);
+
 #endif

@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "infoview.h"
 #include "images.h"
 #include "padcmd.h"
 #include "sound.h"
@@ -21,8 +22,6 @@ extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
 extern void clear_screen_(void);
 extern void exec_process_(int arg);
 extern short DrawBG(BackGround *bg);
-/* Retail calls this without the definition's unused fourth argument. */
-extern void PutNumber();
 extern void DisposeBG(BackGround *bg);
 extern int check_cheat_command_(s16 pad, s16 newpress);
 extern void briefing_screen_(void);
