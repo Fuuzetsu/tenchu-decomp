@@ -84,7 +84,7 @@ typedef struct
 
 extern LifeBarSpriteEntry LifeBarParts[];
 
-void init_lifebar_(void)
+static void init_lifebar_(void)
 {
     u8 image[25];
     GsSPRITE *slot;
@@ -205,7 +205,7 @@ void InitializeInfoView(void)
 extern s32 StrainRatio;
 extern u16 StrainPhase;
 
-void PutStrain(s32 x, s32 y)
+static void PutStrain(s32 x, s32 y)
 {
     enum
     {
@@ -319,7 +319,7 @@ void PutStrain(s32 x, s32 y)
  *     extern long GameClock;
  * END PSX.SYM */
 
-void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
+static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
 {
     GsSPRITE *img;
     GsSPRITE *ou;
@@ -412,7 +412,7 @@ void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
  *     extern struct INFOVIEW__198fake LifeBar[4];
  * END PSX.SYM */
 
-s32 PutLifeBarS(void)
+static s32 PutLifeBarS(void)
 {
     s32 i;
 
@@ -489,7 +489,7 @@ loop:
     NumberImage.u = ou;
 }
 
-void PutItemList(void)
+static void PutItemList(void)
 {
     enum
     {
@@ -573,7 +573,7 @@ extern char str_select_item[]; /* "select item" */
 
 extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
-void AddItem2(void)
+static void AddItem2(void)
 {
     s32 n;
     s32 sx, cx;
@@ -642,7 +642,7 @@ void AddItem2(void)
  *     extern enum TSystemFlag SystemFlag;
  * END PSX.SYM */
 
-void DrawPause(int frame)
+static void DrawPause(int frame)
 {
     DISPENV o_disp;
     DRAWENV o_draw;
@@ -769,7 +769,7 @@ extern short check_cheat_command_(short pad, short trg);
 extern int VSync(int mode);
 extern void SsSetMVol(int voll, int volr);
 
-void PauseProc(void)
+static void PauseProc(void)
 {
     s16 pad;
     s16 cur;
@@ -899,7 +899,7 @@ extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
 extern void draw_map_items_(s32 x, s32 z, MapPlacementType *placement);
 extern void AddXF4(void *ot, POLY_XF4 *ply);
 
-void PutMap(void)
+static void PutMap(void)
 {
     POLY_XF4 *ply;
     s32 rgb;
