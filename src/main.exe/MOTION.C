@@ -335,8 +335,7 @@ short FallCheck(void)
                 RefrectMove[Me_MOTION_C->map.angleH][1]) >> 2;
     motMODE = MOTION_MOVE_NONE;
     motID = MOT_STATE_FALL;
-    SET_NOW_MOTION_UNLESS_CVA(goto found);
-found:
+    SetNowMotionUnlessCva();
     if (Me_MOTION_C->status == STAT_SQUAT)
     {
         dtM->count >>= 2;
