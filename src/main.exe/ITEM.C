@@ -5520,9 +5520,8 @@ void ReqItemGun(PARAM_ITEM_LAUNCH *p)
     VECTOR *pos;
     Humanoid *aowner;
     s32 atype;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     if (item == 0)
         return;
     INITIALIZE_ITEM_FROM_REQUEST(ProcItemGun);
