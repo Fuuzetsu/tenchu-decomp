@@ -205,63 +205,66 @@ short DrawModel(ModelType *objp)
     GsSetLsMatrix(&mat);
     atr = objp->attribute;
     sz = -1;
-    if ((atr & MODEL_ATTR_HIDDEN) != 0)
-        goto ret;
-    if ((atr & MODEL_ATTR_NOCULL) == 0)
+    if ((atr & MODEL_ATTR_HIDDEN) == 0)
     {
-        sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
-
-        if ((atr & MODEL_ATTR_CULL_BEHIND) == 0 || sz != 0)
+        if ((atr & MODEL_ATTR_NOCULL) == 0)
         {
-            if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
+            sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
+
+            if ((atr & MODEL_ATTR_CULL_BEHIND) == 0 || sz != 0)
             {
-                iv = rxy[0];
-                if (iv < 0)
+                if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
                 {
-                    iv = -iv;
-                }
-                if (iv <= MODEL_CULL_X_LIMIT)
-                {
-                    iv = rxy[1];
+                    iv = rxy[0];
                     if (iv < 0)
                     {
                         iv = -iv;
                     }
-                    if (iv > MODEL_CULL_Y_LIMIT)
+                    if (iv <= MODEL_CULL_X_LIMIT)
+                    {
+                        iv = rxy[1];
+                        if (iv < 0)
+                        {
+                            iv = -iv;
+                        }
+                        if (iv > MODEL_CULL_Y_LIMIT)
+                        {
+                            goto reject;
+                        }
+                    }
+                    else
                     {
                         goto reject;
                     }
                 }
-                else
+                if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
                 {
-                    goto reject;
+                    sz = -1;
+                    goto ret;
                 }
             }
-            if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
+            else
             {
-                sz = -1;
-                goto ret;
+                goto reject;
             }
+        }
+        sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
+        if (sz > DEPTH_LIMIT)
+        {
+        reject:
+            sz = -1;
         }
         else
         {
-            goto reject;
+            if (sz >= FOG_DEPTH)
+            {
+                DrawTMDmode = TMD_BANK_FOG;
+            }
+            else
+            {
+                DrawTMDmode = TMD_BANK_PLAIN;
+            }
         }
-    }
-    sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
-    if (sz > DEPTH_LIMIT)
-    {
-    reject:
-        sz = -1;
-        goto ret;
-    }
-    if (sz >= FOG_DEPTH)
-    {
-        DrawTMDmode = TMD_BANK_FOG;
-    }
-    else
-    {
-        DrawTMDmode = TMD_BANK_PLAIN;
     }
 ret:
     if (sz == -1)
