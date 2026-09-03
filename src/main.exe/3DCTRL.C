@@ -476,13 +476,15 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
             {
             reject:
                 result = -1;
-                goto tail;
             }
-            if (sz >= FOG_DEPTH)
-                DrawTMDmode = TMD_BANK_FOG;
             else
-                DrawTMDmode = TMD_BANK_PLAIN;
-            result = sz;
+            {
+                if (sz >= FOG_DEPTH)
+                    DrawTMDmode = TMD_BANK_FOG;
+                else
+                    DrawTMDmode = TMD_BANK_PLAIN;
+                result = sz;
+            }
         tail:
             if (result + gap < 0)
             {
