@@ -3994,7 +3994,7 @@ void ProcItemKaengeki(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(&request, 0, sizeof(request));
+            request = (PARAM_ITEM_LAUNCH){0};
             request.type = itemID;
             request.user = human;
             request.start.vx = pos->vx;
