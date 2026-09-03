@@ -4,8 +4,6 @@
 #include "item.h"
 #include "sound.h"
 
-extern SVECTOR svec_y_n25[]; /* {0,-25,0} */
-
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern void reset_alert_duration(void);
 
@@ -153,7 +151,11 @@ void ProcItemJirai(TItem *item)
     case JIRAI_MODE_EXPLODE:
     {
         {
-            SVECTOR velocity = svec_y_n25[0];
+            SVECTOR velocity = {
+                .vx = 0,
+                .vy = -25,
+                .vz = 0
+            };
             VECTOR position = {
                 .vx = item->locate->locate.coord.t[0],
                 .vy = item->locate->locate.coord.t[1],
