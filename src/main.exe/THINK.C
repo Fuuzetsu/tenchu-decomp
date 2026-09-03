@@ -2033,84 +2033,76 @@ s16 Think3area(void)
                 Me->actflg = 0;
             }
         }
-        goto return_pad;
     }
-
-    if ((Attrib & ATTR_HIT) != 0)
+    else
     {
-        Me->actflg = 1;
-    }
-
-    if (dist < 2000)
-    {
-        s32 degree;
-
-        if ((Me->motion->count & 7) != 0)
+        if ((Attrib & ATTR_HIT) != 0)
         {
-            pad = Me->pad.data;
-        }
-        else if (Degree > 500)
-        {
-            pad = PADLright;
-        }
-        else if (Degree < -500)
-        {
-            pad = PADLleft;
-        }
-        else if (rand() % 10 == 0)
-        {
-            SetNowMotion(Me, MOT_ATTACK_TAUNT,
-                         MOTION_MOVE_APPLY); /* taunt */
             Me->actflg = 1;
         }
 
-        if (Distance >= AREA_ENGAGE_RANGE)
+        if (dist < 2000)
         {
-            goto return_pad;
-        }
+            s32 degree;
 
-        degree = __builtin_abs(Degree);
+            if ((Me->motion->count & 7) != 0)
+            {
+                pad = Me->pad.data;
+            }
+            else if (Degree > 500)
+            {
+                pad = PADLright;
+            }
+            else if (Degree < -500)
+            {
+                pad = PADLleft;
+            }
+            else if (rand() % 10 == 0)
+            {
+                SetNowMotion(Me, MOT_ATTACK_TAUNT,
+                             MOTION_MOVE_APPLY); /* taunt */
+                Me->actflg = 1;
+            }
 
-        if (degree < 100)
-        {
-            pad = SetCommand(&Me->pad, CMD_LUNGE);
+            if (Distance < AREA_ENGAGE_RANGE)
+            {
+                degree = __builtin_abs(Degree);
+
+                if (degree < 100)
+                {
+                    pad = SetCommand(&Me->pad, CMD_LUNGE);
+                }
+                else if (degree < 1000)
+                {
+                    pad |= PADRleft;
+                }
+                Me->actflg = 1;
+            }
         }
-        else if (degree < 1000)
+        else
         {
-            pad |= PADRleft;
+            pad = GotoPosition(xx, zz);
+            if ((Attrib & ATTR_WALL) != 0)
+            {
+                Me->actflg = 1;
+            }
+            if (Me->motion->count == 0 && Distance < 3000)
+            {
+                s32 degree;
+
+                degree = Degree;
+                if (degree < 0)
+                {
+                    degree = -degree;
+                }
+                if (degree < 1000)
+                {
+                    pad |= PADRleft;
+                }
+            }
         }
-        Me->actflg = 1;
-        goto return_pad;
     }
 
-    pad = GotoPosition(xx, zz);
-    if ((Attrib & ATTR_WALL) != 0)
-    {
-        Me->actflg = 1;
-    }
-    if (Me->motion->count != 0)
-    {
-        goto return_pad;
-    }
-    if (Distance >= 3000)
-    {
-        goto return_pad;
-    }
-    {
-        s32 degree;
-
-        degree = Degree;
-        if (degree < 0)
-        {
-            degree = -degree;
-        }
-        if (degree < 1000)
-        {
-            pad |= PADRleft;
-        }
-    }
-
-return_pad:
     return pad;
 }
 
