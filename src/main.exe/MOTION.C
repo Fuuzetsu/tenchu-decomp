@@ -19,7 +19,6 @@
  */
 
 extern Humanoid *Me_MOTION_C;
-extern void (*ActionFunc[N_CHARACTER_STATUSES])(void);
 extern MapVector map;
 extern s16 ARMOUR_EQUIPPED_;
 extern Humanoid *DeadHumanoid;
@@ -54,6 +53,45 @@ void set_model_hide_(Humanoid *human, short hide);
 void AttackCancelControl(s16 mode);
 void bow_shoot_logic(s16 kind, VECTOR *start);
 void ReturnNormal(void);
+void ActNORMAL(void);
+void ActACTION(void);
+void ActMOVE(void);
+void ActSWIM(void);
+void ActKAGI(void);
+void ActENGAGE(void);
+void ActCHASE(void);
+void ActATTACK(void);
+void ActSTATE(void);
+void ActJUMP(void);
+void ActHANG(void);
+void ActSQUAT(void);
+void ActSTICKON(void);
+void ActCEILHANG(void);
+void ActSYURI(void);
+void ActITEM(void);
+void ActDAMAGE(void);
+void ActDEAD(void);
+
+static void (*ActionFunc[N_CHARACTER_STATUSES])(void) = {
+    ActNORMAL,
+    ActACTION,
+    ActMOVE,
+    ActSWIM,
+    ActKAGI,
+    ActENGAGE,
+    ActCHASE,
+    ActATTACK,
+    ActSTATE,
+    ActJUMP,
+    ActHANG,
+    ActSQUAT,
+    ActSTICKON,
+    ActCEILHANG,
+    ActSYURI,
+    ActITEM,
+    ActDAMAGE,
+    ActDEAD
+};
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
