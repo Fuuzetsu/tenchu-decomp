@@ -3966,22 +3966,8 @@ void ActSTATE(void)
             {
                 if (Me_MOTION_C->type > AYAME_1)
                 {
-                    if (Me_MOTION_C == StagePlayer)
-                    {
-                        SetCameraMode(CMODE_NORMAL);
-                    }
-                    {
-                        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
-                        {
-                            t = MOT_ENGAGE_STANCE;
-                        }
-                        else
-                        {
-                            goto zero_motion;
-                        }
-                        motID = t;
-                    }
-                    break;
+                    SELECT_RETURN_MOTION();
+                    return;
                 }
             }
             if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) == 0)
@@ -4032,7 +4018,8 @@ void ActSTATE(void)
             {
                 return;
             }
-            goto zero_motion;
+            SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
+            return;
 
         }
         if (dtM->count == dtM->motion->time / 2)
@@ -4147,22 +4134,8 @@ void ActSTATE(void)
             {
                 CamState.snap_pending = 1;
             }
-            if (Me_MOTION_C == StagePlayer)
-            {
-                SetCameraMode(CMODE_NORMAL);
-            }
-            {
-                if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
-                {
-                    t = MOT_ENGAGE_STANCE;
-                }
-                else
-                {
-                    goto zero_motion;
-                }
-                motID = t;
-            }
-            goto positive_motion;
+            SELECT_RETURN_MOTION();
+            return;
         }
         dtV->vx -= dtV->vx >> 2;
         dtV->vz -= dtV->vz >> 2;
@@ -4195,27 +4168,13 @@ void ActSTATE(void)
         {
             return;
         }
-        if (Me_MOTION_C == StagePlayer)
-        {
-            SetCameraMode(CMODE_NORMAL);
-        }
-        if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
-        {
-            motID = MOT_ENGAGE_STANCE;
-            break;
-        }
-    zero_motion:
-        SET_MOTION(MOT_NORMAL, MOTION_MOVE_APPLY);
+        SELECT_RETURN_MOTION();
         return;
 
     default:
     case MOT_STATE_VARIANT_2:
         return;
     }
-    motMODE = MOTION_MOVE_APPLY;
-    return;
-positive_motion:
-    motMODE = MOTION_MOVE_APPLY;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
