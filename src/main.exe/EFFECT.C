@@ -3099,8 +3099,6 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         VECTOR *position_base;
         VECTOR *position;
         short time;
-        int idx;
-        int count;
         TEffectSlot *slot;
         FrameType *frame;
 
@@ -3126,8 +3124,7 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
         time = rand() % 60 + 60;
         position = position_base;
 
-        FIND_EFFECT_SLOT(idx, count, slot, found);
-    found:
+        slot = GetFreeEffectSlot();
         frame = &slot->param.frame;
         frame->px = position->vx;
         frame->py = position->vy;
