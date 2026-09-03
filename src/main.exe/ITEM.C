@@ -707,13 +707,15 @@ static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh
     if (time > 0)
     {
         fly->count = len / time;
-        if ((fly->count & 0xff) != 0)
+        if ((fly->count & 0xff) == 0)
         {
-            goto skip_default;
+            fly->count = 1;
         }
     }
-    fly->count = 1;
-skip_default:
+    else
+    {
+        fly->count = 1;
+    }
     /* These biased shifts implement signed division with truncation toward zero. */
     x_product = len * (yw / 2);
     fly->count2 = fly->count;
