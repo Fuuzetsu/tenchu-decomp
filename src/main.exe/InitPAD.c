@@ -6,8 +6,6 @@
  * shape: critical section, SysDeq/SysEnqIntRP(1, element) with the pad
  * handlers, return 1) — the patched pad path calls it directly instead
  * of the BIOS StartPAD2 stub. Invented name. */
-extern s32 PadInitFlag;
-
 long InitPAD(char *buf0, long len0, char *buf1, long len1)
 {
     _remove_ChgclrPAD();

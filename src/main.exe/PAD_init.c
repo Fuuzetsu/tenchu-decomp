@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include <psxsdk/libpad.h>
 
-extern s32 PadInitFlag;
-
 void PAD_init(char *buf0, long len0, char *buf1, long len1)
 {
     _remove_ChgclrPAD();

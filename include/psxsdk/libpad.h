@@ -16,5 +16,6 @@ void PAD_init2(char *buffer0, long length0, char *buffer1, long length1);
 void kernel_start_pad_(void);
 void _patch_pad(void);
 void _remove_ChgclrPAD(void);
+extern int PadInitFlag;
 
 #endif
