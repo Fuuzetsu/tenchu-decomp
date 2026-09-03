@@ -101,17 +101,21 @@
 
       # maspsx: post-processes cc1's asm so GNU as reproduces PSY-Q ASPSX bytes
       # (replaces ASPSX.EXE — no wine needed). Single-file, stdlib-only Python.
-      # Patched (nix/maspsx-gp-extern.patch) to add an opt-in `--gp-extern SYM`
-      # flag: ASPSX gp-addresses only symbols *defined* in the file it assembles
-      # (verified against the original binary — think's TU gp-addresses
-      # EmergencyNotice while the item TU addresses the same symbol
-      # absolutely), but this decomp declares everything `extern` (fixed-address
-      # link). Per file, Build.hs lists the smalls the ORIGINAL translation unit
-      # defined (maspsxGpExterns) so exactly those go via $gp — e.g. Think1sleep.
+      # Patched to accept GCC's inline STABS small-data records and to add an
+      # opt-in `--gp-extern SYM` flag. ASPSX gp-addresses only symbols *defined*
+      # in the file it assembles (verified against the original binary — think's
+      # TU gp-addresses EmergencyNotice while the item TU addresses the same
+      # symbol absolutely), but this decomp declares everything `extern`
+      # (fixed-address link). Per file, Build.hs lists the smalls the ORIGINAL
+      # translation unit defined (maspsxGpExterns) so exactly those go via $gp —
+      # e.g. Think1sleep.
       maspsx-src = pkgs.applyPatches {
         name = "maspsx-patched";
         src = inputs.maspsx;
-        patches = [ ./nix/maspsx-gp-extern.patch ];
+        patches = [
+          ./nix/maspsx-gp-extern.patch
+          ./nix/maspsx-stabs.patch
+        ];
       };
       maspsx-bin = pkgs.writeShellScriptBin "maspsx" ''
         exec ${pkgs.python3}/bin/python3 ${maspsx-src}/maspsx.py "$@"

@@ -1,0 +1,12 @@
+--- a/maspsx/__init__.py
++++ b/maspsx/__init__.py
+@@ -486,4 +486,9 @@
+             if in_sdata:
++                # STABS directives describe symbols but occupy no small data.
++                # GCC emits them inline for file-local variables under -gstabs.
++                if line.startswith(".stab"):
++                    continue
++
+                 # NOTE: newer compilers emit .size for sdata, old ones do not...
+                 if match := re.match(r"\.size\s+([^,]+),([0-9]+)", line):
+                     current_symbol = match.group(1)
