@@ -5,8 +5,6 @@
 #include "sound.h"
 #include "tuning.h"
 
-extern SVECTOR svec_y_n150[];
-
 extern s32 is_humanoid_on_stage_(Humanoid *human);
 extern s16 Think1sleep(void);
 
@@ -194,7 +192,11 @@ void ProcItemNemuri(TItem *item)
 
                     SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
                     {
-                        SVECTOR smoke_velocity = svec_y_n150[0];
+                        SVECTOR smoke_velocity = {
+                            .vx = 0,
+                            .vy = -150,
+                            .vz = 0
+                        };
                         VECTOR smoke_position = {
                             .vx = hit_human->model->locate.coord.t[0],
                             .vy = hit_human->model->locate.coord.t[1],
