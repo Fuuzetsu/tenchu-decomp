@@ -29,7 +29,6 @@
  * END PSX.SYM */
 
 extern Humanoid *NINKEN_CHARACTER_PTR;
-extern SVECTOR svec_y_n50[]; /* {0,-50,0} */
 
 extern void MoveKorogari(TItem *item, param_korogari *param);
 extern s32 is_humanoid_on_stage_(Humanoid *human);
@@ -205,7 +204,11 @@ void ProcItemNinken(TItem *item)
                 return;
             }
 
-            *(SVECTOR *)&work = svec_y_n50[0];
+            *(SVECTOR *)&work = (SVECTOR){
+                .vx = 0,
+                .vy = -50,
+                .vz = 0
+            };
             SetSmoke(&pos, (SVECTOR *)&work, 10, 6);
             SoundEx(&pos, SE_SMOKE_PUFF);
             param->slave = NINKEN_CHARACTER_PTR;
@@ -273,9 +276,11 @@ void ProcItemNinken(TItem *item)
         {
         expire:
         {
-            SVECTOR vec;
-
-            vec = svec_y_n50[0];
+            SVECTOR vec = {
+                .vx = 0,
+                .vy = -50,
+                .vz = 0
+            };
             SetSmoke(MODEL_POSITION(param->slave->model),
                      &vec, 10, 6);
             SoundEx(MODEL_POSITION(param->slave->model), SE_SMOKE_PUFF);
