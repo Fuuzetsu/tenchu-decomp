@@ -2466,10 +2466,9 @@ static short AttackShort(void)
         {
             Me->actmode = MELEE_ATTACK_ENGAGED;
         }
-        goto return_pad;
     }
 
-    if ((motion->count & (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
+    else if ((motion->count & (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
     {
         s32 raw_degree;
         s32 degree;
@@ -2499,10 +2498,8 @@ static short AttackShort(void)
                 pad = SetCommand(&Me->pad, CMD_LUNGE);
             }
         }
-        goto return_pad;
     }
-
-    if (Distance > 4000)
+    else if (Distance > 4000)
     {
         Humanoid *me;
 
@@ -2515,119 +2512,114 @@ static short AttackShort(void)
         {
             pad = PADLup | PADRdown;
         }
-        goto return_pad;
     }
-
-    if ((Attrib & ATTR_WALL) != 0)
+    else
     {
-        Me->actmode = MELEE_ATTACK_CLOSING;
-    }
-
-    if (Degree > 500)
-    {
-        pad = PADLright;
-    }
-    else if (Degree < -500)
-    {
-        pad = PADLleft;
-    }
-
-    if (Distance > 1500 && Distance < 4000)
-    {
-        s32 attack_degree;
-
-        attack_degree = Degree;
-        if (attack_degree < 0)
+        if ((Attrib & ATTR_WALL) != 0)
         {
-            attack_degree = -attack_degree;
+            Me->actmode = MELEE_ATTACK_CLOSING;
         }
-        if (attack_degree < 1000 &&
-            rand() % (EngageLevel + 1) == 0 &&
-            GameClock > AttackActionCount)
+
+        if (Degree > 500)
         {
-            AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
-            if (rand() % 3 == 0)
+            pad = PADLright;
+        }
+        else if (Degree < -500)
+        {
+            pad = PADLleft;
+        }
+
+        if (Distance > 1500 && Distance < 4000)
+        {
+            s32 attack_degree;
+
+            attack_degree = Degree;
+            if (attack_degree < 0)
             {
-                pad = PADLdown;
+                attack_degree = -attack_degree;
             }
-            return pad | PADRleft;
-        }
-    }
-
-    {
-        s32 raw_degree;
-        s32 degree;
-
-        raw_degree = Degree;
-        degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-        if (degree > 1500)
-        {
-            pad |= PADLdown;
-            goto return_pad;
-        }
-
-        if (Distance > 3000)
-        {
-            if (degree < 200 && Distance > 3500)
+            if (attack_degree < 1000 &&
+                rand() % (EngageLevel + 1) == 0 &&
+                GameClock > AttackActionCount)
             {
-                if ((rand() & 1) != 0)
+                AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
+                if (rand() % 3 == 0)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_FORWARD);
+                    pad = PADLdown;
                 }
-                else if ((rand() & 1) != 0)
+                return pad | PADRleft;
+            }
+        }
+
+        {
+            s32 raw_degree;
+            s32 degree;
+
+            raw_degree = Degree;
+            degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            if (degree > 1500)
+            {
+                pad |= PADLdown;
+            }
+            else if (Distance > 3000)
+            {
+                if (degree < 200 && Distance > 3500)
                 {
-                    pad = SetCommand(&Me->pad, CMD_LUNGE);
+                    if ((rand() & 1) != 0)
+                    {
+                        pad = SetCommand(&Me->pad, CMD_DASH_FORWARD);
+                    }
+                    else if ((rand() & 1) != 0)
+                    {
+                        pad = SetCommand(&Me->pad, CMD_LUNGE);
+                    }
+                    else
+                    {
+                        ItemUse();
+                    }
                 }
                 else
                 {
-                    ItemUse();
+                    pad |= PADLup;
                 }
             }
-            else
+            else if (Distance < 1500)
             {
-                pad |= PADLup;
-            }
-            goto return_pad;
-        }
-
-        if (Distance < 1500)
-        {
-            if (raw_degree > 300)
-            {
-                pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
-            }
-            else if (raw_degree < -300)
-            {
-                pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
-            }
-            else if (Distance >= 1000)
-            {
-                pad |= PADRleft;
-            }
-            else
-            {
-                pad = PADRleft | PADRright;
-                if ((rand() & 1) != 0)
+                if (raw_degree > 300)
                 {
-                    pad = PADLdown | PADRdown;
+                    pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
+                }
+                else if (raw_degree < -300)
+                {
+                    pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
+                }
+                else if (Distance >= 1000)
+                {
+                    pad |= PADRleft;
+                }
+                else
+                {
+                    pad = PADRleft | PADRright;
+                    if ((rand() & 1) != 0)
+                    {
+                        pad = PADLdown | PADRdown;
+                    }
                 }
             }
-            goto return_pad;
-        }
-
-        if ((rand() & 1) != 0)
-        {
-            if (Degree > 100)
+            else if ((rand() & 1) != 0)
             {
-                pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
-            }
-            else if (Degree < -100)
-            {
-                pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
-            }
-            else
-            {
-                pad = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
+                if (Degree > 100)
+                {
+                    pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
+                }
+                else if (Degree < -100)
+                {
+                    pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
+                }
+                else
+                {
+                    pad = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
+                }
             }
         }
     }
