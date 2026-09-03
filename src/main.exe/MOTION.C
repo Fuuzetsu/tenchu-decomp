@@ -1241,8 +1241,7 @@ resolve_hit:
                     if (deg != DAMAGE_MOTION_LAUNCH_TIER)
                     {
                         SET_MOTION(MOT_DEAD, MOTION_MOVE_APPLY);
-                        SET_NOW_MOTION_UNLESS_CVA(goto death_motion_set);
-                    death_motion_set:
+                        SetNowMotionUnlessCva();
                         if ((rand() & 1) != 0)
                         {
                             SET_MOTION(MOT_DEAD_ALT, MOTION_MOVE_APPLY);
