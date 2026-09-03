@@ -2624,9 +2624,7 @@ void ActKAGI(void)
                 adjust_root->rotate.vy += old_ry - quantized;
                 motMODE = MOTION_MOVE_NONE;
                 dtM->mask = MOTION_MASK_ALL;
-                SET_NOW_MOTION_UNLESS_CVA(goto motion_active);
-
-            motion_active:
+                SetNowMotionUnlessCva();
                 dtM->count >>= 1;
                 if (Me_MOTION_C->map.vector != MAP_PROBE_ALL)
                 {
