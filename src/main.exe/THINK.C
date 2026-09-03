@@ -3085,72 +3085,70 @@ static short AttackIndirect(void)
         {
             degree = -degree;
         }
-        if (degree >= 1000)
+        if (degree < 1000)
         {
-            goto close_not_aimed;
-        }
+            pad = GotoPosition(0, 0) & (PADLleft | PADLright);
+            if ((u32)(Distance - 1000) > 3000 - 1000)
+            {
+                pad |= PADLdown;
+            }
 
-        pad = GotoPosition(0, 0) & (PADLleft | PADLright);
-        if ((u32)(Distance - 1000) > 3000 - 1000)
-        {
-            pad |= PADLdown;
+            degree = Degree;
+            if (degree < 0)
+            {
+                degree = -degree;
+            }
+            if (degree < 200 && Me->motion->mid == MOT_ENGAGE_STANCE)
+            {
+                pad = PADRleft;
+            }
         }
-
-        degree = Degree;
-        if (degree < 0)
+        else
         {
-            degree = -degree;
+            pad = PADLup;
         }
-        if (degree < 200 && Me->motion->mid == MOT_ENGAGE_STANCE)
-        {
-            pad = PADRleft;
-        }
-        goto action_ready;
-
-    close_not_aimed:
-        pad = PADLup;
-        goto action_ready;
-    }
-
-    if (rand() % (EngageLevel * 4) == 0)
-    {
-        degree = Degree;
-        if (degree < 0)
-        {
-            degree = -degree;
-        }
-        if (degree < 200 && Me->motion->mid == MOT_ENGAGE_STANCE)
-        {
-            pad = PADRleft;
-        }
-    }
-
-    if (Distance > 15000)
-    {
-        pad = GotoPosition(0, 0);
-    }
-    else if (Degree > 200)
-    {
-        pad = PADLright;
-    }
-    else if (Degree > 100)
-    {
-        pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
-    }
-    else if (Degree < -200)
-    {
-        pad = PADLleft;
-    }
-    else if (Degree < -100)
-    {
-        pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
     }
     else
     {
-        ItemUse();
+        if (rand() % (EngageLevel * 4) == 0)
+        {
+            degree = Degree;
+            if (degree < 0)
+            {
+                degree = -degree;
+            }
+            if (degree < 200 && Me->motion->mid == MOT_ENGAGE_STANCE)
+            {
+                pad = PADRleft;
+            }
+        }
+
+        if (Distance > 15000)
+        {
+            pad = GotoPosition(0, 0);
+        }
+        else if (Degree > 200)
+        {
+            pad = PADLright;
+        }
+        else if (Degree > 100)
+        {
+            pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
+        }
+        else if (Degree < -200)
+        {
+            pad = PADLleft;
+        }
+        else if (Degree < -100)
+        {
+            pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
+        }
+        else
+        {
+            ItemUse();
+        }
     }
 
-action_ready:
     if (pad == PADRleft)
     {
         Me->rotate->vy += Degree;
