@@ -671,9 +671,7 @@ void DrawBlood(TEffectSlot *ef)
 
 void SetBlood(VECTOR *pos, short n, short time)
 {
-    int idx;
     TEffectSlot *slot;
-    int count;
     BloodType *blood;
     struct AreaNodeType *hint;
     short i;
@@ -690,8 +688,7 @@ void SetBlood(VECTOR *pos, short n, short time)
         {
             return;
         }
-        FIND_EFFECT_SLOT(idx, count, slot, found);
-    found:
+        slot = GetFreeEffectSlot();
         blood = &slot->param.blood;
         blood->sprite = rand() % N_AIRBORNE_BLOOD_SPRITES;
         blood->scale = rand() % FIXED_ONE + 2 * FIXED_ONE;
