@@ -62,6 +62,17 @@
         "Think4contact",
         "Think4chase"
       ]
+    },
+    {
+      "source": "THINK_2.C",
+      "functions": [
+        "Think2confirm",
+        "Think2contact"
+      ],
+      "debug_symbol_order": [
+        "Think2confirm",
+        "Think2contact"
+      ]
     }
   ]
 }

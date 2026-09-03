@@ -344,7 +344,7 @@ GP_EXTERNS = {
     "publish_ground_point_": ["Me_MOTION_C", "dtL"],
     "init_score_stats": ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"],
     "is_humanoid_on_stage_": ["Humans"],
-    "Think2contact": ["Attrib", "Me_THINK_C", "Degree"],
+    "THINK_2": ["Attrib", "Me_THINK_C", "Degree"],
     "draw_visible_characters_": ["VISIBLE_ENEMIES_"],
     "GotoPosition": ["Me_THINK_C", "Degree", "Attrib", "ProbeLevelLow"],
     "Think1trace": ["Me_THINK_C", "Degree", "Attrib"],
