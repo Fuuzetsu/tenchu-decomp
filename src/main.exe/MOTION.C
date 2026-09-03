@@ -30,7 +30,6 @@ short FallCheck(void);
 short HangCheck(void);
 void DamageControl(void);
 short MotionAndMove(void);
-void set_model_hide_(Humanoid *human, short hide);
 void AttackCancelControl(s16 mode);
 void bow_shoot_logic(s16 kind, VECTOR *start);
 void ReturnNormal(void);

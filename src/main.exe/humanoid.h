@@ -198,6 +198,7 @@ extern struct Humanoid *CreateHumanoid(character_kind type,
 extern void KillHumanoid(struct Humanoid *human);
 extern short ControlAllHumanoid(void);
 extern void ControlHumanoid(struct Humanoid *human);
+extern void HumanActionControl(struct Humanoid *human);
 extern void draw_visible_characters_(void);
 extern s32 is_humanoid_on_stage_(struct Humanoid *human);
 extern short DefaultActionHumanoid(struct Humanoid *human);
@@ -214,5 +215,8 @@ extern void MoveHumanoid(struct Humanoid *human, short ordr, short side);
 extern void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side);
 /* Retail widened the demo's short roty parameter; the callee uses it directly. */
 extern s16 GetDirection(s32 dx, s32 dz, s32 roty);
+extern long GetTargetDistance(struct Humanoid *human, short *direction);
+extern short NowReturnNormal(struct Humanoid *human);
+extern void set_model_hide_(struct Humanoid *human, s16 hide);
 
 #endif

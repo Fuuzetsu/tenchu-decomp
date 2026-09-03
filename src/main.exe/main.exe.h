@@ -382,7 +382,5 @@ extern int TotalIO;
 extern POLY_GT4 AccessImage;
 
 extern void SetupSoundEffect(character_kind character, short stage);
-extern short NowReturnNormal(struct Humanoid *human);
 extern void eval_spline_gte_(SVECTOR *out, SplineControlType *spc,
                              SVECTOR *basis);
-extern long GetTargetDistance(struct Humanoid *human, short *deg);

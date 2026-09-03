@@ -25,8 +25,6 @@ extern char fmt_dbg_word[];       /* ~c880%04x=%02x  */
 extern char fmt_dbg_pair[];       /* ~c080%02x/%d%d  */
 extern char fmt_dbg_rot[];
 
-extern void HumanActionControl(Humanoid *human);
-
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.

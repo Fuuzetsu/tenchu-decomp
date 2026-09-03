@@ -4114,8 +4114,6 @@ static int ReqItemKaengeki(PARAM_ITEM_LAUNCH *p)
 
 extern Humanoid *NINKEN_CHARACTER_PTR;
 
-extern void set_model_hide_(Humanoid *human, s16 hide);
-
 static void ProcItemNinken(TItem *item)
 {
     enum
