@@ -21,13 +21,10 @@ extern RECT BriefingVramRect[];
 extern void SelectStage(TLinkInfo *ps);
 extern void InitConflict(void);
 extern void DemoPatchInit(void);
-extern void CreateStage(stage_id stage, s32 chr);
 /* Retail calls the s32-returning definition through an s16 declaration. */
 extern short StageSequence(void);
 extern void StageEndScreen(void);
 extern void game_over_screen_(void);
-extern void ActivateHumans(void);
-extern void DrawConstruction(void);
 extern void BriefingAndInventorySelectionScreen(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
