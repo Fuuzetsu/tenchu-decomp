@@ -15,6 +15,7 @@
 #include "tmdfile.h"
 #include "misc.h"
 #include "model.h"
+#include "sound.h"
 #include "vmemory.h"
 #include "padcmd.h"
 #include "tmdfast.h"

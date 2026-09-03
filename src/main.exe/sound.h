@@ -52,6 +52,7 @@ extern short PlaySE(struct SoundEffect *effect, short sound_id,
 extern struct SoundEffect *SetupSE(u8 *vab);
 extern void DisposeSE(struct SoundEffect *effect);
 extern void InitSoundEffect(void);
+extern void SetupSoundEffect(s16 character, short stage);
 
 /* Inferred handles for retail sound slots. None of these names survive in
  * PSX.SYM or the game data; they summarize the gameplay role of each known

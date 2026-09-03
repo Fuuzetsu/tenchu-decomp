@@ -380,5 +380,3 @@ extern unsigned char *ImagePath;
 extern int AccessPower;
 extern int TotalIO;
 extern POLY_GT4 AccessImage;
-
-extern void SetupSoundEffect(character_kind character, short stage);
