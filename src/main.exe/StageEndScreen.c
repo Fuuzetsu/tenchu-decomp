@@ -552,15 +552,15 @@ void StageEndScreen(void)
                                                 [PSTATE->StageNo][0];
             layout_index = 0;
         layout_loop:
-            if (layout_record->stageBosses + layout_record->stageEnemies == 0)
-                goto layout_done;
-            layout_index++;
-            if (layout_index < N_STAGE_LAYOUTS)
+            if (layout_record->stageBosses + layout_record->stageEnemies != 0)
             {
-                layout_record++;
-                goto layout_loop;
+                layout_index++;
+                if (layout_index < N_STAGE_LAYOUTS)
+                {
+                    layout_record++;
+                    goto layout_loop;
+                }
             }
-        layout_done:
             if (layout_index == N_STAGE_LAYOUTS)
             {
                 STAGE_LAYOUT_NUMBER = STAGE_LAYOUT_RANDOM;
