@@ -17,42 +17,47 @@ void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
     direction[0] = svec_y_n60_2[0];
     frame = &sprFrame[GameClock % MaxFrames];
 
-    if (msg == MM_CREATE)
-        goto do_create;
-    if (MM_DO <= msg)
-        goto do_draw;
-    return;
-
-do_create:
-    m->mode = 0;
-    return;
-
-do_draw:
-    if (m->mode != 0)
-        return;
-
-    frame->r = frame->g = frame->b = (u8)(rand() % 100 + 100);
-    DrawSpriteXYZ(frame, m->x, m->y, m->z, m->param.bonfire.scale);
-
-    if ((GameClock & 0xF) == 0)
+    switch (msg)
     {
-        VECTOR bleed_pos = {
-            .vx = m->x,
-            .vy = m->y,
-            .vz = m->z
-        };
+    case MM_CREATE:
+        m->mode = 0;
+        break;
 
-        SetBleedsDir(&bleed_pos, direction, 100, 10, 30, RGB24(100, 100, 60));
-    }
+    case MM_DESTROY:
+    case MM_PAUSE:
+    case MM_RESUME:
+        break;
 
-    if (GameClock % 79 == 0)
-    {
-        VECTOR pos = {
-            .vx = m->x,
-            .vy = m->y,
-            .vz = m->z
-        };
+    default:
+        if (m->mode != 0)
+            break;
 
-        SoundEx(&pos, SE_BONFIRE);
+        frame->r = frame->g = frame->b = (u8)(rand() % 100 + 100);
+        DrawSpriteXYZ(frame, m->x, m->y, m->z,
+                      m->param.bonfire.scale);
+
+        if ((GameClock & 0xF) == 0)
+        {
+            VECTOR bleed_pos = {
+                .vx = m->x,
+                .vy = m->y,
+                .vz = m->z
+            };
+
+            SetBleedsDir(&bleed_pos, direction, 100, 10, 30,
+                         RGB24(100, 100, 60));
+        }
+
+        if (GameClock % 79 == 0)
+        {
+            VECTOR pos = {
+                .vx = m->x,
+                .vy = m->y,
+                .vz = m->z
+            };
+
+            SoundEx(&pos, SE_BONFIRE);
+        }
+        break;
     }
 }
