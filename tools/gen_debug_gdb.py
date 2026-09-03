@@ -63,11 +63,14 @@ def objects_for_source_roots(
     for source_root in source_roots:
         if not source_root.is_dir():
             continue
-        relative_sources.update(
-            source.relative_to(source_root).with_suffix(".c")
-            for source in source_root.rglob("*")
-            if source.is_file() and source.suffix.lower() == ".c"
-        )
+        for source in source_root.rglob("*"):
+            if not source.is_file() or source.suffix.lower() != ".c":
+                continue
+            relative = source.relative_to(source_root).with_suffix(".c")
+            unit = SU.explicit_unit_for_function(relative.stem)
+            if unit is not None and unit.combined and unit.stem != relative.stem:
+                continue
+            relative_sources.add(relative)
     return sorted(debug_obj_dir / f"{source}.o" for source in relative_sources)
 
 

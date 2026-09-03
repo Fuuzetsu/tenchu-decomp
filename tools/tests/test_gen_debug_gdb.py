@@ -41,7 +41,9 @@ class ObjectInventoryTests(unittest.TestCase):
             (user / "WORLD.C").write_text("void CreateStage(void) {}\n")
             (generated / "WORLD.c").write_text("generated\n")
             (generated / "Other.c").write_text("generated\n")
+            (generated / "Think4contact.c").write_text("stale generated member\n")
             (objects / "FormerMember.c.o").touch()
+            (objects / "Think4contact.c.o").touch()
 
             self.assertEqual(
                 g.objects_for_source_roots(objects, [user, generated]),

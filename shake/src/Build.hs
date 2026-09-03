@@ -546,7 +546,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "PutStrain" = ["StrainPhase"]
     syms "Think3hitaway" = ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"]
     syms "AttackContinuousCheck" = ["dtM", "Me_MOTION_C"]
-    syms "Think4abandon" = ["Me_THINK_C", "Attrib", "SR", "EmergencyNotice"]
+    syms "THINK_4" = ["Me_THINK_C", "Attrib", "SR", "EmergencyNotice", "Degree"]
     syms "WeaponHitWeapon" = ["Me_MOTION_C", "dtM"]
     syms "dispose_weapon_data_of_char_" = ["Me_MOTION_C", "dtM"]
     syms "SoundEx" = ["StageSE"]
@@ -585,8 +585,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "Think1random" = ["Me_THINK_C", "Attrib"]
     syms "Think1chase" = ["Me_THINK_C"]
     syms "ItemUse" = ["Me_THINK_C", "Degree"]
-    syms "Think4contact" = ["SR", "Attrib", "Me_THINK_C", "Degree"]
-    syms "Think4chase" = ["SR", "Attrib", "Me_THINK_C", "Degree"]
     -- ReqItemDrop.c is part of the original item TU, which defines its
     -- round-robin counter (the item TU's .sdata block starts at 0x80097ac8).
     syms "ReqItemDrop" = ["ic"]

@@ -49,6 +49,19 @@
         "leAddPath",
         "jt_init4"
       ]
+    },
+    {
+      "source": "THINK_4.C",
+      "functions": [
+        "Think4abandon",
+        "Think4contact",
+        "Think4chase"
+      ],
+      "debug_symbol_order": [
+        "Think4abandon",
+        "Think4contact",
+        "Think4chase"
+      ]
     }
   ]
 }
