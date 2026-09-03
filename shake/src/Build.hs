@@ -145,6 +145,7 @@ relocCLiteralReferenceObject name =
   buildDir </> "main.exe" </> objectName name <.> "c.o"
   where
     objectName "ActivateHumans" = "WORLD"
+    objectName "ProcItemShinsoku" = "ITEM"
     objectName member | member `elem` relocAllocatorLiteralNames = "VALLOC"
     objectName member = member
 
@@ -477,6 +478,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     extra "EFFECT" = ["--expand-div"]
     extra "MOTION" = ["--expand-div"]
     extra "INFOVIEW" = ["--expand-div"]
+    extra "ITEM" = ["--expand-div"]
     extra "bow_shoot_logic" = ["--expand-div"]
     extra "Think3escape" = ["--expand-div"]
     extra "think_alarm_reaction_" = ["--expand-div"]
@@ -551,6 +553,7 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "EFFECT" = ["EFFECT_CURSOR_", "ModelHook", "TexScrollX", "TexScrollY", "ShadowMdl", "BLOOD_POOL_MODEL_", "AfterIMG"]
     syms "MOTION" = ["Me_MOTION_C", "dtCMD", "dtPAD", "dtL", "dtR", "dtV", "dtM", "motID", "motMODE", "MotionUpdateMode", "DeadHumanoid", "StickonItem"]
     syms "INFOVIEW" = ["ItemCursor", "MapSlideX", "MapSlideY", "PutMapMode", "SelectedItem", "StrainPhase", "fInitialize"]
+    syms "ITEM" = ["fInitial", "ic", "SyurikenModel", "ArrowModel", "NingyoModel", "HappouModel", "sprNapalm", "sprNapalm2", "NINKEN_CHARACTER_PTR", "NingyoCount", "HenshinItem", "HenshinCount"]
     syms "IMAGES" = ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "ToraVoiceXaName", "IntroVoiceXaName", "ArcData", "Images_fInitialize"]
     syms "PutStrain" = ["StrainPhase"]
     syms "Think3hitaway" = ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"]
