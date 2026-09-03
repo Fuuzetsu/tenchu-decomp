@@ -5,8 +5,6 @@
 #include "effect.h"
 #include "misc.h"
 
-extern SVECTOR svec_y_n60_2[];
-
 extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
 
 void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
@@ -14,7 +12,11 @@ void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
     SVECTOR direction[2];
     GsSPRITE *frame;
 
-    direction[0] = svec_y_n60_2[0];
+    direction[0] = (SVECTOR){
+        .vx = 0,
+        .vy = -60,
+        .vz = 0
+    };
     frame = &sprFrame[GameClock % MaxFrames];
 
     switch (msg)
