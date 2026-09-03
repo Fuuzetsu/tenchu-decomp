@@ -4898,8 +4898,7 @@ void ActSTICKON(void)
             if ((s8)MOTION_STATUS(motID) == STAT_SQUAT)
             {
                 dtM->mask = MOTION_MASK_ALL;
-                SET_NOW_MOTION_UNLESS_CVA(goto stickon_motion_done);
-            stickon_motion_done:
+                SetNowMotionUnlessCva();
                 dtM->count = -5;
                 break;
             }
@@ -5033,8 +5032,7 @@ void ActSTICKON(void)
             if ((s8)MOTION_STATUS(motID) == STAT_SQUAT)
             {
                 dtM->mask = MOTION_MASK_ALL;
-                SET_NOW_MOTION_UNLESS_CVA(goto slide_motion_done);
-            slide_motion_done:
+                SetNowMotionUnlessCva();
                 dtM->count = -5;
                 break;
             }
