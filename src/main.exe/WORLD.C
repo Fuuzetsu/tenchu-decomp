@@ -7,6 +7,7 @@
 #include "adt.h"
 #include "images.h"
 #include "appear.h"
+#include "chranim.h"
 #include "effect.h"
 #include "font.h"
 #include "item.h"
@@ -75,7 +76,6 @@ extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
 static short LoadConstruction(u_long *data);
 extern void InitializeImage(void);
-extern void CVAsetup(void);
 
 void CreateStage(stage_id StageNo, int CharType)
 {

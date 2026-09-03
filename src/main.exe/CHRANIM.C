@@ -5,6 +5,7 @@
 #include "graphics.h"
 #include "adt.h"
 #include "action.h"
+#include "chranim.h"
 #include "effect.h"
 #include "font.h"
 #include "sound.h"
@@ -31,13 +32,6 @@ extern s16 CVAflag;
 extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
-
-s16 CVAsequence(s16 sid);
-s16 CVAupdate(void);
-short CVArun(void);
-void AVCameraSetup(void);
-void AVCameraControl(void);
-void DrawTelop(void);
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 

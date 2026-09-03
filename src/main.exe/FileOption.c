@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "adt.h"
+#include "chranim.h"
 #include "infoview.h"
 #include "layout_save.h"
 #include "memcard.h"
@@ -50,8 +51,6 @@ extern char str_layout_no[]; /* "layout no" */
 extern char fmt_num_2[]; /* "%d" */
 
 extern void InitializeImage(void);
-extern void CVAsetup(void);
-extern void debug_menu_file_animation_test(void);
 void FileOption(void)
 {
     enum FileOptionChoice

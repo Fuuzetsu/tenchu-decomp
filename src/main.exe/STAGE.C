@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "appear.h"
+#include "chranim.h"
 #include "humanoid.h"
 #include "item.h"
 #include "model.h"
@@ -28,8 +29,6 @@ extern char fmt_num_bracket[]; /*  [%d] */
 extern char str_newline_3[];
 extern char fmt_stage_esd[];   /* %sSTAGE%d.ESD */
 extern char path_anim[];       /* K:\\WORK\\CDIMAGE\\ANIM\\ */
-
-extern s16 CVAsequence(s16 sid);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
