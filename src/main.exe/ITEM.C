@@ -2964,7 +2964,7 @@ void ProcItemGosin(TItem *item)
             pos = GetAbsolutePosition(item->locate, 0, 0, 0);
             human = item->owner;
             itemID = item->type;
-            memset(&drop_request, 0, sizeof(PARAM_ITEM_LAUNCH));
+            drop_request = (PARAM_ITEM_LAUNCH){0};
             drop_request.type = itemID;
             drop_request.user = human;
             drop_request.start.vx = pos->vx;
