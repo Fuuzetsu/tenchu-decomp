@@ -3,6 +3,7 @@
 #include "main.exe.h"
 #include "images.h"
 #include "appear.h"
+#include "effect.h"
 #include "item.h"
 #include <psxsdk/libgpu.h>
 #include "tmdfile.h"
@@ -68,7 +69,6 @@ static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
 extern void vfree(void *ptr);
-extern void clear_screen_(void);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *bg);
 static short LoadConstruction(u_long *data);
@@ -1563,7 +1563,6 @@ enemy_layout_index leFindEnemy(void)
  * END PSX.SYM */
 
 
-extern void reset_effects_(void);
 
 void leLayoutEnemy(enemy_layout_mode mode)
 {

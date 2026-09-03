@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "action.h"
 #include "appear.h"
+#include "effect.h"
 #include "humanoid.h"
 #include "item.h"
 #include "model.h"
@@ -28,9 +29,7 @@ extern void *vcalloc(u32 size, u8 c);
 extern void vfree(void *p);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void StateTransition(Humanoid *human);
-extern void DrawShadow(Humanoid *human);
 extern void register_character_death(Humanoid *human);
-extern void spread_blood_pool_(Humanoid *human);
 extern void HumanActionControl(Humanoid *human);
 extern void swap_balma_area_map_(void);
 

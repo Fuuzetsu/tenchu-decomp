@@ -2,6 +2,7 @@
 #include <psxsdk/libgpu.h>
 #include "tuning.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "infoview.h"
 #include "images.h"
 #include "item.h"
@@ -895,9 +896,7 @@ extern s32 MapSlideX;
 extern s32 MapSlideY;
 extern MapPlacementType MapPlacement[N_STAGE_CONFIGS];
 
-extern void SetPolyXF4(POLY_XF4 *ply, short attrib);
 extern void draw_map_items_(s32 x, s32 z, MapPlacementType *placement);
-extern void AddXF4(void *ot, POLY_XF4 *ply);
 
 static void PutMap(void)
 {

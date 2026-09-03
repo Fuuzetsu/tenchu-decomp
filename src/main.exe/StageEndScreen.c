@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "score.h"
 #include "appear.h"
 #include "item.h"
@@ -12,8 +13,6 @@ extern u8 CHOSEN_CHARACTER;
 extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char NUMBER_TIM_PATH[];
-extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
-extern void clear_screen_(void);
 extern void mission_score_screen(s32 stage);
 extern BackGround *load_background_(u_long *tim);
 extern void vfree(void *ptr);

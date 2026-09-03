@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "filesystem.h"
 #include "adt.h"
+#include "effect.h"
 #include "item.h"
 #include "padcmd.h"
 #include "vmemory.h"
@@ -23,7 +24,6 @@ extern void InitFileSystem(file_read_mode mode);
 extern void InitGraphicsSystem(void);
 extern void InitAccessInfo(void);
 extern void InitConflict(void);
-extern void InitEffect(void);
 extern void InitializeInfoView(void);
 extern void InitSoundEffect(void);
 extern void DemoPatchInit(void);
@@ -36,7 +36,6 @@ extern void game_over_screen_(void);
 extern void Camera(void);
 extern void ActivateHumans(void);
 extern void DrawConstruction(void);
-extern void DrawEffect(void);
 extern void DoItemProc(void);
 extern void DoInfoViewProc(void);
 extern void DoMiscProc(void);

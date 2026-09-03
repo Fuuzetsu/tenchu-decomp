@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "appear.h"
 #include <psxsdk/libgpu.h>
 #include "images.h"
@@ -81,8 +82,6 @@ extern u8 STAGE_LAYOUT_NUMBER;
 extern char path_demo_start_fadeio_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim */
 extern char fmt_arc[];                    /* %s%s%c.Arc */
 extern char path_demo[];                  /* K:\\WORK\\CDIMAGE\\DEMO\\ */
-extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
-extern void clear_screen_(void);
 extern s32 VSync(s32 mode);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern int sprintf(char *buffer, char *format, ...);

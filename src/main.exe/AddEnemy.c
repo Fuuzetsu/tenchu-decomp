@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "main.exe.h"
 #include "appear.h"
+#include "effect.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

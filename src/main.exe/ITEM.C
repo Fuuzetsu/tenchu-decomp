@@ -385,7 +385,6 @@ void create_ninken_character_(s16 type, s32 stage)
     }
 }
 
-extern void DrawTargetS(s32 x, s32 y, s32 z, s32 color);
 
 void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
 {
@@ -1521,7 +1520,6 @@ static int ReqItemManebue(PARAM_ITEM_LAUNCH *p)
  *     extern struct TCameraStatus CamState;
  * END PSX.SYM */
 
-extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
 
 void ProcItemShinsoku(TItem *item)
 {
@@ -4725,7 +4723,6 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
  * END PSX.SYM */
 
 extern s32 is_humanoid_on_stage_(Humanoid *human);
-extern void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time);
 extern void reset_alert_duration(void);
 
 void ProcItemFire(TItem *item)

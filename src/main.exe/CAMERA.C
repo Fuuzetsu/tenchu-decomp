@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "item.h"
 #include "padcmd.h"
 #include <psxsdk/libgpu.h>
@@ -46,7 +47,6 @@ extern SVECTOR scratch_rot_1f800040;
 extern s32 scratch_trans_1f800094[2];
 extern s32 scratch_trans_z_1f80009c;
 
-extern long GetVectorLength(long dx, long dy, long dz);
 
 void CameraDirection(Humanoid *pl, GsRVIEW2 *vDif);
 

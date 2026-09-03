@@ -18,8 +18,6 @@ extern u8 *MiscTimNames[7];
 extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
-extern void DrawSpriteXYZ(GsSPRITE *sprt, s32 x, s32 y, s32 z, s32 scale);
-extern void SetupTexScroll(GsIMAGE *im, short vx, short vy);
 
 /*
  * The demo line records order the shared routines as ResetAllMisc, InitMisc,

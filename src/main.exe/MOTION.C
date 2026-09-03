@@ -27,8 +27,6 @@ extern s32 StickonItem;
 
 extern int ReqLifeBar(Humanoid *human);
 extern void reset_alert_duration(void);
-extern void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count);
-extern void SetBlood(VECTOR *pos, s16 n, s16 time);
 extern int ReqItemUse(PARAM_ITEM_LAUNCH *param);
 extern int ReqItemMakibishi(PARAM_ITEM_DROP *param);
 extern int ReqItemFire(PARAM_ITEM_LAUNCH *param);

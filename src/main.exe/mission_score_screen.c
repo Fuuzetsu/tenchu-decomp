@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "effect.h"
 #include "score.h"
 #include "misc.h"
 #include "images.h"
@@ -28,8 +29,6 @@ extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);
 extern void draw_time_(GsSPRITE *number, s32 value, s32 x, s32 y,
                        s32 mode);
-extern void FadeOutDirect(s16 time, s16 attribute, u8 r, u8 g, u8 b);
-extern void clear_screen_(void);
 extern void score_screen_input_(void);
 extern void exec_process_(s32 screen);
 

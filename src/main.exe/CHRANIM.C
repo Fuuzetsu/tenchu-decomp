@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "main.exe.h"
 #include "action.h"
+#include "effect.h"
 #include "sound.h"
 #include "humanoid.h"
 #include "item.h"
@@ -38,11 +39,8 @@ extern void PadShock(s32 port, s32 power, s32 time);
 extern s32 CdaGetCurrentLength(void);
 extern void CdaStop(void);
 extern int ReqLifeBar(Humanoid *h);
-extern void SetBlood(VECTOR *pos, s16 n, s16 time);
-extern void set_fade_(u8 arg0, u8 arg1, u8 arg2, long arg3);
 extern void SetupTelop(u8 *telop, s16 line);
 extern void DrawConstruction(void);
-extern void DrawEffect(void);
 extern void DoItemProc(void);
 extern void DoMiscProc(void);
 extern void draw_visible_characters_(void);

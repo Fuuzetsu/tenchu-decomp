@@ -415,14 +415,58 @@ extern Sprite3D *sprBomb[N_EXPLOSION_SPRITES];
 extern Sprite3D *SpriteSnow[N_SNOW_SPRITES];
 extern ModelType *ModelHook;
 extern ModelType *ShadowMdl;
-extern void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector);
-extern void spawn_damage_effect_(struct Humanoid *human, DamageEffectKind kind);
-extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
-                           short start_size, short end_size,
-                           long start_color, long end_color,
-                           s32 rotate, s32 rotate_speed, s32 time,
-                           enum impact_sprite type);
-extern void UpdateTexScroll(TEffectSlot *ef);
-extern void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite);
+
+void InitEffect(void);
+void DrawEffect(void);
+void reset_effects_(void);
+
+void UpdateTexScroll(TEffectSlot *effect);
+void SetupTexScroll(GsIMAGE *image, short vx, short vy);
+void SetBlood(VECTOR *position, short count, short time);
+void SetSmoke(VECTOR *position, SVECTOR *velocity, short count, short time);
+void SetSmokeS(VECTOR *position, short vx, short vy, short vz,
+               unsigned short time);
+void spawn_smoke_burst_(VECTOR *position, u16 spread, s16 divisor, s16 count);
+void SetImpact(VECTOR *position, short size, short type);
+void SetBleed(VECTOR *position, SVECTOR *velocity, int time, long color);
+void SetBleeds(VECTOR *position, short ground_range, short spread_range,
+               short count, int time, long color);
+void SetBleedsDir(VECTOR *position, SVECTOR *velocity, short ground_range,
+                  short count, int time, long color);
+void SetSplash(VECTOR *position, short sx, short sy, int speed);
+void SetFrame(VECTOR *position, short size, short time,
+              GsCOORDINATE2 *parent);
+void SetExplosion(VECTOR *position, SVECTOR *velocity);
+void SetHinoko(VECTOR *position, SVECTOR *power, int count);
+void SetLightning(VECTOR *start, VECTOR *end, short r, short g, short b);
+int SetFlyWire(VECTOR *start, VECTOR *end);
+void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long length);
+void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector);
+void SetSnow(VECTOR *position, SVECTOR *velocity, s32 size, u8 sprite);
+
+void spawn_damage_effect_(struct Humanoid *human, DamageEffectKind kind);
+void spread_blood_pool_(struct Humanoid *human);
+void DrawShadow(struct Humanoid *human);
+void set_impact_ex_(VECTOR *position, GsCOORDINATE2 *parent,
+                    short start_size, short end_size,
+                    long start_color, long end_color,
+                    s32 rotation, s32 rotation_speed, s32 time,
+                    enum impact_sprite type);
+
+void FadeOutDirect(short time, short attribute, u8 r, u8 g, u8 b);
+void clear_screen_(void);
+void set_fade_(u8 r, u8 g, u8 b, long priority);
+void DrawTargetS(long x, long y, long z, long color);
+void AddXF4(void *ordering_table, POLY_XF4 *poly);
+void SetPolyXF4(POLY_XF4 *poly, short attribute);
+void DrawSpriteXYZ(GsSPRITE *sprite, s32 x, s32 y, s32 z, s32 scale);
+
+void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry);
+int GetVectorDistance(VECTOR *a, VECTOR *b);
+long GetVectorLength(long dx, long dy, long dz);
+void RotateVector(VECTOR *vector, int rx, int ry, int rz);
+void RotateVectorS(SVECTOR *vector, int rx, int ry, int rz);
+s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
+void GetScreenPosition(long x, long y, long z, SVECTOR *screen);
 
 #endif

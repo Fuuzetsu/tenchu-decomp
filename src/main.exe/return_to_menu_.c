@@ -1,11 +1,10 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "effect.h"
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
-extern void FadeOutDirect(s16 time, s16 attrib, u8 r, u8 g, u8 b);
-extern void clear_screen_(void);
 extern void exec_process_(int id);
 
 void return_to_menu_(void)

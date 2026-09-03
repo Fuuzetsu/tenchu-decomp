@@ -402,26 +402,3 @@ extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void StartDrawing(void);
 extern void EndDrawing(short sync);
 extern void SystemOut(unsigned char *string);
-
-extern void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time);
-extern void SetImpact(VECTOR *pos, short size, short type);
-extern void SetSplash(VECTOR *pos, short sx, short sy, int speed);
-extern void SetBleed(VECTOR *pos, SVECTOR *vec, int time, long col);
-extern void SetBleeds(VECTOR *pos, short grange, short srange, short n,
-                      int time, long col);
-extern void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n,
-                         int time, long col);
-extern void SetFrame(VECTOR *pos, short size, short time,
-                     GsCOORDINATE2 *super);
-extern void GetVectorRotation(VECTOR *start, VECTOR *end, int *rx, int *ry);
-extern void SetExplosion(VECTOR *pos, SVECTOR *vect);
-extern void SetHinoko(VECTOR *pos, SVECTOR *power, int n);
-extern void SetLightning(VECTOR *start, VECTOR *end,
-                         short r, short g, short b);
-extern int SetFlyWire(VECTOR *start, VECTOR *end);
-extern void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len);
-extern void RotateVector(VECTOR *vec, int rx, int ry, int rz);
-extern void RotateVectorS(SVECTOR *vec, int rx, int ry, int rz);
-extern int GetVectorDistance(VECTOR *v1, VECTOR *v2);
-extern s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag);
-extern void GetScreenPosition(long x, long y, long z, SVECTOR *scr);
