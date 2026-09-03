@@ -2344,9 +2344,8 @@ void ProcItemKawarimi(TItem *item)
 static int ReqItemKawarimi(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     if (item == 0)
         return 0;
     {
