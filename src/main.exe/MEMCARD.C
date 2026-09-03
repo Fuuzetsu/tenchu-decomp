@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "images.h"
 #include "memcard.h"
 #include "vmemory.h"
 

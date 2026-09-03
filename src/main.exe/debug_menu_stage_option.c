@@ -2,6 +2,7 @@
 #include "main.exe.h"
 #include "adt.h"
 #include "chranim.h"
+#include "images.h"
 #include "score.h"
 #include "infoview.h"
 
@@ -18,7 +19,6 @@ extern u8 CHOSEN_LANGUAGE;
 
 extern void StageEndScreen(void);
 extern void SelectStage(TLinkInfo *ps);
-extern void exec_process_(s32 arg);
 
 void debug_menu_stage_option(void)
 {

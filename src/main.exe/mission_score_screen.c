@@ -27,11 +27,9 @@ extern char NUMBER_TIM_PATH[];
 extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
-extern BackGround *load_background_(u_long *tim);
 extern void draw_time_(GsSPRITE *number, s32 value, s32 x, s32 y,
                        s32 mode);
 extern void score_screen_input_(void);
-extern void exec_process_(s32 screen);
 
 static inline void InitScoreSprite(u_long *tim, GsIMAGE *image,
                                    GsSPRITE *sprite)

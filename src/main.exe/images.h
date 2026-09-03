@@ -107,10 +107,15 @@ extern char *GAME_OVER_FADE_PREFIXES[N_LANGUAGES];
 extern char *GAME_OVER_ARCHIVE_PATHS[N_LANGUAGES];
 
 extern GsIMAGE *GetImage(ImageArchiveId id);
+extern u_long *GetArcData(int index);
+extern u_long *get_tim_from_archive(ArcFile *archive, int index);
 void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply,
                                 short x, short y);
 extern void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply,
                                 int x, int y);
+extern void InitializeImage(void);
+extern BackGround *load_background_(u_long *tim);
+extern void exec_process_(int process_id);
 
 #endif

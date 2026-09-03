@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "adt.h"
+#include "images.h"
 #include "infoview.h"
 #include "memcard.h"
 

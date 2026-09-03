@@ -73,9 +73,7 @@ extern char path_stage_con[];       /* STAGE.CON */
 
 static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
-extern BackGround *load_background_(u_long *data);
 static short LoadConstruction(u_long *data);
-extern void InitializeImage(void);
 
 void CreateStage(stage_id StageNo, int CharType)
 {

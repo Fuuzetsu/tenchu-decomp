@@ -2,10 +2,9 @@
 #include "tuning.h"
 #include "main.exe.h"
 #include "effect.h"
+#include "images.h"
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
-
-extern void exec_process_(int id);
 
 void return_to_menu_(void)
 {
