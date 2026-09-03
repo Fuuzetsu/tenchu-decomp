@@ -401,7 +401,6 @@ void PlayVoice(int id)
             if (id != cursor->id)
                 match = 0;
         }
-        goto found;
     }
     else
     {
@@ -448,7 +447,6 @@ void PlayVoice(int id)
             } while (cursor->id != end_marker);
         }
     }
-found:
     if (match == 0)
     {
         fallback = CommonVoiceTable;
