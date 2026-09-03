@@ -876,11 +876,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
                   : SIGHT_PROFILE_STANDING;
     if (StagePlayer->status == STAT_HANG)
     {
-        if (vect.vy >= 0)
-        {
-            goto passage_failure;
-        }
-        if (vect.vy < -3000 && *distance < 4000)
+        if (vect.vy >= 0 || (vect.vy < -3000 && *distance < 4000))
         {
             return SR_GONE;
         }
@@ -888,13 +884,9 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 
     if (__builtin_abs(vect.vy) >= 3000)
     {
-        if (EmergencyNotice == 0)
+        if (EmergencyNotice == 0 || *distance < 4000)
         {
             return SR_GONE;
-        }
-        if (*distance < 4000)
-        {
-            goto passage_failure;
         }
     }
 
@@ -953,28 +945,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
         svect.vz = vect.vz;
         if (GetAreaMapPassage(GlobalAreaMap, &position, &svect, n) != 0)
         {
-        passage_failure:
-        {
-            s32 passage_raw;
-            s16 passage_pad;
-            s32 passage_result;
-
-            passage_raw = -2;
-            passage_pad = passage_raw;
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
-            if (profile != SIGHT_PROFILE_STANDING)
-            {
-                passage_result = (s32)passage_pad;
-            }
-            else
-            {
-                passage_result = (s32)passage_pad;
-            }
-            return passage_result;
-        }
+            return SR_GONE;
         }
         return (*distance < searchsight[profile].clear_distance) ? SR_SEEN
                                                                  : SR_GLIMPSE;
