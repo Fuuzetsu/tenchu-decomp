@@ -281,39 +281,36 @@ short FallCheck(void)
     {
         return 1;
     }
-    if (motID != MOT_ATTACK_DIVE)
+    if (motID == MOT_ATTACK_DIVE)
     {
-        if (Me_MOTION_C->status == STAT_JUMP && Me_MOTION_C->map.height > 0)
-        {
-            return 1;
-        }
-        if (((u16)Me_MOTION_C->attribute & ATTR_FLOAT) == 0)
-        {
-            if (Me_MOTION_C->map.height <= 1000)
-            {
-                return 0;
-            }
-            switch (Me_MOTION_C->status)
-            {
-            case STAT_SQUAT:
-                if (dtM->loop != 0)
-                {
-                    goto fall;
-                }
-            case STAT_KAGI:
-            case STAT_HANG:
-            case STAT_CEILHANG:
-            case STAT_DAMAGE:
-            case STAT_DEAD:
-                break;
-            default:
-                goto fall;
-            }
-        }
+        return 0;
     }
-    return 0;
+    if (Me_MOTION_C->status == STAT_JUMP && Me_MOTION_C->map.height > 0)
+    {
+        return 1;
+    }
+    if (((u16)Me_MOTION_C->attribute & ATTR_FLOAT) != 0 ||
+        Me_MOTION_C->map.height <= 1000)
+    {
+        return 0;
+    }
+    switch (Me_MOTION_C->status)
+    {
+    case STAT_SQUAT:
+        if (dtM->loop != 0)
+        {
+            break;
+        }
+    case STAT_KAGI:
+    case STAT_HANG:
+    case STAT_CEILHANG:
+    case STAT_DAMAGE:
+    case STAT_DEAD:
+        return 0;
+    default:
+        break;
+    }
 
-fall:
     dtM->mask = MOTION_MASK_ALL;
     dtL->vx += (Me_MOTION_C->width *
                 RefrectMove[Me_MOTION_C->map.angleH][0]) >> 2;
