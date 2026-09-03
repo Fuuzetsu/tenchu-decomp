@@ -18,8 +18,6 @@
 extern char fmt_free_memory[];
 extern RECT BriefingVramRect[];
 
-extern void InitConflict(void);
-extern void DemoPatchInit(void);
 /* Retail calls the s32-returning definition through an s16 declaration. */
 extern short StageSequence(void);
 
