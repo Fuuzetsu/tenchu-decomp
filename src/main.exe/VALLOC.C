@@ -565,13 +565,13 @@ void vfree(void *pt)
     {
     search:
         pnext = prev->next;
-        if (pnext == header)
-            goto found;
-        prev = pnext;
-        if (prev != 0)
-            goto search;
+        if (pnext != header)
+        {
+            prev = pnext;
+            if (prev != 0)
+                goto search;
+        }
 
-    found:
         if (prev != 0)
         {
             s = prev->size;
