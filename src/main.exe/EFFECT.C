@@ -1787,7 +1787,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
  *     reg   $a2       int i
  * END PSX.SYM */
 
-void DrawGore(TEffectSlot *ef)
+static void DrawGore(TEffectSlot *ef)
 {
     enum
     {

@@ -415,7 +415,6 @@ extern Sprite3D *sprBomb[N_EXPLOSION_SPRITES];
 extern Sprite3D *SpriteSnow[N_SNOW_SPRITES];
 extern ModelType *ModelHook;
 extern ModelType *ShadowMdl;
-extern void DrawGore(TEffectSlot *ef);
 extern void SetGore(GsCOORDINATE2 *coord, SVECTOR *position, SVECTOR *vector);
 extern void spawn_damage_effect_(struct Humanoid *human, DamageEffectKind kind);
 extern void set_impact_ex_(VECTOR *pos, GsCOORDINATE2 *super,
