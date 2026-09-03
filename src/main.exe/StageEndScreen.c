@@ -17,10 +17,6 @@ extern u8 CHOSEN_CHARACTER;
 extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern char NUMBER_TIM_PATH[];
-extern void mission_score_screen(s32 stage);
-extern void draw_time_(GsSPRITE *sprite, s32 value, s32 x, s32 y, s32 mode);
-extern void award_stage_items_(TLinkInfo *state, ScoreResult *result);
-extern void score_screen_input_(void);
 
 static inline void StageEndInitSprite(u_long *tim, GsIMAGE *image,
                                       GsSPRITE *sprite)
