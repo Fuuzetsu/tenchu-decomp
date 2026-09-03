@@ -5746,17 +5746,18 @@ event_dead:
     motion = dtM;
     pp = DeadEvents[motion->mid - MOT_DEAD_STEALTH_BACK];
     i = 0;
-    if (pp[i].action == DEATH_EVENT_END)
-        goto event_ready;
-    count = motion->count;
-    stop = DEATH_EVENT_END;
-scan_event:
-    if (pp[i].frame == count)
-        goto event_ready;
-    i++;
-    if (pp[i].action != stop)
-        goto scan_event;
-event_ready:
+    if (pp[i].action != DEATH_EVENT_END)
+    {
+        count = motion->count;
+        stop = DEATH_EVENT_END;
+    scan_event:
+        if (pp[i].frame != count)
+        {
+            i++;
+            if (pp[i].action != stop)
+                goto scan_event;
+        }
+    }
     if (dtM->count < pp[i].frame)
         return;
 
