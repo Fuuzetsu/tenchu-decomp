@@ -5040,82 +5040,80 @@ void ActSTICKON(void)
             break;
         }
 
-        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) == 0)
+        if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
         {
-            goto slide_no_pad;
-        }
-
-        rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
-        pd = 0;
-        if (((dtPAD >> 12) & 1) == 0)
-        {
-            do
+            rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
+            pd = 0;
+            if (((dtPAD >> 12) & 1) == 0)
             {
-                pd++;
-            } while (((dtPAD >> (pd + 12)) & 1) == 0);
-        }
-        if (rv == ((pd + 2) & 3))
-        {
-            break;
-        }
-        t = MOT_STICKON_SLIDE_R;
-        if (rv == ((pd + 1) & 3))
-        {
-            t = MOT_STICKON_SLIDE_L;
-        }
-        if (motID != t)
-        {
-            UpdateMotion(dtM, t);
-        }
-
-        if (dtPAD & PADLup)
-        {
-            MoveHumanoid(Me_MOTION_C, 30, 0);
-        }
-        else if (dtPAD & PADLdown)
-        {
-            MoveHumanoid(Me_MOTION_C, -30, 0);
-        }
-        else if (dtPAD & PADLleft)
-        {
-            MoveHumanoid(Me_MOTION_C, 0, 30);
-        }
-        else if (dtPAD & PADLright)
-        {
-            MoveHumanoid(Me_MOTION_C, 0, -30);
-        }
-
-        y = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
-        y &= ANGLE_MASK;
-        dtL->vx += dtV->vx;
-        dtL->vz += dtV->vz;
-        map = StickonCheck();
-        if (y != RefrectVector[map->vector])
-        {
-            if (rv == pd)
-            {
-                dtPAD = 0;
+                do
+                {
+                    pd++;
+                } while (((dtPAD >> (pd + 12)) & 1) == 0);
             }
-            else
+            if (rv == ((pd + 2) & 3))
             {
-                dtL->vx -= dtV->vx;
-                dtL->vz -= dtV->vz;
-                UpdateMotion(dtM, MOT_STICKON);
-                dtM->loop = MOTION_LOOP_DISABLED;
-                dtM->mask = MOTION_MASK_ALL;
+                break;
+            }
+            t = MOT_STICKON_SLIDE_R;
+            if (rv == ((pd + 1) & 3))
+            {
+                t = MOT_STICKON_SLIDE_L;
+            }
+            if (motID != t)
+            {
+                UpdateMotion(dtM, t);
+            }
+
+            if (dtPAD & PADLup)
+            {
+                MoveHumanoid(Me_MOTION_C, 30, 0);
+            }
+            else if (dtPAD & PADLdown)
+            {
+                MoveHumanoid(Me_MOTION_C, -30, 0);
+            }
+            else if (dtPAD & PADLleft)
+            {
+                MoveHumanoid(Me_MOTION_C, 0, 30);
+            }
+            else if (dtPAD & PADLright)
+            {
+                MoveHumanoid(Me_MOTION_C, 0, -30);
+            }
+
+            y = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
+            y &= ANGLE_MASK;
+            dtL->vx += dtV->vx;
+            dtL->vz += dtV->vz;
+            map = StickonCheck();
+            if (y != RefrectVector[map->vector])
+            {
+                if (rv == pd)
+                {
+                    dtPAD = 0;
+                }
+                else
+                {
+                    dtL->vx -= dtV->vx;
+                    dtL->vz -= dtV->vz;
+                    UpdateMotion(dtM, MOT_STICKON);
+                    dtM->loop = MOTION_LOOP_DISABLED;
+                    dtM->mask = MOTION_MASK_ALL;
+                }
+            }
+            dtV->vz = 0;
+            dtV->vx = 0;
+            if (dtM->count == 1)
+            {
+                Sound(Me_MOTION_C, SE_FOOTSTEP);
             }
         }
-        dtV->vz = 0;
-        dtV->vx = 0;
-        if (dtM->count == 1)
+        else
         {
-            Sound(Me_MOTION_C, SE_FOOTSTEP);
+            SET_MOTION(MOT_STICKON, MOTION_MOVE_APPLY);
+            dtM->mask = MOTION_MASK_ALL;
         }
-        break;
-
-    slide_no_pad:
-        SET_MOTION(MOT_STICKON, MOTION_MOVE_APPLY);
-        dtM->mask = MOTION_MASK_ALL;
         break;
     }
 
