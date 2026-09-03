@@ -5238,9 +5238,8 @@ int ReqItemNemuri(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_napalm *param;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.napalm;
     if (item == 0)
         return 0;
