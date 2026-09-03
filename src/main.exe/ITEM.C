@@ -1772,9 +1772,8 @@ static int ReqItemShinsoku(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
     param_shinsoku *param;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.shinsoku;
     if (item == 0)
         return 0;
