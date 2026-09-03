@@ -572,7 +572,6 @@ extern char fmt_tim[];                  /* %s.TIM */
 extern char path_map_mad[];             /* map.mad */
 
 extern void DisposeAreaMap(AreaMapType *area);
-extern void ResetAllMisc(void);
 extern AreaMapType *LoadAreaMap(AreaMapType *data);
 extern AreaMapType *load_balma_area_map_(AreaMapType *data);
 extern void jt_init4(void);

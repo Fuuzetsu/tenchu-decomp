@@ -262,6 +262,9 @@ extern SpriteDataType SpriteData[N_MISC_SPRITE_TYPES];
  * distinct same-named static. Set by InitMisc and checked by DoMiscProc. */
 extern u8 Misc_fInitial;
 
+void InitMisc(void);
 void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c);
+void DoMiscProc(void);
+void ResetAllMisc(void);
 
 #endif

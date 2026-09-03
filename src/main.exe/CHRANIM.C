@@ -33,7 +33,6 @@ extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
 extern void SetupTelop(u8 *telop, s16 line);
 extern void DrawConstruction(void);
-extern void DoMiscProc(void);
 extern void Camera(void);
 extern s32 telop_text_width_(u8 *str);
 extern void draw_telop_line_(GsOT_TAG *org, s32 x, s32 y, u8 *str);
