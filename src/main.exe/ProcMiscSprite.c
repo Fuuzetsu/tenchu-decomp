@@ -25,29 +25,33 @@ void ProcMiscSprite(TMisc *m, TMiscMessage msg)
     s32 type;
     Sprite3D *s;
 
-    if (msg == MM_CREATE)
-        goto do_create;
-    if (msg >= MM_DO)
-        goto do_draw;
-    return;
-
-do_create:
-    type = m->param.init.a;
-    if (type >= N_MISC_SPRITE_TYPES)
+    switch (msg)
     {
-        AdtMessageBox(msg_unknown_sprite_type);
-        type = MISC_SPRITE_FIRE1;
-    }
-    m->mode = 0;
-    m->param.sprite.type = (misc_sprite_kind)type;
-    return;
+    case MM_CREATE:
+        type = m->param.init.a;
+        if (type >= N_MISC_SPRITE_TYPES)
+        {
+            AdtMessageBox(msg_unknown_sprite_type);
+            type = MISC_SPRITE_FIRE1;
+        }
+        m->mode = 0;
+        m->param.sprite.type = (misc_sprite_kind)type;
+        break;
 
-do_draw:
-    s = SpriteData[m->param.sprite.type].spr;
-    s->sprite.b = s->sprite.g = s->sprite.r = (u8)(rand() % 60 + 0x62);
-    s->locate.coord.t[0] = m->x;
-    s->locate.coord.t[1] = m->y;
-    s->locate.coord.t[2] = m->z;
-    UpdateCoordinate((ModelType *)s);
-    DrawSprite(s);
+    case MM_DESTROY:
+    case MM_PAUSE:
+    case MM_RESUME:
+        break;
+
+    default:
+        s = SpriteData[m->param.sprite.type].spr;
+        s->sprite.b = s->sprite.g = s->sprite.r =
+            (u8)(rand() % 60 + 0x62);
+        s->locate.coord.t[0] = m->x;
+        s->locate.coord.t[1] = m->y;
+        s->locate.coord.t[2] = m->z;
+        UpdateCoordinate((ModelType *)s);
+        DrawSprite(s);
+        break;
+    }
 }
