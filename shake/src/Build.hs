@@ -92,8 +92,8 @@ relocGameDir = buildDir </> "reloc-game"
 relocGameLinker = relocGameDir </> "main.exe.ld"
 relocGameSymbols = relocGameDir </> "symbols.main.exe.txt"
 
--- | The two allocator functions retain matching raw constants in their one C
--- source. The normal lane compiles that same source into this isolated
+-- | The two allocator functions retain matching raw constants in VALLOC.C.
+-- The normal lane compiles that same source into this isolated
 -- directory, then applies a bounded LUI/ORI-to-symbolic-LUI/ADDIU assembly
 -- transform. Ordinary exact symbolic objects are audited alongside it. No
 -- source-level build define or per-function compiler flag is involved.
@@ -117,6 +117,9 @@ relocCLiteralNames =
 relocAllocatorLiteralNames :: [String]
 relocAllocatorLiteralNames = ["valloc", "vinit"]
 
+relocCLiteralUnitNames :: [String]
+relocCLiteralUnitNames = ["VALLOC"]
+
 ordinaryRelocCLiteralNames :: [String]
 ordinaryRelocCLiteralNames =
   [ "ActivateHumans",
@@ -133,23 +136,28 @@ relocCLiteralPreprocessed name = relocCLiteralDir </> name <.> "i"
 relocCLiteralAssembly name = relocCLiteralDir </> name <.> "s"
 relocCLiteralObject name = relocCLiteralDir </> name <.> "o"
 
+relocCLiteralSource :: String -> FilePath
+relocCLiteralSource "VALLOC" = srcDir </> "main.exe" </> "VALLOC.C"
+relocCLiteralSource name = srcDir </> "main.exe" </> name <.> "c"
+
 relocCLiteralReferenceObject :: String -> FilePath
 relocCLiteralReferenceObject name =
   buildDir </> "main.exe" </> objectName name <.> "c.o"
   where
     objectName "ActivateHumans" = "WORLD"
+    objectName member | member `elem` relocAllocatorLiteralNames = "VALLOC"
     objectName member = member
 
 relocCLiteralAuditObject :: String -> FilePath
 relocCLiteralAuditObject name
   | name `elem` ordinaryRelocCLiteralNames = relocCLiteralReferenceObject name
-  | otherwise = relocCLiteralObject name
+  | otherwise = relocCLiteralObject "VALLOC"
 
 relocCLiteralObjects :: [FilePath]
-relocCLiteralObjects = map relocCLiteralObject relocCLiteralNames
+relocCLiteralObjects = map relocCLiteralObject relocCLiteralUnitNames
 
 relocCLiteralReferenceObjects :: [FilePath]
-relocCLiteralReferenceObjects = map relocCLiteralReferenceObject relocCLiteralNames
+relocCLiteralReferenceObjects = map relocCLiteralReferenceObject relocCLiteralUnitNames
 
 relocCLiteralAuditObjects :: [FilePath]
 relocCLiteralAuditObjects = map relocCLiteralAuditObject relocCLiteralAuditNames
@@ -214,18 +222,19 @@ realeditMap = realeditDir </> "main_realedit.exe.map"
 realeditLogical = realeditDir </> "main_realedit.logical"
 realeditExe = realeditDir </> "main_realedit.exe"
 
--- | Overriding the allocator sources would silently bypass their reviewed
--- normal-lane relocation transform, so reject those names with guidance.
+-- | Overriding VALLOC.C would silently bypass its reviewed normal-lane
+-- relocation transform, so reject that unit and its function names.
 modRelinkOverrideNames :: Action [String]
 modRelinkOverrideNames = do
   sources <- getDirectoryFiles modRelinkSrcDir ["*.c"]
   let names = map dropExtension sources
-      forbidden = filter (`elem` relocCLiteralNames) names
+      forbidden =
+        filter (`elem` (relocCLiteralNames <> relocCLiteralUnitNames)) names
   when (not (null forbidden)) $
     fail $
-      "src/mod-relink cannot override the allocator sources "
+      "src/mod-relink cannot override the allocator source "
         <> show forbidden
-        <> "; their normal-lane objects carry the reviewed pool/capacity "
+        <> "; its normal-lane object carries the reviewed pool/capacity "
         <> "relocation transform (docs/relocatable-build.md). Adjust "
         <> "src/main.exe/ram_layout.h policy or edit the originals instead."
   pure names
@@ -311,7 +320,7 @@ relocDataTailAsm :: FilePath
 relocDataTailAsm = relocDataAsm relocDataTailName
 
 -- | Growth-capable composition.  Unlike the retail-exact BSS oracle above,
--- this linker chain consumes the reviewed symbolic allocator objects without
+-- this linker chain consumes the reviewed symbolic allocator object without
 -- pinning the game/SDK boundary.  Canonical SDK text and every later
 -- linker-owned boundary are therefore free to follow changed game layout. It
 -- remains separate so the ordinary matching artifact stays untouched.
@@ -533,12 +542,11 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ACTION" = ["CommonMotion", "PlayerMotion", "StageMotion", "SplineFracOld", "SplineFrac", "SplineRow", "MotionPack"]
     syms "SetSnow" = ["EFFECT_CURSOR_"]
     syms "stop_access_meter_" = ["AccessPower"]
-    syms "valloc" = ["virtual_memory_pool"]
+    syms "VALLOC" = ["virtual_memory_pool"]
     syms "APPEAR" = ["NowStage", "ARMOUR_EQUIPPED_", "sstage", "smode"]
     syms "AdtMessageBox" = ["AdtPadRead", "AdtMessageBoxCount"]
     syms "DrawModelArchive" = ["SkipFrame", "OTablePt"]
     syms "Camera" = ["Projection"]
-    syms "vmemoryGC" = ["virtual_memory_pool"]
     syms "IMAGES" = ["VoiceXaName", "VoiceXaNameF", "VoiceXaNameI", "VoiceXaNameJ", "ToraVoiceXaName", "IntroVoiceXaName", "ArcData", "Images_fInitialize"]
     syms "PutStrain" = ["StrainPhase"]
     syms "Think3hitaway" = ["Distance", "SR", "Me_THINK_C", "Degree", "Attrib"]
@@ -620,7 +628,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "ReqItemHappou" = ["ic"]
     syms "ProcItemHappou" = ["HappouModel"]
     syms "NowReturnNormal" = ["Me_MOTION_C", "motID", "motMODE"]
-    syms "vinit" = ["virtual_memory_pool"]
     syms "DrawBG" = ["OTablePt"]
     syms "PrepareAccess" = ["AccessPower"]
     syms "load_balma_area_map_" = ["GlobalAreaMap", "FieldIndex", "BalmaAreaMap", "FieldArea"]
@@ -646,8 +653,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "StartDrawing" = ["DrawingPage", "OTablePt", "GameClock"]
     syms "AttackPQD" = ["Me_MOTION_C", "dtM"]
     syms "initialise_default_player_cameras_" = ["DEBUG_CAMERA_BASE_"]
-    syms "vgetfreesize" = ["virtual_memory_pool"]
-    syms "vgetmaxsize" = ["virtual_memory_pool"]
     syms "InitAccessInfo" = ["AccessPower"]
     syms "GetHumanoid" = ["Humans"]
     syms "AttackAnimal" = ["Me_THINK_C", "Distance", "Degree"]
@@ -667,7 +672,6 @@ maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s
     syms "HumanActionControl" = ["Me_MOTION_C", "dtPAD", "dtCMD", "motMODE", "dtV", "dtL", "dtR", "dtM", "motID"]
     syms "AttackCancelControl" = ["Me_MOTION_C", "dtM"]
     syms "DoItemProc" = ["Item_fInitial"]
-    syms "vfree" = ["virtual_memory_pool"]
     syms "DrawModel" = ["OTablePt"]
     syms "remap_buttons_" = ["ControlScheme"]
     syms "ControlAllHumanoid" = ["Humans", "VISIBLE_ENEMIES_"]
@@ -1043,7 +1047,8 @@ neededAsmDeps :: FilePath -> Action ()
 neededAsmDeps depFile =
   needed . map normaliseEx . concatMap snd . parseMakefile =<< liftIO (readFile depFile)
 
--- | Read the two transformed and four ordinary objects. The focused oracle
+-- | Read the two transformed allocator and four ordinary function contracts.
+-- The focused oracle
 -- pins exact offsets/sizes; the normal-link gate deliberately permits layout
 -- changes while retaining relocation, opcode, and raw-literal checks.
 verifyRelocCLiteralObjectsWith :: Bool -> Action ()
@@ -1119,7 +1124,8 @@ main = do
             -- "7": the normal-link C replacement inventory became explicit.
             -- "8": the replacement recipe now transforms the two allocator
             -- assembly streams; four exact symbolic objects are audited in place.
-            shakeVersion = "8"
+            -- "9": both allocator transforms now share reconstructed VALLOC.C.
+            shakeVersion = "9"
           }
   shakeArgs opts rules
 
@@ -1141,9 +1147,9 @@ objRules = do
   -- materialisations; every source-level spelling remains identical.
   relocCLiteralDir </> "*.i" %> \out -> do
     let name = takeBaseName out
-        src = srcDir </> "main.exe" </> name <.> "c"
+        src = relocCLiteralSource name
         header = srcDir </> "main.exe" </> "main.exe.h"
-    when (name `notElem` relocCLiteralNames) $
+    when (name `notElem` relocCLiteralUnitNames) $
       fail $ "unexpected relocatable-C input " <> name
     need [src]
     orderOnly [header]
@@ -1160,9 +1166,9 @@ objRules = do
   relocCLiteralDir </> "*.s" %> \out -> do
     let name = takeBaseName out
         processed = relocCLiteralPreprocessed name
-        src = srcDir </> "main.exe" </> name <.> "c"
+        src = relocCLiteralSource name
         tool = "tools" </> "reloc_c_literals.py"
-    when (name `notElem` relocCLiteralNames) $
+    when (name `notElem` relocCLiteralUnitNames) $
       fail $ "unexpected relocatable-C assembly " <> name
     need [processed, tool, ramLayoutTool, ramLayoutHeader]
     gpFlags <- askOracle (GpFlags src)
@@ -1173,10 +1179,11 @@ objRules = do
           ccExe (ccFlags <> objectCc)
         cmd_ (FileStdin ccOut) (FileStdout maspsxOut)
           maspsx (maspsxFlags <> gpFlags)
-        if name `elem` relocAllocatorLiteralNames
+        if name == "VALLOC"
           then cmd_ "python3" tool
             [ "relocate-allocator-assembly",
-              "--name", name,
+              "--name", "valloc",
+              "--name", "vinit",
               "--input", maspsxOut,
               "--output", out
             ]
@@ -1185,7 +1192,7 @@ objRules = do
   relocCLiteralDir </> "*.o" %> \out -> do
     let name = takeBaseName out
         assembly = relocCLiteralAssembly name
-    when (name `notElem` relocCLiteralNames) $
+    when (name `notElem` relocCLiteralUnitNames) $
       fail $ "unexpected relocatable-C object " <> name
     need [assembly]
     trackAllow ["include/*.inc"]
@@ -1578,13 +1585,13 @@ mainExtraRules = do
     need [mainRelocGameElf]
     cmd_ objcopy objcopyFlags [mainRelocGameElf, mainRelocGameExe]
 
-  -- Substitute the two exact-sized allocator objects into the linker-owned
-  -- game lane.  This focused link proves their symbolic instruction pairs at
+  -- Substitute the exact-sized VALLOC object into the linker-owned game lane.
+  -- This focused link proves both functions' symbolic instruction pairs at
   -- retail placement; no compensating boundary pad is needed.
   relocCLiteralLinker %> \out -> do
     let tool = "tools" </> "reloc_c_literals.py"
         objectArgs = concatMap
-          (\name -> ["--object", name <> "=" <> relocCLiteralObject name])
+          (\name -> ["--object", name <> "=" <> relocCLiteralAuditObject name])
           relocCLiteralNames
         referenceArgs = concatMap
           (\name ->
@@ -1644,7 +1651,7 @@ mainExtraRules = do
   normalRelinkCLinker %> \out -> do
     let tool = "tools" </> "reloc_c_literals.py"
         objectArgs = concatMap
-          (\name -> ["--object", name <> "=" <> relocCLiteralObject name])
+          (\name -> ["--object", name <> "=" <> relocCLiteralAuditObject name])
           relocCLiteralNames
         referenceArgs = concatMap
           (\name ->
@@ -1917,7 +1924,7 @@ mainExtraRules = do
       ] <>
       concatMap
         (\name -> ["--ordinary-c-object-glob", relocCLiteralObject name])
-        relocCLiteralNames <>
+        relocCLiteralUnitNames <>
       overrideSectionArgs <>
       replacementArgs <>
       overrideArgs
@@ -2031,7 +2038,7 @@ mainExtraRules = do
       ] <>
       concatMap
         (\name -> ["--ordinary-c-object-glob", relocCLiteralObject name])
-        relocCLiteralNames <>
+        relocCLiteralUnitNames <>
       [ "--ordinary-c-object-glob", realeditOverrideObject ] <>
       replacementArgs <>
       [ "--override-object",
@@ -2334,13 +2341,16 @@ phonyRules = do
     runRelinkGrowthProbe
     putInfo "check-relink: normal C/SDK/data/BSS/header composition is structurally valid"
 
-  -- Focused input gate for six compiler-produced address constructions. Two
-  -- allocator objects are transformed after cc1; four byte-exact ordinary
-  -- objects are audited directly. All six retain one source spelling.
+  -- Focused input gate for six compiler-produced address constructions. The
+  -- shared VALLOC object is transformed after cc1; four byte-exact ordinary
+  -- function contracts are audited directly. All six retain one source
+  -- spelling.
   phony "check-reloc-c-literals" $ do
     verifyRelocCLiteralObjects
     verifyRelocCLiteralLink
-    putInfo "check-reloc-c-literals: two transformed and four ordinary exact objects carry and apply linker relocations"
+    putInfo $
+      "check-reloc-c-literals: two transformed allocator and four ordinary "
+        <> "exact function contracts carry and apply linker relocations"
 
   -- Opt-in exact-at-retail gate for the normal linker-owned game-symbol lane.
   -- This deliberately does not claim that a grown image is runnable yet: raw

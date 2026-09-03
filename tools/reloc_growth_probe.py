@@ -101,7 +101,8 @@ SHIFTED_SYMBOLS = (
 )
 
 C_OBJECTS = {
-    name: Path(".shake/reloc-c-literals") / f"{name}.o"
+    name: Path(".shake/reloc-c-literals")
+    / f"{source_units.unit_for_function(name).stem}.o"
     for name in reloc_c_literals.REPLACEMENT_OBJECT_SPECS
 } | {
     name: Path(".shake/build/main.exe")
@@ -560,8 +561,9 @@ def count_hi16_carries(
     carries = 0
     for function_name, spec in reloc_c_literals.OBJECT_SPECS.items():
         obj = reloc_c_literals.ElfObject(objects[function_name])
-        relocations = obj.relocations(".rel.text")
-        object_text = obj.section_data(".text")
+        object_text, relocations, _function_offset = (
+            reloc_c_literals.function_object_view(obj, function_name)
+        )
         for target_name in spec.targets:
             lows = [
                 relocation

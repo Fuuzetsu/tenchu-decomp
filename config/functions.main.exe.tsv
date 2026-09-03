@@ -154,7 +154,7 @@
 80016134	368	InitPersistentState
 800162a4	572	main
 800164e0	140	DoBriefingAndInventorySelection
-8001656c	456	valloc
+8001656c	460	valloc
 80016738	516	vrealloc
 8001693c	780	vmemoryGC
 80016c48	84	vinit

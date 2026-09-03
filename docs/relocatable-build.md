@@ -132,8 +132,8 @@ there is compiled by the identical pipeline into an isolated object, and the
 generated script rewrites every reference to the original object (one per
 retail section family), so the changed function occupies its original input
 position while the exact lanes keep their pristine objects and `./Build
-check` stays byte-identical. Overriding the two allocator sources is
-rejected; their normal-lane objects carry the reviewed relocation transform.
+check` stays byte-identical. Overriding reconstructed `VALLOC.C` is rejected;
+its normal-lane object carries the reviewed relocation transform.
 Because any game source may now grow or shrink upstream of the SDK, the
 composed gate measures the SDK block's displacement from its own first
 section-owned symbol and requires the whole block to move rigidly by that
@@ -222,8 +222,9 @@ alias is involved.
 
 This preserves cc1's register allocation and schedule and keeps `vinit` at
 `0x54` bytes and `valloc` at `0x1cc` bytes. The normal focused inventory is
-therefore two transformed replacement objects plus four ordinary exact
-symbolic objects, with no stream shrink or boundary pad. `MemoryPoolCapacity`
+therefore two transformed allocator function contracts in one replacement
+object plus four ordinary exact symbolic function contracts, with no stream
+shrink or boundary pad. `MemoryPoolCapacity`
 remains a linker-defined scalar, and all eight target pairs are checked after
 linking. The ordinary-object contract additionally fixes each reviewed
 relocation offset, including `ProcItemShinsoku`'s CamState HI16 records at text

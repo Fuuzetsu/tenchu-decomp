@@ -302,6 +302,33 @@
         "PlayMusicFormID",
         "StopMusic"
       ]
+    },
+    {
+      "source": "VALLOC.C",
+      "functions": [
+        "valloc",
+        "vrealloc",
+        "vmemoryGC",
+        "vinit",
+        "vgetmaxsize",
+        "vgetfreesize",
+        "vcalloc",
+        "vfree",
+        "vsize",
+        "SystemOut"
+      ],
+      "debug_symbol_order": [
+        "vinit",
+        "vgetmaxsize",
+        "vgetfreesize",
+        "valloc",
+        "vrealloc",
+        "vcalloc",
+        "vfree",
+        "vsize",
+        "vmemoryGC",
+        "SystemOut"
+      ]
     }
   ]
 }

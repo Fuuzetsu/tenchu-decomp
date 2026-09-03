@@ -216,6 +216,22 @@ ori $4,$4,0x7ffe
         with self.assertRaisesRegex(audit.AuditError, "MemoryPool=2/1"):
             audit.relocate_allocator_literals(source, "valloc")
 
+    def test_limits_transform_to_function_inside_combined_unit(self) -> None:
+        pair = """\
+li $2,-2146631680
+ori $2,$2,0xc000
+li $3,262144
+ori $3,$3,0x7ffe
+"""
+        source = f".ent valloc\n{pair}.end valloc\n.ent vinit\n{pair}.end vinit\n"
+
+        transformed = audit.relocate_allocator_literals(source, "valloc")
+
+        valloc, vinit = transformed.split(".ent vinit\n")
+        self.assertIn("%hi(MemoryPool)", valloc)
+        self.assertNotIn("%hi(MemoryPool)", vinit)
+        self.assertIn("li $2,-2146631680", vinit)
+
     def test_rejects_trailing_assembly_instead_of_deleting_it(self) -> None:
         source = """\
 li $2,-2146631680; addu $7,$7,$7
@@ -396,6 +412,27 @@ class LinkerRewriteTests(unittest.TestCase):
             self.assertEqual(output.count(str(variants[name])), 4)
         self.assertNotIn("LONG(0x00000000);", output)
         self.assertIn(audit.FIRST_SDK_TEXT_INPUT, output)
+
+    def test_substitutes_one_reconstructed_unit_for_two_functions(self) -> None:
+        reference = Path("old/VALLOC.o")
+        variant = Path("new/VALLOC.o")
+        references = {
+            name: reference for name in audit.REPLACEMENT_OBJECT_SPECS
+        }
+        variants = {
+            name: variant for name in audit.REPLACEMENT_OBJECT_SPECS
+        }
+        source = "SECTIONS\n{\n" + "".join(
+            f"  {reference}({section});\n"
+            for section in (".data", ".text", ".rodata", ".bss")
+        ) + f"  {audit.FIRST_SDK_TEXT_INPUT}\n}}\n"
+
+        output = audit.rewrite_linker(
+            source, references, variants, padding=0
+        )
+
+        self.assertNotIn(str(reference), output)
+        self.assertEqual(output.count(str(variant)), 4)
 
     def test_substitutes_reconstructed_unit_small_data_section(self) -> None:
         references = self.mappings("old")

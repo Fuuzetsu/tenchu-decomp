@@ -56,8 +56,13 @@ class RelocGrowthProbeTests(unittest.TestCase):
         for name in reloc_c_literals.REPLACEMENT_OBJECT_SPECS:
             self.assertEqual(
                 reloc_growth_probe.C_OBJECTS[name],
-                Path(".shake/reloc-c-literals") / f"{name}.o",
+                Path(".shake/reloc-c-literals")
+                / f"{source_units.unit_for_function(name).stem}.o",
             )
+        self.assertEqual(
+            reloc_growth_probe.C_OBJECTS["valloc"],
+            reloc_growth_probe.C_OBJECTS["vinit"],
+        )
 
     def test_extension_inputs_mirror_recursive_user_and_generated_union(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:

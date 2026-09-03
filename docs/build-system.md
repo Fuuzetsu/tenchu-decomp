@@ -130,17 +130,18 @@ boundaries with a dynamic pool; see
 
 `./Build relink` builds a distinct no-boundary-pad GNU-ld/finalizer artifact at
 `.shake/build/tenchu/main_relink.exe`. It consumes the ordinary exact symbolic C
-objects plus two transformed allocator objects before the complete canonical
-SDK, ten reviewed loaded-data replacements, and linker-owned layout transforms
-instead of reusing the retail-exact BSS artifact. Existing functions may grow,
-and helper sources under `src/main.exe/reloc/` join the normal link. BSS follows
+function inputs plus the transformed `VALLOC.C` object before the complete
+canonical SDK, ten reviewed loaded-data replacements, and linker-owned layout
+transforms instead of reusing the retail-exact BSS artifact. Existing functions
+may grow, and helper sources under `src/main.exe/reloc/` join the normal link.
+BSS follows
 the initialized image; the allocator keeps its fixed upper bound but advances
 its base and recomputes its word capacity after the retail headroom is consumed.
 The finalizer derives the PS-X entry/load/size fields from the actual result.
 
 The normal generator also retains sections that an ordinary edit can newly
-introduce in both ordinary `*.c.o` game inputs and the two transformed allocator
-replacement `*.o` inputs. `.sdata` stays in the loaded
+introduce in both ordinary `*.c.o` game inputs and the transformed allocator
+replacement object. `.sdata` stays in the loaded
 gp-near extension; `.sbss`/`.scommon` stays in the gp-near BSS prefix; and
 `.bss.*`/GNU `COMMON` remains owned at BSS end. An integration test runs the
 pinned cc1/maspsx/assembler/linker chain over both families with small and large
@@ -199,11 +200,12 @@ The same repacked image later reached relocated `OPEN06.STR` decode and
 was run to EOF and physical audio output remains unverified.
 
 `check-reloc-c-literals` is the focused compiler-input half of that lane. It
-audits four ordinary exact symbolic objects (`SelectCameraOwnerOption`,
-`FileOption`, `ActivateHumans`, and `ProcItemShinsoku`) plus two allocator
-replacement objects. The four ordinary objects use the same C and object in
-both lanes. `vinit` and `valloc` also have one raw-constant C source, but their
-normal objects pass through a fail-fast generated-assembly transform: exactly
+audits four ordinary exact symbolic functions (`SelectCameraOwnerOption`,
+`FileOption`, `ActivateHumans`, and `ProcItemShinsoku`) plus the `vinit` and
+`valloc` contracts within one `VALLOC.C` replacement object. The four ordinary
+functions use the same C and object in both lanes. `vinit` and `valloc` also
+have one raw-constant C source, but their shared normal object passes through a
+fail-fast generated-assembly transform: exactly
 one reviewed `LUI`/`ORI` materialization for each of `MemoryPool` and
 `MemoryPoolCapacity` becomes a standard relocation-bearing `LUI`/`ADDIU` pair
 against that symbol. An unexpected pattern, count, symbol, or text size stops
@@ -213,13 +215,13 @@ relaxes fixed offsets and exact text sizes while retaining the transform,
 relocation, opcode, and raw-literal safety checks, so an unrelated edit may move
 or grow either allocator.
 
-The controlled link substitutes only those two allocator objects and requires
-all six objects' ELF HI16/LO16 records, including the linker-derived capacity in
-both allocator paths. The transform preserves the exact allocator text sizes
-(`vinit` `0x54`, `valloc` `0x1cc`), so this focused lane needs neither a shrink
-allowance nor a boundary pad. Its source-debt inventory is zero of the initial
-six; the object audit inventory is two replacements plus four ordinary
-objects.
+The controlled link substitutes only the allocator translation unit and
+requires all six functions' ELF HI16/LO16 records, including the linker-derived
+capacity in both allocator paths. The transform preserves the exact allocator
+text sizes (`vinit` `0x54`, `valloc` `0x1cc`), so this focused lane needs neither
+a shrink allowance nor a boundary pad. Its source-debt inventory is zero of the
+initial six; the audit inventory is two allocator plus four ordinary function
+contracts.
 
 ## The other five executables
 

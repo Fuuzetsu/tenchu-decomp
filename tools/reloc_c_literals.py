@@ -7,9 +7,10 @@ proves that the allocator pair's plausible raw-constant source must instead
 emit LUI/ORI.  The normal lane therefore applies one bounded, fail-fast
 LUI/ORI-to-symbolic-LUI/ADDIU transform after cc1/maspsx, preserving its
 register allocation, schedule, and exact text size.  This verifier reads all
-six ELF objects directly and requires the reviewed MIPS HI16/LO16 records.  It
-also rejects unrelocated matching-only address high halves and the old
-``0x47ffe`` pool-capacity materialisation in the transformed allocator objects.
+six function contracts directly and requires the reviewed MIPS HI16/LO16
+records.  The two allocator contracts share reconstructed ``VALLOC.C``.  It also
+rejects unrelocated matching-only address high halves and the old ``0x47ffe``
+pool-capacity materialisation in its transformed object.
 
 This remains a bounded object/link-input gate.  The composed normal-link gate
 separately verifies the canonical SDK stream, reviewed loaded data, linker-owned
@@ -269,6 +270,25 @@ def relocate_allocator_literals(source: str, description: str) -> str:
     if expected is None:
         raise AuditError(f"{description}: not a reviewed allocator transform")
     lines = source.splitlines(keepends=True)
+    ent = re.compile(rf"\s*\.ent\s+{re.escape(description)}\s*")
+    end = re.compile(rf"\s*\.end\s+{re.escape(description)}\s*")
+    starts = [
+        index for index, line in enumerate(lines) if ent.fullmatch(line.rstrip())
+    ]
+    finishes = [
+        index for index, line in enumerate(lines) if end.fullmatch(line.rstrip())
+    ]
+    if starts or finishes:
+        if len(starts) != 1 or len(finishes) != 1 or starts[0] >= finishes[0]:
+            raise AuditError(
+                f"{description}: expected one ordered .ent/.end function scope"
+            )
+        scope_start = starts[0]
+        scope_end = finishes[0]
+    else:
+        # Unit tests and hand-fed one-function assembly need no directives.
+        scope_start = 0
+        scope_end = len(lines)
     output: list[str] = []
     counts: Counter[str] = Counter()
     index = 0
@@ -276,7 +296,8 @@ def relocate_allocator_literals(source: str, description: str) -> str:
         line = lines[index]
         body = line.rstrip("\r\n")
         high = LI_ASM_RE.fullmatch(body)
-        if high is not None and index + 1 < len(lines):
+        in_scope = scope_start <= index < scope_end
+        if in_scope and high is not None and index + 1 < scope_end:
             low_line = lines[index + 1]
             low_body = low_line.rstrip("\r\n")
             low = ORI_ASM_RE.fullmatch(low_body)
@@ -304,7 +325,7 @@ def relocate_allocator_literals(source: str, description: str) -> str:
                     counts[symbol] += 1
                     index += 2
                     continue
-        if high is not None:
+        if in_scope and high is not None:
             value = int(high.group("value"), 0) & 0xFFFFFFFF
             symbol = ALLOCATOR_RELOCATION_SYMBOLS.get(value)
             if symbol is not None:
@@ -777,11 +798,18 @@ def rewrite_linker(
     # retail scalar value without pinning the composed relink: GNU ld's PROVIDE
     # is suppressed once reloc_bss_lane supplies the real derived definition.
     output = POOL_CAPACITY_PROVISION + source
+    replacements: dict[Path, Path] = {}
     for name in REPLACEMENT_OBJECT_SPECS:
-        old = str(reference_objects[name])
-        new = str(variant_objects[name])
-        verify_linker_object_sections(output, reference_objects[name])
-        output = output.replace(old, new)
+        old = reference_objects[name]
+        new = variant_objects[name]
+        previous = replacements.setdefault(old, new)
+        if previous != new:
+            raise AuditError(
+                f"reference object {old} maps to both {previous} and {new}"
+            )
+    for old, new in replacements.items():
+        verify_linker_object_sections(output, old)
+        output = output.replace(str(old), str(new))
 
     lines = output.splitlines(keepends=True)
     marker_count = sum(FIRST_SDK_TEXT_INPUT in line for line in lines)
@@ -848,12 +876,15 @@ def text_shrink(
     reference_objects: dict[str, Path],
     variant_objects: dict[str, Path],
 ) -> int:
-    shrink = 0
-    for name in REPLACEMENT_OBJECT_SPECS:
-        reference_size = ElfObject(reference_objects[name]).section(".text").size
-        variant_size = ElfObject(variant_objects[name]).section(".text").size
-        shrink += reference_size - variant_size
-    return shrink
+    object_pairs = {
+        (reference_objects[name], variant_objects[name])
+        for name in REPLACEMENT_OBJECT_SPECS
+    }
+    return sum(
+        ElfObject(reference).section(".text").size
+        - ElfObject(variant).section(".text").size
+        for reference, variant in object_pairs
+    )
 
 
 def generate_linker(
@@ -891,7 +922,7 @@ def relocated_hi16(value: int) -> int:
 
 
 def reconstruct_lui_addiu(high: int, low: int) -> int:
-    """Model the linked LUI/ADDIU pair used by normal allocator objects."""
+    """Model the linked LUI/ADDIU pair used by the normal allocator object."""
 
     return ((high << 16) + sign_extend_16(low)) & 0xFFFFFFFF
 
@@ -1264,14 +1295,17 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
         help="convert exact allocator LUI/ORI pairs to ABI symbolic pairs",
     )
     relocate_allocator.add_argument(
-        "--name", choices=sorted(ALLOCATOR_LITERAL_COUNTS), required=True
+        "--name",
+        choices=sorted(ALLOCATOR_LITERAL_COUNTS),
+        action="append",
+        required=True,
     )
     relocate_allocator.add_argument("--input", type=Path, required=True)
     relocate_allocator.add_argument("--output", type=Path, required=True)
 
     verify_objects = subparsers.add_parser(
         "verify-objects",
-        help="audit two transformed and four ordinary reviewed objects",
+        help="audit two allocator and four ordinary function contracts",
     )
     verify_objects.add_argument(
         "--object",
@@ -1287,7 +1321,7 @@ def arguments(argv: list[str] | None = None) -> argparse.Namespace:
     )
 
     generate = subparsers.add_parser(
-        "generate-linker", help="substitute transformed allocator objects"
+        "generate-linker", help="substitute the transformed allocator unit"
     )
     generate.add_argument("--linker-in", type=Path, required=True)
     generate.add_argument("--linker-out", type=Path, required=True)
@@ -1334,12 +1368,12 @@ def main(argv: list[str] | None = None) -> int:
     args = arguments(argv)
     try:
         if args.command == "relocate-allocator-assembly":
-            transformed = relocate_allocator_literals(
-                args.input.read_text(), args.name
-            )
+            transformed = args.input.read_text()
+            for name in args.name:
+                transformed = relocate_allocator_literals(transformed, name)
             atomic_write(args.output, transformed)
             print(
-                f"reloc-c-literals: {args.name} exact LUI/ORI constants "
+                f"reloc-c-literals: {', '.join(args.name)} exact LUI/ORI constants "
                 "now use ABI symbolic relocations"
             )
         elif args.command == "verify-objects":
@@ -1360,7 +1394,8 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(
                 f"reloc-c-literals: verified {len(REPLACEMENT_OBJECT_SPECS)} "
-                f"transformed and {len(ORDINARY_OBJECT_SPECS)} ordinary objects "
+                "transformed allocator and "
+                f"{len(ORDINARY_OBJECT_SPECS)} ordinary function contracts "
                 f"{layout_mode}"
             )
             for report in reports:
@@ -1383,14 +1418,14 @@ def main(argv: list[str] | None = None) -> int:
             )
             if args.no_boundary_pad:
                 print(
-                    f"reloc-c-literals: substituted "
-                    f"{len(REPLACEMENT_OBJECT_SPECS)} transformed objects; "
+                    "reloc-c-literals: substituted one transformed allocator "
+                    f"unit covering {len(REPLACEMENT_OBJECT_SPECS)} functions; "
                     f"left compiler text delta {-shrink:+d} bytes linker-owned"
                 )
             else:
                 print(
-                    f"reloc-c-literals: substituted "
-                    f"{len(REPLACEMENT_OBJECT_SPECS)} transformed objects; "
+                    "reloc-c-literals: substituted one transformed allocator "
+                    f"unit covering {len(REPLACEMENT_OBJECT_SPECS)} functions; "
                     f"focused boundary pad is {shrink} bytes"
                 )
         elif args.command == "verify-linked":
