@@ -982,59 +982,59 @@ void ActivateHumans(void)
             if (distance > DEACTIVATE_RADIUS)
             {
                 active = 0;
-                goto active_done;
             }
-            if (((u16)human->type & PAGE_MASK) == PAGE_BOSS)
+            else if (((u16)human->type & PAGE_MASK) == PAGE_BOSS)
             {
                 active = 1;
-                goto active_done;
             }
-            if (human->type == NINKEN || human->life < 0)
+            else if (human->type == NINKEN || human->life < 0)
             {
                 active = 1;
-                goto active_done;
             }
-            if (GameClock == 30 || StageID == STAGE_ID_TRAINING)
+            else if (GameClock == 30 || StageID == STAGE_ID_TRAINING)
             {
                 active = 1;
-                goto active_done;
             }
-            if (VISIBLE_ENEMIES_ < ThinkBudget)
+            else
             {
-                active = 1;
-                if (ThinkCount < ThinkBudget)
+                if (VISIBLE_ENEMIES_ < ThinkBudget)
                 {
-                    goto active_done;
+                    active = 1;
+                    if (ThinkCount < ThinkBudget)
+                    {
+                        goto active_done;
+                    }
+                    final = distance < activate_distance;
+                    goto visible_done;
                 }
-                final = distance < activate_distance;
-                goto visible_done;
-            }
-            if (distance >= activate_distance)
-            {
-                active = 0;
-                goto active_done;
-            }
-            if (((u16)human->attribute & ATTR_SUSPEND) == 0 &&
-                ThinkCount < ThinkBudget)
-            {
-                active = 1;
-                goto active_done;
-            }
-            j = 0;
-            while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
-            {
-                if (VISIBLE_ENEMIES_ <= j)
+                if (distance >= activate_distance)
                 {
-                    break;
+                    active = 0;
                 }
-                j++;
-            }
-            final = j != VISIBLE_ENEMIES_;
+                else if (((u16)human->attribute & ATTR_SUSPEND) == 0 &&
+                         ThinkCount < ThinkBudget)
+                {
+                    active = 1;
+                }
+                else
+                {
+                    j = 0;
+                    while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
+                    {
+                        if (VISIBLE_ENEMIES_ <= j)
+                        {
+                            break;
+                        }
+                        j++;
+                    }
+                    final = j != VISIBLE_ENEMIES_;
 
-        visible_done:
-            /* This earlier `final` lifetime ends at the visibility join; the
-             * active-result join below overwrites it before its next use. */
-            active = final;
+                visible_done:
+                    /* This earlier `final` lifetime ends at the visibility join; the
+                     * active-result join below overwrites it before its next use. */
+                    active = final;
+                }
+            }
         active_done:
             if (human)
             {
