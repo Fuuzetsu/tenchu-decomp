@@ -267,6 +267,41 @@
         "CdaPlayXA",
         "CdaStop"
       ]
+    },
+    {
+      "source": "IMAGES.C",
+      "functions": [
+        "InitSprite",
+        "SetupImageToPolyFT4",
+        "SetupImageToPolyGT4",
+        "_PlayMusic",
+        "PlayVoice",
+        "get_tim_from_archive",
+        "GetImage",
+        "GetArcData",
+        "InitializeImage",
+        "load_background_",
+        "load_archive_sprite_",
+        "PlayMusicFormID",
+        "apply_cd_volume_",
+        "exec_process_",
+        "search_id_table_"
+      ],
+      "debug_symbol_order": [
+        "InitializeImage",
+        "GetImage",
+        "GetImageReady",
+        "InitSprite",
+        "SetupImageToPolyFT4",
+        "SetupImageToPolyGT4",
+        "GetArcData",
+        "SetCDVolume",
+        "_PlayMusic",
+        "PlayMusic",
+        "PlayVoice",
+        "PlayMusicFormID",
+        "StopMusic"
+      ]
     }
   ]
 }
