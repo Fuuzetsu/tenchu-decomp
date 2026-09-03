@@ -724,7 +724,7 @@ void SetBlood(VECTOR *pos, short n, short time)
  *     extern struct Sprite3D *sprSmoke;
  * END PSX.SYM */
 
-void DrawSmoke(TEffectSlot *ef)
+static void DrawSmoke(TEffectSlot *ef)
 {
     SmokeType *param = &ef->param.smoke;
     Sprite3D *spr;
