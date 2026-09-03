@@ -4,6 +4,7 @@
 #include "infoview.h"
 #include "layout_save.h"
 #include "memcard.h"
+#include "stage.h"
 
 #define N_MUSIC_IDS 161
 #define FILE_SLOT_INITIAL_SELECTION 16
@@ -49,7 +50,6 @@ extern char str_layout_no[]; /* "layout no" */
 extern char fmt_num_2[]; /* "%d" */
 
 extern void InitializeImage(void);
-extern void SetupStageSequence(void);
 extern void CVAsetup(void);
 extern void debug_menu_file_animation_test(void);
 void FileOption(void)

@@ -29,7 +29,6 @@ extern char str_newline_3[];
 extern char fmt_stage_esd[];   /* %sSTAGE%d.ESD */
 extern char path_anim[];       /* K:\\WORK\\CDIMAGE\\ANIM\\ */
 
-extern void UpdateEvent(s16 n, s16 id);
 extern s16 CVAsequence(s16 sid);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

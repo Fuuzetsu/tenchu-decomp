@@ -39,4 +39,9 @@ extern struct EventSeqType *StageEvent;
 extern struct EventSeqType *Event[N_STAGE_EVENT_SLOTS];
 extern struct Humanoid *eTarget[N_STAGE_EVENT_SLOTS];
 
+extern void StartStageSequence(void);
+extern s32 StageSequence(void);
+extern void UpdateEvent(short slot, short event_id);
+extern void SetupStageSequence(void);
+
 #endif

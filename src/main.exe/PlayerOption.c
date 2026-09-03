@@ -4,6 +4,7 @@
 #include "item.h"
 #include "infoview.h"
 #include "layout_save.h"
+#include "stage.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -26,8 +27,6 @@
  * END PSX.SYM */
 
 extern char str_player_option[]; /* player option */ /* "player option" */
-
-extern void StartStageSequence(void);
 
 void PlayerOption(void)
 {

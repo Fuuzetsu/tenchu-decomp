@@ -18,6 +18,7 @@
 #include "tmdfast.h"
 #include "layout_save.h"
 #include "memcard.h"
+#include "stage.h"
 
 /*
  * PSX.SYM identifies these routines as members of the original WORLD.C.
@@ -75,7 +76,6 @@ static short LoadConstruction(u_long *data);
 extern void initialise_font(void);
 extern void InitializeImage(void);
 extern void CVAsetup(void);
-extern void SetupStageSequence(void);
 
 void CreateStage(stage_id StageNo, int CharType)
 {
