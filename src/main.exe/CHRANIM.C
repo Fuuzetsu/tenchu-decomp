@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "action.h"
 #include "effect.h"
 #include "sound.h"
@@ -31,7 +32,6 @@ extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 extern short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 extern void LoadTIMpackAndFree(u_long *adr);
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void PadShock(s32 port, s32 power, s32 time);
 extern s32 CdaGetCurrentLength(void);
 extern void CdaStop(void);

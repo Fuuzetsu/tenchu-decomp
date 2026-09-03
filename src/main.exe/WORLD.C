@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "images.h"
 #include "appear.h"
 #include "effect.h"

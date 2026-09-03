@@ -1,7 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
-extern int AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
 extern char *AdtMsgPtr;
 extern char AdtMsgEnd[];
 

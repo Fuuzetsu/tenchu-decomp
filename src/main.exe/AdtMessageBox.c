@@ -8,7 +8,6 @@ extern char msg_adtinit_not_called[]; /* "*** AdtInit not called ***" */
 extern char fmt_messagebox_count[];                                    /* "AdtMessageBox #%d\n\n" */
 extern char msg_press_start[];                                         /* "\n\nPress start to continue..." */
 
-extern s32 AdtVsprintf(s32 *args, char *dst, u32 n, char *fmt);
 extern s32 VSync(s32 mode);
 
 enum adt_message_mode

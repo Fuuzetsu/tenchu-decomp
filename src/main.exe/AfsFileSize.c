@@ -1,8 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "filesystem.h"
 
-extern void AdtMessageBox(char *fmt, ...);
 extern char msg_afsfilesize_invalid_handle[]; /* "AfsFileSize: invalid handle" */
 
 int AfsFileSize(TAFS *handle, TAFSFileHandle *fh)

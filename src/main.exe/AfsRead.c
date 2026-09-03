@@ -1,8 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "filesystem.h"
 
-extern void AdtMessageBox(char *fmt, ...);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char msg_afsread_invalid_handle[]; /* "AfsRead: invalid handle" */
 

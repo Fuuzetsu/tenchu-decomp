@@ -1,9 +1,9 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "filesystem.h"
 #include "vmemory.h"
 
-extern void AdtMessageBox(char *fmt, ...);
 extern char msg_afsinit_not_enough_memory[]; /* "AfsInit: not enough memory!" */
 
 void AfsInit(TAFS *handle)

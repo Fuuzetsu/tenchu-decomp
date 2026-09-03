@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "score.h"
 #include "infoview.h"
 
@@ -14,11 +15,9 @@ extern compact_stage_id CHOSEN_STAGE;
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 CHOSEN_LANGUAGE;
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void StageEndScreen(void);
 extern void SelectStage(TLinkInfo *ps);
 extern void exec_process_(s32 arg);
-extern void AdtMessageBox(char *fmt, ...);
 extern void CVAsetup(void);
 
 void debug_menu_stage_option(void)

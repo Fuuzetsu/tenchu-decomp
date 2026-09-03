@@ -30,7 +30,6 @@ extern int AfsFileSize(TAFS *handle, TAFSFileHandle *fh);
 extern u32 AfsRead(TAFS *volume, TAFSFileHandle *fd, void *buffer, u32 length);
 extern int AfsClose(TAFSFileHandle *fd);
 extern int AfsOpenVolume(TAFS *handle, char *path);
-extern void AdtMessageBox(char *fmt, ...);
 extern void CdaStop(void);
 extern int PCopen(char *name, int mode, int share);
 extern int PClseek(int fd, int offset, TSeekMode whence);

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "infoview.h"
 #include "item.h"
 
@@ -27,7 +28,6 @@ extern char msg_clear_ok_2[]; /* "clear ok?" */
 extern char str_path_layout_option[]; /* "path layout option" */
 extern char fmt_layout_enemies[]; /* "layout %d enemies" */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void AddEnemy(void);
 extern void leClearLayout(void);
 extern void leAddPath(enemy_layout_index id, s32 x, s32 y, s32 z);

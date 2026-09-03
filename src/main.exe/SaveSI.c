@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "infoview.h"
 #include "memcard.h"
 
@@ -70,8 +71,6 @@ extern char msg_write_error[];    /* "file write error %d" */
 extern s32 PCcreat(char *name, s32 mode);
 extern s32 PCwrite(s32 fd, void *data, s32 size);
 extern s32 PCclose(s32 fd);
-extern s32 AdtSelect(char *title, TAdtSelect *choices, s32 mode);
-extern void AdtMessageBox(char *fmt, ...);
 
 void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
 {

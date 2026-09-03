@@ -2,6 +2,7 @@
 #include <psxsdk/libgpu.h>
 #include "tuning.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "effect.h"
 #include "infoview.h"
 #include "images.h"
@@ -572,7 +573,6 @@ static void PutItemList(void)
 
 extern char str_select_item[]; /* "select item" */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
 static void AddItem2(void)
 {
@@ -700,7 +700,6 @@ extern s16 CheatSeq[];
  * code. */
 extern s16 ForbiddenCommand[21];
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -1002,7 +1001,6 @@ extern char msg_clear_ok[]; /* "clear ok?" */
 extern char str_select_option[]; /* "select option" */
 extern char str_opt[]; /* "opt" — the effect-menu title */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void LayoutEnemyOption(void);
 extern void FileOption(void);
 extern void PlayerOption(void);

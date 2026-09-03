@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "filesystem.h"
 
 extern void AfsInit(TAFS *handle);
@@ -9,7 +10,6 @@ extern char *strcat(char *dst, const char *src);
 extern int cd_open(char *name, int mode);
 extern int AfsGetHeader(TAFS *handle);
 extern int AfsGetEntry(TAFS *handle);
-extern void AdtMessageBox(char *fmt, ...);
 extern char str_ext_vol[];                    /* .VOL */
 extern char msg_afsvolume_open_err[];         /* "AfsOpenVolume: %s open err\n" */
 extern char msg_afsopenvolume_header_error[]; /* AfsOpenVolume: Header error */

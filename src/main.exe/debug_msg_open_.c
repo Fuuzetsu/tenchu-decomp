@@ -1,7 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
-extern void AdtMessageBox(char *fmt, ...);
 extern char AdtMsgBuf[];
 extern char *AdtMsgPtr;
 

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "infoview.h"
 #include "layout_save.h"
 #include "memcard.h"
@@ -47,7 +48,6 @@ extern char str_select_music[]; /* "select music" */
 extern char str_layout_no[]; /* "layout no" */
 extern char fmt_num_2[]; /* "%d" */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void lePackEnemyLayout(void *buf, long size);
 extern void load_save_slot_(enum save_storage storage, u8 *name);
 extern void InitializeImage(void);

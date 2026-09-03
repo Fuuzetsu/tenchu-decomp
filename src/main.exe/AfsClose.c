@@ -1,8 +1,8 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "filesystem.h"
 
-extern void AdtMessageBox(char *fmt, ...);
 extern char msg_afsclose_invalid_handle[]; /* "AfsClose: invalid handle" */
 
 int AfsClose(TAFSFileHandle *fd)

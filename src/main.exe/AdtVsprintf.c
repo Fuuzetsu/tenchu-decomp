@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 
 
 int AdtVsprintf(s32 *args, char *dst, u32 size, char *fmt)

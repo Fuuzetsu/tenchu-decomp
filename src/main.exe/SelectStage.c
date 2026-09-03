@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "infoview.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -22,7 +23,6 @@ extern char str_language_select[]; /* language select */
 extern char str_player_select[];   /* player select */
 extern char str_stage_select[];    /* stage select */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
 void SelectStage(TLinkInfo *ps)
 {

@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "sound.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "images.h"
 #include "item.h"
 #include "tim.h"

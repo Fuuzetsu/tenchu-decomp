@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "appear.h"
 #include "effect.h"
 #include "item.h"
@@ -41,7 +42,6 @@ extern char str_custom_think_setting[]; /* custom think setting */
 extern char fmt_pair[];                 /* %s %s */
 extern u8 str_cancel_2[];               /* cancel */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x,
                                      s32 y, s32 z, s16 r);
 

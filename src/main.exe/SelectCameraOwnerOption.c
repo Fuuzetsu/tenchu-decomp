@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "item.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -25,7 +26,6 @@
 extern char fmt_num_2[]; /* %d */                                /* "%d" */
 extern char str_select_camera_owner[]; /* select camera owner */ /* "select camera owner" */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
 void SelectCameraOwnerOption(void)
 {

@@ -19,5 +19,11 @@ void AdtReleaseDisp(TAdtDisp *disp);
 AdtQuietMode AdtQuiet(AdtQuietMode quiet);
 extern long (*AdtPadRead)(int port);
 long AdtDmyPadRead(int port);
+void AdtFntLoad(int tx, int ty);
+void AdtFntOpen(int x, int y, int width, int height, int background,
+                int max_characters);
+int AdtVsprintf(s32 *arguments, char *destination, u32 size, char *format);
+void AdtMessageBox(char *format, ...);
+s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 
 #endif

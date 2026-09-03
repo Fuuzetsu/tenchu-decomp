@@ -1,6 +1,7 @@
 #include "common.h"
 #include "tuning.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "images.h"
 #include "item.h"
 #include "model.h"
@@ -32,8 +33,6 @@ extern char msg_no_image_pack_data[]; /* NO IMAGE PACK DATA */
 
 extern void SetDepthQ(s32 dqa, s32 dqb);
 extern void GsSetNearClip(s32 near);
-extern void AdtFntLoad(int tx, int ty);
-extern void AdtFntOpen(int x, int y, int w, int h, int isbg, int n);
 extern s32 VSync(s32 mode);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);

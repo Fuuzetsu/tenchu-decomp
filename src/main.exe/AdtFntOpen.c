@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include <psxsdk/libgpu.h>
 
 extern AdtFntState AdtFnt;

@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "adt.h"
 #include "item.h"
 #include "infoview.h"
 
@@ -25,7 +26,6 @@
 
 extern char str_player_option[]; /* player option */ /* "player option" */
 
-extern s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode);
 extern void debug_menu_player_jump(void);
 extern void StartStageSequence(void);
 
