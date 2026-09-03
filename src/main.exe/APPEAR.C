@@ -277,20 +277,23 @@ Humanoid *BreedLife(character_kind type, long x, long y, long z, long r)
     u8 name[100];
 
     idx = 0;
-    if (HumanData[0].type == CHARACTER_KIND_END)
-        goto illegal_type;
-    while (HumanData[idx].type != CHARACTER_KIND_END)
+    if (HumanData[0].type != CHARACTER_KIND_END)
     {
-        base = HumanData;
-        if (base[idx].type == type)
-            break;
-        idx++;
+        while (HumanData[idx].type != CHARACTER_KIND_END)
+        {
+            base = HumanData;
+            if (base[idx].type == type)
+                break;
+            idx++;
+        }
+        if (base[idx].type == CHARACTER_KIND_END)
+            SystemOut(msg_illigal_character_type);
     }
-    if (base[idx].type != CHARACTER_KIND_END)
-        goto type_found;
-illegal_type:
-    SystemOut(msg_illigal_character_type);
-type_found:
+    else
+    {
+        SystemOut(msg_illigal_character_type);
+    }
+
     tbl = HumanData;
     pp = &tbl[idx];
     model = pp->model;
