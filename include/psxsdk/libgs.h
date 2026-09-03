@@ -33,6 +33,8 @@ struct _GsFCALL
     unsigned char *(*g4g[3])();
 };
 
+extern _GsFCALL GsFCALL4;
+
 typedef struct
 {
     VECTOR scale;

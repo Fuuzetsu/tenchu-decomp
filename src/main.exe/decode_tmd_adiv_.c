@@ -12,13 +12,6 @@ extern u_long *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive,
                           VERT *vertices,
                           u_long *packet, u_short count, u_long shift,
                           GsOT *ot, ADIV_WORK *work);
-extern u_long *GsTMDfastTNF3(TMD_P_TNF3 *primitive, VERT *vertices,
-                             u_long *packet, u_short count, u_long shift,
-                             GsOT *ot, u_long *work);
-extern u_long *GsTMDfastTNG3(TMD_P_TNG3 *primitive, VERT *vertices,
-                             u_long *packet, u_short count, u_long shift,
-                             GsOT *ot, u_long *work);
-
 void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
                       void *work)
 {

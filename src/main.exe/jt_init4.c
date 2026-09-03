@@ -1,5 +1,6 @@
 #include "common.h"
 #include "main.exe.h"
+#include "tmdfast.h"
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
@@ -8,41 +9,6 @@
  * void jt_init4(void);
  *     WORLD.C:1329, 110 src lines, frame 0 bytes, saved-reg mask 0x00000000 (DEMO build -- see below)
  * END PSX.SYM */
-
-extern _GsFCALL GsFCALL4;
-
-extern unsigned char *dmyGsTMDfastF3L();
-extern unsigned char *dmyGsTMDfastF3LFG();
-extern unsigned char *dmyGsTMDfastF3NL();
-extern unsigned char *GsTMDfastNF3();
-extern unsigned char *dmyGsTMDfastG3L();
-extern unsigned char *dmyGsTMDfastG3LFG();
-extern unsigned char *dmyGsTMDfastG3NL();
-extern unsigned char *GsTMDfastNG3();
-extern unsigned char *GsTMDfastTF3L();
-extern unsigned char *GsTMDfastTF3LFG();
-extern unsigned char *dmyGsTMDfastTF3NL();
-extern unsigned char *GsTMDfastTNF3();
-extern unsigned char *dmyGsTMDfastTG3L();
-extern unsigned char *dmyGsTMDfastTG3LFG();
-extern unsigned char *dmyGsTMDfastTG3NL();
-extern unsigned char *GsTMDfastTNG3();
-extern unsigned char *dmyGsTMDfastF4L();
-extern unsigned char *dmyGsTMDfastF4LFG();
-extern unsigned char *dmyGsTMDfastF4NL();
-extern unsigned char *GsTMDfastNF4();
-extern unsigned char *dmyGsTMDfastG4L();
-extern unsigned char *dmyGsTMDfastG4LFG();
-extern unsigned char *dmyGsTMDfastG4NL();
-extern unsigned char *GsTMDfastNG4();
-extern unsigned char *dmyGsTMDfastTF4L();
-extern unsigned char *dmyGsTMDfastTF4LFG();
-extern unsigned char *dmyGsTMDfastTF4NL();
-extern unsigned char *GsTMDfastTNF4();
-extern unsigned char *dmyGsTMDfastTG4L();
-extern unsigned char *dmyGsTMDfastTG4LFG();
-extern unsigned char *dmyGsTMDfastTG4NL();
-extern unsigned char *GsTMDfastTNG4();
 
 void jt_init4(void)
 {

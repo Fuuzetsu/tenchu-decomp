@@ -47,6 +47,78 @@ enum
 void jt_init4(void);
 void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 
+/* Private libgs renderers installed by jt_init4.  The lit table entries take
+ * a normal table before the packet cursor; the unlit entries do not.  PsyQ's
+ * warning stubs only consume those leading arguments and ignore the common
+ * count/sort arguments passed by GsSortObject4. */
+PACKET *dmyGsTMDfastF3L(void *primitive, VERT *vertices, SVECTOR *normals,
+                        PACKET *packet);
+PACKET *dmyGsTMDfastF3LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastF3NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastG3L(void *primitive, VERT *vertices, SVECTOR *normals,
+                        PACKET *packet);
+PACKET *dmyGsTMDfastG3LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastG3NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastTF3NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastTG3L(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastTG3LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                           PACKET *packet);
+PACKET *dmyGsTMDfastTG3NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastF4L(void *primitive, VERT *vertices, SVECTOR *normals,
+                        PACKET *packet);
+PACKET *dmyGsTMDfastF4LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastF4NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastG4L(void *primitive, VERT *vertices, SVECTOR *normals,
+                        PACKET *packet);
+PACKET *dmyGsTMDfastG4LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastG4NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastTF4L(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastTF4LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                           PACKET *packet);
+PACKET *dmyGsTMDfastTF4NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+PACKET *dmyGsTMDfastTG4L(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet);
+PACKET *dmyGsTMDfastTG4LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                           PACKET *packet);
+PACKET *dmyGsTMDfastTG4NL(void *primitive, VERT *vertices, SVECTOR *normals,
+                          PACKET *packet);
+
+PACKET *GsTMDfastNF3(TMD_P_NF3 *primitive, VERT *vertices, PACKET *packet,
+                      u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastNG3(TMD_P_NG3 *primitive, VERT *vertices, PACKET *packet,
+                      u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastTF3L(void *primitive, VERT *vertices, SVECTOR *normals,
+                       PACKET *packet, u_short count, u_long shift, GsOT *ot,
+                       u_long *scratch);
+PACKET *GsTMDfastTF3LFG(void *primitive, VERT *vertices, SVECTOR *normals,
+                         PACKET *packet, u_short count, u_long shift,
+                         GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastTNF3(TMD_P_TNF3 *primitive, VERT *vertices, PACKET *packet,
+                       u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastTNG3(TMD_P_TNG3 *primitive, VERT *vertices, PACKET *packet,
+                       u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastNF4(TMD_P_NF4 *primitive, VERT *vertices, PACKET *packet,
+                      u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastNG4(TMD_P_NG4 *primitive, VERT *vertices, PACKET *packet,
+                      u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastTNF4(TMD_P_TNF4 *primitive, VERT *vertices, PACKET *packet,
+                       u_short count, u_long shift, GsOT *ot, u_long *scratch);
+PACKET *GsTMDfastTNG4(TMD_P_TNG4 *primitive, VERT *vertices, PACKET *packet,
+                       u_short count, u_long shift, GsOT *ot, u_long *scratch);
+
 /* Header of one same-format run in the linked primitive stream. */
 typedef struct
 {
