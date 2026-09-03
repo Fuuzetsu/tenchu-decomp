@@ -1007,16 +1007,18 @@ long DrawClip(ModelType *objp, long *xy)
     {
     reject:
         result = -1;
-        goto ret;
     }
-    if (xy == 0)
+    else
     {
-        if (sz >= FOG_DEPTH)
-            DrawTMDmode = TMD_BANK_FOG;
-        else
-            DrawTMDmode = TMD_BANK_PLAIN;
+        if (xy == 0)
+        {
+            if (sz >= FOG_DEPTH)
+                DrawTMDmode = TMD_BANK_FOG;
+            else
+                DrawTMDmode = TMD_BANK_PLAIN;
+        }
+        result = sz;
     }
-    result = sz;
 ret:
     return result;
 }
