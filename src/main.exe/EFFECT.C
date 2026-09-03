@@ -2237,7 +2237,7 @@ void draw_fade_(TEffectSlot *ef)
  *     extern struct Sprite3D *sprBomb[3];
  * END PSX.SYM */
 
-void DrawExplosion(TEffectSlot *ef)
+static void DrawExplosion(TEffectSlot *ef)
 {
     enum
     {
