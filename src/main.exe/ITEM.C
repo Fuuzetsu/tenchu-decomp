@@ -2498,13 +2498,9 @@ void ProcItemDokudango(TItem *item)
             TFindItemTarget *search;
             VECTOR *item_position;
             Humanoid *nearest_target;
-            Humanoid *candidate;
             Humanoid *eater;
-            Humanoid *scan_result;
             s32 nearest_distance;
             s32 owner_distance;
-            s32 human_index;
-            s32 candidate_distance;
 
             if ((GameClock & 1) != 0)
             {
@@ -2522,63 +2518,22 @@ void ProcItemDokudango(TItem *item)
             search->pos.vz = item_position->vz;
             search->find_dist = nearest_distance;
 
-            while (1)
+            while (FindItemTarget(search) != 0)
             {
-                human_index = search->i;
-                while (1)
-                {
-                    if (human_index >= Humans)
-                    {
-                        break;
-                    }
-                    do
-                    {
-                        candidate = HumanGroup[human_index];
-                    } while (0);
-                    if (candidate->life > 0 &&
-                        candidate->motion->mid != MOT_ACTION &&
-                        (candidate->attribute & ATTR_SUSPEND) == 0)
-                    {
-                        candidate_distance =
-                            GetVectorDistance(&search->pos,
-                                              candidate->locate);
-                        if (candidate_distance < search->find_dist)
-                        {
-                            goto hit;
-                        }
-                    }
-                    human_index++;
-                }
-                scan_result = 0;
-            check:
-                if (scan_result == 0)
-                {
-                    break;
-                }
                 if ((search_state.find->type & PAGE_MASK) != PAGE_BOSS &&
                     search_state.find->life != HUMANOID_LIFE_INACTIVE &&
                     search_state.dist < nearest_distance)
                 {
-                    if (search_state.find != item->owner)
+                    if (search_state.find == item->owner)
                     {
-                        goto set_target;
+                        owner_distance = search_state.dist;
                     }
-                    owner_distance = search_state.dist;
+                    else
+                    {
+                        nearest_target = search_state.find;
+                        nearest_distance = search_state.dist;
+                    }
                 }
-                continue;
-            hit:
-                scan_result = candidate;
-                do
-                {
-                    search->find = candidate;
-                    search->dist = candidate_distance;
-                    search->i = human_index + 1;
-                } while (0);
-                goto check;
-            set_target:
-                nearest_target = search_state.find;
-                nearest_distance = search_state.dist;
-                continue;
             }
 
             if (owner_distance < DOKUDANGO_PICKUP_RANGE)
