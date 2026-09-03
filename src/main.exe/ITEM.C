@@ -1976,9 +1976,8 @@ int ReqItemSmoke(PARAM_ITEM_LAUNCH *p)
     s32 x;
     s32 y;
     s32 z;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     param = &item->param.smoke;
     if (item == 0)
         return 0;
