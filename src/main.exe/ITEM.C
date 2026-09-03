@@ -5950,7 +5950,7 @@ void ProcItemLaunch(TItem *item)
         PARAM_ITEM_LAUNCH param;
 
         p = &param;
-        memset(p, 0, sizeof(PARAM_ITEM_LAUNCH));
+        *p = (PARAM_ITEM_LAUNCH){0};
         param.type = item->type;
         param.user = item->owner;
         param.start.vx = model->locate.coord.t[0];
