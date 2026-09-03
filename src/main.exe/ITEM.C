@@ -1514,9 +1514,8 @@ static void ProcItemManebue(TItem *item);
 static int ReqItemManebue(PARAM_ITEM_LAUNCH *p)
 {
     TItem *item;
-    s32 i;
 
-    TAKE_ITEM_SLOT();
+    item = TakeItemSlot();
     if (item == 0)
         return 0;
     {
