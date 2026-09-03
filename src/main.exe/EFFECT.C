@@ -896,9 +896,7 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
 void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
 {
     int i;
-    int idx;
     TEffectSlot *slot;
-    int searched;
     SmokeType *smoke;
     short vx;
     short vy;
@@ -913,8 +911,7 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
         {
             return;
         }
-        FIND_EFFECT_SLOT(idx, searched, slot, found);
-    found:
+        slot = GetFreeEffectSlot();
         {
             int width;
 
