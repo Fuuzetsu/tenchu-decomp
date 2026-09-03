@@ -42,18 +42,12 @@ int AfsGetEntry(TAFS *handle)
     } while (0);
 
     buffer = valloc(handle->maxElements * sizeof(AFSIndexEntry));
-    if (buffer != 0)
+    if (buffer == 0)
     {
-        goto entry_ready;
+        AdtMessageBox(msg_afsgetentry_no_memory);
+        return 1;
     }
-    AdtMessageBox(msg_afsgetentry_no_memory);
-    return 1;
 
-bad_index:
-    AdtMessageBox(msg_illigal_index);
-    return 1;
-
-entry_ready:
     cd_seek(handle->fpVol, handle->posElement, CDSEEK_SET);
     i = 0;
     cd_read(handle->fpVol, buffer,
@@ -87,7 +81,8 @@ entry_ready:
                 AfsGetShort(&marker, buffer, packed);
                 if (marker != AFS_ELEMENT_MARK)
                 {
-                    goto bad_index;
+                    AdtMessageBox(msg_illigal_index);
+                    return 1;
                 }
                 packed += sizeof(AFSIndexEntry);
                 buffer += sizeof(AFSIndexEntry);
