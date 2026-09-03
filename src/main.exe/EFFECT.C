@@ -3765,13 +3765,10 @@ void SetLightning(VECTOR *start, VECTOR *end, short r, short g, short b)
 void set_fade_(u8 r, u8 g, u8 b, long priority)
 {
     long start_time;
-    int idx;
     TEffectSlot *slot;
-    int count;
     FadeType *fade;
 
-    FIND_EFFECT_SLOT(idx, count, slot, found);
-found:
+    slot = GetFreeEffectSlot();
     slot->param.fade.r = r;
     fade = &slot->param.fade;
     fade->g = g;
