@@ -1738,14 +1738,11 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
             {
                 VECTOR *pos = &npos;
                 int time = btime;
-                int idx;
                 TEffectSlot *slot;
-                int count;
                 BleedType *param;
                 u8 r;
 
-                FIND_EFFECT_SLOT(idx, count, slot, found);
-            found:
+                slot = GetFreeEffectSlot();
                 n--;
                 param = &slot->param.bleed;
                 r = col >> 16;
