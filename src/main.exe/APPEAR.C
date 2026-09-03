@@ -5,6 +5,7 @@
 #include "item.h"
 #include "model.h"
 #include "sound.h"
+#include "vmemory.h"
 
 /*
  * The demo symbols place GetAttackDBID before GetWeaponData. The shipped

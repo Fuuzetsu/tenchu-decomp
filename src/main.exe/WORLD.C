@@ -68,7 +68,6 @@ extern void SetDepthQ(s32 dqa, s32 dqb);
 static void DestroyTraceLine(TraceLine *trace);
 extern void DoBriefingAndInventorySelection(void);
 extern BackGround *load_background_(u_long *data);
-extern void vfree(void *ptr);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *bg);
 static short LoadConstruction(u_long *data);
@@ -221,7 +220,6 @@ void CreateStage(stage_id StageNo, int CharType)
  *     extern struct ModelType World;
  * END PSX.SYM */
 
-extern void *valloc(u32 size);
 extern char msg_no_model_archive_data_2[]; /* NO MODEL ARCHIVE DATA */
 
 OrnamentArchiveType *LoadOrnamentArchive(u_long *adr, ModelType *prnt)

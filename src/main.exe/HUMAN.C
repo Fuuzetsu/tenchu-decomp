@@ -9,6 +9,7 @@
 #include "sound.h"
 #include "afterimage.h"
 #include "tmdfast.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -24,9 +25,6 @@ extern char fmt_dbg_word[];       /* ~c880%04x=%02x  */
 extern char fmt_dbg_pair[];       /* ~c080%02x/%d%d  */
 extern char fmt_dbg_rot[];
 
-extern void *valloc(u32 size);
-extern void *vcalloc(u32 size, u8 c);
-extern void vfree(void *p);
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void StateTransition(Humanoid *human);
 extern void register_character_death(Humanoid *human);

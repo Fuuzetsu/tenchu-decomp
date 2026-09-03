@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "memcard.h"
+#include "vmemory.h"
 
 /*
  * Retail MEMCARD.C adds check_card_file_ and emits SaveCard before the other
@@ -11,8 +12,6 @@
 extern char CardPathFormat[];
 extern char str_sjis_title[];
 
-extern void *valloc(u32 size);
-extern void vfree(void *ptr);
 extern void *memset(void *dst, s32 value, u32 size);
 extern void *memcpy(void *dst, const void *src, u32 size);
 extern int sprintf(char *buf, char *fmt, ...);

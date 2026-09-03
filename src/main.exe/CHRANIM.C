@@ -7,6 +7,7 @@
 #include "humanoid.h"
 #include "item.h"
 #include "model.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -27,7 +28,6 @@ extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
 extern u8 CHOSEN_CHARACTER;
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
 
-extern void vfree(void *p);
 extern int sprintf(char *buf, char *fmt, ...);
 extern int strlen(char *s);
 extern char *strcpy(char *dst, const char *src);

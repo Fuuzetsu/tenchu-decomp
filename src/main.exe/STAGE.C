@@ -6,6 +6,7 @@
 #include "model.h"
 #include "score.h"
 #include "stage.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -31,7 +32,6 @@ extern char path_anim[];       /* K:\\WORK\\CDIMAGE\\ANIM\\ */
 extern void SetupThinkFunction(Humanoid *human, TThinkType type);
 extern void UpdateEvent(s16 n, s16 id);
 extern s16 CVAsequence(s16 sid);
-extern void vfree(void *p);
 extern void sprintf(char *s, char *fmt, ...);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

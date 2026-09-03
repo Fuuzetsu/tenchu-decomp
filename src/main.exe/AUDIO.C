@@ -2,6 +2,7 @@
 #include "tuning.h"
 #include "main.exe.h"
 #include "sound.h"
+#include "vmemory.h"
 
 /*
  * Demo AUDIO.C orders these routines as InitSoundEffect, SetupSE, DisposeSE,
@@ -30,10 +31,6 @@ extern void SsVabTransCompleted(int flag);
 extern void SsUtAllKeyOff(s32 flag);
 extern void SsVabClose(vab_id id);
 
-extern void *valloc(u32 size);
-extern void *vmemoryGC(void *ptr);
-extern void *vrealloc(void *ptr, u32 size);
-extern void vfree(void *ptr);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

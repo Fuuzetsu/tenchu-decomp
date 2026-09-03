@@ -5,6 +5,7 @@
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libcd.h>
 #include "images.h"
+#include "vmemory.h"
 
 typedef struct
 {
@@ -24,7 +25,6 @@ extern s16 BriefingLimit[N_LANGUAGES][N_STAGE_CONFIGS];
 extern s16 StageScrollAdj[N_LANGUAGES][N_STAGE_CONFIGS];
 
 extern BackGround *load_background_(u_long *tim);
-extern void vfree(void *ptr);
 extern void exec_process_(s32 arg0);
 extern s32 CdaGetCurrentLength(void);
 extern short DrawBG(BackGround *bg);

@@ -17,9 +17,16 @@ typedef struct VMhead VMheadType;
 #define VMEM_HEADER_BYTES sizeof(struct VMhead)
 
 extern u_long *virtual_memory_pool;
-extern unsigned long vgetmaxsize(void);
-extern unsigned long vgetfreesize(void);
-extern unsigned long vsize(void *pt);
+void *valloc(u32 size);
+void *vrealloc(void *allocation, u32 size);
+void *vmemoryGC(void *allocation);
+void vinit(void *address, u32 size);
+void *vcalloc(u32 size, u8 value);
+void vfree(void *allocation);
+unsigned long vgetmaxsize(void);
+unsigned long vgetfreesize(void);
+unsigned long vsize(void *allocation);
+void SystemOut(unsigned char *message);
 
 /* Compiler output proves the original used integer constants: these spellings
  * produce retail's LUI/ORI pairs in both allocator functions.  The normal-link

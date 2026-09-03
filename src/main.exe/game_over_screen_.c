@@ -5,6 +5,7 @@
 #include "appear.h"
 #include <psxsdk/libgpu.h>
 #include "images.h"
+#include "vmemory.h"
 
 /* Fade up from black, hold on the title, let the player page to the archive
  * text, then fade back down to either a retry or the menu. */
@@ -89,7 +90,6 @@ extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 /* Retail declares shade as s16 here; tile_sprite_ defines it as u16. */
 extern void tile_sprite_(Sprite3D *sprite, s16 shade);
-extern void vfree(void *ptr);
 extern void DisposeBG(BackGround *background);
 extern void exec_process_(s32 mode);
 

@@ -401,4 +401,3 @@ extern void load_font_image_into_global(GsIMAGE *image);
 extern void InitSprite(GsIMAGE *image, GsSPRITE *sprite);
 extern void StartDrawing(void);
 extern void EndDrawing(short sync);
-extern void SystemOut(unsigned char *string);

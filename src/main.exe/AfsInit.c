@@ -1,10 +1,10 @@
 #include "common.h"
 #include "main.exe.h"
 #include "filesystem.h"
+#include "vmemory.h"
 
 extern void AdtMessageBox(char *fmt, ...);
 extern void *memset(void *s, int c, u32 n);
-extern void *valloc(u32 size);
 extern char msg_afsinit_not_enough_memory[]; /* "AfsInit: not enough memory!" */
 
 void AfsInit(TAFS *handle)

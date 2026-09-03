@@ -8,6 +8,7 @@
 #include "timpack.h"
 #include "tmdfast.h"
 #include "tmdfile.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -35,8 +36,6 @@ extern void AdtFntLoad(int tx, int ty);
 extern void AdtFntOpen(int x, int y, int w, int h, int isbg, int n);
 extern s32 VSync(s32 mode);
 extern void srand(u32 seed);
-extern void *valloc(u32 size);
-extern void vfree(void *p);
 extern void DrawTMD(GsDOBJ2 *obj, GsOT *ot, s32 mode);
 extern void GsSortFixBg16(BackGround *bg, u32 *work, GsOT *ot, u16 sz);
 extern short LoadTIMpack(unsigned long *adr);

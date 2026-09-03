@@ -1,10 +1,9 @@
 #include "common.h"
 #include "main.exe.h"
 #include "filesystem.h"
+#include "vmemory.h"
 
 extern void AdtMessageBox(char *fmt, ...);
-extern void *valloc(u32 size);
-extern void vfree(void *p);
 extern int cd_read(FILE *f, void *buffer, int length);
 extern char *strncpy(char *dst, const char *src, u32 n);
 extern char msg_afsgetentry_empty_index[]; /* AfsGetEntry: empty index */

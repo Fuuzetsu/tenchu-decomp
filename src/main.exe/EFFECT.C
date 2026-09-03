@@ -9,6 +9,7 @@
 #include "sound.h"
 #include "tmdfast.h"
 #include "tuning.h"
+#include "vmemory.h"
 #include <psxsdk/libgpu.h>
 
 /*
@@ -26,8 +27,6 @@ extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern long abs(long value);
 extern void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
 extern int VSync(int mode);
-extern void *valloc(u32 size);
-extern void vfree(void *p);
 
 void reset_effects_(void);
 

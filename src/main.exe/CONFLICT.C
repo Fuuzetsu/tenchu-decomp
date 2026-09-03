@@ -1,6 +1,7 @@
 #include "common.h"
 #include "main.exe.h"
 #include "item.h"
+#include "vmemory.h"
 
 /*
  * The demo symbols place DisposeAreaMap immediately after LoadAreaMap. The
@@ -15,7 +16,6 @@ extern long AreaMapLastY;
 extern s16 direction[N_MAP_PROBE_DIRECTIONS][2];
 extern VECTOR cv;
 
-extern void vfree(void *ptr);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

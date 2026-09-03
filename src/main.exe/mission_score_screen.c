@@ -5,6 +5,7 @@
 #include "score.h"
 #include "misc.h"
 #include "images.h"
+#include "vmemory.h"
 
 #define SCORE_ROW_SPACING 0x16
 
@@ -23,7 +24,6 @@ extern char NUMBER_TIM_PATH[];
 extern char path_image_3[];  /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 extern char path_font_tim[]; /* font.tim */
 
-extern void vfree(void *ptr);
 extern BackGround *load_background_(u_long *tim);
 extern short DrawBG(BackGround *bg);
 extern void DisposeBG(BackGround *background);

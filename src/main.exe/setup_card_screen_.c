@@ -22,8 +22,6 @@ extern char path_demo_start_mcard_tim[];    /* K:\\WORK\\CDIMAGE\\DEMO\\start\\m
 extern char path_demo_start_mbuttonj_tim[]; /* K:\\WORK\\CDIMAGE\\DEMO\\start\\mbuttonj.tim */
 extern char path_demo_start_xtoselj_tim[];  /* K:\\WORK\\CDIMAGE\\DEMO\\start\\xtoselj.tim */
 
-extern void *valloc(u32 size);
-extern void vfree(void *p);
 extern Sprite3D *SetupSprite(Sprite3D *orgsprt, GsIMAGE *image);
 
 s32 setup_card_screen_(s16 operation)

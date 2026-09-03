@@ -3,6 +3,7 @@
 #include "action.h"
 #include "item.h"
 #include "model.h"
+#include "vmemory.h"
 
 /*
  * Demo ACTION.C orders these routines as LoadMotion, SearchMotion,
@@ -14,8 +15,6 @@
  */
 
 extern char msg_no_motion_data[]; /* NO MOTION DATA */
-extern void *valloc(u32 size);
-extern void vfree(void *p);
 
 void SetupSpline(MotionManager *mmp);
 void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt);
