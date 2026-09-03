@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "adt.h"
 
-extern AdtFntState AdtFnt;
-
 void AdtGetDisp(TAdtDisp *disp)
 {
     enum

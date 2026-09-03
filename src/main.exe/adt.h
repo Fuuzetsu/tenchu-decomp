@@ -14,6 +14,10 @@ struct TAdtDisp
     POLY_F4 bg;
 };
 
+/* State shared by the split implementations of the original ADT module. */
+extern AdtFntState AdtFnt;
+extern char *AdtMsgPtr;
+
 void AdtGetDisp(TAdtDisp *disp);
 void AdtReleaseDisp(TAdtDisp *disp);
 AdtQuietMode AdtQuiet(AdtQuietMode quiet);

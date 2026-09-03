@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "adt.h"
 
-extern AdtFntState AdtFnt;
 extern s32 AdtMessageBoxCount;                                         /* AdtMessageBox call counter */
 extern char msg_adtinit_not_called[]; /* "*** AdtInit not called ***" */
 extern char fmt_messagebox_count[];                                    /* "AdtMessageBox #%d\n\n" */

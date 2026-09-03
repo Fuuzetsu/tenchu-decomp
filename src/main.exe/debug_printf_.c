@@ -2,7 +2,6 @@
 #include "main.exe.h"
 #include "adt.h"
 
-extern char *AdtMsgPtr;
 extern char AdtMsgEnd[];
 
 void debug_printf_(char *arg0, ...)

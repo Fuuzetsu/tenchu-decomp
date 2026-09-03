@@ -3,7 +3,6 @@
 #include "adt.h"
 
 extern char AdtMsgBuf[];
-extern char *AdtMsgPtr;
 
 void debug_msg_open_(void)
 {

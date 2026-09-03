@@ -2,8 +2,6 @@
 #include "main.exe.h"
 #include "adt.h"
 
-extern AdtFntState AdtFnt;
-
 void AdtReleaseDisp(TAdtDisp *disp)
 {
     FntLoad(AdtFnt.tx, AdtFnt.ty);
