@@ -343,50 +343,37 @@ void *vmemoryGC(void *pt)
 
     {
         struct VMhead *prev;
-        struct VMhead *n2;
         void *newpt;
         struct VMhead vh;
         s32 sz;
 
         prev = (struct VMhead *)virtual_memory_pool;
+        while (prev != 0 && prev->next != header)
+        {
+            prev = prev->next;
+        }
         if (prev != 0)
         {
-            for (;;)
+            sz = prev->size;
+            mask = VMEM_BLOCK_IN_USE;
+            if ((sz & mask) == 0)
             {
-                n2 = prev->next;
-                if (n2 != header)
+                newpt = (void *)(prev + 1);
+                vh.size = sz;
+                vh.next = header->next;
+                vmpt = (u32 *)((u8 *)prev +
+                               ((header->size << 2) + VMEM_HEADER_BYTES));
+                prev->size = header->size;
+                prev->next = (struct VMhead *)vmpt;
+                memcpy(newpt, pt, size);
+                pt = newpt;
+                prev = vh.next;
+                if (prev != 0 && (~prev->size & mask) != 0)
                 {
-                    prev = n2;
-                    if (prev != 0)
-                    {
-                        continue;
-                    }
+                    vh.size += (prev->size + VMEM_HEADER_WORDS);
+                    vh.next = prev->next;
                 }
-                break;
-            }
-            if (prev != 0)
-            {
-                sz = prev->size;
-                mask = VMEM_BLOCK_IN_USE;
-                if ((sz & mask) == 0)
-                {
-                    newpt = (void *)(prev + 1);
-                    vh.size = sz;
-                    vh.next = header->next;
-                    vmpt = (u32 *)((u8 *)prev +
-                                   ((header->size << 2) + VMEM_HEADER_BYTES));
-                    prev->size = header->size;
-                    prev->next = (struct VMhead *)vmpt;
-                    memcpy(newpt, pt, size);
-                    pt = newpt;
-                    prev = vh.next;
-                    if (prev != 0 && (~prev->size & mask) != 0)
-                    {
-                        vh.size += (prev->size + VMEM_HEADER_WORDS);
-                        vh.next = prev->next;
-                    }
-                    *(struct VMhead *)vmpt = vh;
-                }
+                *(struct VMhead *)vmpt = vh;
             }
         }
     }
