@@ -937,13 +937,13 @@ long DrawClip(ModelType *objp, long *xy)
 
     attr = objp->attribute;
     if ((attr & MODEL_ATTR_HIDDEN) != 0)
-        return -1;
+        return MODEL_CLIP_REJECTED;
     if ((attr & MODEL_ATTR_NOCULL) == 0)
     {
         sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
         if ((attr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
         {
-            return -1;
+            return MODEL_CLIP_REJECTED;
         }
         if ((attr & MODEL_ATTR_CULL_SCREEN) != 0)
         {
@@ -966,19 +966,19 @@ long DrawClip(ModelType *objp, long *xy)
             }
             else
             {
-                return -1;
+                return MODEL_CLIP_REJECTED;
             }
         }
         if ((attr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
         {
-            return -1;
+            return MODEL_CLIP_REJECTED;
         }
     }
     sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
     if (sz > DEPTH_LIMIT)
     {
     reject:
-        result = -1;
+        result = MODEL_CLIP_REJECTED;
     }
     else
     {

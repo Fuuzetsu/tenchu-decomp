@@ -1,6 +1,11 @@
 #ifndef TENCHU_MODEL_H
 #define TENCHU_MODEL_H
 
+enum
+{
+    MODEL_CLIP_REJECTED = -1
+};
+
 /* Coordinate, transform, collision, and attribute state shared by models,
  * model archives, and Sprite3D's ModelType-compatible prefix. */
 #define INITIALIZE_MODEL_STATE(model_, parent_)                              \
