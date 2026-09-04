@@ -289,7 +289,6 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         y2 = yy - y;
         if (y2 < -1000 && (mode16 & AREA_LEVEL_ALLOW_DEEP) == 0)
         {
-        ret_min:
             return LEVEL_NONE;
         }
         ret = yy;
