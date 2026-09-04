@@ -392,6 +392,13 @@ static void GetCenterAndSize(TmdObjectRecord *tmd, SVECTOR *center, int *size)
         out = q & WORLD_MAP_AXIS_MASK;                                        \
     }
 
+#define GET_WORLD_CELL_SLOT(slot_, x_, y_, z_)                              \
+    {                                                                        \
+        (slot_) = (ObjectSlotType **)                                        \
+            WORLD_MAP_CELL_BYTE_OFFSET((x_), (y_), (z_));                    \
+        (slot_) = (ObjectSlotType **)((u8 *)WorldMap + (u32)(slot_));        \
+    }
+
 /* Shared archive disposal used for the mission and common archives. */
 #define DISPOSE_ORNAMENT_ARCHIVE(arc)                                         \
     {                                                                         \
@@ -708,8 +715,7 @@ static short LoadConstruction(u_long *data)
 
                 GetCenterAndSize((TmdObjectRecord *)model->object.tmd,
                                  &center, &size);
-                slot = (ObjectSlotType **)WORLD_MAP_CELL_BYTE_OFFSET(x, y, z);
-                slot = (ObjectSlotType **)((u8 *)WorldMap + (u32)slot);
+                GET_WORLD_CELL_SLOT(slot, x, y, z);
                 slotman = &ModelSlot;
                 shifty = center.vy;
                 msize = size / 2;
@@ -798,8 +804,7 @@ static short LoadConstruction(u_long *data)
             mma->object[i]->object.attribute |=
                 GS_DOBJ_DIVISION_DEPTH_BITS(2);
             UpdateOrnament(mma->object[i], 0);
-            slot = (ObjectSlotType **)WORLD_MAP_CELL_BYTE_OFFSET(x, y, z);
-            slot = (ObjectSlotType **)((u8 *)WorldMap + (u32)slot);
+            GET_WORLD_CELL_SLOT(slot, x, y, z);
             slotman = &ModelSlot;
             model = mma->object[i];
             if (slotman->n >= slotman->max)
