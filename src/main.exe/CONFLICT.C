@@ -765,13 +765,10 @@ void ComputeAllConflict(void)
 conflict_id GetConflictResult(ModelType *model, conflict_id index)
 {
     conflict_id idx;
-    int id;
     short i;
-    int k;
 
-    id = model->id;
     idx = model->id;
-    if (id != CONFLICT_NONE)
+    if (idx != CONFLICT_NONE)
     {
         if ((model->attribute & MODEL_ATTR_COLLIDE) == 0)
         {
@@ -785,14 +782,14 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
             {
                 for (; index < ConflictObjects; index++)
                 {
-                    if (ConflictObject[id].result[index] != 0)
+                    if (ConflictObject[idx].result[index] != 0)
                     {
                         i++;
-                        if (i > ConflictObject[id].offset.pad)
+                        if (i > ConflictObject[idx].offset.pad)
                         {
                             return CONFLICT_NONE;
                         }
-                        if ((ConflictObject[id].result[index] & CONFLICT_CONSUMED) == 0)
+                        if ((ConflictObject[idx].result[index] & CONFLICT_CONSUMED) == 0)
                         {
                             break;
                         }
@@ -804,18 +801,18 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
                 return CONFLICT_NONE;
             }
         }
-        k = index;
-        if (k < ConflictObjects)
+        if (index < ConflictObjects &&
+            ConflictObject[idx].result[index] != 0)
         {
-            if (ConflictObject[idx].result[k] != 0)
-            {
-                ConflictObject[idx].result[k] |= CONFLICT_CONSUMED;
-                ConflictModel = ConflictObject[k].model;
-                ConflictDistance.vx = (short)ConflictObject[k].position.vx - (short)ConflictObject[idx].position.vx;
-                ConflictDistance.vy = (short)ConflictObject[k].position.vy - (short)ConflictObject[idx].position.vy;
-                ConflictDistance.vz = (short)ConflictObject[k].position.vz - (short)ConflictObject[idx].position.vz;
-                return index;
-            }
+            ConflictObject[idx].result[index] |= CONFLICT_CONSUMED;
+            ConflictModel = ConflictObject[index].model;
+            ConflictDistance.vx = (short)ConflictObject[index].position.vx -
+                                  (short)ConflictObject[idx].position.vx;
+            ConflictDistance.vy = (short)ConflictObject[index].position.vy -
+                                  (short)ConflictObject[idx].position.vy;
+            ConflictDistance.vz = (short)ConflictObject[index].position.vz -
+                                  (short)ConflictObject[idx].position.vz;
+            return index;
         }
         return CONFLICT_NONE;
     }
