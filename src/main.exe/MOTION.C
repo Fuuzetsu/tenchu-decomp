@@ -4742,6 +4742,19 @@ void ActSQUAT(void)
 
 void ActSTICKON(void)
 {
+    enum
+    {
+        STICKON_BODY_OFFSET = 300,
+        STICKON_WAIST_PITCH = -0x69,
+        STICKON_SLIDE_SPEED = 30,
+        STICKON_THROW_OFFSET = 500,
+        MAKIBISHI_SCATTER_COUNT = 5,
+        MAKIBISHI_ANGLE_JITTER = 10,
+        MAKIBISHI_MIN_SPEED = 30,
+        MAKIBISHI_SPEED_RANGE = 200,
+        MAKIBISHI_VERTICAL_SPEED_RANGE = 30,
+        STICKON_THROW_SPEED = 120
+    };
     MapVector *map;
     ModelArchiveType *model;
     short y;
@@ -4806,7 +4819,7 @@ void ActSTICKON(void)
             {
                 rotation->y = 0;
             }
-            GetMoveSpeed(&vect, rv, -300, 0);
+            GetMoveSpeed(&vect, rv, -STICKON_BODY_OFFSET, 0);
             dtM->motion->locate->x = vect.vx;
             dtM->motion->locate->z = vect.vz;
         }
@@ -4874,7 +4887,8 @@ void ActSTICKON(void)
                     dtV->vz = 0;
                     dtV->vx = 0;
                     dtM->mask = MOTION_MASK_NOROOT;
-                    model->object[MODEL_PART_WAIST]->rotate.vx = -0x69;
+                    model->object[MODEL_PART_WAIST]->rotate.vx =
+                        STICKON_WAIST_PITCH;
                     UpdateCoordinate(model->object[MODEL_PART_WAIST]);
                 }
                 break;
@@ -5008,19 +5022,19 @@ void ActSTICKON(void)
 
             if (dtPAD & PADLup)
             {
-                MoveHumanoid(Me_MOTION_C, 30, 0);
+                MoveHumanoid(Me_MOTION_C, STICKON_SLIDE_SPEED, 0);
             }
             else if (dtPAD & PADLdown)
             {
-                MoveHumanoid(Me_MOTION_C, -30, 0);
+                MoveHumanoid(Me_MOTION_C, -STICKON_SLIDE_SPEED, 0);
             }
             else if (dtPAD & PADLleft)
             {
-                MoveHumanoid(Me_MOTION_C, 0, 30);
+                MoveHumanoid(Me_MOTION_C, 0, STICKON_SLIDE_SPEED);
             }
             else if (dtPAD & PADLright)
             {
-                MoveHumanoid(Me_MOTION_C, 0, -30);
+                MoveHumanoid(Me_MOTION_C, 0, -STICKON_SLIDE_SPEED);
             }
 
             y = model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy;
@@ -5079,7 +5093,7 @@ void ActSTICKON(void)
                 (s16)(model->object[MODEL_PART_WAIST]->rotate.vy + dtR->vy);
             angle = (pd ? base_angle_value - ANGLE_QUADRANT
                         : base_angle_value + ANGLE_QUADRANT) &
-                    0xF00;
+                    ANGLE_SIXTEENTH_MASK;
         }
         item.user = Me_MOTION_C;
         item.type = StickonItem;
@@ -5088,8 +5102,8 @@ void ActSTICKON(void)
             Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0 + pd],
             0, 0, 0);
         angle = (s16)angle;
-        position->vx -= (rsin(angle) * 500) >> FIXED_SHIFT;
-        position->vz -= (rcos(angle) * 500) >> FIXED_SHIFT;
+        position->vx -= (rsin(angle) * STICKON_THROW_OFFSET) >> FIXED_SHIFT;
+        position->vz -= (rcos(angle) * STICKON_THROW_OFFSET) >> FIXED_SHIFT;
         item.start.vx = position->vx;
         item.start.vy = position->vy;
         item.start.vz = position->vz;
@@ -5107,10 +5121,10 @@ void ActSTICKON(void)
         {
             s32 next_angle;
 
-            for (t = 0; t < 5; t++)
+            for (t = 0; t < MAKIBISHI_SCATTER_COUNT; t++)
             {
-                next_angle = angle - 10;
-                next_angle += rand() % 20;
+                next_angle = angle - MAKIBISHI_ANGLE_JITTER;
+                next_angle += rand() % (MAKIBISHI_ANGLE_JITTER * 2);
                 angle += next_angle - angle;
                 /* Empty loop retained for code layout; its original source construct is unknown. */
                 do
@@ -5118,20 +5132,27 @@ void ActSTICKON(void)
                 } while (0);
                 y = next_angle;
                 item.end.vx =
-                    (rsin(y) * (-30 - rand() % 200)) >> FIXED_SHIFT;
+                    (rsin(y) *
+                     (-MAKIBISHI_MIN_SPEED - rand() % MAKIBISHI_SPEED_RANGE)) >>
+                    FIXED_SHIFT;
                 item.end.vy = rand();
-                item.end.vy = -(item.end.vy % 30);
+                item.end.vy =
+                    -(item.end.vy % MAKIBISHI_VERTICAL_SPEED_RANGE);
                 item.end.vz =
-                    (rcos(y) * (-30 - rand() % 200)) >> FIXED_SHIFT;
+                    (rcos(y) *
+                     (-MAKIBISHI_MIN_SPEED - rand() % MAKIBISHI_SPEED_RANGE)) >>
+                    FIXED_SHIFT;
                 ReqItemMakibishi((PARAM_ITEM_DROP *)&item);
             }
         }
         else
         {
             y = angle;
-            item.end.vx = (rsin(y) * -120) >> FIXED_SHIFT;
+            item.end.vx =
+                (rsin(y) * -STICKON_THROW_SPEED) >> FIXED_SHIFT;
             item.end.vy = 0;
-            item.end.vz = (rcos(y) * -120) >> FIXED_SHIFT;
+            item.end.vz =
+                (rcos(y) * -STICKON_THROW_SPEED) >> FIXED_SHIFT;
             switch (item.type)
             {
             case ITEM_FIRE:
