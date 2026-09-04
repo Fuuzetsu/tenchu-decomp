@@ -266,8 +266,10 @@ s16 CVAsequence(s16 sid)
     MotionUpdateMode = 0;
     SetCameraMode(CMODE_NORMAL);
 
-    for (i = 0, anim_base = CVAhuman, type_class = PAGE_BOSS;
-         i < N_CVA_HUMANS; i++)
+    i = 0;
+    anim_base = CVAhuman;
+    type_class = PAGE_BOSS;
+    for (; i < N_CVA_HUMANS; i++)
     {
         human = anim_base[i].human;
         if (human != 0 && human->status != STAT_DEAD)
