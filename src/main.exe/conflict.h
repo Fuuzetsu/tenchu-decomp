@@ -22,7 +22,7 @@ extern void DisposeAreaMap(AreaMapType *area);
 extern long ComputeAreaLevel(AreaNodeType *node, long x, long z);
 extern void InitConflict(void);
 extern long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
-                            int mode);
+                            enum area_level_mode_flag mode);
 extern long CGetLevel(AreaNodeType **hint, long x, long y, long z,
                       unsigned long flag);
 extern long GetAreaMapVector(AreaMapType *area, MapVector *mvp,

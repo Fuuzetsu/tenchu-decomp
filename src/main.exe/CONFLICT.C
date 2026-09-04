@@ -152,7 +152,8 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
  * 0x80000000 for no floor; a base-material-2 node (the buoyant
  * surface) reports no floor, and MAP_RESULT_FINAL accepts the current
  * result without examining the rest of that leaf list. */
-long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
+long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
+                     enum area_level_mode_flag mode)
 {
     long n;
     long *row;
