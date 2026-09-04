@@ -2001,14 +2001,16 @@ void DisposeOrnamentArchive(OrnamentArchiveType *mad)
 {
     s32 i;
 
-    if (mad != 0)
+    if (mad == 0)
     {
-        for (i = 0; i < mad->n; i++)
-        {
-            DisposeOrnament(mad->object[i]);
-        }
-        vfree(mad->object);
-        vfree(mad->data);
-        vfree(mad);
+        return;
     }
+
+    for (i = 0; i < mad->n; i++)
+    {
+        DisposeOrnament(mad->object[i]);
+    }
+    vfree(mad->object);
+    vfree(mad->data);
+    vfree(mad);
 }
