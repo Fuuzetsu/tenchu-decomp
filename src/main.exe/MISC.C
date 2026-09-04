@@ -950,7 +950,7 @@ void DoMiscProc(void)
 
             i = 0;
             view = &ViewInfo;
-            for (; i < MaxMisc; i++)
+            while (i < MaxMisc)
             {
                 p = &misc[i];
                 proc = p->proc;
@@ -972,6 +972,7 @@ void DoMiscProc(void)
                         p->pause = MISC_PAUSED;
                     }
                 }
+                i++;
             }
         }
         {
