@@ -781,6 +781,14 @@ static inline void SnapToWaistConflict(void)
 
 void DamageControl(void)
 {
+    enum
+    {
+        COUNTER_BLEED_COUNT = 10,
+        COUNTER_BLEED_VELOCITY_RANGE = 100,
+        COUNTER_BLEED_VELOCITY_BIAS = 50,
+        COUNTER_BLEED_LIFETIME_RANGE = 20,
+        COUNTER_BLEED_LIFETIME_MIN = 20,
+    };
     static motion_id damagemotion[N_DAMAGE_MOTIONS] = {
         MOT_DAMAGE,
         MOT_DAMAGE_FRONT_MID,
@@ -1156,15 +1164,19 @@ void DamageControl(void)
                         pp = GetAbsolutePosition(
                             Me_MOTION_C->model->object[MODEL_PART_HEAD], 0,
                             (short)(dmg * 10 + 100), 0);
-                        t = 0;
-                        do
+                        for (t = 0; t < COUNTER_BLEED_COUNT; t++)
                         {
-                            pv.vx = rand() % 100 - 50;
-                            pv.vy = rand() % 100 - 50;
-                            pv.vz = rand() % 100 - 50;
-                            SetBleed(pp, &pv, rand() % 20 + 20, COLOR_YELLOW);
-                            t++;
-                        } while (t < 10);
+                            pv.vx = rand() % COUNTER_BLEED_VELOCITY_RANGE -
+                                    COUNTER_BLEED_VELOCITY_BIAS;
+                            pv.vy = rand() % COUNTER_BLEED_VELOCITY_RANGE -
+                                    COUNTER_BLEED_VELOCITY_BIAS;
+                            pv.vz = rand() % COUNTER_BLEED_VELOCITY_RANGE -
+                                    COUNTER_BLEED_VELOCITY_BIAS;
+                            SetBleed(pp, &pv,
+                                     rand() % COUNTER_BLEED_LIFETIME_RANGE +
+                                         COUNTER_BLEED_LIFETIME_MIN,
+                                     COLOR_YELLOW);
+                        }
                         RequestDamageFeedback(enemy, RUMBLE_RELEASE_NONE);
                         {
                             s16 r;
