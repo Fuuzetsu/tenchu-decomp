@@ -43,6 +43,21 @@ static __inline__ TItem *TakeItemSlot(void)
     return item;
 }
 
+static __inline__ void DropStayedItem(PARAM_ITEM_STAY *request)
+{
+    PARAM_ITEM_LAUNCH drop_request;
+
+    drop_request.type = request->type;
+    drop_request.user = ITEM_OWNER_UNCLAIMED;
+    copyVector(&drop_request.start, &request->locate);
+    setVector(&drop_request.end, 0, 0, 0);
+    drop_request.start.vy = GetAreaMapLevel(
+        GlobalAreaMap, drop_request.start.vx,
+        drop_request.start.vy, drop_request.start.vz,
+        AREA_LEVEL_DEFAULT);
+    ReqItemDrop(&drop_request);
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -4197,32 +4212,19 @@ static void ProcItemNinken(TItem *item)
         if (status == KORO_STAY)
         {
             PARAM_ITEM_STAY saved_record;
-            PARAM_ITEM_STAY rparam;
-            PARAM_ITEM_LAUNCH launch_record;
-            PARAM_ITEM_STAY *saved;
-            PARAM_ITEM_LAUNCH *launch;
+            PARAM_ITEM_STAY stay_request;
 
-            rparam = (PARAM_ITEM_STAY){0};
-            rparam.type = item->type;
-            copyVector(&rparam.locate, MODEL_POSITION(item->locate));
-            saved_record = rparam;
+            stay_request = (PARAM_ITEM_STAY){0};
+            stay_request.type = item->type;
+            copyVector(&stay_request.locate, MODEL_POSITION(item->locate));
+            saved_record = stay_request;
 
             if (item->proc != 0)
             {
                 DISPOSE_ITEM(item);
             }
 
-            saved = &saved_record;
-            launch = &launch_record;
-            launch_record.type = saved->type;
-            launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
-            copyVector(&launch_record.start, &saved->locate);
-            setVector(&launch_record.end, 0, 0, 0);
-            launch_record.start.vy = GetAreaMapLevel(
-                GlobalAreaMap, launch_record.start.vx,
-                launch_record.start.vy,
-                launch_record.start.vz, AREA_LEVEL_DEFAULT);
-            ReqItemDrop(launch);
+            DropStayedItem(&saved_record);
             return;
         }
         {
@@ -4681,21 +4683,6 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
     }
     Sound(p->user, SE_ITEM_USE);
     return 1;
-}
-
-static __inline__ void DropStayedItem(PARAM_ITEM_STAY *request)
-{
-    PARAM_ITEM_LAUNCH drop_request;
-
-    drop_request.type = request->type;
-    drop_request.user = ITEM_OWNER_UNCLAIMED;
-    copyVector(&drop_request.start, &request->locate);
-    setVector(&drop_request.end, 0, 0, 0);
-    drop_request.start.vy = GetAreaMapLevel(
-        GlobalAreaMap, drop_request.start.vx,
-        drop_request.start.vy, drop_request.start.vz,
-        AREA_LEVEL_DEFAULT);
-    ReqItemDrop(&drop_request);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
