@@ -3282,6 +3282,21 @@ void spread_blood_pool_(Humanoid *human)
 
 void DrawShadow(Humanoid *human)
 {
+    enum
+    {
+        WATER_SPLASH_PERIOD = 2,
+        WATER_SPLASH_HEIGHT = 100,
+        SWIM_SPLASH_RADIUS = 300,
+        LAND_SPLASH_RADIUS = 100,
+        WATER_SPLASH_SIZE = 2 * FIXED_ONE,
+        WATER_SPLASH_FRAMES = 4,
+        DAMAGE_NAPALM_PERIOD = 64,
+        DAMAGE_NAPALM_PHASE = 1,
+        DAMAGE_BLEED_PERIOD = 16,
+        SHADOW_HEIGHT_SCALE = 4,
+        SHADOW_SLOPE_PITCH = ANGLE_SIXTEENTH,
+        SHADOW_OT_OFFSET = 2
+    };
     VECTOR scl;
     MATRIX mat;
     SVECTOR scr;
@@ -3303,36 +3318,41 @@ void DrawShadow(Humanoid *human)
         if ((human->vector.vx != 0 || human->vector.vy != 0 ||
              human->motion->mid == MOT_STATE_LAND ||
              human->motion->mid == MOT_ATTACK_DIVE_LAND) &&
-            human->map.height == 0 && (GameClock & 1) != 0)
+            human->map.height == 0 &&
+            (GameClock & (WATER_SPLASH_PERIOD - 1)) != 0)
         {
             TEffectSlot *slot;
             SplashType *param;
-            s32 z;
+            s32 splash_z;
 
             if (human->status == STAT_SWIM)
             {
                 s32 r = rand();
 
-                position->vy += 100;
-                position->vx += r % 600 - 300;
-                position->vz += rand() % 600 - 300;
+                position->vy += WATER_SPLASH_HEIGHT;
+                position->vx +=
+                    r % (SWIM_SPLASH_RADIUS * 2) - SWIM_SPLASH_RADIUS;
+                position->vz += rand() % (SWIM_SPLASH_RADIUS * 2) -
+                                SWIM_SPLASH_RADIUS;
             }
             else
             {
-                position->vx += rand() % 200 - 100;
-                position->vz += rand() % 200 - 100;
+                position->vx += rand() % (LAND_SPLASH_RADIUS * 2) -
+                                LAND_SPLASH_RADIUS;
+                position->vz += rand() % (LAND_SPLASH_RADIUS * 2) -
+                                LAND_SPLASH_RADIUS;
             }
 
             slot = GetFreeEffectSlot();
             param = &slot->param.splash;
             param->px = position->vx;
             param->py = position->vy;
-            z = position->vz;
-            param->sx = 0x2000;
-            param->sy = 0x2000;
-            param->speed = 4;
+            splash_z = position->vz;
+            param->sx = WATER_SPLASH_SIZE;
+            param->sy = WATER_SPLASH_SIZE;
+            param->speed = WATER_SPLASH_FRAMES;
             param->mode = SPLASH_MODE_SPAWN;
-            param->pz = z;
+            param->pz = splash_z;
             slot->proc = DrawSplash;
         }
     }
@@ -3340,11 +3360,12 @@ void DrawShadow(Humanoid *human)
     {
         if (human->map.height == 0)
         {
-            if ((GameClock & 0x3f) == 1)
+            if ((GameClock & (DAMAGE_NAPALM_PERIOD - 1)) ==
+                DAMAGE_NAPALM_PHASE)
             {
                 spawn_damage_effect_(human, DAMAGE_EFFECT_NAPALM);
             }
-            else if ((GameClock & 0xf) == 0)
+            else if ((GameClock & (DAMAGE_BLEED_PERIOD - 1)) == 0)
             {
                 spawn_damage_effect_(human, DAMAGE_EFFECT_ATTACHED_FLASH);
             }
@@ -3356,10 +3377,11 @@ void DrawShadow(Humanoid *human)
         ShadowMdl->locate.coord.t[1] = position->vy;
         ShadowMdl->locate.coord.t[2] = position->vz;
 
-        scl.vx = scl.vy = scl.vz = height * 4 - (human->map.height >> 1);
+        scl.vx = scl.vy = scl.vz =
+            height * SHADOW_HEIGHT_SCALE - (human->map.height >> 1);
         if (human->map.angleH != 0)
         {
-            ShadowMdl->rotate.vx = 0x100;
+            ShadowMdl->rotate.vx = SHADOW_SLOPE_PITCH;
             ShadowMdl->rotate.vy = RefrectVector[human->map.angleH];
             ShadowMdl->rotate.vz = 0;
         }
@@ -3378,7 +3400,7 @@ void DrawShadow(Humanoid *human)
         scr.vz = RotTransPers(&UnitVector, (s32 *)&scr, &p, &flag);
         if (scr.vz >> 2 < DEPTH_LIMIT)
         {
-            GsSortObject4(&ShadowMdl->object, OTablePt, 2,
+            GsSortObject4(&ShadowMdl->object, OTablePt, SHADOW_OT_OFFSET,
                           (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
         }
     }
