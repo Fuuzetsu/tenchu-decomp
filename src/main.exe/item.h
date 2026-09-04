@@ -39,6 +39,11 @@
 #define PAD_HOLD_BUTTONS(hold) ((hold) >> 16)
 #define PAD_HOLD_FRAMES(hold) ((u8)(hold))
 
+/* Direction buttons occupy four consecutive bits from up through left. */
+#define PAD_DIRECTION_SHIFT 12
+#define PAD_DIRECTION_PRESSED(pad, direction)                                \
+    (((pad) >> ((direction) + PAD_DIRECTION_SHIFT)) & 1)
+
 /* Manual item use either starts one of the shared item motions, reports an
  * unavailable selection, or lets the item perform its immediate action. */
 #define SELECT_ITEM_USE_MOTION(unavailable_, immediate_)                    \

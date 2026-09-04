@@ -4889,13 +4889,14 @@ void ActSTICKON(void)
             if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
             {
                 pd = 0;
-                rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
-                if (((dtPAD >> 12) & 1) == 0)
+                rv = ANGLE_QUADRANT_INDEX(
+                    model->object[MODEL_PART_WAIST]->rotate.vy);
+                if (!PAD_DIRECTION_PRESSED(dtPAD, pd))
                 {
                     do
                     {
                         pd++;
-                    } while (((dtPAD >> (pd + 12)) & 1) == 0);
+                    } while (!PAD_DIRECTION_PRESSED(dtPAD, pd));
                 }
                 if (rv != ((pd + 2) & 3))
                 {
@@ -4922,7 +4923,8 @@ void ActSTICKON(void)
 
         if ((Me_MOTION_C->pad.trig & PADRup) != 0)
         {
-            rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
+            rv = ANGLE_QUADRANT_INDEX(
+                model->object[MODEL_PART_WAIST]->rotate.vy);
             pd = 0;
             switch ((u32)CamState.Mode)
             {
@@ -5022,14 +5024,15 @@ void ActSTICKON(void)
 
         if ((dtPAD & (PADLleft | PADLdown | PADLright | PADLup)) != 0)
         {
-            rv = model->object[MODEL_PART_WAIST]->rotate.vy >> 10 & 3;
+            rv = ANGLE_QUADRANT_INDEX(
+                model->object[MODEL_PART_WAIST]->rotate.vy);
             pd = 0;
-            if (((dtPAD >> 12) & 1) == 0)
+            if (!PAD_DIRECTION_PRESSED(dtPAD, pd))
             {
                 do
                 {
                     pd++;
-                } while (((dtPAD >> (pd + 12)) & 1) == 0);
+                } while (!PAD_DIRECTION_PRESSED(dtPAD, pd));
             }
             if (rv == ((pd + 2) & 3))
             {

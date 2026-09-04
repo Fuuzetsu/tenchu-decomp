@@ -140,7 +140,9 @@ extern motion_move_mode motMODE;
     (ANGLE_MASK & ~(ANGLE_SIXTEENTH - 1))
 #define ANGLE_SIXTEENTH_FRACTION_MASK (ANGLE_SIXTEENTH - 1)
 #define ANGLE_QUADRANT 0x400
+#define ANGLE_QUADRANT_SHIFT 10
 #define ANGLE_QUADRANT_MASK 0xc00
+#define ANGLE_QUADRANT_INDEX(angle) (((angle) >> ANGLE_QUADRANT_SHIFT) & 3)
 #define ANGLE_HALF_QUADRANT 0x200
 
 typedef s16 facing_angle;
