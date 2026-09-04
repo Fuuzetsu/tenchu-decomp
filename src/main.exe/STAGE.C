@@ -308,8 +308,6 @@ s32 StageSequence(void)
     flag = 0;
     if (StagePlayer->status == STAT_DEAD)
     {
-        s32 result;
-
         if (StagePlayer->motion->loop == 0 &&
             StagePlayer->motion->count < 30)
         {
@@ -321,12 +319,7 @@ s32 StageSequence(void)
             {
                 StageTime++;
             }
-            result = 0;
-            if (StageTime >= 0)
-            {
-                result = -1;
-            }
-            return result;
+            return StageTime >= 0 ? -1 : 0;
         }
         /* Boot the two master scripts that keep running through player death. */
         UpdateEvent(0, EVENT_ROOT_FIRST);
