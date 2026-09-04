@@ -847,9 +847,6 @@ void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
     GsIMAGE tm;
     u8 **name_table = tim_names;
     GsIMAGE *ptm = &tm;
-    s32 va = a;
-    s32 vb = b;
-    s32 vc = c;
     u8 **selected_name;
     u_long *adr;
 
@@ -863,13 +860,13 @@ loop:
             p->x = x;
             p->y = y;
             p->z = z;
-            p->param.init.a = va;
-            p->param.init.b = vb;
-            p->param.init.c = vc;
+            p->param.init.a = a;
+            p->param.init.b = b;
+            p->param.init.c = c;
             switch (type)
             {
             case MISC_FIRE:
-                if (va == 0)
+                if (a == 0)
                     p->proc = ProcMiscFire;
                 else
                     p->proc = proc_misc_puff_;
