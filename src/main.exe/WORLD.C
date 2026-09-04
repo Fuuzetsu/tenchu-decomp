@@ -1305,7 +1305,7 @@ have_z:
                                                          world_y_offset + world_x_offset +
                                                          (u32)world_base))
                                               ->top;
-                                    for (;;)
+                                    while (1)
                                     {
                                         if (cur != 0)
                                         {
@@ -1387,7 +1387,7 @@ have_z:
         ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
         cur = DrawList[0];
-        for (;;)
+        while (1)
         {
             if (cur != 0)
             {
@@ -1406,12 +1406,12 @@ have_z:
         }
 
         j = 1;
-        for (;;)
+        while (1)
         {
             if (j < N_DRAW_BUCKETS)
             {
                 cur = DrawList[j];
-                for (;;)
+                while (1)
                 {
                     if (cur != 0)
                     {
