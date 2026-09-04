@@ -152,7 +152,7 @@ s16 UpdateMotion(MotionManager *mmp, motion_id mid)
         {
             t = xyz[j];
             if (((t < 0) ? -t : t) > ANGLE_HALF)
-                xyz[j] = (xyz[j] < 0) ? (t += ANGLE_FULL) : (t -= ANGLE_FULL);
+                xyz[j] = (xyz[j] < 0) ? t + ANGLE_FULL : t - ANGLE_FULL;
             xyz[j] = xyz[j] % ANGLE_FULL;
         }
     }
