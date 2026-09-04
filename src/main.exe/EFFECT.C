@@ -3437,6 +3437,10 @@ void DrawShadow(Humanoid *human)
 
 short DrawAfterimage(AfterimageType *afi, short disp)
 {
+    enum
+    {
+        AFTERIMAGE_BRIGHTNESS_MAX = 127
+    };
     GpuPolyGT4Packet *poly;
     MATRIX mat;
     short i;
@@ -3445,7 +3449,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
     s32 pri;
     long tmp1, tmp2;
 
-    tplv = 0x7f;
+    tplv = AFTERIMAGE_BRIGHTNESS_MAX;
     poly = &afi->poly;
 
     if (disp != 0)
@@ -3497,7 +3501,7 @@ short DrawAfterimage(AfterimageType *afi, short disp)
         poly->packet.r3 = poly->packet.g3 = poly->packet.b3 = tplv;
         poly->gpu.vertex[2].screen.word = tmp2;
 
-        tplv = ((afi->n - i) * 127) / afi->n;
+        tplv = ((afi->n - i) * AFTERIMAGE_BRIGHTNESS_MAX) / afi->n;
         poly->packet.r0 = poly->packet.g0 = poly->packet.b0 = tplv;
         poly->packet.r2 = poly->packet.g2 = poly->packet.b2 = tplv;
 
