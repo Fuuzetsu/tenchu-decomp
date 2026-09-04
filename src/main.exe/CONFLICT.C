@@ -794,7 +794,7 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
                     i++;
                     if (i > ConflictObject[id].offset.pad)
                     {
-                        goto ret_m1;
+                        return CONFLICT_NONE;
                     }
                     if ((ConflictObject[id].result[index] & CONFLICT_CONSUMED) == 0)
                     {
