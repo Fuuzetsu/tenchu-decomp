@@ -232,7 +232,7 @@ short SwimCheck(void)
         }
         if (status == STAT_SWIM)
         {
-            goto return_one;
+            return 1;
         }
         if (status == STAT_DEAD)
         {
@@ -296,7 +296,7 @@ short SwimCheck(void)
         SetNowMotionUnlessCva();
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
         reset_alert_duration();
-        goto return_one;
+        return 1;
     }
     return 0;
 return_one:
