@@ -819,10 +819,8 @@ static void PauseProc(void)
         }
         if (opad & PADstart)
         {
-            while (1)
+            while (GetRealPad(PAD_PORT_1) & PADstart)
             {
-                if (!(GetRealPad(PAD_PORT_1) & PADstart))
-                    break;
                 VSync(2);
             }
             SoundEx((VECTOR *)0, SE_MENU_CONFIRM);
