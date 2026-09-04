@@ -6962,8 +6962,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 {
     enum
     {
-        D = 100,
-        D2 = 50
+        MAKIBISHI_SCATTER_WIDTH = 100,
+        MAKIBISHI_SCATTER_RADIUS = MAKIBISHI_SCATTER_WIDTH / 2,
+        MAKIBISHI_SCATTER_COUNT = 5,
+        SHURIKEN_ARM_DELAY = 5,
+        KAGINAWA_CAMERA_PITCH = -(ANGLE_FULL / 12)
     };
     u8 c;
     ItemRequestWorkspace param; /* @sp+16: per-case request / vector scratch */
@@ -6989,12 +6992,18 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         i = 0;
         while (1)
         {
-            if (i >= 5)
+            if (i >= MAKIBISHI_SCATTER_COUNT)
                 break;
             i++;
-            param.drop.vec.vx = work.vector.vx + rand() % D - D2;
-            param.drop.vec.vy = work.vector.vy - rand() % D2 - D2;
-            param.drop.vec.vz = work.vector.vz + rand() % D - D2;
+            param.drop.vec.vx = work.vector.vx +
+                                rand() % MAKIBISHI_SCATTER_WIDTH -
+                                MAKIBISHI_SCATTER_RADIUS;
+            param.drop.vec.vy = work.vector.vy -
+                                rand() % MAKIBISHI_SCATTER_RADIUS -
+                                MAKIBISHI_SCATTER_RADIUS;
+            param.drop.vec.vz = work.vector.vz +
+                                rand() % MAKIBISHI_SCATTER_WIDTH -
+                                MAKIBISHI_SCATTER_RADIUS;
             ReqItemMakibishi(&param.drop);
         }
         break;
@@ -7021,7 +7030,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
             INITIALIZE_ITEM_FROM_REQUEST(ProcSightShot);
             item->collision.size = 0;
             item->model = SyurikenModel;
-            param->count = 5;
+            param->count = SHURIKEN_ARM_DELAY;
             item->owner->item[ITEM_N] = 1;
         }
         else
@@ -7155,7 +7164,7 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
         item->model = 0;
         item->owner->item[ITEM_N] = 1;
         SetCameraMode(CMODE_SIGHT);
-        CamState.DirectionRX = -0x155;
+        CamState.DirectionRX = KAGINAWA_CAMERA_PITCH;
         CamState.DirectionRY = 0;
         break;
     }
