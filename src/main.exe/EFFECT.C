@@ -678,8 +678,7 @@ void SetBlood(VECTOR *pos, short n, short time)
     GetAreaMapLevel(GlobalAreaMap, pos->vx, pos->vy, pos->vz,
                     AREA_LEVEL_DEFAULT);
     hint = FieldArea;
-    i = 0;
-    do
+    for (i = 0; ; i++)
     {
         if (i >= n)
         {
@@ -706,12 +705,11 @@ void SetBlood(VECTOR *pos, short n, short time)
         {
             blood->time = half;
         }
-        i++;
         blood->brightness = 0x80;
         blood->hint = hint;
         blood->mode = BLOOD_MODE_AIRBORNE;
         slot->proc = DrawBlood;
-    } while (1);
+    }
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
