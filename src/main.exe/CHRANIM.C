@@ -194,7 +194,7 @@ s16 CVAsequence(s16 sid)
 
     wanted = sid;
     end_mode = CVA_CMD_END;
-    for (;;)
+    while (1)
     {
         event = CVAnow;
         if (event->mode != CVA_CMD_SEQUENCE ||
