@@ -573,13 +573,18 @@ void vfree(void *pt)
     prev = (struct VMhead *)virtual_memory_pool;
     if (prev != 0)
     {
-    search:
-        pnext = prev->next;
-        if (pnext != header)
+        for (;;)
         {
-            prev = pnext;
-            if (prev != 0)
-                goto search;
+            pnext = prev->next;
+            if (pnext != header)
+            {
+                prev = pnext;
+                if (prev != 0)
+                {
+                    continue;
+                }
+            }
+            break;
         }
 
         if (prev != 0)
