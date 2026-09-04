@@ -835,13 +835,10 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
 
 void DisposeAreaMap(AreaMapType *area)
 {
-    if (area == 0)
+    if (area == 0 && GlobalAreaMap != 0)
     {
-        if (GlobalAreaMap != 0)
-        {
-            area = GlobalAreaMap;
-            GlobalAreaMap = 0;
-        }
+        area = GlobalAreaMap;
+        GlobalAreaMap = 0;
     }
     vfree(area);
 }
