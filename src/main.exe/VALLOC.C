@@ -94,10 +94,9 @@ void *valloc(u32 size)
             vmpt = (u32 *)vhp->next;
         } while (vmpt != 0);
     search_done:
-        if (vmpt != 0)
-            goto done; /* bnez straight to the shared epilogue-return */
     }
 
+    if (vmpt == 0)
     {
         u8 str[1024]; /* sp+0x28 */
         u32 maxsize;
@@ -131,7 +130,6 @@ void *valloc(u32 size)
         sprintf((char *)str, msg_out_of_memory, size << 2, maxsize, freesize << 2);
         SystemOut(str);
     }
-done:
     return vmpt;
 }
 
