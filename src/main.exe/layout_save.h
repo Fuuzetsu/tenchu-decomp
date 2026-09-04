@@ -27,6 +27,6 @@ extern enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x,
 extern void leClearLayout(void);
 extern void leResetEnemyLayout(void);
 extern void load_layout(s32 index);
-extern void load_save_slot_(enum save_storage storage, u8 *name);
+extern void load_save_slot_(save_storage storage, u8 *name);
 
 #endif

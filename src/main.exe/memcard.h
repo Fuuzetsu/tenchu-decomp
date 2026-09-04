@@ -22,6 +22,7 @@ struct MemoryCardFileBlock
 
 /* INFOVIEW's save/load menu contains the two choices "disk" (0) and
  * "card" (1). SaveSI/LoadSI dispatch on that value. */
+typedef u8 save_storage;
 enum save_storage
 {
     SAVE_STORAGE_DISK = 0,

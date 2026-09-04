@@ -1957,11 +1957,11 @@ void load_layout(s32 index)
 }
 
 
-void load_save_slot_(enum save_storage storage, u8 *name)
+void load_save_slot_(save_storage storage, u8 *name)
 {
     LayoutSaveData *layout;
 
-    layout = LoadSI(storage & 0xFF, name);
+    layout = LoadSI(storage, name);
     if (layout == 0)
     {
         AdtMessageBox(msg_load_layout_error);
