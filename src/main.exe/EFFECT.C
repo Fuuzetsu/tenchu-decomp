@@ -411,18 +411,28 @@ void SetupTexScroll(GsIMAGE *img, short vx, short vy)
  *     extern long GameClock;
  * END PSX.SYM */
 
+enum
+{
+    BLOOD_BLEED_JITTER_RADIUS = 80
+};
+
+static __inline__ s32 JitterBloodBleedCoordinate(const s32 *coordinate)
+{
+    s32 random;
+    s32 base;
+
+    random = rand();
+    base = *coordinate - BLOOD_BLEED_JITTER_RADIUS;
+    return base + random % (BLOOD_BLEED_JITTER_RADIUS * 2);
+}
+
 void DrawBlood(TEffectSlot *ef)
 {
-    enum
-    {
-        JITTER_RADIUS = 80
-    };
     BloodType *blood;
     GsSPRITE *spr;
     GsSPRITE *sprt;
     SVECTOR scr;
     VECTOR pos;
-    VECTOR temp;
     s32 brightness;
 
     blood = &ef->param.blood;
@@ -518,12 +528,6 @@ void DrawBlood(TEffectSlot *ef)
         AreaNodeType *area;
         u16 previous_time;
         s32 scale_random;
-        s32 random_x;
-        s32 random_y;
-        s32 random_z;
-        long base_x;
-        long base_y;
-        long base_z;
 
         x = blood->px;
         y = blood->py;
@@ -587,25 +591,16 @@ void DrawBlood(TEffectSlot *ef)
 
         if (GameClock & 1)
         {
-            memset(&temp, 0, sizeof(VECTOR));
-            random_x = rand();
-            base_x = blood->px - JITTER_RADIUS;
-            temp.vx =
-                base_x + random_x % (JITTER_RADIUS * 2);
-            random_y = rand();
-            base_y = blood->py - JITTER_RADIUS;
-            temp.vy =
-                base_y + random_y % (JITTER_RADIUS * 2);
-            random_z = rand();
-            base_z = blood->pz - JITTER_RADIUS;
-            temp.vz =
-                base_z + random_z % (JITTER_RADIUS * 2);
-            pos = temp;
-            memset((SVECTOR *)&temp, 0, sizeof(SVECTOR));
-            ((SVECTOR *)&temp)->vx = blood->vx / 2;
-            ((SVECTOR *)&temp)->vy = blood->vy / 2;
-            ((SVECTOR *)&temp)->vz = blood->vz / 2;
-            scr = *(SVECTOR *)&temp;
+            pos = (VECTOR){
+                .vx = JitterBloodBleedCoordinate(&blood->px),
+                .vy = JitterBloodBleedCoordinate(&blood->py),
+                .vz = JitterBloodBleedCoordinate(&blood->pz)
+            };
+            scr = (SVECTOR){
+                .vx = blood->vx / 2,
+                .vy = blood->vy / 2,
+                .vz = blood->vz / 2
+            };
             SetBleed(&pos, &scr, rand() % 10 + 10,
                      RGB24(127, 16, 23));
         }
