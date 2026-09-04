@@ -1253,6 +1253,15 @@ s16 Think1chase(void)
 
 s16 Think1target(void)
 {
+    enum
+    {
+        TARGET_SCAN_INTERVAL = 32,
+        TARGET_NEAR_DISTANCE = 4000,
+        TARGET_ALERT_VERTICAL_LIMIT = 3000,
+        TARGET_ALERT_HALF_ANGLE = 900,
+        TARGET_REACHED_DISTANCE = 200,
+        TARGET_FOLLOW_VERTICAL_LIMIT = 2000
+    };
     s32 xx;
     s32 zz;
     s32 vx;
@@ -1268,7 +1277,7 @@ s16 Think1target(void)
     }
 
     SR = SR_UNSEEN;
-    if ((GameClock & 0x1f) == 0)
+    if ((GameClock & (TARGET_SCAN_INTERVAL - 1)) == 0)
     {
         s32 dy;
         s32 abs_dy;
@@ -1279,7 +1288,7 @@ s16 Think1target(void)
         dy = StagePlayer->locate->vy - Me->locate->vy;
         distance = SquareRoot0(vx * xx + vz * zz);
         deg = GetDirection(xx, zz, Me->rotate->vy);
-        if (distance <= 4000)
+        if (distance <= TARGET_NEAR_DISTANCE)
         {
             /* Retail keeps identical branches here; their original distinction is unknown. */
             if (distance != 0)
@@ -1290,10 +1299,10 @@ s16 Think1target(void)
             {
                 abs_dy = (dy >= 0) ? dy : -dy;
             }
-            if (abs_dy <= 3000)
+            if (abs_dy <= TARGET_ALERT_VERTICAL_LIMIT)
             {
                 direction = (deg >= 0) ? deg : -deg;
-                if (direction < 900 &&
+                if (direction < TARGET_ALERT_HALF_ANGLE &&
                     StagePlayer->active_item != ACTIVE_ITEM_DISGUISE)
                 {
                     s32 alert_time;
@@ -1313,17 +1322,17 @@ s16 Think1target(void)
     vx = Me->target->coord.t[0] - Me->locate->vx;
     vz = Me->target->coord.t[2] - Me->locate->vz;
     distance = SquareRoot0(vx * vx + vz * vz);
-    if (distance < 200)
+    if (distance < TARGET_REACHED_DISTANCE)
     {
         return 0;
     }
-    if (distance < 4000)
+    if (distance < TARGET_NEAR_DISTANCE)
     {
         s32 dy;
 
         dy = __builtin_abs(Me->target->coord.t[1] - Me->locate->vy);
 
-        if (dy <= 2000)
+        if (dy <= TARGET_FOLLOW_VERTICAL_LIMIT)
         {
             return GotoPosition(vx, vz);
         }
