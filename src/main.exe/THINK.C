@@ -588,11 +588,11 @@ void StateTransition(Humanoid *human)
     }
     if (Me->pad_hold != 0)
     {
-        pad = Me->pad_hold >> 16;
+        pad = PAD_HOLD_BUTTONS(Me->pad_hold);
         {
             s32 hold_frames;
 
-            hold_frames = (u8)Me->pad_hold - 1;
+            hold_frames = PAD_HOLD_FRAMES(Me->pad_hold) - 1;
             if (hold_frames != 0)
             {
                 Me->pad_hold = PAD_HOLD(pad, hold_frames);

@@ -34,9 +34,10 @@
 #define HUMANOID_CHASE_Z 1
 
 /* Humanoid.pad_hold packs a virtual-pad latch: hold `button` for
- * `frames` frames (StateTransition's update_hint unpacks it as
- * pad_hold >> 16 and (u8)pad_hold). */
+ * `frames` frames. */
 #define PAD_HOLD(button, frames) (((button) << 16) | (frames))
+#define PAD_HOLD_BUTTONS(hold) ((hold) >> 16)
+#define PAD_HOLD_FRAMES(hold) ((u8)(hold))
 
 /* Manual item use either starts one of the shared item motions, reports an
  * unavailable selection, or lets the item perform its immediate action. */
