@@ -5913,7 +5913,7 @@ loop:
             }
             if (hit)
             {
-                if (item->collision.pause != 0)
+                if (item->collision.pause != ITEM_COLLISION_ACTIVE)
                 {
                     sz = item->collision.size;
                     if (sz != 0)
@@ -5935,13 +5935,14 @@ loop:
                         item->collision.size = sz;
                         item->collision.ofsY = ofsY;
                         item->collision.mode = mode;
-                        item->collision.pause = 0;
+                        item->collision.pause = ITEM_COLLISION_ACTIVE;
                     }
                 }
             }
-            else if (item->collision.pause == 0 && item->locate->locate.super == 0)
+            else if (item->collision.pause == ITEM_COLLISION_ACTIVE &&
+                     item->locate->locate.super == 0)
             {
-                item->collision.pause = 1;
+                item->collision.pause = ITEM_COLLISION_PAUSED;
                 DeleteConflict(item->locate);
             }
         }
