@@ -5923,7 +5923,8 @@ short NowReturnNormal(Humanoid *human)
     {
         return 0;
     }
-    if (UpdateMotion(current->motion, next_motion) == 0)
+    if (UpdateMotion(current->motion, next_motion) ==
+        MOTION_UPDATE_NOT_FOUND)
     {
         return 0;
     }
