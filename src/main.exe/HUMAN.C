@@ -1408,21 +1408,23 @@ Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
     for (i = 0; i < Humans; i++)
     {
         cur = HumanGroup[i];
-        if (cur != human && cur->status != STAT_DEAD &&
-            (cur->attribute & ATTR_SUSPEND) == 0)
+        if (cur == human || cur->status == STAT_DEAD ||
+            (cur->attribute & ATTR_SUSPEND) != 0)
         {
-            dx = PAGE_CIVILIAN; /* parked in dx before its delta-x role */
-            if ((cur->type & PAGE_MASK) != dx && cur->life >= 0)
-            {
-                dx = __builtin_abs(cur->locate->vx - human->locate->vx);
-                dz = __builtin_abs(cur->locate->vz - human->locate->vz);
-                dist = SquareRoot0(dx * dx + dz * dz);
-                if (dist < distance && dist < best_dist)
-                {
-                    best_dist = dist;
-                    best = cur;
-                }
-            }
+            continue;
+        }
+        dx = PAGE_CIVILIAN; /* parked in dx before its delta-x role */
+        if ((cur->type & PAGE_MASK) == dx || cur->life < 0)
+        {
+            continue;
+        }
+        dx = __builtin_abs(cur->locate->vx - human->locate->vx);
+        dz = __builtin_abs(cur->locate->vz - human->locate->vz);
+        dist = SquareRoot0(dx * dx + dz * dz);
+        if (dist < distance && dist < best_dist)
+        {
+            best_dist = dist;
+            best = cur;
         }
     }
     return best;
