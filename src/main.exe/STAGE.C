@@ -70,7 +70,7 @@ void StartStageSequence(void)
     StageCharType *stg;
     Humanoid *human;
     Humanoid *entry;
-    Humanoid *order[40];
+    Humanoid *order[MAX_HUMANS];
     s32 y;
     s16 i;
     s16 tp;
@@ -172,8 +172,7 @@ void StartStageSequence(void)
         i++;
     }
 
-    i = 0;
-    while (i < Humans)
+    for (i = 0; i < Humans; i++)
     {
         entry = HumanGroup[i];
         if (entry != 0 && (((u16)entry->type & PAGE_MASK) == PAGE_BOSS))
@@ -181,7 +180,6 @@ void StartStageSequence(void)
             order[tp++] = entry;
             HumanGroup[i] = 0;
         }
-        i++;
     }
 
     for (i = 0; i < Humans; i++)
@@ -193,11 +191,9 @@ void StartStageSequence(void)
         }
     }
 
-    i = 0;
-    while (i < Humans)
+    for (i = 0; i < Humans; i++)
     {
         HumanGroup[i] = order[i];
-        i++;
     }
 
     StageCitizens = 0;
