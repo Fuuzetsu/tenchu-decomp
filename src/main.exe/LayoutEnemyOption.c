@@ -57,7 +57,7 @@ void LayoutEnemyOption(void)
                      sizeof(ItemName));
     __builtin_memcpy(OkCancel, sel_okcancel, sizeof(OkCancel));
     n = AdtSelect(str_enemy_layout_option, ItemName, 0);
-    if ((n & 0xFFFF) != 0xFFFF)
+    if ((u16)n != (u16)ADT_SELECT_CANCEL)
     {
         switch ((s16)n)
         {
