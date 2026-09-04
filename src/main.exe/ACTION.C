@@ -440,6 +440,11 @@ void GetSpline(SVECTOR *vect, SplineControlType *spc, short cnt)
     eval_spline_gte_(vect, spc, SplineRow);
 }
 
+static __inline__ void *RelocateMotionPointer(void *base, void *relative)
+{
+    return (void *)((u32)relative + (u32)base);
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -473,18 +478,15 @@ MotionPackType *LoadMotion(unsigned long *data)
     }
     for (i = 0; i < mpd->n; i++)
     {
-        mpd->motion[i] =
-            (MotionDataType *)((s32)mpd->motion[i] + (s32)mpd);
+        mpd->motion[i] = RelocateMotionPointer(mpd, mpd->motion[i]);
         mmp = mpd->motion[i];
         if (mmp->n != 0)
         {
-            mmp->locate =
-                (MotionElementType *)((s32)mmp->locate + (s32)mmp);
+            mmp->locate = RelocateMotionPointer(mmp, mmp->locate);
             for (j = 0; j < mmp->n; j++)
             {
                 mmp->rotate[j] =
-                    (MotionElementType *)((s32)mmp->rotate[j] +
-                                          (s32)mmp);
+                    RelocateMotionPointer(mmp, mmp->rotate[j]);
             }
         }
     }
