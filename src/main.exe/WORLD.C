@@ -1123,7 +1123,8 @@ enum construction_draw_geometry
     CONSTRUCTION_CELL_VISIBILITY_RADIUS = 0x2BC1,
     CONSTRUCTION_DEPTH_BUCKET_SHIFT = 8,
     CONSTRUCTION_DEPTH_BUCKET_BIAS = 11,
-    CONSTRUCTION_LOCAL_OT_OFFSET = 0x37
+    CONSTRUCTION_LOCAL_OT_OFFSET = 0x37,
+    CONSTRUCTION_PACKET_BUDGET = 0x6400
 };
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -1414,7 +1415,8 @@ have_z:
                             GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
                             DrawTMD(&cur->model->object, OTablePt, 0);
                         }
-                        if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
+                        if ((u32)(GsGetWorkBase() - packet_base) >
+                            CONSTRUCTION_PACKET_BUDGET)
                             goto overload;
                         continue;
                     }
