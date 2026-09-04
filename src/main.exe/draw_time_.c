@@ -30,15 +30,14 @@ void draw_time_(GsSPRITE *sprite, s32 time, s32 x, s32 y, s32 drawColon)
     sprite->y = y;
     sprite->x = x - 0x20;
     signedValue = value;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
-    do
-    {
-    } while (0);
-    negative = 0;
     if (signedValue < 0)
     {
         value = -signedValue;
         negative = 1;
+    }
+    else
+    {
+        negative = 0;
     }
 
     DRAW_DECIMAL_STRIP(sprite, value, quotient, baseU);
