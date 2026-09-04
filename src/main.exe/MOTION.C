@@ -5753,12 +5753,17 @@ event_dead:
     {
         count = motion->count;
         stop = DEATH_EVENT_END;
-    scan_event:
-        if (pp[i].frame != count)
+        for (;;)
         {
-            i++;
-            if (pp[i].action != stop)
-                goto scan_event;
+            if (pp[i].frame != count)
+            {
+                i++;
+                if (pp[i].action != stop)
+                {
+                    continue;
+                }
+            }
+            break;
         }
     }
     if (dtM->count < pp[i].frame)
