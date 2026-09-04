@@ -41,13 +41,20 @@ enum
     EVENT_RIKIMARU_FINALE = 100
 };
 
+typedef enum StageSequenceResult
+{
+    STAGE_SEQUENCE_GAME_OVER = -1,
+    STAGE_SEQUENCE_RUNNING = 0,
+    STAGE_SEQUENCE_COMPLETE = 1
+} StageSequenceResult;
+
 struct Humanoid;
 extern struct EventSeqType *StageEvent;
 extern struct EventSeqType *Event[N_STAGE_EVENT_SLOTS];
 extern struct Humanoid *eTarget[N_STAGE_EVENT_SLOTS];
 
 extern void StartStageSequence(void);
-extern s32 StageSequence(void);
+extern StageSequenceResult StageSequence(void);
 extern void UpdateEvent(short slot, short event_id);
 extern void SetupStageSequence(void);
 

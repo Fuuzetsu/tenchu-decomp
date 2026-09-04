@@ -294,7 +294,7 @@ void StartStageSequence(void)
  *     extern struct Humanoid *eTarget[2];
  * END PSX.SYM */
 
-s32 StageSequence(void)
+StageSequenceResult StageSequence(void)
 {
     EventSeqType *ev;
     Humanoid *tgt;
@@ -311,7 +311,7 @@ s32 StageSequence(void)
         if (StagePlayer->motion->loop == 0 &&
             StagePlayer->motion->count < 30)
         {
-            return 0;
+            return STAGE_SEQUENCE_RUNNING;
         }
         if (Event[STAGE_EVENT_PRIMARY] == 0 &&
             Event[STAGE_EVENT_SECONDARY] == 0)
@@ -320,15 +320,17 @@ s32 StageSequence(void)
             {
                 StageTime++;
             }
-            return StageTime >= 0 ? -1 : 0;
+            return StageTime >= 0
+                       ? STAGE_SEQUENCE_GAME_OVER
+                       : STAGE_SEQUENCE_RUNNING;
         }
         /* Boot the two master scripts that keep running through player death. */
         UpdateEvent(STAGE_EVENT_PRIMARY, EVENT_ROOT_FIRST);
         UpdateEvent(STAGE_EVENT_SECONDARY, EVENT_ROOT_LAST);
         StagePlayer->status = STAT_ACTION;
-        if ((s16)StageSequence() != 0)
+        if ((s16)StageSequence() != STAGE_SEQUENCE_RUNNING)
         {
-            return -1;
+            return STAGE_SEQUENCE_GAME_OVER;
         }
         StageTime = -100;
         Event[STAGE_EVENT_SECONDARY] = 0;
@@ -339,7 +341,7 @@ s32 StageSequence(void)
         }
         ActionHalt = ACTION_HALT_STAGE_END;
         StagePlayer->status = STAT_DEAD;
-        return 0;
+        return STAGE_SEQUENCE_RUNNING;
     }
 
     if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0 && SkipFrame == 0)
@@ -520,12 +522,12 @@ s32 StageSequence(void)
             UpdateEvent(STAGE_EVENT_SECONDARY, ev->header.route.next2);
             if ((u8)(ev->header.route.id - 1) < 3)
             {
-                return 1;
+                return STAGE_SEQUENCE_COMPLETE;
             }
             return (s16)StageSequence();
         }
     }
-    return 0;
+    return STAGE_SEQUENCE_RUNNING;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
