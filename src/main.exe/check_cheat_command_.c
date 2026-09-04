@@ -15,12 +15,10 @@ enum cheat_command check_cheat_command_(s16 buttons, s16 newly_pressed)
 
     if (newly_pressed != 0)
     {
-        i = N_CHEAT_HISTORY_ENTRIES - 1;
-        do
+        for (i = N_CHEAT_HISTORY_ENTRIES - 1; i > 0; i--)
         {
             PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
-            i--;
-        } while (i > 0);
+        }
         PAD_HISTORY_[0] = buttons;
         if (CHEAT_COMMANDS_[0] != NULL)
         {
@@ -57,12 +55,10 @@ enum cheat_command check_cheat_command_(s16 buttons, s16 newly_pressed)
                 if (pattern_start[i] == outer_end)
                 {
                 matched:
-                    i = N_CHEAT_HISTORY_ENTRIES - 1;
-                    do
+                    for (i = N_CHEAT_HISTORY_ENTRIES - 1; i > 0; i--)
                     {
                         PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
-                        i--;
-                    } while (i > 0);
+                    }
                     PAD_HISTORY_[0] = 0;
                     return CHEAT_COMMANDS_[combination_index]->result;
                 }
