@@ -7515,8 +7515,7 @@ void ClearItemLayout(void)
     TItem *it;
     s32 i;
 
-    i = 0;
-    for (;;)
+    for (i = 0; ; i++)
     {
         if (i >= MAX_ITEMS)
             return;
@@ -7525,7 +7524,6 @@ void ClearItemLayout(void)
         {
             DISPOSE_ITEM(it);
         }
-        i++;
     }
 }
 
