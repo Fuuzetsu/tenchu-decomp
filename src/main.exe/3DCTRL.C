@@ -639,7 +639,7 @@ short DrawSprite(Sprite3D *sprt)
         sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
         if ((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
         {
-            result = -1;
+            result = MODEL_CLIP_REJECTED;
             goto ret;
         }
         if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
@@ -661,13 +661,13 @@ short DrawSprite(Sprite3D *sprt)
             }
             else
             {
-                result = -1;
+                result = MODEL_CLIP_REJECTED;
                 goto ret;
             }
         }
         if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
         {
-            result = -1;
+            result = MODEL_CLIP_REJECTED;
             goto ret;
         }
     }
@@ -675,7 +675,7 @@ short DrawSprite(Sprite3D *sprt)
     if (sz > DEPTH_LIMIT)
     {
     reject:
-        result = -1;
+        result = MODEL_CLIP_REJECTED;
     }
     else
     {
