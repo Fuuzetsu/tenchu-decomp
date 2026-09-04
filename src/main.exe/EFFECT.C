@@ -1948,8 +1948,8 @@ static void DrawGore(TEffectSlot *ef)
                 param->rotate = 0;
                 scale_random = rand();
                 param->sprite += N_AIRBORNE_BLOOD_SPRITES;
-                /* random scale in [1/3, 1/2) of 4.12 one */
-                param->scale = scale_random % 0x2ab + 0x555;
+                param->scale = scale_random % BLOOD_SPREAD_SCALE_RANGE +
+                               BLOOD_SPREAD_SCALE_MIN;
             }
             param->mode = GORE_MODE_SPREAD;
             param->time = rand() % 10;
