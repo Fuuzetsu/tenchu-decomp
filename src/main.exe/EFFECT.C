@@ -2132,6 +2132,11 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
 
 void draw_fade_(TEffectSlot *ef)
 {
+    enum
+    {
+        FADE_HOLD_DURATION = 3,
+        FADE_OUT_DURATION = 40,
+    };
     FadeType *fade;
     POLY_XF4 local;
     POLY_XF4 *ply;
@@ -2168,7 +2173,7 @@ void draw_fade_(TEffectSlot *ef)
         if ((u32)GameClock >= (u32)fade->end_time)
         {
             fade->mode++;
-            fade->end_time += 3;
+            fade->end_time += FADE_HOLD_DURATION;
         }
         break;
     case FADE_MODE_HOLD:
@@ -2178,7 +2183,7 @@ void draw_fade_(TEffectSlot *ef)
         if ((u32)GameClock >= (u32)fade->end_time)
         {
             fade->mode++;
-            fade->end_time += 0x28;
+            fade->end_time += FADE_OUT_DURATION;
         }
         break;
     case FADE_MODE_OUT:
