@@ -1370,28 +1370,23 @@ short LoadTIMpack(unsigned long *adr)
     index = (TIMPackIndex *)adr;
     hw = (u16)index->count;
     adr = index->offsets;
-    i = 0;
     n = (short)hw;
     p = adr;
-    if (n > 0)
+    for (i = 0; i < n; i++)
     {
-        do
+        GsGetTimInfo(TIM_PACK_IMAGE(p, adr), &tim);
+        setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
+        LoadImage(&rect, tim.pixel);
+        if (TIM_HAS_CLUT(tim.pmode) != 0)
         {
-            GsGetTimInfo(TIM_PACK_IMAGE(p, adr), &tim);
-            setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
-            LoadImage(&rect, tim.pixel);
-            if (TIM_HAS_CLUT(tim.pmode) != 0)
+            setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
+            LoadImage(&rect, tim.clut);
+            /* Empty loop retained for code layout; its original source construct is unknown. */
+            do
             {
-                setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
-                LoadImage(&rect, tim.clut);
-                /* Empty loop retained for code layout; its original source construct is unknown. */
-                do
-                {
-                } while (0);
-            }
-            i++;
-            adr++;
-        } while (i < n);
+            } while (0);
+        }
+        adr++;
     }
     DrawSync(0);
 }
