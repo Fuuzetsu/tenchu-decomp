@@ -1827,11 +1827,13 @@ int leRemoveEnemy(void)
 
 static void DestroyTraceLine(TraceLine *t)
 {
-    if (t != 0)
+    if (t == 0)
     {
-        vfree(t->point);
-        vfree(t);
+        return;
     }
+
+    vfree(t->point);
+    vfree(t);
 }
 
 
