@@ -189,8 +189,7 @@ void InitEffect(void)
     {
         Sprite3D *sprite;
 
-        i = 0;
-        for (; i < N_SNOW_SPRITES; i++)
+        for (i = 0; i < N_SNOW_SPRITES; i++)
         {
             image = GetImage(IMG_MISC_SNOW);
             sprite = SetupSprite((Sprite3D *)0, image);
