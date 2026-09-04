@@ -602,15 +602,10 @@ static short LoadConstruction(u_long *data)
 
     nModel = 0;
     n = vsize(data) / sizeof(WorldDataType);
-    i = nModel;
-    if (n != 0)
+    for (i = 0; i < n; i++)
     {
-        do
-        {
-            if (wlddt[i].mode == WLD_RECORD_OBJECT)
-                nModel++;
-            i++;
-        } while (i < n);
+        if (wlddt[i].mode == WLD_RECORD_OBJECT)
+            nModel++;
     }
 
     DisposeAreaMap(GlobalAreaMap);
