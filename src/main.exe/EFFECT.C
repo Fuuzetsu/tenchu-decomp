@@ -68,8 +68,7 @@ void InitEffect(void)
     GsIMAGE *image;
     s16 i;
 
-    i = 0;
-    for (; i < N_BLOOD_SPRITES; i++)
+    for (i = 0; i < N_BLOOD_SPRITES; i++)
     {
         /* Retail indexes the two image-id streams independently rather than as pairs. */
         image = GetImage(blood_images[i * 2]);
