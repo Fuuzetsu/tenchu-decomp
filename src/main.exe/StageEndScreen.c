@@ -551,15 +551,18 @@ void StageEndScreen(void)
             layout_record = &PSTATE->stage_stats[PSTATE->CharType]
                                                 [PSTATE->StageNo][0];
             layout_index = 0;
-        layout_loop:
-            if (layout_record->stageBosses + layout_record->stageEnemies != 0)
+            for (;;)
             {
-                layout_index++;
-                if (layout_index < N_STAGE_LAYOUTS)
+                if (layout_record->stageBosses + layout_record->stageEnemies != 0)
                 {
-                    layout_record++;
-                    goto layout_loop;
+                    layout_index++;
+                    if (layout_index < N_STAGE_LAYOUTS)
+                    {
+                        layout_record++;
+                        continue;
+                    }
                 }
+                break;
             }
             if (layout_index == N_STAGE_LAYOUTS)
             {
