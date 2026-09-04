@@ -87,16 +87,17 @@ s32 draw_card_help_(s32 page, s32 pad)
     switch (text[-2])
     {
     default:
-        goto done;
+        break;
 
     case '.':
         GsSortSprite(&McardButtons[MCARD_BUTTON_ACKNOWLEDGE]->sprite, OTablePt,
                      0);
-        if (pad != PADRright)
+        if (pad == PADRright)
         {
-            goto done;
+            SoundEx(0, SE_PROJECTILE_HIT);
+            n = 1;
         }
-        goto accept;
+        break;
 
     case '?':
         if (page == 3)
@@ -128,9 +129,15 @@ s32 draw_card_help_(s32 page, s32 pad)
             case PADRright:
                 if (McardStateFlag != 0)
                 {
-                    goto accept;
+                    SoundEx(0, SE_PROJECTILE_HIT);
+                    n = 1;
                 }
-                goto cancel;
+                else
+                {
+                    SoundEx(0, SE_PROJECTILE_IMPACT);
+                    n = 2;
+                }
+                break;
 
             case PADLleft:
                 if (McardStateFlag != 1)
@@ -148,35 +155,26 @@ s32 draw_card_help_(s32 page, s32 pad)
                 }
                 break;
             }
-            goto done;
+            break;
         }
         else
         {
             GsSortSprite(&McardButtons[MCARD_BUTTON_CONFIRM_CANCEL]->sprite,
                          OTablePt, 0);
-            if (pad != PADRright)
+            if (pad == PADRright)
             {
-                goto check_cancel;
+                SoundEx(0, SE_PROJECTILE_HIT);
+                n = 1;
+            }
+            else if (pad == PADRdown)
+            {
+                SoundEx(0, SE_PROJECTILE_IMPACT);
+                n = 2;
             }
         }
+        break;
     }
 
-accept:
-    SoundEx(0, SE_PROJECTILE_HIT);
-    n = 1;
-    goto done;
-
-check_cancel:
-    if (pad != PADRdown)
-    {
-        goto done;
-    }
-
-cancel:
-    SoundEx(0, SE_PROJECTILE_IMPACT);
-    n = 2;
-
-done:
     if (n != 0)
     {
         McardAnswered = 1;
