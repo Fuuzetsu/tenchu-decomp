@@ -950,31 +950,29 @@ void DoMiscProc(void)
 
             i = 0;
             view = &ViewInfo;
-            p = misc;
-        cull_loop:
-            proc = p->proc;
-            if (proc != 0)
+            for (; i < MaxMisc; i++)
             {
-                if (__builtin_abs(view->vrx - p->x) < LEN &&
-                    __builtin_abs(view->vry - p->y) < LEN &&
-                    __builtin_abs(view->vrz - p->z) < LEN)
+                p = &misc[i];
+                proc = p->proc;
+                if (proc != 0)
                 {
-                    if (p->pause != MISC_ACTIVE)
+                    if (__builtin_abs(view->vrx - p->x) < LEN &&
+                        __builtin_abs(view->vry - p->y) < LEN &&
+                        __builtin_abs(view->vrz - p->z) < LEN)
                     {
-                        proc(p, MM_RESUME);
-                        p->pause = MISC_ACTIVE;
+                        if (p->pause != MISC_ACTIVE)
+                        {
+                            proc(p, MM_RESUME);
+                            p->pause = MISC_ACTIVE;
+                        }
+                    }
+                    else if (p->pause == MISC_ACTIVE)
+                    {
+                        p->proc(p, MM_PAUSE);
+                        p->pause = MISC_PAUSED;
                     }
                 }
-                else if (p->pause == MISC_ACTIVE)
-                {
-                    p->proc(p, MM_PAUSE);
-                    p->pause = MISC_PAUSED;
-                }
             }
-            i++;
-            p++;
-            if (i < MaxMisc)
-                goto cull_loop;
         }
         {
             s32 i;
