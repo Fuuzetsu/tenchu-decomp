@@ -1853,17 +1853,23 @@ enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
     TEnemyLayout *e;
 
     idx = 0;
-    do
+    for (;;)
     {
-        if (enemy[idx].type == CHARACTER_KIND_END)
+        if (enemy[idx].type != CHARACTER_KIND_END)
+        {
+            idx++;
+            if (idx < MAX_ENEMIES)
+            {
+                continue;
+            }
+            result = ENEMY_LAYOUT_NONE;
+        }
+        else
         {
             result = idx;
-            goto found;
         }
-        idx++;
-    } while (idx < MAX_ENEMIES);
-    result = ENEMY_LAYOUT_NONE;
-found:
+        break;
+    }
     if (result == ENEMY_LAYOUT_NONE)
         return ENEMY_LAYOUT_NONE;
     offset = result * sizeof(*e);
