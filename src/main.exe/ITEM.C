@@ -7525,17 +7525,17 @@ void ClearItemLayout(void)
     s32 i;
 
     i = 0;
-    it = items;
-loop:
-    if (i >= MAX_ITEMS)
-        return;
-    if (it->proc != 0)
+    for (;;)
     {
-        DISPOSE_ITEM(it);
+        if (i >= MAX_ITEMS)
+            return;
+        it = &items[i];
+        if (it->proc != 0)
+        {
+            DISPOSE_ITEM(it);
+        }
+        i++;
     }
-    it++;
-    i++;
-    goto loop;
 }
 
 u8 get_henshin_type_(short chr, short idx)
