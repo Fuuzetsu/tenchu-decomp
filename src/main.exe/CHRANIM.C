@@ -177,7 +177,6 @@ void debug_menu_file_animation_test(void)
 
 s16 CVAsequence(s16 sid)
 {
-    CVAType *event;
     CVAType *cursor;
     Humanoid *human;
     s16 sound;
@@ -194,19 +193,11 @@ s16 CVAsequence(s16 sid)
 
     wanted = sid;
     end_mode = CVA_CMD_END;
-    for (;;)
+    while (CVAnow->mode != end_mode &&
+           (CVAnow->mode != CVA_CMD_SEQUENCE ||
+            CVAnow->payload.sequence.id != wanted))
     {
-        event = CVAnow;
-        if (event->mode != CVA_CMD_SEQUENCE ||
-            event->payload.sequence.id != wanted)
-        {
-            CVAnow = event + 1;
-            if (event[1].mode != end_mode)
-            {
-                continue;
-            }
-        }
-        break;
+        CVAnow++;
     }
 
     if (CVAnow->mode == CVA_CMD_END)
