@@ -3165,6 +3165,13 @@ void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
 
 void spread_blood_pool_(Humanoid *human)
 {
+    enum
+    {
+        DAMAGE_FLOOR_EFFECT_PERIOD = 16,
+        BLOOD_POOL_GROWTH_STEP = 0x88,
+        BLOOD_POOL_SCALE_DIVISOR = FIXED_ONE / 4,
+        BLOOD_POOL_SLOPE_PITCH = ANGLE_SIXTEENTH
+    };
     VECTOR scale;
     MATRIX matrix;
     SVECTOR screen;
@@ -3179,7 +3186,7 @@ void spread_blood_pool_(Humanoid *human)
 
     chase = human->chase;
     if (human->motion->loop >= 0 || (human->map.attrib & (MAP_WATER | MAP_WOOD)) != 0 ||
-        human->chase[0] < 0)
+        chase[0] < 0)
     {
         chase[0] = 0;
         return;
@@ -3187,18 +3194,18 @@ void spread_blood_pool_(Humanoid *human)
 
     if ((human->map.attrib & MAP_DAMAGE) != 0)
     {
-        if ((GameClock & 0xf) == 0)
+        if ((GameClock & (DAMAGE_FLOOR_EFFECT_PERIOD - 1)) == 0)
         {
             spawn_damage_effect_(human, DAMAGE_EFFECT_ATTACHED_FLASH);
         }
         return;
     }
 
-    timer = human->chase[0] + 0x88;
-    human->chase[0] = timer;
+    timer = chase[0] + BLOOD_POOL_GROWTH_STEP;
+    chase[0] = timer;
     if (timer > FIXED_ONE)
     {
-        human->chase[0] = FIXED_ONE;
+        chase[0] = FIXED_ONE;
     }
 
     position = GetAbsolutePosition(human->model->object[MODEL_PART_WAIST], 0, 0, 0);
@@ -3208,13 +3215,13 @@ void spread_blood_pool_(Humanoid *human)
     BLOOD_POOL_MODEL_->locate.coord.t[1] = position->vy;
     BLOOD_POOL_MODEL_->locate.coord.t[2] = position->vz;
 
-    scaled = human->chase[0] * -height / 1024;
+    scaled = chase[0] * -height / BLOOD_POOL_SCALE_DIVISOR;
     scale.vx = scale.vy = scale.vz =
         scaled - (human->map.height >> 1);
 
     if (human->map.angleH != 0)
     {
-        BLOOD_POOL_MODEL_->rotate.vx = 0x100;
+        BLOOD_POOL_MODEL_->rotate.vx = BLOOD_POOL_SLOPE_PITCH;
         BLOOD_POOL_MODEL_->rotate.vy = RefrectVector[human->map.angleH];
         BLOOD_POOL_MODEL_->rotate.vz = 0;
     }
