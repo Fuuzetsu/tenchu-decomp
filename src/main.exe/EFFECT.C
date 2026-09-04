@@ -899,6 +899,13 @@ void SetSmokeS(VECTOR *pos, short vx, short vy, short vz, unsigned short time)
 
 void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
 {
+    enum
+    {
+        SMOKE_BURST_RISE_SPEED = -5,
+        SMOKE_BURST_DURATION = 15,
+        SMOKE_BURST_EVENT_LEAD = 8,
+        SMOKE_BURST_EVENT_JITTER = 15,
+    };
     int i;
     TEffectSlot *slot;
     SmokeType *smoke;
@@ -908,8 +915,7 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
     u32 r;
     int m;
 
-    i = 0;
-    do
+    for (i = 0; ; i++)
     {
         if (i >= count)
         {
@@ -930,7 +936,7 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
                 smoke->vec.vx = -spread;
             }
         }
-        smoke->vec.vy = -5;
+        smoke->vec.vy = SMOKE_BURST_RISE_SPEED;
         {
             int width;
 
@@ -945,14 +951,9 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
             }
         }
 
-        {
-            int div;
-
-            div = (s16)divisor;
-            vx = smoke->vec.vx / div;
-            vy = smoke->vec.vy / div;
-            vz = smoke->vec.vz / div;
-        }
+        vx = smoke->vec.vx / divisor;
+        vy = smoke->vec.vy / divisor;
+        vz = smoke->vec.vz / divisor;
         copyVector(&smoke->pos, pos);
         smoke->pos.vx += smoke->vec.vx;
         smoke->pos.vy += smoke->vec.vy;
@@ -963,14 +964,13 @@ void spawn_smoke_burst_(VECTOR *pos, u16 spread, s16 divisor, s16 count)
 
         smoke->scale = rand() % SMOKE_SCALE_SPREAD + SMOKE_SCALE_MIN;
         smoke->rotate = 0;
-        smoke->time = 15;
+        smoke->time = SMOKE_BURST_DURATION;
         r = rand();
-        i++;
-        m = smoke->time - 8;
+        m = smoke->time - SMOKE_BURST_EVENT_LEAD;
         smoke->sprite = SMOKE_SPRITE_ALT;
-        smoke->evtime = m - ((s32)r % 15);
+        smoke->evtime = m - ((s32)r % SMOKE_BURST_EVENT_JITTER);
         slot->proc = DrawSmoke;
-    } while (1);
+    }
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
