@@ -23,8 +23,16 @@ extern MapVector map;
 extern Humanoid *DeadHumanoid;
 extern s32 StickonItem;
 
+typedef s16 fall_check_result;
+enum fall_check_result_value
+{
+    FALL_CHECK_STARTED = -1,
+    FALL_CHECK_NONE = 0,
+    FALL_CHECK_ACTIVE = 1
+};
+
 short SwimCheck(void);
-short FallCheck(void);
+fall_check_result FallCheck(void);
 short HangCheck(void);
 void DamageControl(void);
 short MotionAndMove(void);
@@ -330,24 +338,24 @@ return_one:
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
-short FallCheck(void)
+fall_check_result FallCheck(void)
 {
     if (motID == MOT_STATE_FALL)
     {
-        return 1;
+        return FALL_CHECK_ACTIVE;
     }
     if (motID == MOT_ATTACK_DIVE)
     {
-        return 0;
+        return FALL_CHECK_NONE;
     }
     if (Me_MOTION_C->status == STAT_JUMP && Me_MOTION_C->map.height > 0)
     {
-        return 1;
+        return FALL_CHECK_ACTIVE;
     }
     if (((u16)Me_MOTION_C->attribute & ATTR_FLOAT) != 0 ||
         Me_MOTION_C->map.height <= 1000)
     {
-        return 0;
+        return FALL_CHECK_NONE;
     }
     switch (Me_MOTION_C->status)
     {
@@ -361,7 +369,7 @@ short FallCheck(void)
     case STAT_CEILHANG:
     case STAT_DAMAGE:
     case STAT_DEAD:
-        return 0;
+        return FALL_CHECK_NONE;
     default:
         break;
     }
@@ -379,7 +387,7 @@ short FallCheck(void)
         dtM->count >>= 2;
     }
     AttackCancelControl(ATTACK_CANCEL_ALL);
-    return -1;
+    return FALL_CHECK_STARTED;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
