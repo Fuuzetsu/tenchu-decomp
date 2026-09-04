@@ -305,12 +305,10 @@ short SetCommand(PADtype *pad, pad_command cmd)
             }
             if (one < n)
             {
-                j = 1;
-                do
+                for (j = 1; j < n; j++)
                 {
                     pad->stream[j - 1] = inputs[j];
-                    j++;
-                } while (j < n);
+                }
             }
             pad->time = one;
             return (s16)inputs[0];
