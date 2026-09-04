@@ -447,10 +447,10 @@ void SetupWeapon(Humanoid *human)
     human->wepid[WEAPON_HAND_1] = WEAPON_HAND_NONE;
     human->wepid[WEAPON_HAND_0] = WEAPON_HAND_NONE;
     i = 0;
-    do
+    while (i < N_WEAPON_SLOTS)
     {
         human->weapon[i++] = 0;
-    } while (i < N_WEAPON_SLOTS);
+    }
 
     i = 0;
     while (HumanData[i].type != human->type)
