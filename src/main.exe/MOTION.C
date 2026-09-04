@@ -5640,116 +5640,114 @@ void ActDEAD(void)
     }
 
     mid = dtM->mid;
-    if (mid == MOT_DEAD_DROWN)
-        goto splash_dead;
-    if (mid < MOT_DEAD_DROWN)
-        goto ordinary_dead;
-    if (mid > MOT_DEAD_STEALTH_SIDE_AYAME)
-        goto ordinary_dead;
-    goto event_dead;
-
-splash_dead:
-{
-    if (rand() % 20 == 0)
-        Sound(Me_MOTION_C, SE_WATER_SPLASH);
-    p.vy = Me_MOTION_C->map.level;
-    if ((rand() & 5) == 0)
+    switch (mid)
     {
-        i = 0;
-        do
+    case MOT_DEAD_DROWN:
+        if (rand() % 20 == 0)
+            Sound(Me_MOTION_C, SE_WATER_SPLASH);
+        p.vy = Me_MOTION_C->map.level;
+        if ((rand() & 5) == 0)
         {
-            long width;
-            int r;
-
-            r = rand();
-            width = Me_MOTION_C->width;
-            p.vx = dtL->vx + (r % width) * 2 - width;
-            r = rand();
-            width = Me_MOTION_C->width;
-            p.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&p, (rand() & 7) << FIXED_SHIFT,
-                      (rand() & 7) << FIXED_SHIFT, 6);
-            i++;
-        } while (i < 5);
-    }
-    goto blood_effect;
-}
-
-event_dead:
-{
-    MotionManager *motion;
-    int count;
-    int stop;
-
-    motion = dtM;
-    pp = DeadEvents[motion->mid - MOT_DEAD_STEALTH_BACK];
-    i = 0;
-    if (pp[i].action != DEATH_EVENT_END)
-    {
-        count = motion->count;
-        stop = DEATH_EVENT_END;
-        for (;;)
-        {
-            if (pp[i].frame != count)
+            i = 0;
+            do
             {
+                long width;
+                int r;
+
+                r = rand();
+                width = Me_MOTION_C->width;
+                p.vx = dtL->vx + (r % width) * 2 - width;
+                r = rand();
+                width = Me_MOTION_C->width;
+                p.vz = dtL->vz + (r % width) * 2 - width;
+                SetSplash(&p, (rand() & 7) << FIXED_SHIFT,
+                          (rand() & 7) << FIXED_SHIFT, 6);
                 i++;
-                if (pp[i].action != stop)
+            } while (i < 5);
+        }
+        break;
+
+    case MOT_DEAD_STEALTH_BACK:
+    case MOT_DEAD_STEALTH_FRONT:
+    case MOT_DEAD_STEALTH_SIDE:
+    case MOT_DEAD_STEALTH_BACK_AYAME:
+    case MOT_DEAD_STEALTH_FRONT_AYAME:
+    case MOT_DEAD_STEALTH_SIDE_AYAME:
+    {
+        MotionManager *motion;
+        int count;
+        int stop;
+
+        motion = dtM;
+        pp = DeadEvents[motion->mid - MOT_DEAD_STEALTH_BACK];
+        i = 0;
+        if (pp[i].action != DEATH_EVENT_END)
+        {
+            count = motion->count;
+            stop = DEATH_EVENT_END;
+            for (;;)
+            {
+                if (pp[i].frame != count)
                 {
-                    continue;
+                    i++;
+                    if (pp[i].action != stop)
+                    {
+                        continue;
+                    }
                 }
+                break;
             }
+        }
+        if (dtM->count < pp[i].frame)
+            return;
+
+        switch (pp[i].action)
+        {
+        case DEATH_EVENT_SOUND_PLAYER:
+            Sound(StagePlayer, pp[i].payload.sound.sound_id);
+            break;
+        case DEATH_EVENT_SOUND_VICTIM:
+            Sound(Me_MOTION_C, pp[i].payload.sound.sound_id);
+            break;
+        case DEATH_EVENT_RUMBLE:
+            PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
+                       pp[i].payload.rumble.attack,
+                       pp[i].payload.rumble.release);
+            break;
+        case DEATH_EVENT_GORE:
+        case DEATH_EVENT_END:
+        {
+            u16 packed;
+
+            ReqLifeBar(Me_MOTION_C);
+            blood = pp[i].payload.gore.model_part;
+            packed = pp[i].payload.gore.local_velocity;
+            bldo = DEATH_GORE_VELOCITY_Z(packed);
+            blds = DEATH_GORE_VELOCITY_Y(packed);
             break;
         }
-    }
-    if (dtM->count < pp[i].frame)
-        return;
-
-    switch (pp[i].action)
-    {
-    case DEATH_EVENT_SOUND_PLAYER:
-        Sound(StagePlayer, pp[i].payload.sound.sound_id);
-        break;
-    case DEATH_EVENT_SOUND_VICTIM:
-        Sound(Me_MOTION_C, pp[i].payload.sound.sound_id);
-        break;
-    case DEATH_EVENT_RUMBLE:
-        PadShockAR(PAD_PORT_1, RUMBLE_POWER_MAX,
-                   pp[i].payload.rumble.attack,
-                   pp[i].payload.rumble.release);
-        break;
-    case DEATH_EVENT_GORE:
-    case DEATH_EVENT_END:
-    {
-        u16 packed;
-
-        ReqLifeBar(Me_MOTION_C);
-        blood = pp[i].payload.gore.model_part;
-        packed = pp[i].payload.gore.local_velocity;
-        bldo = DEATH_GORE_VELOCITY_Z(packed);
-        blds = DEATH_GORE_VELOCITY_Y(packed);
+        }
         break;
     }
-    }
-    goto blood_effect;
-}
 
 #undef DEATH_GORE_VELOCITY_Z
 #undef DEATH_GORE_VELOCITY_Y
 
-ordinary_dead:
-    if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST)
-    {
-        if (dtM->count == 5 && DeadHumanoid == Me_MOTION_C)
+    default:
+        if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_BEAST)
         {
-            Sound(DeadHumanoid, SE_DEATH);
-            DeadHumanoid = 0;
+            if (dtM->count == 5 && DeadHumanoid == Me_MOTION_C)
+            {
+                Sound(DeadHumanoid, SE_DEATH);
+                DeadHumanoid = 0;
+            }
+            blood = 1;
+            bldo = 100;
+            blds = 0;
         }
-        blood = 1;
-        bldo = 100;
-        blds = 0;
+        break;
     }
 
-blood_effect:
     if ((dtM->count & 4) && blood != -1)
     {
         SVECTOR gore_position = {
