@@ -966,7 +966,7 @@ void SetCameraMode(TCameraMode mode)
         cs = &CamState;
         tbl = CamPosCriticalHit;
         fp = &flag;
-        for (;;)
+        for (; ; i++)
         {
             if (i < N_CRITICAL_CAMERA_POSITIONS)
             {
@@ -997,7 +997,6 @@ void SetCameraMode(TCameraMode mode)
                 } while (0);
                 pv = 0;
                 hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
-                i++;
                 if (hitf)
                     goto hit;
                 continue;
