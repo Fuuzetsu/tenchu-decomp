@@ -100,9 +100,7 @@ void FileOption(void)
                                 FILE_SLOT_INITIAL_SELECTION);
         if (fname == (u8 *)ADT_SELECT_CANCEL)
             return;
-        /* The caller-side mask is in the bytes (the callee masks again;
-         * the SAVE twin passes storage unmasked): retail's own. */
-        load_save_slot_(storage & 0xFF, fname);
+        load_save_slot_(storage, fname);
         leLayoutEnemy(ENEMY_LAYOUT_EDIT);
         break;
     case SAVE:
