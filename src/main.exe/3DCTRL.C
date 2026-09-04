@@ -339,15 +339,17 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
                 limit = mad->n;
                 do
                 {
-                    if (parent == prntp[j].nc)
+                    if (parent != prntp[j].nc)
+                    {
+                        j++;
+                    }
+                    else
                     {
                         super = &mad->object[j]->locate;
-                        goto coordinate_init;
+                        break;
                     }
-                    j++;
                 } while (j < limit);
             }
-        coordinate_init:
             GsInitCoordinate2(super, &objp->locate);
             objp->locate.coord.t[0] = prntp[i].dx;
             objp->locate.coord.t[1] = prntp[i].dy;
