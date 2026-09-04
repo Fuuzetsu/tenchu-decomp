@@ -31,9 +31,17 @@ enum fall_check_result_value
     FALL_CHECK_ACTIVE = 1
 };
 
+typedef s16 hang_check_result;
+enum hang_check_result_value
+{
+    HANG_CHECK_STARTED = -1,
+    HANG_CHECK_NONE = 0,
+    HANG_CHECK_ACTIVE = 1
+};
+
 short SwimCheck(void);
 fall_check_result FallCheck(void);
-short HangCheck(void);
+hang_check_result HangCheck(void);
 void DamageControl(void);
 short MotionAndMove(void);
 void AttackCancelControl(s16 mode);
@@ -417,7 +425,7 @@ fall_check_result FallCheck(void)
  *     extern struct Humanoid *StagePlayer;
  * END PSX.SYM */
 
-short HangCheck(void)
+hang_check_result HangCheck(void)
 {
     SVECTOR vect;
     long yy;
@@ -430,12 +438,12 @@ short HangCheck(void)
 
     if ((Me_MOTION_C->type & PAGE_MASK) == PAGE_BEAST)
     {
-        return 0;
+        return HANG_CHECK_NONE;
     }
     if (Me_MOTION_C->map.height <= 0 || motID == MOT_JUMP_WALLKICK ||
         Me_MOTION_C->active_item == ACTIVE_ITEM_DISGUISE)
     {
-        return 0;
+        return HANG_CHECK_NONE;
     }
     yy = dtL->vy - Me_MOTION_C->height;
     GetMoveSpeed(&vect, dtR->vy, Me_MOTION_C->width >> 1, 0);
@@ -448,20 +456,20 @@ short HangCheck(void)
                             dtL->vz - vect.vz, AREA_LEVEL_DEFAULT);
         if (y == (u32)LEVEL_NONE)
         {
-            return 0;
+            return HANG_CHECK_NONE;
         }
         if (dtL->vy < y)
         {
             dtL->vx -= (vect.vx >> 1);
             dtL->vz -= (vect.vz >> 1);
         }
-        return 0;
+        return HANG_CHECK_NONE;
     }
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx, dy, dtL->vz,
                         AREA_LEVEL_DEFAULT);
     if (y < dtL->vy - Me_MOTION_C->height)
     {
-        return 0;
+        return HANG_CHECK_NONE;
     }
     GetMoveSpeed(&vect, dtR->vy, (Me_MOTION_C->width >> 1) + 300, 0);
     y = GetAreaMapLevel(GlobalAreaMap, dtL->vx + vect.vx,
@@ -469,12 +477,12 @@ short HangCheck(void)
                         AREA_LEVEL_RETURN_DELTA);
     if (y == (u32)LEVEL_NONE || y > LEDGE_PROBE_RISE)
     {
-        return 0;
+        return HANG_CHECK_NONE;
     }
     dtL->vy -= (105 - y);
     if (Me_MOTION_C->status == STAT_HANG)
     {
-        return 1;
+        return HANG_CHECK_ACTIVE;
     }
     ry = dtR->vy;
     oy = y;
@@ -494,7 +502,7 @@ short HangCheck(void)
     if (y == (u32)LEVEL_NONE || y > LEDGE_PROBE_RISE)
     {
         dtL->vy -= (oy - 5);
-        return 0;
+        return HANG_CHECK_NONE;
     }
     dtR->vy = ry;
     GetMoveSpeed(&vect, (s16)ry, (Me_MOTION_C->width >> 1) + 100, 0);
@@ -513,10 +521,10 @@ short HangCheck(void)
     Sound(Me_MOTION_C, SE_LEDGE_GRIP);
     if (StagePlayer != Me_MOTION_C)
     {
-        return -1;
+        return HANG_CHECK_STARTED;
     }
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_HALF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_LONG);
-    return -1;
+    return HANG_CHECK_STARTED;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
