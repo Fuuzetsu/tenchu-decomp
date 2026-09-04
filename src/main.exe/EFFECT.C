@@ -1793,19 +1793,29 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
  *     reg   $a2       int i
  * END PSX.SYM */
 
+enum
+{
+    GORE_BLEED_JITTER_RADIUS = 60,
+    GORE_COLOR = RGB24(127, 16, 23)
+};
+
+static __inline__ s32 JitterGoreBleedCoordinate(const s32 *coordinate)
+{
+    s32 random;
+    s32 base;
+
+    random = rand();
+    base = *coordinate - GORE_BLEED_JITTER_RADIUS;
+    return base + random % (GORE_BLEED_JITTER_RADIUS * 2);
+}
+
 static void DrawGore(TEffectSlot *ef)
 {
-    enum
-    {
-        JITTER_RADIUS = 60,
-        GORE_COLOR = RGB24(127, 16, 23)
-    };
     BloodType *param;
     GsSPRITE *spr;
     GsSPRITE *spr2;
     SVECTOR vector;
     VECTOR position;
-    VECTOR temporary;
 
     param = &ef->param.blood;
     spr = &sprBlood[param->sprite];
@@ -1898,12 +1908,6 @@ static void DrawGore(TEffectSlot *ef)
         s32 level;
         AreaNodeType *node;
         int scale_random;
-        int random_x;
-        int random_y;
-        int random_z;
-        s32 base_x;
-        s32 base_y;
-        s32 base_z;
         SVECTOR *velocity;
         long color;
         long green;
@@ -1972,27 +1976,18 @@ static void DrawGore(TEffectSlot *ef)
             }
         }
 
-        memset(&temporary, 0, sizeof(VECTOR));
-        random_x = rand();
-        base_x = param->px - JITTER_RADIUS;
-        temporary.vx =
-            base_x + random_x % (JITTER_RADIUS * 2);
-        random_y = rand();
-        base_y = param->py - JITTER_RADIUS;
-        temporary.vy =
-            base_y + random_y % (JITTER_RADIUS * 2);
-        random_z = rand();
-        base_z = param->pz - JITTER_RADIUS;
-        temporary.vz =
-            base_z + random_z % (JITTER_RADIUS * 2);
-        position = temporary;
-        memset((SVECTOR *)&temporary, 0, sizeof(SVECTOR));
+        position = (VECTOR){
+            .vx = JitterGoreBleedCoordinate(&param->px),
+            .vy = JitterGoreBleedCoordinate(&param->py),
+            .vz = JitterGoreBleedCoordinate(&param->pz)
+        };
+        vector = (SVECTOR){
+            .vx = param->vx / 2,
+            .vy = param->vy / 2,
+            .vz = param->vz / 2
+        };
         velocity = &vector;
         color = GORE_COLOR;
-        ((SVECTOR *)&temporary)->vx = param->vx / 2;
-        ((SVECTOR *)&temporary)->vy = param->vy / 2;
-        ((SVECTOR *)&temporary)->vz = param->vz / 2;
-        *velocity = *(SVECTOR *)&temporary;
 
         slot = GetFreeEffectSlot();
         bleed = &slot->param.bleed;
