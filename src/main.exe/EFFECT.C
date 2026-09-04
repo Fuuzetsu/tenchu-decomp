@@ -828,8 +828,7 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
     int r;
     int m;
 
-    i = 0;
-    do
+    for (i = 0; ; i++)
     {
         if (i >= n)
         {
@@ -848,12 +847,11 @@ void SetSmoke(VECTOR *pos, SVECTOR *vect, short n, short time)
         smoke->vec.vz = vect->vz + (rand() % 100 - 50);
         smoke->time = time + rand() % 160;
         r = rand();
-        i++;
         smoke->sprite = SMOKE_SPRITE_NORMAL;
         m = smoke->time - 1;
         smoke->evtime = m - (time / 2 + r % time);
         slot->proc = DrawSmoke;
-    } while (1);
+    }
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
