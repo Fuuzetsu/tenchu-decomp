@@ -2012,6 +2012,7 @@ void ActACTION(void)
             Humanoid *human;
             OrnamentType **weapon;
 
+            cleanup_guard = ATTACK_CANCEL_ALL;
             switch (Me_MOTION_C->wpatk)
             {
             case FIST:
@@ -2022,15 +2023,12 @@ void ActACTION(void)
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
                 break;
             case NO_WEAPON:
-                cleanup_guard = ATTACK_CANCEL_ALL;
-                goto skip_afterimage_cleanup;
+                break;
             default:
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
                 DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
                 break;
             }
-            cleanup_guard = ATTACK_CANCEL_ALL;
-        skip_afterimage_cleanup:
             if (cleanup_guard & ATTACK_CANCEL_AFTERIMAGES)
             {
                 DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
