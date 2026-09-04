@@ -55,18 +55,12 @@ extern u8 path_image_2[]; /* K:\\WORK\\CDIMAGE\\IMAGE\\ */
 
 void InitMisc(void)
 {
-    TMisc *tm;
     s32 i;
 
-    i = MaxMisc - 1;
-    tm = misc;
-    tm += (MaxMisc - 1);
-    do
+    for (i = MaxMisc - 1; i >= 0; i--)
     {
-        tm->proc = 0;
-        i--;
-        tm--;
-    } while (i >= 0);
+        misc[i].proc = 0;
+    }
 
     {
         ModelArchiveId iDoor1;
@@ -97,15 +91,14 @@ void InitMisc(void)
         i = 0;
         attr = GS_ATTR_SEMITRANS_ADD;
         spr = SpriteData;
-        do
+        for (; i < N_MISC_SPRITE_TYPES; i++)
         {
-            i++;
             spr->spr = SetupSprite((Sprite3D *)0,
                                    GetImage((ImageArchiveId)spr->spr));
             spr->spr->sprite.attribute = attr;
             spr->spr->scale = spr->scale;
             spr++;
-        } while (i < N_MISC_SPRITE_TYPES);
+        }
     }
 
     {
