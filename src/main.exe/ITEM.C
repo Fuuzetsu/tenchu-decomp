@@ -3447,6 +3447,7 @@ static void ProcItemNingyo(TItem *item)
 
 static int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
 {
+    enum { NINGYO_ROLL_VARIATION = 68 };
     TItem *item;
     param_ningyo *param;
     s32 x;
@@ -3467,20 +3468,20 @@ static int ReqItemNingyo(PARAM_ITEM_LAUNCH *p)
         item->model = (ModelType *)ItemImage[item->type];
     }
     {
-        param_korogari *param; /* Shadows the outer launch parameter in retail. */
+        param_korogari *rolling_motion;
 
-        param = &item->param.ningyo.koro;
+        rolling_motion = &param->koro;
         x = p->end.vx;
         y = p->end.vy;
         z = p->end.vz;
-        setVector(param, x, y, z);
-        item->param.ningyo.koro.hint = 0;
-        param->status = KORO_NORMAL;
+        setVector(rolling_motion, x, y, z);
+        rolling_motion->hint = 0;
+        rolling_motion->status = KORO_NORMAL;
     }
     param->count = NINGYO_DURATION;
     item->locate->rotate.vx = 0;
     item->locate->rotate.vy = rand() % ANGLE_FULL;
-    item->locate->rotate.vz = rand() % 68;
+    item->locate->rotate.vz = rand() % NINGYO_ROLL_VARIATION;
     param->hp = NINGYO_HP;
     SetNowMotion(item->owner, MOT_ITEM_THROW, MOTION_MOVE_APPLY);
     return 1;
