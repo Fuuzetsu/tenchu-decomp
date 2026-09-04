@@ -4414,7 +4414,7 @@ void ActHANG(void)
             {
                 y += 100;
                 dtL->vy = y;
-            } while (HangCheck() != 0);
+            } while (HangCheck() != HANG_CHECK_NONE);
             SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
         }
         else if (dtPAD & PADLright)
@@ -4439,7 +4439,7 @@ void ActHANG(void)
         {
             SET_MOTION(MOT_HANG, MOTION_MOVE_APPLY);
         }
-        else if (HangCheck() == 0)
+        else if (HangCheck() == HANG_CHECK_NONE)
         {
             SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
         }
