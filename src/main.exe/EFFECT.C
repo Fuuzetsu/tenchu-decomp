@@ -190,14 +190,13 @@ void InitEffect(void)
         Sprite3D *sprite;
 
         i = 0;
-        do
+        for (; i < N_SNOW_SPRITES; i++)
         {
             image = GetImage(IMG_MISC_SNOW);
             sprite = SetupSprite((Sprite3D *)0, image);
             SpriteSnow[i] = sprite;
             sprite->sprite.attribute = GS_ATTR_SEMITRANS_ADD;
-            i++;
-        } while (i < N_SNOW_SPRITES);
+        }
     }
 
     TexScrollX = TEXSCROLL_VRAM_ORIGIN_X;
