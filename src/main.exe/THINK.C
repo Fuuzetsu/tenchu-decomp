@@ -3635,8 +3635,6 @@ s16 Think2contact(void)
 
 static s16 SuccessionAttack(s32 dist, s16 deg)
 {
-    int t;
-    int lev;
     s16 buttons;
 
     buttons = 0;
@@ -3645,48 +3643,23 @@ static s16 SuccessionAttack(s32 dist, s16 deg)
     {
         return 0;
     }
-    if (Distance < dist)
+    if ((Distance < dist && __builtin_abs((s32)Degree) < deg) ||
+        rand() % (EngageLevel + 1) == 0)
     {
-        int d;
-        int raw;
-
-        d = deg;
-        raw = (int)Degree;
-        raw = __builtin_abs(raw);
-        t = raw < d;
-        if (!t)
+        if (Degree > 300)
         {
-            t = rand();
-            lev = EngageLevel + 1;
-            if (t % lev != 0)
+            buttons = PADLright;
+        }
+        else
+        {
+            if (Degree < -300)
             {
-                goto ret;
+                /* The signed view keeps PADLleft in addiu's immediate range. */
+                buttons = (s16)PADLleft;
             }
         }
+        buttons |= PADRleft;
     }
-    else
-    {
-        t = rand();
-        lev = EngageLevel + 1;
-        if (t % lev != 0)
-        {
-            goto ret;
-        }
-    }
-    if (Degree > 300)
-    {
-        buttons = PADLright;
-    }
-    else
-    {
-        if (Degree < -300)
-        {
-            /* The signed view keeps PADLleft in addiu's immediate range. */
-            buttons = (s16)PADLleft;
-        }
-    }
-    buttons |= PADRleft;
-ret:
     return buttons;
 }
 
