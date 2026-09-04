@@ -198,7 +198,6 @@ short DrawModel(ModelType *objp)
     MATRIX mat;
     ModelAttribute atr;
     long sz;
-    s32 iv;
     short rxy[2];
 
     GsGetLs(&objp->locate, &mat);
@@ -215,24 +214,8 @@ short DrawModel(ModelType *objp)
             {
                 if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
                 {
-                    iv = rxy[0];
-                    if (iv < 0)
-                    {
-                        iv = -iv;
-                    }
-                    if (iv <= MODEL_CULL_X_LIMIT)
-                    {
-                        iv = rxy[1];
-                        if (iv < 0)
-                        {
-                            iv = -iv;
-                        }
-                        if (iv > MODEL_CULL_Y_LIMIT)
-                        {
-                            goto reject;
-                        }
-                    }
-                    else
+                    if (__builtin_abs((s32)rxy[0]) > MODEL_CULL_X_LIMIT ||
+                        __builtin_abs((s32)rxy[1]) > MODEL_CULL_Y_LIMIT)
                     {
                         goto reject;
                     }
