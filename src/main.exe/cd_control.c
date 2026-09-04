@@ -4,10 +4,8 @@
 
 void cd_control(u8 com, u8 *param, u8 *result)
 {
-    while (1)
+    while (CdControlB(com, param, result) == 0)
     {
-        if (CdControlB(com, param, result) != 0)
-            break;
         VSync(0);
     }
 }
