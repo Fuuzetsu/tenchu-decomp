@@ -170,7 +170,7 @@ void HumanActionControl(Humanoid *human)
     }
     else
     {
-        if (FallCheck() != 0)
+        if (FallCheck() != FALL_CHECK_NONE)
         {
             HangCheck();
         }
