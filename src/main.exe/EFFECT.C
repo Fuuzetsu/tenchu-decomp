@@ -4151,39 +4151,25 @@ int GetVectorDistance(VECTOR *v1, VECTOR *v2)
 {
     enum
     {
-        div = 256
+        DISTANCE_RESCALE = 256
     };
     long dx, dy, dz;
     long len;
-    int big;
-    long v;
+    int rescale_distance;
 
     dx = v1->vx - v2->vx;
     dy = v1->vy - v2->vy;
     dz = v1->vz - v2->vz;
 
-    big = 0;
-    if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
-        abs(dz) > FIXED_ONE)
+    rescale_distance = abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+                       abs(dz) > FIXED_ONE;
+    if (rescale_distance)
     {
-        big = 1;
-    }
-    if (big)
-    {
-        v = dx;
-        if (dx < 0)
-            v = dx + div - 1;
-        dx = v >> 8;
-        v = dy;
-        if (dy < 0)
-            v = dy + div - 1;
-        dy = v >> 8;
-        v = dz;
-        if (dz < 0)
-            v = dz + div - 1;
-        dz = v >> 8;
+        dx /= DISTANCE_RESCALE;
+        dy /= DISTANCE_RESCALE;
+        dz /= DISTANCE_RESCALE;
         len = SquareRoot0(dx * dx + dy * dy + dz * dz);
-        len = len << 8;
+        len *= DISTANCE_RESCALE;
     }
     else
     {
