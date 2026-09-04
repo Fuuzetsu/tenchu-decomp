@@ -1393,29 +1393,20 @@ void AttackControl(void)
                  * only armed kerai types 7-9 do. */
                 type = enemy->type;
                 group = type & PAGE_MASK;
-                if (group == PAGE_BOSS)
-                    goto reject_enemy;
-                if (group > PAGE_BOSS)
-                    goto check_high_group;
-                if (group == PAGE_PALACE)
-                    goto check_low_group;
-                goto enemy_type_ok;
-
-            check_high_group:
-                if (group == PAGE_CIVILIAN)
-                    goto reject_enemy;
-                if (group == PAGE_BEAST)
-                    goto reject_enemy;
-                goto enemy_type_ok;
-
-            check_low_group:
-                if ((u16)(type - 7) < 3)
-                    goto enemy_type_ok;
-
-            reject_enemy:
-                enemy = NULL;
-
-            enemy_type_ok:
+                switch (group)
+                {
+                case PAGE_PALACE:
+                    if ((u16)(type - 7) >= 3)
+                        enemy = NULL;
+                    break;
+                case PAGE_BOSS:
+                case PAGE_CIVILIAN:
+                case PAGE_BEAST:
+                    enemy = NULL;
+                    break;
+                default:
+                    break;
+                }
 
                 if (enemy != NULL &&
                     (enemy->attribute & (ATTR_WEAPON_DRAWN | ATTR_PHASE)) == 0 &&
