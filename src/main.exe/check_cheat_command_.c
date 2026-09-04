@@ -42,16 +42,18 @@ enum cheat_command check_cheat_command_(s16 buttons, s16 newly_pressed)
                 history = history_start;
                 do
                 {
-                    if (*pattern != *history)
+                    if (*pattern == *history)
                     {
-                        goto compare_end;
+                        pattern++;
+                        history++;
+                        i++;
                     }
-                    pattern++;
-                    history++;
-                    i++;
+                    else
+                    {
+                        break;
+                    }
                 } while (*pattern != inner_end);
 
-            compare_end:
                 if (pattern_start[i] == outer_end)
                 {
                 matched:
