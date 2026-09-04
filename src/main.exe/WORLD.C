@@ -1297,12 +1297,12 @@ have_z:
                                     CONSTRUCTION_CELL_VISIBILITY_RADIUS);
                                 if (visible)
                                 {
-                                    cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
-                                                             WORLD_MAP_Z_BYTE_STRIDE +
-                                                         world_y_offset + world_x_offset +
-                                                         (u32)world_base))
-                                              ->top;
-                                    for (;;)
+                                    for (cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
+                                                                  WORLD_MAP_Z_BYTE_STRIDE +
+                                                              world_y_offset + world_x_offset +
+                                                              (u32)world_base))
+                                                   ->top; ;
+                                         cur = cur->next)
                                     {
                                         if (cur != 0)
                                         {
@@ -1355,7 +1355,6 @@ have_z:
                                                 SlotMan.n++;
                                             }
                                             ndt++;
-                                            cur = cur->next;
                                             continue;
                                         }
                                         break;
@@ -1383,8 +1382,7 @@ have_z:
         ot = *OTablePt;
         ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
-        cur = DrawList[0];
-        for (;;)
+        for (cur = DrawList[0]; ; cur = cur->next)
         {
             if (cur != 0)
             {
@@ -1396,19 +1394,16 @@ have_z:
                     GsSortObject4(&cur->model->object, &ot, 2,
                                   (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
                 }
-                cur = cur->next;
                 continue;
             }
             break;
         }
 
-        j = 1;
-        for (;;)
+        for (j = 1; ; j++)
         {
             if (j < N_DRAW_BUCKETS)
             {
-                cur = DrawList[j];
-                for (;;)
+                for (cur = DrawList[j]; ; cur = cur->next)
                 {
                     if (cur != 0)
                     {
@@ -1421,12 +1416,10 @@ have_z:
                         }
                         if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
                             goto overload;
-                        cur = cur->next;
                         continue;
                     }
                     break;
                 }
-                j++;
                 continue;
             }
             break;
