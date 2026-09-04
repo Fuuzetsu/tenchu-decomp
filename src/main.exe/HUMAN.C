@@ -1451,7 +1451,7 @@ TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
     {
         SystemOut(msg_no_trace_point);
     }
-    trcl = (TraceLine *)valloc(8);
+    trcl = (TraceLine *)valloc(sizeof(TraceLine));
     trcl->count = 0;
     trcl->index = 0;
     trcl->point = point;
