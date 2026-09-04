@@ -509,7 +509,6 @@ void vfree(void *pt)
     struct VMhead *header;
     struct VMhead *next;
     struct VMhead *prev;
-    struct VMhead *pnext;
     u32 mask;
     u32 sz;
     s32 s;
@@ -537,30 +536,17 @@ void vfree(void *pt)
     }
 
     prev = (struct VMhead *)virtual_memory_pool;
+    while (prev != 0 && prev->next != header)
+    {
+        prev = prev->next;
+    }
     if (prev != 0)
     {
-        for (;;)
+        s = prev->size;
+        if (s >= 0)
         {
-            pnext = prev->next;
-            if (pnext != header)
-            {
-                prev = pnext;
-                if (prev != 0)
-                {
-                    continue;
-                }
-            }
-            break;
-        }
-
-        if (prev != 0)
-        {
-            s = prev->size;
-            if (s >= 0)
-            {
-                prev->size = s + (header->size + VMEM_HEADER_WORDS);
-                prev->next = header->next;
-            }
+            prev->size = s + (header->size + VMEM_HEADER_WORDS);
+            prev->next = header->next;
         }
     }
 }
