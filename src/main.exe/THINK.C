@@ -1629,13 +1629,24 @@ s16 think_alarm_reaction_(void)
 /* Per-stage reinforcement pair (StageID*2 + coin flip) — the stage's
  * own guard faction (retail data): rouban/rounin, ninja A+B, rouban,
  * Manji cultists, pirates, tengu, oni, kabane, kerai, asigaru, sisi. */
+#define SELECT_STAGE_REINFORCEMENT(result_, entry_, table_, stage_, random_) \
+    {                                                                        \
+        (entry_) = (character_kind *)(                                       \
+            (u8 *)(table_) +                                                 \
+            (((random_) % N_STAGE_REINFORCEMENT_CHOICES) *                   \
+                 sizeof(character_kind) +                                    \
+             (stage_) * N_STAGE_REINFORCEMENT_CHOICES *                      \
+                 sizeof(character_kind)));                                   \
+        (result_) = *(entry_);                                                \
+    }
+
 short Think3callaid(void)
 {
-    Humanoid *human;
-    Humanoid *newhuman;
-    s32 r;
+    Humanoid *caller;
+    Humanoid *reinforcement;
+    s32 random;
 
-    if (Distance < 16500)
+    if (Distance < ALARM_REINFORCEMENT_DISTANCE)
     {
         if (SR != SR_GONE)
         {
@@ -1643,50 +1654,40 @@ short Think3callaid(void)
         }
         return Think3escape();
     }
-    else
+
     {
-        s16 ret;
-        character_kind *aid = AIDHumanType[0];
-        character_kind *type_ptr;
-        character_kind type;
-        ThinkFunc func;
+        character_kind *reinforcement_table = AIDHumanType[0];
+        character_kind *reinforcement_entry;
+        character_kind reinforcement_type;
+        ThinkFunc contact_think;
 
         SR = SR_UNSEEN;
-        r = rand();
-        /* The flat byte-offset view retains the target's index-first address
-         * expression; ordinary structured indexing recolors the table base. */
-        type_ptr = (character_kind *)(
-            (u8 *)aid +
-            ((r % N_STAGE_REINFORCEMENT_CHOICES) * sizeof(character_kind) +
-             StageID * N_STAGE_REINFORCEMENT_CHOICES *
-                 sizeof(character_kind)));
-        type = *type_ptr;
-        newhuman = BreedLife(type,
-                             Me->locate->vx,
-                             Me->locate->vy,
-                             Me->locate->vz,
-                             (s32)Me->rotate->vy + (s32)Degree);
-        human = Me;
-        newhuman->target = human->target;
-        KillHumanoid(human);
-        newhuman->think[0] = Think1Func[THINK1_WATCH];
-        newhuman->think[1] = Think2Func[THINK2_CONTACT];
-        newhuman->think[2] = Think3Func[THINK3_ATK_CHASE];
-        Pad = &newhuman->pad;
-        func = Think4Func[THINK4_CONTACT];
-        (Me = newhuman)->attribute |= ATTR_CUSTOMAI;
-        newhuman->think[3] = func;
-        EquipWeapon(newhuman, WEAPON_DRAWN);
+        random = rand();
+        SELECT_STAGE_REINFORCEMENT(reinforcement_type, reinforcement_entry,
+                                   reinforcement_table, StageID, random);
+        reinforcement = BreedLife(
+            reinforcement_type, Me->locate->vx, Me->locate->vy,
+            Me->locate->vz, (s32)Me->rotate->vy + (s32)Degree);
+        caller = Me;
+        reinforcement->target = caller->target;
+        KillHumanoid(caller);
+        reinforcement->think[0] = Think1Func[THINK1_WATCH];
+        reinforcement->think[1] = Think2Func[THINK2_CONTACT];
+        reinforcement->think[2] = Think3Func[THINK3_ATK_CHASE];
+        Pad = &reinforcement->pad;
+        contact_think = Think4Func[THINK4_CONTACT];
+        Me = reinforcement;
+        Me->attribute |= ATTR_CUSTOMAI;
+        reinforcement->think[3] = contact_think;
+        EquipWeapon(reinforcement, WEAPON_DRAWN);
         SetNowMotion(Me, MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
         Attrib = Me->attribute | PHASE_ALERT;
-        ret = 0;
         if ((Me->type & PAGE_MASK) == PAGE_CIVILIAN)
         {
             StageEnemies++;
             StageCitizens--;
-            ret = 0;
         }
-        return ret;
+        return 0;
     }
 }
 
