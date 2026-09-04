@@ -624,13 +624,11 @@ void DisposeWeapon(Humanoid *human)
     short i;
 
     weapons = human->weapon;
-    i = 0;
-    do
+    for (i = 0; i < N_WEAPON_SLOTS; i++)
     {
         DisposeOrnament(weapons[i]);
         weapons[i] = 0;
-        i++;
-    } while (i < N_WEAPON_SLOTS);
+    }
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
