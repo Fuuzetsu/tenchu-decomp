@@ -38,13 +38,17 @@ extern short StageSequence(void);
 
 s32 InitPersistentState(void)
 {
+    enum
+    {
+        PERSISTENT_STATE_MAGIC = 0x19981110
+    };
     TLinkInfo *pg =
         (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
     TLinkInfo *ps;
     s32 i;
     u32 magic;
-    u8 fill;
-    u8 *stockp;
+    u8 initial_stock;
+    u8 *item_cursor;
 
     /* CharType is Rikimaru or Ayame, so any bit outside the playable
      * character index range means the saved slot is corrupt. */
@@ -53,11 +57,11 @@ s32 InitPersistentState(void)
     {
         memset((void *)TENCHU_PERSISTENT_STATE_ADDRESS, 0,
                TENCHU_PERSISTENT_STATE_SIZE);
-        magic = 0x19981110;
+        magic = PERSISTENT_STATE_MAGIC;
 
-        fill = ITEM_LOCKED;
+        initial_stock = ITEM_LOCKED;
         i = SAVE_ITEM_SLOTS - 1;
-        stockp = (u8 *)(TENCHU_PERSISTENT_STATE_ADDRESS | i);
+        item_cursor = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS + i;
         ps = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
         ps->magic = magic;
         ps->Nannido = 0;
@@ -68,12 +72,12 @@ s32 InitPersistentState(void)
         ps->Anakon = 1;
         ps->StageNoMAX[AYAME_0] = 1;
         ps->StageNoMAX[RIKIMARU_0] = 1;
-        do
+        while (i >= 0)
         {
-            stockp[TLINKINFO_BYTE_OFFSET(gItem[0][0])] = fill;
+            item_cursor[TLINKINFO_BYTE_OFFSET(gItem[0][0])] = initial_stock;
             i--;
-            stockp--;
-        } while (i >= 0);
+            item_cursor--;
+        }
         ps->gItem[RIKIMARU_0][ITEM_KAGINAWA] = ITEM_INFINITE;
         ps->gItem[RIKIMARU_0][ITEM_SHURIKEN] = 6;
         ps->gItem[RIKIMARU_0][ITEM_MAKIBISHI] = 6;
