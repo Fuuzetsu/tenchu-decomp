@@ -622,7 +622,7 @@ unsigned long vsize(void *pt)
 
 void SystemOut(unsigned char *string)
 {
-    for (;;)
+    while (1)
     {
     }
 }
