@@ -1280,7 +1280,7 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
     grange2 = g * 2;
     z2 = 0;
     z3 = 0;
-    do
+    for (; ; n--)
     {
         if (n <= 0)
         {
@@ -1322,7 +1322,6 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
                 u8 r;
 
                 slot = GetFreeEffectSlot();
-                n--;
                 param = &slot->param.bleed;
                 r = col >> 16;
                 slot->param.bleed.pos = *pos;
@@ -1335,7 +1334,7 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
                 slot->proc = DrawBleed;
             }
         }
-    } while (1);
+    }
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
