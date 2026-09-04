@@ -724,6 +724,12 @@ ret:
 
 BackGround *SetupBG(GsIMAGE *image, short w, short h)
 {
+    enum
+    {
+        BACKGROUND_NEUTRAL_COLOR = 0x80,
+        BACKGROUND_CELL_SIZE = 16,
+        BACKGROUND_INDEX_EMPTY = 0xffff,
+    };
     BackGround *bg;
     GsCELL *cell;
     short x;
@@ -743,12 +749,12 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->hundle = (GsBG){0};
 
     raw_pmode = image->pmode;
-    bg->hundle.r = bg->hundle.g = bg->hundle.b = 0x80;
+    bg->hundle.r = bg->hundle.g = bg->hundle.b = BACKGROUND_NEUTRAL_COLOR;
     bg->hundle.scalex = bg->hundle.scaley = FIXED_ONE;
     bg->hundle.w = w;
     bg->hundle.h = h;
     bg->hundle.map = &bg->map;
-    bg->map.cellw = bg->map.cellh = 0x10;
+    bg->map.cellw = bg->map.cellh = BACKGROUND_CELL_SIZE;
     bg->map.ncellw = w / bg->map.cellw;
     pmode = TIM_PIXEL_MODE(raw_pmode);
     bg->hundle.attribute = GS_ATTR_TEXTURE_MODE(pmode);
@@ -757,13 +763,13 @@ BackGround *SetupBG(GsIMAGE *image, short w, short h)
     bg->map.ncellh = h / bg->map.cellh;
 
     size = (short)(bg->map.ncellw * bg->map.ncellh);
-    bg->map.index = bg->index = (u16 *)valloc(size << 1);
+    bg->map.index = bg->index = (u16 *)valloc(size * sizeof(*bg->index));
     n = 0;
     if (size > 0)
     {
         do
         {
-            bg->index[n++] = 0xffff;
+            bg->index[n++] = BACKGROUND_INDEX_EMPTY;
         } while (n < size);
     }
 
