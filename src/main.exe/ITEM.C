@@ -7500,20 +7500,7 @@ static void ProcItemManebue(TItem *item)
 
 int ReqItemStay(PARAM_ITEM_STAY *p)
 {
-    PARAM_ITEM_LAUNCH param;
-
-    param.type = p->type;
-    param.user = (Humanoid *)CONFLICT_OWNER_ITEM;
-    param.start.vx = p->locate.vx;
-    param.start.vy = p->locate.vy;
-    param.start.vz = p->locate.vz;
-    param.end.vx = 0;
-    param.end.vy = 0;
-    param.end.vz = 0;
-    param.start.vy = GetAreaMapLevel(GlobalAreaMap, param.start.vx,
-                                     param.start.vy, param.start.vz,
-                                     AREA_LEVEL_DEFAULT);
-    ReqItemDrop(&param);
+    DropStayedItem(p);
     return 1;
 }
 
