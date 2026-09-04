@@ -954,7 +954,6 @@ void SetCameraMode(TCameraMode mode)
     VECTOR *pos;
     SVECTOR *rot;
     TCameraPos *camera;
-    VECTOR *pv;
     s32 i;
     s32 hitf;
 
@@ -992,10 +991,9 @@ void SetCameraMode(TCameraMode mode)
                 {
                     RotTrans(&camera->r1, &va, fp);
                     RotTrans(&camera->r2, &vb, fp);
-                    RotTrans(&camera->p1, pv = &vc, fp);
-                    RotTrans(&camera->p2, pv = &vd, fp);
+                    RotTrans(&camera->p1, &vc, fp);
+                    RotTrans(&camera->p2, &vd, fp);
                 } while (0);
-                pv = 0;
                 hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
                 if (hitf)
                     goto hit;
