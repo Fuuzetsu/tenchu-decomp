@@ -1342,15 +1342,9 @@ have_z:
 
                                     if (SlotMan.n >= SlotMan.max)
                                         AdtMessageBox(msg_modelslot_overflow);
-                                    do
-                                    {
-                                        SlotMan.slot[SlotMan.n].model = model;
-                                        SlotMan.slot[SlotMan.n].next = *slot;
-                                    } while (0);
-                                    do
-                                    {
-                                        SlotMan.slot[SlotMan.n].ModelSize = plimit;
-                                    } while (0);
+                                    SlotMan.slot[SlotMan.n].model = model;
+                                    SlotMan.slot[SlotMan.n].next = *slot;
+                                    SlotMan.slot[SlotMan.n].ModelSize = plimit;
                                     SlotMan.slot[SlotMan.n].ShiftY = 0;
                                     *slot = &SlotMan.slot[SlotMan.n];
                                     ndl++;
