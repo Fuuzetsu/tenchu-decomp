@@ -346,26 +346,23 @@ void mission_score_screen(s32 stage)
         DrawBG(tail.background);
         draw_time_(&number, stats.clock, 70, -97, 1);
 
-        do
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
             DRAW_SCORE_NUMBER(drawnSprite, stats.criticals, (s32), 0, 0x16,
                               -0x47);
-        } while (0);
+        }
         {
             s32 drawX;
             GsSPRITE *numberSprite;
 
             numberSprite = &number;
 
-            do
             {
                 DRAW_SCORE_COLON(numberSprite);
                 drawX = 0x2F;
-            } while (0);
-            do
+            }
             {
                 s32 dividend;
                 s32 remainder;
@@ -393,20 +390,19 @@ void mission_score_screen(s32 stage)
                     negative = 0;
                 }
                 DRAW_SCORE_DIGITS(drawnSprite, value, negative);
-            } while (0);
+            }
         }
         sprite = &number;
         DRAW_SCORE_NUMBER(sprite, result.criticalScore, (s16), 0, resultX,
                           -0x47);
 
-        do
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
             DRAW_SCORE_NUMBER(drawnSprite, stats.murders, (s32), 1, 0x16,
                               -0x35);
-        } while (0);
+        }
         {
             GsSPRITE *numberSprite;
             GsSPRITE *drawnSprite;
@@ -427,14 +423,13 @@ void mission_score_screen(s32 stage)
                               -0x35);
         }
 
-        do
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
             DRAW_SCORE_NUMBER(drawnSprite, stats.findEnemies, (s32), 1, 0x23,
                               -0x24);
-        } while (0);
+        }
         {
             GsSPRITE *drawnSprite;
 
@@ -443,14 +438,13 @@ void mission_score_screen(s32 stage)
                               resultX, -0x24);
         }
 
-        do
         {
             GsSPRITE *drawnSprite;
 
             drawnSprite = &number;
             DRAW_SCORE_NUMBER(drawnSprite, (u16)result.score, (s16), 1, resultX,
                               -0x12);
-        } while (0);
+        }
 
         if (result.grade == RANK_GRAND_MASTER)
         {
