@@ -313,7 +313,8 @@ s32 StageSequence(void)
         {
             return 0;
         }
-        if (Event[0] == 0 && Event[1] == 0)
+        if (Event[STAGE_EVENT_PRIMARY] == 0 &&
+            Event[STAGE_EVENT_SECONDARY] == 0)
         {
             if (StagePlayer->motion->loop != 0)
             {
@@ -322,16 +323,16 @@ s32 StageSequence(void)
             return StageTime >= 0 ? -1 : 0;
         }
         /* Boot the two master scripts that keep running through player death. */
-        UpdateEvent(0, EVENT_ROOT_FIRST);
-        UpdateEvent(1, EVENT_ROOT_LAST);
+        UpdateEvent(STAGE_EVENT_PRIMARY, EVENT_ROOT_FIRST);
+        UpdateEvent(STAGE_EVENT_SECONDARY, EVENT_ROOT_LAST);
         StagePlayer->status = STAT_ACTION;
         if ((s16)StageSequence() != 0)
         {
             return -1;
         }
         StageTime = -100;
-        Event[1] = 0;
-        Event[0] = 0;
+        Event[STAGE_EVENT_SECONDARY] = 0;
+        Event[STAGE_EVENT_PRIMARY] = 0;
         if (CamState.Mode != CMODE_FALL)
         {
             SetCameraMode(CMODE_CRITICAL_HIT);
@@ -348,13 +349,15 @@ s32 StageSequence(void)
         FntPrint(fmt_dbg_counts, Findenemies, Murders, Criticals,
                  StageEnemies, StageBosses);
         FntPrint(fmt_num_paren, FriendHits, StageCitizens);
-        if (Event[0] != 0)
+        if (Event[STAGE_EVENT_PRIMARY] != 0)
         {
-            FntPrint(fmt_num_bracket, Event[0]->header.route.id);
+            FntPrint(fmt_num_bracket,
+                     Event[STAGE_EVENT_PRIMARY]->header.route.id);
         }
-        if (Event[1] != 0)
+        if (Event[STAGE_EVENT_SECONDARY] != 0)
         {
-            FntPrint(fmt_num_bracket, Event[1]->header.route.id);
+            FntPrint(fmt_num_bracket,
+                     Event[STAGE_EVENT_SECONDARY]->header.route.id);
         }
         FntPrint(str_newline_3);
     }
@@ -513,8 +516,8 @@ s32 StageSequence(void)
             }
             StageTime = 0;
             GameClock = gc;
-            UpdateEvent(0, ev->header.route.next1);
-            UpdateEvent(1, ev->header.route.next2);
+            UpdateEvent(STAGE_EVENT_PRIMARY, ev->header.route.next1);
+            UpdateEvent(STAGE_EVENT_SECONDARY, ev->header.route.next2);
             if ((u8)(ev->header.route.id - 1) < 3)
             {
                 return 1;
