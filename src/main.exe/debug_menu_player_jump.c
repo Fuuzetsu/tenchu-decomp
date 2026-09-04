@@ -36,8 +36,10 @@ void debug_menu_player_jump(void)
         {
             break;
         }
-        if (pad & PADstart)
-            goto move_player;
+        if (exit_pad & PADstart)
+        {
+            break;
+        }
         if (pad & PADLup)
             pos.vx--;
         if (pad & PADLdown)
@@ -54,7 +56,6 @@ void debug_menu_player_jump(void)
 
     if (exit_pad & PADstart)
     {
-    move_player:
         pos.vy = GetAreaMapLevel(GlobalAreaMap,
                                  pos.vx *= 1000,
                                  pos.vy *= 1000,
