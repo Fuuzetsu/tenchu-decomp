@@ -3889,20 +3889,22 @@ static void ProcItemKaengeki(TItem *item)
     {
         KAENGEKI_MODE_START = 0,
         KAENGEKI_MODE_WAIT = 1,
-        KAENGEKI_MODE_FIRE = 2
+        KAENGEKI_MODE_FIRE = 2,
+        KAENGEKI_AIM_TURN_STEP = ANGLE_FULL / 128,
+        KAENGEKI_FLAME_OFFSET_SCALE = 12,
+        KAENGEKI_FLAME_REACH_SCALE = 2
     };
     param_kaengeki *param;
     PARAM_ITEM_LAUNCH request;
-    void (*ppu)(TItem *);
     s32 rx;
     s32 ry;
     s32 dispose_mode;
-    item_mode mode_index;
+    item_mode current_mode;
 
     param = &item->param.kaengeki;
     dispose_mode = ITEM_MODE_DISPOSE;
-    mode_index = item->mode;
-    if (mode_index == dispose_mode)
+    current_mode = item->mode;
+    if (current_mode == dispose_mode)
     {
         if (item->owner->motion->mid == MOT_ITEM_KAENGEKI)
         {
@@ -3912,7 +3914,6 @@ static void ProcItemKaengeki(TItem *item)
         return;
     }
 
-    mode_index = KAENGEKI_MODE_START;
     switch (item->mode)
     {
     case KAENGEKI_MODE_START:
@@ -3964,8 +3965,7 @@ static void ProcItemKaengeki(TItem *item)
             request.end.vy = rand() % 100 - 200;
             request.end.vz = rand() % 200 - 100;
             ReqItemDrop(&request);
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
             {
                 return;
             }
@@ -3984,11 +3984,11 @@ static void ProcItemKaengeki(TItem *item)
         {
             if ((item->owner->pad.data & PADLright) != 0)
             {
-                item->owner->model->rotate.vy += 0x20;
+                item->owner->model->rotate.vy += KAENGEKI_AIM_TURN_STEP;
             }
             else if ((item->owner->pad.data & PADLleft) != 0)
             {
-                item->owner->model->rotate.vy -= 0x20;
+                item->owner->model->rotate.vy -= KAENGEKI_AIM_TURN_STEP;
             }
 
             request.user = item->owner;
@@ -4013,18 +4013,16 @@ static void ProcItemKaengeki(TItem *item)
             }
             RotateVector(&request.end, rx, ry, rz);
 
-            request.start.vx = request.end.vx;
-            request.start.vy = request.end.vy;
-            request.start.vz = request.end.vz;
-            request.start.vx *= 12;
-            request.start.vy *= 12;
-            request.start.vz *= 12;
+            copyVector(&request.start, &request.end);
+            request.start.vx *= KAENGEKI_FLAME_OFFSET_SCALE;
+            request.start.vy *= KAENGEKI_FLAME_OFFSET_SCALE;
+            request.start.vz *= KAENGEKI_FLAME_OFFSET_SCALE;
             request.start.vx += param->start.vx;
             request.start.vy += param->start.vy;
             request.start.vz += param->start.vz;
-            request.end.vx *= 2;
-            request.end.vy *= 2;
-            request.end.vz *= 2;
+            request.end.vx *= KAENGEKI_FLAME_REACH_SCALE;
+            request.end.vy *= KAENGEKI_FLAME_REACH_SCALE;
+            request.end.vz *= KAENGEKI_FLAME_REACH_SCALE;
             request.end.vx += request.start.vx;
             request.end.vy += request.start.vy;
             request.end.vz += request.start.vz;
