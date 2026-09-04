@@ -1384,27 +1384,8 @@ have_z:
         ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
         cur = DrawList[0];
-    draw_near:
-        if (cur != 0)
+        for (;;)
         {
-            if (cur->model != 0)
-            {
-                GsGetLs(&cur->model->locate,
-                        (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-                GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-                GsSortObject4(&cur->model->object, &ot, 2,
-                              (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
-            }
-            cur = cur->next;
-            goto draw_near;
-        }
-
-        j = 1;
-    draw_bucket:
-        if (j < N_DRAW_BUCKETS)
-        {
-            cur = DrawList[j];
-        draw_far:
             if (cur != 0)
             {
                 if (cur->model != 0)
@@ -1412,15 +1393,43 @@ have_z:
                     GsGetLs(&cur->model->locate,
                             (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
                     GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
-                    DrawTMD(&cur->model->object, OTablePt, 0);
+                    GsSortObject4(&cur->model->object, &ot, 2,
+                                  (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
                 }
-                if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
-                    goto overload;
                 cur = cur->next;
-                goto draw_far;
+                continue;
             }
-            j++;
-            goto draw_bucket;
+            break;
+        }
+
+        j = 1;
+        for (;;)
+        {
+            if (j < N_DRAW_BUCKETS)
+            {
+                cur = DrawList[j];
+                for (;;)
+                {
+                    if (cur != 0)
+                    {
+                        if (cur->model != 0)
+                        {
+                            GsGetLs(&cur->model->locate,
+                                    (MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+                            GsSetLsMatrix((MATRIX *)TENCHU_SCRATCHPAD_ADDRESS);
+                            DrawTMD(&cur->model->object, OTablePt, 0);
+                        }
+                        if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
+                            goto overload;
+                        cur = cur->next;
+                        continue;
+                    }
+                    break;
+                }
+                j++;
+                continue;
+            }
+            break;
         }
 
     draw_done:
