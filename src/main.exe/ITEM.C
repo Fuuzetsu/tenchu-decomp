@@ -3236,7 +3236,7 @@ static void ProcItemNingyo(TItem *item)
                 item->collision.mode = conflict->size.pad;
                 item->collision.size = collision_size;
                 item->collision.ofsY = collision_offset_y;
-                item->collision.pause = 0;
+                item->collision.pause = ITEM_COLLISION_ACTIVE;
             }
             param->count = FIRST_RETARGET_DELAY;
             item->mode++;
