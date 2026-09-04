@@ -6606,18 +6606,14 @@ void ProcItemJirai(TItem *item)
         if (conflict_id != CONFLICT_NONE)
         {
             Humanoid *hit_human;
-            s32 frame_index;
             s32 human_present;
 
             hit_human = ConflictObject[conflict_id].common;
             human_present = is_humanoid_on_stage_(hit_human);
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
-            frame_index = 0;
             if (human_present != 0)
             {
+                s32 frame_index = 0;
+
                 while (1)
                 {
                     ModelType **model_objects;
