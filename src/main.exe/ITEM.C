@@ -214,27 +214,24 @@ void PackItemLayout(void *buf, s32 size)
     {
         AdtMessageBox(fmt_item_storing_size_too, size,
                       sizeof(TItemLayout) * MAX_ITEMS);
+        return;
     }
-    else
+
+    for (i = 0; i < MAX_ITEMS; i++)
     {
-        i = 0;
-        do
+        slot = &((TItemLayout *)buf)[i];
+        if (items[i].proc != 0)
         {
-            slot = &((TItemLayout *)buf)[i];
-            if (items[i].proc != 0)
-            {
-                slot->type = items[i].type;
-                slot->locate.vx = items[i].locate->locate.coord.t[0];
-                locate = &slot->locate;
-                locate->vy = items[i].locate->locate.coord.t[1];
-                locate->vz = items[i].locate->locate.coord.t[2];
-            }
-            else
-            {
-                slot->type = ITEM_NONE;
-            }
-            i++;
-        } while (i < MAX_ITEMS);
+            slot->type = items[i].type;
+            slot->locate.vx = items[i].locate->locate.coord.t[0];
+            locate = &slot->locate;
+            locate->vy = items[i].locate->locate.coord.t[1];
+            locate->vz = items[i].locate->locate.coord.t[2];
+        }
+        else
+        {
+            slot->type = ITEM_NONE;
+        }
     }
 }
 
@@ -507,7 +504,6 @@ void draw_map_items_(s32 x, s32 z, MapPlacementType *placement)
                         (draw_y >> FIXED_SHIFT) + placement->screen_y, 0,
                         RGB24(20, 20, 200));
         }
-
         i++;
     }
 }
