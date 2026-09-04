@@ -5496,13 +5496,9 @@ found:
         item->collision.size = 0;
         item->model = (ModelType *)ItemImage[item->type];
     }
-    item->param.lightningbolt.start.vx = p->start.vx;
-    param->start.vy = p->start.vy;
-    param->start.vz = p->start.vz;
+    copyVector(&param->start, &p->start);
     GetVectorRotation(&p->start, &p->end, &rx, &ry);
-    param->rot.vz = 0;
-    param->rot.vx = rx;
-    param->rot.vy = ry;
+    setVector(&param->rot, rx, ry, 0);
     return 1;
 }
 
