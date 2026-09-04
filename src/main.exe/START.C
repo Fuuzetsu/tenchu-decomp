@@ -8,6 +8,7 @@
 #include "misc.h"
 #include "padcmd.h"
 #include "sound.h"
+#include "stage.h"
 #include "vmemory.h"
 #include <psxsdk/libgpu.h>
 #include <psxsdk/libsnd.h>
@@ -19,9 +20,6 @@
 
 extern char fmt_free_memory[];
 extern RECT BriefingVramRect[];
-
-/* Retail calls the s32-returning definition through an s16 declaration. */
-extern short StageSequence(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
