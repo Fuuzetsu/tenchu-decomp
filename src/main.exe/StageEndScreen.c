@@ -498,8 +498,8 @@ void StageEndScreen(void)
             StageConfig[PSTATE->StageNo].uid;
     }
 
-    item_index = ITEM_SHURIKEN;
-    do
+    for (item_index = ITEM_SHURIKEN;
+         item_index < N_LOADOUT_ITEMS; item_index++)
     {
         if (CamState.Owner->item[item_index] == ITEM_INFINITE)
         {
@@ -519,15 +519,12 @@ void StageEndScreen(void)
             }
         }
         PSTATE->selItem[item_index] = 0;
-        item_index++;
-    } while (item_index < N_LOADOUT_ITEMS);
+    }
 
-    i = 0;
-    do
+    for (i = 0; i < N_LOADOUT_ITEMS; i++)
     {
         PSTATE->saveItem[i] = PSTATE->gItem[CHOSEN_CHARACTER][i];
-        i++;
-    } while (i < N_LOADOUT_ITEMS);
+    }
 
     work = TENCHU_PERSISTENT_STATE_ADDRESS;
     if (gfMemory != 0 &&
@@ -551,18 +548,12 @@ void StageEndScreen(void)
             layout_record = &PSTATE->stage_stats[PSTATE->CharType]
                                                 [PSTATE->StageNo][0];
             layout_index = 0;
-            for (;;)
+            while (layout_index < N_STAGE_LAYOUTS &&
+                   layout_record->stageBosses +
+                       layout_record->stageEnemies != 0)
             {
-                if (layout_record->stageBosses + layout_record->stageEnemies != 0)
-                {
-                    layout_index++;
-                    if (layout_index < N_STAGE_LAYOUTS)
-                    {
-                        layout_record++;
-                        continue;
-                    }
-                }
-                break;
+                layout_index++;
+                layout_record++;
             }
             if (layout_index == N_STAGE_LAYOUTS)
             {
