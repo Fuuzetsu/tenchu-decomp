@@ -4854,7 +4854,7 @@ void ProcItemFire(TItem *item)
             item->collision.size = 1500;
             item->collision.ofsY = 0;
             item->collision.mode = mode;
-            item->collision.pause = 0;
+            item->collision.pause = ITEM_COLLISION_ACTIVE;
             item->mode++;
             param->count = 3;
             reset_alert_duration();
