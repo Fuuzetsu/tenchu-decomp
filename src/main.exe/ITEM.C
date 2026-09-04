@@ -1358,12 +1358,15 @@ void ProcItemMakibishi(TItem *item)
     enum
     {
         MAKIBISHI_MODE_ROLL = 0,
-        MAKIBISHI_MODE_ARMED = 1
+        MAKIBISHI_MODE_ARMED = 1,
+        MAKIBISHI_TRIGGER_RADIUS = 100,
+        MAKIBISHI_BLOOD_SPREAD = 20,
+        MAKIBISHI_BLOOD_PARTICLES = 10,
+        MAKIBISHI_BLOOD_LIFETIME = 15,
+        MAKIBISHI_BLOOD_COLOR = RGB24(127, 0, 0)
     };
     Sprite3D *model;
     param_drop *param;
-    void (*ppu)(TItem *);
-    u8 st;
     s32 i;
     s32 conflict_id;
 
@@ -1378,20 +1381,19 @@ void ProcItemMakibishi(TItem *item)
     {
     case MAKIBISHI_MODE_ROLL:
         MoveKorogari(item, &param->koro);
-        st = param->koro.status;
-        switch (st)
+        switch (param->koro.status)
         {
         case KORO_STAY:
-            item->mode += 1;
+            item->mode++;
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
+            SET_ITEM_COLLISION(conflict_id, MAKIBISHI_TRIGGER_RADIUS,
+                               CONFLICT_OWNER_ITEM,
                                CONFLICT_HIT);
             break;
 
         case KORO_WATER:
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
             return;
@@ -1406,10 +1408,11 @@ void ProcItemMakibishi(TItem *item)
         if (i != CONFLICT_NONE &&
             is_humanoid_on_stage_(ConflictObject[i].common) != 0)
         {
-            SetBleeds(MODEL_POSITION(item->locate), 0, 20, 10, 15, RGB24(127, 0, 0));
+            SetBleeds(MODEL_POSITION(item->locate), 0,
+                      MAKIBISHI_BLOOD_SPREAD, MAKIBISHI_BLOOD_PARTICLES,
+                      MAKIBISHI_BLOOD_LIFETIME, MAKIBISHI_BLOOD_COLOR);
             SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
             return;
