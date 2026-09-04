@@ -49,11 +49,8 @@ full_retry:
 
     while (remaining >= 1)
     {
-        n = CdReady(0, 0);
-        if (n != 1)
-            goto full_retry;
-        n = CdGetSector(&sectorBuf, sizeof(sectorBuf) / sizeof(u32));
-        if (n == 0)
+        if (CdReady(0, 0) != 1 ||
+            CdGetSector(&sectorBuf, sizeof(sectorBuf) / sizeof(u32)) == 0)
             goto full_retry;
 
         n = CdPosToInt(&sector_view->location);
