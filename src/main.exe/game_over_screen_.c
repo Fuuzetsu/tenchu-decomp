@@ -109,7 +109,7 @@ void game_over_screen_(void)
     u_long *tim;
     ArcFile *fade_archive;
     Sprite3D *fade_sprite;
-    u8 *persistent;
+    TLinkInfo *persistent_state;
     TLinkInfo *language_state;
     char *resource_root;
     u16 pad;
@@ -124,7 +124,7 @@ void game_over_screen_(void)
     s32 i;
     s32 suffix;
     s32 clear_b;
-    s32 chr_offset;
+    s32 character_stock_offset;
     char **prefix_entry;
 
     state = GAMEOVER_FADE_IN;
@@ -136,15 +136,16 @@ void game_over_screen_(void)
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
 
     i = 0;
-    persistent = (u8 *)TENCHU_PERSISTENT_STATE_ADDRESS;
-    do
+    persistent_state = (TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS;
+    while (i < N_LOADOUT_ITEMS)
     {
-        chr_offset = SAVE_ITEM_ROW_OFFSET(CHOSEN_CHARACTER);
-        persistent[TLINKINFO_BYTE_OFFSET(saveItem[0]) + i] =
-            persistent[(i + chr_offset) +
-                       TLINKINFO_BYTE_OFFSET(gItem[0][0])];
+        character_stock_offset = SAVE_ITEM_ROW_OFFSET(CHOSEN_CHARACTER);
+        /* This byte view preserves retail's index-before-base address order. */
+        ((u8 *)persistent_state)[TLINKINFO_BYTE_OFFSET(saveItem[0]) + i] =
+            TLINKINFO_FLAT_STOCK(persistent_state,
+                                 i + character_stock_offset);
         i++;
-    } while (i < N_LOADOUT_ITEMS);
+    }
 
     FadeOutDirect(SCREEN_FADE_FRAMES, SCREEN_FADE_BLEND, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL, SCREEN_FADE_LEVEL);
     clear_screen_();
