@@ -4405,19 +4405,12 @@ s32 trace_ground_(VECTOR *from, VECTOR *to, VECTOR *out, u32 flag)
     {
         if (t >= FIXED_ONE)
             break;
-        /* The bias preserves signed division's truncation toward zero. */
         rawx = dx * t;
-        if (rawx < 0)
-            rawx += FIXED_TRUNC_BIAS;
+        tx = x + rawx / FIXED_ONE;
         rawy = dy * t;
-        tx = x + (rawx >> FIXED_SHIFT);
-        if (rawy < 0)
-            rawy += FIXED_TRUNC_BIAS;
+        ty = y + rawy / FIXED_ONE;
         rawz = dz * t;
-        ty = y + (rawy >> FIXED_SHIFT);
-        if (rawz < 0)
-            rawz += FIXED_TRUNC_BIAS;
-        tz = z + (rawz >> FIXED_SHIFT);
+        tz = z + rawz / FIXED_ONE;
         if (CGetLevel(&hint, tx, ty, tz, flag) < ty)
             break;
         lx = tx;
