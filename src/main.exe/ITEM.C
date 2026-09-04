@@ -5745,6 +5745,15 @@ void ProcItemNapalm(TItem *item)
 
 void ProcItemLaunch(TItem *item)
 {
+    enum
+    {
+        PROJECTILE_COLLISION_SIZE = 300,
+        PROJECTILE_SPIN_STEP = ANGLE_FULL / 6,
+        PROJECTILE_IMPACT_SIZE = 4 * FIXED_ONE,
+        WALL_SPARK_SPREAD = 25,
+        WALL_SPARK_COUNT = 10,
+        WALL_SPARK_LIFETIME = 10
+    };
     ModelType *model;
     param_launch *param;
     u8 t;
@@ -5768,11 +5777,12 @@ void ProcItemLaunch(TItem *item)
     {
         DeleteConflict(item->locate);
         conflict_id = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(conflict_id, 300, CONFLICT_OWNER_ITEM,
+        SET_ITEM_COLLISION(conflict_id, PROJECTILE_COLLISION_SIZE,
+                           CONFLICT_OWNER_ITEM,
                            CONFLICT_HIT);
     }
     item->locate->rotate.vx = 0;
-    item->locate->rotate.vy = GameClock * 0x2aa;
+    item->locate->rotate.vy = GameClock * PROJECTILE_SPIN_STEP;
     item->locate->rotate.vz = 0;
     UpdateCoordinate(item->locate);
     model->locate = item->locate->locate;
@@ -5785,7 +5795,7 @@ void ProcItemLaunch(TItem *item)
     if (cid != CONFLICT_NONE &&
         is_humanoid_on_stage_(ConflictObject[cid].common) != 0)
     {
-        SetImpact(MODEL_POSITION(item->locate), 4 * FIXED_ONE,
+        SetImpact(MODEL_POSITION(item->locate), PROJECTILE_IMPACT_SIZE,
                   IMPACT_SPRITE_HIT);
         SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
         if (item->proc != 0)
@@ -5799,7 +5809,8 @@ void ProcItemLaunch(TItem *item)
     switch (param->fly.p.koro.status)
     {
     case KORO_WALL:
-        SetBleeds(MODEL_POSITION(item->locate), 0, 25, 10, 10, COLOR_YELLOW);
+        SetBleeds(MODEL_POSITION(item->locate), 0, WALL_SPARK_SPREAD,
+                  WALL_SPARK_COUNT, WALL_SPARK_LIFETIME, COLOR_YELLOW);
         SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
         reset_alert_duration();
         return;
