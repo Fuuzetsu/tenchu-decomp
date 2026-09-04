@@ -1267,14 +1267,12 @@ have_z:
         int world_x_offset;
         int visible;
 
-        j = sx;
-        for (;; j++)
+        for (j = sx; ; j++)
         {
             if (j <= ex)
             {
                 cell_x = j;
-                k = sy;
-                for (;; k++)
+                for (k = sy; ; k++)
                 {
                     if (k <= ey)
                     {
@@ -1284,8 +1282,7 @@ have_z:
                         world_base = WorldMap;
                         world_x_offset =
                             (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
-                        l = sz;
-                        for (;; l++)
+                        for (l = sz; ; l++)
                         {
                             if (l <= ez)
                             {
