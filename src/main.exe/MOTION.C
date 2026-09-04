@@ -1230,7 +1230,7 @@ void DamageControl(void)
             }
             if (enemy->active_item == ACTIVE_ITEM_PROTECTION)
             {
-                dmg = (u32)(dmg << 0x10) >> 0xf;
+                dmg = (u16)(dmg * 2);
             }
             {
                 if ((Me_MOTION_C == StagePlayer) && (ARMOUR_EQUIPPED_ != 0))
