@@ -143,7 +143,8 @@ static __inline__ Humanoid *FindItemTarget(TFindItemTarget *find)
     Humanoid *target;
     int dist;
 
-    for (i = find->i; ; i++)
+    i = find->i;
+    for (;;)
     {
         if (i >= Humans)
         {
@@ -162,6 +163,7 @@ static __inline__ Humanoid *FindItemTarget(TFindItemTarget *find)
                 return find->find;
             }
         }
+        i++;
     }
 }
 
@@ -261,7 +263,8 @@ void RestoreItemLayout(void *buf)
     {
         s32 i;
 
-        for (i = 0; ; i++)
+        i = 0;
+        for (;;)
         {
             if (i < MAX_ITEMS)
             {
@@ -270,6 +273,7 @@ void RestoreItemLayout(void *buf)
                 {
                     DISPOSE_ITEM(it);
                 }
+                i++;
                 continue;
             }
             break;
@@ -279,7 +283,8 @@ void RestoreItemLayout(void *buf)
     i = 0;
     level_mode = AREA_LEVEL_STEP_DOWN;
     sentinel = LEVEL_NONE;
-    for (slot = buf; ; slot++, i++)
+    slot = buf;
+    for (;; slot++, i++)
     {
         if (i >= MAX_ITEMS)
             return;
@@ -7515,7 +7520,8 @@ void ClearItemLayout(void)
     TItem *it;
     s32 i;
 
-    for (i = 0; ; i++)
+    i = 0;
+    for (;;)
     {
         if (i >= MAX_ITEMS)
             return;
@@ -7524,6 +7530,7 @@ void ClearItemLayout(void)
         {
             DISPOSE_ITEM(it);
         }
+        i++;
     }
 }
 

@@ -1267,12 +1267,14 @@ have_z:
         int world_x_offset;
         int visible;
 
-        for (j = sx; ; j++)
+        j = sx;
+        for (;; j++)
         {
             if (j <= ex)
             {
                 cell_x = j;
-                for (k = sy; ; k++)
+                k = sy;
+                for (;; k++)
                 {
                     if (k <= ey)
                     {
@@ -1282,7 +1284,8 @@ have_z:
                         world_base = WorldMap;
                         world_x_offset =
                             (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
-                        for (l = sz; ; l++)
+                        l = sz;
+                        for (;; l++)
                         {
                             if (l <= ez)
                             {
@@ -1297,12 +1300,12 @@ have_z:
                                     CONSTRUCTION_CELL_VISIBILITY_RADIUS);
                                 if (visible)
                                 {
-                                    for (cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
-                                                                  WORLD_MAP_Z_BYTE_STRIDE +
-                                                              world_y_offset + world_x_offset +
-                                                              (u32)world_base))
-                                                   ->top; ;
-                                         cur = cur->next)
+                                    cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
+                                                             WORLD_MAP_Z_BYTE_STRIDE +
+                                                         world_y_offset + world_x_offset +
+                                                         (u32)world_base))
+                                              ->top;
+                                    for (;;)
                                     {
                                         if (cur != 0)
                                         {
@@ -1355,6 +1358,7 @@ have_z:
                                                 SlotMan.n++;
                                             }
                                             ndt++;
+                                            cur = cur->next;
                                             continue;
                                         }
                                         break;
@@ -1382,7 +1386,8 @@ have_z:
         ot = *OTablePt;
         ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
-        for (cur = DrawList[0]; ; cur = cur->next)
+        cur = DrawList[0];
+        for (;;)
         {
             if (cur != 0)
             {
@@ -1394,16 +1399,19 @@ have_z:
                     GsSortObject4(&cur->model->object, &ot, 2,
                                   (u_long *)TENCHU_SCRATCHPAD_ADDRESS);
                 }
+                cur = cur->next;
                 continue;
             }
             break;
         }
 
-        for (j = 1; ; j++)
+        j = 1;
+        for (;;)
         {
             if (j < N_DRAW_BUCKETS)
             {
-                for (cur = DrawList[j]; ; cur = cur->next)
+                cur = DrawList[j];
+                for (;;)
                 {
                     if (cur != 0)
                     {
@@ -1416,10 +1424,12 @@ have_z:
                         }
                         if ((u32)(GsGetWorkBase() - packet_base) > 0x6400) /* per-frame construction packet budget */
                             goto overload;
+                        cur = cur->next;
                         continue;
                     }
                     break;
                 }
+                j++;
                 continue;
             }
             break;
