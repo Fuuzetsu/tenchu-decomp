@@ -264,17 +264,19 @@ void RestoreItemLayout(void *buf)
         s32 i;
 
         i = 0;
-        it = items;
-    loop1:
-        if (i < MAX_ITEMS)
+        for (;;)
         {
-            if (it->proc != 0)
+            if (i < MAX_ITEMS)
             {
-                DISPOSE_ITEM(it);
+                it = &items[i];
+                if (it->proc != 0)
+                {
+                    DISPOSE_ITEM(it);
+                }
+                i++;
+                continue;
             }
-            it++;
-            i++;
-            goto loop1;
+            break;
         }
     }
 
