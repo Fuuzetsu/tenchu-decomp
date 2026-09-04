@@ -324,7 +324,7 @@ void mission_score_screen(s32 stage)
 
     _PlayMusic(MUSIC_TRACK_COMPLETE, CDA_REPEAT);
     resultX = 0x66;
-    for (;;)
+    while (1)
     {
         u16 pad;
 
