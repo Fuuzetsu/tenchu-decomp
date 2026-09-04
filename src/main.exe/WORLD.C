@@ -1305,20 +1305,19 @@ have_z:
                                              world_y_offset + world_x_offset +
                                              (u32)world_base))
                                   ->top;
-                    scan_cur:
-                        if (cur != 0)
+                        for (;;)
                         {
-                            if (IsVisible(cur->model->locate.coord.t[0],
-                                          cur->model->locate.coord.t[1] + cur->ShiftY,
-                                          cur->model->locate.coord.t[2], cur->ModelSize))
+                            if (cur != 0)
                             {
-                                int bucket;
-                                int signed_size;
-                                ObjectSlotType **slot;
-                                OrnamentType *model;
-
-                                do
+                                if (IsVisible(cur->model->locate.coord.t[0],
+                                              cur->model->locate.coord.t[1] + cur->ShiftY,
+                                              cur->model->locate.coord.t[2], cur->ModelSize))
                                 {
+                                    int bucket;
+                                    int signed_size;
+                                    ObjectSlotType **slot;
+                                    OrnamentType *model;
+
                                     /* IsVisible leaves this object's view-space position behind
                                      * for the depth bucket calculation. */
                                     do
@@ -1347,11 +1346,12 @@ have_z:
                                     *slot = &SlotMan.slot[SlotMan.n];
                                     ndl++;
                                     SlotMan.n++;
-                                } while (0);
+                                }
+                                ndt++;
+                                cur = cur->next;
+                                continue;
                             }
-                            ndt++;
-                            cur = cur->next;
-                            goto scan_cur;
+                            break;
                         }
                     }
                     l++;
