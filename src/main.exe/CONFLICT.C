@@ -406,7 +406,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     mvp->angleL = 0;
     mvp->vector = 0;
     m = (short)mode2;
-    for (; i < N_MAP_PROBE_DIRECTIONS; i++)
+    while (i < N_MAP_PROBE_DIRECTIONS)
     {
         level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
         if (level2 == (u32)LEVEL_NONE ||
@@ -429,6 +429,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
             mode = rawmode;
         }
         v <<= 1;
+        i++;
     }
     return mvp->level;
 }
