@@ -681,61 +681,68 @@ void ComputeAllConflict(void)
     {
         confop = &ConflictObject[i];
         model = confop->model;
-        if (model->attribute & MODEL_ATTR_COLLIDE)
+        if (!(model->attribute & MODEL_ATTR_COLLIDE))
         {
-            memset(confop->result, 0, sizeof(confop->result));
-            confop->offset.pad = 0;
-            model->attribute &= ~MODEL_ATTR_CONFLICT;
-            if (model->locate.super == &World.locate)
-            {
-                confop->position.vx = model->locate.coord.t[0] + confop->offset.vx;
-                confop->position.vy = model->locate.coord.t[1] + confop->offset.vy;
-                confop->position.vz = model->locate.coord.t[2] + confop->offset.vz;
-            }
-            else
-            {
-                GsGetLw(&model->locate, &mat);
-                GsSetLsMatrix(&mat);
-                RotTrans(&confop->offset, &confop->position, (long *)0);
-            }
+            continue;
+        }
+
+        memset(confop->result, 0, sizeof(confop->result));
+        confop->offset.pad = 0;
+        model->attribute &= ~MODEL_ATTR_CONFLICT;
+        if (model->locate.super == &World.locate)
+        {
+            confop->position.vx = model->locate.coord.t[0] + confop->offset.vx;
+            confop->position.vy = model->locate.coord.t[1] + confop->offset.vy;
+            confop->position.vz = model->locate.coord.t[2] + confop->offset.vz;
+        }
+        else
+        {
+            GsGetLw(&model->locate, &mat);
+            GsSetLsMatrix(&mat);
+            RotTrans(&confop->offset, &confop->position, (long *)0);
         }
     }
 
     for (i = 0; i < ConflictObjects; i++)
     {
-        if (ConflictObject[i].model->attribute & MODEL_ATTR_COLLIDE)
+        if (!(ConflictObject[i].model->attribute & MODEL_ATTR_COLLIDE))
         {
-            for (j = i + 1; j < ConflictObjects; j++)
-            {
-                ConflictObjectType *other = &ConflictObject[j];
+            continue;
+        }
 
-                if (other->model->attribute & MODEL_ATTR_COLLIDE)
-                {
-                    d = __builtin_abs(other->position.vy - ConflictObject[i].position.vy);
-                    if (d <= ConflictObject[i].size.vy + other->size.vy)
-                    {
-                        d = __builtin_abs(other->position.vz - ConflictObject[i].position.vz);
-                        if (d <= ConflictObject[i].size.vz + other->size.vz)
-                        {
-                            d = __builtin_abs(other->position.vx - ConflictObject[i].position.vx);
-                            if (d <= ConflictObject[i].size.vx + other->size.vx)
-                            {
-                                ConflictObject[i].result[j] =
-                                    other->size.pad |
-                                    CONFLICT_LIVE;
-                                ConflictObject[j].result[i] =
-                                    ConflictObject[i].size.pad |
-                                    CONFLICT_LIVE;
-                                ConflictObject[i].model->attribute =
-                                    ConflictObject[i].model->attribute | MODEL_ATTR_CONFLICT;
-                                other->model->attribute = other->model->attribute | MODEL_ATTR_CONFLICT;
-                                ConflictObject[i].offset.pad++;
-                                other->offset.pad++;
-                            }
-                        }
-                    }
-                }
+        for (j = i + 1; j < ConflictObjects; j++)
+        {
+            ConflictObjectType *other = &ConflictObject[j];
+
+            if (!(other->model->attribute & MODEL_ATTR_COLLIDE))
+            {
+                continue;
             }
+
+            d = __builtin_abs(other->position.vy - ConflictObject[i].position.vy);
+            if (d > ConflictObject[i].size.vy + other->size.vy)
+            {
+                continue;
+            }
+
+            d = __builtin_abs(other->position.vz - ConflictObject[i].position.vz);
+            if (d > ConflictObject[i].size.vz + other->size.vz)
+            {
+                continue;
+            }
+
+            d = __builtin_abs(other->position.vx - ConflictObject[i].position.vx);
+            if (d > ConflictObject[i].size.vx + other->size.vx)
+            {
+                continue;
+            }
+
+            ConflictObject[i].result[j] = other->size.pad | CONFLICT_LIVE;
+            ConflictObject[j].result[i] = ConflictObject[i].size.pad | CONFLICT_LIVE;
+            ConflictObject[i].model->attribute |= MODEL_ATTR_CONFLICT;
+            other->model->attribute |= MODEL_ATTR_CONFLICT;
+            ConflictObject[i].offset.pad++;
+            other->offset.pad++;
         }
     }
 }
