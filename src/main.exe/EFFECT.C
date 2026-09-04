@@ -2943,11 +2943,10 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
 {
     enum
     {
-        SplitLen = 200
-    };
-    enum
-    {
-        Range = 80
+        LIGHTNING_SEGMENT_LENGTH = 200,
+        LIGHTNING_JITTER_RADIUS = 80,
+        LIGHTNING_DISTANCE_RESCALE_SHIFT = 8,
+        LIGHTNING_BRANCH_RANDOM_BIT = 2,
     };
     SVECTOR scr;
     SVECTOR oldscr;
@@ -2980,25 +2979,23 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
         {
             VECTOR *v1, *v2;
             long dx, dy, dz;
-            int large;
+            int rescale_distance;
 
             v1 = start;
             v2 = end;
-            large = 0;
             dx = v1->vx - v2->vx;
             dy = v1->vy - v2->vy;
             dz = v1->vz - v2->vz;
-            if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
-                abs(dz) > FIXED_ONE)
+            rescale_distance = abs(dx) > FIXED_ONE ||
+                               abs(dy) > FIXED_ONE ||
+                               abs(dz) > FIXED_ONE;
+            if (rescale_distance)
             {
-                large = 1;
-            }
-            if (large)
-            {
-                dx /= 0x100;
-                dy /= 0x100;
-                dz /= 0x100;
-                distance = SquareRoot0(dx * dx + dy * dy + dz * dz) << 8;
+                dx /= 1 << LIGHTNING_DISTANCE_RESCALE_SHIFT;
+                dy /= 1 << LIGHTNING_DISTANCE_RESCALE_SHIFT;
+                dz /= 1 << LIGHTNING_DISTANCE_RESCALE_SHIFT;
+                distance = SquareRoot0(dx * dx + dy * dy + dz * dz)
+                           << LIGHTNING_DISTANCE_RESCALE_SHIFT;
             }
             else
             {
@@ -3006,7 +3003,7 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
             }
         }
 
-        lcount = distance / SplitLen;
+        lcount = distance / LIGHTNING_SEGMENT_LENGTH;
         i = 1;
         if (lcount > 0)
         {
@@ -3020,11 +3017,14 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
                 x = ((end->vx - start->vx) * i) / lcount + start->vx;
                 y = ((end->vy - start->vy) * i) / lcount + start->vy;
                 z = ((end->vz - start->vz) * i) / lcount + start->vz;
-                x += -Range + rand() % (Range * 2);
-                y += -Range + rand() % (Range * 2);
-                z += -Range + rand() % (Range * 2);
+                x += -LIGHTNING_JITTER_RADIUS +
+                     rand() % (LIGHTNING_JITTER_RADIUS * 2);
+                y += -LIGHTNING_JITTER_RADIUS +
+                     rand() % (LIGHTNING_JITTER_RADIUS * 2);
+                z += -LIGHTNING_JITTER_RADIUS +
+                     rand() % (LIGHTNING_JITTER_RADIUS * 2);
 
-                if ((rand() & 2) == 0)
+                if ((rand() & LIGHTNING_BRANCH_RANDOM_BIT) == 0)
                 {
                     VECTOR sv = {
                         .vx = x,
@@ -3047,17 +3047,7 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
                     z = scr.vz >> 2;
                     line.x1 = scr.vx;
                     line.y1 = scr.vy;
-                    if (z >= 0)
-                    {
-                        if (z < DEPTH_LIMIT)
-                            p = z;
-                        else
-                            p = DEPTH_LIMIT - 1;
-                    }
-                    else
-                    {
-                        p = 0;
-                    }
+                    CLAMP_SORT_DEPTH(p, z);
                     GsSortLine(&line, OTablePt, (u16)p);
                 }
                 oldscr = scr;
