@@ -2427,6 +2427,11 @@ static void DrawHinoko(TEffectSlot *ef)
 
 void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
 {
+    enum
+    {
+        HINOKO_LIFETIME_MIN = 15,
+        HINOKO_LIFETIME_RANGE = 15,
+    };
     TEffectSlot *slot;
     ExplosionType *param;
     short i;
@@ -2443,16 +2448,14 @@ void SetHinoko(VECTOR *pos, SVECTOR *power, int n)
         param = &slot->param.hinoko;
         param->scale = rand() % FIXED_ONE + FIXED_ONE;
         param->rotate = (rand() % 360) * FIXED_ONE;
-        param->pos.vx = pos->vx;
-        param->pos.vy = pos->vy;
-        param->pos.vz = pos->vz;
+        copyVector(&param->pos, pos);
         param->vec.vx = rand() % power->vx - power->vx / 2;
         param->vec.vy = -(rand() % power->vy + power->vy / 2);
         param->vec.vz = rand() % power->vz - power->vz / 2;
         r = rand();
         i++;
         param->mode = EXPLOSION_MODE_FLASH;
-        param->time = r % 15 + 15;
+        param->time = r % HINOKO_LIFETIME_RANGE + HINOKO_LIFETIME_MIN;
         slot->proc = DrawHinoko;
     }
 }
