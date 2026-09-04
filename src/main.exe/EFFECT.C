@@ -1596,7 +1596,8 @@ static void DrawFrame(TEffectSlot *ef)
 {
     enum
     {
-        FRAME_FLASH_LEVEL = 0x80
+        FRAME_FLASH_LEVEL = 0x80,
+        FRAME_SORT_DEPTH_BIAS = 50
     };
     FrameType *param = &ef->param.frame;
     GsSPRITE *spr;
@@ -1663,7 +1664,7 @@ static void DrawFrame(TEffectSlot *ef)
             (s16)((size * PROJECTION_DISTANCE) / otz) + 1;
         spr->x = scr.vx;
         spr->y = scr.vy;
-        t = scr.vz - 0x32;
+        t = scr.vz - FRAME_SORT_DEPTH_BIAS;
         t = t >> 2;
         CLAMP_SORT_DEPTH(pri, t);
         GsSortSprite(spr, OTablePt, (u16)pri);
