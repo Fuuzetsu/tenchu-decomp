@@ -604,7 +604,7 @@ static s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
     GsRVIEW2 target;
     GsRVIEW2 *tp;
     VECTOR va, vb, vc, vd;
-    long flag[2];
+    long transform_flag;
     TCameraStatus *cs;
     s32 fwRot;
     s32 d1, d2, d3;
@@ -621,10 +621,10 @@ static s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
     SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
     SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
 
-    RotTrans(campos, &va, flag);
-    RotTrans(campos + 1, &vb, flag);
-    TransformCameraPoint(campos + 2, &vc, flag);
-    TransformCameraPoint(campos + 3, &vd, flag);
+    RotTrans(campos, &va, &transform_flag);
+    RotTrans(campos + 1, &vb, &transform_flag);
+    TransformCameraPoint(campos + 2, &vc, &transform_flag);
+    TransformCameraPoint(campos + 3, &vd, &transform_flag);
 
     fwRot = trace_ground_(&vc, &vd, CAMERA_VIEWPOINT(&target), 0);
 
