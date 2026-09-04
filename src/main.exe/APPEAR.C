@@ -595,12 +595,8 @@ s16 GetAttackDBID(Humanoid *human, motion_id mid)
 
     mid = GetMotionID(human->motion, mid);
     i = 0;
-    while (BattleDB[i].mid != MOTION_ID_NONE)
+    while (BattleDB[i].mid != MOTION_ID_NONE && BattleDB[i].mid != mid)
     {
-        if (BattleDB[i].mid == mid)
-        {
-            break;
-        }
         i++;
     }
     return i;
