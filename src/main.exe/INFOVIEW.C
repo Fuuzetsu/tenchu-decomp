@@ -649,7 +649,7 @@ static void DrawPause(int frame)
     DRAWENV n_draw;
     POLY_GT4 ply;
     GsIMAGE *image;
-    s32 t;
+    s32 phase;
     s32 bias;
     u8 far_col;
 
@@ -664,14 +664,11 @@ static void DrawPause(int frame)
         PutDrawEnv(&n_draw);
         image = GetImage(IMG_PAUSE);
         SetupImageToPolyGT4(image, &ply, (s16)(0xA0 - image->pw * 2), (s16)(0x78 - (image->ph >> 1)));
-        t = (s16)frame * 0x44;
-        /* Empty loop retained for code layout; its original source construct is unknown. */
-        do
-        {
-        } while (0);
+        phase = (s16)frame * 0x44;
         bias = 0x80;
-        far_col = rsin(t) * 125 / FIXED_ONE + bias;
-        ply.r0 = rsin(t + ANGLE_HALF_QUADRANT) * 125 / FIXED_ONE + bias;
+        far_col = rsin(phase) * 125 / FIXED_ONE + bias;
+        phase += ANGLE_HALF_QUADRANT;
+        ply.r0 = rsin(phase) * 125 / FIXED_ONE + bias;
         ply.g0 = ply.r0;
         ply.b0 = ply.r0;
         ply.r1 = ply.r0;
