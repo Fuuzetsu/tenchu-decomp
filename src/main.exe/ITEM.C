@@ -1292,7 +1292,15 @@ void ProcKaginawa(TItem *item)
 
 void ProcItemTeleport(TItem *item)
 {
-    void (*ppu)(TItem *);
+    enum
+    {
+        TELEPORT_MAX_DISTANCE = 20000,
+        TELEPORT_EFFECT_GROUND_RANGE = 1000,
+        TELEPORT_EFFECT_SPREAD = 20,
+        TELEPORT_EFFECT_PARTICLES = 50,
+        TELEPORT_EFFECT_LIFETIME = 60
+    };
+
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = ITEM_MODE_START;
@@ -1305,16 +1313,17 @@ void ProcItemTeleport(TItem *item)
         return;
     }
     SnapCameraTargetVector();
-    if (GetVectorDistance(MODEL_POSITION(CamState.Owner->model), &CamState.TargetVector) < 20000)
+    if (GetVectorDistance(MODEL_POSITION(CamState.Owner->model),
+                          &CamState.TargetVector) < TELEPORT_MAX_DISTANCE)
     {
-        CamState.Owner->model->locate.coord.t[0] = CamState.TargetVector.vx;
-        CamState.Owner->model->locate.coord.t[1] = CamState.TargetVector.vy;
-        CamState.Owner->model->locate.coord.t[2] = CamState.TargetVector.vz;
-        SetBleeds(&CamState.TargetVector, 1000, 20, 50, 60, COLOR_WHITE);
+        copyVector(MODEL_POSITION(CamState.Owner->model),
+                   &CamState.TargetVector);
+        SetBleeds(&CamState.TargetVector, TELEPORT_EFFECT_GROUND_RANGE,
+                  TELEPORT_EFFECT_SPREAD, TELEPORT_EFFECT_PARTICLES,
+                  TELEPORT_EFFECT_LIFETIME, COLOR_WHITE);
     }
     SetCameraMode(CMODE_NORMAL);
-    ppu = item->proc;
-    if (ppu == 0)
+    if (item->proc == 0)
         return;
     DISPOSE_ITEM(item);
 }
