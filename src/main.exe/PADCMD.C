@@ -442,8 +442,7 @@ s32 remap_buttons_(s16 pad)
     mapped_button = ButtonAssign;
     acc = pad;
     selected_index = (s32)ControlScheme * BUTTONS_PER_CONTROL_SCHEME;
-    i = 0;
-    do
+    for (i = 0; i < BUTTONS_PER_CONTROL_SCHEME; i++)
     {
         test = pad & ButtonAssign[i];
         if (test != 0)
@@ -456,9 +455,8 @@ s32 remap_buttons_(s16 pad)
             mapped_button = &ButtonAssign[selected_index];
             acc = acc & ~*mapped_button;
         }
-        i++;
         selected_index++;
-    } while (i < BUTTONS_PER_CONTROL_SCHEME);
+    }
     return (s16)acc;
 }
 
