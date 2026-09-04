@@ -194,14 +194,19 @@ s16 CVAsequence(s16 sid)
 
     wanted = sid;
     end_mode = CVA_CMD_END;
-scan_event:
-    event = CVAnow;
-    if (event->mode != CVA_CMD_SEQUENCE ||
-        event->payload.sequence.id != wanted)
+    for (;;)
     {
-        CVAnow = event + 1;
-        if (event[1].mode != end_mode)
-            goto scan_event;
+        event = CVAnow;
+        if (event->mode != CVA_CMD_SEQUENCE ||
+            event->payload.sequence.id != wanted)
+        {
+            CVAnow = event + 1;
+            if (event[1].mode != end_mode)
+            {
+                continue;
+            }
+        }
+        break;
     }
 
     if (CVAnow->mode == CVA_CMD_END)
