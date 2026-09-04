@@ -775,6 +775,11 @@ static void ProcMiscSnowfall(TMisc *m, TMiscMessage msg)
 
 static inline void ProcMiscSprite(TMisc *m, TMiscMessage msg)
 {
+    enum
+    {
+        MISC_SPRITE_BRIGHTNESS_MIN = 98,
+        MISC_SPRITE_BRIGHTNESS_RANGE = 60
+    };
     s32 type;
     Sprite3D *s;
 
@@ -799,7 +804,8 @@ static inline void ProcMiscSprite(TMisc *m, TMiscMessage msg)
     default:
         s = SpriteData[m->param.sprite.type].spr;
         s->sprite.b = s->sprite.g = s->sprite.r =
-            (u8)(rand() % 60 + 0x62);
+            (u8)(rand() % MISC_SPRITE_BRIGHTNESS_RANGE +
+                 MISC_SPRITE_BRIGHTNESS_MIN);
         s->locate.coord.t[0] = m->x;
         s->locate.coord.t[1] = m->y;
         s->locate.coord.t[2] = m->z;
