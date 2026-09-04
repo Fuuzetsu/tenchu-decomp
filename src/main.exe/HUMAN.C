@@ -1374,15 +1374,7 @@ long GetTargetDistance(Humanoid *human, short *deg)
     vy = (u16)human->rotate->vy;
     angle = ratan2(-dx, -dz);
     diff = angle - vy;
-    deg2 = (s16)diff;
-    if (deg2 > ANGLE_HALF)
-    {
-        deg2 = ANGLE_FULL - deg2;
-    }
-    else if (deg2 <= -ANGLE_HALF)
-    {
-        deg2 += ANGLE_FULL;
-    }
+    deg2 = FoldRelativeDirection(diff);
     *deg = deg2;
     return SquareRoot0(dx * dx + dz * dz);
 }
