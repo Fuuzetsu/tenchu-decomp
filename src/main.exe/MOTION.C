@@ -1568,7 +1568,6 @@ void AttackControl(void)
 s16 AttackContinuousCheck(BattleType *battle)
 {
     s16 wk;
-    ModelType *model;
     s16 mode;
 
     if (dtM->count < battle->contfrm - 3)
@@ -1581,26 +1580,23 @@ s16 AttackContinuousCheck(BattleType *battle)
     }
     Me_MOTION_C->pad.time = 0;
     wk = Me_MOTION_C->wpatk;
+    mode = ATTACK_CANCEL_ALL;
     switch (wk)
     {
     case FIST:
         DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-        model = Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1];
+        DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
         break;
     case JAW:
-        model = Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0];
+        DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
         break;
     case NO_WEAPON:
-        mode = ATTACK_CANCEL_ALL;
-        goto no_conflict;
+        break;
     default:
         DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-        model = Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1];
+        DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
         break;
     }
-    DeleteConflict(model);
-    mode = ATTACK_CANCEL_ALL;
-no_conflict:
     if ((mode & ATTACK_CANCEL_AFTERIMAGES) != 0)
     {
         if (Me_MOTION_C->illusion[WEAPON_HAND_0] != 0)
