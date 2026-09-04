@@ -1198,13 +1198,11 @@ void DamageControl(void)
                     dmg = dmg / 3;
                 }
             }
-            if (enemy != StagePlayer)
+            if (enemy == StagePlayer)
             {
-                goto apply_multipliers;
+            difficulty_bonus:
+                dmg -= ((u8)gNannido - DIFFICULTY_HARD);
             }
-        difficulty_bonus:
-            dmg -= ((u8)gNannido - DIFFICULTY_HARD);
-        apply_multipliers:
             if (enemy->type == NINKEN)
             {
                 dmg = dmg * 6;
