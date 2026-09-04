@@ -1848,7 +1848,13 @@ void ProcItemSmoke(TItem *item)
     enum
     {
         SMOKE_MODE_FUSE = 0,
-        SMOKE_MODE_ACTIVE = 1
+        SMOKE_MODE_ACTIVE = 1,
+        SMOKE_TRAIL_INTERVAL = 2,
+        SMOKE_TRAIL_RISE_SPEED = 250,
+        SMOKE_TRAIL_PARTICLES = 1,
+        SMOKE_TRAIL_LIFETIME = 3,
+        SMOKE_CHOKE_CHECK_INTERVAL = 16,
+        SMOKE_CHOKE_RADIUS = 2000
     };
     Sprite3D *model;
     param_smoke *param;
@@ -1898,12 +1904,12 @@ void ProcItemSmoke(TItem *item)
             DISPOSE_ITEM(item);
             return;
         }
-        if ((param->count & 1) == 0)
+        if ((param->count & (SMOKE_TRAIL_INTERVAL - 1)) == 0)
         {
             {
                 SVECTOR vec = {
                     .vx = 0,
-                    .vy = -250,
+                    .vy = -SMOKE_TRAIL_RISE_SPEED,
                     .vz = 0
                 };
                 VECTOR pos = {
@@ -1912,10 +1918,11 @@ void ProcItemSmoke(TItem *item)
                     .vz = item->locate->locate.coord.t[2]
                 };
 
-                SetSmoke(&pos, &vec, 1, 3);
+                SetSmoke(&pos, &vec, SMOKE_TRAIL_PARTICLES,
+                         SMOKE_TRAIL_LIFETIME);
             }
         }
-        if ((GameClock & 0xf) != 0)
+        if ((GameClock & (SMOKE_CHOKE_CHECK_INTERVAL - 1)) != 0)
             return;
         {
             TFindItemTarget search_state;
@@ -1932,7 +1939,7 @@ void ProcItemSmoke(TItem *item)
             find->pos.vx = pos->vx;
             find->pos.vy = pos->vy;
             find->pos.vz = pos->vz;
-            find->find_dist = 2000;
+            find->find_dist = SMOKE_CHOKE_RADIUS;
             while (FindItemTarget(find) != 0)
             {
                 human = search_state.find;
