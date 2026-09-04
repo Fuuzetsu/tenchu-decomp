@@ -2076,7 +2076,13 @@ void ProcItemKusuri(TItem *item)
         KUSURI_MODE_START = 0,
         KUSURI_MODE_DRINK = 1,
         KUSURI_MODE_HEAL = 2,
+        KUSURI_MODEL_HAND_OFFSET = 50,
+        KUSURI_MODEL_SCALE = 2 * FIXED_ONE,
+        KUSURI_VISIBLE_START_FRAME = 4,
         KUSURI_HEAL_FRAME = 55,
+        KUSURI_DROP_HORIZONTAL_SPREAD = 200,
+        KUSURI_DROP_VERTICAL_SPREAD = 100,
+        KUSURI_DROP_VERTICAL_BASE = -200,
         N_KUSURI_HEAL_PARTICLES = 20,
         KUSURI_PARTICLE_SCATTER = 1000,
         KUSURI_PARTICLE_RADIUS = KUSURI_PARTICLE_SCATTER / 2,
@@ -2084,10 +2090,10 @@ void ProcItemKusuri(TItem *item)
         KUSURI_PARTICLE_SPEED_RANGE = 10,
         KUSURI_PARTICLE_SPEED_BASE = -30,
         KUSURI_PARTICLE_LIFETIME_RANGE = 16,
-        KUSURI_PARTICLE_LIFETIME_MIN = 15
+        KUSURI_PARTICLE_LIFETIME_MIN = 15,
+        KUSURI_PARTICLE_COLOR = RGB24(255, 255, 126)
     };
     Sprite3D *model;
-    void (*ppu)(TItem *);
     s32 i;
 
     model = (Sprite3D *)item->model;
@@ -2126,7 +2132,7 @@ void ProcItemKusuri(TItem *item)
                     &arc->object[MODEL_PART_HEAD]->locate;
         }
         item->locate->locate.coord.t[0] = 0;
-        item->locate->locate.coord.t[1] = 50;
+        item->locate->locate.coord.t[1] = KUSURI_MODEL_HAND_OFFSET;
         item->locate->locate.coord.t[2] = 0;
         item->mode++;
         return;
@@ -2152,16 +2158,16 @@ void ProcItemKusuri(TItem *item)
                     .user = human
                 };
 
-                p.start.vx = pos->vx;
-                p.start.vy = pos->vy;
-                p.start.vz = pos->vz;
-                p.end.vx = rand() % 200 - 100;
-                p.end.vy = rand() % 100 - 200;
-                p.end.vz = rand() % 200 - 100;
+                copyVector(&p.start, pos);
+                p.end.vx = rand() % KUSURI_DROP_HORIZONTAL_SPREAD -
+                           KUSURI_DROP_HORIZONTAL_SPREAD / 2;
+                p.end.vy = rand() % KUSURI_DROP_VERTICAL_SPREAD +
+                           KUSURI_DROP_VERTICAL_BASE;
+                p.end.vz = rand() % KUSURI_DROP_HORIZONTAL_SPREAD -
+                           KUSURI_DROP_HORIZONTAL_SPREAD / 2;
                 ReqItemDrop(&p);
             }
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
             return;
@@ -2175,13 +2181,13 @@ void ProcItemKusuri(TItem *item)
                 item->mode = KUSURI_MODE_HEAL;
                 return;
             }
-            if (cnt < 4)
+            if (cnt < KUSURI_VISIBLE_START_FRAME)
                 return;
         }
     }
         UpdateCoordinate(item->locate);
         model->locate = item->locate->locate;
-        model->scale = 2 * FIXED_ONE;
+        model->scale = KUSURI_MODEL_SCALE;
         DrawSprite(model);
         return;
 
@@ -2215,13 +2221,12 @@ void ProcItemKusuri(TItem *item)
                 SetBleed(&pos, &vec,
                          rand() % KUSURI_PARTICLE_LIFETIME_RANGE +
                              KUSURI_PARTICLE_LIFETIME_MIN,
-                         RGB24(255, 255, 126));
+                         KUSURI_PARTICLE_COLOR);
             }
             i++;
         }
         SoundEx(item->owner->locate, SE_MEDICINE);
-        ppu = item->proc;
-        if (ppu == 0)
+        if (item->proc == 0)
             return;
         DISPOSE_ITEM(item);
     }
