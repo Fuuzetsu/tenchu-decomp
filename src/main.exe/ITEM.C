@@ -2943,7 +2943,20 @@ void ProcItemGosin(TItem *item)
     {
         GOSIN_MODE_START = 0,
         GOSIN_MODE_WAIT = 1,
-        GOSIN_MODE_ACTIVE = 2
+        GOSIN_MODE_ACTIVE = 2,
+        GOSIN_DROP_HORIZONTAL_SPREAD = 200,
+        GOSIN_DROP_HORIZONTAL_RADIUS = GOSIN_DROP_HORIZONTAL_SPREAD / 2,
+        GOSIN_DROP_VERTICAL_SPREAD = 100,
+        GOSIN_DROP_UPWARD_SPEED = 200,
+        GOSIN_ACTIVATION_POSITION_SPREAD = 600,
+        GOSIN_ACTIVATION_VELOCITY_SPREAD = 100,
+        GOSIN_ACTIVATION_PARTICLES = 20,
+        GOSIN_ACTIVATION_LIFETIME = 15,
+        GOSIN_ACTIVATION_COLOR = RGB24(180, 140, 30),
+        GOSIN_PULSE_INTERVAL = 64,
+        GOSIN_PULSE_END_SIZE = 6 * FIXED_ONE,
+        GOSIN_PULSE_ROTATE_SPEED = 2,
+        GOSIN_PULSE_LIFETIME = 120
     };
     PARAM_ITEM_LAUNCH drop_request;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -2977,12 +2990,13 @@ void ProcItemGosin(TItem *item)
             drop_request = (PARAM_ITEM_LAUNCH){0};
             drop_request.type = itemID;
             drop_request.user = human;
-            drop_request.start.vx = pos->vx;
-            drop_request.start.vy = pos->vy;
-            drop_request.start.vz = pos->vz;
-            drop_request.end.vx = rand() % 200 - 100;
-            drop_request.end.vy = rand() % 100 - 200;
-            drop_request.end.vz = rand() % 200 - 100;
+            copyVector(&drop_request.start, pos);
+            drop_request.end.vx = rand() % GOSIN_DROP_HORIZONTAL_SPREAD -
+                                  GOSIN_DROP_HORIZONTAL_RADIUS;
+            drop_request.end.vy = rand() % GOSIN_DROP_VERTICAL_SPREAD -
+                                  GOSIN_DROP_UPWARD_SPEED;
+            drop_request.end.vz = rand() % GOSIN_DROP_HORIZONTAL_SPREAD -
+                                  GOSIN_DROP_HORIZONTAL_RADIUS;
             ReqItemDrop(&drop_request);
             if (item->proc == 0)
                 return;
@@ -2997,7 +3011,10 @@ void ProcItemGosin(TItem *item)
         SetBleeds(
             GetAbsolutePosition(
                 item->owner->model->object[MODEL_PART_TORSO], 0, 0, 0),
-            600, 100, 20, 15, RGB24(180, 140, 30));
+            GOSIN_ACTIVATION_POSITION_SPREAD,
+            GOSIN_ACTIVATION_VELOCITY_SPREAD,
+            GOSIN_ACTIVATION_PARTICLES, GOSIN_ACTIVATION_LIFETIME,
+            GOSIN_ACTIVATION_COLOR);
         item->owner->active_item = item->type;
         item->param.gosin.count = GOSIN_DURATION;
         item->mode++;
@@ -3017,12 +3034,13 @@ void ProcItemGosin(TItem *item)
             DISPOSE_ITEM(item);
             return;
         }
-        if ((c & 0x3f) != 0)
+        if ((c & (GOSIN_PULSE_INTERVAL - 1)) != 0)
             return;
         *(VECTOR *)&drop_request = vec_y_n1200_z_400;
         set_impact_ex_((VECTOR *)&drop_request, &item->owner->model->locate,
-                       FIXED_ONE, 6 * FIXED_ONE, COLOR_GRAY, 0,
-                       (s16)(rand() % 360), 2, 120, IMPACT_SPRITE_GOSIN);
+                       FIXED_ONE, GOSIN_PULSE_END_SIZE, COLOR_GRAY, 0,
+                       (s16)(rand() % 360), GOSIN_PULSE_ROTATE_SPEED,
+                       GOSIN_PULSE_LIFETIME, IMPACT_SPRITE_GOSIN);
         return;
     }
     }
