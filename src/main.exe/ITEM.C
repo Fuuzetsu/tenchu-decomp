@@ -5370,14 +5370,26 @@ void ProcItemLightningBolt(TItem *item)
     {
         LIGHTNING_MODE_START = 0,
         LIGHTNING_MODE_STRIKE = 1,
-        LIGHTNING_MODE_WAIT = 2
+        LIGHTNING_MODE_WAIT = 2,
+        LIGHTNING_DURATION = 15,
+        LIGHTNING_RESTRIKE_INTERVAL = 3,
+        LIGHTNING_HIT_RADIUS = 100,
+        LIGHTNING_COLOR_R = 100,
+        LIGHTNING_COLOR_G = 100,
+        LIGHTNING_COLOR_B = 200,
+        LIGHTNING_FLASH_FRAME_MASK = 3,
+        LIGHTNING_FLASH_GROUND_RANGE = 200,
+        LIGHTNING_FLASH_SPREAD = 20,
+        LIGHTNING_FLASH_BLEED_COUNT = 10,
+        LIGHTNING_FLASH_BLEED_TIME = 20,
+        LIGHTNING_FLASH_COLOR = RGB24(255, 255, 120),
+        LIGHTNING_FLASH_IMPACT_SIZE = 4 * FIXED_ONE
     };
-    param_lightningbolt *param;
+    param_lightningbolt *param = &item->param.lightningbolt;
     VECTOR target;
-    u8 cnt;
-    s32 conflict_id;
+    u8 previous_count;
+    s32 registered_collision;
 
-    param = &item->param.lightningbolt;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = LIGHTNING_MODE_START;
@@ -5386,44 +5398,50 @@ void ProcItemLightningBolt(TItem *item)
     switch (item->mode)
     {
     case LIGHTNING_MODE_START:
-        param->count = 15;
+        param->count = LIGHTNING_DURATION;
         item->mode++;
         if (item->owner == CamState.Owner)
         {
-            SoundEx((VECTOR *)0, SE_LIGHTNING);
+            SoundEx(0, SE_LIGHTNING);
         }
         break;
 
     case LIGHTNING_MODE_STRIKE:
-        SearchItemTarget2(item->owner, &item->param.lightningbolt.rot,
+        SearchItemTarget2(item->owner, &param->rot,
                           &param->start, &target);
-        item->locate->locate.coord.t[0] = target.vx;
-        item->locate->locate.coord.t[1] = target.vy;
-        item->locate->locate.coord.t[2] = target.vz;
+        copyVector(MODEL_POSITION(item->locate), &target);
         DeleteConflict(item->locate);
-        conflict_id = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
+        registered_collision = InsertConflict(item->locate);
+        SET_ITEM_COLLISION(registered_collision, LIGHTNING_HIT_RADIUS,
+                           CONFLICT_OWNER_ITEM,
                            CONFLICT_HIT);
         item->mode++;
         break;
 
     case LIGHTNING_MODE_WAIT:
-        if (GameClock % 3 == 0)
+        if (GameClock % LIGHTNING_RESTRIKE_INTERVAL == 0)
         {
             item->mode = LIGHTNING_MODE_STRIKE;
         }
         break;
     }
     SetLightning(&param->start, MODEL_POSITION(item->locate),
-                 100, 100, 200);
-    if ((GameClock & 3) == 0)
+                 LIGHTNING_COLOR_R,
+                 LIGHTNING_COLOR_G,
+                 LIGHTNING_COLOR_B);
+    if ((GameClock & LIGHTNING_FLASH_FRAME_MASK) == 0)
     {
-        SetBleeds(MODEL_POSITION(item->locate), 200, 20, 10, 20, RGB24(255, 255, 120));
-        SetImpact(&param->start, 4 * FIXED_ONE, IMPACT_SPRITE_FLASH);
+        SetBleeds(MODEL_POSITION(item->locate),
+                  LIGHTNING_FLASH_GROUND_RANGE,
+                  LIGHTNING_FLASH_SPREAD,
+                  LIGHTNING_FLASH_BLEED_COUNT,
+                  LIGHTNING_FLASH_BLEED_TIME,
+                  LIGHTNING_FLASH_COLOR);
+        SetImpact(&param->start, LIGHTNING_FLASH_IMPACT_SIZE,
+                  IMPACT_SPRITE_FLASH);
     }
-    cnt = param->count;
-    param->count = cnt + 0xff;
-    if (cnt == 0 && item->proc != 0)
+    previous_count = param->count--;
+    if (previous_count == 0 && item->proc != 0)
     {
         DISPOSE_ITEM(item);
     }
