@@ -91,12 +91,13 @@ void InitMisc(void)
         i = 0;
         attr = GS_ATTR_SEMITRANS_ADD;
         spr = SpriteData;
-        for (; i < N_MISC_SPRITE_TYPES; i++)
+        while (i < N_MISC_SPRITE_TYPES)
         {
             spr->spr = SetupSprite((Sprite3D *)0,
                                    GetImage((ImageArchiveId)spr->spr));
             spr->spr->sprite.attribute = attr;
             spr->spr->scale = spr->scale;
+            i++;
             spr++;
         }
     }
