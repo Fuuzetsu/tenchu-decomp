@@ -1440,14 +1440,9 @@ short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
         return 0;
     }
     cursor = offsets;
-    i = 0;
-    if (idx > 0)
+    for (i = 0; i < idx; i++)
     {
-        do
-        {
-            i++;
-            cursor++;
-        } while (i < idx);
+        cursor++;
     }
     GsGetTimInfo(TIM_PACK_IMAGE(offsets, cursor), image);
     return 1;
