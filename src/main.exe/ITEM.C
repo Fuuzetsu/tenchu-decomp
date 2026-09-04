@@ -772,22 +772,17 @@ static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh
     {
         fly->count = 1;
     }
-    /* These biased shifts implement signed division with truncation toward zero. */
     scaled_horizontal_spread = len * (yw / 2);
     fly->count2 = fly->count;
-    if (scaled_horizontal_spread < 0)
-    {
-        scaled_horizontal_spread += FIXED_TRUNC_BIAS;
-    }
+    yw = scaled_horizontal_spread / FIXED_ONE;
     len = len * (yh / 2);
-    yw = scaled_horizontal_spread >> FIXED_SHIFT;
     if (len < 0)
     {
         len += FIXED_TRUNC_BIAS;
     }
     yh = len >> FIXED_SHIFT;
     mid_x = (fly->sx + fly->vx) / 2;
-    horizontal_span = yw << 1;
+    horizontal_span = yw * 2;
     if (horizontal_span > 0)
     {
         len = mid_x + (rand() % horizontal_span - yw);
@@ -800,7 +795,7 @@ static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh
     len = SubFlyJitter((fly->sy + fly->vy) / 2, yh / 2,
                        yh - yh / 2);
     mid_z = (fly->sz + fly->vz) / 2;
-    horizontal_span = yw << 1;
+    horizontal_span = yw * 2;
     fly->ry = len;
     if (horizontal_span > 0)
     {
