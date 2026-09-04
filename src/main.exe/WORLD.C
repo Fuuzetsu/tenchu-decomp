@@ -1850,7 +1850,6 @@ enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
 {
     enemy_layout_index idx;
     enemy_layout_index result;
-    s32 offset;
     TEnemyLayout *e;
 
     idx = 0;
@@ -1873,8 +1872,7 @@ enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
     }
     if (result == ENEMY_LAYOUT_NONE)
         return ENEMY_LAYOUT_NONE;
-    offset = result * sizeof(*e);
-    e = (TEnemyLayout *)(offset + (s32)enemy);
+    e = &enemy[result];
     e->type = (s16)type;
     e->ThinkType = think;
     e->nPath = 0;
