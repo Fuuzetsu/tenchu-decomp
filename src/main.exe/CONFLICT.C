@@ -88,6 +88,8 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
     short dz, zspan;
     short dx, xspan;
     short yy;
+    int division_row;
+    int division_column;
     int mask;
 
     dz = z - (u16)node->z1;
@@ -95,7 +97,9 @@ long ComputeAreaLevel(AreaNodeType *node, long x, long z)
     dx = x - (u16)node->x1;
     xspan = (u16)node->x2 - (u16)node->x1 + 1;
 
-    mask = 1 << (((dz << 2) / zspan) * 4 + ((dx << 2) / xspan));
+    division_row = (dz * AREA_INDEX_AXIS_SIZE) / zspan;
+    division_column = (dx * AREA_INDEX_AXIS_SIZE) / xspan;
+    mask = 1 << (division_row * AREA_INDEX_AXIS_SIZE + division_column);
     if (((u16)node->division & mask) != 0)
     {
         yy = node->y;
