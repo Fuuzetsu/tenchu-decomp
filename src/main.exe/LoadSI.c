@@ -42,6 +42,7 @@ void *LoadSI(enum save_storage storage, u8 *name)
     MemoryCardFileBlock block;
     s32 cmd;
     enum card_result result;
+    enum memcard_channel channel;
 
     if (storage == SAVE_STORAGE_DISK)
     {
@@ -50,13 +51,10 @@ void *LoadSI(enum save_storage storage, u8 *name)
     }
     else
     {
+        channel = MEMCARD_CHANNEL_0;
         msg = 0;
-        /* Empty loop retained for code layout; its original source construct is unknown. */
-        do
-        {
-        } while (0);
         ret = valloc(BLOCKSIZE);
-        MemCardAccept(MEMCARD_CHANNEL_0);
+        MemCardAccept(channel);
         MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
         if (result != CARD_RESULT_SUCCESS && result != CARD_RESULT_NEW_CARD)
         {
@@ -67,7 +65,7 @@ void *LoadSI(enum save_storage storage, u8 *name)
         else
         {
             sprintf(fn, fmt_card_name, CID, StageID, name);
-            MemCardReadFile(MEMCARD_CHANNEL_0, (char *)fn, &block, 0,
+            MemCardReadFile(channel, (char *)fn, &block, 0,
                             sizeof(block));
             MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
             if (result != CARD_RESULT_SUCCESS)
