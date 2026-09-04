@@ -203,7 +203,7 @@ short DrawModel(ModelType *objp)
     GsGetLs(&objp->locate, &mat);
     GsSetLsMatrix(&mat);
     atr = objp->attribute;
-    sz = -1;
+    sz = MODEL_CLIP_REJECTED;
     if ((atr & MODEL_ATTR_HIDDEN) == 0)
     {
         if ((atr & MODEL_ATTR_NOCULL) == 0)
@@ -219,7 +219,7 @@ short DrawModel(ModelType *objp)
             }
             if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
             {
-                sz = -1;
+                sz = MODEL_CLIP_REJECTED;
                 goto ret;
             }
         }
@@ -227,7 +227,7 @@ short DrawModel(ModelType *objp)
         if (sz > DEPTH_LIMIT)
         {
         reject:
-            sz = -1;
+            sz = MODEL_CLIP_REJECTED;
         }
         else
         {
@@ -242,7 +242,7 @@ short DrawModel(ModelType *objp)
         }
     }
 ret:
-    if (sz == -1)
+    if (sz == MODEL_CLIP_REJECTED)
     {
         return 0;
     }
