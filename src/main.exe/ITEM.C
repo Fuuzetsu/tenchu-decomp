@@ -5071,15 +5071,22 @@ void ProcItemNemuri(TItem *item)
         NEMURI_PULSE_SHIFT = 6,
         NEMURI_BASE_BRIGHTNESS = 0x80,
         NEMURI_BASE_SCALE = 4 * FIXED_ONE,
+        NEMURI_SCALE_PER_BRIGHTNESS = 2,
         NEMURI_ROTATION_STEP = 45 * FIXED_ONE,
         NEMURI_BLEED_RANGE = 300,
+        NEMURI_BLEED_SPREAD = 10,
         NEMURI_BLEED_COUNT = 2,
+        NEMURI_BLEED_LIFETIME = 10,
+        NEMURI_BLEED_COLOR = RGB24(110, 110, 110),
+        NEMURI_HIT_JITTER_SPREAD = 200,
+        NEMURI_HIT_JITTER_RADIUS = NEMURI_HIT_JITTER_SPREAD / 2,
+        NEMURI_SMOKE_RISE_SPEED = 150,
+        NEMURI_SMOKE_PARTICLES = 10,
+        NEMURI_SMOKE_LIFETIME = 30,
         NEMURI_MAX_FLIGHT_COUNT = 100
     };
     Sprite3D *model;
     param_napalm *param;
-    void (*item_proc)(TItem *);
-    u8 flight_count;
     s32 rotation_count;
 
     model = (Sprite3D *)item->model;
@@ -5115,9 +5122,7 @@ void ProcItemNemuri(TItem *item)
                     0, 0, 0);
                 param->count = 0;
                 item->mode++;
-                item->locate->locate.coord.t[0] = pos->vx;
-                item->locate->locate.coord.t[1] = pos->vy;
-                item->locate->locate.coord.t[2] = pos->vz;
+                copyVector(MODEL_POSITION(item->locate), pos);
                 DeleteConflict(item->locate);
                 new_conflict_id = InsertConflict(item->locate);
                 conflict_class = CONFLICT_SOFT;
@@ -5126,8 +5131,7 @@ void ProcItemNemuri(TItem *item)
                 return;
             }
         }
-        item_proc = item->proc;
-        if (item_proc == 0)
+        if (item->proc == 0)
         {
             return;
         }
@@ -5141,17 +5145,17 @@ void ProcItemNemuri(TItem *item)
         s32 conflict_id;
         s32 inactive_sentinel;
         s32 bleed_color;
-        s32 bleed_count = 0;
+        s32 bleed_count;
         s32 bleed_range;
         Humanoid *hit_human;
 
         pulse = rsin(param->count * NEMURI_PULSE_STEP);
+        /* Make the later signed shift truncate toward zero. */
         if (pulse < 0)
         {
             pulse += (1 << NEMURI_PULSE_SHIFT) - 1;
         }
-        bleed_color = RGB24(110, 0, 0);
-        bleed_color |= RGB24(0, 110, 110);
+        bleed_color = NEMURI_BLEED_COLOR;
         item->locate->locate.coord.t[0] +=
             item->param.napalm.vec.vx;
         bleed_range = NEMURI_BLEED_RANGE;
@@ -5164,14 +5168,14 @@ void ProcItemNemuri(TItem *item)
         model->sprite.g = brightness;
         model->sprite.b = brightness;
         rotation_count = param->count;
-        model->scale = brightness * 2 + NEMURI_BASE_SCALE;
+        model->scale = brightness * NEMURI_SCALE_PER_BRIGHTNESS +
+                       NEMURI_BASE_SCALE;
         model->sprite.rotate = rotation_count * NEMURI_ROTATION_STEP;
         SetBleeds(MODEL_POSITION(item->locate),
-                  bleed_range, 10, bleed_count, 10, bleed_color);
+                  bleed_range, NEMURI_BLEED_SPREAD, bleed_count,
+                  NEMURI_BLEED_LIFETIME, bleed_color);
 
-        flight_count = param->count + 1;
-        param->count = flight_count;
-        if (flight_count > NEMURI_MAX_FLIGHT_COUNT)
+        if (++param->count > NEMURI_MAX_FLIGHT_COUNT)
         {
             item->mode++;
         }
@@ -5200,16 +5204,19 @@ void ProcItemNemuri(TItem *item)
                 {
                     /* Retail computes this jittered position but never uses it. */
                     VECTOR random_position = {
-                        .vx = rand() % 200 - 100,
-                        .vy = rand() % 200 - 100,
-                        .vz = rand() % 200 - 100
+                        .vx = rand() % NEMURI_HIT_JITTER_SPREAD -
+                              NEMURI_HIT_JITTER_RADIUS,
+                        .vy = rand() % NEMURI_HIT_JITTER_SPREAD -
+                              NEMURI_HIT_JITTER_RADIUS,
+                        .vz = rand() % NEMURI_HIT_JITTER_SPREAD -
+                              NEMURI_HIT_JITTER_RADIUS
                     };
 
                     SoundEx(MODEL_POSITION(item->locate), SE_SMOKE_PUFF);
                     {
                         SVECTOR smoke_velocity = {
                             .vx = 0,
-                            .vy = -150,
+                            .vy = -NEMURI_SMOKE_RISE_SPEED,
                             .vz = 0
                         };
                         VECTOR smoke_position = {
@@ -5218,7 +5225,9 @@ void ProcItemNemuri(TItem *item)
                             .vz = hit_human->model->locate.coord.t[2]
                         };
 
-                        SetSmoke(&smoke_position, &smoke_velocity, 10, 30);
+                        SetSmoke(&smoke_position, &smoke_velocity,
+                                 NEMURI_SMOKE_PARTICLES,
+                                 NEMURI_SMOKE_LIFETIME);
                     }
 
                     hit_life = hit_human->life;
@@ -5236,8 +5245,7 @@ void ProcItemNemuri(TItem *item)
                         Sound(hit_human, CHAR_VOICE_HURT);
                     }
 
-                    item_proc = item->proc;
-                    if (item_proc == 0)
+                    if (item->proc == 0)
                     {
                         return;
                     }
@@ -5254,8 +5262,7 @@ void ProcItemNemuri(TItem *item)
                             AREA_LEVEL_DEFAULT) ==
             LEVEL_NONE)
         {
-            item_proc = item->proc;
-            if (item_proc == 0)
+            if (item->proc == 0)
             {
                 return;
             }
@@ -5266,8 +5273,7 @@ void ProcItemNemuri(TItem *item)
     }
 
     case NEMURI_MODE_FINISH:
-        item_proc = item->proc;
-        if (item_proc == 0)
+        if (item->proc == 0)
         {
             return;
         }
