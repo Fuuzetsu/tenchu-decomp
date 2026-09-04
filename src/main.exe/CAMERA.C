@@ -618,14 +618,10 @@ static s32 MakeCameraPosition(VECTOR *orgpos, SVECTOR *orgrot,
     fwRot = trace_ground_(&vc, &vd, CAMERA_VIEWPOINT(&target), 0);
 
     d1 = (-va.vx + vb.vx) * fwRot;
-    if (d1 < 0)
-        d1 += FIXED_TRUNC_BIAS;
+    target.vrx = d1 / FIXED_ONE + va.vx;
     d2 = (-va.vy + vb.vy) * fwRot;
-    target.vrx = (d1 >> FIXED_SHIFT) + va.vx;
-    if (d2 < 0)
-        d2 += FIXED_TRUNC_BIAS;
+    target.vry = d2 / FIXED_ONE + va.vy;
     d3 = (-va.vz + vb.vz) * fwRot;
-    target.vry = (d2 >> FIXED_SHIFT) + va.vy;
     target.vrz = d3 / FIXED_ONE + va.vz;
 
     AntiWall(&ViewInfo, &target);
