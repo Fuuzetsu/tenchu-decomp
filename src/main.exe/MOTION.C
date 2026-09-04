@@ -882,27 +882,24 @@ void DamageControl(void)
         AttackCancelControl(ATTACK_CANCEL_ALL);
         return;
     }
-    if (motID < MOT_ATTACK_STEALTH_BACK)
+    if (motID >= MOT_ATTACK_STEALTH_BACK)
     {
-        goto resolve_hit;
+        if (motID > MOT_ATTACK_STEALTH_SIDE_AYAME)
+        {
+            if (motID == MOT_DAMAGE_DOWNED)
+            {
+                return;
+            }
+        }
+        else
+        {
+            /* A hit during a stealth kill cancels the move. */
+            ActionHalt = ACTION_HALT_NONE;
+            SELECT_RETURN_MOTION();
+            dtL->vy--;
+            return;
+        }
     }
-    if (motID <= MOT_ATTACK_STEALTH_SIDE_AYAME)
-    {
-        goto attack_break;
-    }
-    if (motID == MOT_DAMAGE_DOWNED)
-    {
-        return;
-    }
-    goto resolve_hit;
-/* motID in the stealth-kill band (MOT_ATTACK_STEALTH_*): the hit
- * cancels the move — reset ActionHalt, pick recover/idle, nudge down */
-attack_break:
-    ActionHalt = ACTION_HALT_NONE;
-    SELECT_RETURN_MOTION();
-    dtL->vy--;
-    return;
-resolve_hit:
     dtM->mask = MOTION_MASK_ALL;
     AttackCancelControl(ATTACK_CANCEL_ALL);
     {
