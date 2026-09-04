@@ -794,6 +794,18 @@ enum sight_profile
     N_SIGHT_PROFILES
 };
 
+enum
+{
+    SIGHT_CHECK_INTERVAL = 32,
+    SIGHT_VERTICAL_LIMIT = 3000,
+    SIGHT_VERTICAL_NEAR_DISTANCE = 4000,
+    STANDING_SIGHT_HALF_ANGLE = 900,
+    SNEAKING_SIGHT_HALF_ANGLE = 450,
+    SIGHT_RAY_ORIGIN_HEIGHT = 300,
+    STANDING_SIGHT_RAY_LIMIT = 500,
+    SNEAKING_SIGHT_RAY_LIMIT = 300
+};
+
 static SearchSight searchsight[N_SIGHT_PROFILES] = {
     {
         .sight_distance = 16000,
@@ -832,7 +844,7 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
     n = 1;
     if (human->target == 0)
     {
-        return 0;
+        return SR_NONE;
     }
 
     vect.vx = human->target->coord.t[0] - position.vx;
@@ -855,9 +867,10 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
     }
     *degree = result_degree;
 
-    if (((GameClock + human->model->object[MODEL_PART_WAIST]->id) & 0x1f) != 0)
+    if (((GameClock + human->model->object[MODEL_PART_WAIST]->id) &
+         (SIGHT_CHECK_INTERVAL - 1)) != 0)
     {
-        return 0;
+        return SR_NONE;
     }
 
     /* Sneaking (STAT_SQUAT or STAT_STICKON) selects the short-range
@@ -867,15 +880,18 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
                   : SIGHT_PROFILE_STANDING;
     if (StagePlayer->status == STAT_HANG)
     {
-        if (vect.vy >= 0 || (vect.vy < -3000 && *distance < 4000))
+        if (vect.vy >= 0 ||
+            (vect.vy < -SIGHT_VERTICAL_LIMIT &&
+             *distance < SIGHT_VERTICAL_NEAR_DISTANCE))
         {
             return SR_GONE;
         }
     }
 
-    if (__builtin_abs(vect.vy) >= 3000)
+    if (__builtin_abs(vect.vy) >= SIGHT_VERTICAL_LIMIT)
     {
-        if (EmergencyNotice == 0 || *distance < 4000)
+        if (EmergencyNotice == 0 ||
+            *distance < SIGHT_VERTICAL_NEAR_DISTANCE)
         {
             return SR_GONE;
         }
@@ -887,9 +903,10 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
     }
 
     absolute = __builtin_abs(*degree);
-    if (absolute < 900)
+    if (absolute < STANDING_SIGHT_HALF_ANGLE)
     {
-        if (absolute >= 450 && profile != SIGHT_PROFILE_STANDING)
+        if (absolute >= SNEAKING_SIGHT_HALF_ANGLE &&
+            profile != SIGHT_PROFILE_STANDING)
         {
             return SR_UNSEEN;
         }
@@ -898,14 +915,14 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
             return SR_UNSEEN;
         }
 
-        limit = 500;
+        limit = STANDING_SIGHT_RAY_LIMIT;
         if (profile != SIGHT_PROFILE_STANDING)
         {
-            limit = 300;
+            limit = SNEAKING_SIGHT_RAY_LIMIT;
         }
         initial_delta_y = vect.vy;
-        delta_y = initial_delta_y - 300;
-        position.vy += 300 - human->height;
+        delta_y = initial_delta_y - SIGHT_RAY_ORIGIN_HEIGHT;
+        position.vy += SIGHT_RAY_ORIGIN_HEIGHT - human->height;
         base_y = delta_y + human->height;
         vect.vy = base_y;
         player_height = StagePlayer->height;
