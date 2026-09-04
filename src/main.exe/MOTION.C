@@ -6102,7 +6102,6 @@ void AttackPQD(s16 sfrm, s16 efrm)
     Humanoid *human;
     s16 count;
     OrnamentType **weapons;
-    OrnamentType *held;
     OrnamentType *stowed;
     s32 seid;
 
@@ -6114,7 +6113,8 @@ void AttackPQD(s16 sfrm, s16 efrm)
         if (weapons[WEAPON_SLOT_INACTIVE_1] == 0)
             return;
         seid = CHAR_SE_WEAPON_CHANGE_B;
-        held = (weapons[WEAPON_SLOT_INACTIVE_0] = human->weapon[WEAPON_SLOT_ACTIVE_0]);
+        weapons[WEAPON_SLOT_INACTIVE_0] =
+            human->weapon[WEAPON_SLOT_ACTIVE_0];
         stowed = weapons[WEAPON_SLOT_INACTIVE_1];
         human->weapon[WEAPON_SLOT_ACTIVE_0] = stowed;
         weapons[WEAPON_SLOT_INACTIVE_1] = 0;
@@ -6126,8 +6126,8 @@ void AttackPQD(s16 sfrm, s16 efrm)
         if (weapons[WEAPON_SLOT_INACTIVE_0] == 0)
             return;
         seid = CHAR_SE_WEAPON_CHANGE_A;
-        held = human->weapon[WEAPON_SLOT_ACTIVE_0];
-        weapons[WEAPON_SLOT_INACTIVE_1] = held;
+        weapons[WEAPON_SLOT_INACTIVE_1] =
+            human->weapon[WEAPON_SLOT_ACTIVE_0];
         human->weapon[WEAPON_SLOT_ACTIVE_0] = weapons[WEAPON_SLOT_INACTIVE_0];
         weapons[WEAPON_SLOT_INACTIVE_0] = 0;
     }
