@@ -1367,6 +1367,24 @@ enum
     ALARM_REINFORCEMENT_DISTANCE = 16500
 };
 
+static __inline__ alarm_reaction_state SelectAlarmReactionState(
+    Humanoid *human)
+{
+    if (human->actcnt != 0)
+    {
+        return ALARM_REACTION_CIRCLE;
+    }
+    if (Humans >= ALARM_REINFORCEMENT_POPULATION_LIMIT)
+    {
+        return ALARM_REACTION_CIRCLE;
+    }
+    if (StageID != STAGE_ID_TRAINING)
+    {
+        return ALARM_REACTION_CALL_BACKUP;
+    }
+    return ALARM_REACTION_CIRCLE;
+}
+
 s16 think_alarm_reaction_(void)
 {
     s32 x_diff;
@@ -1392,7 +1410,7 @@ s16 think_alarm_reaction_(void)
         if (distance < ALARM_APPROACH_DISTANCE || (Attrib & ATTR_WALL))
         {
             s32 alertTime;
-            s32 nextState;
+            alarm_reaction_state nextState;
 
             RESET_ALERT_DURATION(alertTime);
             Sound(Me, CHAR_VOICE_REACTION);
@@ -1411,34 +1429,7 @@ s16 think_alarm_reaction_(void)
             }
 
             self = Me;
-            nextState = self->actcnt;
-            if (nextState == 0)
-            {
-                nextState = Humans;
-                nextState =
-                    nextState < ALARM_REINFORCEMENT_POPULATION_LIMIT;
-                if (nextState == 0)
-                {
-                    nextState = ALARM_REACTION_CIRCLE;
-                }
-                else
-                {
-                    nextState = STAGE_ID_TRAINING;
-                    alertTime = StageID;
-                    if (alertTime != nextState)
-                    {
-                        nextState = ALARM_REACTION_CALL_BACKUP;
-                    }
-                    else
-                    {
-                        nextState = ALARM_REACTION_CIRCLE;
-                    }
-                }
-            }
-            else
-            {
-                nextState = ALARM_REACTION_CIRCLE;
-            }
+            nextState = SelectAlarmReactionState(self);
             self->actscnt = nextState;
         }
     }
