@@ -226,6 +226,10 @@ s32 camera_terrain_pitch_(Humanoid *human)
 static void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest,
                        TMakeDifInfo *info)
 {
+    enum
+    {
+        ALIGNMENT_RESCALE_THRESHOLD = 0x7fffffff >> FIXED_SHIFT
+    };
     s32 dx, dy, dz;
     s32 len;
     SVECTOR nv;
@@ -264,7 +268,7 @@ static void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest,
     }
     slab = lenA * lenB;
 
-    if (theta >= 0x7FFFF)
+    if (theta >= ALIGNMENT_RESCALE_THRESHOLD)
     {
         t = theta;
         if (theta < 0)
