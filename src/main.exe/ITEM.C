@@ -284,7 +284,7 @@ void RestoreItemLayout(void *buf)
     level_mode = AREA_LEVEL_STEP_DOWN;
     sentinel = LEVEL_NONE;
     slot = buf;
-    for (;;)
+    for (;; slot++, i++)
     {
         if (i >= MAX_ITEMS)
             return;
@@ -327,16 +327,12 @@ void RestoreItemLayout(void *buf)
                 }
                 if (k == 4)
                 {
-                    goto skip_stay;
+                    continue;
                 }
             }
             param.locate.vy = level;
             ReqItemStay(&param);
-        skip_stay:;
         }
-        slot++;
-        i++;
-        continue;
     }
 }
 
