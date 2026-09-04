@@ -2188,7 +2188,7 @@ void ActMOVE(void)
             height = Me_MOTION_C->map.height;
             dtL->vy -= LEDGE_PROBE_RISE;
             Me_MOTION_C->map.height = 1;
-            if (HangCheck() == 0)
+            if (HangCheck() == HANG_CHECK_NONE)
             {
                 dtL->vy = y;
                 Me_MOTION_C->map.height = height;
