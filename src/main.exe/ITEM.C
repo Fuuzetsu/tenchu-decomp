@@ -4619,25 +4619,32 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
 {
     enum
     {
-        R = 256
+        HAPPOU_SHOT_COUNT = 8,
+        HAPPOU_AIM_HALF_RANGE = 256,
+        HAPPOU_HORIZONTAL_ARC_SPREAD = FIXED_ONE,
+        HAPPOU_VERTICAL_ARC_SPREAD = FIXED_QUARTER,
+        HAPPOU_FLIGHT_SPEED = 400,
+        HAPPOU_AFTERIMAGE_LENGTH = 10,
+        HAPPOU_AFTERIMAGE_HALF_WIDTH = 30,
+        HAPPOU_ARMING_DELAY = 8
     };
     TItem *item;
     TItem *ret;
     param_launch *param;
     VECTOR *pos;
-    VECTOR *en;
+    VECTOR *trajectory_target;
     Humanoid *aowner;
     s32 atype;
-    AfterimageType *ai;
+    AfterimageType *afterimage;
     SVECTOR rot;
-    s32 r;
+    s32 random_yaw;
     s32 i;
 
     SetNowMotion(p->user, MOT_ITEM_THROW, MOTION_MOVE_APPLY);
     i = 0;
     while (1)
     {
-        if (i >= 8)
+        if (i >= HAPPOU_SHOT_COUNT)
             break;
         {
             s32 i;
@@ -4653,21 +4660,24 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
         item->collision.size = 0;
         item->locate->rotate = p->user->model->rotate;
         rot = p->user->model->rotate;
-        r = rand();
-        rot.vy += (r % (R * 2) - R);
-        en = &p->end;
-        SearchItemTarget2(p->user, &rot, pos, en);
-        SetupFly(&param->fly, pos, en, FIXED_ONE, FIXED_QUARTER, 400);
+        random_yaw = rand();
+        rot.vy += random_yaw % (HAPPOU_AIM_HALF_RANGE * 2) -
+                  HAPPOU_AIM_HALF_RANGE;
+        trajectory_target = &p->end;
+        SearchItemTarget2(p->user, &rot, pos, trajectory_target);
+        SetupFly(&param->fly, pos, trajectory_target,
+                 HAPPOU_HORIZONTAL_ARC_SPREAD,
+                 HAPPOU_VERTICAL_ARC_SPREAD,
+                 HAPPOU_FLIGHT_SPEED);
+        afterimage = SetupAfterimage(item->locate,
+                                    HAPPOU_AFTERIMAGE_LENGTH);
+        param->effect = afterimage;
+        setVector(&afterimage->vector1,
+                  HAPPOU_AFTERIMAGE_HALF_WIDTH, 0, 0);
+        setVector(&afterimage->vector2,
+                  -HAPPOU_AFTERIMAGE_HALF_WIDTH, 0, 0);
+        param->count = HAPPOU_ARMING_DELAY;
         i++;
-        ai = SetupAfterimage(item->locate, 10);
-        param->effect = ai;
-        ai->vector1.vx = 30;
-        ai->vector1.vy = 0;
-        ai->vector1.vz = 0;
-        ai->vector2.vx = -30;
-        ai->vector2.vy = 0;
-        ai->vector2.vz = 0;
-        param->count = 8;
     }
     Sound(p->user, SE_ITEM_USE);
     return 1;
