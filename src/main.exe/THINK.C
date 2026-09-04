@@ -2324,7 +2324,6 @@ static short AttackShort(void)
         Humanoid *status_human;
         s16 pad;
         s32 status_raw;
-        s32 status_degree;
 
         status_human = Me;
         status_raw = 0;
@@ -2348,48 +2347,24 @@ static short AttackShort(void)
         }
         else
         {
-            if (Distance < 2000)
+            if (Distance < 2000
+                    ? (__builtin_abs(Degree) < 1000 ||
+                       rand() % (EngageLevel + 1) == 0)
+                    : rand() % (EngageLevel + 1) == 0)
             {
-                status_degree = Degree;
-                if (status_degree < 0)
+                if (Degree > 300)
                 {
-                    status_degree = -status_degree;
+                    status_raw = PADLright;
                 }
-                if (status_degree >= 1000 &&
-                    rand() % (EngageLevel + 1) != 0)
-                {
-                    attack_result = status_raw;
-                    goto attack_return;
-                }
-            }
-            else if (rand() % (EngageLevel + 1) != 0)
-            {
-                attack_result = status_raw;
-                goto attack_return;
-            }
-
-            if (Degree > 300)
-            {
-                status_raw = PADLright;
-            }
-            else
-            {
-                status_raw |= PADRleft;
-                if (Degree < -300)
+                else if (Degree < -300)
                 {
                     status_raw = (s16)PADLleft;
                 }
-                else
-                {
-                    goto attack_value;
-                }
+                status_raw |= PADRleft;
             }
-            status_raw |= PADRleft;
 
-        attack_value:
             attack_result = status_raw;
         }
-    attack_return:
         return (s16)attack_result;
     }
 
