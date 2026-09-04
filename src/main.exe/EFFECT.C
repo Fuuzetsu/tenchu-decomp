@@ -2070,12 +2070,12 @@ void SetGore(GsCOORDINATE2 *coord, SVECTOR *local_position,
     SVECTOR velocity_copy;
     VECTOR world_velocity;
     VECTOR impact_position;
-    long transform_flags[2];
+    long transform_flag;
     u32 impact_phase;
 
     GsGetLw(coord, &local_to_world);
     GsSetLsMatrix(&local_to_world);
-    RotTrans(local_position, &world_position, transform_flags);
+    RotTrans(local_position, &world_position, &transform_flag);
 
     {
         TEffectSlot *gore_slot;
