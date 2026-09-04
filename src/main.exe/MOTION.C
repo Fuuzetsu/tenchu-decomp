@@ -31,6 +31,13 @@ enum fall_check_result_value
     FALL_CHECK_ACTIVE = 1
 };
 
+typedef s16 swim_check_result;
+enum swim_check_result_value
+{
+    SWIM_CHECK_NONE = 0,
+    SWIM_CHECK_ACTIVE = 1
+};
+
 typedef s16 hang_check_result;
 enum hang_check_result_value
 {
@@ -39,7 +46,7 @@ enum hang_check_result_value
     HANG_CHECK_ACTIVE = 1
 };
 
-short SwimCheck(void);
+swim_check_result SwimCheck(void);
 fall_check_result FallCheck(void);
 hang_check_result HangCheck(void);
 void DamageControl(void);
@@ -224,7 +231,7 @@ void HumanActionControl(Humanoid *human)
  *     extern struct HumanAnimType CVAhuman[5];
  * END PSX.SYM */
 
-short SwimCheck(void)
+swim_check_result SwimCheck(void)
 {
     enum
     {
@@ -245,26 +252,26 @@ short SwimCheck(void)
     {
         if ((Me_MOTION_C->map.attrib & MAP_WATER) == 0)
         {
-            return 0;
+            return SWIM_CHECK_NONE;
         }
         status = Me_MOTION_C->status;
         if (status == STAT_KAGI)
         {
-            return 0;
+            return SWIM_CHECK_NONE;
         }
         if (status == STAT_SWIM)
         {
-            return 1;
+            return SWIM_CHECK_ACTIVE;
         }
         if (status == STAT_DEAD)
         {
             if (motID == MOT_DEAD_DROWN)
             {
-                goto return_one;
+                goto return_active;
             }
             if (dtM->loop == MOTION_LOOP_DISABLED)
             {
-                return 0;
+                return SWIM_CHECK_NONE;
             }
         }
 
@@ -317,11 +324,11 @@ short SwimCheck(void)
         SetNowMotionUnlessCva();
         Sound(Me_MOTION_C, SE_WATER_SPLASH);
         reset_alert_duration();
-        return 1;
+        return SWIM_CHECK_ACTIVE;
     }
-    return 0;
-return_one:
-    return 1;
+    return SWIM_CHECK_NONE;
+return_active:
+    return SWIM_CHECK_ACTIVE;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
