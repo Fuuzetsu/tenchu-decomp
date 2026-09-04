@@ -355,7 +355,8 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     mvp->attrib = FieldAttrib;
     mvp->area = FieldArea;
     mvp->index = FieldIndex;
-    rawmode = (mode2 = mode);
+    mode2 = mode;
+    rawmode = mode2;
     initial_level = mvp->level;
     if (mvp->attrib == 0)
     {
