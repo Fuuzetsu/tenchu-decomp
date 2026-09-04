@@ -283,10 +283,7 @@ static inline void free_block(void *pt, u32 cmask)
     if (pt == 0)
         return;
 
-    do
-    {
-        header = (struct VMhead *)pt - 1;
-    } while (0);
+    header = (struct VMhead *)pt - 1;
     mask = VMEM_BLOCK_IN_USE;
     if ((header->size & mask) == 0)
         SystemOut(msg_double_memory_release);
