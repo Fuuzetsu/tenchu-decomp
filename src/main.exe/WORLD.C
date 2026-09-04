@@ -1290,17 +1290,14 @@ have_z:
                             if (l <= ez)
                             {
                                 cell_z = l;
-                                do
-                                {
-                                    visible = IsVisible(
-                                        cell_x * CONSTRUCTION_CELL +
-                                            CONSTRUCTION_CELL_CENTER_OFFSET,
-                                        cell_y * CONSTRUCTION_CELL +
-                                            CONSTRUCTION_CELL_CENTER_OFFSET,
-                                        cell_z * CONSTRUCTION_CELL +
-                                            CONSTRUCTION_CELL_CENTER_OFFSET,
-                                        CONSTRUCTION_CELL_VISIBILITY_RADIUS);
-                                } while (0);
+                                visible = IsVisible(
+                                    cell_x * CONSTRUCTION_CELL +
+                                        CONSTRUCTION_CELL_CENTER_OFFSET,
+                                    cell_y * CONSTRUCTION_CELL +
+                                        CONSTRUCTION_CELL_CENTER_OFFSET,
+                                    cell_z * CONSTRUCTION_CELL +
+                                        CONSTRUCTION_CELL_CENTER_OFFSET,
+                                    CONSTRUCTION_CELL_VISIBILITY_RADIUS);
                                 if (visible)
                                 {
                                     cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
