@@ -144,7 +144,7 @@ static __inline__ Humanoid *FindItemTarget(TFindItemTarget *find)
     int dist;
 
     i = find->i;
-    for (;;)
+    while (1)
     {
         if (i >= Humans)
         {
