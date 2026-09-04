@@ -355,14 +355,9 @@ s16 CVAupdate(void)
                 human->vector = UnitVector;
                 human->model->object[MODEL_PART_WAIST]->attribute |= MODEL_ATTR_COLLIDE;
                 model = human->model;
-                i = 0;
-                if (model->n > 0)
+                for (i = 0; i < model->n; i++)
                 {
-                    do
-                    {
-                        model->object[i]->attribute &= ~MODEL_ATTR_HIDDEN;
-                        i++;
-                    } while (i < model->n);
+                    model->object[i]->attribute &= ~MODEL_ATTR_HIDDEN;
                 }
 
                 if (StagePlayer != human &&
