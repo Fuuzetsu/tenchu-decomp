@@ -979,7 +979,7 @@ void SetCameraMode(TCameraMode mode)
                     RotTrans(&camera->p1, &vc, fp);
                     RotTrans(&camera->p2, &vd, fp);
                 } while (0);
-                hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
+                hitf = trace_ground_(&vc, &vd, 0, 0) >= FIXED_HALF;
                 if (hitf)
                     goto hit;
                 continue;
