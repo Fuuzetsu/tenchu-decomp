@@ -267,19 +267,8 @@ void BriefingAndInventorySelectionScreen(void)
             int ddx, ddy, hx, hy;
             int k;
 
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
-            shown = 0x10;
-            if ((newpress & PADLdown) == 0)
-            {
-                shown = 0;
-                if ((newpress & PADLup) != 0)
-                {
-                    shown = -0x10;
-                }
-            }
+            shown = (newpress & PADLdown) != 0 ? 0x10 :
+                    (newpress & PADLup) != 0 ? -0x10 : 0;
             j = 0x10;
             if ((newpress & PADLright) == 0)
             {
