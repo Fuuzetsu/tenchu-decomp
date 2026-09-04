@@ -7521,7 +7521,7 @@ void ClearItemLayout(void)
     s32 i;
 
     i = 0;
-    for (;;)
+    while (1)
     {
         if (i >= MAX_ITEMS)
             return;
