@@ -4196,34 +4196,20 @@ long GetVectorLength(long dx, long dy, long dz)
 {
     enum
     {
-        div = 256
+        LENGTH_RESCALE = 256
     };
     long len;
-    int big;
-    long v;
+    int rescale_length;
 
-    big = 0;
-    if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
-        abs(dz) > FIXED_ONE)
+    rescale_length = abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+                     abs(dz) > FIXED_ONE;
+    if (rescale_length)
     {
-        big = 1;
-    }
-    if (big)
-    {
-        v = dx;
-        if (dx < 0)
-            v = dx + div - 1;
-        dx = v >> 8;
-        v = dy;
-        if (dy < 0)
-            v = dy + div - 1;
-        dy = v >> 8;
-        v = dz;
-        if (dz < 0)
-            v = dz + div - 1;
-        dz = v >> 8;
+        dx /= LENGTH_RESCALE;
+        dy /= LENGTH_RESCALE;
+        dz /= LENGTH_RESCALE;
         len = SquareRoot0(dx * dx + dy * dy + dz * dz);
-        len = len * div;
+        len *= LENGTH_RESCALE;
     }
     else
     {
