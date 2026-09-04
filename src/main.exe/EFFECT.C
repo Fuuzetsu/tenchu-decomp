@@ -22,6 +22,12 @@ extern s16 TexScrollX;
 extern s16 TexScrollY;
 extern RECT ScreenRect; /* {0,0,320,480}: both pages */
 
+enum
+{
+    BLOOD_SPREAD_SCALE_MIN = FIXED_ONE / 3,
+    BLOOD_SPREAD_SCALE_RANGE = FIXED_ONE / 2 - BLOOD_SPREAD_SCALE_MIN
+};
+
 void reset_effects_(void);
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -564,9 +570,9 @@ void DrawBlood(TEffectSlot *ef)
                 blood->vy = rand() % 8 + 8;
                 blood->rotate = 0;
                 scale_random = rand();
-                blood->sprite += 2;
-                /* random scale in [1/3, 1/2) of 4.12 one */
-                blood->scale = scale_random % 0x2ab + 0x555;
+                blood->sprite += N_AIRBORNE_BLOOD_SPRITES;
+                blood->scale = scale_random % BLOOD_SPREAD_SCALE_RANGE +
+                               BLOOD_SPREAD_SCALE_MIN;
             }
             blood->mode = BLOOD_MODE_SPREAD;
             blood->time = rand() % 10;
