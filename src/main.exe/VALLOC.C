@@ -273,7 +273,6 @@ static inline void free_block(void *pt, u32 cmask)
     struct VMhead *header;
     struct VMhead *next;
     struct VMhead *prev;
-    struct VMhead *n2;
     u32 mask;
     u32 sz;
     s32 s;
@@ -301,29 +300,17 @@ static inline void free_block(void *pt, u32 cmask)
     }
 
     prev = (struct VMhead *)virtual_memory_pool;
+    while (prev != 0 && prev->next != header)
+    {
+        prev = prev->next;
+    }
     if (prev != 0)
     {
-        for (;;)
+        s = prev->size;
+        if (s >= 0)
         {
-            n2 = prev->next;
-            if (n2 != header)
-            {
-                prev = n2;
-                if (prev != 0)
-                {
-                    continue;
-                }
-            }
-            break;
-        }
-        if (prev != 0)
-        {
-            s = prev->size;
-            if (s >= 0)
-            {
-                prev->size = s + (header->size + VMEM_HEADER_WORDS);
-                prev->next = header->next;
-            }
+            prev->size = s + (header->size + VMEM_HEADER_WORDS);
+            prev->next = header->next;
         }
     }
 }
