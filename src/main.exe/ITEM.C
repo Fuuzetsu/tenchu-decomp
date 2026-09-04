@@ -3760,13 +3760,11 @@ static void ProcItemGoshikimai(TItem *item)
     enum
     {
         GOSHIKIMAI_MODE_START = 0,
-        GOSHIKIMAI_MODE_THROW = 1
+        GOSHIKIMAI_MODE_THROW = 1,
+        GOSHIKIMAI_RELEASE_FRAME = 15
     };
-    param_goshikimai *param;
-    Humanoid *human;
-    PARAM_ITEM_LAUNCH p;
+    param_goshikimai *param = &item->param.goshikimai;
 
-    param = &item->param.goshikimai;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = GOSHIKIMAI_MODE_START;
@@ -3775,7 +3773,9 @@ static void ProcItemGoshikimai(TItem *item)
     switch (item->mode)
     {
     case GOSHIKIMAI_MODE_START:
-        human = item->owner;
+    {
+        Humanoid *human = item->owner;
+
         if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
@@ -3786,23 +3786,36 @@ static void ProcItemGoshikimai(TItem *item)
         }
         item->mode++;
         return;
+    }
 
     case GOSHIKIMAI_MODE_THROW:
+    {
+        PARAM_ITEM_LAUNCH drop_request;
+
         if (item->owner->motion->mid != MOT_ITEM_PLANT)
         {
             item->mode = GOSHIKIMAI_MODE_START;
             return;
         }
-        if (item->owner->motion->count != 15)
+        if (item->owner->motion->count != GOSHIKIMAI_RELEASE_FRAME)
             return;
-        p.type = ITEM_GOSHIKIMAI;
-        p.user = item->owner;
-        p.start.vx = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vx;
-        p.start.vy = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vy;
-        p.start.vz = GetAbsolutePosition(item->owner->model->object[MODEL_PART_WEAPON_HAND_0], 0, 0, 0)->vz;
-        p.end.vx = param->vec.vx;
-        p.end.vy = param->vec.vy;
-        p.end.vz = param->vec.vz;
+        drop_request.type = ITEM_GOSHIKIMAI;
+        drop_request.user = item->owner;
+        /* Retail recomputes the shared result for each component. */
+        drop_request.start.vx =
+            GetAbsolutePosition(
+                item->owner->model->object[MODEL_PART_WEAPON_HAND_0],
+                0, 0, 0)->vx;
+        drop_request.start.vy =
+            GetAbsolutePosition(
+                item->owner->model->object[MODEL_PART_WEAPON_HAND_0],
+                0, 0, 0)->vy;
+        drop_request.start.vz =
+            GetAbsolutePosition(
+                item->owner->model->object[MODEL_PART_WEAPON_HAND_0],
+                0, 0, 0)->vz;
+        setVector(&drop_request.end,
+                  param->vec.vx, param->vec.vy, param->vec.vz);
         NowReturnNormal(item->owner);
         if (item->proc != 0)
         {
@@ -3816,8 +3829,9 @@ static void ProcItemGoshikimai(TItem *item)
             item->owner = 0;
             item->proc = 0;
         }
-        ReqItemDrop(&p);
+        ReqItemDrop(&drop_request);
         return;
+    }
     }
 }
 
