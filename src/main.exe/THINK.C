@@ -2412,52 +2412,57 @@ static short AttackShort(void)
     {
         s32 raw_degree;
         s32 degree;
+        s32 target_in_attack_arc;
 
-        if (Distance < 2500)
+        target_in_attack_arc = Distance < 2500;
+        if (target_in_attack_arc)
         {
             raw_degree = Degree;
             degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-            if (degree < 1500)
-            {
-                if ((motion->count &
-                     (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
-                {
-                    return 0;
-                }
-                if (raw_degree > 500)
-                {
-                    pad = PADLright;
-                }
-                else if (raw_degree < -500)
-                {
-                    pad = PADLleft;
-                }
-                pad |= PADRleft;
-                Me->actmode = MELEE_ATTACK_ENGAGED;
-                goto return_pad;
-            }
+            target_in_attack_arc = degree < 1500;
         }
 
-        pad = ChasetoTarget(2000);
-        if (pad == 0)
+        if (target_in_attack_arc)
         {
+            if ((motion->count &
+                 (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
+            {
+                return 0;
+            }
+            if (raw_degree > 500)
+            {
+                pad = PADLright;
+            }
+            else if (raw_degree < -500)
+            {
+                pad = PADLleft;
+            }
+            pad |= PADRleft;
             Me->actmode = MELEE_ATTACK_ENGAGED;
         }
-        if (Distance > 4000)
+        else
         {
-            degree = Degree;
-            if (degree < 0)
+            pad = ChasetoTarget(2000);
+            if (pad == 0)
             {
-                degree = -degree;
+                Me->actmode = MELEE_ATTACK_ENGAGED;
             }
-            if (degree < 100 && rand() % 5 == 0)
+            if (Distance > 4000)
             {
-                pad = PADLup | PADRdown;
+                degree = Degree;
+                if (degree < 0)
+                {
+                    degree = -degree;
+                }
+                if (degree < 100 && rand() % 5 == 0)
+                {
+                    pad = PADLup | PADRdown;
+                }
             }
-        }
-        if ((Attrib & ATTR_HIT) != 0)
-        {
-            Me->actmode = MELEE_ATTACK_ENGAGED;
+            if ((Attrib & ATTR_HIT) != 0)
+            {
+                Me->actmode = MELEE_ATTACK_ENGAGED;
+            }
         }
     }
 
@@ -2617,7 +2622,6 @@ static short AttackShort(void)
         }
     }
 
-return_pad:
     return pad;
 }
 
