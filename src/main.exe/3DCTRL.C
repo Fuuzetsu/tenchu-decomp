@@ -1282,13 +1282,15 @@ short DrawBG(BackGround *bg)
 
 void DisposeBG(BackGround *bg)
 {
-    if (bg != 0)
+    if (bg == 0)
     {
-        vfree(bg->cell);
-        vfree(bg->work);
-        vfree(bg->index);
-        vfree(bg);
+        return;
     }
+
+    vfree(bg->cell);
+    vfree(bg->work);
+    vfree(bg->index);
+    vfree(bg);
 }
 
 void LoadTIMAndFree(u_long *tim)
