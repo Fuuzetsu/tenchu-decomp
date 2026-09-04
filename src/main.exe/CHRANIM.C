@@ -552,11 +552,10 @@ s16 CVAupdate(void)
                     i = TelopText[0] - '0';
                     if (i == 0)
                     {
-                        do
+                        for (i = 0; i < N_TANKA_SPRITES; i++)
                         {
                             TANKA_SPRITES_[i]->attribute |= MODEL_ATTR_HIDDEN;
-                            i++;
-                        } while (i < N_TANKA_SPRITES);
+                        }
                     }
                     else
                     {
