@@ -1556,7 +1556,22 @@ void ProcItemShinsoku(TItem *item)
     {
         SHINSOKU_MODE_START = 0,
         SHINSOKU_MODE_WAIT = 1,
-        SHINSOKU_MODE_ACTIVE = 2
+        SHINSOKU_MODE_ACTIVE = 2,
+        INTERRUPTED_DROP_HORIZONTAL_RADIUS = 100,
+        INTERRUPTED_DROP_VERTICAL_RANGE = 100,
+        INTERRUPTED_DROP_VERTICAL_BASE = -200,
+        SHINSOKU_SMOKE_RADIUS = 150,
+        SHINSOKU_SMOKE_COUNT = 8,
+        SHINSOKU_GROUND_PROBE_DEPTH = 2000,
+        SHINSOKU_GROUND_PROBE_RADIUS = 500,
+        SHINSOKU_MAX_STEP_DOWN = 500,
+        SHINSOKU_TRAIL_PERIOD = 4,
+        SHINSOKU_TRAIL_HEIGHT = 300,
+        SHINSOKU_TRAIL_START_SIZE = 2 * FIXED_ONE,
+        SHINSOKU_TRAIL_END_SIZE = 5 * FIXED_ONE,
+        SHINSOKU_TRAIL_ROTATE_SPEED = -30,
+        SHINSOKU_TRAIL_FRAMES = 16,
+        SHINSOKU_TURN_STEP = ANGLE_FULL / 64
     };
     param_shinsoku *param;
     VECTOR pos;
@@ -1603,11 +1618,17 @@ void ProcItemShinsoku(TItem *item)
                 drop_request.start.vy = pos->vy;
                 drop_request.start.vz = pos->vz;
                 rand_x = rand();
-                drop_request.end.vx = rand_x % 200 - 100;
+                drop_request.end.vx =
+                    rand_x % (INTERRUPTED_DROP_HORIZONTAL_RADIUS * 2) -
+                    INTERRUPTED_DROP_HORIZONTAL_RADIUS;
                 rand_y = rand();
-                drop_request.end.vy = rand_y % 100 - 200;
+                drop_request.end.vy =
+                    rand_y % INTERRUPTED_DROP_VERTICAL_RANGE +
+                    INTERRUPTED_DROP_VERTICAL_BASE;
                 rand_z = rand();
-                drop_request.end.vz = rand_z % 200 - 100;
+                drop_request.end.vz =
+                    rand_z % (INTERRUPTED_DROP_HORIZONTAL_RADIUS * 2) -
+                    INTERRUPTED_DROP_HORIZONTAL_RADIUS;
                 ReqItemDrop(&drop_request);
             }
             if (item->proc == 0)
@@ -1625,8 +1646,9 @@ void ProcItemShinsoku(TItem *item)
         {
             return;
         }
-        spawn_smoke_burst_(item->owner->locate, 150,
-                           SMOKE_DRIFT_DIVISOR_DEFAULT, 8);
+        spawn_smoke_burst_(item->owner->locate, SHINSOKU_SMOKE_RADIUS,
+                           SMOKE_DRIFT_DIVISOR_DEFAULT,
+                           SHINSOKU_SMOKE_COUNT);
         param->count = SHINSOKU_DURATION;
         item->mode++;
         return;
@@ -1638,7 +1660,7 @@ void ProcItemShinsoku(TItem *item)
         ModelArchiveType *model;
         s32 valid;
         u16 buttons;
-        s32 rotate;
+        s32 turn_step;
         VECTOR *apos;
 
         if (item->owner->motion->mid != MOT_ITEM_SHINSOKU)
@@ -1665,11 +1687,12 @@ void ProcItemShinsoku(TItem *item)
             query_position.vx = apos->vx;
             query_position.vy = apos->vy;
             query_position.vz = apos->vz;
-            query_position.vy -= 2000;
+            query_position.vy -= SHINSOKU_GROUND_PROBE_DEPTH;
             GetAreaMapVector(GlobalAreaMap,
                              &map,
-                             &query_position, 500, AREA_LEVEL_DEFAULT);
-            if (map.level >= apos->vy - 500)
+                             &query_position, SHINSOKU_GROUND_PROBE_RADIUS,
+                             AREA_LEVEL_DEFAULT);
+            if (map.level >= apos->vy - SHINSOKU_MAX_STEP_DOWN)
             {
                 if (map.level < apos->vy)
                 {
@@ -1688,12 +1711,16 @@ void ProcItemShinsoku(TItem *item)
                 item->owner->model->locate.coord.t[2] = pos.vz;
             }
 
-            if ((param->count & 3) == 0)
+            if ((param->count & (SHINSOKU_TRAIL_PERIOD - 1)) == 0)
             {
                 query_position = *MODEL_POSITION(item->owner->model);
-                query_position.vy -= 300;
-                set_impact_ex_(&query_position, 0, 2 * FIXED_ONE,
-                               5 * FIXED_ONE, COLOR_GRAY, 0, 0, -30, 0x10,
+                query_position.vy -= SHINSOKU_TRAIL_HEIGHT;
+                set_impact_ex_(&query_position, 0,
+                               SHINSOKU_TRAIL_START_SIZE,
+                               SHINSOKU_TRAIL_END_SIZE,
+                               COLOR_GRAY, 0, 0,
+                               SHINSOKU_TRAIL_ROTATE_SPEED,
+                               SHINSOKU_TRAIL_FRAMES,
                                IMPACT_SPRITE_SHINSOKU);
             }
         }
@@ -1707,16 +1734,16 @@ void ProcItemShinsoku(TItem *item)
         if ((buttons & PADLright) != 0)
         {
             model = human->model;
-            rotate = 0x40;
-            model->rotate.vy += rotate;
-            RotateVectorS(&param->vec, 0, rotate, 0);
+            turn_step = SHINSOKU_TURN_STEP;
+            model->rotate.vy += turn_step;
+            RotateVectorS(&param->vec, 0, turn_step, 0);
         }
         else if ((buttons & PADLleft) != 0)
         {
             model = human->model;
-            rotate = -0x40;
-            model->rotate.vy += rotate;
-            RotateVectorS(&param->vec, 0, rotate, 0);
+            turn_step = -SHINSOKU_TURN_STEP;
+            model->rotate.vy += turn_step;
+            RotateVectorS(&param->vec, 0, turn_step, 0);
         }
 
         param->count--;
