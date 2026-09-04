@@ -2366,14 +2366,8 @@ void ProcItemKawarimi(TItem *item)
             }
             particle_index++;
         }
-        {
-            u8 frame_count;
-
-            frame_count = param->count + 1;
-            param->count = frame_count;
-            if (frame_count < KAWARIMI_BLEED_FRAMES)
-                return;
-        }
+        if (++param->count < KAWARIMI_BLEED_FRAMES)
+            return;
         item->mode++;
         return;
 
