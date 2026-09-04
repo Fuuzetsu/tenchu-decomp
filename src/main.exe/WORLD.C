@@ -1000,14 +1000,13 @@ void ActivateHumans(void)
                 if (VISIBLE_ENEMIES_ < ThinkBudget)
                 {
                     active = 1;
-                    if (ThinkCount < ThinkBudget)
+                    if (ThinkCount >= ThinkBudget)
                     {
-                        goto active_done;
+                        final = distance < activate_distance;
+                        goto visible_done;
                     }
-                    final = distance < activate_distance;
-                    goto visible_done;
                 }
-                if (distance >= activate_distance)
+                else if (distance >= activate_distance)
                 {
                     active = 0;
                 }
@@ -1035,7 +1034,6 @@ void ActivateHumans(void)
                     active = final;
                 }
             }
-        active_done:
             if (human)
             {
                 final = 0;
