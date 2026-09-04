@@ -742,38 +742,50 @@ void SetBlood(VECTOR *pos, short n, short time)
 
 static void DrawSmoke(TEffectSlot *ef)
 {
+    enum
+    {
+        SMOKE_ALPHA_MAX = 0x80,
+        SMOKE_FAST_RISE_LIMIT = -20,
+        SMOKE_HORIZONTAL_SPEED_PERCENT = 80,
+        PERCENT_SCALE = 100,
+        SMOKE_VERTICAL_SPEED_DIVISOR = 2,
+        SMOKE_SCALE_STEP = FIXED_ONE / 4,
+        SMOKE_EVENT_JITTER = 5,
+        SMOKE_FADE_START = 26,
+        SMOKE_FADE_STEP = 5
+    };
     SmokeType *param = &ef->param.smoke;
     Sprite3D *spr;
-    Sprite3D **sprp;
     u8 alfa;
     u8 oldtime;
-    s32 vz_old;
     s32 r;
     s32 m;
     s32 rotate;
 
-    sprp = &sprSmoke[param->sprite];
-    spr = *sprp;
-    alfa = 0x80;
+    spr = sprSmoke[param->sprite];
+    alfa = SMOKE_ALPHA_MAX;
 
     if (param->time == param->evtime)
     {
-        if (param->vec.vy < -20)
+        if (param->vec.vy < SMOKE_FAST_RISE_LIMIT)
         {
-            param->vec.vx = (param->vec.vx * 80) / 100;
-            vz_old = param->vec.vz;
-            param->vec.vy = param->vec.vy / 2;
-            param->vec.vz = (vz_old * 80) / 100;
+            param->vec.vx =
+                (param->vec.vx * SMOKE_HORIZONTAL_SPEED_PERCENT) /
+                PERCENT_SCALE;
+            param->vec.vy /= SMOKE_VERTICAL_SPEED_DIVISOR;
+            param->vec.vz =
+                (param->vec.vz * SMOKE_HORIZONTAL_SPEED_PERCENT) /
+                PERCENT_SCALE;
         }
-        param->scale += 0x400;
+        param->scale += SMOKE_SCALE_STEP;
         r = rand();
         m = param->time - 1;
-        param->evtime = m - r % 5;
+        param->evtime = m - r % SMOKE_EVENT_JITTER;
     }
 
-    if (param->time < 26)
+    if (param->time < SMOKE_FADE_START)
     {
-        alfa = param->time * 5;
+        alfa = param->time * SMOKE_FADE_STEP;
     }
 
     param->pos.vx += param->vec.vx;
@@ -789,8 +801,7 @@ static void DrawSmoke(TEffectSlot *ef)
     UpdateCoordinate((ModelType *)spr);
     DrawSprite(spr);
 
-    oldtime = param->time;
-    param->time += 0xff;
+    oldtime = param->time--;
     if (oldtime == 0)
     {
         ef->proc = 0;
