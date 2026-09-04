@@ -3450,20 +3450,18 @@ dispatch:
             if ((dtPAD & PADLright) != 0)
             {
                 motID = MOT_ATTACK_SLASH2_RIGHT;
+                motMODE = MOTION_MOVE_APPLY;
             }
             else if ((dtPAD & PADLleft) != 0)
             {
                 motID = MOT_ATTACK_SLASH2_LEFT;
+                motMODE = MOTION_MOVE_APPLY;
             }
             else
             {
                 motID = MOT_ATTACK_SLASH2;
+                motMODE = MOTION_MOVE_APPLY;
             }
-            motMODE = MOTION_MOVE_APPLY;
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
             t = SetAttackMotionUnlessCva();
             if (t != 0)
                 SnapAttackMotionOrigin();
@@ -3536,16 +3534,13 @@ dispatch:
             if ((dtPAD & PADLleft) != 0)
             {
                 motID = MOT_ATTACK_RIGHT2_LEFT;
+                motMODE = MOTION_MOVE_APPLY;
             }
             else
             {
                 motID = MOT_ATTACK_RIGHT2;
+                motMODE = MOTION_MOVE_APPLY;
             }
-            motMODE = MOTION_MOVE_APPLY;
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
             t = SetAttackMotionUnlessCva();
             if (t != 0)
                 SnapAttackMotionOrigin();
@@ -3567,16 +3562,13 @@ dispatch:
             if ((dtPAD & PADLright) != 0)
             {
                 motID = MOT_ATTACK_LEFT2_RIGHT;
+                motMODE = MOTION_MOVE_APPLY;
             }
             else
             {
                 motID = MOT_ATTACK_LEFT2;
+                motMODE = MOTION_MOVE_APPLY;
             }
-            motMODE = MOTION_MOVE_APPLY;
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
             t = SetAttackMotionUnlessCva();
             if (t != 0)
                 SnapAttackMotionOrigin();
