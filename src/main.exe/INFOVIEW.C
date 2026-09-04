@@ -473,20 +473,18 @@ static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
 static inline void PutNumberInline(int x, int y, int cols, int n)
 {
     int ou;
-    int q;
 
     ou = NumberImage.u;
     NumberImage.w = 4;
     NumberImage.x = (s16)x;
     NumberImage.y = (s16)y;
-loop:
-    q = cols / 10;
-    NumberImage.u = ou + (cols % 10) * 4;
-    GsSortSprite(&NumberImage, OTablePt, 0);
-    NumberImage.x -= 6;
-    cols = q;
-    if (cols != 0)
-        goto loop;
+    do
+    {
+        NumberImage.u = ou + (cols % 10) * 4;
+        GsSortSprite(&NumberImage, OTablePt, 0);
+        NumberImage.x -= 6;
+        cols /= 10;
+    } while (cols != 0);
     NumberImage.u = ou;
 }
 
