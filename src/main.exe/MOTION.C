@@ -1144,7 +1144,8 @@ void DamageControl(void)
                     {
                         return;
                     }
-                    if (UpdateMotion(dtM, MOT_ENGAGE) != 0)
+                    if (UpdateMotion(dtM, MOT_ENGAGE) !=
+                        MOTION_UPDATE_NOT_FOUND)
                     {
                         /* the blood/impact spawn point */
                         VECTOR *pp;
