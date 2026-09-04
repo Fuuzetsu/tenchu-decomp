@@ -79,7 +79,7 @@ Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
     SetupCharacterParameter(type, human);
     hh = human->height;
     human->model->clip.vy = -((s16)hh / 2);
-    UpdateMotion(human->motion, 0);
+    UpdateMotion(human->motion, MOT_NORMAL);
     GetAreaMapVector(GlobalAreaMap, &human->map, human->locate, human->width,
                      AREA_LEVEL_STEP_DOWN);
     SetupWeapon(human);
