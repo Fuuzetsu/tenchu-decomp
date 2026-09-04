@@ -203,34 +203,33 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
         cmdp = &cmd;
         resultp = &result;
         MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
-        if (result == CARD_RESULT_SUCCESS || result == CARD_RESULT_NEW_CARD)
+        if (result != CARD_RESULT_SUCCESS && result != CARD_RESULT_NEW_CARD)
         {
-            goto create_file;
-        }
-        if (result == CARD_RESULT_UNFORMATTED)
-        {
-            __builtin_memcpy(sel, sel_okcancel, sizeof(sel));
-            end = AdtSelect(msg_format_card, sel, 1);
-            if (end == 0)
+            if (result == CARD_RESULT_UNFORMATTED)
             {
-                msg = msg_not_formatted;
+                __builtin_memcpy(sel, sel_okcancel, sizeof(sel));
+                end = AdtSelect(msg_format_card, sel, 1);
+                if (end == 0)
+                {
+                    msg = msg_not_formatted;
+                }
+                else
+                {
+                    MemCardFormat(chan);
+                    MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
+                    if (result == CARD_RESULT_SUCCESS)
+                    {
+                        goto create_file;
+                    }
+                    msg = msg_card_damaged;
+                }
             }
             else
             {
-                MemCardFormat(chan);
-                MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
-                if (result == CARD_RESULT_SUCCESS)
-                {
-                    goto create_file;
-                }
-                msg = msg_card_damaged;
+                msg = msg_card_error;
             }
+            goto done;
         }
-        else
-        {
-            msg = msg_card_error;
-        }
-        goto done;
 
     create_file:
         sprintf(fn, fmt_card_name, CID, StageID, name);
