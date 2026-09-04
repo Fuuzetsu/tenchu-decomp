@@ -1338,6 +1338,7 @@ s16 Think1target(void)
 /* actscnt belongs to whichever Think* handler is active.  In this handler it
  * is a state, not a counter: reach the reported position, circle there, or
  * move far enough away to call in another guard. */
+typedef u8 alarm_reaction_state;
 enum alarm_reaction_state
 {
     ALARM_REACTION_APPROACH = 0,
@@ -1345,12 +1346,24 @@ enum alarm_reaction_state
     ALARM_REACTION_CALL_BACKUP = 2
 };
 
+enum
+{
+    ALARM_APPROACH_DISTANCE = 2000,
+    ALARM_REINFORCEMENT_POPULATION_LIMIT = 30,
+    ALARM_CIRCLE_PERIOD = 32,
+    ALARM_CIRCLE_TURN_BIT = 8,
+    ALARM_CIRCLE_TURN_THRESHOLD = 700,
+    ALARM_CIRCLE_FORWARD_CHANCE = 5,
+    ALARM_ESCAPE_TURN_THRESHOLD = 1000,
+    ALARM_REINFORCEMENT_DISTANCE = 16500
+};
+
 s16 think_alarm_reaction_(void)
 {
     s32 x_diff;
     s32 z_diff;
     s16 result;
-    u8 state;
+    alarm_reaction_state state;
     VECTOR *loc;
     Humanoid *self;
 
@@ -1367,7 +1380,7 @@ s16 think_alarm_reaction_(void)
 
         result = GotoPosition(x_diff, z_diff);
         distance = SquareRoot0(x_diff * x_diff + z_diff * z_diff);
-        if (distance < 2000 || (Attrib & ATTR_WALL))
+        if (distance < ALARM_APPROACH_DISTANCE || (Attrib & ATTR_WALL))
         {
             s32 alertTime;
             s32 nextState;
@@ -1393,7 +1406,8 @@ s16 think_alarm_reaction_(void)
             if (nextState == 0)
             {
                 nextState = Humans;
-                nextState = nextState < 30;
+                nextState =
+                    nextState < ALARM_REINFORCEMENT_POPULATION_LIMIT;
                 if (nextState == 0)
                 {
                     nextState = ALARM_REACTION_CIRCLE;
@@ -1423,11 +1437,11 @@ s16 think_alarm_reaction_(void)
     {
         u8 count;
 
-        Me->actcnt = (Me->actcnt + 1) & 0x1F;
+        Me->actcnt = (Me->actcnt + 1) & (ALARM_CIRCLE_PERIOD - 1);
         count = Me->actcnt;
-        if (count & 8)
+        if (count & ALARM_CIRCLE_TURN_BIT)
         {
-            if (count != 8)
+            if (count != ALARM_CIRCLE_TURN_BIT)
             {
                 result = Me->pad.data;
             }
@@ -1438,7 +1452,7 @@ s16 think_alarm_reaction_(void)
 
                 degree = Degree;
                 absoluteDegree = __builtin_abs(degree);
-                if (absoluteDegree > 700)
+                if (absoluteDegree > ALARM_CIRCLE_TURN_THRESHOLD)
                 {
                     result = -PADLleft;
                     if (degree > 0)
@@ -1451,7 +1465,7 @@ s16 think_alarm_reaction_(void)
                     s32 randomValue;
 
                     randomValue = rand();
-                    if (randomValue % 5 != 0)
+                    if (randomValue % ALARM_CIRCLE_FORWARD_CHANCE != 0)
                     {
                         result = PADLright;
                         if (rand() & 1)
@@ -1486,7 +1500,7 @@ s16 think_alarm_reaction_(void)
             direction2 = -direction2;
         }
         result = turnBits | PADLdown;
-        if (direction2 >= 1000)
+        if (direction2 >= ALARM_ESCAPE_TURN_THRESHOLD)
         {
             result = turnBits | PADLup;
         }
@@ -1498,18 +1512,19 @@ s16 think_alarm_reaction_(void)
 
             degree = Degree;
             absoluteDegree = __builtin_abs(degree);
-            if (absoluteDegree > 1000 && Me->pad_hold == 0)
+            if (absoluteDegree > ALARM_ESCAPE_TURN_THRESHOLD &&
+                Me->pad_hold == 0)
             {
                 s32 quotient;
 
                 self = Me;
-                quotient = 1000 / self->turn;
+                quotient = ALARM_ESCAPE_TURN_THRESHOLD / self->turn;
                 self->pad_hold =
                     PAD_HOLD(degree > 0 ? PADLleft : PADLright, quotient);
             }
         }
 
-        if (Distance > 16500)
+        if (Distance > ALARM_REINFORCEMENT_DISTANCE)
         {
             s32 alertTime;
             s16 soundId;
