@@ -2209,23 +2209,12 @@ s16 Think3firstattack(void)
     idx = WEAPON_ATTACK_CLASS(Me->wpatk);
     if (idx == WEAPON_ATTACK_RANGED)
     {
-        s16 masked;
-
-        masked = pad & PAD_TURN_BUTTONS_SIGNED;
-        /* Empty loop retained for code layout; its original source construct is unknown. */
-        do
-        {
-        } while (0);
-        degree = Degree;
-        if (degree < 0)
-        {
-            degree = -degree;
-        }
+        pad &= PAD_TURN_BUTTONS_SIGNED;
+        degree = __builtin_abs(Degree);
         if (degree > 100)
         {
-            return masked;
+            return pad;
         }
-        pad = masked;
     }
     if (Distance < atkd2[idx])
     {
