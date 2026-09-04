@@ -1268,99 +1268,113 @@ have_z:
         int visible;
 
         j = sx;
-        for (;;)
+        for (;; j++)
         {
             if (j <= ex)
             {
                 cell_x = j;
                 k = sy;
-        scan_y:
-            if (k <= ey)
-            {
-                cell_y = k;
-                world_y_offset =
-                    (cell_y & WORLD_MAP_AXIS_MASK) * WORLD_MAP_Y_BYTE_STRIDE;
-                world_base = WorldMap;
-                world_x_offset =
-                    (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
-                l = sz;
-            scan_z:
-                if (l <= ez)
+                for (;; k++)
                 {
-                    cell_z = l;
-                    do
+                    if (k <= ey)
                     {
-                        do
+                        cell_y = k;
+                        world_y_offset =
+                            (cell_y & WORLD_MAP_AXIS_MASK) * WORLD_MAP_Y_BYTE_STRIDE;
+                        world_base = WorldMap;
+                        world_x_offset =
+                            (cell_x & WORLD_MAP_AXIS_MASK) * WORLD_MAP_X_BYTE_STRIDE;
+                        l = sz;
+                        for (;; l++)
                         {
-                            visible = IsVisible(cell_x * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                                cell_y * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                                cell_z * CONSTRUCTION_CELL + CONSTRUCTION_CELL_CENTER_OFFSET,
-                                                CONSTRUCTION_CELL_VISIBILITY_RADIUS);
-                        } while (0);
-                    } while (0);
-                    if (visible)
-                    {
-                        cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
-                                                 WORLD_MAP_Z_BYTE_STRIDE +
-                                             world_y_offset + world_x_offset +
-                                             (u32)world_base))
-                                  ->top;
-                        for (;;)
-                        {
-                            if (cur != 0)
+                            if (l <= ez)
                             {
-                                if (IsVisible(cur->model->locate.coord.t[0],
-                                              cur->model->locate.coord.t[1] + cur->ShiftY,
-                                              cur->model->locate.coord.t[2], cur->ModelSize))
+                                cell_z = l;
+                                do
                                 {
-                                    int bucket;
-                                    int signed_size;
-                                    ObjectSlotType **slot;
-                                    OrnamentType *model;
-
-                                    /* IsVisible leaves this object's view-space position behind
-                                     * for the depth bucket calculation. */
-                                    do
+                                    visible = IsVisible(
+                                        cell_x * CONSTRUCTION_CELL +
+                                            CONSTRUCTION_CELL_CENTER_OFFSET,
+                                        cell_y * CONSTRUCTION_CELL +
+                                            CONSTRUCTION_CELL_CENTER_OFFSET,
+                                        cell_z * CONSTRUCTION_CELL +
+                                            CONSTRUCTION_CELL_CENTER_OFFSET,
+                                        CONSTRUCTION_CELL_VISIBILITY_RADIUS);
+                                } while (0);
+                                if (visible)
+                                {
+                                    cur = ((WorldType *)((cell_z & WORLD_MAP_AXIS_MASK) *
+                                                             WORLD_MAP_Z_BYTE_STRIDE +
+                                                         world_y_offset + world_x_offset +
+                                                         (u32)world_base))
+                                              ->top;
+                                    for (;;)
                                     {
-                                        do
+                                        if (cur != 0)
                                         {
-                                            signed_size = cur->ModelSize;
-                                            bucket = ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
-                                                       signed_size) >>
-                                                      CONSTRUCTION_DEPTH_BUCKET_SHIFT) -
-                                                     CONSTRUCTION_DEPTH_BUCKET_BIAS;
-                                            plimit = (u16)cur->ModelSize;
-                                        } while (0);
-                                    } while (0);
-                                    if (bucket < 0)
-                                        bucket = 0;
-                                    slot = (ObjectSlotType **)(bucket * sizeof(*slot) + (u32)DrawList);
-                                    model = cur->model;
+                                            if (IsVisible(
+                                                    cur->model->locate.coord.t[0],
+                                                    cur->model->locate.coord.t[1] +
+                                                        cur->ShiftY,
+                                                    cur->model->locate.coord.t[2],
+                                                    cur->ModelSize))
+                                            {
+                                                int bucket;
+                                                int signed_size;
+                                                ObjectSlotType **slot;
+                                                OrnamentType *model;
 
-                                    if (SlotMan.n >= SlotMan.max)
-                                        AdtMessageBox(msg_modelslot_overflow);
-                                    SlotMan.slot[SlotMan.n].model = model;
-                                    SlotMan.slot[SlotMan.n].next = *slot;
-                                    SlotMan.slot[SlotMan.n].ModelSize = plimit;
-                                    SlotMan.slot[SlotMan.n].ShiftY = 0;
-                                    *slot = &SlotMan.slot[SlotMan.n];
-                                    ndl++;
-                                    SlotMan.n++;
+                                                /* IsVisible leaves this object's view-space position behind
+                                                 * for the depth bucket calculation. The narrow nested
+                                                 * boundaries preserve the retail plimit/slot register order. */
+                                                do
+                                                {
+                                                    do
+                                                    {
+                                                        do
+                                                        {
+                                                            signed_size = cur->ModelSize;
+                                                            bucket =
+                                                                ((CONSTRUCTION_VISIBILITY_VIEW_SPACE->vz -
+                                                                  signed_size) >>
+                                                                 CONSTRUCTION_DEPTH_BUCKET_SHIFT) -
+                                                                CONSTRUCTION_DEPTH_BUCKET_BIAS;
+                                                            plimit = (u16)cur->ModelSize;
+                                                        } while (0);
+                                                    } while (0);
+                                                } while (0);
+                                                if (bucket < 0)
+                                                    bucket = 0;
+                                                slot = (ObjectSlotType **)(
+                                                    bucket * sizeof(*slot) +
+                                                    (u32)DrawList);
+                                                model = cur->model;
+
+                                                if (SlotMan.n >= SlotMan.max)
+                                                    AdtMessageBox(msg_modelslot_overflow);
+                                                SlotMan.slot[SlotMan.n].model = model;
+                                                SlotMan.slot[SlotMan.n].next = *slot;
+                                                SlotMan.slot[SlotMan.n].ModelSize = plimit;
+                                                SlotMan.slot[SlotMan.n].ShiftY = 0;
+                                                *slot = &SlotMan.slot[SlotMan.n];
+                                                ndl++;
+                                                SlotMan.n++;
+                                            }
+                                            ndt++;
+                                            cur = cur->next;
+                                            continue;
+                                        }
+                                        break;
+                                    }
                                 }
-                                ndt++;
-                                cur = cur->next;
                                 continue;
                             }
                             break;
                         }
+                        continue;
                     }
-                    l++;
-                    goto scan_z;
+                    break;
                 }
-                k++;
-                goto scan_y;
-            }
-                j++;
                 continue;
             }
             break;
