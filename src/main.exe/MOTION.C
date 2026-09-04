@@ -2356,7 +2356,7 @@ void ActSWIM(void)
     switch (current_motion)
     {
     case MOT_SWIM:
-        if (SwimCheck() == 0)
+        if (SwimCheck() == SWIM_CHECK_NONE)
         {
             SET_MOTION(MOT_SWIM_EXIT, MOTION_MOVE_APPLY);
             break;
@@ -2395,7 +2395,7 @@ void ActSWIM(void)
         {
             Humanoid *forward_swimmer;
 
-            if (SwimCheck() == 0)
+            if (SwimCheck() == SWIM_CHECK_NONE)
             {
                 SET_MOTION(MOT_SWIM_EXIT, MOTION_MOVE_APPLY);
                 break;
@@ -2409,7 +2409,8 @@ void ActSWIM(void)
         }
         else if (dtPAD & PADLdown)
         {
-            if (Me_MOTION_C->map.angleH != 0 || SwimCheck() == 0)
+            if (Me_MOTION_C->map.angleH != 0 ||
+                SwimCheck() == SWIM_CHECK_NONE)
             {
                 SVECTOR *blocked_velocity;
                 VECTOR *position;
