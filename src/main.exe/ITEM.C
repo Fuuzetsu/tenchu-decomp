@@ -727,11 +727,11 @@ static inline long SubFlyJitter(long mid, long half, long range)
 static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh, s32 time)
 {
     long len;
-    long v8;
-    long midx;
-    long midz;
-    long current_z;
-    long x_product;
+    long horizontal_span;
+    long mid_x;
+    long mid_z;
+    long control_z;
+    long scaled_horizontal_spread;
     struct tag_fly *fly;
 
     fly = &pfly->p.fly;
@@ -744,7 +744,7 @@ static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh
     if (time > 0)
     {
         fly->count = len / time;
-        if ((fly->count & 0xff) == 0)
+        if (fly->count == 0)
         {
             fly->count = 1;
         }
@@ -754,44 +754,44 @@ static void SetupFly(param_fly *pfly, VECTOR *start, VECTOR *end, s32 yw, s32 yh
         fly->count = 1;
     }
     /* These biased shifts implement signed division with truncation toward zero. */
-    x_product = len * (yw / 2);
+    scaled_horizontal_spread = len * (yw / 2);
     fly->count2 = fly->count;
-    if (x_product < 0)
+    if (scaled_horizontal_spread < 0)
     {
-        x_product += FIXED_TRUNC_BIAS;
+        scaled_horizontal_spread += FIXED_TRUNC_BIAS;
     }
     len = len * (yh / 2);
-    yw = x_product >> FIXED_SHIFT;
+    yw = scaled_horizontal_spread >> FIXED_SHIFT;
     if (len < 0)
     {
         len += FIXED_TRUNC_BIAS;
     }
     yh = len >> FIXED_SHIFT;
-    midx = (fly->sx + fly->vx) / 2;
-    v8 = yw << 1;
-    if (v8 > 0)
+    mid_x = (fly->sx + fly->vx) / 2;
+    horizontal_span = yw << 1;
+    if (horizontal_span > 0)
     {
-        len = midx + (rand() % v8 - yw);
+        len = mid_x + (rand() % horizontal_span - yw);
     }
     else
     {
-        len = midx - yw;
+        len = mid_x - yw;
     }
     fly->rx = len;
     len = SubFlyJitter((fly->sy + fly->vy) / 2, yh / 2,
                        yh - yh / 2);
-    midz = (fly->sz + fly->vz) / 2;
-    v8 = yw << 1;
+    mid_z = (fly->sz + fly->vz) / 2;
+    horizontal_span = yw << 1;
     fly->ry = len;
-    if (v8 > 0)
+    if (horizontal_span > 0)
     {
-        current_z = midz + (rand() % v8 - yw);
+        control_z = mid_z + (rand() % horizontal_span - yw);
     }
     else
     {
-        current_z = midz - yw;
+        control_z = mid_z - yw;
     }
-    fly->rz = current_z;
+    fly->rz = control_z;
     fly->count--;
 }
 
