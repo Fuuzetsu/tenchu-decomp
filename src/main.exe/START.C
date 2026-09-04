@@ -165,11 +165,11 @@ int main(void)
         seq = StageSequence();
         if ((SystemFlag & SYSFLAG_DEBUGPRINT) == 0)
         {
-            if (seq == 1)
+            if (seq == STAGE_SEQUENCE_COMPLETE)
             {
                 StageEndScreen();
             }
-            else if (seq == -1)
+            else if (seq == STAGE_SEQUENCE_GAME_OVER)
             {
                 game_over_screen_();
             }
