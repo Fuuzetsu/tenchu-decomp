@@ -5877,7 +5877,7 @@ short SetNowMotion(Humanoid *human, motion_id mid, motion_move_mode move)
     {
         return 0;
     }
-    if (UpdateMotion(human->motion, mid) == 0)
+    if (UpdateMotion(human->motion, mid) == MOTION_UPDATE_NOT_FOUND)
     {
         return 0;
     }
