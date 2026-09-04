@@ -414,6 +414,13 @@ enum item_mode
     ITEM_MODE_DISPOSE = 0xff
 };
 
+typedef s32 item_collision_state;
+enum item_collision_state
+{
+    ITEM_COLLISION_ACTIVE = 0,
+    ITEM_COLLISION_PAUSED = 1
+};
+
 /* ITEM.C's original rolling-item base.  Derived item parameters embed this
  * 12-byte record as their first member (param_drop, param_smoke,
  * param_ningyo, param_ninken, param_dokudango). */
@@ -586,7 +593,7 @@ struct tag_TItem
     struct
     {
         ConflictClass mode; /* 0x00 */
-        s32 pause; /* 0x04 */
+        item_collision_state pause; /* 0x04 */
         s16 size;  /* 0x08 */
         s16 ofsY;  /* 0x0A */
     } collision;   /* 0x14, size 0x0C */
@@ -730,7 +737,7 @@ extern char msg_item_dispose_fail[]; /* "item dispose fail   id %d  mode %d" */
     item->collision.size = sz;                                                \
     item->collision.ofsY = 0;                                                 \
     item->collision.mode = cmode;                                             \
-    item->collision.pause = 0;
+    item->collision.pause = ITEM_COLLISION_ACTIVE;
 
 /* Some launchers keep a separate scan cursor and only publish `item` once.
  * The caller places the supplied continuation label immediately after the
