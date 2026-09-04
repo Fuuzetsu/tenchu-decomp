@@ -2363,7 +2363,11 @@ static void DrawHinoko(TEffectSlot *ef)
 {
     enum
     {
-        fo = 30
+        HINOKO_FADE_FRAMES = 30,
+        HINOKO_ALPHA_SHIFT = 7,
+        HINOKO_ALPHA_MAX = 1 << HINOKO_ALPHA_SHIFT,
+        HINOKO_GRAVITY = 5,
+        HINOKO_SCALE_GROWTH = 3 * FIXED_ONE / 4
     };
     ExplosionType *param;
     Sprite3D *spr;
@@ -2371,18 +2375,19 @@ static void DrawHinoko(TEffectSlot *ef)
 
     param = &ef->param.hinoko;
     spr = sprBomb[BOMB_SPRITE_HINOKO];
-    alfa = 0x80;
+    alfa = HINOKO_ALPHA_MAX;
     switch (param->mode)
     {
     case EXPLOSION_MODE_FLASH:
         if (param->time == 0)
         {
             param->mode = EXPLOSION_MODE_EXPAND;
-            param->time = fo;
+            param->time = HINOKO_FADE_FRAMES;
         }
         break;
     case EXPLOSION_MODE_EXPAND:
-        alfa = (u8)((param->time * 0x80) / fo);
+        alfa = (u8)((param->time << HINOKO_ALPHA_SHIFT) /
+                    HINOKO_FADE_FRAMES);
         if (param->time == 0)
         {
             ef->proc = 0;
@@ -2391,8 +2396,8 @@ static void DrawHinoko(TEffectSlot *ef)
     }
 
     param->time--;
-    param->vec.vy += 5;
-    param->scale += 0xc00;
+    param->vec.vy += HINOKO_GRAVITY;
+    param->scale += HINOKO_SCALE_GROWTH;
     param->pos.vx += param->vec.vx;
     param->pos.vy += param->vec.vy;
     param->pos.vz += param->vec.vz;
