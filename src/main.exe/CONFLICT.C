@@ -286,7 +286,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
         if (yy == (u32)LEVEL_NONE)
             goto ret_min;
         if (FieldAttrib & MAP_BUOYANT)
-            goto ret_min;
+            return LEVEL_NONE;
         yy = yy * 10;
         y2 = yy - y;
         if (y2 < -1000 && (mode16 & AREA_LEVEL_ALLOW_DEEP) == 0)
