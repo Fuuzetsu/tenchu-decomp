@@ -382,12 +382,9 @@ void *vmemoryGC(void *pt)
             if (prev != 0)
             {
                 sz = prev->size;
-                if (sz >= 0)
+                mask = VMEM_BLOCK_IN_USE;
+                if ((sz & mask) == 0)
                 {
-                    do
-                    {
-                        mask = VMEM_BLOCK_IN_USE;
-                    } while (0);
                     newpt = (void *)(prev + 1);
                     vh.size = sz;
                     vh.next = header->next;
