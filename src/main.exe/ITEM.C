@@ -2256,7 +2256,16 @@ void ProcItemKawarimi(TItem *item)
         KAWARIMI_MODE_START = 0,
         KAWARIMI_MODE_BLEED = 1,
         KAWARIMI_MODE_FINISH = 2,
-        KAWARIMI_BLEED_FRAMES = 0x1f
+        KAWARIMI_BLEED_FRAMES = 31,
+        KAWARIMI_PARTICLE_COUNT = 20,
+        KAWARIMI_PARTICLE_SPAN = 1000,
+        KAWARIMI_PARTICLE_RADIUS = KAWARIMI_PARTICLE_SPAN / 2,
+        KAWARIMI_PARTICLE_Y_OFFSET = 1200,
+        KAWARIMI_PARTICLE_UPWARD_BASE = 30,
+        KAWARIMI_PARTICLE_UPWARD_RANGE = 10,
+        KAWARIMI_PARTICLE_LIFETIME_MIN = 15,
+        KAWARIMI_PARTICLE_LIFETIME_RANGE = 16,
+        KAWARIMI_PARTICLE_COLOR = RGB24(100, 200, 220)
     };
     param_drop *param;
     s32 particle_index;
@@ -2278,25 +2287,31 @@ void ProcItemKawarimi(TItem *item)
         particle_index = 0;
         while (1)
         {
-            if (particle_index >= 0x14)
+            if (particle_index >= KAWARIMI_PARTICLE_COUNT)
                 break;
             {
                 VECTOR position = {
                     .vx = item->owner->model->locate.coord.t[0] +
-                        (rand() % 1000 - 500),
+                        (rand() % KAWARIMI_PARTICLE_SPAN -
+                         KAWARIMI_PARTICLE_RADIUS),
                     .vy = item->owner->model->locate.coord.t[1] +
-                        (rand() % 1000 - 1200),
+                        (rand() % KAWARIMI_PARTICLE_SPAN -
+                         KAWARIMI_PARTICLE_Y_OFFSET),
                     .vz = item->owner->model->locate.coord.t[2] +
-                        (rand() % 1000 - 500)
+                        (rand() % KAWARIMI_PARTICLE_SPAN -
+                         KAWARIMI_PARTICLE_RADIUS)
                 };
                 SVECTOR velocity = {
                     .vx = 0,
-                    .vy = rand() % 10 - 30,
+                    .vy = rand() % KAWARIMI_PARTICLE_UPWARD_RANGE -
+                          KAWARIMI_PARTICLE_UPWARD_BASE,
                     .vz = 0
                 };
 
                 SetBleed(&position, &velocity,
-                         rand() % 16 + 15, RGB24(100, 200, 220));
+                         rand() % KAWARIMI_PARTICLE_LIFETIME_RANGE +
+                             KAWARIMI_PARTICLE_LIFETIME_MIN,
+                         KAWARIMI_PARTICLE_COLOR);
             }
             particle_index++;
         }
