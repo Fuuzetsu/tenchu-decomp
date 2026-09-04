@@ -303,13 +303,13 @@ void mission_score_screen(s32 stage)
             i = N_HIGH_SCORES - 1;
             if (found < N_HIGH_SCORES - 1)
             {
-                do
+                while (insertedRank < i)
                 {
                     SCORE_STATE->t_time[i] = SCORE_STATE->t_time[i - 1];
                     SCORE_STATE->t_char[i] = SCORE_STATE->t_char[i - 1];
                     SCORE_STATE->t_dani[i] = SCORE_STATE->t_dani[i - 1];
                     i--;
-                } while (insertedRank < i);
+                }
             }
 
             {
