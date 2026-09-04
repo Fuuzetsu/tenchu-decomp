@@ -26,9 +26,16 @@ enum event_trigger_kind
 
 /* Two event sequences run in parallel. Event IDs 2 and 3 are their root
  * scripts and continue even while the player is dead. */
+enum stage_event_slot
+{
+    STAGE_EVENT_PRIMARY = 0,
+    STAGE_EVENT_SECONDARY = 1,
+    N_STAGE_EVENT_SLOTS = 2
+};
+
 enum
 {
-    N_STAGE_EVENT_SLOTS = 2,
+    EVENT_ID_STAGE_START = 0,
     EVENT_ROOT_FIRST = 2,
     EVENT_ROOT_LAST = EVENT_ROOT_FIRST + N_STAGE_EVENT_SLOTS - 1,
     EVENT_RIKIMARU_FINALE = 100

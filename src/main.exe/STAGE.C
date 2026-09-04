@@ -254,8 +254,8 @@ void StartStageSequence(void)
     Criticals = 0;
     if (StageEvent != 0)
     {
-        UpdateEvent(0, 0);
-        Event[1] = 0;
+        UpdateEvent(STAGE_EVENT_PRIMARY, EVENT_ID_STAGE_START);
+        Event[STAGE_EVENT_SECONDARY] = 0;
     }
 }
 
