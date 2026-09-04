@@ -249,12 +249,10 @@ pad_command GetCommand(PADtype *pad)
         if (pattern[j] != PAD_COMMAND_END)
             continue;
 
-        j = PAD_COMMAND_STREAM_LENGTH - 1;
-        do
+        for (j = PAD_COMMAND_STREAM_LENGTH - 1; j > 0; j--)
         {
             pad->stream[j] = pad->stream[j - 1];
-            j--;
-        } while (j > 0);
+        }
         pad->stream[0] = 0;
         return Command[i]->command;
     }
