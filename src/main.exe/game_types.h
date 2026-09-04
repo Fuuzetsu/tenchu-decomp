@@ -1062,6 +1062,8 @@ struct Sprite3D
  * translation words are consumed through the game's VECTOR API; expose that
  * shared view once instead of casting coord.t at every call site. */
 #define MODEL_POSITION(model_) ((VECTOR *)(model_)->locate.coord.t)
+/* The same translation view for an already-selected SDK coordinate. */
+#define COORDINATE_POSITION(coordinate_) ((VECTOR *)(coordinate_)->coord.t)
 
 /* 3DCTRL.C's tiled background. PSX.SYM supplies the complete layout and
  * original `hundle` spelling; retail confirms the same 0x48-byte record. */

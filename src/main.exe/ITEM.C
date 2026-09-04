@@ -3110,6 +3110,7 @@ static void ProcItemNingyo(TItem *item)
         ACTIVE_NINGYO_HP = 3,
         APPEAR_SMOKE_COUNT = 10,
         APPEAR_SMOKE_TIME = 6,
+        APPEAR_SMOKE_RISE_SPEED = -25,
         DROP_HORIZONTAL_SPREAD = 200,
         DROP_VERTICAL_SPREAD = 100,
         DROP_UPWARD_SPEED = 200,
@@ -3119,12 +3120,18 @@ static void ProcItemNingyo(TItem *item)
         FIRST_RETARGET_DELAY = 3,
         RETARGET_INTERVAL = 30,
         NINGYO_LURE_RANGE = 10000,
+        NINGYO_BREAK_BLEED_GROUND_RANGE = 0,
+        NINGYO_BREAK_BLEED_SPREAD = 30,
+        NINGYO_BREAK_BLEED_COUNT = 30,
+        NINGYO_BREAK_BLEED_TIME = 30,
         KNOCKBACK_Y_SPEED = 100,
-        KNOCKBACK_SPREAD = 20
+        KNOCKBACK_SPREAD = 20,
+        HIT_KNOCKBACK_DIVISOR = 16,
+        BUMP_KNOCKBACK_DIVISOR = 8
     };
     param_ningyo *param;
-    s32 conflict_id;
-    s32 dispose_mode;
+    s32 collision_id;
+    item_mode dispose_mode;
 
     param = &item->param.ningyo;
     dispose_mode = ITEM_MODE_DISPOSE;
@@ -3166,11 +3173,7 @@ static void ProcItemNingyo(TItem *item)
     case NINGYO_MODE_WAIT:
     {
         {
-            s32 activation_countdown;
-
-            activation_countdown = param->count - 1;
-            param->count = activation_countdown;
-            if ((u8)activation_countdown == 0)
+            if (--param->count == 0)
             {
                 SVECTOR smoke_velocity;
 
@@ -3178,7 +3181,7 @@ static void ProcItemNingyo(TItem *item)
                 item->mode++;
                 smoke_velocity = (SVECTOR){
                     .vx = 0,
-                    .vy = -25,
+                    .vy = APPEAR_SMOKE_RISE_SPEED,
                     .vz = 0
                 };
                 SetSmoke(MODEL_POSITION(item->locate),
@@ -3268,11 +3271,8 @@ static void ProcItemNingyo(TItem *item)
             conflict_pool = ConflictObject;
             conflict = conflict_pool + new_conflict_id;
             {
-                s32 collision_size;
-                s32 collision_offset_y;
-
-                collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
-                collision_size = NINGYO_COLLISION_SIZE;
+                s32 collision_offset_y = -NINGYO_COLLISION_SIZE / 2;
+                s32 collision_size = NINGYO_COLLISION_SIZE;
                 INITIALIZE_CONFLICT_OBJECT(
                     conflict, collision_size, collision_offset_y,
                     CONFLICT_OWNER_ITEM, CONFLICT_STAND | CONFLICT_SOFT);
@@ -3289,20 +3289,16 @@ static void ProcItemNingyo(TItem *item)
 
     case NINGYO_MODE_ACTIVE:
     {
-        s32 retarget_countdown;
-
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            conflict_id = CONFLICT_NONE;
+            collision_id = CONFLICT_NONE;
         }
         else
         {
-            conflict_id = GetConflictResult(item->locate, CONFLICT_NONE);
+            collision_id = GetConflictResult(item->locate, CONFLICT_NONE);
         }
 
-        retarget_countdown = param->count - 1;
-        param->count = retarget_countdown;
-        if ((u8)retarget_countdown == 0)
+        if (--param->count == 0)
         {
             s32 human_index;
 
@@ -3324,7 +3320,7 @@ static void ProcItemNingyo(TItem *item)
                     human->target != 0 &&
                     distance_to_decoy <
                         GetVectorDistance(
-                            (VECTOR *)human->target->coord.t,
+                            COORDINATE_POSITION(human->target),
                             human->locate) &&
                     ((u16)human->type & PAGE_MASK) != PAGE_BOSS)
                 {
@@ -3334,21 +3330,20 @@ static void ProcItemNingyo(TItem *item)
             }
             param->count = RETARGET_INTERVAL;
         }
-        else if (conflict_id != CONFLICT_NONE)
+        else if (collision_id != CONFLICT_NONE)
         {
-            ConflictObjectType *conflict;
-            ConflictObjectType *conflict_pool;
-            ConflictClass conflict_class;
-
-            conflict_pool = ConflictObject;
-            conflict = &conflict_pool[conflict_id];
-            conflict_class = conflict->size.pad;
+            ConflictObjectType *conflict_pool = ConflictObject;
+            ConflictObjectType *conflict = &conflict_pool[collision_id];
+            ConflictClass conflict_class = conflict->size.pad;
             if (conflict_class == CONFLICT_HIT)
             {
                 if (param->hp == 0)
                 {
                     SetBleeds(MODEL_POSITION(item->locate),
-                              0, 30, 30, 30, COLOR_YELLOW);
+                              NINGYO_BREAK_BLEED_GROUND_RANGE,
+                              NINGYO_BREAK_BLEED_SPREAD,
+                              NINGYO_BREAK_BLEED_COUNT,
+                              NINGYO_BREAK_BLEED_TIME, COLOR_YELLOW);
                     SoundEx(MODEL_POSITION(item->locate),
                             SE_SMOKE_PUFF);
                     if (item->proc != 0)
@@ -3361,14 +3356,17 @@ static void ProcItemNingyo(TItem *item)
                 {
                     s32 knockback_x;
                     s32 knockback_z;
-                    VECTOR position = {
+                    /* Retail snapshots this contact point but never reads it. */
+                    VECTOR pos = {
                         .vx = conflict->position.vx,
                         .vy = conflict->position.vy,
                         .vz = conflict->position.vz
                     };
 
-                    knockback_x = -ConflictDistance.vx / 16;
-                    knockback_z = -ConflictDistance.vz / 16;
+                    knockback_x = -ConflictDistance.vx /
+                                  HIT_KNOCKBACK_DIVISOR;
+                    knockback_z = -ConflictDistance.vz /
+                                  HIT_KNOCKBACK_DIVISOR;
                     param->koro.vx = knockback_x;
                     param->koro.vy = -KNOCKBACK_Y_SPEED;
                     param->koro.vz = knockback_z;
@@ -3381,15 +3379,14 @@ static void ProcItemNingyo(TItem *item)
             }
             else if (conflict_class != CONFLICT_SOFT)
             {
-                s32 x_random;
+                s32 x_random = rand();
                 s32 z_random;
                 s32 knockback_y;
                 s32 knockback_z;
                 s16 knockback_x;
                 s16 x_jitter;
 
-                x_random = rand();
-                knockback_x = -ConflictDistance.vx / 8;
+                knockback_x = -ConflictDistance.vx / BUMP_KNOCKBACK_DIVISOR;
                 x_jitter = x_random % KNOCKBACK_SPREAD;
                 knockback_y = 0;
                 if (ConflictDistance.vy >= -NINGYO_COLLISION_SIZE)
@@ -3397,7 +3394,7 @@ static void ProcItemNingyo(TItem *item)
                     knockback_y = -KNOCKBACK_Y_SPEED;
                 }
                 z_random = rand();
-                knockback_z = -ConflictDistance.vz / 8;
+                knockback_z = -ConflictDistance.vz / BUMP_KNOCKBACK_DIVISOR;
                 param->koro.vx = knockback_x + x_jitter -
                                  KNOCKBACK_SPREAD / 2;
                 param->koro.vy = knockback_y;
