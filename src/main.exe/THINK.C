@@ -823,14 +823,12 @@ s16 GotoPosition(s32 vx, s32 vz)
                  * sidestep toward the clearer flank. */
                 if ((result & PADLright) && (d1 != cached))
                 {
-                    d2 = PADLright << 16;
-                    d2 |= SIDESTEP_HOLD_TICKS;
+                    d2 = PAD_HOLD(PADLright, SIDESTEP_HOLD_TICKS);
                     Me->pad_hold = d2;
                 }
                 else if ((result & PADLleft) && (d2 != (u32)LEVEL_NONE))
                 {
-                    d2 = (u32)PADLleft << 16;
-                    d2 |= SIDESTEP_HOLD_TICKS;
+                    d2 = PAD_HOLD((u32)PADLleft, SIDESTEP_HOLD_TICKS);
                     Me->pad_hold = d2;
                 }
                 else
