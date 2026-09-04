@@ -6255,11 +6255,20 @@ void ProcItemArrow(TItem *item)
     {
         ARROW_MODE_FLY = 0,
         ARROW_MODE_WAIT = 1,
-        ARROW_MODE_BLINK = 2
+        ARROW_MODE_BLINK = 2,
+        ARROW_COLLISION_RADIUS = 300,
+        ARROW_HIT_IMPACT_SIZE = 6 * FIXED_ONE,
+        ARROW_EMBED_DURATION = 120,
+        ARROW_GROUND_BLOOD_SPREAD = 25,
+        ARROW_GROUND_BLOOD_PARTICLES = 30,
+        ARROW_GROUND_BLOOD_LIFETIME = 30,
+        ARROW_GROUND_WAIT_DURATION = 30,
+        ARROW_BLINK_DURATION = 15,
+        ARROW_BLINK_INTERVAL = 2,
+        ARROW_ROLL_STEP = ANGLE_FULL / 16
     };
     ModelType *model;
     param_arrow *param;
-    void (*ppu)(TItem *);
     item_mode mode_index;
     VECTOR v1;
     VECTOR v2;
@@ -6275,27 +6284,22 @@ void ProcItemArrow(TItem *item)
         return;
     }
 
-    mode_index = ARROW_MODE_FLY;
     switch (item->mode)
     {
     case ARROW_MODE_FLY:
     {
-        u8 count;
         s32 cid;
 
-        v1.vx = item->locate->locate.coord.t[0];
-        v1.vy = item->locate->locate.coord.t[1];
-        v1.vz = item->locate->locate.coord.t[2];
+        copyVector(&v1, MODEL_POSITION(item->locate));
         MoveFly(item, &param->fly);
-        count = param->count - 1;
-        param->count = count;
-        if (count == 0)
+        if (--param->count == 0)
         {
             s32 conflict_id;
 
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(conflict_id, 300, CONFLICT_OWNER_ITEM,
+            SET_ITEM_COLLISION(conflict_id, ARROW_COLLISION_RADIUS,
+                               CONFLICT_OWNER_ITEM,
                                CONFLICT_HIT);
         }
 
@@ -6317,8 +6321,7 @@ void ProcItemArrow(TItem *item)
                 if ((ConflictObject[cid].size.pad &
                      CONFLICT_HIT) != 0)
                 {
-                    ppu = item->proc;
-                    if (ppu == 0)
+                    if (item->proc == 0)
                     {
                         return;
                     }
@@ -6337,7 +6340,7 @@ void ProcItemArrow(TItem *item)
                     }
                     model = *models;
                     SetImpact(GetAbsolutePosition(model, 0, 0, 0),
-                              6 * FIXED_ONE, IMPACT_SPRITE_HIT);
+                              ARROW_HIT_IMPACT_SIZE, IMPACT_SPRITE_HIT);
                     SoundEx(GetAbsolutePosition(model, 0, 0, 0), SE_PROJECTILE_HIT);
                     ArrangeLocalMatrix(model,
                                        &item->locate->locate.coord);
@@ -6347,7 +6350,7 @@ void ProcItemArrow(TItem *item)
                     item->locate->locate.coord.t[0] = 0;
                     item->locate->locate.coord.t[1] = 0;
                     item->locate->locate.coord.t[2] = 0;
-                    param->count = 120;
+                    param->count = ARROW_EMBED_DURATION;
                     item->mode++;
                     DeleteConflict(item->locate);
                     break;
@@ -6356,34 +6359,31 @@ void ProcItemArrow(TItem *item)
         }
         else
         {
-            if (param->fly.mode != FLY_MODE_ARC)
+            if (param->fly.mode != FLY_MODE_ARC &&
+                param->fly.p.koro.status != KORO_NORMAL)
             {
-                if (param->fly.p.koro.status != KORO_NORMAL)
+                if (param->fly.p.koro.status == KORO_WATER)
                 {
-                    if (param->fly.p.koro.status == KORO_WATER)
+                    if (item->proc == 0)
                     {
-                        ppu = item->proc;
-                        if (ppu == 0)
-                        {
-                            return;
-                        }
-                        DISPOSE_ITEM(item);
                         return;
                     }
-                    SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
-                    SetBleeds(MODEL_POSITION(item->locate),
-                              0, 25, 30, 30, COLOR_YELLOW);
-                    param->count = 30;
-                    item->mode++;
-                    DeleteConflict(item->locate);
+                    DISPOSE_ITEM(item);
                     return;
                 }
+                SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
+                SetBleeds(MODEL_POSITION(item->locate),
+                          0, ARROW_GROUND_BLOOD_SPREAD,
+                          ARROW_GROUND_BLOOD_PARTICLES,
+                          ARROW_GROUND_BLOOD_LIFETIME, COLOR_YELLOW);
+                param->count = ARROW_GROUND_WAIT_DURATION;
+                item->mode++;
+                DeleteConflict(item->locate);
+                return;
             }
         }
 
-        v2.vx = item->locate->locate.coord.t[0];
-        v2.vy = item->locate->locate.coord.t[1];
-        v2.vz = item->locate->locate.coord.t[2];
+        copyVector(&v2, MODEL_POSITION(item->locate));
         GetVectorRotation(&v1, &v2, &rx, &ry);
         item->locate->rotate.vx = rx;
         item->locate->rotate.vy = ry;
@@ -6391,7 +6391,7 @@ void ProcItemArrow(TItem *item)
             s32 clock;
 
             clock = GameClock;
-            item->locate->rotate.vz = clock << 8;
+            item->locate->rotate.vz = clock * ARROW_ROLL_STEP;
         }
         UpdateCoordinate(item->locate);
         break;
@@ -6399,15 +6399,11 @@ void ProcItemArrow(TItem *item)
 
     case ARROW_MODE_WAIT:
     {
-        u8 count;
-
-        count = param->count - 1;
-        param->count = count;
-        if (count != 0)
+        if (--param->count != 0)
         {
             break;
         }
-        param->count = 15;
+        param->count = ARROW_BLINK_DURATION;
         item->mode++;
         break;
     }
@@ -6416,19 +6412,17 @@ void ProcItemArrow(TItem *item)
     {
         u8 count;
 
-        count = param->count - 1;
-        param->count = count;
+        count = --param->count;
         if (count == 0)
         {
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
             {
                 return;
             }
             DISPOSE_ITEM(item);
             return;
         }
-        if ((count & 1) != 0)
+        if ((count & (ARROW_BLINK_INTERVAL - 1)) != 0)
         {
             return;
         }
