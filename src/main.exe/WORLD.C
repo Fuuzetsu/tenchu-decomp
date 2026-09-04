@@ -1468,6 +1468,11 @@ have_z:
 
 enemy_layout_index leFindEnemy(void)
 {
+    enum
+    {
+        ENEMY_PICK_RADIUS = 2000,
+        MARKER_VERTICAL_VELOCITY = -100,
+    };
     int i;
     s32 px, py, pz;
     enemy_layout_index find;
@@ -1476,7 +1481,7 @@ enemy_layout_index leFindEnemy(void)
     int dx, dy, dz;
 
     find = ENEMY_LAYOUT_NONE;
-    r = 2000;
+    r = ENEMY_PICK_RADIUS;
     px = CamState.Owner->model->locate.coord.t[0];
     py = CamState.Owner->model->locate.coord.t[1];
     pz = CamState.Owner->model->locate.coord.t[2];
@@ -1505,7 +1510,7 @@ enemy_layout_index leFindEnemy(void)
     {
         SVECTOR pow = {
             .vx = 0,
-            .vy = -100,
+            .vy = MARKER_VERTICAL_VELOCITY,
             .vz = 0
         };
         VECTOR pos = {
