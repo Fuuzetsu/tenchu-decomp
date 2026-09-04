@@ -2621,6 +2621,14 @@ return_pad:
 
 static short AttackGeneral(void)
 {
+    enum close_attack_choice
+    {
+        CLOSE_ATTACK_BACKFLIP,
+        CLOSE_ATTACK_CROUCH_STRIKE,
+        CLOSE_ATTACK_DASH_BACKWARD,
+        CLOSE_ATTACK_STRIKE,
+        N_CLOSE_ATTACK_CHOICES
+    };
     s16 pad;
 
     pad = 0;
@@ -2743,18 +2751,18 @@ static short AttackGeneral(void)
         {
             if (Distance < 1000)
             {
-                switch (rand() % 4)
+                switch (rand() % N_CLOSE_ATTACK_CHOICES)
                 {
-                case 0:
+                case CLOSE_ATTACK_BACKFLIP:
                     pad = PADLdown | PADRdown;
                     break;
-                case 1:
+                case CLOSE_ATTACK_CROUCH_STRIKE:
                     pad = PADRleft | PADRright;
                     break;
-                case 2:
+                case CLOSE_ATTACK_DASH_BACKWARD:
                     pad = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
                     break;
-                case 3:
+                case CLOSE_ATTACK_STRIKE:
                     pad |= PADRleft;
                     break;
                 default:
