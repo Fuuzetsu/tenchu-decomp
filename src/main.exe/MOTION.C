@@ -1502,7 +1502,8 @@ void AttackControl(void)
                         enemy->life = 0;
                         if ((enemy->status != STAT_DEAD ||
                              enemy->motion->loop != MOTION_LOOP_DISABLED) &&
-                            UpdateMotion(enemy->motion, emid) != 0)
+                            UpdateMotion(enemy->motion, emid) !=
+                                MOTION_UPDATE_NOT_FOUND)
                         {
                             enemy->status = (s8)MOTION_STATUS(emid);
                             MoveHumanoid(enemy, enemy->motion->motion->orderspd,
