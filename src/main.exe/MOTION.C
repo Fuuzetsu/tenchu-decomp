@@ -210,6 +210,12 @@ void HumanActionControl(Humanoid *human)
 
 short SwimCheck(void)
 {
+    enum
+    {
+        SWIM_SPLASH_COUNT = 20,
+        SWIM_SPLASH_SCALE_MASK = 7,
+        SWIM_SPLASH_SPEED = 6,
+    };
     character_status status;
     short i;
     VECTOR vect;
@@ -258,8 +264,7 @@ short SwimCheck(void)
         }
 
         vect.vy = Me_MOTION_C->map.level;
-        i = 0;
-        do
+        for (i = 0; i < SWIM_SPLASH_COUNT; i++)
         {
             r = rand();
             width = Me_MOTION_C->width;
@@ -267,10 +272,10 @@ short SwimCheck(void)
             r = rand();
             width = Me_MOTION_C->width;
             vect.vz = dtL->vz + (r % width) * 2 - width;
-            SetSplash(&vect, (rand() & 7) << FIXED_SHIFT,
-                      (rand() & 7) << FIXED_SHIFT, 6);
-            i++;
-        } while (i < 20);
+            SetSplash(&vect, (rand() & SWIM_SPLASH_SCALE_MASK) << FIXED_SHIFT,
+                      (rand() & SWIM_SPLASH_SCALE_MASK) << FIXED_SHIFT,
+                      SWIM_SPLASH_SPEED);
+        }
 
         AttackCancelControl(ATTACK_CANCEL_ALL);
         if (Me_MOTION_C == StagePlayer)
