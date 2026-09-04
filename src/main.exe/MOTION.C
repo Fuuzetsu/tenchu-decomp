@@ -5680,7 +5680,7 @@ void ActDEAD(void)
         {
             count = motion->count;
             stop = DEATH_EVENT_END;
-            for (;;)
+            while (1)
             {
                 if (pp[i].frame != count)
                 {
