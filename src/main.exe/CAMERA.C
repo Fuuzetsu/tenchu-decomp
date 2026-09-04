@@ -975,14 +975,13 @@ void SetCameraMode(TCameraMode mode)
                 camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);
                 pos = cs->Owner->locate;
                 rot = cs->Owner->rotate;
-                do
                 {
                     scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
                     scratch_rot_1f800040.vy = rot->vy;
                     scratch_rot_1f800040.vz = rot->vz;
                     RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
                                  (MATRIX *)TENCHU_SCRATCHPAD(0x80));
-                } while (0);
+                }
                 scratch_trans_1f800094[0] = pos->vx;
                 scratch_trans_1f800094[1] = pos->vy;
                 scratch_trans_z_1f80009c = pos->vz;
