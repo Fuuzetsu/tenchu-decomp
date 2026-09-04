@@ -197,12 +197,9 @@ Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
     character_kind *idtbl;
 
     idx = 0;
-    while (HumanData[idx].type != CHARACTER_KIND_END)
+    while (HumanData[idx].type != CHARACTER_KIND_END &&
+           HumanData[idx].type != type)
     {
-        if (HumanData[idx].type == type)
-        {
-            break;
-        }
         idx++;
     }
     human->turn = HumanData[idx].turn;
@@ -221,12 +218,8 @@ Humanoid *SetupCharacterParameter(character_kind type, Humanoid *human)
     {
         idtbl = StageAppearance[NowStage];
         idx = 0;
-        while (idtbl[idx] != type)
+        while (idtbl[idx] != type && idtbl[idx] != CHARACTER_KIND_END)
         {
-            if (idtbl[idx] == CHARACTER_KIND_END)
-            {
-                break;
-            }
             idx++;
         }
     }
