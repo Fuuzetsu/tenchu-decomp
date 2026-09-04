@@ -4219,7 +4219,8 @@ void ActJUMP(void)
         {
             return;
         }
-        if (UpdateMotion(dtM, MOT_JUMP_WALLKICK) == 0)
+        if (UpdateMotion(dtM, MOT_JUMP_WALLKICK) ==
+            MOTION_UPDATE_NOT_FOUND)
         {
             return;
         }
