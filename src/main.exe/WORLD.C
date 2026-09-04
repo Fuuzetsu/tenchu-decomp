@@ -1864,7 +1864,7 @@ enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
     TEnemyLayout *e;
 
     idx = 0;
-    for (;;)
+    while (1)
     {
         if (enemy[idx].type != CHARACTER_KIND_END)
         {
