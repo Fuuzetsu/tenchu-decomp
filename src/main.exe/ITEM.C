@@ -5643,13 +5643,24 @@ void ProcItemNapalm(TItem *item)
         NAPALM_MODE_START = 0,
         NAPALM_MODE_EXPAND = 1,
         NAPALM_MODE_FINISH = 2,
-        MaxCount = 20
+        NAPALM_MAX_COUNT = 20,
+        NAPALM_POSITION_CURVE_DIVISOR = 100,
+        NAPALM_BRIGHTNESS_JITTER = 25,
+        NAPALM_BRIGHTNESS_BASE = 26,
+        NAPALM_BRIGHTNESS_FADE = 230,
+        NAPALM_COLOR_MAX = 0xff,
+        NAPALM_SECONDARY_BRIGHTNESS_DIVISOR = 3,
+        NAPALM_SCALE_DIVISOR = 50,
+        NAPALM_COLLISION_FRAME = 10,
+        NAPALM_COLLISION_RADIUS = 500,
+        NAPALM_HIT_JITTER_SPREAD = 200,
+        NAPALM_HIT_JITTER_RADIUS = NAPALM_HIT_JITTER_SPREAD / 2,
+        NAPALM_HIT_FRAME_SIZE = 3 * FIXED_ONE,
+        NAPALM_HIT_FRAME_LIFETIME = 60
     };
     Sprite3D *model;
     param_napalm *param;
-    void (*proc)(TItem *);
-    u8 count;
-    s32 ex;
+    s32 progress_squared;
     s32 cid;
 
     model = (Sprite3D *)item->model;
@@ -5669,42 +5680,47 @@ void ProcItemNapalm(TItem *item)
 
     case NAPALM_MODE_EXPAND:
     {
-        u8 t;
+        u8 brightness;
 
-        ex = param->count;
-        ex = ex * ex;
-        item->locate->locate.coord.t[0] += param->vec.vx * ex / 100;
-        item->locate->locate.coord.t[1] += param->vec.vy * ex / 100;
-        item->locate->locate.coord.t[2] += param->vec.vz * ex / 100;
+        progress_squared = param->count * param->count;
+        item->locate->locate.coord.t[0] +=
+            param->vec.vx * progress_squared / NAPALM_POSITION_CURVE_DIVISOR;
+        item->locate->locate.coord.t[1] +=
+            param->vec.vy * progress_squared / NAPALM_POSITION_CURVE_DIVISOR;
+        item->locate->locate.coord.t[2] +=
+            param->vec.vz * progress_squared / NAPALM_POSITION_CURVE_DIVISOR;
 
-        t = rand() % 25;
-        t -= 26;
-        t -= param->count * 230 / MaxCount;
-        model->sprite.r = t;
+        brightness = rand() % NAPALM_BRIGHTNESS_JITTER -
+                     NAPALM_BRIGHTNESS_BASE -
+                     param->count * NAPALM_BRIGHTNESS_FADE / NAPALM_MAX_COUNT;
+        model->sprite.r = brightness;
         model->sprite.g = model->sprite.r;
         model->sprite.b = model->sprite.r;
-        model->sprite.rotate = (rand() % 360) << FIXED_SHIFT;
-        model->scale = (ex << FIXED_SHIFT) / 50 + FIXED_ONE;
+        model->sprite.rotate = (rand() % 360) * FIXED_ONE;
+        model->scale = progress_squared * FIXED_ONE /
+                           NAPALM_SCALE_DIVISOR +
+                       FIXED_ONE;
 
-        sprNapalm2->sprite.r = (ITEM_MODE_DISPOSE - model->sprite.r) / 3;
+        sprNapalm2->sprite.r =
+            (NAPALM_COLOR_MAX - model->sprite.r) /
+            NAPALM_SECONDARY_BRIGHTNESS_DIVISOR;
         sprNapalm2->sprite.g = sprNapalm2->sprite.r;
         sprNapalm2->sprite.b = sprNapalm2->sprite.r;
         sprNapalm2->sprite.rotate = model->sprite.rotate;
         sprNapalm2->scale = model->scale;
 
-        if (param->count == 10)
+        if (param->count == NAPALM_COLLISION_FRAME)
         {
             s32 conflict_id;
 
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            SET_ITEM_COLLISION(conflict_id, 500, CONFLICT_OWNER_ITEM,
+            SET_ITEM_COLLISION(conflict_id, NAPALM_COLLISION_RADIUS,
+                               CONFLICT_OWNER_ITEM,
                                CONFLICT_HIT);
         }
 
-        count = param->count + 1;
-        param->count = count;
-        if (count > MaxCount)
+        if (++param->count > NAPALM_MAX_COUNT)
         {
             item->mode++;
         }
@@ -5735,12 +5751,16 @@ void ProcItemNapalm(TItem *item)
                 model = *objects;
                 {
                     VECTOR pos = {
-                        .vx = rand() % 200 - 100,
-                        .vy = rand() % 200 - 100,
-                        .vz = rand() % 200 - 100
+                        .vx = rand() % NAPALM_HIT_JITTER_SPREAD -
+                              NAPALM_HIT_JITTER_RADIUS,
+                        .vy = rand() % NAPALM_HIT_JITTER_SPREAD -
+                              NAPALM_HIT_JITTER_RADIUS,
+                        .vz = rand() % NAPALM_HIT_JITTER_SPREAD -
+                              NAPALM_HIT_JITTER_RADIUS
                     };
 
-                    SetFrame(&pos, 3 * FIXED_ONE, 60,
+                    SetFrame(&pos, NAPALM_HIT_FRAME_SIZE,
+                             NAPALM_HIT_FRAME_LIFETIME,
                              &model->locate);
                 }
             }
@@ -5753,8 +5773,7 @@ void ProcItemNapalm(TItem *item)
                             AREA_LEVEL_DEFAULT) ==
             LEVEL_NONE)
         {
-            proc = item->proc;
-            if (proc == 0)
+            if (item->proc == 0)
             {
                 return;
             }
@@ -5765,8 +5784,7 @@ void ProcItemNapalm(TItem *item)
     }
 
     case NAPALM_MODE_FINISH:
-        proc = item->proc;
-        if (proc == 0)
+        if (item->proc == 0)
         {
             return;
         }
