@@ -5634,6 +5634,14 @@ typedef struct
 extern DeadEvent *DeadEvents[N_STEALTH_DEATH_MOTIONS];
 void ActDEAD(void)
 {
+    enum
+    {
+        DROWN_SPLASH_SOUND_CHANCE = 20,
+        DROWN_SPLASH_TRIGGER_MASK = 5,
+        DROWN_SPLASH_COUNT = 5,
+        DROWN_SPLASH_SCALE_MASK = 7,
+        DROWN_SPLASH_SPEED = 6,
+    };
     ModelArchiveType *model;
     short blood;
     short bldo;
@@ -5712,13 +5720,12 @@ void ActDEAD(void)
     switch (mid)
     {
     case MOT_DEAD_DROWN:
-        if (rand() % 20 == 0)
+        if (rand() % DROWN_SPLASH_SOUND_CHANCE == 0)
             Sound(Me_MOTION_C, SE_WATER_SPLASH);
         p.vy = Me_MOTION_C->map.level;
-        if ((rand() & 5) == 0)
+        if ((rand() & DROWN_SPLASH_TRIGGER_MASK) == 0)
         {
-            i = 0;
-            do
+            for (i = 0; i < DROWN_SPLASH_COUNT; i++)
             {
                 long width;
                 int r;
@@ -5729,10 +5736,11 @@ void ActDEAD(void)
                 r = rand();
                 width = Me_MOTION_C->width;
                 p.vz = dtL->vz + (r % width) * 2 - width;
-                SetSplash(&p, (rand() & 7) << FIXED_SHIFT,
-                          (rand() & 7) << FIXED_SHIFT, 6);
-                i++;
-            } while (i < 5);
+                SetSplash(&p,
+                          (rand() & DROWN_SPLASH_SCALE_MASK) << FIXED_SHIFT,
+                          (rand() & DROWN_SPLASH_SCALE_MASK) << FIXED_SHIFT,
+                          DROWN_SPLASH_SPEED);
+            }
         }
         break;
 
