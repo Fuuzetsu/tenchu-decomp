@@ -48,6 +48,11 @@ extern char fmt_dbg_rot[];
 
 Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
 {
+    enum
+    {
+        BEAR_COLLISION_Y_OFFSET = -0x1C5,
+        BEAR_COLLISION_Z_OFFSET = 0xC0
+    };
     Humanoid *human;
     s16 conflict_id;
     u16 hh;
@@ -91,8 +96,8 @@ Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
         (s16)ww / 2;
     if (type == KUMA_0 || type == KUMA_1)
     {
-        ConflictObject[conflict_id].offset.vy = -0x1C5;
-        ConflictObject[conflict_id].offset.vz = 0xC0;
+        ConflictObject[conflict_id].offset.vy = BEAR_COLLISION_Y_OFFSET;
+        ConflictObject[conflict_id].offset.vz = BEAR_COLLISION_Z_OFFSET;
     }
     oldHumans = Humans;
     Humans++;
