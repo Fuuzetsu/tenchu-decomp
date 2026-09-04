@@ -465,7 +465,7 @@ short HangCheck(void)
     }
     ry = dtR->vy;
     oy = y;
-    if (ry & 0xFF)
+    if (ry & ANGLE_SIXTEENTH_FRACTION_MASK)
     {
         yc = ry & ANGLE_QUADRANT_MASK;
         if (ry & ANGLE_HALF_QUADRANT)
