@@ -196,12 +196,23 @@ static inline void ProcMiscFire(TMisc *m, TMiscMessage msg)
 
 static void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
 {
+    enum
+    {
+        BONFIRE_EMBER_SPEED_Y = -60,
+        BONFIRE_BRIGHTNESS_MIN = 100,
+        BONFIRE_BRIGHTNESS_RANGE = 100,
+        BONFIRE_EMBER_INTERVAL = 16,
+        BONFIRE_EMBER_SPREAD = 100,
+        BONFIRE_EMBER_COUNT = 10,
+        BONFIRE_EMBER_LIFETIME = 30,
+        BONFIRE_SOUND_INTERVAL = 79
+    };
     SVECTOR direction[2];
     GsSPRITE *frame;
 
     direction[0] = (SVECTOR){
         .vx = 0,
-        .vy = -60,
+        .vy = BONFIRE_EMBER_SPEED_Y,
         .vz = 0
     };
     frame = &sprFrame[GameClock % MaxFrames];
@@ -221,11 +232,12 @@ static void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
         if (m->mode != 0)
             break;
 
-        frame->r = frame->g = frame->b = (u8)(rand() % 100 + 100);
+        frame->r = frame->g = frame->b =
+            (u8)(rand() % BONFIRE_BRIGHTNESS_RANGE + BONFIRE_BRIGHTNESS_MIN);
         DrawSpriteXYZ(frame, m->x, m->y, m->z,
                       m->param.bonfire.scale);
 
-        if ((GameClock & 0xF) == 0)
+        if ((GameClock & (BONFIRE_EMBER_INTERVAL - 1)) == 0)
         {
             VECTOR bleed_pos = {
                 .vx = m->x,
@@ -233,11 +245,12 @@ static void proc_misc_bonfire_(TMisc *m, TMiscMessage msg)
                 .vz = m->z
             };
 
-            SetBleedsDir(&bleed_pos, direction, 100, 10, 30,
+            SetBleedsDir(&bleed_pos, direction, BONFIRE_EMBER_SPREAD,
+                         BONFIRE_EMBER_COUNT, BONFIRE_EMBER_LIFETIME,
                          RGB24(100, 100, 60));
         }
 
-        if (GameClock % 79 == 0)
+        if (GameClock % BONFIRE_SOUND_INTERVAL == 0)
         {
             VECTOR pos = {
                 .vx = m->x,
