@@ -2229,7 +2229,12 @@ static void DrawExplosion(TEffectSlot *ef)
 {
     enum
     {
-        fo = 5
+        EXPLOSION_EXPAND_FRAMES = 3,
+        EXPLOSION_FADE_FRAMES = 5,
+        EXPLOSION_ALPHA_SHIFT = 7,
+        EXPLOSION_ALPHA_MAX = 1 << EXPLOSION_ALPHA_SHIFT,
+        EXPLOSION_SCALE_GROWTH = 2 * FIXED_ONE,
+        EXPLOSION_SCALE_SHRINK = FIXED_ONE / EXPLOSION_FADE_FRAMES
     };
     ExplosionType *param;
     Sprite3D *spr;
@@ -2237,18 +2242,18 @@ static void DrawExplosion(TEffectSlot *ef)
     long rotate;
 
     param = &ef->param.explosion;
-    alfa = 0x80;
+    alfa = EXPLOSION_ALPHA_MAX;
     switch (param->mode)
     {
     case EXPLOSION_MODE_FLASH:
         if (param->time == 0)
         {
-            param->time = 3;
+            param->time = EXPLOSION_EXPAND_FRAMES;
             param->mode++;
         }
         else
         {
-            param->scale += 0x2000;
+            param->scale += EXPLOSION_SCALE_GROWTH;
             param->rotate += 100 * FIXED_ONE; /* 100 deg/frame */
         }
         spr = sprBomb[BOMB_SPRITE_FLASH];
@@ -2256,16 +2261,17 @@ static void DrawExplosion(TEffectSlot *ef)
     case EXPLOSION_MODE_EXPAND:
         if (param->time == 0)
         {
-            param->time = fo;
+            param->time = EXPLOSION_FADE_FRAMES;
             param->mode++;
         }
-        param->scale += 0x2000;
+        param->scale += EXPLOSION_SCALE_GROWTH;
         param->rotate += 100 * FIXED_ONE; /* 100 deg/frame */
         spr = sprBomb[BOMB_SPRITE_EXPANDED];
         break;
     case EXPLOSION_MODE_FADE:
-        alfa = (u8)((param->time << 7) / fo);
-        param->scale -= 0x333;
+        alfa = (u8)((param->time << EXPLOSION_ALPHA_SHIFT) /
+                    EXPLOSION_FADE_FRAMES);
+        param->scale -= EXPLOSION_SCALE_SHRINK;
         param->rotate += 90 * FIXED_ONE; /* 90 deg/frame */
         if (param->time == 0)
         {
