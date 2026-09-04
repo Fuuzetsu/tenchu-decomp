@@ -4146,10 +4146,18 @@ static void ProcItemNinken(TItem *item)
     {
         NINKEN_MODE_ROLL = 0,
         NINKEN_MODE_SPAWN = 1,
-        NINKEN_MODE_ACTIVE = 2
+        NINKEN_MODE_ACTIVE = 2,
+        NINKEN_SPAWN_PROBE_DEPTH = 2000,
+        NINKEN_SPAWN_PROBE_RADIUS = 500,
+        NINKEN_SPAWN_MAX_DROP = 500,
+        NINKEN_SPAWN_RETRY_DELAY = 15,
+        NINKEN_SMOKE_RISE_SPEED = 50,
+        NINKEN_SMOKE_PARTICLES = 10,
+        NINKEN_SMOKE_LIFETIME = 6,
+        NINKEN_TARGET_SCAN_INTERVAL = 15,
+        NINKEN_TARGET_SEARCH_RADIUS = 10000
     };
     param_ninken *param;
-    s32 water;
 
     param = &item->param.ninken;
     if (item->mode == ITEM_MODE_DISPOSE)
@@ -4161,16 +4169,14 @@ static void ProcItemNinken(TItem *item)
         {
             NowReturnNormal(slave);
             param->slave->attribute |= ATTR_SUSPEND;
-            param->slave->model->locate.coord.t[0] = NINKEN_PARK_POS;
-            param->slave->model->locate.coord.t[1] = NINKEN_PARK_POS;
-            param->slave->model->locate.coord.t[2] = NINKEN_PARK_POS;
+            setVector(MODEL_POSITION(param->slave->model),
+                      NINKEN_PARK_POS, NINKEN_PARK_POS, NINKEN_PARK_POS);
             UpdateCoordinate((ModelType *)param->slave->model);
         }
         item->mode = NINKEN_MODE_ROLL;
         return;
     }
 
-    water = KORO_WATER;
     switch (item->mode)
     {
     case NINKEN_MODE_ROLL:
@@ -4179,12 +4185,9 @@ static void ProcItemNinken(TItem *item)
 
         MoveKorogari(item, &param->koro);
         status = param->koro.status;
-        if (status == water)
+        if (status == KORO_WATER)
         {
-            void (*dispose_proc)(TItem *);
-
-            dispose_proc = item->proc;
-            if (dispose_proc == 0)
+            if (item->proc == 0)
             {
                 return;
             }
@@ -4201,12 +4204,7 @@ static void ProcItemNinken(TItem *item)
 
             rparam = (PARAM_ITEM_STAY){0};
             rparam.type = item->type;
-            rparam.locate.vx =
-                item->locate->locate.coord.t[0];
-            rparam.locate.vy =
-                item->locate->locate.coord.t[1];
-            rparam.locate.vz =
-                item->locate->locate.coord.t[2];
+            copyVector(&rparam.locate, MODEL_POSITION(item->locate));
             saved_record = rparam;
 
             if (item->proc != 0)
@@ -4218,12 +4216,8 @@ static void ProcItemNinken(TItem *item)
             launch = &launch_record;
             launch_record.type = saved->type;
             launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
-            launch_record.start.vx = saved->locate.vx;
-            launch_record.start.vy = saved->locate.vy;
-            launch_record.start.vz = saved->locate.vz;
-            launch_record.end.vx = 0;
-            launch_record.end.vy = 0;
-            launch_record.end.vz = 0;
+            copyVector(&launch_record.start, &saved->locate);
+            setVector(&launch_record.end, 0, 0, 0);
             launch_record.start.vy = GetAreaMapLevel(
                 GlobalAreaMap, launch_record.start.vx,
                 launch_record.start.vy,
@@ -4231,14 +4225,11 @@ static void ProcItemNinken(TItem *item)
             ReqItemDrop(launch);
             return;
         }
-        else
         {
             u16 count;
 
-            count = param->count - 1;
-            param->count = count;
-            /* The u16 countdown fires at zero and again after wrapping to 0xffff. */
-            if ((count << 16) <= 0)
+            count = --param->count;
+            if ((s16)count <= 0)
             {
                 item->mode++;
             }
@@ -4261,14 +4252,14 @@ static void ProcItemNinken(TItem *item)
         }
         if (create != 0)
         {
-            NINKEN_CHARACTER_PTR = BreedLife(NINKEN, NINKEN_PARK_POS, NINKEN_PARK_POS,
-                                             NINKEN_PARK_POS, 0);
+            NINKEN_CHARACTER_PTR =
+                BreedLife(NINKEN, NINKEN_PARK_POS, NINKEN_PARK_POS,
+                          NINKEN_PARK_POS, 0);
             NINKEN_CHARACTER_PTR->attribute |= ATTR_SUSPEND;
         }
 
         {
             s32 valid;
-            Humanoid *slave;
             VECTOR *position;
             VECTOR *query;
             MapVector *map;
@@ -4279,16 +4270,16 @@ static void ProcItemNinken(TItem *item)
             position = &pos;
             query = &work;
             map = &map_result;
-            pos.vx = item->locate->locate.coord.t[0];
-            pos.vy = item->locate->locate.coord.t[1];
-            pos.vz = item->locate->locate.coord.t[2];
+            copyVector(&pos, MODEL_POSITION(item->locate));
             work.vx = position->vx;
             work.vy = position->vy;
             work.vz = position->vz;
-            work.vy -= 2000;
-            GetAreaMapVector(GlobalAreaMap, map, query, 500, AREA_LEVEL_DEFAULT);
+            work.vy -= NINKEN_SPAWN_PROBE_DEPTH;
+            GetAreaMapVector(GlobalAreaMap, map, query,
+                             NINKEN_SPAWN_PROBE_RADIUS,
+                             AREA_LEVEL_DEFAULT);
 
-            if (map_result.level >= position->vy - 500)
+            if (map_result.level >= position->vy - NINKEN_SPAWN_MAX_DROP)
             {
                 if (map_result.level < position->vy)
                 {
@@ -4304,27 +4295,24 @@ static void ProcItemNinken(TItem *item)
                 (NINKEN_CHARACTER_PTR->attribute & ATTR_SUSPEND) == 0)
             {
                 item->mode--;
-                param->count = 15; /* retry the spawn shortly */
+                param->count = NINKEN_SPAWN_RETRY_DELAY;
                 return;
             }
 
             *(SVECTOR *)&work = (SVECTOR){
                 .vx = 0,
-                .vy = -50,
+                .vy = -NINKEN_SMOKE_RISE_SPEED,
                 .vz = 0
             };
-            SetSmoke(&pos, (SVECTOR *)&work, 10, 6);
+            SetSmoke(&pos, (SVECTOR *)&work, NINKEN_SMOKE_PARTICLES,
+                     NINKEN_SMOKE_LIFETIME);
             SoundEx(&pos, SE_SMOKE_PUFF);
             param->slave = NINKEN_CHARACTER_PTR;
             NINKEN_CHARACTER_PTR->status = STAT_NORMAL;
-            slave = param->slave;
-            slave->life = slave->lifemax;
-            param->slave->model->locate.coord.t[0] = pos.vx;
-            param->slave->model->locate.coord.t[1] = pos.vy;
-            param->slave->model->locate.coord.t[2] = pos.vz;
-            param->slave->model->rotate.vx = item->owner->model->rotate.vx;
-            param->slave->model->rotate.vy = item->owner->model->rotate.vy;
-            param->slave->model->rotate.vz = item->owner->model->rotate.vz;
+            param->slave->life = param->slave->lifemax;
+            copyVector(MODEL_POSITION(param->slave->model), &pos);
+            copyVector(&param->slave->model->rotate,
+                       &item->owner->model->rotate);
             EquipWeapon(param->slave, WEAPON_SHEATHED);
             SetNowMotion(param->slave, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             param->slave->attribute &= ~ATTR_PHASE;
@@ -4364,33 +4352,27 @@ static void ProcItemNinken(TItem *item)
             }
         }
 
-        count = param->count - 1;
-        param->count = count;
-        /* The u16 countdown fires at zero and again after wrapping to 0xffff. */
-        if ((count << 16) <= 0 ||
+        count = --param->count;
+        if ((s16)count <= 0 ||
             (slave = param->slave)->life <= 0 ||
             (slave->attribute & ATTR_SUSPEND) != 0)
         {
             SVECTOR vec = {
                 .vx = 0,
-                .vy = -50,
+                .vy = -NINKEN_SMOKE_RISE_SPEED,
                 .vz = 0
             };
             SetSmoke(MODEL_POSITION(param->slave->model),
-                     &vec, 10, 6);
+                     &vec, NINKEN_SMOKE_PARTICLES,
+                     NINKEN_SMOKE_LIFETIME);
             SoundEx(MODEL_POSITION(param->slave->model), SE_SMOKE_PUFF);
             TurnAroundAllItems(param->slave);
+            if (item->proc == 0)
             {
-                void (*dispose_proc)(TItem *);
-
-                dispose_proc = item->proc;
-                if (dispose_proc == 0)
-                {
-                    return;
-                }
-                DISPOSE_ITEM(item);
                 return;
             }
+            DISPOSE_ITEM(item);
+            return;
         }
 
     {
@@ -4398,7 +4380,7 @@ static void ProcItemNinken(TItem *item)
         Humanoid *target;
         character_status status;
 
-        if (GameClock % 15 != 0)
+        if (GameClock % NINKEN_TARGET_SCAN_INTERVAL != 0)
         {
             return;
         }
@@ -4410,7 +4392,8 @@ static void ProcItemNinken(TItem *item)
 
         owner_attribute = item->owner->attribute;
         item->owner->attribute = ATTR_SUSPEND;
-        target = GetNearestHumanoid(param->slave, 10000);
+        target = GetNearestHumanoid(param->slave,
+                                    NINKEN_TARGET_SEARCH_RADIUS);
         item->owner->attribute = owner_attribute;
         if (target != 0)
         {
