@@ -369,13 +369,18 @@ void *vmemoryGC(void *pt)
         prev = (struct VMhead *)virtual_memory_pool;
         if (prev != 0)
         {
-        search:
-            n2 = prev->next;
-            if (n2 != header)
+            for (;;)
             {
-                prev = n2;
-                if (prev != 0)
-                    goto search;
+                n2 = prev->next;
+                if (n2 != header)
+                {
+                    prev = n2;
+                    if (prev != 0)
+                    {
+                        continue;
+                    }
+                }
+                break;
             }
             if (prev != 0)
             {
