@@ -7635,8 +7635,7 @@ TItem *GetFreeItemSlot(void)
     TItem *item;
     s32 i;
 
-    i = 0;
-    do
+    for (i = 0; i < MAX_ITEMS - 1; i++)
     {
         ic++;
         if (ic >= MAX_ITEMS)
@@ -7644,8 +7643,7 @@ TItem *GetFreeItemSlot(void)
         item = items + ic;
         if (item->proc == 0)
             return item;
-        i++;
-    } while (i < MAX_ITEMS - 1);
+    }
 
     item->mode = ITEM_MODE_DISPOSE;
     item->proc(item);
