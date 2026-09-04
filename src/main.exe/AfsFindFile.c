@@ -62,13 +62,16 @@ TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
         {
             *cursorPath = 0;
             entryIndex = subAfsFindFileInline(handle, buffer, AfsFlag_Folder);
-            if (entryIndex < 0)
+            if (entryIndex >= 0)
             {
-                goto not_found;
+                strcpy(component, buffer + cursor + 1);
+                sprintf(buffer, AfsPathFormat, entryIndex, component);
+                cursor = 0;
             }
-            strcpy(component, buffer + cursor + 1);
-            sprintf(buffer, AfsPathFormat, entryIndex, component);
-            cursor = 0;
+            else
+            {
+                return 0;
+            }
         }
         else
         {
@@ -77,10 +80,9 @@ TAFSElement *AfsFindFile(TAFS *handle, char *path, u32 flags)
     }
 
     entryIndex = subAfsFindFileInline(handle, buffer, flags);
-    if (entryIndex < 0)
+    if (entryIndex >= 0)
     {
-    not_found:
-        return 0;
+        return &handle->pElement[entryIndex];
     }
-    return &handle->pElement[entryIndex];
+    return 0;
 }
