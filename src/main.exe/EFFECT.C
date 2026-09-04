@@ -3725,12 +3725,14 @@ void SetPolyXF4(POLY_XF4 *ply, short attrib)
 
 void DisposeAfterimage(AfterimageType *afi)
 {
-    if (afi != 0)
+    if (afi == 0)
     {
-        vfree(afi->p1);
-        vfree(afi->p2);
-        vfree(afi);
+        return;
     }
+
+    vfree(afi->p1);
+    vfree(afi->p2);
+    vfree(afi);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
