@@ -485,12 +485,10 @@ void InitPadControl(void)
     if ((((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)->analog_pad_present &
          1) != 0)
     {
-        i = PAD_ANALOG_MODE_SWITCH_DELAY;
-        do
+        for (i = PAD_ANALOG_MODE_SWITCH_DELAY; i > 0; i--)
         {
             VSync(0);
-            i--;
-        } while (i > 0);
+        }
         PadSetMainMode(PAD_PORT_1, PAD_MAIN_MODE_ANALOG,
                        PAD_MAIN_MODE_KEEP_LOCK);
     }
