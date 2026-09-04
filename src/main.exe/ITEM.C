@@ -2029,7 +2029,16 @@ void ProcItemKusuri(TItem *item)
     {
         KUSURI_MODE_START = 0,
         KUSURI_MODE_DRINK = 1,
-        KUSURI_MODE_HEAL = 2
+        KUSURI_MODE_HEAL = 2,
+        KUSURI_HEAL_FRAME = 55,
+        N_KUSURI_HEAL_PARTICLES = 20,
+        KUSURI_PARTICLE_SCATTER = 1000,
+        KUSURI_PARTICLE_RADIUS = KUSURI_PARTICLE_SCATTER / 2,
+        KUSURI_PARTICLE_Y_OFFSET = 1200,
+        KUSURI_PARTICLE_SPEED_RANGE = 10,
+        KUSURI_PARTICLE_SPEED_BASE = -30,
+        KUSURI_PARTICLE_LIFETIME_RANGE = 16,
+        KUSURI_PARTICLE_LIFETIME_MIN = 15
     };
     Sprite3D *model;
     void (*ppu)(TItem *);
@@ -2115,7 +2124,7 @@ void ProcItemKusuri(TItem *item)
             s16 cnt;
 
             cnt = mot->count;
-            if (cnt == 0x37)
+            if (cnt == KUSURI_HEAL_FRAME)
             {
                 item->mode = KUSURI_MODE_HEAL;
                 return;
@@ -2126,7 +2135,7 @@ void ProcItemKusuri(TItem *item)
     }
         UpdateCoordinate(item->locate);
         model->locate = item->locate->locate;
-        model->scale = 0x2000;
+        model->scale = 2 * FIXED_ONE;
         DrawSprite(model);
         return;
 
@@ -2136,24 +2145,30 @@ void ProcItemKusuri(TItem *item)
         item->owner->life = item->owner->lifemax;
         while (1)
         {
-            if (i >= 0x14)
+            if (i >= N_KUSURI_HEAL_PARTICLES)
                 break;
             {
                 VECTOR pos = {
                     .vx = item->owner->model->locate.coord.t[0] +
-                        (rand() % 1000 - 500),
+                        (rand() % KUSURI_PARTICLE_SCATTER -
+                         KUSURI_PARTICLE_RADIUS),
                     .vy = item->owner->model->locate.coord.t[1] +
-                        (rand() % 1000 - 1200),
+                        (rand() % KUSURI_PARTICLE_SCATTER -
+                         KUSURI_PARTICLE_Y_OFFSET),
                     .vz = item->owner->model->locate.coord.t[2] +
-                        (rand() % 1000 - 500)
+                        (rand() % KUSURI_PARTICLE_SCATTER -
+                         KUSURI_PARTICLE_RADIUS)
                 };
                 SVECTOR vec = {
                     .vx = 0,
-                    .vy = rand() % 10 - 30,
+                    .vy = rand() % KUSURI_PARTICLE_SPEED_RANGE +
+                        KUSURI_PARTICLE_SPEED_BASE,
                     .vz = 0
                 };
 
-                SetBleed(&pos, &vec, rand() % 0x10 + 0xf,
+                SetBleed(&pos, &vec,
+                         rand() % KUSURI_PARTICLE_LIFETIME_RANGE +
+                             KUSURI_PARTICLE_LIFETIME_MIN,
                          RGB24(255, 255, 126));
             }
             i++;
