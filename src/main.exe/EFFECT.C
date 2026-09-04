@@ -481,11 +481,10 @@ void DrawBlood(TEffectSlot *ef)
 
     case BLOOD_MODE_LINGER:
     {
-        u16 oldtime;
+        u16 previous_time;
 
-        oldtime = blood->time;
-        blood->time = oldtime - 1;
-        if ((s16)oldtime <= 0)
+        previous_time = blood->time--;
+        if ((s16)previous_time <= 0)
         {
             blood->time = 0x80;
             blood->mode++;
@@ -495,12 +494,11 @@ void DrawBlood(TEffectSlot *ef)
 
     case BLOOD_MODE_SPREAD:
     {
-        u16 oldtime;
+        u16 previous_time;
 
         blood->scale += rand() % FIXED_ONE;
-        oldtime = blood->time;
-        blood->time = oldtime - 1;
-        if ((s16)oldtime <= 0)
+        previous_time = blood->time--;
+        if ((s16)previous_time <= 0)
         {
             blood->mode++;
             blood->time = rand() % 90;
@@ -518,7 +516,7 @@ void DrawBlood(TEffectSlot *ef)
         int sz;
         long rety;
         AreaNodeType *area;
-        u16 oldtime;
+        u16 previous_time;
         s32 scale_random;
         s32 random_x;
         s32 random_y;
@@ -580,9 +578,8 @@ void DrawBlood(TEffectSlot *ef)
         }
         else
         {
-            oldtime = blood->time;
-            blood->time = oldtime - 1;
-            if ((s16)oldtime <= 0)
+            previous_time = blood->time--;
+            if ((s16)previous_time <= 0)
             {
                 ef->proc = 0;
             }
