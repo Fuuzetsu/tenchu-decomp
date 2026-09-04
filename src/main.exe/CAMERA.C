@@ -239,7 +239,6 @@ static void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest,
     s32 slab;
     s32 sla;
     s32 spd;
-    s32 t;
     s32 mspd;
 
     dx = target->vx - src->vx;
@@ -270,18 +269,8 @@ static void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest,
 
     if (theta >= ALIGNMENT_RESCALE_THRESHOLD)
     {
-        t = theta;
-        if (theta < 0)
-        {
-            t = theta + FIXED_TRUNC_BIAS;
-        }
-        theta = t >> FIXED_SHIFT;
-        t = slab;
-        if (slab < 0)
-        {
-            t = slab + FIXED_TRUNC_BIAS;
-        }
-        slab = t >> FIXED_SHIFT;
+        theta /= FIXED_ONE;
+        slab /= FIXED_ONE;
     }
 
     if (slab == 0)
@@ -294,11 +283,7 @@ static void MakeDifSub(VECTOR *src, VECTOR *target, VECTOR *dest,
     }
 
     mspd = info->spd * (sla + FIXED_ONE);
-    if (mspd < 0)
-    {
-        mspd += 2 * FIXED_ONE - 1;
-    }
-    spd = mspd >> (FIXED_SHIFT + 1);
+    spd = mspd / (2 * FIXED_ONE);
     spd += info->ac;
     if (ip < spd)
     {
