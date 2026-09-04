@@ -966,7 +966,7 @@ void SetCameraMode(TCameraMode mode)
         cs = &CamState;
         tbl = CamPosCriticalHit;
         fp = &flag;
-        for (;;)
+        while (1)
         {
             if (i < N_CRITICAL_CAMERA_POSITIONS)
             {
