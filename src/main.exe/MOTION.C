@@ -89,6 +89,39 @@ static __inline__ void SetNowMotionUnlessCva(void)
     motMODE = MOTION_MOVE_UNSET;
 }
 
+static __inline__ short SetAttackMotionUnlessCva(void)
+{
+    short i;
+    short updated;
+
+    if (MotionUpdateMode != 0)
+    {
+        for (i = 0; i < N_CVA_HUMANS; i++)
+        {
+            if (CVAhuman[i].human == Me_MOTION_C)
+            {
+                return 0;
+            }
+        }
+    }
+
+    updated = SetNowMotion(Me_MOTION_C, motID, motMODE);
+    motMODE = MOTION_MOVE_UNSET;
+    return updated;
+}
+
+static __inline__ void SnapAttackMotionOrigin(void)
+{
+    int conflict_id;
+
+    conflict_id = (int)(*Me_MOTION_C->model->object)->id;
+    if (conflict_id >= 0)
+    {
+        dtL->vx = ConflictObject[conflict_id].position.vx;
+        dtL->vz = ConflictObject[conflict_id].position.vz;
+    }
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -3417,8 +3450,6 @@ dispatch:
         if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
             AttackContinuousCheck(battle) != 0)
         {
-            short i;
-
             if ((dtPAD & PADLright) != 0)
             {
                 motID = MOT_ATTACK_SLASH2_RIGHT;
@@ -3432,22 +3463,13 @@ dispatch:
                 motID = MOT_ATTACK_SLASH2;
             }
             motMODE = MOTION_MOVE_APPLY;
-            i = 0;
             /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
-            if (MotionUpdateMode != 0)
-            {
-                for (; i < N_CVA_HUMANS; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto no_motion;
-                    }
-                }
-            }
-            goto set_motion;
+            t = SetAttackMotionUnlessCva();
+            if (t != 0)
+                SnapAttackMotionOrigin();
         }
         break;
     case MOT_ATTACK_SLASH2:
@@ -3471,20 +3493,10 @@ dispatch:
         if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
             AttackContinuousCheck(battle) != 0)
         {
-            short i;
-
             SET_MOTION(MOT_ATTACK_SLASH3, MOTION_MOVE_APPLY);
-            if (MotionUpdateMode != 0)
-            {
-                for (i = 0; i < N_CVA_HUMANS; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto no_motion;
-                    }
-                }
-            }
-            goto set_motion;
+            t = SetAttackMotionUnlessCva();
+            if (t != 0)
+                SnapAttackMotionOrigin();
         }
         break;
     }
@@ -3500,20 +3512,10 @@ dispatch:
         if (((Me_MOTION_C->pad.trig & PADRleft) != 0) &&
             AttackContinuousCheck(battle) != 0)
         {
-            short i;
-
             SET_MOTION(MOT_ATTACK_SLASH4, MOTION_MOVE_APPLY);
-            if (MotionUpdateMode != 0)
-            {
-                for (i = 0; i < N_CVA_HUMANS; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto no_motion;
-                    }
-                }
-            }
-            goto set_motion;
+            t = SetAttackMotionUnlessCva();
+            if (t != 0)
+                SnapAttackMotionOrigin();
         }
         break;
     case MOT_ATTACK_SLASH4:
@@ -3534,8 +3536,6 @@ dispatch:
         if ((((Me_MOTION_C->pad.trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             AttackContinuousCheck(battle) != 0)
         {
-            short i;
-
             if ((dtPAD & PADLleft) != 0)
             {
                 motID = MOT_ATTACK_RIGHT2_LEFT;
@@ -3545,22 +3545,13 @@ dispatch:
                 motID = MOT_ATTACK_RIGHT2;
             }
             motMODE = MOTION_MOVE_APPLY;
-            i = 0;
             /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
-            if (MotionUpdateMode != 0)
-            {
-                for (; i < N_CVA_HUMANS; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto no_motion;
-                    }
-                }
-            }
-            goto set_motion;
+            t = SetAttackMotionUnlessCva();
+            if (t != 0)
+                SnapAttackMotionOrigin();
         }
         break;
     }
@@ -3576,52 +3567,22 @@ dispatch:
         if ((((Me_MOTION_C->pad.trig & PADRleft) != 0) && ((dtPAD & (PADLleft | PADLright)) != 0)) &&
             AttackContinuousCheck(battle) != 0)
         {
-            short i;
-
-            if ((dtPAD & PADLright) == 0)
+            if ((dtPAD & PADLright) != 0)
             {
-                goto combo_alt;
+                motID = MOT_ATTACK_LEFT2_RIGHT;
             }
-            motID = MOT_ATTACK_LEFT2_RIGHT;
-            goto set_combo;
-        no_motion:
-            t = 0;
-            goto snap_origin;
-        combo_alt:
-            motID = MOT_ATTACK_LEFT2;
-        set_combo:
+            else
+            {
+                motID = MOT_ATTACK_LEFT2;
+            }
             motMODE = MOTION_MOVE_APPLY;
-            i = 0;
             /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
-            if (MotionUpdateMode != 0)
-            {
-                for (; i < N_CVA_HUMANS; i++)
-                {
-                    if (CVAhuman[i].human == Me_MOTION_C)
-                    {
-                        goto no_motion;
-                    }
-                }
-            }
-        set_motion:
-            t = SetNowMotion(Me_MOTION_C, motID, motMODE);
-            motMODE = MOTION_MOVE_UNSET;
-        snap_origin:
+            t = SetAttackMotionUnlessCva();
             if (t != 0)
-            {
-                int conflict_id;
-
-                conflict_id = (int)(*Me_MOTION_C->model->object)->id;
-                if (conflict_id >= 0)
-                {
-                    dtL->vx = ConflictObject[conflict_id].position.vx;
-                    dtL->vz = ConflictObject[conflict_id].position.vz;
-                }
-            }
-            break;
+                SnapAttackMotionOrigin();
         }
         break;
     }
