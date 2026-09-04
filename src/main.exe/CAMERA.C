@@ -531,7 +531,7 @@ void debug_output_edit_camera_settings(s16 pad)
 
     i = 0;
     format = fmt_camera_edit;
-    for (; i < N_DEBUG_CAMERA_SLOTS; i++)
+    while (i < N_DEBUG_CAMERA_SLOTS)
     {
         marker = ' ';
         if (DEBUG_CAMERA_INDEX_ == i)
@@ -541,6 +541,7 @@ void debug_output_edit_camera_settings(s16 pad)
         FntPrint(format, marker, DEBUG_CAMERA_LABELS_[i],
                  DEBUG_CAMERA_SLOTS_[i]->vx, DEBUG_CAMERA_SLOTS_[i]->vy,
                  DEBUG_CAMERA_SLOTS_[i]->vz);
+        i++;
     }
 }
 
