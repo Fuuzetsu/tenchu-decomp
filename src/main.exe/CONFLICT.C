@@ -774,31 +774,33 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
     {
         if ((model->attribute & MODEL_ATTR_COLLIDE) == 0)
         {
-        ret_m1:
             return CONFLICT_NONE;
         }
         i = 0;
         if (index < 0)
         {
             index = 0;
-            if (index >= ConflictObjects)
+            if (index < ConflictObjects)
             {
-                goto ret_m1;
-            }
-            for (; index < ConflictObjects; index++)
-            {
-                if (ConflictObject[id].result[index] != 0)
+                for (; index < ConflictObjects; index++)
                 {
-                    i++;
-                    if (i > ConflictObject[id].offset.pad)
+                    if (ConflictObject[id].result[index] != 0)
                     {
-                        return CONFLICT_NONE;
-                    }
-                    if ((ConflictObject[id].result[index] & CONFLICT_CONSUMED) == 0)
-                    {
-                        break;
+                        i++;
+                        if (i > ConflictObject[id].offset.pad)
+                        {
+                            return CONFLICT_NONE;
+                        }
+                        if ((ConflictObject[id].result[index] & CONFLICT_CONSUMED) == 0)
+                        {
+                            break;
+                        }
                     }
                 }
+            }
+            else
+            {
+                return CONFLICT_NONE;
             }
         }
         k = index;
