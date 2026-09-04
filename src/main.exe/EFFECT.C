@@ -1707,7 +1707,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
 {
     int btime;
 
-    do
+    for (; ; n--)
     {
         if (n <= 0)
         {
@@ -1747,7 +1747,6 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
                 u8 r;
 
                 slot = GetFreeEffectSlot();
-                n--;
                 param = &slot->param.bleed;
                 r = col >> 16;
                 slot->param.bleed.pos = *pos;
@@ -1760,7 +1759,7 @@ void SetBleedsDir(VECTOR *pos, SVECTOR *vec, short grange, short n, int time, lo
                 slot->proc = DrawBleed;
             }
         }
-    } while (1);
+    }
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
