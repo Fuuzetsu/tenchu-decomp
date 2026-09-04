@@ -3760,7 +3760,8 @@ dispatch:
         if (human->status != STAT_DEAD ||
             human->motion->loop != MOTION_LOOP_DISABLED)
         {
-            if (UpdateMotion(human->motion, saved_mid) != 0)
+            if (UpdateMotion(human->motion, saved_mid) !=
+                MOTION_UPDATE_NOT_FOUND)
             {
                 human->status = MOTION_STATUS(saved_mid);
                 if (apply_movement != MOTION_MOVE_NONE)
