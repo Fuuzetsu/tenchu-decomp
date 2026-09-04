@@ -2012,6 +2012,11 @@ void ActNORMAL(void)
 
 void ActACTION(void)
 {
+    enum
+    {
+        ACTION_GETUP_INPUT_DELAY = 15
+    };
+
     switch (dtM->mid)
     {
     case MOT_ACTION_LOOP:
@@ -2099,7 +2104,7 @@ void ActACTION(void)
         {
             SET_MOTION(MOT_DAMAGE_GETUP, MOTION_MOVE_APPLY);
             SetNowMotionUnlessCva();
-            dtM->count = -0xf;
+            dtM->count = -ACTION_GETUP_INPUT_DELAY;
         }
         break;
 
