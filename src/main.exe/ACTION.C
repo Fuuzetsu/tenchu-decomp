@@ -98,7 +98,7 @@ MotionDataType *SearchMotion(short id)
  *     extern struct MotionRegistType MOTcommon[41];
  * END PSX.SYM */
 
-s16 UpdateMotion(MotionManager *mmp, motion_id mid)
+motion_update_result UpdateMotion(MotionManager *mmp, motion_id mid)
 {
     MotionRegistType *mrp;
     MotionDataType *md;
@@ -109,7 +109,7 @@ s16 UpdateMotion(MotionManager *mmp, motion_id mid)
     s16 sweep;
 
     if (mid == mmp->mid)
-        return -1;
+        return MOTION_UPDATE_UNCHANGED;
 
     mrp = mmp->motreg;
     i = 0;
@@ -130,7 +130,7 @@ s16 UpdateMotion(MotionManager *mmp, motion_id mid)
             i++;
         }
         if (mrp[i].motion == 0)
-            return 0;
+            return MOTION_UPDATE_NOT_FOUND;
     }
 
     md = mrp[i].motion;
@@ -156,7 +156,7 @@ s16 UpdateMotion(MotionManager *mmp, motion_id mid)
             xyz[j] = xyz[j] % ANGLE_FULL;
         }
     }
-    return 1;
+    return MOTION_UPDATE_CHANGED;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
