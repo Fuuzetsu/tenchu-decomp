@@ -624,28 +624,28 @@ conflict_id InsertConflict(ModelType *model)
 void DeleteConflict(ModelType *model)
 {
     short i;
-    short count;
 
-    if (model->id != CONFLICT_NONE)
+    if (model->id == CONFLICT_NONE)
     {
-        i = 0;
-        while (i < ConflictObjects)
-        {
-            count = ConflictObjects - 1;
-            if (ConflictObject[i].model == model)
-            {
-                ConflictObjects = count;
-                ConflictObject[i] = ConflictObject[count];
-                ConflictObject[i].model->id = i;
-            }
-            else
-            {
-                i++;
-            }
-        }
-        model->id = CONFLICT_NONE;
-        model->attribute = model->attribute & ~(MODEL_ATTR_CONFLICT | MODEL_ATTR_COLLIDE);
+        return;
     }
+
+    i = 0;
+    while (i < ConflictObjects)
+    {
+        if (ConflictObject[i].model == model)
+        {
+            ConflictObjects--;
+            ConflictObject[i] = ConflictObject[ConflictObjects];
+            ConflictObject[i].model->id = i;
+        }
+        else
+        {
+            i++;
+        }
+    }
+    model->id = CONFLICT_NONE;
+    model->attribute &= ~(MODEL_ATTR_CONFLICT | MODEL_ATTR_COLLIDE);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
