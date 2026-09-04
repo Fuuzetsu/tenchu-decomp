@@ -5532,13 +5532,25 @@ void ProcItemGun(TItem *item)
     {
         GUN_MODE_FLASH = 0,
         GUN_MODE_FIRE = 1,
-        GUN_MODE_FINISH = 2
+        GUN_MODE_FINISH = 2,
+        GUN_MUZZLE_VECTOR_Z = -250,
+        GUN_MUZZLE_IMPACT_SIZE = 2 * FIXED_ONE,
+        GUN_MUZZLE_BLEED_GROUND_RANGE = 100,
+        GUN_MUZZLE_BLEED_SPREAD = 10,
+        GUN_MUZZLE_BLEED_COUNT = 10,
+        GUN_MUZZLE_BLEED_TIME = 10,
+        GUN_HIT_RADIUS = 100,
+        GUN_IMPACT_VECTOR_Z = 150,
+        GUN_FLESH_IMPACT_SIZE = 6 * FIXED_ONE,
+        GUN_SOLID_IMPACT_SIZE = 4 * FIXED_ONE,
+        GUN_HIT_BLEED_GROUND_RANGE = 100,
+        GUN_HIT_BLEED_COUNT = 15,
+        GUN_HIT_BLEED_TIME = 10
     };
-    param_gun *param;
-    SVECTOR vec;
-    VECTOR target;
+    param_gun *param = &item->param.gun;
+    SVECTOR aim;
+    VECTOR hit_position;
 
-    param = &item->param.gun;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = GUN_MODE_FLASH;
@@ -5547,15 +5559,20 @@ void ProcItemGun(TItem *item)
     switch (item->mode)
     {
     case GUN_MODE_FLASH:
-        vec = (SVECTOR){
+        aim = (SVECTOR){
             .vx = 0,
             .vy = 0,
-            .vz = -250
+            .vz = GUN_MUZZLE_VECTOR_Z
         };
-        RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
-        SetImpact(MODEL_POSITION(item->locate), 2 * FIXED_ONE,
+        RotateVectorS(&aim, item->owner->model->rotate.vx,
+                      item->owner->model->rotate.vy, 0);
+        SetImpact(MODEL_POSITION(item->locate), GUN_MUZZLE_IMPACT_SIZE,
                   IMPACT_SPRITE_GUN);
-        SetBleeds(MODEL_POSITION(item->locate), 100, 10, 10, 10, COLOR_GRAY_DARK);
+        SetBleeds(MODEL_POSITION(item->locate),
+                  GUN_MUZZLE_BLEED_GROUND_RANGE,
+                  GUN_MUZZLE_BLEED_SPREAD,
+                  GUN_MUZZLE_BLEED_COUNT,
+                  GUN_MUZZLE_BLEED_TIME, COLOR_GRAY_DARK);
         item->mode++;
         return;
 
@@ -5563,39 +5580,48 @@ void ProcItemGun(TItem *item)
     {
         s32 rx;
         s32 ry;
-        Humanoid *IsHuman;
-        s32 conflict_id;
+        Humanoid *hit_human;
+        s32 registered_collision;
 
         GetVectorRotation(MODEL_POSITION(item->locate), &param->vec, &rx, &ry);
-        vec.vx = rx;
-        vec.vy = ry;
-        vec.vz = 0;
-        IsHuman = SearchItemTarget2(item->owner, &vec, MODEL_POSITION(item->locate), &target);
-        item->locate->locate.coord.t[0] = target.vx;
-        item->locate->locate.coord.t[1] = target.vy;
-        item->locate->locate.coord.t[2] = target.vz;
+        setVector(&aim, rx, ry, 0);
+        hit_human = SearchItemTarget2(item->owner, &aim,
+                                      MODEL_POSITION(item->locate),
+                                      &hit_position);
+        copyVector(MODEL_POSITION(item->locate), &hit_position);
         DeleteConflict(item->locate);
-        conflict_id = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(conflict_id, 100, CONFLICT_OWNER_ITEM,
+        registered_collision = InsertConflict(item->locate);
+        SET_ITEM_COLLISION(registered_collision, GUN_HIT_RADIUS,
+                           CONFLICT_OWNER_ITEM,
                            CONFLICT_HIT);
         {
-            SVECTOR vec = {
+            SVECTOR impact_direction = {
                 .vx = 0,
                 .vy = 0,
-                .vz = 150
+                .vz = GUN_IMPACT_VECTOR_Z
             };
-            RotateVectorS(&vec, item->owner->model->rotate.vx, item->owner->model->rotate.vy, 0);
-            if (IsHuman != 0)
+            RotateVectorS(&impact_direction,
+                          item->owner->model->rotate.vx,
+                          item->owner->model->rotate.vy, 0);
+            if (hit_human != 0)
             {
-                SetImpact(&target, 6 * FIXED_ONE, IMPACT_SPRITE_GUN);
-                SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_RED);
-                SoundEx(&target, SE_GUN_HIT_FLESH);
+                SetImpact(&hit_position, GUN_FLESH_IMPACT_SIZE,
+                          IMPACT_SPRITE_GUN);
+                SetBleedsDir(&hit_position, &impact_direction,
+                             GUN_HIT_BLEED_GROUND_RANGE,
+                             GUN_HIT_BLEED_COUNT,
+                             GUN_HIT_BLEED_TIME, COLOR_RED);
+                SoundEx(&hit_position, SE_GUN_HIT_FLESH);
             }
             else
             {
-                SetImpact(&target, 4 * FIXED_ONE, IMPACT_SPRITE_GUN);
-                SetBleedsDir(&target, &vec, 100, 15, 10, COLOR_YELLOW);
-                SoundEx(&target, SE_GUN_HIT_SOLID);
+                SetImpact(&hit_position, GUN_SOLID_IMPACT_SIZE,
+                          IMPACT_SPRITE_GUN);
+                SetBleedsDir(&hit_position, &impact_direction,
+                             GUN_HIT_BLEED_GROUND_RANGE,
+                             GUN_HIT_BLEED_COUNT,
+                             GUN_HIT_BLEED_TIME, COLOR_YELLOW);
+                SoundEx(&hit_position, SE_GUN_HIT_SOLID);
             }
         }
     }
