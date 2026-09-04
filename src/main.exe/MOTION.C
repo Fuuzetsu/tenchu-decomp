@@ -3202,7 +3202,7 @@ void ActCHASE(void)
     {                                                                         \
         pos = GetAbsolutePosition(                                            \
             Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0],             \
-            0, y_, -100);                                                     \
+            0, y_, GUN_MUZZLE_Z);                                             \
         bow_shoot_logic(ITEM_GUN, pos);                                       \
         Sound(Me_MOTION_C, CHAR_SE_ATTACK);                                   \
     }
@@ -3287,6 +3287,22 @@ static inline void ClearAttackEffects(s16 mode)
 
 void ActATTACK(void)
 {
+    enum
+    {
+        ATTACK_TRACK_TURN_STEP = 100,
+        GUN_MUZZLE_Z = -100,
+        HANDGUN_MUZZLE_Y = 100,
+        TEPPO_MUZZLE_Y = 700,
+        MANJI_FLAME_ORIGIN_Y = -100,
+        MANJI_FLAME_ORIGIN_Z = -300,
+        MANJI_FLAME_SPEED = 100,
+        DIVE_CAMERA_HEIGHT = 3000,
+        DIVE_STEER_STEP = 10,
+        DIVE_HORIZONTAL_SPEED_MAX = 100,
+        DIVE_LANDING_SMOKE_RADIUS = 300,
+        DIVE_LANDING_SMOKE_COUNT = 10,
+        DIVE_FALL_RECOVERY_DELAY = 30
+    };
     bool is_player;
     SVECTOR *v;
     MotionManager *mmp;
@@ -3351,13 +3367,13 @@ void ActATTACK(void)
                                  target->coord.t[2] - dtL->vz, dtR->vy);
         human = Me_MOTION_C;
         turn = human->turn;
-        if ((int)direction > (int)turn)
+        if (direction > turn)
         {
-            dtR->vy += 100;
+            dtR->vy += ATTACK_TRACK_TURN_STEP;
         }
-        else if (-(int)turn > (int)direction)
+        else if (-turn > direction)
         {
-            dtR->vy -= 100;
+            dtR->vy -= ATTACK_TRACK_TURN_STEP;
         }
         else
         {
@@ -3385,14 +3401,14 @@ dispatch:
         {
             VECTOR *pos;
 
-            FIRE_GUN_AT_FRAME(20, 100);
+            FIRE_GUN_AT_FRAME(20, HANDGUN_MUZZLE_Y);
             break;
         }
         case ATTACK_MOTID_TEPPO:
         {
             VECTOR *pos;
 
-            FIRE_GUN_AT_FRAME(22, 700);
+            FIRE_GUN_AT_FRAME(22, TEPPO_MUZZLE_Y);
             break;
         }
         case ATTACK_MOTID_MANJI:
@@ -3418,12 +3434,12 @@ dispatch:
                 item.type = ITEM_NAPALM;
                 item.user = Me_MOTION_C;
                 pos = GetAbsolutePosition(
-                    Me_MOTION_C->model->object[MODEL_PART_HEAD], 0, -100,
-                    -300);
+                    Me_MOTION_C->model->object[MODEL_PART_HEAD], 0,
+                    MANJI_FLAME_ORIGIN_Y, MANJI_FLAME_ORIGIN_Z);
                 item.start.vx = pos->vx;
                 item.start.vy = pos->vy;
                 item.start.vz = pos->vz;
-                GetMoveSpeed(&vect, dtR->vy, 100, 0);
+                GetMoveSpeed(&vect, dtR->vy, MANJI_FLAME_SPEED, 0);
                 item.end.vx = item.start.vx + vect.vx;
                 item.end.vy = item.start.vy;
                 item.end.vz = item.start.vz + vect.vz;
@@ -3571,7 +3587,8 @@ dispatch:
         break;
     }
     case MOT_ATTACK_DIVE:
-        if ((dtM->count == 1) && (Me_MOTION_C->map.height > 3000))
+        if ((dtM->count == 1) &&
+            (Me_MOTION_C->map.height > DIVE_CAMERA_HEIGHT))
         {
             SetCameraMode(CMODE_FALL);
         }
@@ -3579,25 +3596,31 @@ dispatch:
         {
             if ((dtPAD & PADLup) != 0)
             {
-                GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 10, 0);
+                GetMoveSpeed(&scratch.fall_velocity, dtR->vy,
+                             DIVE_STEER_STEP, 0);
             }
             else if ((dtPAD & PADLdown) != 0)
             {
-                GetMoveSpeed(&scratch.fall_velocity, dtR->vy, -10, 0);
+                GetMoveSpeed(&scratch.fall_velocity, dtR->vy,
+                             -DIVE_STEER_STEP, 0);
             }
             else if ((dtPAD & PADLright) != 0)
             {
-                GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 0, -10);
+                GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 0,
+                             -DIVE_STEER_STEP);
             }
             else
             {
-                GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 0, 10);
+                GetMoveSpeed(&scratch.fall_velocity, dtR->vy, 0,
+                             DIVE_STEER_STEP);
             }
             v = dtV;
             scratch.fall_velocity.vx += dtV->vx;
             scratch.fall_velocity.vz += dtV->vz;
-            if ((((scratch.fall_velocity.vx >= 0) ? scratch.fall_velocity.vx : -scratch.fall_velocity.vx) <= 100) &&
-                (((scratch.fall_velocity.vz >= 0) ? scratch.fall_velocity.vz : -scratch.fall_velocity.vz) <= 100))
+            if (__builtin_abs(scratch.fall_velocity.vx) <=
+                    DIVE_HORIZONTAL_SPEED_MAX &&
+                __builtin_abs(scratch.fall_velocity.vz) <=
+                    DIVE_HORIZONTAL_SPEED_MAX)
             {
                 dtV->vx = scratch.fall_velocity.vx;
                 v->vz = scratch.fall_velocity.vz;
@@ -3607,7 +3630,9 @@ dispatch:
         {
             SET_MOTION(MOT_ATTACK_DIVE_LAND, MOTION_MOVE_NONE);
             Sound(Me_MOTION_C, SE_LAND_HEAVY);
-            spawn_smoke_burst_(dtL, 300, SMOKE_DRIFT_DIVISOR_DEFAULT, 10);
+            spawn_smoke_burst_(dtL, DIVE_LANDING_SMOKE_RADIUS,
+                               SMOKE_DRIFT_DIVISOR_DEFAULT,
+                               DIVE_LANDING_SMOKE_COUNT);
         }
         if ((dtM->count == 0) && (dtM->loop == 1))
         {
@@ -3616,7 +3641,7 @@ dispatch:
         if (dtM->loop < 0)
         {
             dtM->loop--;
-            if (dtM->loop < -30)
+            if (dtM->loop < -DIVE_FALL_RECOVERY_DELAY)
             {
                 SET_MOTION(MOT_STATE_FALL, MOTION_MOVE_NONE);
             }
