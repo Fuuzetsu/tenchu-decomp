@@ -1183,20 +1183,21 @@ void DamageControl(void)
                 SnapToWaistConflict();
             }
             dmg = (u16)BattleDB[deg].power;
-            if (enemy != StagePlayer)
+            if (enemy == StagePlayer)
             {
-                goto npc_attack;
+                if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
+                {
+                    goto difficulty_bonus;
+                }
+                Me_MOTION_C->life = 0;
+                goto recheck_attacker;
             }
-            if ((Me_MOTION_C->attribute & ATTR_WEAPON_DRAWN) != 0)
+            else
             {
-                goto difficulty_bonus;
-            }
-            Me_MOTION_C->life = 0;
-            goto recheck_attacker;
-        npc_attack:
-            if (Me_MOTION_C != StagePlayer)
-            {
-                dmg = dmg / 3;
+                if (Me_MOTION_C != StagePlayer)
+                {
+                    dmg = dmg / 3;
+                }
             }
         recheck_attacker:
             if (enemy != StagePlayer)
