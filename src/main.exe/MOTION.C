@@ -1120,67 +1120,65 @@ void DamageControl(void)
                         return;
                     }
                 }
-                if (motID != MOT_DAMAGE_GETUP)
+                if (motID == MOT_DAMAGE_GETUP)
                 {
-                    goto take_damage;
-                }
-            counter_attack:
-                /* Retail's own redundancy: unreachable here with
-                 * MOT_ENGAGE (both entries guard on MOT_CHASE_BACK/MOT_DAMAGE_GETUP), yet
-                 * the binary carries the duplicate test — reproduced
-                 * faithfully. */
-                if (motID == MOT_ENGAGE)
-                {
-                    return;
-                }
-                if (UpdateMotion(dtM, MOT_ENGAGE) != 0)
-                {
-                    /* the blood/impact spawn point */
-                    VECTOR *pp;
+                counter_attack:
+                    /* Retail's own redundancy: unreachable here with
+                     * MOT_ENGAGE (both entries guard on MOT_CHASE_BACK/MOT_DAMAGE_GETUP), yet
+                     * the binary carries the duplicate test — reproduced
+                     * faithfully. */
+                    if (motID == MOT_ENGAGE)
+                    {
+                        return;
+                    }
+                    if (UpdateMotion(dtM, MOT_ENGAGE) != 0)
+                    {
+                        /* the blood/impact spawn point */
+                        VECTOR *pp;
 
-                    SnapToWaistConflict();
-                    mmp = dtM;
-                    dtR->vy += did;
-                    Me_MOTION_C->status = STAT_ENGAGE;
-                    mmp->count = 0;
-                    PlayMotion(mmp, 1);
-                    dmg = (u16)BattleDB[deg].power;
-                    dtM->loop = -dmg - 8;
-                    MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
-                    RecoilAttacker(enemy, dmg, RUMBLE_POWER_HALF,
-                                   RUMBLE_RELEASE_NONE);
-                    DeleteConflict(ConflictObject[(short)id].model);
-                    pp = GetAbsolutePosition(
-                        Me_MOTION_C->model->object[MODEL_PART_HEAD], 0,
-                        (short)(dmg * 10 + 100), 0);
-                    t = 0;
-                    do
-                    {
-                        pv.vx = rand() % 100 - 50;
-                        pv.vy = rand() % 100 - 50;
-                        pv.vz = rand() % 100 - 50;
-                        SetBleed(pp, &pv, rand() % 20 + 20, COLOR_YELLOW);
-                        t++;
-                    } while (t < 10);
-                    RequestDamageFeedback(enemy, RUMBLE_RELEASE_NONE);
-                    {
-                        s16 r;
+                        SnapToWaistConflict();
+                        mmp = dtM;
+                        dtR->vy += did;
+                        Me_MOTION_C->status = STAT_ENGAGE;
+                        mmp->count = 0;
+                        PlayMotion(mmp, 1);
+                        dmg = (u16)BattleDB[deg].power;
+                        dtM->loop = -dmg - 8;
+                        MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
+                        RecoilAttacker(enemy, dmg, RUMBLE_POWER_HALF,
+                                       RUMBLE_RELEASE_NONE);
+                        DeleteConflict(ConflictObject[(short)id].model);
+                        pp = GetAbsolutePosition(
+                            Me_MOTION_C->model->object[MODEL_PART_HEAD], 0,
+                            (short)(dmg * 10 + 100), 0);
+                        t = 0;
+                        do
+                        {
+                            pv.vx = rand() % 100 - 50;
+                            pv.vy = rand() % 100 - 50;
+                            pv.vz = rand() % 100 - 50;
+                            SetBleed(pp, &pv, rand() % 20 + 20, COLOR_YELLOW);
+                            t++;
+                        } while (t < 10);
+                        RequestDamageFeedback(enemy, RUMBLE_RELEASE_NONE);
+                        {
+                            s16 r;
 
-                        r = rand() % 360;
-                        set_impact_ex_(pp, 0, 2 * FIXED_ONE, 6 * FIXED_ONE, RGB24(220, 220, 220), 0, r, 6, 9, IMPACT_SPRITE_FLASH);
+                            r = rand() % 360;
+                            set_impact_ex_(pp, 0, 2 * FIXED_ONE, 6 * FIXED_ONE, RGB24(220, 220, 220), 0, r, 6, 9, IMPACT_SPRITE_FLASH);
+                        }
+                        if ((rand() & 1) != 0)
+                        {
+                            Sound(Me_MOTION_C, CHAR_VOICE_ACTION_B);
+                        }
+                        if ((enemy->type & PAGE_MASK) != PAGE_BEAST)
+                        {
+                            Sound(Me_MOTION_C, CHAR_SE_ATTACK_ALT);
+                        }
+                        return;
                     }
-                    if ((rand() & 1) != 0)
-                    {
-                        Sound(Me_MOTION_C, CHAR_VOICE_ACTION_B);
-                    }
-                    if ((enemy->type & PAGE_MASK) != PAGE_BEAST)
-                    {
-                        Sound(Me_MOTION_C, CHAR_SE_ATTACK_ALT);
-                    }
-                    return;
                 }
             }
-        take_damage:
             {
                 SnapToWaistConflict();
             }
