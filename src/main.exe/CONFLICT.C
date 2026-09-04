@@ -816,7 +816,7 @@ conflict_id GetConflictResult(ModelType *model, conflict_id index)
                 return index;
             }
         }
-        goto ret_m1;
+        return CONFLICT_NONE;
     }
     return CONFLICT_NONE;
 }
