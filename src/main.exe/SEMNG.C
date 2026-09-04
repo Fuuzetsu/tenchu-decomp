@@ -32,6 +32,13 @@ extern char fmt_stage_vab[]; /* %sSTAGE%d%c.VAB */
 
 short SoundEx(VECTOR *locate, short seid)
 {
+    enum
+    {
+        SOUND_AUDIBLE_RADIUS = 18000,
+        SOUND_AUDIBLE_HEIGHT = 10000,
+        SOUND_FULL_VOLUME_RADIUS = 2000,
+        SOUND_RUN_STEP_VOLUME = SOUND_VOLUME_MAX / 2
+    };
     VECTOR *pp;
     s32 dist, dx, dz;
     s32 maxvol;
@@ -45,32 +52,32 @@ short SoundEx(VECTOR *locate, short seid)
     {
         return PlaySE(
             StageSE, seid,
-            SOUND_SPATIAL(0, (seid == SE_RUN_STEP) ? 0x3f : SOUND_VOLUME_MAX));
+            SOUND_SPATIAL(0, (seid == SE_RUN_STEP) ? SOUND_RUN_STEP_VOLUME : SOUND_VOLUME_MAX));
     }
 
     dx = locate->vx - pp->vx;
     dz = locate->vz - pp->vz;
     dist = SquareRoot0(dx * dx + dz * dz);
-    if (dist >= 18000)
+    if (dist >= SOUND_AUDIBLE_RADIUS)
     {
         return -1;
     }
     raw = locate->vy - pp->vy;
     dy = (raw >= 0) ? raw : -raw;
-    if (dy >= 10000)
+    if (dy >= SOUND_AUDIBLE_HEIGHT)
     {
         return -1;
     }
     maxvol = SOUND_VOLUME_MAX;
-    if (dist < 2000 && dy < 2000)
+    if (dist < SOUND_FULL_VOLUME_RADIUS && dy < SOUND_FULL_VOLUME_RADIUS)
     {
         angle = 0;
         dist = SOUND_VOLUME_MAX;
     }
     else
     {
-        dist = maxvol - (dist << 7) / 18000;
-        dist = (dist * (10000 - dy)) / 10000;
+        dist = maxvol - (dist << SOUND_LEVEL_SHIFT) / SOUND_AUDIBLE_RADIUS;
+        dist = (dist * (SOUND_AUDIBLE_HEIGHT - dy)) / SOUND_AUDIBLE_HEIGHT;
         raw = ratan2(-dx, -dz);
         angle = raw - StagePlayer->rotate->vy;
         if (CamState.Mode == CMODE_DIRECTION)
@@ -81,12 +88,9 @@ short SoundEx(VECTOR *locate, short seid)
         {
             angle = ANGLE_FULL - angle;
         }
-        else
+        else if (angle <= -ANGLE_HALF)
         {
-            if (angle < -0x7ff)
-            {
-                angle += ANGLE_FULL;
-            }
+            angle += ANGLE_FULL;
         }
     }
     vol = SOUND_SPATIAL(angle, dist);
