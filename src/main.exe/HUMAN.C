@@ -170,20 +170,17 @@ void ControlHumanoid(Humanoid *human)
     {
         m = 0;
     }
-    else
+    else if (human != StagePlayer)
     {
-        if (human != StagePlayer)
-        {
-            s32 clip;
+        s32 clip;
 
-            GsGetLs(&model->locate, &mat);
-            GsSetLsMatrix(&mat);
-            clip = DrawClip((ModelType *)model, 0);
-            m = 0;
-            if (clip >= 0)
-            {
-                m = -1;
-            }
+        GsGetLs(&model->locate, &mat);
+        GsSetLsMatrix(&mat);
+        clip = DrawClip((ModelType *)model, 0);
+        m = 0;
+        if (clip >= 0)
+        {
+            m = -1;
         }
     }
 
