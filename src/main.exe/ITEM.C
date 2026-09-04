@@ -6160,6 +6160,13 @@ void ReqItemDefault(Humanoid *user, TItemType ItemID)
 
 int ReqItemLaunch(PARAM_ITEM_LAUNCH *p)
 {
+    enum
+    {
+        SHURIKEN_FLIGHT_SPEED = 300,
+        SHURIKEN_AFTERIMAGE_LENGTH = 10,
+        SHURIKEN_AFTERIMAGE_HALF_WIDTH = 20,
+        SHURIKEN_ARMING_DELAY = 5
+    };
     TItem *item;
     TItem *ret;
     param_launch *param;
@@ -6180,17 +6187,14 @@ found:
         item->collision.size = 0;
         item->model = SyurikenModel;
     }
-    SetupFly(&param->fly, pos, &p->end, FIXED_QUARTER, FIXED_QUARTER, 300);
+    SetupFly(&param->fly, pos, &p->end, FIXED_QUARTER, FIXED_QUARTER,
+             SHURIKEN_FLIGHT_SPEED);
     item->param.launch.fly.mode = FLY_MODE_ARC;
-    ai = SetupAfterimage(item->model, 10);
+    ai = SetupAfterimage(item->model, SHURIKEN_AFTERIMAGE_LENGTH);
     param->effect = ai;
-    ai->vector1.vx = 0x14;
-    ai->vector1.vy = 0;
-    ai->vector1.vz = 0;
-    ai->vector2.vx = -0x14;
-    ai->vector2.vy = 0;
-    ai->vector2.vz = 0;
-    param->count = 5;
+    setVector(&ai->vector1, SHURIKEN_AFTERIMAGE_HALF_WIDTH, 0, 0);
+    setVector(&ai->vector2, -SHURIKEN_AFTERIMAGE_HALF_WIDTH, 0, 0);
+    param->count = SHURIKEN_ARMING_DELAY;
     return 1;
 }
 
