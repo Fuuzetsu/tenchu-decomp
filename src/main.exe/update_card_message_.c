@@ -25,48 +25,23 @@ s16 update_card_message_(card_state *state, card_page *message)
         break;
 
     case CARD_STATE_CHECK:
-        /* Retail keeps separate CARD_STATE_CARD_READY stores in both dispatch stages. */
         card_status = ChkCard();
-        if (card_status == CARD_RESULT_DAMAGED)
-        {
-            goto card_damaged;
-        }
-        if (card_status >= CARD_RESULT_NEW_CARD)
-        {
-            goto card_status_ge_three;
-        }
         switch (card_status)
         {
-        default:
-            next_state = CARD_STATE_CARD_READY;
-            break;
         case CARD_RESULT_NO_CARD:
-            goto card_missing;
-        }
-        goto retry_card_check;
-
-    card_status_ge_three:
-        switch (card_status)
-        {
-        default:
-            next_state = CARD_STATE_CARD_READY;
+            next_state = CARD_STATE_NO_CARD;
+            break;
+        case CARD_RESULT_DAMAGED:
+            next_state = CARD_STATE_DAMAGED;
             break;
         case CARD_RESULT_UNFORMATTED:
-            goto card_unformatted;
+            McardStateFlag = 0;
+            next_state = CARD_STATE_FORMAT_PROMPT;
+            break;
+        default:
+            next_state = CARD_STATE_CARD_READY;
+            break;
         }
-        goto retry_card_check;
-
-    card_missing:
-        next_state = CARD_STATE_NO_CARD;
-        goto retry_card_check;
-    card_damaged:
-        next_state = CARD_STATE_DAMAGED;
-        goto retry_card_check;
-    card_unformatted:
-        McardStateFlag = 0;
-        next_state = CARD_STATE_FORMAT_PROMPT;
-
-    retry_card_check:
         if (next_state != CARD_STATE_CARD_READY &&
             McardRetryCount++ < CARD_RETRY_LIMIT)
         {
