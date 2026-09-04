@@ -3888,6 +3888,14 @@ dispatch:
 
 void ActSTATE(void)
 {
+    enum
+    {
+        FALL_FAST_DESCENT_COUNT = -54,
+        FALL_FAST_DESCENT_RESET = -30,
+        FALL_LIGHT_LAND_CUTOFF = -40,
+        FALL_HEAVY_LAND_CUTOFF = -21,
+        FALL_HORIZONTAL_DRAG_COUNT = -46
+    };
     short cleanup_guard;
     long t;
     Humanoid *human;
@@ -3978,9 +3986,9 @@ void ActSTATE(void)
         return;
 
     case MOT_STATE_FALL:
-        if (dtM->count < -0x36 && dtV->vy > 200)
+        if (dtM->count < FALL_FAST_DESCENT_COUNT && dtV->vy > 200)
         {
-            dtM->count = -0x1e;
+            dtM->count = FALL_FAST_DESCENT_RESET;
         }
         if (dtV->vy > 0 && (Me_MOTION_C->pad.trig & PADRleft) != 0)
         {
@@ -3989,13 +3997,13 @@ void ActSTATE(void)
         {
             if ((Me_MOTION_C->attribute & ATTR_NOFLOOR) != 0 || Me_MOTION_C->map.height <= 0)
             {
-                if (dtM->count < -0x28)
+                if (dtM->count < FALL_LIGHT_LAND_CUTOFF)
                 {
                     SELECT_RETURN_MOTION();
                     Sound(Me_MOTION_C, SE_LAND_LIGHT);
                     return;
                 }
-                if (dtM->count > -0x15)
+                if (dtM->count > FALL_HEAVY_LAND_CUTOFF)
                 {
                     if ((Me_MOTION_C->type & PAGE_MASK) != PAGE_GUARD)
                     {
@@ -4024,7 +4032,7 @@ void ActSTATE(void)
             }
         }
 
-        if (dtM->count > -0x2e)
+        if (dtM->count > FALL_HORIZONTAL_DRAG_COUNT)
         {
             return;
         }
