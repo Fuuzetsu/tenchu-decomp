@@ -3863,11 +3863,8 @@ static void ProcItemGoshikimai(TItem *item)
 
 static int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
 {
-    TItem *item;
-    param_goshikimai *param;
-
-    item = TakeItemSlot();
-    param = &item->param.goshikimai;
+    TItem *item = TakeItemSlot();
+    param_goshikimai *param = &item->param.goshikimai;
     if (item == 0)
         return 0;
     {
@@ -3879,9 +3876,7 @@ static int ReqItemGoshikimai(PARAM_ITEM_LAUNCH *p)
         item->collision.size = 0;
         item->model = (ModelType *)ItemImage[item->type];
     }
-    item->param.goshikimai.vec.vx = p->end.vx;
-    param->vec.vy = p->end.vy;
-    param->vec.vz = p->end.vz;
+    setVector(&param->vec, p->end.vx, p->end.vy, p->end.vz);
     return 1;
 }
 
