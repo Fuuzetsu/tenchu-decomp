@@ -1196,7 +1196,11 @@ extern VECTOR vec_z_n20000; /* {0,0,-20000} */
 
 void ProcKaginawa(TItem *item)
 {
-    void (*item_proc)(TItem *);
+    enum
+    {
+        KAGINAWA_TARGET_OFFSET_DIVISOR = 16,
+        KAGINAWA_MAX_LOCK_DISTANCE = 15000
+    };
     Humanoid *owner;
     VECTOR v;
     VECTOR w;
@@ -1214,15 +1218,13 @@ void ProcKaginawa(TItem *item)
     if (owner->item[ITEM_N] == 0)
     {
         SetCameraMode(CMODE_DIRECTION);
-        item_proc = item->proc;
-        if (item_proc == 0)
+        if (item->proc == 0)
             return;
         DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
     }
     else if (owner->motion->mid != MOT_KAGI)
     {
-        item_proc = item->proc;
-        if (item_proc == 0)
+        if (item->proc == 0)
             return;
         DISPOSE_ITEM_WITH_MODE(item, dispose_mode);
     }
@@ -1238,29 +1240,27 @@ void ProcKaginawa(TItem *item)
         }
         v = vec_z_n20000;
         RotateVector(&v, rx, ry, 0);
-        w.vx = v.vx;
-        w.vy = v.vy;
-        w.vz = v.vz;
+        copyVector(&w, &v);
         w.vx += ViewInfo.vpx;
         w.vy += ViewInfo.vpy;
         w.vz += ViewInfo.vpz;
         trace_ground_(CAMERA_VIEWPOINT(&ViewInfo), &w,
                       &CamState.TargetVector, 0);
-        v.vx /= 16;
-        v.vy /= 16;
-        v.vz /= 16;
+        v.vx /= KAGINAWA_TARGET_OFFSET_DIVISOR;
+        v.vy /= KAGINAWA_TARGET_OFFSET_DIVISOR;
+        v.vz /= KAGINAWA_TARGET_OFFSET_DIVISOR;
         CamState.TargetVector.vx += v.vx;
         CamState.TargetVector.vy += v.vy;
         CamState.TargetVector.vz += v.vz;
-        dist = GetVectorDistance(MODEL_POSITION(CamState.Owner->model), &CamState.TargetVector);
-        if (rx > 0 || dist > 15000)
+        dist = GetVectorDistance(MODEL_POSITION(CamState.Owner->model),
+                                 &CamState.TargetVector);
+        if (rx > 0 || dist > KAGINAWA_MAX_LOCK_DISTANCE)
         {
             CamState.TargetVector = *MODEL_POSITION(CamState.Owner->model);
         }
         SetCameraMode(CMODE_LOCK);
         item->owner->item[ITEM_N] = 0;
-        item_proc = item->proc;
-        if (item_proc == 0)
+        if (item->proc == 0)
             return;
         item->mode = dispose_mode;
         item->proc(item);
