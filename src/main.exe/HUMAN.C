@@ -151,24 +151,19 @@ void ControlHumanoid(Humanoid *human)
         spread_blood_pool_(human);
     }
     HumanActionControl(human);
-    if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0)
+    if ((SystemFlag & SYSFLAG_DEBUGMODE) != 0 && SkipFrame == 0 &&
+        human == StagePlayer)
     {
-        if (SkipFrame == 0)
-        {
-            if (human == StagePlayer)
-            {
-                FntPrint(fmt_dbg_pos, human->type,
-                         human->locate->vx / 1000,
-                         human->locate->vy / 1000,
-                         human->locate->vz / 1000);
-                FntPrint(fmt_dbg_word, (u16)human->attribute,
-                         (u8)human->status);
-                FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
-                         human->motion->loop, human->motion->count);
-                FntPrint(fmt_dbg_rot, human->rotate->vy,
-                         human->model->object[MODEL_PART_WAIST]->id);
-            }
-        }
+        FntPrint(fmt_dbg_pos, human->type,
+                 human->locate->vx / 1000,
+                 human->locate->vy / 1000,
+                 human->locate->vz / 1000);
+        FntPrint(fmt_dbg_word, (u16)human->attribute,
+                 (u8)human->status);
+        FntPrint(fmt_dbg_pair, (u8)human->motion->mid,
+                 human->motion->loop, human->motion->count);
+        FntPrint(fmt_dbg_rot, human->rotate->vy,
+                 human->model->object[MODEL_PART_WAIST]->id);
     }
 
     if (SkipFrame != 0)
