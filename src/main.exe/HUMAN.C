@@ -1097,26 +1097,28 @@ void KillHumanoid(Humanoid *human)
 {
     short i;
 
-    if (human != 0)
+    if (human == 0)
     {
-        DeleteConflict(human->model->object[MODEL_PART_WAIST]);
-        DisposeModelArchive(human->model);
-        DisposeMotionManager(human->motion);
-        DisposeWeapon(human);
-        dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
-        vfree(human);
-        for (i = 0; i < Humans; i++)
+        return;
+    }
+
+    DeleteConflict(human->model->object[MODEL_PART_WAIST]);
+    DisposeModelArchive(human->model);
+    DisposeMotionManager(human->motion);
+    DisposeWeapon(human);
+    dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
+    vfree(human);
+    for (i = 0; i < Humans; i++)
+    {
+        if (HumanGroup[i] == human)
         {
-            if (HumanGroup[i] == human)
-            {
-                break;
-            }
+            break;
         }
-        if (i < Humans)
-        {
-            Humans--;
-            HumanGroup[i] = HumanGroup[Humans];
-        }
+    }
+    if (i < Humans)
+    {
+        Humans--;
+        HumanGroup[i] = HumanGroup[Humans];
     }
 }
 
