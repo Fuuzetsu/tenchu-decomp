@@ -411,7 +411,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
                 sz = RotTransPers(&mad->clip, (s32 *)rxy, 0, 0) >> 2;
                 if ((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
                 {
-                    result = -1;
+                    result = MODEL_CLIP_REJECTED;
                     goto tail;
                 }
                 if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
@@ -433,13 +433,13 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
                     }
                     else
                     {
-                        result = -1;
+                        result = MODEL_CLIP_REJECTED;
                         goto tail;
                     }
                 }
                 if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
                 {
-                    result = -1;
+                    result = MODEL_CLIP_REJECTED;
                     goto tail;
                 }
             }
@@ -447,7 +447,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
             if (sz > DEPTH_LIMIT)
             {
             reject:
-                result = -1;
+                result = MODEL_CLIP_REJECTED;
             }
             else
             {
