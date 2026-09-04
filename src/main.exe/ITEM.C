@@ -832,21 +832,24 @@ void ProcItemDrop(TItem *item)
     {
         DROP_MODE_ROLL = 0,
         DROP_MODE_WAIT = 1,
-        DROP_MODE_TRANSFER = 2
+        DROP_MODE_TRANSFER = 2,
+        DROP_PICKUP_RADIUS = 180,
+        DROP_HORIZONTAL_SPREAD = 200,
+        DROP_VERTICAL_SPREAD = 100,
+        DROP_VERTICAL_BASE = -200,
+        DROP_TRANSFER_DELAY = 10
     };
     Sprite3D *model;
     param_drop *param;
-    void (*ppu)(TItem *);
     Humanoid *human;
-    MotionDataType *md;
-    s32 i;
+    MotionDataType *motion_data;
+    s32 conflict_result;
     s32 conflict_id;
     ConflictClass collision_mode;
-    s32 x;
-    s32 y;
-    s32 z;
-    u8 cnt;
-    u8 count;
+    s32 random_x;
+    s32 random_y;
+    s32 random_z;
+    u8 inventory_count;
 
     model = (Sprite3D *)item->model;
     param = &item->param.drop;
@@ -864,8 +867,7 @@ void ProcItemDrop(TItem *item)
         switch (param->koro.status)
         {
         case KORO_WATER:
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
             return;
@@ -874,7 +876,8 @@ void ProcItemDrop(TItem *item)
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
             collision_mode = CONFLICT_SOFT;
-            SET_ITEM_COLLISION(conflict_id, 180, CONFLICT_OWNER_ITEM,
+            SET_ITEM_COLLISION(conflict_id, DROP_PICKUP_RADIUS,
+                               CONFLICT_OWNER_ITEM,
                                collision_mode);
             item->mode++;
             return;
@@ -883,12 +886,12 @@ void ProcItemDrop(TItem *item)
 
     case DROP_MODE_WAIT:
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
-            i = CONFLICT_NONE;
+            conflict_result = CONFLICT_NONE;
         else
-            i = GetConflictResult(item->locate, CONFLICT_NONE);
-        if (i == CONFLICT_NONE)
+            conflict_result = GetConflictResult(item->locate, CONFLICT_NONE);
+        if (conflict_result == CONFLICT_NONE)
             return;
-        human = ConflictObject[i].common;
+        human = ConflictObject[conflict_result].common;
         if (is_humanoid_on_stage_(human) == 0)
             return;
         if (human->motion->mid == MOT_STATE_PICKUP)
@@ -900,8 +903,8 @@ void ProcItemDrop(TItem *item)
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
             UpdateMotion(human->motion, MOT_STATE_PICKUP);
             human->status = STAT_STATE;
-            md = human->motion->motion;
-            MoveHumanoid(human, md->orderspd, md->sidespd);
+            motion_data = human->motion->motion;
+            MoveHumanoid(human, motion_data->orderspd, motion_data->sidespd);
         }
         item->owner = human;
         item->mode++;
@@ -911,31 +914,28 @@ void ProcItemDrop(TItem *item)
     case DROP_MODE_TRANSFER:
         if (item->owner->motion->mid != MOT_STATE_PICKUP)
         {
-            x = rand();
-            x = x % 200;
-            y = rand();
-            y = y % 100;
-            z = rand();
-            z = z % 200;
-            param->koro.vx = x - 100;
-            param->koro.vy = y - 200;
+            random_x = rand();
+            random_x %= DROP_HORIZONTAL_SPREAD;
+            random_y = rand();
+            random_y %= DROP_VERTICAL_SPREAD;
+            random_z = rand();
+            random_z %= DROP_HORIZONTAL_SPREAD;
+            param->koro.vx = random_x - DROP_HORIZONTAL_SPREAD / 2;
+            param->koro.vy = random_y + DROP_VERTICAL_BASE;
             param->koro.hint = 0;
             param->koro.status = KORO_NORMAL;
-            param->koro.vz = z - 100;
+            param->koro.vz = random_z - DROP_HORIZONTAL_SPREAD / 2;
             item->mode = DROP_MODE_ROLL;
         }
-        cnt = param->count + 1;
-        param->count = cnt;
-        if (cnt == 10)
+        if (++param->count == DROP_TRANSFER_DELAY)
         {
             SoundEx(item->owner->locate, SE_ITEM_TRANSFER);
-            count = item->owner->item[item->type];
-            if (count != ITEM_INFINITE)
+            inventory_count = item->owner->item[item->type];
+            if (inventory_count != ITEM_INFINITE)
             {
-                item->owner->item[item->type] = count + 1;
+                item->owner->item[item->type] = inventory_count + 1;
             }
-            ppu = item->proc;
-            if (ppu == 0)
+            if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
         }
