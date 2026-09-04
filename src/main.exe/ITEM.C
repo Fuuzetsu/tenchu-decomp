@@ -6544,14 +6544,26 @@ void ProcItemJirai(TItem *item)
         JIRAI_MODE_ARMED = 1,
         JIRAI_MODE_EXPLODE = 2,
         JIRAI_MODE_BLAST = 3,
+        JIRAI_TRIGGER_RADIUS = 500,
+        JIRAI_BLAST_RADIUS = 1500,
         JIRAI_BLAST_COUNTDOWN_START = 3,
         JIRAI_FRAME_EFFECT_COUNT = 10,
+        JIRAI_EXPLOSION_RISE_SPEED = 25,
+        JIRAI_EMBER_HORIZONTAL_POWER = 75,
+        JIRAI_EMBER_VERTICAL_POWER = 200,
+        JIRAI_EMBER_COUNT = 10,
+        JIRAI_SMOKE_RISE_SPEED = 400,
+        JIRAI_SMOKE_COUNT = 20,
+        JIRAI_SMOKE_LIFETIME = 6,
+        JIRAI_FRAME_JITTER_SPREAD = 200,
+        JIRAI_FRAME_JITTER_RADIUS = JIRAI_FRAME_JITTER_SPREAD / 2,
+        JIRAI_FRAME_SIZE = 3 * FIXED_ONE,
+        JIRAI_FRAME_LIFETIME_SPREAD = 60,
+        JIRAI_FRAME_LIFETIME_MIN = 60,
         JIRAI_COUNTDOWN_END = 0xff
     };
     Sprite3D *sprite;
     param_smoke *param;
-    void (*item_proc)(TItem *);
-    TItem *call_item;
 
     sprite = (Sprite3D *)item->model;
     param = &item->param.smoke;
@@ -6565,7 +6577,6 @@ void ProcItemJirai(TItem *item)
     {
     case JIRAI_MODE_PLACE:
     {
-        s32 trigger_size;
         ConflictClass conflict_class;
         s32 new_conflict_id;
 
@@ -6585,30 +6596,18 @@ void ProcItemJirai(TItem *item)
             {
                 item->owner->item[item->type] = item_count + 1;
             }
-            item_proc = item->proc;
-            if (item_proc == 0)
+            if (item->proc == 0)
             {
                 return;
             }
-            call_item = item;
-            item->mode = ITEM_MODE_DISPOSE;
-            item_proc(call_item);
-            DeleteConflict(item->locate);
-            if (item->mode != JIRAI_MODE_PLACE)
-            {
-                AdtMessageBox(msg_item_dispose_fail, item->type,
-                              (u32)item->mode);
-            }
-            item->owner = 0;
-            item->proc = 0;
+            DISPOSE_ITEM(item);
             return;
         }
 
         DeleteConflict(item->locate);
         new_conflict_id = InsertConflict(item->locate);
-        trigger_size = 500;
         conflict_class = CONFLICT_SOFT;
-        SET_ITEM_COLLISION(new_conflict_id, trigger_size,
+        SET_ITEM_COLLISION(new_conflict_id, JIRAI_TRIGGER_RADIUS,
                            CONFLICT_OWNER_ITEM, conflict_class);
         item->mode++;
         break;
@@ -6631,12 +6630,10 @@ void ProcItemJirai(TItem *item)
                 ConflictObject[conflict_id].common) != 0)
         {
             s32 new_conflict_id;
-            s32 blast_size;
 
             DeleteConflict(item->locate);
             new_conflict_id = InsertConflict(item->locate);
-            blast_size = 1500;
-            SET_ITEM_COLLISION(new_conflict_id, blast_size,
+            SET_ITEM_COLLISION(new_conflict_id, JIRAI_BLAST_RADIUS,
                                CONFLICT_OWNER_ITEM, CONFLICT_HIT);
             item->mode++;
         }
@@ -6648,7 +6645,7 @@ void ProcItemJirai(TItem *item)
         {
             SVECTOR velocity = {
                 .vx = 0,
-                .vy = -25,
+                .vy = -JIRAI_EXPLOSION_RISE_SPEED,
                 .vz = 0
             };
             VECTOR position = {
@@ -6658,14 +6655,15 @@ void ProcItemJirai(TItem *item)
             };
 
             SetExplosion(&position, &velocity);
-            velocity.vx = 75;
-            velocity.vy = 200;
-            velocity.vz = 75;
-            SetHinoko(&position, &velocity, 10);
+            velocity.vx = JIRAI_EMBER_HORIZONTAL_POWER;
+            velocity.vy = JIRAI_EMBER_VERTICAL_POWER;
+            velocity.vz = JIRAI_EMBER_HORIZONTAL_POWER;
+            SetHinoko(&position, &velocity, JIRAI_EMBER_COUNT);
             velocity.vx = 0;
-            velocity.vy = -400;
+            velocity.vy = -JIRAI_SMOKE_RISE_SPEED;
             velocity.vz = 0;
-            SetSmoke(&position, &velocity, 20, 6);
+            SetSmoke(&position, &velocity, JIRAI_SMOKE_COUNT,
+                     JIRAI_SMOKE_LIFETIME);
             SoundEx(&position, SE_EXPLOSION);
             item->mode++;
             param->count = JIRAI_BLAST_COUNTDOWN_START;
@@ -6677,7 +6675,6 @@ void ProcItemJirai(TItem *item)
     case JIRAI_MODE_BLAST:
     {
         s32 conflict_id;
-        s32 blast_countdown;
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
@@ -6690,11 +6687,9 @@ void ProcItemJirai(TItem *item)
         if (conflict_id != CONFLICT_NONE)
         {
             Humanoid *hit_human;
-            s32 human_present;
 
             hit_human = ConflictObject[conflict_id].common;
-            human_present = is_humanoid_on_stage_(hit_human);
-            if (human_present != 0)
+            if (is_humanoid_on_stage_(hit_human) != 0)
             {
                 s32 frame_index = 0;
 
@@ -6715,40 +6710,32 @@ void ProcItemJirai(TItem *item)
                     frame_index++;
                     {
                         VECTOR position = {
-                            .vx = rand() % 200 - 100,
-                            .vy = rand() % 200 - 100,
-                            .vz = rand() % 200 - 100
+                            .vx = rand() % JIRAI_FRAME_JITTER_SPREAD -
+                                  JIRAI_FRAME_JITTER_RADIUS,
+                            .vy = rand() % JIRAI_FRAME_JITTER_SPREAD -
+                                  JIRAI_FRAME_JITTER_RADIUS,
+                            .vz = rand() % JIRAI_FRAME_JITTER_SPREAD -
+                                  JIRAI_FRAME_JITTER_RADIUS
                         };
 
-                        SetFrame(&position, 3 * FIXED_ONE,
-                                 rand() % 60 + 60,
+                        SetFrame(&position, JIRAI_FRAME_SIZE,
+                                 rand() % JIRAI_FRAME_LIFETIME_SPREAD +
+                                     JIRAI_FRAME_LIFETIME_MIN,
                                  &model->locate);
                     }
                 }
             }
         }
 
-        blast_countdown = param->count - 1;
-        param->count = blast_countdown;
-        if ((u8)blast_countdown != JIRAI_COUNTDOWN_END)
+        if (--param->count != JIRAI_COUNTDOWN_END)
         {
             return;
         }
-        item_proc = item->proc;
-        if (item_proc == 0)
+        if (item->proc == 0)
         {
             return;
         }
-        call_item = item;
-        item->mode = ITEM_MODE_DISPOSE;
-        item_proc(call_item);
-        DeleteConflict(item->locate);
-        if (item->mode != JIRAI_MODE_PLACE)
-        {
-            AdtMessageBox(msg_item_dispose_fail, item->type, (u32)item->mode);
-        }
-        item->owner = 0;
-        item->proc = 0;
+        DISPOSE_ITEM(item);
         return;
     }
     }
