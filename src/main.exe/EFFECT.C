@@ -2567,6 +2567,13 @@ static void DrawFlyWire(TEffectSlot *ef)
 
 int SetFlyWire(VECTOR *start, VECTOR *end)
 {
+    enum
+    {
+        FLYWIRE_DISTANCE_RESCALE_SHIFT = 8,
+        FLYWIRE_TRAVEL_SPEED = 1000,
+        FLYWIRE_BEND_DIVISOR = 16,
+        FLYWIRE_STRAIGHTEN_FRAMES = 5,
+    };
     TEffectSlot *slot;
     FlyWireType *param;
     int dist;
@@ -2598,18 +2605,15 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
         dy = param->start.vy - v1->vy;
         dz = param->start.vz - v1->vz;
 
-        big = 0;
-        if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
-            abs(dz) > FIXED_ONE)
-        {
-            big = 1;
-        }
+        big = abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+              abs(dz) > FIXED_ONE;
         if (big)
         {
-            dx /= 0x100;
-            dy /= 0x100;
-            dz /= 0x100;
-            root = SquareRoot0(dx * dx + dy * dy + dz * dz) << 8;
+            dx /= 1 << FLYWIRE_DISTANCE_RESCALE_SHIFT;
+            dy /= 1 << FLYWIRE_DISTANCE_RESCALE_SHIFT;
+            dz /= 1 << FLYWIRE_DISTANCE_RESCALE_SHIFT;
+            root = SquareRoot0(dx * dx + dy * dy + dz * dz)
+                   << FLYWIRE_DISTANCE_RESCALE_SHIFT;
         }
         else
         {
@@ -2620,9 +2624,9 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
         param->NCenter.vx = (param->start.vx + param->end.vx) / 2;
         param->NCenter.vy = (param->start.vy + param->end.vy) / 2;
         param->NCenter.vz = (param->start.vz + param->end.vz) / 2;
-        param->time = dist / 1000;
+        param->time = dist / FLYWIRE_TRAVEL_SPEED;
 
-        dist /= 16;
+        dist /= FLYWIRE_BEND_DIVISOR;
 
         base_x = param->NCenter.vx;
         if (dist * 2 > 0)
@@ -2661,7 +2665,7 @@ int SetFlyWire(VECTOR *start, VECTOR *end)
     if (param->time > 0)
     {
         slot->proc = DrawFlyWire;
-        result = param->time + 5;
+        result = param->time + FLYWIRE_STRAIGHTEN_FRAMES;
     }
     else
     {
