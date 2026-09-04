@@ -565,7 +565,7 @@ void vfree(void *pt)
     prev = (struct VMhead *)virtual_memory_pool;
     if (prev != 0)
     {
-        for (;;)
+        while (1)
         {
             pnext = prev->next;
             if (pnext != header)
