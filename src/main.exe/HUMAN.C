@@ -372,6 +372,19 @@ void ControlHumanoid(Humanoid *human)
 
 short DefaultActionHumanoid(Humanoid *human)
 {
+    enum
+    {
+        FAST_MOVEMENT_PROBE_SPEED = 80,
+        WALL_RECOVERY_PROBE_Y_OFFSET = 500,
+        WALL_RECOVERY_PROBE_RADIUS = 300,
+        WALL_RECOVERY_STEP = 20,
+        WALL_DIRECTION_WRAP_THRESHOLD = 2000,
+        WALL_DIRECTION_LIMIT = 1800,
+        WALL_TURN_STEP = 32,
+        CONFLICT_REACTION_HALF_ANGLE = 1100,
+        CONFLICT_VERTICAL_ESCAPE_SPEED = 10,
+        TRACE_COLLISION_PAUSE = -20
+    };
     MapVector *map;
     SVECTOR *vector;
     VECTOR *locate;
@@ -406,8 +419,8 @@ short DefaultActionHumanoid(Humanoid *human)
 
     if (human->status == STAT_ATTACK ||
         (human->status != STAT_SQUAT && map->height == 0 &&
-         ((vector->vx >= 0 ? vector->vx : -vector->vx) > 0x50 ||
-          (vector->vz >= 0 ? vector->vz : -vector->vz) > 0x50)))
+         (__builtin_abs(vector->vx) > FAST_MOVEMENT_PROBE_SPEED ||
+          __builtin_abs(vector->vz) > FAST_MOVEMENT_PROBE_SPEED)))
     {
         VECTOR position;
 
@@ -522,8 +535,9 @@ short DefaultActionHumanoid(Humanoid *human)
             locate->vx = slocate->vx;
             locate->vz = slocate->vz;
             locate->vy = slocate->vy;
-            position.vy = locate->vy - 500;
-            GetAreaMapVector(GlobalAreaMap, &mv, &position, 300,
+            position.vy = locate->vy - WALL_RECOVERY_PROBE_Y_OFFSET;
+            GetAreaMapVector(GlobalAreaMap, &mv, &position,
+                             WALL_RECOVERY_PROBE_RADIUS,
                              AREA_LEVEL_ALLOW_DEEP);
 
             coefficient_x = RefrectMove[mv.vector][0];
@@ -538,7 +552,7 @@ short DefaultActionHumanoid(Humanoid *human)
             {
                 locate->vy = (vector->vy > 0)
                                  ? locate->vy + vector->vy
-                                 : locate->vy + 20;
+                                 : locate->vy + WALL_RECOVERY_STEP;
             }
             else
             {
@@ -574,13 +588,13 @@ short DefaultActionHumanoid(Humanoid *human)
                 xx = (rsin(ry) * human->width) >> 14;
                 zz = (rcos(ry) * human->width) >> 14;
                 i = human->rotate->vy - ry;
-                angle_abs = (i >= 0) ? i : -i;
-                if (angle_abs >= 2000)
+                angle_abs = __builtin_abs(i);
+                if (angle_abs >= WALL_DIRECTION_WRAP_THRESHOLD)
                 {
                     i = (i > 0) ? i - ANGLE_FULL : i + ANGLE_FULL;
                 }
-                angle_abs = (i >= 0) ? i : -i;
-                if (angle_abs < 1800 || human != StagePlayer || map->height != 0)
+                angle_abs = __builtin_abs(i);
+                if (angle_abs < WALL_DIRECTION_LIMIT || human != StagePlayer || map->height != 0)
                 {
                     if (map->angleH == 0 &&
                         (human->status == STAT_MOVE || human->status == STAT_CHASE))
@@ -595,11 +609,11 @@ short DefaultActionHumanoid(Humanoid *human)
                         rotate_y = rotate->vy;
                         if (i > 0)
                         {
-                            rotate_y -= 0x20;
+                            rotate_y -= WALL_TURN_STEP;
                         }
                         else
                         {
-                            rotate_y += 0x20;
+                            rotate_y += WALL_TURN_STEP;
                         }
                         rotate->vy = rotate_y;
                         MoveHumanoid(human, human->motion->motion->orderspd,
@@ -694,7 +708,7 @@ short DefaultActionHumanoid(Humanoid *human)
                     }
                     else
                     {
-                        vector->vy = 10;
+                        vector->vy = CONFLICT_VERTICAL_ESCAPE_SPEED;
                     }
                     continue;
                 }
@@ -712,7 +726,7 @@ short DefaultActionHumanoid(Humanoid *human)
                                       (s16)human->locate->vy);
                     direction_abs = zz >= 0 ? zz : -zz;
                     direction = MOT_DAMAGE_BACK_LIGHT;
-                    if (direction_abs < 1100)
+                    if (direction_abs < CONFLICT_REACTION_HALF_ANGLE)
                     {
                         direction = MOT_DAMAGE;
                     }
@@ -742,7 +756,7 @@ short DefaultActionHumanoid(Humanoid *human)
                                  human->motion->motion->sidespd);
                     if (human->trace != 0 && (human->attribute & ATTR_TRACE))
                     {
-                        human->trace->count = -20;
+                        human->trace->count = TRACE_COLLISION_PAUSE;
                     }
                 }
             }
