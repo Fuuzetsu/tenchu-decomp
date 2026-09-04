@@ -238,13 +238,13 @@ void ControlHumanoid(Humanoid *human)
             rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
                             human->model->object[MODEL_PART_TORSO]->rotate.vy;
             {
-                s32 magnitude;
+                s32 yaw_magnitude;
 
                 direction = CamState.DirectionRY - rotation_pair;
-                magnitude = direction >= 0 ? direction : -direction;
-                if (magnitude > 900)
+                yaw_magnitude = direction >= 0 ? direction : -direction;
+                if (yaw_magnitude > 900)
                 {
-                    head->rotate.vy = magnitude * 900 / direction;
+                    head->rotate.vy = yaw_magnitude * 900 / direction;
                 }
                 else
                 {
@@ -252,13 +252,13 @@ void ControlHumanoid(Humanoid *human)
                 }
             }
             {
-                s32 magnitude;
+                s32 pitch_magnitude;
 
                 direction = CamState.DirectionRX;
-                magnitude = direction >= 0 ? direction : -direction;
-                if (magnitude > 500)
+                pitch_magnitude = direction >= 0 ? direction : -direction;
+                if (pitch_magnitude > 500)
                 {
-                    head->rotate.vx = magnitude * 500 / direction;
+                    head->rotate.vx = pitch_magnitude * 500 / direction;
                 }
                 else
                 {
