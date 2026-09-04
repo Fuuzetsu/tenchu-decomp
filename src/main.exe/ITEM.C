@@ -139,11 +139,15 @@ static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start,
                 {
                     cond = abs(lv.vy) < 1000;
                 }
-                if (cond && (z = lv.vz, z < dist))
+                if (cond)
                 {
-                    dist = z;
-                    *target = tv;
-                    ret = human;
+                    z = lv.vz;
+                    if (z < dist)
+                    {
+                        dist = z;
+                        *target = tv;
+                        ret = human;
+                    }
                 }
             }
         }
