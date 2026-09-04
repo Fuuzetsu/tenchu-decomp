@@ -473,7 +473,7 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
     }
     count = initial;
 
-    while (1)
+    for (;;)
     {
         y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz,
                                AREA_LEVEL_DEFAULT);

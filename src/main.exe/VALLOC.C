@@ -303,7 +303,7 @@ static inline void free_block(void *pt, u32 cmask)
     prev = (struct VMhead *)virtual_memory_pool;
     if (prev != 0)
     {
-        while (1)
+        for (;;)
         {
             n2 = prev->next;
             if (n2 != header)
@@ -364,7 +364,7 @@ void *vmemoryGC(void *pt)
         prev = (struct VMhead *)virtual_memory_pool;
         if (prev != 0)
         {
-            while (1)
+            for (;;)
             {
                 n2 = prev->next;
                 if (n2 != header)
@@ -565,7 +565,7 @@ void vfree(void *pt)
     prev = (struct VMhead *)virtual_memory_pool;
     if (prev != 0)
     {
-        while (1)
+        for (;;)
         {
             pnext = prev->next;
             if (pnext != header)
@@ -622,7 +622,7 @@ unsigned long vsize(void *pt)
 
 void SystemOut(unsigned char *string)
 {
-    while (1)
+    for (;;)
     {
     }
 }

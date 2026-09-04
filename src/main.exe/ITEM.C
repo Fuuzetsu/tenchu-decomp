@@ -144,7 +144,7 @@ static __inline__ Humanoid *FindItemTarget(TFindItemTarget *find)
     int dist;
 
     i = find->i;
-    while (1)
+    for (;;)
     {
         if (i >= Humans)
         {
@@ -264,7 +264,7 @@ void RestoreItemLayout(void *buf)
         s32 i;
 
         i = 0;
-        while (1)
+        for (;;)
         {
             if (i < MAX_ITEMS)
             {
@@ -304,7 +304,7 @@ void RestoreItemLayout(void *buf)
 
                 k = 0;
                 offs = DropOffsets;
-                while (1)
+                for (;;)
                 {
                     if (k < 4)
                     {
@@ -7521,7 +7521,7 @@ void ClearItemLayout(void)
     s32 i;
 
     i = 0;
-    while (1)
+    for (;;)
     {
         if (i >= MAX_ITEMS)
             return;

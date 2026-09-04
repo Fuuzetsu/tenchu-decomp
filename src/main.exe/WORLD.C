@@ -1305,7 +1305,7 @@ have_z:
                                                          world_y_offset + world_x_offset +
                                                          (u32)world_base))
                                               ->top;
-                                    while (1)
+                                    for (;;)
                                     {
                                         if (cur != 0)
                                         {
@@ -1387,7 +1387,7 @@ have_z:
         ot.org += CONSTRUCTION_LOCAL_OT_OFFSET;
 
         cur = DrawList[0];
-        while (1)
+        for (;;)
         {
             if (cur != 0)
             {
@@ -1406,12 +1406,12 @@ have_z:
         }
 
         j = 1;
-        while (1)
+        for (;;)
         {
             if (j < N_DRAW_BUCKETS)
             {
                 cur = DrawList[j];
-                while (1)
+                for (;;)
                 {
                     if (cur != 0)
                     {
@@ -1864,7 +1864,7 @@ enemy_layout_index leSetEnemy(s32 type, TThinkType think, s32 x, s32 y,
     TEnemyLayout *e;
 
     idx = 0;
-    while (1)
+    for (;;)
     {
         if (enemy[idx].type != CHARACTER_KIND_END)
         {

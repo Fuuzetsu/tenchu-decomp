@@ -39,7 +39,7 @@ s32 AdtSelect(char *title, TAdtSelect *menu, s32 mode)
     pages = count / 18 + 1;
     AdtGetDisp(&ad);
 
-    while (1)
+    for (;;)
     {
         DrawPrim(&ad.bg);
         trg = pad;
