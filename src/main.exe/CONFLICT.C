@@ -283,9 +283,7 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z, int mode)
                 }
             }
         }
-        if (yy == (u32)LEVEL_NONE)
-            goto ret_min;
-        if (FieldAttrib & MAP_BUOYANT)
+        if (yy == (u32)LEVEL_NONE || FieldAttrib & MAP_BUOYANT)
             return LEVEL_NONE;
         yy = yy * 10;
         y2 = yy - y;
