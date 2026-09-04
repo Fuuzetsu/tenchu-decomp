@@ -1862,11 +1862,10 @@ static void DrawGore(TEffectSlot *ef)
 
     case GORE_MODE_LINGER:
     {
-        u16 count;
+        u16 previous_time;
 
-        count = param->time;
-        param->time = count - 1;
-        if ((s16)count <= 0)
+        previous_time = param->time--;
+        if ((s16)previous_time <= 0)
         {
             param->time = 0x80;
             param->mode++;
@@ -1876,12 +1875,11 @@ static void DrawGore(TEffectSlot *ef)
 
     case GORE_MODE_SPREAD:
     {
-        u16 count;
+        u16 previous_time;
 
         param->scale += rand() % FIXED_ONE;
-        count = param->time;
-        param->time = count - 1;
-        if ((s16)count <= 0)
+        previous_time = param->time--;
+        if ((s16)previous_time <= 0)
         {
             param->mode++;
             param->time = rand() % 90;
@@ -1965,11 +1963,10 @@ static void DrawGore(TEffectSlot *ef)
         }
         else
         {
-            u16 count;
+            u16 previous_time;
 
-            count = param->time;
-            param->time = count - 1;
-            if ((s16)count <= 0)
+            previous_time = param->time--;
+            if ((s16)previous_time <= 0)
             {
                 ef->proc = 0;
             }
