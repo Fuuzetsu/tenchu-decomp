@@ -1270,11 +1270,12 @@ have_z:
         int visible;
 
         j = sx;
-    scan_x:
-        if (j <= ex)
+        for (;;)
         {
-            cell_x = j;
-            k = sy;
+            if (j <= ex)
+            {
+                cell_x = j;
+                k = sy;
         scan_y:
             if (k <= ey)
             {
@@ -1367,8 +1368,10 @@ have_z:
                 k++;
                 goto scan_y;
             }
-            j++;
-            goto scan_x;
+                j++;
+                continue;
+            }
+            break;
         }
     }
     {
