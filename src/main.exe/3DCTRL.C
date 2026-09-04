@@ -210,25 +210,17 @@ short DrawModel(ModelType *objp)
         {
             sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
 
-            if ((atr & MODEL_ATTR_CULL_BEHIND) == 0 || sz != 0)
-            {
-                if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
-                {
-                    if (__builtin_abs((s32)rxy[0]) > MODEL_CULL_X_LIMIT ||
-                        __builtin_abs((s32)rxy[1]) > MODEL_CULL_Y_LIMIT)
-                    {
-                        goto reject;
-                    }
-                }
-                if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
-                {
-                    sz = -1;
-                    goto ret;
-                }
-            }
-            else
+            if (((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0) ||
+                ((atr & MODEL_ATTR_CULL_SCREEN) != 0 &&
+                 (__builtin_abs((s32)rxy[0]) > MODEL_CULL_X_LIMIT ||
+                  __builtin_abs((s32)rxy[1]) > MODEL_CULL_Y_LIMIT)))
             {
                 goto reject;
+            }
+            if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
+            {
+                sz = -1;
+                goto ret;
             }
         }
         sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
