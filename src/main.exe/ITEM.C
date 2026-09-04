@@ -4683,6 +4683,21 @@ static int ReqItemHappou(PARAM_ITEM_LAUNCH *p)
     return 1;
 }
 
+static __inline__ void DropStayedItem(PARAM_ITEM_STAY *request)
+{
+    PARAM_ITEM_LAUNCH drop_request;
+
+    drop_request.type = request->type;
+    drop_request.user = ITEM_OWNER_UNCLAIMED;
+    copyVector(&drop_request.start, &request->locate);
+    setVector(&drop_request.end, 0, 0, 0);
+    drop_request.start.vy = GetAreaMapLevel(
+        GlobalAreaMap, drop_request.start.vx,
+        drop_request.start.vy, drop_request.start.vz,
+        AREA_LEVEL_DEFAULT);
+    ReqItemDrop(&drop_request);
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -4731,16 +4746,33 @@ void ProcItemFire(TItem *item)
         FIRE_MODE_FUSE = 0,
         FIRE_MODE_EXPLODE = 1,
         FIRE_MODE_BLAST = 2,
-        nr = 25
+        FIRE_EMBER_POSITION_JITTER = 25,
+        FIRE_EMBER_RISE_SPEED = -30,
+        FIRE_EMBER_SIZE_RANGE = 20,
+        FIRE_RECOVERY_ROLL_RANGE = 10,
+        FIRE_RECOVERY_ROLL_THRESHOLD = 2,
+        FIRE_RECOVERY_SMOKE_RISE_SPEED = -100,
+        FIRE_RECOVERY_SMOKE_TIME = 10,
+        FIRE_TRIGGER_ARM_FRAME = 140,
+        FIRE_TRIGGER_RADIUS = 500,
+        FIRE_EXPLOSION_RISE_SPEED = -25,
+        FIRE_SPARK_HORIZONTAL_SPEED = 75,
+        FIRE_SPARK_UPWARD_SPEED = 120,
+        FIRE_SPARK_COUNT = 8,
+        FIRE_SMOKE_RISE_SPEED = -200,
+        FIRE_SMOKE_COUNT = 20,
+        FIRE_SMOKE_TIME = 6,
+        FIRE_BLAST_RADIUS = 1500,
+        FIRE_BLAST_FRAMES = 3,
+        FIRE_HIT_FRAME_POSITION_SPREAD = 200,
+        FIRE_HIT_FRAME_SIZE = 3 * FIXED_ONE,
+        FIRE_HIT_FRAME_TIME = 120
     };
-    Sprite3D *model;
-    param_smoke *param;
-    s32 count;
-    s32 mode;
-    s32 cid;
+    Sprite3D *model = (Sprite3D *)item->model;
+    param_smoke *param = &item->param.smoke;
+    s32 remaining_count;
+    s32 collision_result;
 
-    model = (Sprite3D *)item->model;
-    param = &item->param.smoke;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = FIRE_MODE_FUSE;
@@ -4765,72 +4797,59 @@ void ProcItemFire(TItem *item)
         {
             VECTOR pos = {
                 .vx = item->locate->locate.coord.t[0] +
-                    (rand() % (nr * 2) - nr),
+                    (rand() % (FIRE_EMBER_POSITION_JITTER * 2) -
+                     FIRE_EMBER_POSITION_JITTER),
                 .vy = item->locate->locate.coord.t[1] +
-                    (rand() % (nr * 2) - nr),
+                    (rand() % (FIRE_EMBER_POSITION_JITTER * 2) -
+                     FIRE_EMBER_POSITION_JITTER),
                 .vz = item->locate->locate.coord.t[2] +
-                    (rand() % (nr * 2) - nr)
+                    (rand() % (FIRE_EMBER_POSITION_JITTER * 2) -
+                     FIRE_EMBER_POSITION_JITTER)
             };
             SVECTOR vec = {
                 .vx = 0,
-                .vy = -30,
+                .vy = FIRE_EMBER_RISE_SPEED,
                 .vz = 0
             };
 
-            SetBleed(&pos, &vec, rand() % 20, COLOR_YELLOW);
+            SetBleed(&pos, &vec,
+                     rand() % FIRE_EMBER_SIZE_RANGE, COLOR_YELLOW);
         }
     }
 
-    count = param->count - 1;
-    param->count = count;
-    mode = item->mode;
-    switch (mode)
+    remaining_count = param->count - 1;
+    param->count = remaining_count;
+    switch (item->mode)
     {
     case FIRE_MODE_FUSE:
-        if ((u8)count == 0)
+        if ((u8)remaining_count == 0)
         {
-            if (rand() % 10 < 2)
+            if (rand() % FIRE_RECOVERY_ROLL_RANGE <
+                FIRE_RECOVERY_ROLL_THRESHOLD)
             {
                 PARAM_ITEM_STAY saved_record;
-                PARAM_ITEM_STAY rparam;
-                PARAM_ITEM_LAUNCH launch_record;
-                PARAM_ITEM_STAY *saved;
-                PARAM_ITEM_LAUNCH *launch;
+                PARAM_ITEM_STAY stay_request;
 
-                rparam = (PARAM_ITEM_STAY){0};
-                rparam.type = item->type;
-                rparam.locate.vx = model->locate.coord.t[0];
-                rparam.locate.vy = model->locate.coord.t[1];
-                rparam.locate.vz = model->locate.coord.t[2];
-                saved_record = rparam;
+                stay_request = (PARAM_ITEM_STAY){0};
+                stay_request.type = item->type;
+                copyVector(&stay_request.locate, MODEL_POSITION(model));
+                saved_record = stay_request;
 
                 if (item->proc != 0)
                 {
                     DISPOSE_ITEM(item);
                 }
 
-                saved = &saved_record;
-                launch = &launch_record;
-                launch_record.type = saved->type;
-                launch->user = (Humanoid *)CONFLICT_OWNER_ITEM;
-                launch_record.start.vx = saved->locate.vx;
-                launch_record.start.vy = saved->locate.vy;
-                launch_record.start.vz = saved->locate.vz;
-                launch_record.end.vx = 0;
-                launch_record.end.vy = 0;
-                launch_record.end.vz = 0;
-                launch_record.start.vy = GetAreaMapLevel(
-                    GlobalAreaMap, launch_record.start.vx,
-                    launch_record.start.vy,
-                    launch_record.start.vz, AREA_LEVEL_DEFAULT);
-                ReqItemDrop(launch);
-                SetSmokeS(&saved->locate, 0, -100, 0, 10);
+                DropStayedItem(&saved_record);
+                SetSmokeS(&saved_record.locate, 0,
+                          FIRE_RECOVERY_SMOKE_RISE_SPEED, 0,
+                          FIRE_RECOVERY_SMOKE_TIME);
                 return;
             }
         }
         else
         {
-            if ((u8)count == 140)
+            if ((u8)remaining_count == FIRE_TRIGGER_ARM_FRAME)
             {
                 s32 conflict_id;
                 s32 size;
@@ -4838,7 +4857,7 @@ void ProcItemFire(TItem *item)
 
                 DeleteConflict(item->locate);
                 conflict_id = InsertConflict(item->locate);
-                size = 500;
+                size = FIRE_TRIGGER_RADIUS;
                 collision_mode = CONFLICT_SOFT;
                 SET_ITEM_COLLISION(conflict_id, size, CONFLICT_OWNER_ITEM,
                                    collision_mode);
@@ -4846,19 +4865,20 @@ void ProcItemFire(TItem *item)
 
             if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
             {
-                cid = CONFLICT_NONE;
+                collision_result = CONFLICT_NONE;
             }
             else
             {
-                cid = GetConflictResult(item->locate, CONFLICT_NONE);
+                collision_result =
+                    GetConflictResult(item->locate, CONFLICT_NONE);
             }
-            if (cid == CONFLICT_NONE)
+            if (collision_result == CONFLICT_NONE)
             {
                 return;
             }
             if (is_humanoid_on_stage_(
-                    ConflictObject[cid].common) == 0 &&
-                ConflictObject[cid].size.pad !=
+                    ConflictObject[collision_result].common) == 0 &&
+                ConflictObject[collision_result].size.pad !=
                     CONFLICT_HIT)
             {
                 return;
@@ -4873,7 +4893,7 @@ void ProcItemFire(TItem *item)
             s32 conflict_id;
             SVECTOR vec = {
                 .vx = 0,
-                .vy = -25,
+                .vy = FIRE_EXPLOSION_RISE_SPEED,
                 .vz = 0
             };
             VECTOR pos = {
@@ -4884,75 +4904,68 @@ void ProcItemFire(TItem *item)
 
             SetExplosion(&pos, &vec);
 
-            vec.vx = 75;
-            vec.vy = 120;
-            vec.vz = 75;
-            SetHinoko(&pos, &vec, 8);
-            vec.vx = 0;
-            vec.vy = -200;
-            vec.vz = 0;
-            SetSmoke(&pos, &vec, 20, 6);
+            setVector(&vec, FIRE_SPARK_HORIZONTAL_SPEED,
+                      FIRE_SPARK_UPWARD_SPEED,
+                      FIRE_SPARK_HORIZONTAL_SPEED);
+            SetHinoko(&pos, &vec, FIRE_SPARK_COUNT);
+            setVector(&vec, 0, FIRE_SMOKE_RISE_SPEED, 0);
+            SetSmoke(&pos, &vec, FIRE_SMOKE_COUNT, FIRE_SMOKE_TIME);
             SoundEx(&pos, SE_EXPLOSION);
 
             DeleteConflict(item->locate);
             conflict_id = InsertConflict(item->locate);
-            ConflictObject[conflict_id].offset.vx = 0;
-            ConflictObject[conflict_id].offset.vz = 0;
-            ConflictObject[conflict_id].offset.vy = 0;
-            ConflictObject[conflict_id].size.vz = 1500;
-            ConflictObject[conflict_id].size.vy = 1500;
-            ConflictObject[conflict_id].size.vx = 1500;
-            ConflictObject[conflict_id].common = (void *)mode;
-            ConflictObject[conflict_id].size.pad = mode;
-            item->collision.size = 1500;
-            item->collision.ofsY = 0;
-            item->collision.mode = mode;
-            item->collision.pause = ITEM_COLLISION_ACTIVE;
+            SET_ITEM_COLLISION(conflict_id, FIRE_BLAST_RADIUS,
+                               CONFLICT_OWNER_ITEM, CONFLICT_HIT);
             item->mode++;
-            param->count = 3;
+            param->count = FIRE_BLAST_FRAMES;
             reset_alert_duration();
             return;
         }
     }
 
     case FIRE_MODE_BLAST:
-        if ((u8)count == 0 && item->proc != 0)
+        if ((u8)remaining_count == 0 && item->proc != 0)
         {
             DISPOSE_ITEM(item);
         }
 
         if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
         {
-            cid = CONFLICT_NONE;
+            collision_result = CONFLICT_NONE;
         }
         else
         {
-            cid = GetConflictResult(item->locate, CONFLICT_NONE);
+            collision_result =
+                GetConflictResult(item->locate, CONFLICT_NONE);
         }
-        if (cid != CONFLICT_NONE)
+        if (collision_result != CONFLICT_NONE)
         {
-            Humanoid *human;
+            Humanoid *human = ConflictObject[collision_result].common;
 
-            human = ConflictObject[cid].common;
             if (is_humanoid_on_stage_(human) != 0)
             {
                 ModelType **objects;
-                ModelType *model;
+                ModelType *hit_model;
+
                 objects = human->model->object;
                 if (human->model->n > 0)
                 {
                     objects += rand() % human->model->n;
                 }
-                model = *objects;
+                hit_model = *objects;
                 {
-                    VECTOR pos = {
-                        .vx = rand() % 200 - 100,
-                        .vy = rand() % 200 - 100,
-                        .vz = rand() % 200 - 100
+                    VECTOR frame_position = {
+                        .vx = rand() % FIRE_HIT_FRAME_POSITION_SPREAD -
+                              FIRE_HIT_FRAME_POSITION_SPREAD / 2,
+                        .vy = rand() % FIRE_HIT_FRAME_POSITION_SPREAD -
+                              FIRE_HIT_FRAME_POSITION_SPREAD / 2,
+                        .vz = rand() % FIRE_HIT_FRAME_POSITION_SPREAD -
+                              FIRE_HIT_FRAME_POSITION_SPREAD / 2
                     };
 
-                    SetFrame(&pos, 3 * FIXED_ONE, 120,
-                             &model->locate);
+                    SetFrame(&frame_position, FIRE_HIT_FRAME_SIZE,
+                             FIRE_HIT_FRAME_TIME,
+                             &hit_model->locate);
                 }
             }
         }

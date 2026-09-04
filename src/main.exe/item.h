@@ -114,6 +114,9 @@ enum active_item_kind
     ACTIVE_ITEM_LURE = ITEM_MANEBUE
 };
 
+/* Dropped items have no humanoid owner until somebody picks them up. */
+#define ITEM_OWNER_UNCLAIMED ((Humanoid *)CONFLICT_OWNER_ITEM)
+
 /* Operations on the reserved tail entry of Humanoid.item[]. */
 enum spare_item_slot_operation
 {
