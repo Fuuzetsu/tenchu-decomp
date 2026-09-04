@@ -5983,15 +5983,13 @@ short MotionAndMove(void)
 
     if (MotionUpdateMode != 0)
     {
-        i = 0;
-        do
+        for (i = 0; i < N_CVA_HUMANS; i++)
         {
             if (CVAhuman[i].human == Me_MOTION_C)
             {
                 return 0;
             }
-            i++;
-        } while (i < N_CVA_HUMANS);
+        }
     }
     result = SetNowMotion(Me_MOTION_C, motID, motMODE);
     motMODE = MOTION_MOVE_UNSET;
