@@ -404,12 +404,9 @@ void GetWeaponData(Humanoid *human, model_part_index body, weapon_kind wid,
     if (w >= 0)
     {
         i = 0;
-        while (WeaponModel[i].wid != WEAPON_KIND_END)
+        while (WeaponModel[i].wid != WEAPON_KIND_END &&
+               WeaponModel[i].wid != wid)
         {
-            if (WeaponModel[i].wid == wid)
-            {
-                break;
-            }
             i++;
         }
         if (WeaponModel[i].wid != WEAPON_KIND_END)
