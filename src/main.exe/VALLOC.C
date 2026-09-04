@@ -364,7 +364,7 @@ void *vmemoryGC(void *pt)
         prev = (struct VMhead *)virtual_memory_pool;
         if (prev != 0)
         {
-            for (;;)
+            while (1)
             {
                 n2 = prev->next;
                 if (n2 != header)
