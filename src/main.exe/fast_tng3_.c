@@ -27,7 +27,7 @@ PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
         codeVal = GPU_POLY_GT3_CODE;
         sz0Ptr = (u_long *)&work->sz[0];
         sz1Ptr = (u_long *)&work->sz[1];
-        do
+        for (; count != 0; count--, record++)
         {
             idx0 = record->stream.vertex[0];
             idx1 = record->stream.vertex[1];
@@ -44,14 +44,14 @@ PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
             color->channel.cd = codeVal;
             gte_stflg((u_long *)&work->flag);
             if (work->flag < 0)
-                goto next;
+                continue;
 
             gte_nclip();
             prim->gpu.vertex[1].color.word = record->stream.color[1].word;
             prim->gpu.vertex[2].color.word = record->stream.color[2].word;
             gte_stopz((u_long *)&work->opz);
             if (work->opz <= 0)
-                goto next;
+                continue;
 
             gte_stsxy3_gt3(&prim->packet);
 
@@ -76,9 +76,9 @@ PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
                 hi = c;
             }
             if (hi < work->clipx0)
-                goto next;
+                continue;
             if (work->clipx1 < lo)
-                goto next;
+                continue;
 
             lo = prim->packet.y0;
             b = prim->packet.y1;
@@ -101,9 +101,9 @@ PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
                 hi = c;
             }
             if (hi < work->clipy0)
-                goto next;
+                continue;
             if (work->clipy1 < lo)
-                goto next;
+                continue;
 
             gte_stsz3(sz0Ptr, sz1Ptr, (u_long *)&work->sz[2]);
             lo = work->sz[0];
@@ -128,7 +128,7 @@ PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
             }
             work->otz = otz / 4;
             if (work->farz < lo)
-                goto next;
+                continue;
 
             z1 = work->fogz;
             if (z1 < otz)
@@ -175,11 +175,7 @@ PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
             *(GpuPolyGT3Packet *)packet = *prim;
             *otSlot = (u_long)packet & GPU_DMA_ADDRESS_MASK;
             packet += sizeof(GpuPolyGT3Packet);
-
-        next:
-            count--;
-            record++;
-        } while (count != 0);
+        }
     }
     return packet;
 }
