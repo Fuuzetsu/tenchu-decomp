@@ -546,6 +546,7 @@ typedef u8 compact_character_kind;
 typedef s16 model_part_index;
 enum model_part_index
 {
+    MODEL_PART_NONE = -1,
     MODEL_PART_WAIST = 0,
     MODEL_PART_TORSO = 1,
     MODEL_PART_HEAD = 2,

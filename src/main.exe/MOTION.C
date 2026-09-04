@@ -5616,7 +5616,7 @@ typedef union
     } rumble;
     struct
     {
-        s16 model_part;
+        model_part_index model_part;
         u16 local_velocity;
     } gore;
 } DeathEventPayload;
@@ -5643,7 +5643,7 @@ void ActDEAD(void)
         DROWN_SPLASH_SPEED = 6,
     };
     ModelArchiveType *model;
-    short blood;
+    model_part_index blood;
     short bldo;
     short blds;
     short i;
@@ -5653,7 +5653,7 @@ void ActDEAD(void)
     SVECTOR v;
 
     model = Me_MOTION_C->model;
-    blood = -1;
+    blood = MODEL_PART_NONE;
     if ((*model->object)->id < 0 && dtM->loop < 0)
         return;
 
@@ -5810,14 +5810,14 @@ void ActDEAD(void)
                 Sound(DeadHumanoid, SE_DEATH);
                 DeadHumanoid = 0;
             }
-            blood = 1;
+            blood = MODEL_PART_TORSO;
             bldo = 100;
             blds = 0;
         }
         break;
     }
 
-    if ((dtM->count & 4) && blood != -1)
+    if ((dtM->count & 4) && blood != MODEL_PART_NONE)
     {
         SVECTOR gore_position = {
             .vx = 0,
