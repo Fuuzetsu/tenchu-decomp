@@ -518,21 +518,16 @@ ModelArchiveType *CreateCloneModelArchive(ModelArchiveType *mad)
     newmad->n = mad->n;
     newmad->object = (ModelType **)valloc(newmad->n * sizeof(ModelType *));
     INITIALIZE_MODEL_STATE(newmad, mad->locate.super);
-    i = 0;
-    if (newmad->n > 0)
+    for (i = 0; i < newmad->n; i++)
     {
-        do
+        objp = mad->object[i];
+        dim = (ModelType *)valloc(sizeof(ModelType));
+        INITIALIZE_MODEL_INSTANCE(dim, &World.locate);
+        if (objp != 0)
         {
-            objp = mad->object[i];
-            dim = (ModelType *)valloc(sizeof(ModelType));
-            INITIALIZE_MODEL_INSTANCE(dim, &World.locate);
-            if (objp != 0)
-            {
-                dim->object.tmd = objp->object.tmd;
-            }
-            newmad->object[i] = dim;
-            i++;
-        } while (i < newmad->n);
+            dim->object.tmd = objp->object.tmd;
+        }
+        newmad->object[i] = dim;
     }
     /* The retail code reads object[0] even when n is zero. */
     newmad->rotate.pad = (short)newmad->object[0]->locate.coord.t[1];
