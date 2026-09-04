@@ -44,16 +44,14 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
     else if (award_tier == STAGE_AWARD_NINJA)
     {
-        i = ITEM_SHURIKEN;
-        do
+        for (i = ITEM_SHURIKEN; i < ITEM_NEMURI; i++)
         {
             if (state->gItem[state->CharType][i] == ITEM_LOCKED)
             {
                 state->gItem[state->CharType][i] += 2;
             }
             state->gItem[state->CharType][i]++;
-            i++;
-        } while (i < ITEM_NEMURI);
+        }
         while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
@@ -65,16 +63,14 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
     else if (award_tier == STAGE_AWARD_MASTER_NINJA)
     {
-        i = ITEM_SHURIKEN;
-        do
+        for (i = ITEM_SHURIKEN; i < ITEM_NEMURI; i++)
         {
             if (state->gItem[state->CharType][i] == ITEM_LOCKED)
             {
                 state->gItem[state->CharType][i] += 2;
             }
             state->gItem[state->CharType][i]++;
-            i++;
-        } while (i < ITEM_NEMURI);
+        }
         while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
@@ -106,16 +102,14 @@ void award_stage_items_(TLinkInfo *state, ScoreResult *result)
     }
     else /* STAGE_AWARD_GRAND_MASTER */
     {
-        i = ITEM_SHURIKEN;
-        do
+        for (i = ITEM_SHURIKEN; i < ITEM_NEMURI; i++)
         {
             if (state->gItem[state->CharType][i] == ITEM_LOCKED)
             {
                 state->gItem[state->CharType][i] += 2;
             }
             state->gItem[state->CharType][i] += 2;
-            i++;
-        } while (i < ITEM_NEMURI);
+        }
         while (i < N_LOADOUT_ITEMS)
         {
             if (state->gItem[state->CharType][i] != ITEM_LOCKED)
