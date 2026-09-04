@@ -2757,6 +2757,11 @@ static inline void GetWireRotation(VECTOR *start, VECTOR *end, int *rx,
 
 void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
 {
+    enum
+    {
+        WIRE_COLOR = 0x504838,
+        WIRE_DISTANCE_RESCALE_SHIFT = 8,
+    };
     VECTOR StockCenter;
     long lcount;
     int i;
@@ -2770,33 +2775,30 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     GetWireScreenPosition(start->vx, start->vy, start->vz, &oldscr);
 
     line.attribute = 0;
-    line.r = 0x50;
-    line.g = 0x48;
-    line.b = 0x38;
+    line.r = WIRE_COLOR >> 16;
+    line.g = WIRE_COLOR >> 8;
+    line.b = WIRE_COLOR;
 
     {
         VECTOR *v1;
         VECTOR *v2;
         long dx, dy, dz;
-        int big;
+        int rescale_distance;
 
         v1 = start;
         v2 = end;
         dx = v1->vx - v2->vx;
         dy = v1->vy - v2->vy;
         dz = v1->vz - v2->vz;
-        big = 0;
-        if (abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
-            abs(dz) > FIXED_ONE)
+        rescale_distance = abs(dx) > FIXED_ONE || abs(dy) > FIXED_ONE ||
+                           abs(dz) > FIXED_ONE;
+        if (rescale_distance)
         {
-            big = 1;
-        }
-        if (big)
-        {
-            dx /= 0x100;
-            dy /= 0x100;
-            dz /= 0x100;
-            distance = SquareRoot0(dx * dx + dy * dy + dz * dz) << 8;
+            dx /= 1 << WIRE_DISTANCE_RESCALE_SHIFT;
+            dy /= 1 << WIRE_DISTANCE_RESCALE_SHIFT;
+            dz /= 1 << WIRE_DISTANCE_RESCALE_SHIFT;
+            distance = SquareRoot0(dx * dx + dy * dy + dz * dz)
+                       << WIRE_DISTANCE_RESCALE_SHIFT;
         }
         else
         {
@@ -2814,8 +2816,7 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
     }
 
     ecount = lcount * len / FIXED_ONE;
-    i = 0;
-    while (1)
+    for (i = 0; ; i++)
     {
         long t, Q, R;
         long one_value;
@@ -2852,7 +2853,6 @@ void SetWire(VECTOR *start, VECTOR *end, VECTOR *center, long len)
             GsSortLine(&line, OTablePt, (u16)p);
         }
         oldscr = scr;
-        i++;
     }
 
     {
