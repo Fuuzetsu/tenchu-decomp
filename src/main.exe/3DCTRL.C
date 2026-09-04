@@ -300,25 +300,20 @@ ModelArchiveType *LoadModelArchive(u_long *adr, ModelType *prnt)
     adr++;
     mad->n = *(s16 *)adr;
     adr++;
-    i = 0;
     mad->object = (ModelType **)valloc(mad->n * sizeof(ModelType *));
     prntp = (ParentingType *)adr;
     tmdp = (u8 *)prntp;
-    if (mad->n > 0)
+    for (i = 0; i < mad->n; i++)
     {
-        do
+        dtmd = (TMDFile *)(tmdp + prntp[i].index);
+        dim = (ModelType *)valloc(sizeof(ModelType));
+        if (dtmd != 0)
         {
-            dtmd = (TMDFile *)(tmdp + prntp[i].index);
-            dim = (ModelType *)valloc(sizeof(ModelType));
-            if (dtmd != 0)
-            {
-                GsMapModelingData((u_long *)&dtmd->data);
-                GsLinkObject4((u_long)dtmd->data.objects, &dim->object, 0);
-            }
-            INITIALIZE_MODEL_INSTANCE(dim, &World.locate);
-            mad->object[i] = dim;
-            i++;
-        } while (i < mad->n);
+            GsMapModelingData((u_long *)&dtmd->data);
+            GsLinkObject4((u_long)dtmd->data.objects, &dim->object, 0);
+        }
+        INITIALIZE_MODEL_INSTANCE(dim, &World.locate);
+        mad->object[i] = dim;
     }
     if (prnt == 0)
     {
