@@ -1190,7 +1190,6 @@ void DamageControl(void)
                     goto difficulty_bonus;
                 }
                 Me_MOTION_C->life = 0;
-                goto recheck_attacker;
             }
             else
             {
@@ -1199,7 +1198,6 @@ void DamageControl(void)
                     dmg = dmg / 3;
                 }
             }
-        recheck_attacker:
             if (enemy != StagePlayer)
             {
                 goto apply_multipliers;
