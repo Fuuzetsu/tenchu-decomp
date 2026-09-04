@@ -590,8 +590,7 @@ conflict_id InsertConflict(ModelType *model)
     {
         SystemOut(msg_conflict_regist_failure);
     }
-    cnt = ConflictObjects;
-    ConflictObjects = cnt + 1;
+    cnt = ConflictObjects++;
     idx = (short)cnt;
     ConflictObject[idx].model = model;
     ConflictObject[idx].common = (void *)CONFLICT_OWNER_NONE;
