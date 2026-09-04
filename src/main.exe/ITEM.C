@@ -264,7 +264,7 @@ void RestoreItemLayout(void *buf)
         s32 i;
 
         i = 0;
-        for (;;)
+        while (1)
         {
             if (i < MAX_ITEMS)
             {
@@ -304,7 +304,7 @@ void RestoreItemLayout(void *buf)
 
                 k = 0;
                 offs = DropOffsets;
-                for (;;)
+                while (1)
                 {
                     if (k < 4)
                     {
