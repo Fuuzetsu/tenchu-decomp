@@ -220,7 +220,7 @@ s16 CVAsequence(s16 sid)
     cursor++;
     CVAnow = cursor;
     TelopText[0] = 0;
-    for (; i < Humans; i++)
+    while (i < Humans)
     {
         human = HumanGroup[i];
         if (human->status != STAT_DEAD &&
@@ -230,6 +230,7 @@ s16 CVAsequence(s16 sid)
             NowReturnNormal(HumanGroup[i]);
             HumanGroup[i]->pad.data = 0;
         }
+        i++;
     }
 
     CVAflag = 0;
