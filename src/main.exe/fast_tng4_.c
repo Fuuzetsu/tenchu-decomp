@@ -27,7 +27,7 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
         color = &work->gt4.gpu.vertex[0].color;
         codeVal = GPU_POLY_GT4_CODE;
         sz0Ptr = (u_long *)&work->sz[0];
-        do
+        for (; count != 0; count--, record++)
         {
             idx0 = record->stream.vertex[0];
             idx1 = record->stream.vertex[1];
@@ -42,14 +42,14 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
             prim->gpu.vertex[2].texture.word = record->stream.texture[2].word;
             gte_stflg(flagAddr);
             if (work->flag < 0)
-                goto next;
+                continue;
 
             gte_nclip();
             prim->gpu.vertex[0].color.word = record->stream.color[0].word;
             color->channel.cd = codeVal;
             gte_stopz((u_long *)&work->opz);
             if (work->opz <= 0)
-                goto next;
+                continue;
 
             gte_stsxy3_gt3(&prim->packet);
             gte_ldv0(TMD_VERTEX_AT(vertices, record->stream.vertex[3]));
@@ -61,7 +61,7 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
             prim->gpu.vertex[3].color.word = record->stream.color[3].word;
             gte_stflg(flagAddr);
             if (work->flag < 0)
-                goto next;
+                continue;
 
             gte_stsxy(&prim->gpu.vertex[3].screen.word);
 
@@ -95,9 +95,9 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
                 hi = c;
             }
             if (hi < work->clipx0)
-                goto next;
+                continue;
             if (work->clipx1 < lo)
-                goto next;
+                continue;
 
             lo = prim->packet.y0;
             b = prim->packet.y1;
@@ -129,9 +129,9 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
                 hi = c;
             }
             if (hi < work->clipy0)
-                goto next;
+                continue;
             if (work->clipy1 < lo)
-                goto next;
+                continue;
 
             gte_stsz4(sz0Ptr, (u_long *)&work->sz[1], (u_long *)&work->sz[2],
                       (u_long *)&work->sz[3]);
@@ -165,7 +165,7 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
                 otz = c;
             }
             if (work->farz < lo)
-                goto next;
+                continue;
 
             work->otz = otz / 4;
             z1 = work->fogz;
@@ -225,11 +225,7 @@ PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
             *(GpuPolyGT4Packet *)packet = *prim;
             *otSlot = (u_long)packet & GPU_DMA_ADDRESS_MASK;
             packet += sizeof(GpuPolyGT4Packet);
-
-        next:
-            count--;
-            record++;
-        } while (count != 0);
+        }
     }
     return packet;
 }
