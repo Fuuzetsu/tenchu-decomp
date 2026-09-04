@@ -473,14 +473,9 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
     }
     count = initial;
 
-    for (;;)
+    while ((y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz,
+                                   AREA_LEVEL_DEFAULT)) != LEVEL_NONE)
     {
-        y[0] = GetAreaMapLevel(area, cv.vx, cv.vy, cv.vz,
-                               AREA_LEVEL_DEFAULT);
-        if (y[0] == LEVEL_NONE)
-        {
-            break;
-        }
         node = FieldArea;
         x[0] = node->x1 * 10;
         x[1] = node->x2 * 10;
