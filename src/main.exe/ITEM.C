@@ -4519,15 +4519,20 @@ static int ReqItemNinken(PARAM_ITEM_LAUNCH *p)
 
 void ProcItemHappou(TItem *item)
 {
-    ModelType *model;
-    param_launch *param;
-    u8 t;
-    fly_mode mode;
-    s32 i;
-    s32 conflict_id;
+    enum
+    {
+        HAPPOU_COLLISION_RADIUS = 300,
+        HAPPOU_WALL_BLEED_GROUND_RANGE = 0,
+        HAPPOU_WALL_BLEED_SPREAD = 25,
+        HAPPOU_WALL_BLEED_COUNT = 10,
+        HAPPOU_WALL_BLEED_TIME = 10,
+        HAPPOU_HIT_IMPACT_SIZE = 4 * FIXED_ONE
+    };
+    ModelType *model = HappouModel;
+    param_launch *param = &item->param.launch;
+    s32 collision_result;
+    s32 registered_collision;
 
-    model = HappouModel;
-    param = &item->param.launch;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         DisposeAfterimage(param->effect);
@@ -4535,41 +4540,47 @@ void ProcItemHappou(TItem *item)
         return;
     }
     MoveFly(item, &param->fly);
-    t = param->count - 1;
-    param->count = t;
-    if (t == 0)
+    if (--param->count == 0)
     {
         DeleteConflict(item->locate);
-        conflict_id = InsertConflict(item->locate);
-        SET_ITEM_COLLISION(conflict_id, 300, CONFLICT_OWNER_ITEM,
+        registered_collision = InsertConflict(item->locate);
+        SET_ITEM_COLLISION(registered_collision, HAPPOU_COLLISION_RADIUS,
+                           CONFLICT_OWNER_ITEM,
                            CONFLICT_HIT);
     }
     UpdateCoordinate(item->locate);
     model->locate = item->locate->locate;
     DrawModel(model);
     DrawAfterimage(param->effect, 1);
-    mode = param->fly.mode;
-    if (mode != FLY_MODE_ARC)
+    switch (param->fly.mode)
     {
-        if (mode == FLY_MODE_ROLL &&
-            param->fly.p.koro.status != KORO_NORMAL)
+    case FLY_MODE_ARC:
+        break;
+
+    case FLY_MODE_ROLL:
+        if (param->fly.p.koro.status != KORO_NORMAL)
         {
-            SetBleeds(MODEL_POSITION(item->locate), 0, 25, 10, 10, COLOR_YELLOW);
+            SetBleeds(MODEL_POSITION(item->locate),
+                      HAPPOU_WALL_BLEED_GROUND_RANGE,
+                      HAPPOU_WALL_BLEED_SPREAD,
+                      HAPPOU_WALL_BLEED_COUNT,
+                      HAPPOU_WALL_BLEED_TIME, COLOR_YELLOW);
             SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_IMPACT);
             if (item->proc != 0)
             {
                 DISPOSE_ITEM(item);
             }
         }
+        break;
     }
     if ((item->locate->attribute & MODEL_ATTR_CONFLICT) == 0)
-        i = CONFLICT_NONE;
+        collision_result = CONFLICT_NONE;
     else
-        i = GetConflictResult(item->locate, CONFLICT_NONE);
-    if (i != CONFLICT_NONE &&
-        is_humanoid_on_stage_(ConflictObject[i].common) != 0)
+        collision_result = GetConflictResult(item->locate, CONFLICT_NONE);
+    if (collision_result != CONFLICT_NONE &&
+        is_humanoid_on_stage_(ConflictObject[collision_result].common) != 0)
     {
-        SetImpact(MODEL_POSITION(item->locate), 4 * FIXED_ONE,
+        SetImpact(MODEL_POSITION(item->locate), HAPPOU_HIT_IMPACT_SIZE,
                   IMPACT_SPRITE_HIT);
         SoundEx(MODEL_POSITION(item->locate), SE_PROJECTILE_HIT);
         DeleteConflict(item->locate);
