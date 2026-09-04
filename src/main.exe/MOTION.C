@@ -788,6 +788,7 @@ void DamageControl(void)
         COUNTER_BLEED_VELOCITY_BIAS = 50,
         COUNTER_BLEED_LIFETIME_RANGE = 20,
         COUNTER_BLEED_LIFETIME_MIN = 20,
+        DAMAGE_KNOCKBACK_BIAS = 80,
     };
     static motion_id damagemotion[N_DAMAGE_MOTIONS] = {
         MOT_DAMAGE,
@@ -1158,7 +1159,10 @@ void DamageControl(void)
                         PlayMotion(mmp, 1);
                         dmg = (u16)BattleDB[deg].power;
                         dtM->loop = -dmg - 8;
-                        MoveHumanoid(Me_MOTION_C, -((short)((dmg * 5) / 2) + 0x50), 0);
+                        MoveHumanoid(
+                            Me_MOTION_C,
+                            -((short)((dmg * 5) / 2) + DAMAGE_KNOCKBACK_BIAS),
+                            0);
                         RecoilAttacker(enemy, dmg, RUMBLE_POWER_HALF,
                                        RUMBLE_RELEASE_NONE);
                         DeleteConflict(ConflictObject[(short)id].model);
@@ -1247,7 +1251,7 @@ void DamageControl(void)
                 {
                     deg = DAMAGE_MOTION_LAUNCH_TIER;
                 }
-                t = dmg * 5 / 2 + 0x50;
+                t = dmg * 5 / 2 + DAMAGE_KNOCKBACK_BIAS;
                 newvy = dtR->vy + did;
                 abs_direction = __builtin_abs(did);
                 dtR->vy = newvy;
