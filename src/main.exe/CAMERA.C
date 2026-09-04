@@ -965,41 +965,44 @@ void SetCameraMode(TCameraMode mode)
         cs = &CamState;
         tbl = CamPosCriticalHit;
         fp = &flag;
-    loop:
-        if (i < N_CRITICAL_CAMERA_POSITIONS)
+        for (;;)
         {
-            cs->OldMode++;
-            if (cs->OldMode > MaxCriticalValiation)
-                cs->OldMode = 0;
-            camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);
-            pos = cs->Owner->locate;
-            rot = cs->Owner->rotate;
-            do
+            if (i < N_CRITICAL_CAMERA_POSITIONS)
             {
-                scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
-                scratch_rot_1f800040.vy = rot->vy;
-                scratch_rot_1f800040.vz = rot->vz;
-                RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
-                             (MATRIX *)TENCHU_SCRATCHPAD(0x80));
-            } while (0);
-            scratch_trans_1f800094[0] = pos->vx;
-            scratch_trans_1f800094[1] = pos->vy;
-            scratch_trans_z_1f80009c = pos->vz;
-            SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
-            SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
-            do
-            {
-                RotTrans(&camera->r1, &va, fp);
-                RotTrans(&camera->r2, &vb, fp);
-                RotTrans(&camera->p1, pv = &vc, fp);
-                RotTrans(&camera->p2, pv = &vd, fp);
-            } while (0);
-            pv = 0;
-            hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
-            i++;
-            if (hitf)
-                goto hit;
-            goto loop;
+                cs->OldMode++;
+                if (cs->OldMode > MaxCriticalValiation)
+                    cs->OldMode = 0;
+                camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);
+                pos = cs->Owner->locate;
+                rot = cs->Owner->rotate;
+                do
+                {
+                    scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
+                    scratch_rot_1f800040.vy = rot->vy;
+                    scratch_rot_1f800040.vz = rot->vz;
+                    RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
+                                 (MATRIX *)TENCHU_SCRATCHPAD(0x80));
+                } while (0);
+                scratch_trans_1f800094[0] = pos->vx;
+                scratch_trans_1f800094[1] = pos->vy;
+                scratch_trans_z_1f80009c = pos->vz;
+                SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
+                SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
+                do
+                {
+                    RotTrans(&camera->r1, &va, fp);
+                    RotTrans(&camera->r2, &vb, fp);
+                    RotTrans(&camera->p1, pv = &vc, fp);
+                    RotTrans(&camera->p2, pv = &vd, fp);
+                } while (0);
+                pv = 0;
+                hitf = trace_ground_(&vc, &vd, 0, 0) > 0x7ff;
+                i++;
+                if (hitf)
+                    goto hit;
+                continue;
+            }
+            break;
         }
         CamState.OldMode = 0;
         break;
