@@ -700,7 +700,13 @@ void StateTransition(Humanoid *human)
                     {
                         pad = PADLup | PADRdown;
                     }
-                    goto tail;
+                    if (Me->life < 0)
+                    {
+                        StrainRatio = saved_strain_ratio;
+                    }
+                    Me->attribute = Attrib;
+                    update_pressed_buttons(Pad, pad);
+                    return;
                 }
             }
             if (GameClock % TERRAIN_CHECK_PERIOD == 0 &&
@@ -717,7 +723,6 @@ void StateTransition(Humanoid *human)
         }
     }
 
-tail:
     if (Me->life < 0)
     {
         StrainRatio = saved_strain_ratio;
