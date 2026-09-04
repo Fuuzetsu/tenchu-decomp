@@ -417,8 +417,7 @@ static s32 PutLifeBarS(void)
 {
     s32 i;
 
-    i = 0;
-    do
+    for (i = 0; i < nLifeBar; i++)
     {
         if (LifeBar[i].count > 0)
         {
@@ -426,8 +425,7 @@ static s32 PutLifeBarS(void)
                        LifeBar[i].max, LifeBar[i].style);
             LifeBar[i].count--;
         }
-        i++;
-    } while (i < nLifeBar);
+    }
     return 0;
 }
 
