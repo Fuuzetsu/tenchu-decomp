@@ -1322,24 +1322,30 @@ void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side)
  *     param $a2       short roty
  * END PSX.SYM */
 
-s16 GetDirection(s32 dx, s32 dz, s32 roty)
+static __inline__ s16 FoldRelativeDirection(s32 difference)
 {
-    s32 diff;
-    s16 sdiff;
+    s16 signed_difference;
     s16 result;
 
-    diff = ratan2(-dx, -dz) - roty;
-    sdiff = diff;
-    result = diff;
-    if (sdiff > ANGLE_HALF)
+    signed_difference = difference;
+    result = difference;
+    if (signed_difference > ANGLE_HALF)
     {
-        result = ANGLE_FULL - diff;
+        result = ANGLE_FULL - difference;
     }
-    else if (sdiff <= -ANGLE_HALF)
+    else if (signed_difference <= -ANGLE_HALF)
     {
-        result = diff + ANGLE_FULL;
+        result = difference + ANGLE_FULL;
     }
     return result;
+}
+
+s16 GetDirection(s32 dx, s32 dz, s32 roty)
+{
+    s32 difference;
+
+    difference = ratan2(-dx, -dz) - roty;
+    return FoldRelativeDirection(difference);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
