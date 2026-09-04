@@ -6538,6 +6538,12 @@ void ProcItemArrow(TItem *item)
 
 int ReqItemArrow(PARAM_ITEM_LAUNCH *p)
 {
+    enum
+    {
+        ARROW_VERTICAL_ARC_SPREAD = FIXED_HALF,
+        ARROW_FLIGHT_SPEED = 300,
+        ARROW_ARMING_DELAY = 5
+    };
     TItem *item;
     TItem *ret;
     param_arrow *param;
@@ -6566,8 +6572,9 @@ found:
         item->collision.size = 0;
         item->model = ArrowModel;
     }
-    SetupFly(&param->fly, pos, &target, 0, FIXED_HALF, 300);
-    param->count = 5;
+    SetupFly(&param->fly, pos, &target, 0, ARROW_VERTICAL_ARC_SPREAD,
+             ARROW_FLIGHT_SPEED);
+    param->count = ARROW_ARMING_DELAY;
     return 1;
 }
 
