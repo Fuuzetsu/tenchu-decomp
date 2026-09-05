@@ -47,9 +47,11 @@ static s16 ItemUse(void);
 static s16 SuccessionAttack(s32 dist, s16 deg);
 static s16 AttackAnimal(void);
 
-enum animal_attack_timing
+enum animal_attack_policy
 {
     ANIMAL_ATTACK_TIMER_RESET = 0,
+    ANIMAL_ATTACK_RANGE = 2000,
+    ANIMAL_ATTACK_AIM = 200,
     ANIMAL_ATTACK_NOTICE_FRAME = 30,
     ANIMAL_ATTACK_FULL_STEER_FRAME = 90
 };
@@ -3220,7 +3222,7 @@ static short AttackIndirect(void)
 
 static short AttackAnimal(void)
 {
-    s32 deg;
+    s32 aim_error;
     s16 pad;
     u8 timer;
 
@@ -3229,16 +3231,16 @@ static short AttackAnimal(void)
         Me->actmode = ANIMAL_ATTACK_TIMER_RESET;
         return 0;
     }
-    if (Distance < 2000)
+    if (Distance < ANIMAL_ATTACK_RANGE)
     {
-        deg = Degree;
-        if (deg < 0)
+        aim_error = Degree;
+        if (aim_error < 0)
         {
-            deg = -deg;
+            aim_error = -aim_error;
         }
-        if (deg < 200)
+        if (aim_error < ANIMAL_ATTACK_AIM)
         {
-            return PADRleft; /* bite */
+            return PADRleft;
         }
     }
     Me->actmode++;
