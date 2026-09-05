@@ -2367,11 +2367,31 @@ static s16 ItemUse(void)
 
 static short AttackShort(void)
 {
+    enum
+    {
+        SHORT_ATTACK_POINT_BLANK_DISTANCE = 1000,
+        SHORT_ATTACK_CLOSE_DISTANCE = 1500,
+        SHORT_ATTACK_CONTINUATION_DISTANCE = 2000,
+        SHORT_ATTACK_ACQUIRE_DISTANCE = 2500,
+        SHORT_ATTACK_ADVANCE_DISTANCE = 3000,
+        SHORT_ATTACK_TACTIC_DISTANCE = 3500,
+        SHORT_ATTACK_REENGAGE_DISTANCE = 4000,
+        SHORT_ATTACK_RETREAT_DISTANCE = 5000,
+        SHORT_ATTACK_PRECISE_AIM = 100,
+        SHORT_ATTACK_TACTIC_AIM = 200,
+        SHORT_ATTACK_EVADE_ANGLE = 300,
+        SHORT_ATTACK_STEER_ANGLE = 500,
+        SHORT_ATTACK_AIM = 1000,
+        SHORT_ATTACK_OUTER_AIM = 1500,
+        SHORT_ATTACK_RETREAT_CHANCE = 5,
+        SHORT_ATTACK_LUNGE_CHANCE = 30,
+        SHORT_ATTACK_BACKOFF_CHANCE = 3
+    };
     MotionManager *motion;
-    s16 pad;
-    s32 attack_result;
+    s16 input;
+    s32 continuation_result;
 
-    pad = 0;
+    input = 0;
     if ((Me->type & PAGE_MASK) == PAGE_BEAST)
     {
         return AttackAnimal();
@@ -2380,50 +2400,49 @@ static short AttackShort(void)
     if (Me->status == STAT_ATTACK)
     {
         Humanoid *status_human;
-        s16 pad;
-        s32 status_raw;
+        s16 continuation_input;
+        s32 continuation_input_raw;
 
         status_human = Me;
-        status_raw = 0;
-        pad = status_raw;
-        /* Empty loop retained for code layout; its original source construct is unknown. */
+        continuation_input_raw = 0;
+        continuation_input = continuation_input_raw;
+        /* These zero-code constructs retain the retail block layout. */
         do
         {
         } while (0);
         if (Degree != 0)
         {
-            status_raw = (s32)pad;
+            continuation_input_raw = (s32)continuation_input;
         }
         else
         {
-            status_raw = (s32)pad;
+            continuation_input_raw = (s32)continuation_input;
         }
         if (status_human->motion->count !=
             BattleDB[status_human->warid].contfrm)
         {
-            attack_result = 0;
+            continuation_result = 0;
         }
         else
         {
-            if (Distance < 2000
-                    ? (__builtin_abs(Degree) < 1000 ||
-                       rand() % (EngageLevel + 1) == 0)
-                    : rand() % (EngageLevel + 1) == 0)
+            if ((Distance < SHORT_ATTACK_CONTINUATION_DISTANCE &&
+                 __builtin_abs(Degree) < SHORT_ATTACK_AIM) ||
+                rand() % (EngageLevel + 1) == 0)
             {
-                if (Degree > 300)
+                if (Degree > SHORT_ATTACK_EVADE_ANGLE)
                 {
-                    status_raw = PADLright;
+                    continuation_input_raw = PADLright;
                 }
-                else if (Degree < -300)
+                else if (Degree < -SHORT_ATTACK_EVADE_ANGLE)
                 {
-                    status_raw = (s16)PADLleft;
+                    continuation_input_raw = (s16)PADLleft;
                 }
-                status_raw |= PADRleft;
+                continuation_input_raw |= PADRleft;
             }
 
-            attack_result = status_raw;
+            continuation_result = continuation_input_raw;
         }
-        return (s16)attack_result;
+        return (s16)continuation_result;
     }
 
     if (Me->status == STAT_JUMP)
@@ -2440,15 +2459,15 @@ static short AttackShort(void)
     if (Me->actmode == MELEE_ATTACK_CLOSING)
     {
         s32 raw_degree;
-        s32 degree;
+        s32 abs_degree;
         s32 target_in_attack_arc;
 
-        target_in_attack_arc = Distance < 2500;
+        target_in_attack_arc = Distance < SHORT_ATTACK_ACQUIRE_DISTANCE;
         if (target_in_attack_arc)
         {
             raw_degree = Degree;
-            degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-            target_in_attack_arc = degree < 1500;
+            abs_degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            target_in_attack_arc = abs_degree < SHORT_ATTACK_OUTER_AIM;
         }
 
         if (target_in_attack_arc)
@@ -2458,34 +2477,35 @@ static short AttackShort(void)
             {
                 return 0;
             }
-            if (raw_degree > 500)
+            if (raw_degree > SHORT_ATTACK_STEER_ANGLE)
             {
-                pad = PADLright;
+                input = PADLright;
             }
-            else if (raw_degree < -500)
+            else if (raw_degree < -SHORT_ATTACK_STEER_ANGLE)
             {
-                pad = PADLleft;
+                input = PADLleft;
             }
-            pad |= PADRleft;
+            input |= PADRleft;
             Me->actmode = MELEE_ATTACK_ENGAGED;
         }
         else
         {
-            pad = ChasetoTarget(2000);
-            if (pad == 0)
+            input = ChasetoTarget(SHORT_ATTACK_CONTINUATION_DISTANCE);
+            if (input == 0)
             {
                 Me->actmode = MELEE_ATTACK_ENGAGED;
             }
-            if (Distance > 4000)
+            if (Distance > SHORT_ATTACK_REENGAGE_DISTANCE)
             {
-                degree = Degree;
-                if (degree < 0)
+                abs_degree = Degree;
+                if (abs_degree < 0)
                 {
-                    degree = -degree;
+                    abs_degree = -abs_degree;
                 }
-                if (degree < 100 && rand() % 5 == 0)
+                if (abs_degree < SHORT_ATTACK_PRECISE_AIM &&
+                    rand() % SHORT_ATTACK_RETREAT_CHANCE == 0)
                 {
-                    pad = PADLup | PADRdown;
+                    input = PADLup | PADRdown;
                 }
             }
             if ((Attrib & ATTR_HIT) != 0)
@@ -2498,46 +2518,46 @@ static short AttackShort(void)
     else if ((motion->count & (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
     {
         s32 raw_degree;
-        s32 degree;
+        s32 abs_degree;
 
-        pad = Me->pad.data;
-        if (Distance < 1500)
+        input = Me->pad.data;
+        if (Distance < SHORT_ATTACK_CLOSE_DISTANCE)
         {
             raw_degree = Degree;
-            degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-            if (degree < 1000)
+            abs_degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            if (abs_degree < SHORT_ATTACK_AIM)
             {
-                pad = PADLdown;
+                input = PADLdown;
             }
-            else if (degree > 1500)
+            else if (abs_degree > SHORT_ATTACK_OUTER_AIM)
             {
-                if (Distance < 1000)
+                if (Distance < SHORT_ATTACK_POINT_BLANK_DISTANCE)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_FORWARD);
+                    input = SetCommand(&Me->pad, CMD_DASH_FORWARD);
                 }
                 else
                 {
-                    pad = PADLup;
+                    input = PADLup;
                 }
             }
-            else if (rand() % 30 == 0)
+            else if (rand() % SHORT_ATTACK_LUNGE_CHANCE == 0)
             {
-                pad = SetCommand(&Me->pad, CMD_LUNGE);
+                input = SetCommand(&Me->pad, CMD_LUNGE);
             }
         }
     }
-    else if (Distance > 4000)
+    else if (Distance > SHORT_ATTACK_REENGAGE_DISTANCE)
     {
-        Humanoid *me;
+        Humanoid *human;
 
         Me->actmode = MELEE_ATTACK_CLOSING;
-        me = Me;
+        human = Me;
         Me->chase[HUMANOID_CHASE_Z] = 0;
-        me->chase[HUMANOID_CHASE_X] = 0;
+        human->chase[HUMANOID_CHASE_X] = 0;
         ItemUse();
-        if (Distance > 5000)
+        if (Distance > SHORT_ATTACK_RETREAT_DISTANCE)
         {
-            pad = PADLup | PADRdown;
+            input = PADLup | PADRdown;
         }
     }
     else
@@ -2547,58 +2567,60 @@ static short AttackShort(void)
             Me->actmode = MELEE_ATTACK_CLOSING;
         }
 
-        if (Degree > 500)
+        if (Degree > SHORT_ATTACK_STEER_ANGLE)
         {
-            pad = PADLright;
+            input = PADLright;
         }
-        else if (Degree < -500)
+        else if (Degree < -SHORT_ATTACK_STEER_ANGLE)
         {
-            pad = PADLleft;
+            input = PADLleft;
         }
 
-        if (Distance > 1500 && Distance < 4000)
+        if (Distance > SHORT_ATTACK_CLOSE_DISTANCE &&
+            Distance < SHORT_ATTACK_REENGAGE_DISTANCE)
         {
-            s32 attack_degree;
+            s32 attack_abs_degree;
 
-            attack_degree = Degree;
-            if (attack_degree < 0)
+            attack_abs_degree = Degree;
+            if (attack_abs_degree < 0)
             {
-                attack_degree = -attack_degree;
+                attack_abs_degree = -attack_abs_degree;
             }
-            if (attack_degree < 1000 &&
+            if (attack_abs_degree < SHORT_ATTACK_AIM &&
                 rand() % (EngageLevel + 1) == 0 &&
                 GameClock > AttackActionCount)
             {
                 AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
-                if (rand() % 3 == 0)
+                if (rand() % SHORT_ATTACK_BACKOFF_CHANCE == 0)
                 {
-                    pad = PADLdown;
+                    input = PADLdown;
                 }
-                return pad | PADRleft;
+                return input | PADRleft;
             }
         }
 
         {
             s32 raw_degree;
-            s32 degree;
+            s32 abs_degree;
 
             raw_degree = Degree;
-            degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
-            if (degree > 1500)
+            abs_degree = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            if (abs_degree > SHORT_ATTACK_OUTER_AIM)
             {
-                pad |= PADLdown;
+                input |= PADLdown;
             }
-            else if (Distance > 3000)
+            else if (Distance > SHORT_ATTACK_ADVANCE_DISTANCE)
             {
-                if (degree < 200 && Distance > 3500)
+                if (abs_degree < SHORT_ATTACK_TACTIC_AIM &&
+                    Distance > SHORT_ATTACK_TACTIC_DISTANCE)
                 {
                     if ((rand() & 1) != 0)
                     {
-                        pad = SetCommand(&Me->pad, CMD_DASH_FORWARD);
+                        input = SetCommand(&Me->pad, CMD_DASH_FORWARD);
                     }
                     else if ((rand() & 1) != 0)
                     {
-                        pad = SetCommand(&Me->pad, CMD_LUNGE);
+                        input = SetCommand(&Me->pad, CMD_LUNGE);
                     }
                     else
                     {
@@ -2607,51 +2629,51 @@ static short AttackShort(void)
                 }
                 else
                 {
-                    pad |= PADLup;
+                    input |= PADLup;
                 }
             }
-            else if (Distance < 1500)
+            else if (Distance < SHORT_ATTACK_CLOSE_DISTANCE)
             {
-                if (raw_degree > 300)
+                if (raw_degree > SHORT_ATTACK_EVADE_ANGLE)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
+                    input = SetCommand(&Me->pad, CMD_DASH_LEFT);
                 }
-                else if (raw_degree < -300)
+                else if (raw_degree < -SHORT_ATTACK_EVADE_ANGLE)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
+                    input = SetCommand(&Me->pad, CMD_DASH_RIGHT);
                 }
-                else if (Distance >= 1000)
+                else if (Distance >= SHORT_ATTACK_POINT_BLANK_DISTANCE)
                 {
-                    pad |= PADRleft;
+                    input |= PADRleft;
                 }
                 else
                 {
-                    pad = PADRleft | PADRright;
+                    input = PADRleft | PADRright;
                     if ((rand() & 1) != 0)
                     {
-                        pad = PADLdown | PADRdown;
+                        input = PADLdown | PADRdown;
                     }
                 }
             }
             else if ((rand() & 1) != 0)
             {
-                if (Degree > 100)
+                if (Degree > SHORT_ATTACK_PRECISE_AIM)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
+                    input = SetCommand(&Me->pad, CMD_DASH_RIGHT);
                 }
-                else if (Degree < -100)
+                else if (Degree < -SHORT_ATTACK_PRECISE_AIM)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
+                    input = SetCommand(&Me->pad, CMD_DASH_LEFT);
                 }
                 else
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
+                    input = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
                 }
             }
         }
     }
 
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
