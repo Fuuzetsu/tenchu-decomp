@@ -7395,44 +7395,53 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
 
 void TurnAroundAllItems(Humanoid *user)
 {
-    s32 i;
-    s32 j;
+    enum
+    {
+        INVENTORY_DROP_HORIZONTAL_SPREAD = 200,
+        INVENTORY_DROP_HORIZONTAL_RADIUS =
+            INVENTORY_DROP_HORIZONTAL_SPREAD / 2,
+        INVENTORY_DROP_VERTICAL_SPREAD = 100,
+        INVENTORY_DROP_UPWARD_SPEED = 200
+    };
+    s32 item_index;
+    s32 copy_index;
 
-    i = 0;
+    item_index = 0;
     while (1)
     {
-        if (i >= ITEM_N)
+        if (item_index >= ITEM_N)
             break;
-        j = 0;
+        copy_index = 0;
         while (1)
         {
-            VECTOR *pos;
-            Humanoid *human;
-            s32 itemID;
-
-            if (j >= user->item[i])
+            if (copy_index >= user->item[item_index])
                 break;
-            pos = GetAbsolutePosition(user->model->object[MODEL_PART_WAIST], 0, 0, 0);
-            human = user;
-            itemID = i;
             {
-                PARAM_ITEM_LAUNCH p = {
-                    .type = itemID,
-                    .user = human
+                VECTOR *drop_position = GetAbsolutePosition(
+                    user->model->object[MODEL_PART_WAIST], 0, 0, 0);
+                Humanoid *drop_owner = user;
+                TItemType item_type = (TItemType)item_index;
+                PARAM_ITEM_LAUNCH drop_request = {
+                    .type = item_type,
+                    .user = drop_owner
                 };
 
-                p.start.vx = pos->vx;
-                p.start.vy = pos->vy;
-                p.start.vz = pos->vz;
-                p.end.vx = rand() % 200 - 100;
-                p.end.vy = rand() % 100 - 200;
-                p.end.vz = rand() % 200 - 100;
-                ReqItemDrop(&p);
+                copyVector(&drop_request.start, drop_position);
+                drop_request.end.vx =
+                    rand() % INVENTORY_DROP_HORIZONTAL_SPREAD -
+                    INVENTORY_DROP_HORIZONTAL_RADIUS;
+                drop_request.end.vy =
+                    rand() % INVENTORY_DROP_VERTICAL_SPREAD -
+                    INVENTORY_DROP_UPWARD_SPEED;
+                drop_request.end.vz =
+                    rand() % INVENTORY_DROP_HORIZONTAL_SPREAD -
+                    INVENTORY_DROP_HORIZONTAL_RADIUS;
+                ReqItemDrop(&drop_request);
             }
-            j++;
+            copy_index++;
         }
-        user->item[i] = 0;
-        i++;
+        user->item[item_index] = 0;
+        item_index++;
     }
 }
 
