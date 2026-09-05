@@ -6021,7 +6021,7 @@ static void UpdateItemState(void)
     TItem *item;
     GsRVIEW2 *view;
     s32 i;
-    s32 hit;
+    s32 nearby;
     s32 sz, ofsY;
     ConflictClass mode;
     s16 conflict_id;
@@ -6035,13 +6035,11 @@ loop:
     {
         if (item->proc != 0)
         {
-            hit = 0;
-            if (abs(ViewInfo.vpx - item->locate->locate.coord.t[0]) < LEN &&
-                abs(view->vpy - item->locate->locate.coord.t[1]) < LEN)
-            {
-                hit = abs(view->vpz - item->locate->locate.coord.t[2]) < LEN;
-            }
-            if (hit)
+            nearby =
+                abs(ViewInfo.vpx - item->locate->locate.coord.t[0]) < LEN &&
+                abs(view->vpy - item->locate->locate.coord.t[1]) < LEN &&
+                abs(view->vpz - item->locate->locate.coord.t[2]) < LEN;
+            if (nearby)
             {
                 if (item->collision.pause != ITEM_COLLISION_ACTIVE)
                 {
