@@ -2971,8 +2971,11 @@ static short AttackLong(void)
     s32 aim_error;
 
     pad = 0;
-    RETURN_ATTACK_CONTINUATION(pad, LONG_ATTACK_ENGAGE_DISTANCE,
-                               LONG_ATTACK_OUTER_AIM);
+    if (Me->status == STAT_ATTACK)
+    {
+        return SuccessionAttack(LONG_ATTACK_ENGAGE_DISTANCE,
+                                LONG_ATTACK_OUTER_AIM);
+    }
 
     if (Me->status == STAT_JUMP)
     {
