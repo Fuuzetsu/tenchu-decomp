@@ -2731,8 +2731,11 @@ static short AttackGeneral(void)
     s16 input;
 
     input = 0;
-    RETURN_ATTACK_CONTINUATION(input, GENERAL_ATTACK_CLOSE_DISTANCE,
-                               GENERAL_ATTACK_CONTINUATION_AIM);
+    if (Me->status == STAT_ATTACK)
+    {
+        return SuccessionAttack(GENERAL_ATTACK_CLOSE_DISTANCE,
+                                GENERAL_ATTACK_CONTINUATION_AIM);
+    }
 
     if (Me->status == STAT_JUMP)
     {
