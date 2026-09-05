@@ -193,59 +193,51 @@ void EndDrawing(short sync)
  *     extern struct GsOT *OTablePt;
  * END PSX.SYM */
 
+static inline long GetModelDrawDepth(ModelType *model, long *screen_xy)
+{
+    ModelAttribute attribute = model->attribute;
+    long depth;
+    short clip_xy[2];
+
+    if (attribute & MODEL_ATTR_HIDDEN)
+        return MODEL_CLIP_REJECTED;
+
+    if (!(attribute & MODEL_ATTR_NOCULL))
+    {
+        depth = RotTransPers(&model->clip, (s32 *)clip_xy, 0, 0) >> 2;
+        if ((attribute & MODEL_ATTR_CULL_BEHIND) && depth == 0)
+            return MODEL_CLIP_REJECTED;
+        if ((attribute & MODEL_ATTR_CULL_SCREEN) &&
+            (__builtin_abs((s32)clip_xy[0]) > MODEL_CULL_X_LIMIT ||
+             __builtin_abs((s32)clip_xy[1]) > MODEL_CULL_Y_LIMIT))
+            return MODEL_CLIP_REJECTED;
+        if ((attribute & MODEL_ATTR_CULL_FAR) && depth > DEPTH_LIMIT)
+            return MODEL_CLIP_REJECTED;
+    }
+
+    depth = RotTransPers(&UnitVector, screen_xy, 0, 0) >> 2;
+    if (depth > DEPTH_LIMIT)
+        return MODEL_CLIP_REJECTED;
+
+    if (screen_xy == 0)
+    {
+        if (depth >= FOG_DEPTH)
+            DrawTMDmode = TMD_BANK_FOG;
+        else
+            DrawTMDmode = TMD_BANK_PLAIN;
+    }
+    return depth;
+}
+
 short DrawModel(ModelType *objp)
 {
     MATRIX mat;
-    ModelAttribute atr;
-    long sz;
-    short rxy[2];
 
     GsGetLs(&objp->locate, &mat);
     GsSetLsMatrix(&mat);
-    atr = objp->attribute;
-    sz = MODEL_CLIP_REJECTED;
-    if ((atr & MODEL_ATTR_HIDDEN) == 0)
-    {
-        if ((atr & MODEL_ATTR_NOCULL) == 0)
-        {
-            sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
-
-            if (((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0) ||
-                ((atr & MODEL_ATTR_CULL_SCREEN) != 0 &&
-                 (__builtin_abs((s32)rxy[0]) > MODEL_CULL_X_LIMIT ||
-                  __builtin_abs((s32)rxy[1]) > MODEL_CULL_Y_LIMIT)))
-            {
-                goto reject;
-            }
-            if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
-            {
-                sz = MODEL_CLIP_REJECTED;
-                goto ret;
-            }
-        }
-        sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
-        if (sz > DEPTH_LIMIT)
-        {
-        reject:
-            sz = MODEL_CLIP_REJECTED;
-        }
-        else
-        {
-            if (sz >= FOG_DEPTH)
-            {
-                DrawTMDmode = TMD_BANK_FOG;
-            }
-            else
-            {
-                DrawTMDmode = TMD_BANK_PLAIN;
-            }
-        }
-    }
-ret:
-    if (sz == MODEL_CLIP_REJECTED)
-    {
+    if (GetModelDrawDepth(objp, 0) == MODEL_CLIP_REJECTED)
         return 0;
-    }
+
     DrawTMD(&objp->object, OTablePt, 0);
     return 1;
 }
