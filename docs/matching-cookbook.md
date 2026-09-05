@@ -1341,6 +1341,14 @@ judgment:
   (briefing_screen_'s TimToDemoSprite); an inlined byte-pack helper may need both
   cursor identities as inputs (AfsGetEntry); keep helpers inside the caller's
   `#if` guard (stub TUs emit unreferenced statics). Demo-call inlining: §1.
+- **An apparently redundant test can belong to an inlined interface.**
+  DrawSprite tested `xy == 0` after forming `&sprite.x`, while DrawModel and
+  DrawModelArchive carried different-looking copies of the same clipping
+  tree. One structured GetModelDrawDepth helper is exact in all three callers
+  (332/488/444 bytes, complete image exact). Its screen-output pointer is
+  optional: model callers pass null and select the fog bank; sprites pass
+  their packed screen-coordinate fields. The test now has a real purpose,
+  and all rejection gotos disappear without a fence or workspace union.
 - **Source definition order need not be retail emission order.** Defining
   `SuccessionAttack` as `static __inline__` at its demo position, between
   `ItemUse` and `AttackShort`, preserves earlier callers' out-of-line calls

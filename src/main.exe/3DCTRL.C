@@ -553,76 +553,16 @@ short DrawSprite(Sprite3D *sprt)
 {
     MATRIX mat;
     ModelType *objp;
-    ModelAttribute atr;
     long *xy;
-    long sz;
     long result;
     long pri;
     s32 iv;
-    short rxy[2];
 
     objp = (ModelType *)sprt;
     GsGetLs(&objp->locate, &mat);
     GsSetLsMatrix(&mat);
-    atr = objp->attribute;
     xy = (long *)&sprt->sprite.x;
-    if ((atr & MODEL_ATTR_HIDDEN) != 0)
-        goto reject;
-    if ((atr & MODEL_ATTR_NOCULL) == 0)
-    {
-        sz = RotTransPers(&objp->clip, (s32 *)rxy, 0, 0) >> 2;
-        if ((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
-        {
-            result = MODEL_CLIP_REJECTED;
-            goto ret;
-        }
-        if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
-        {
-            iv = rxy[0];
-            if (iv < 0)
-            {
-                iv = -iv;
-            }
-            if (iv <= MODEL_CULL_X_LIMIT)
-            {
-                iv = rxy[1];
-                if (iv < 0)
-                {
-                    iv = -iv;
-                }
-                if (iv > MODEL_CULL_Y_LIMIT)
-                    goto reject;
-            }
-            else
-            {
-                result = MODEL_CLIP_REJECTED;
-                goto ret;
-            }
-        }
-        if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
-        {
-            result = MODEL_CLIP_REJECTED;
-            goto ret;
-        }
-    }
-    sz = RotTransPers(&UnitVector, xy, 0, 0) >> 2;
-    if (sz > DEPTH_LIMIT)
-    {
-    reject:
-        result = MODEL_CLIP_REJECTED;
-    }
-    else
-    {
-        if (xy == 0)
-        {
-            if (sz >= FOG_DEPTH)
-                DrawTMDmode = TMD_BANK_FOG;
-            else
-                DrawTMDmode = TMD_BANK_PLAIN;
-        }
-        result = sz;
-    }
-ret:
+    result = GetModelDrawDepth(objp, xy);
     pri = result - 5;
     if (pri < 1)
     {
