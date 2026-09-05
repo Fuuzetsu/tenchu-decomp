@@ -1216,13 +1216,20 @@ s16 Think1ninja(void)
 
 s16 Think1chase(void)
 {
-    s16 pad;
-    pad = 0;
+    enum chase_think_policy
+    {
+        CHASE_SEARCH_DISTANCE = 5000,
+        CHASE_FALLBACK_SPAN = 10000,
+        CHASE_FALLBACK_RADIUS = 5000
+    };
+    s16 input;
+
+    input = 0;
     if (++Me->actcnt == 1)
     {
         Humanoid *enemy;
 
-        enemy = GetNearestHumanoid(Me, 5000);
+        enemy = GetNearestHumanoid(Me, CHASE_SEARCH_DISTANCE);
         if (enemy != 0)
         {
             Me->chase[HUMANOID_CHASE_X] = enemy->locate->vx;
@@ -1231,23 +1238,25 @@ s16 Think1chase(void)
         else
         {
             Me->chase[HUMANOID_CHASE_X] =
-                Me->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
+                Me->point[HUMANOID_HOME_X] + rand() % CHASE_FALLBACK_SPAN -
+                CHASE_FALLBACK_RADIUS;
             Me->chase[HUMANOID_CHASE_Z] =
-                Me->point[HUMANOID_HOME_Z] + rand() % 10000 - 5000;
+                Me->point[HUMANOID_HOME_Z] + rand() % CHASE_FALLBACK_SPAN -
+                CHASE_FALLBACK_RADIUS;
         }
     }
     else
     {
-        pad = GotoPosition(
+        input = GotoPosition(
             Me->chase[HUMANOID_CHASE_X] - Me->locate->vx,
             Me->chase[HUMANOID_CHASE_Z] - Me->locate->vz);
-        if ((s16)pad == 0)
+        if (input == 0)
         {
-            pad |= PADRleft;
+            input |= PADRleft;
             Me->actcnt = 0;
         }
     }
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
