@@ -1362,8 +1362,16 @@ void SetBleeds(VECTOR *pos, short grange, short srange, short n, int time, long 
 
 static void DrawSplash(TEffectSlot *ef)
 {
-    SplashType *param;
-    GsSPRITE *spr;
+    enum
+    {
+        SPLASH_DROPLET_SPEED_Y = -20,
+        SPLASH_DROPLET_SPREAD = 100,
+        SPLASH_DROPLET_COUNT = 6,
+        SPLASH_DROPLET_LIFETIME = 30,
+        SPLASH_DROPLET_COLOR = RGB24(144, 152, 160)
+    };
+    SplashType *param = &ef->param.splash;
+    GsSPRITE *spr = &sprSplash;
     SVECTOR scr;
     SVECTOR *projected;
     long x;
@@ -1371,8 +1379,6 @@ static void DrawSplash(TEffectSlot *ef)
     long z;
     s32 priority;
 
-    param = &ef->param.splash;
-    spr = &sprSplash;
     x = param->px;
     y = *(s32 *)&param->py;
     z = *(s32 *)&param->pz;
@@ -1390,15 +1396,17 @@ static void DrawSplash(TEffectSlot *ef)
         SCREEN_PROJECTION_POINT, (s32 *)projected,
         SCREEN_PROJECTION_PERSPECTIVE, SCREEN_PROJECTION_FLAG);
     {
-        s32 z;
+        s32 depth;
 
-        z = scr.vz;
-        if (z > NEAR_DEPTH)
+        depth = scr.vz;
+        if (depth > NEAR_DEPTH)
         {
             spr->x = scr.vx;
             spr->y = scr.vy;
-            spr->scalex = (param->sx * PROJECTION_DISTANCE) / z + 1;
-            spr->scaley = (param->sy * PROJECTION_DISTANCE) / z + 1;
+            spr->scalex =
+                (param->sx * PROJECTION_DISTANCE) / depth + 1;
+            spr->scaley =
+                (param->sy * PROJECTION_DISTANCE) / depth + 1;
 
             switch (param->mode)
             {
@@ -1406,14 +1414,21 @@ static void DrawSplash(TEffectSlot *ef)
                 param->count = 0;
                 param->mode++;
                 {
-                    VECTOR pos = {param->px, param->py, param->pz};
+                    VECTOR pos = {
+                        .vx = param->px,
+                        .vy = param->py,
+                        .vz = param->pz
+                    };
                     SVECTOR direction = {
                         .vx = 0,
-                        .vy = -20,
+                        .vy = SPLASH_DROPLET_SPEED_Y,
                         .vz = 0
                     };
 
-                    SetBleedsDir(&pos, &direction, 100, 6, 30, RGB24(144, 152, 160));
+                    SetBleedsDir(
+                        &pos, &direction, SPLASH_DROPLET_SPREAD,
+                        SPLASH_DROPLET_COUNT, SPLASH_DROPLET_LIFETIME,
+                        SPLASH_DROPLET_COLOR);
                 }
                 /* fall through */
             case SPLASH_MODE_RISE:
@@ -1438,15 +1453,15 @@ static void DrawSplash(TEffectSlot *ef)
             }
 
             {
-                s32 t;
+                s32 ordering_depth;
 
-                t = (s16)(u16)scr.vz >> 2;
-                if (t >= 0)
+                ordering_depth = (s16)(u16)scr.vz >> 2;
+                if (ordering_depth >= 0)
                 {
                     priority = DEPTH_LIMIT - 1;
-                    if (t < DEPTH_LIMIT)
+                    if (ordering_depth < DEPTH_LIMIT)
                     {
-                        priority = t;
+                        priority = ordering_depth;
                     }
                 }
                 else
