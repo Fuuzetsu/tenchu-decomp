@@ -1022,48 +1022,33 @@ void register_character_death(Humanoid *dead)
 
 s16 Think1trace(void)
 {
-    s16 pad;
+    enum trace_think_timing
+    {
+        TRACE_ORIENT_TICKS = 60,
+        TRACE_TURN_INPUT_TICKS = 30
+    };
+    s16 input;
 
-    pad = 0;
+    input = 0;
     if (Me->actcnt == 0)
     {
         u8 old_actscnt;
 
         old_actscnt = Me->actscnt;
         Me->actscnt = old_actscnt + 1;
-        if (old_actscnt < 60)
+        if (old_actscnt < TRACE_ORIENT_TICKS)
         {
-            Humanoid *self;
-            s32 turn;
-            s32 degree;
-            s32 abs_degree;
+            s16 target_degree;
 
-            if (Me->actcnt || degree)
+            target_degree = Degree;
+            if (Me->turn < __builtin_abs(target_degree))
             {
-                self = Me;
-                degree = Degree;
-                turn = self->turn;
-                abs_degree = degree;
-            }
-            else
-            {
-                self = Me;
-                degree = Degree;
-                turn = self->turn;
-                abs_degree = degree;
-            }
-            if (degree < 0)
-            {
-                abs_degree = -abs_degree;
-            }
-            if (turn < abs_degree)
-            {
-                if (self->actscnt < 30)
+                if (Me->actscnt < TRACE_TURN_INPUT_TICKS)
                 {
-                    pad = -PADLleft;
-                    if (turn < degree)
+                    input = PADLleft;
+                    if (Me->turn < target_degree)
                     {
-                        pad = PADLright;
+                        input = PADLright;
                     }
                 }
             }
@@ -1079,10 +1064,10 @@ s16 Think1trace(void)
         Me->actcnt++;
         if (Attrib & ATTR_TRACE)
         {
-            pad = ControlTraceLine(Me);
+            input = ControlTraceLine(Me);
         }
     }
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
