@@ -184,23 +184,17 @@ s16 CVAsequence(s16 sid)
 {
     CVAType *cursor;
     Humanoid *human;
-    s16 sound;
+    s16 music_cue;
     s16 i;
-    s16 motion;
-    s32 wanted;
-    s32 end_mode;
-    s32 type_class;
-    HumanAnimType *anim_base;
+    motion_id motion;
 
     CVAnow = CVAdata;
     if (CVAdata->mode == CVA_CMD_END)
         return 0;
 
-    wanted = sid;
-    end_mode = CVA_CMD_END;
-    while (CVAnow->mode != end_mode &&
+    while (CVAnow->mode != CVA_CMD_END &&
            (CVAnow->mode != CVA_CMD_SEQUENCE ||
-            CVAnow->payload.sequence.id != wanted))
+            CVAnow->payload.sequence.id != sid))
     {
         CVAnow++;
     }
@@ -210,13 +204,12 @@ s16 CVAsequence(s16 sid)
 
     memset(CVAhuman, 0, sizeof(CVAhuman));
     cursor = CVAnow;
-    sound = cursor->payload.sequence.music;
-    i = 0;
+    music_cue = cursor->payload.sequence.music;
     CameraTarget = StagePlayer;
     cursor++;
     CVAnow = cursor;
     TelopText[0] = 0;
-    while (i < Humans)
+    for (i = 0; i < Humans; i++)
     {
         human = HumanGroup[i];
         if (human->status != STAT_DEAD &&
@@ -226,7 +219,6 @@ s16 CVAsequence(s16 sid)
             NowReturnNormal(HumanGroup[i]);
             HumanGroup[i]->pad.data = 0;
         }
-        i++;
     }
 
     CVAflag = 0;
@@ -236,14 +228,14 @@ s16 CVAsequence(s16 sid)
     if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = ACTION_HALT_ACTIVE;
     MotionUpdateMode = 1;
-    StagePlayer->target = 0;
+    StagePlayer->target = NULL;
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
     PadShock(PAD_PORT_1, 0, 0);
     PadProc();
 
-    if (sound > 0)
+    if (music_cue > 0)
     {
-        PlayMusicFormID(sound);
+        PlayMusicFormID(music_cue);
         while (CdaStatus.status != CDA_STATUS_IDLE)
         {
             if (CdaGetCurrentLength() > 0)
@@ -253,32 +245,37 @@ s16 CVAsequence(s16 sid)
 
     CVAtime = 0;
     VoiceMode = 1;
-    do
+    while (CVArun() != 0)
     {
-    } while (CVArun() != 0);
+    }
     VoiceMode = 0;
     if (ActionHalt != ACTION_HALT_STAGE_END)
         ActionHalt = ACTION_HALT_NONE;
     MotionUpdateMode = 0;
     SetCameraMode(CMODE_NORMAL);
 
-    i = 0;
-    anim_base = CVAhuman;
-    type_class = PAGE_BOSS;
-    for (; i < N_CVA_HUMANS; i++)
+    for (i = 0; i < N_CVA_HUMANS; i++)
     {
-        human = anim_base[i].human;
-        if (human != 0 && human->status != STAT_DEAD)
+        human = CVAhuman[i].human;
+        if (human != NULL && human->status != STAT_DEAD)
         {
-            motion = MOT_ENGAGE_STANCE;
-            if ((human->attribute & ATTR_WEAPON_DRAWN) == 0 &&
-                (motion = 0, (human->type & PAGE_MASK) == type_class))
+            if ((human->attribute & ATTR_WEAPON_DRAWN) != 0)
+            {
+                motion = MOT_ENGAGE_STANCE;
+            }
+            else if ((human->type & PAGE_MASK) == PAGE_BOSS)
+            {
                 motion = MOT_STATE_DRAW;
+            }
+            else
+            {
+                motion = MOT_NORMAL;
+            }
             SetNowMotion(human, motion, MOTION_MOVE_APPLY);
         }
     }
 
-    if (sound > 0)
+    if (music_cue > 0)
         VSync(60);
     CdaStop();
     PadShockAR(PAD_PORT_1, RUMBLE_POWER_OFF, RUMBLE_ATTACK_NONE, RUMBLE_RELEASE_NONE);
