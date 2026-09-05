@@ -466,7 +466,6 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
 VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n)
 {
     long x[2], z[2], y[2];
-    long xmin, xmax, ymin, ymax;
     short initial;
     short count;
     AreaNodeType *node;
@@ -487,31 +486,22 @@ VECTOR *GetAreaMapPassage(AreaMapType *area, VECTOR *pos, SVECTOR *vect, short n
         x[1] = node->x2 * 10;
         z[0] = node->z1 * 10;
         z[1] = node->z2 * 10;
-        if (FieldIndex != (NodeIndexType *)area)
+        y[1] = FieldIndex != (NodeIndexType *)area
+                   ? FieldIndex[-1].y * 10
+                   : -1000000;
+        do
         {
-            ymax = FieldIndex[-1].y * 10;
-        }
-        else
-        {
-            ymax = -1000000;
-        }
-        xmin = x[0];
-        xmax = x[1];
-        ymin = y[0];
-        y[1] = ymax;
-    inner:
-        cv.vx += vect->vx;
-        cv.vy += vect->vy;
-        cv.vz += vect->vz;
-        count--;
-        if (count == 0)
-        {
-            return 0;
-        }
-        if (xmin <= cv.vx && cv.vx <= xmax && ymin <= cv.vy && cv.vy <= y[1] && z[0] <= cv.vz && cv.vz <= z[1])
-        {
-            goto inner;
-        }
+            cv.vx += vect->vx;
+            cv.vy += vect->vy;
+            cv.vz += vect->vz;
+            count--;
+            if (count == 0)
+            {
+                return 0;
+            }
+        } while (x[0] <= cv.vx && cv.vx <= x[1] &&
+                 y[0] <= cv.vy && cv.vy <= y[1] &&
+                 z[0] <= cv.vz && cv.vz <= z[1]);
     }
     cv.vx -= vect->vx;
     cv.vy -= vect->vy;
