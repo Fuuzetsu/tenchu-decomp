@@ -991,82 +991,85 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 
 short ControlTraceLine(Humanoid *human)
 {
-    TraceLine *trcl;
+    enum trace_control_policy
+    {
+        TRACE_WALL_RECOVERY_DELAY = -30,
+        TRACE_FORWARD_ANGLE_LIMIT = 500
+    };
+    TraceLine *trace;
     TracePoint *point;
 
-    s32 dx, dz;
-    s32 dist;
-    s16 cnt;
-    trace_pad pad;
-    u16 roty;
-    s32 ang;
-    short t;
-    s16 diff;
-    s16 degree;
-    s32 absdeg;
-    s32 d32;
+    s32 target_dx, target_dz;
+    s32 distance;
+    s16 previous_count;
+    trace_pad input;
+    u16 facing;
+    s32 target_angle;
+    s16 relative_angle;
+    s16 turn_angle;
+    s32 absolute_angle;
+    s32 relative_angle32;
 
-    trcl = human->trace;
-    pad = PADLup;
-    if (trcl == 0)
+    trace = human->trace;
+    input = PADLup;
+    if (trace == NULL)
     {
         return 0;
     }
-    point = trcl->point + trcl->index;
-    dx = point->x - human->locate->vx;
-    dz = point->z - human->locate->vz;
-    dist = SquareRoot0(dx * dx + dz * dz);
+    point = trace->point + trace->index;
+    target_dx = point->x - human->locate->vx;
+    target_dz = point->z - human->locate->vz;
+    distance = SquareRoot0(target_dx * target_dx + target_dz * target_dz);
     if ((human->attribute & ATTR_WALL) != 0)
     {
-        trcl->count = -30;
+        trace->count = TRACE_WALL_RECOVERY_DELAY;
     }
-    cnt = trcl->count;
-    trcl->count = cnt + 1;
-    if (cnt > 0)
+    previous_count = trace->count;
+    trace->count = previous_count + 1;
+    if (previous_count > 0)
     {
-        roty = human->rotate->vy;
-        ang = ratan2(-dx, -dz);
-        t = ang - roty;
-        diff = t;
-        if (diff > ANGLE_HALF)
+        facing = human->rotate->vy;
+        target_angle = ratan2(-target_dx, -target_dz);
+        relative_angle = target_angle - facing;
+        if (relative_angle > ANGLE_HALF)
         {
-            t = ANGLE_FULL - t;
+            relative_angle = ANGLE_FULL - relative_angle;
         }
-        else if (diff <= -ANGLE_HALF)
+        else if (relative_angle <= -ANGLE_HALF)
         {
-            t += ANGLE_FULL;
+            relative_angle += ANGLE_FULL;
         }
-        d32 = t;
-        degree = d32;
-        if (human->turn <= d32)
+        relative_angle32 = relative_angle;
+        turn_angle = relative_angle32;
+        if (human->turn <= relative_angle32)
         {
-            pad |= PADLright;
+            input |= PADLright;
         }
-        else if (d32 <= -human->turn)
+        else if (relative_angle32 <= -human->turn)
         {
-            pad |= PADLleft;
+            input |= PADLleft;
         }
-        absdeg = degree;
-        if (absdeg < 0)
+        absolute_angle = turn_angle;
+        if (absolute_angle < 0)
         {
-            absdeg = -absdeg;
+            absolute_angle = -absolute_angle;
         }
-        if (absdeg > 500)
+        if (absolute_angle > TRACE_FORWARD_ANGLE_LIMIT)
         {
-            pad &= (PADLleft | PADLright);
+            input &= (PADLleft | PADLright);
         }
     }
-    if (dist <= point->range)
+    if (distance <= point->range)
     {
-        trcl->index++;
-        if (trcl->point[trcl->index].pad == TRACE_POINT_END)
+        trace->index++;
+        if (trace->point[trace->index].pad == TRACE_POINT_END)
         {
-            trcl->index = 0;
+            trace->index = 0;
             return (s16)PAD_DIRECTION_BUTTONS;
         }
-        pad |= trcl->point[trcl->index].pad;
+        input |= trace->point[trace->index].pad;
     }
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
