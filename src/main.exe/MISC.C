@@ -908,13 +908,10 @@ loop:
     }
     do
     {
-        do
-        {
-            p++;
-            /* The original ownership test compares the addresses as signed values. */
-            if ((s32)p < (s32)(base + MaxMisc))
-                goto loop;
-        } while (0);
+        p++;
+        /* The original ownership test compares the addresses as signed values. */
+        if ((s32)p < (s32)(base + MaxMisc))
+            goto loop;
     } while (0);
 }
 
