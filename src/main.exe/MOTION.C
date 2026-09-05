@@ -1867,6 +1867,8 @@ void launch_lightning_bolt_(s16 frame)
 void ActNORMAL(void)
 {
     motion_id mid;
+    pad_command command;
+    u16 trig;
 
     mid = dtM->mid;
     switch (mid)
@@ -1947,88 +1949,66 @@ void ActNORMAL(void)
         return;
     }
 
+    command = dtCMD;
+
+    if (command != CMD_NONE)
     {
-        pad_command command;
-
-        command = dtCMD;
-        if (command == CMD_NONE)
-            goto command_0;
-        if (command == CMD_DASH_BACKWARD)
-            goto command_2;
-        if (command < CMD_DASH_LEFT)
+        switch (command)
         {
-            if (command == CMD_DASH_FORWARD)
-                goto command_1;
-            return;
-        }
-        if (command == CMD_DASH_LEFT)
-            goto command_3;
-        if (command == CMD_DASH_RIGHT)
-            goto command_4;
-        return;
-
-    command_1:
-        SET_MOTION(MOT_MOVE_DASH_FWD, MOTION_MOVE_APPLY);
-        return;
-
-    command_2:
-        SET_MOTION(MOT_MOVE_DASH_BACK, MOTION_MOVE_APPLY);
-        return;
-
-    command_3:
-        SET_MOTION(MOT_MOVE_DASH_LEFT, MOTION_MOVE_APPLY);
-        return;
-
-    command_0:
-    {
-        u16 trig;
-
-        trig = Me_MOTION_C->pad.trig;
-        if (trig & PADRdown)
-        {
-            JumpControl();
-            return;
-        }
-        if (trig & PADRup)
-        {
-            SELECT_ITEM_USE_MOTION(item_sound, item_default);
-            motMODE = MOTION_MOVE_APPLY;
-            return;
-
-        item_sound:
-            SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
-            return;
-
-        item_default:
-            ReqItemDefault(Me_MOTION_C,
-                           SelectedItem);
-            return;
-        }
-        if (dtPAD & PADRright)
-        {
-            SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
-            return;
-        }
-        if (dtPAD & PADLup)
-        {
-            SET_MOTION(MOT_MOVE, MOTION_MOVE_APPLY);
-            return;
-        }
-        if (dtPAD & PADLdown)
-        {
-            SET_MOTION(MOT_MOVE_BACK, MOTION_MOVE_APPLY);
-            return;
-        }
-        if (trig & PADRleft)
-        {
-            SET_MOTION(MOT_STATE_DRAW, MOTION_MOVE_APPLY);
+        case CMD_DASH_FORWARD:
+            SET_MOTION(MOT_MOVE_DASH_FWD, MOTION_MOVE_APPLY);
+            break;
+        case CMD_DASH_BACKWARD:
+            SET_MOTION(MOT_MOVE_DASH_BACK, MOTION_MOVE_APPLY);
+            break;
+        case CMD_DASH_LEFT:
+            SET_MOTION(MOT_MOVE_DASH_LEFT, MOTION_MOVE_APPLY);
+            break;
+        case CMD_DASH_RIGHT:
+            SET_MOTION(MOT_MOVE_DASH_RIGHT, MOTION_MOVE_APPLY);
+            break;
         }
         return;
     }
 
-    command_4:
-        SET_MOTION(MOT_MOVE_DASH_RIGHT, MOTION_MOVE_APPLY);
+    trig = Me_MOTION_C->pad.trig;
+    if (trig & PADRdown)
+    {
+        JumpControl();
         return;
+    }
+    if (trig & PADRup)
+    {
+        SELECT_ITEM_USE_MOTION(item_sound, item_default);
+        motMODE = MOTION_MOVE_APPLY;
+        return;
+
+    item_sound:
+        SoundEx(Me_MOTION_C->locate, SE_ITEM_UNAVAILABLE);
+        return;
+
+    item_default:
+        ReqItemDefault(Me_MOTION_C, SelectedItem);
+        return;
+    }
+    if (dtPAD & PADRright)
+    {
+        SET_MOTION(MOT_SQUAT, MOTION_MOVE_APPLY);
+        return;
+    }
+    if (dtPAD & PADLup)
+    {
+        SET_MOTION(MOT_MOVE, MOTION_MOVE_APPLY);
+        return;
+    }
+    if (dtPAD & PADLdown)
+    {
+        SET_MOTION(MOT_MOVE_BACK, MOTION_MOVE_APPLY);
+        return;
+    }
+    if (trig & PADRleft)
+    {
+        SET_MOTION(MOT_STATE_DRAW, MOTION_MOVE_APPLY);
     }
 }
 

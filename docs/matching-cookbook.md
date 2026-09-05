@@ -1005,6 +1005,11 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   the complete image, including the original register allocation. An if/else
   range rewrite is eight bytes short. The apparent interval algorithm was
   expand_case grouping adjacent case values, not source-level range policy.
+  **Keep a separate guard separate from the case set.** ActNORMAL becomes
+  exact as `if (command != CMD_NONE) { switch (command) { /* four dashes */ }
+  return; }`, followed by ordinary button handling. A five-case switch that
+  includes CMD_NONE instead emits a jump table and changes the image. This
+  resolves its old seven-line switch residual without a new fence or label.
   Scaling rules from round 8 (71 gotos + 16 labels across nine files):
   normalize a local return ladder into ONE ordered if/else join BEFORE
   testing direct returns (AttackLong measures 71 lines in the
@@ -1026,8 +1031,9 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   deleting a join can expose different delay-slot candidates
   (ActATTACK's `dispatch` = 21). A switch's terminal labels can be what
   separates otherwise-identical case bodies, so a TINY canonical diff
-  there is a missing required block, not permission to take the cleaner
-  source (ActNORMAL = 7 lines; ItemControl = 38-44).
+  there calls for recovering the complete dispatch boundary, not accepting
+  a mismatch (ActNORMAL's former seven-line residual is resolved above;
+  ItemControl measured 38–44).
 
 - **Nesting normalisation: taste gate BEFORE the byte gate** (round 11).
   Combine two nested predicates only when they answer ONE named question
