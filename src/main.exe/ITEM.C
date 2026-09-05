@@ -7137,19 +7137,15 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     case ITEM_SHURIKEN:
     {
         TItem *item;
-        TItem *ret;
         VECTOR *pos;
         Humanoid *aowner;
         s32 atype;
-        s32 i;
 
         if (p->user == CamState.Owner)
         {
             param_launch *param;
 
-            TAKE_ITEM_SLOT_VIA_CURSOR(found_shuriken);
-
-    found_shuriken:
+            item = TakeItemSlot();
             param = &item->param.launch;
             if (item == 0)
                 return 0;
@@ -7274,15 +7270,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     case ITEM_KAGINAWA:
     {
         TItem *item;
-        TItem *ret;
         VECTOR *pos;
         Humanoid *aowner;
         s32 atype;
-        s32 i;
 
-        TAKE_ITEM_SLOT_VIA_CURSOR(found_kaginawa);
-
-    found_kaginawa:
+        item = TakeItemSlot();
         if (item == 0)
             return 0;
         INITIALIZE_ITEM_FROM_REQUEST(ProcKaginawa);
@@ -7302,15 +7294,11 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     case ITEM_TELEPORT:
     {
         TItem *item;
-        TItem *ret;
         VECTOR *pos;
         Humanoid *aowner;
         s32 atype;
-        s32 i;
 
-        TAKE_ITEM_SLOT_VIA_CURSOR(found_teleport);
-
-    found_teleport:
+        item = TakeItemSlot();
         if (item == 0)
             return 0;
         INITIALIZE_ITEM_FROM_REQUEST(ProcItemTeleport);
@@ -7338,16 +7326,12 @@ int ReqItemUse(PARAM_ITEM_LAUNCH *p)
     case ITEM_NAPALM:
     {
         TItem *item;
-        TItem *ret;
         param_napalm *pp;
         VECTOR *pos;
         Humanoid *aowner;
         s32 atype;
-        s32 i;
 
-        TAKE_ITEM_SLOT_VIA_CURSOR(found_napalm);
-
-    found_napalm:
+        item = TakeItemSlot();
         pp = &item->param.napalm;
         if (item == 0)
             return 0;
