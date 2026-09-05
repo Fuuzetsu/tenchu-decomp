@@ -13,6 +13,21 @@
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
+enum ItemIconBounceState
+{
+    ITEM_ICON_BOUNCE_SHRINK,
+    ITEM_ICON_BOUNCE_GROW,
+    ITEM_ICON_BOUNCE_SETTLE
+};
+
+enum
+{
+    ITEM_ICON_ADD_START_SCALE = 0x200,
+    ITEM_ICON_SCALE_RECOVERY_STEP = 0xC0,
+    ITEM_ICON_BOUNCE_STEP = 0x10,
+    ITEM_ICON_BOUNCE_MAX_SCALE = 0x1400
+};
+
 extern u8 STAGE_LAYOUT_NUMBER;
 extern u8 ARMOUR_USED; /* persistent blob 0x1a: blocks re-buying ITEM_ARMOUR */
 extern char NUMBER_TIM_PATH[];
@@ -48,7 +63,7 @@ void BriefingAndInventorySelectionScreen(void)
 {
     GsSPRITE spr;
     GsSPRITE hspr;
-    s16 bounce;
+    s16 bounce_state;
     s16 pad;
     u16 cap;
     u16 taken;
@@ -61,7 +76,7 @@ void BriefingAndInventorySelectionScreen(void)
     GsSPRITE *dsp;
     u_long *buf;
     int cursor;
-    int scale;
+    int icon_scale;
     int selected_kinds;
     s16 newpress;
     int i;  /* entry backup loop */
@@ -73,7 +88,7 @@ void BriefingAndInventorySelectionScreen(void)
     int si; /* cursor search */
     s16 shown;
     s16 av;
-    int t;
+    int next_scale;
     int uid;
     int id;
     s16 cheat;
@@ -104,8 +119,8 @@ void BriefingAndInventorySelectionScreen(void)
     {
         briefing_screen_();
     }
-    bounce = 0;
-    scale = FIXED_ONE;
+    bounce_state = ITEM_ICON_BOUNCE_SHRINK;
+    icon_scale = FIXED_ONE;
     buf = FileRead(ITEM_SELECTION_SCREEN_PATHS[q->language]);
     bg = load_background_(buf);
     vfree(buf);
@@ -311,10 +326,10 @@ void BriefingAndInventorySelectionScreen(void)
         if (newpress != 0 && pad == PADRright)
         {
             newpress = 0;
-            bounce = 1;
+            bounce_state = ITEM_ICON_BOUNCE_GROW;
             {
                 s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
-                scale = 0x200;
+                icon_scale = ITEM_ICON_ADD_START_SCALE;
                 if (TLINKINFO_STOCK(ps, ps->CharType, idx) != 0 &&
                     TLINKINFO_STOCK(ps, ps->CharType, idx) != ITEM_LOCKED)
                 {
@@ -353,10 +368,10 @@ void BriefingAndInventorySelectionScreen(void)
         if (newpress != 0 && pad == PADRdown)
         {
             s16 idx = SHOP_ITEM_DEFAULTS[cursor].itemIndex;
-            bounce = 2;
+            bounce_state = ITEM_ICON_BOUNCE_SETTLE;
             {
                 u8 c = (&ps->selItem[0])[idx];
-                scale = 0x1400;
+                icon_scale = ITEM_ICON_BOUNCE_MAX_SCALE;
                 if (c != 0)
                 {
                     if (c == ITEM_INFINITE)
@@ -380,9 +395,9 @@ void BriefingAndInventorySelectionScreen(void)
             }
             help_image = ITEM_HELP_NONE;
         }
-        if ((s16)scale < FIXED_ONE)
+        if ((s16)icon_scale < FIXED_ONE)
         {
-            scale += 0xC0;
+            icon_scale += ITEM_ICON_SCALE_RECOVERY_STEP;
         }
         if (help_image == ITEM_HELP_NONE &&
             TLINKINFO_STOCK(ps, ps->CharType,
@@ -410,43 +425,43 @@ void BriefingAndInventorySelectionScreen(void)
             hspr.y = 35;
             GsSortSprite(&hspr, OTablePt, 1);
         }
-        if (bounce == 1)
+        if (bounce_state == ITEM_ICON_BOUNCE_GROW)
         {
-            t = scale + 0x10;
-            scale = t;
+            next_scale = icon_scale + ITEM_ICON_BOUNCE_STEP;
+            icon_scale = next_scale;
             /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
-            if ((s16)t > 0x1400)
+            if ((s16)next_scale > ITEM_ICON_BOUNCE_MAX_SCALE)
             {
-                bounce ^= 1;
+                bounce_state ^= 1;
             }
         }
-        else if (bounce == 0)
+        else if (bounce_state == ITEM_ICON_BOUNCE_SHRINK)
         {
-            t = scale - 0x10;
-            scale = t;
+            next_scale = icon_scale - ITEM_ICON_BOUNCE_STEP;
+            icon_scale = next_scale;
             /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
-            if ((s16)t < FIXED_ONE)
+            if ((s16)next_scale < FIXED_ONE)
             {
-                bounce ^= 1;
+                bounce_state ^= 1;
             }
         }
-        else if (bounce == 2)
+        else if (bounce_state == ITEM_ICON_BOUNCE_SETTLE)
         {
-            t = scale - 0x10;
-            scale = t;
+            next_scale = icon_scale - ITEM_ICON_BOUNCE_STEP;
+            icon_scale = next_scale;
             /* Empty loop retained for code layout; its original source construct is unknown. */
             do
             {
             } while (0);
-            if ((s16)t < FIXED_ONE)
+            if ((s16)next_scale < FIXED_ONE)
             {
-                bounce = 0;
+                bounce_state = ITEM_ICON_BOUNCE_SHRINK;
             }
         }
         shown = 0;
