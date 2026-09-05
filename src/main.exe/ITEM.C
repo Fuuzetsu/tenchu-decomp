@@ -2094,10 +2094,9 @@ void ProcItemKusuri(TItem *item)
         KUSURI_PARTICLE_LIFETIME_MIN = 15,
         KUSURI_PARTICLE_COLOR = RGB24(255, 255, 126)
     };
-    Sprite3D *model;
-    s32 i;
+    Sprite3D *model = (Sprite3D *)item->model;
+    s32 particle_index;
 
-    model = (Sprite3D *)item->model;
     if (item->mode == ITEM_MODE_DISPOSE)
     {
         item->mode = KUSURI_MODE_START;
@@ -2107,66 +2106,63 @@ void ProcItemKusuri(TItem *item)
     {
     case KUSURI_MODE_START:
     {
-        Humanoid *human;
+        Humanoid *human = item->owner;
+        ModelArchiveType *archive;
 
-        human = item->owner;
         if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
-            MotionDataType *md;
+            MotionDataType *motion_data;
 
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
             UpdateMotion(human->motion, MOT_ITEM_DRINK);
             human->status = STAT_ITEM;
-            md = human->motion->motion;
-            MoveHumanoid(human, md->orderspd, md->sidespd);
+            motion_data = human->motion->motion;
+            MoveHumanoid(human, motion_data->orderspd,
+                         motion_data->sidespd);
         }
-    }
-        {
-            ModelArchiveType *arc;
 
-            arc = item->owner->model;
-            if (arc->n > MODEL_PART_WEAPON_HAND_1)
-                item->locate->locate.super =
-                    &arc->object[MODEL_PART_WEAPON_HAND_1]->locate;
-            else
-                item->locate->locate.super =
-                    &arc->object[MODEL_PART_HEAD]->locate;
-        }
+        archive = item->owner->model;
+        if (archive->n > MODEL_PART_WEAPON_HAND_1)
+            item->locate->locate.super =
+                &archive->object[MODEL_PART_WEAPON_HAND_1]->locate;
+        else
+            item->locate->locate.super =
+                &archive->object[MODEL_PART_HEAD]->locate;
         item->locate->locate.coord.t[0] = 0;
         item->locate->locate.coord.t[1] = KUSURI_MODEL_HAND_OFFSET;
         item->locate->locate.coord.t[2] = 0;
         item->mode++;
         return;
+    }
 
     case KUSURI_MODE_DRINK:
     {
-        MotionManager *mot;
+        MotionManager *motion = item->owner->motion;
 
-        mot = item->owner->motion;
-        if (mot->mid != MOT_ITEM_DRINK)
+        if (motion->mid != MOT_ITEM_DRINK)
         {
-            /* animation interrupted: toss the item back out */
-            VECTOR *pos;
-            Humanoid *human;
-            s32 itemID;
+            VECTOR *drop_position =
+                GetAbsolutePosition(item->locate, 0, 0, 0);
+            Humanoid *drop_owner = item->owner;
+            TItemType item_type = item->type;
 
-            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner;
-            itemID = item->type;
             {
-                PARAM_ITEM_LAUNCH p = {
-                    .type = itemID,
-                    .user = human
+                PARAM_ITEM_LAUNCH drop_request = {
+                    .type = item_type,
+                    .user = drop_owner
                 };
 
-                copyVector(&p.start, pos);
-                p.end.vx = rand() % KUSURI_DROP_HORIZONTAL_SPREAD -
-                           KUSURI_DROP_HORIZONTAL_SPREAD / 2;
-                p.end.vy = rand() % KUSURI_DROP_VERTICAL_SPREAD +
-                           KUSURI_DROP_VERTICAL_BASE;
-                p.end.vz = rand() % KUSURI_DROP_HORIZONTAL_SPREAD -
-                           KUSURI_DROP_HORIZONTAL_SPREAD / 2;
-                ReqItemDrop(&p);
+                copyVector(&drop_request.start, drop_position);
+                drop_request.end.vx =
+                    rand() % KUSURI_DROP_HORIZONTAL_SPREAD -
+                    KUSURI_DROP_HORIZONTAL_SPREAD / 2;
+                drop_request.end.vy =
+                    rand() % KUSURI_DROP_VERTICAL_SPREAD +
+                    KUSURI_DROP_VERTICAL_BASE;
+                drop_request.end.vz =
+                    rand() % KUSURI_DROP_HORIZONTAL_SPREAD -
+                    KUSURI_DROP_HORIZONTAL_SPREAD / 2;
+                ReqItemDrop(&drop_request);
             }
             if (item->proc == 0)
                 return;
@@ -2174,15 +2170,15 @@ void ProcItemKusuri(TItem *item)
             return;
         }
         {
-            s16 cnt;
+            s16 frame;
 
-            cnt = mot->count;
-            if (cnt == KUSURI_HEAL_FRAME)
+            frame = motion->count;
+            if (frame == KUSURI_HEAL_FRAME)
             {
                 item->mode = KUSURI_MODE_HEAL;
                 return;
             }
-            if (cnt < KUSURI_VISIBLE_START_FRAME)
+            if (frame < KUSURI_VISIBLE_START_FRAME)
                 return;
         }
     }
@@ -2194,11 +2190,11 @@ void ProcItemKusuri(TItem *item)
 
     case KUSURI_MODE_HEAL:
     {
-        i = 0;
+        particle_index = 0;
         item->owner->life = item->owner->lifemax;
         while (1)
         {
-            if (i >= N_KUSURI_HEAL_PARTICLES)
+            if (particle_index >= N_KUSURI_HEAL_PARTICLES)
                 break;
             {
                 VECTOR pos = {
@@ -2224,7 +2220,7 @@ void ProcItemKusuri(TItem *item)
                              KUSURI_PARTICLE_LIFETIME_MIN,
                          KUSURI_PARTICLE_COLOR);
             }
-            i++;
+            particle_index++;
         }
         SoundEx(item->owner->locate, SE_MEDICINE);
         if (item->proc == 0)
