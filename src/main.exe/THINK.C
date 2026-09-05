@@ -1093,33 +1093,44 @@ s16 Think1trace(void)
 
 s16 Think1random(void)
 {
-    s16 pad;
-    pad = 0;
+    enum random_patrol_policy
+    {
+        RANDOM_PATROL_SPAN = 10000,
+        RANDOM_PATROL_RADIUS = 5000,
+        RANDOM_PATROL_ARRIVAL_TOLERANCE = 1000
+    };
+    s16 input;
+
+    input = 0;
     if (++Me->actcnt == 1)
     {
-        Me->chase[HUMANOID_CHASE_X] = Me->point[HUMANOID_HOME_X] + rand() % 10000 - 5000;
-        Me->chase[HUMANOID_CHASE_Z] = Me->point[HUMANOID_HOME_Z] + rand() % 10000 - 5000;
+        Me->chase[HUMANOID_CHASE_X] =
+            Me->point[HUMANOID_HOME_X] + rand() % RANDOM_PATROL_SPAN -
+            RANDOM_PATROL_RADIUS;
+        Me->chase[HUMANOID_CHASE_Z] =
+            Me->point[HUMANOID_HOME_Z] + rand() % RANDOM_PATROL_SPAN -
+            RANDOM_PATROL_RADIUS;
     }
     else
     {
-        s32 vx, vz;
-        VECTOR *locate;
+        s32 delta_x, delta_z;
+        VECTOR *position;
 
-        locate = Me->locate;
-        vx = Me->chase[HUMANOID_CHASE_X] - locate->vx;
-        vz = Me->chase[HUMANOID_CHASE_Z] - locate->vz;
-        if ((((vx >= 0) ? vx : -vx) < 1000 &&
-             ((vz >= 0) ? vz : -vz) < 1000) ||
-            (Attrib & ATTR_WALL))
+        position = Me->locate;
+        delta_x = Me->chase[HUMANOID_CHASE_X] - position->vx;
+        delta_z = Me->chase[HUMANOID_CHASE_Z] - position->vz;
+        if ((__builtin_abs(delta_x) < RANDOM_PATROL_ARRIVAL_TOLERANCE &&
+             __builtin_abs(delta_z) < RANDOM_PATROL_ARRIVAL_TOLERANCE) ||
+            (Attrib & ATTR_WALL) != 0)
         {
             Me->actcnt = 0;
         }
         else
         {
-            pad = GotoPosition(vx, vz);
+            input = GotoPosition(delta_x, delta_z);
         }
     }
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
