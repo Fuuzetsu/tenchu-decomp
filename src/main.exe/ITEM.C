@@ -2966,22 +2966,19 @@ void ProcItemGosin(TItem *item)
 
     case GOSIN_MODE_WAIT:
     {
-        MotionManager *mot;
+        MotionManager *motion = item->owner->motion;
 
-        mot = item->owner->motion;
-        if (mot->mid != MOT_ITEM_KAENGEKI)
+        if (motion->mid != MOT_ITEM_KAENGEKI)
         {
-            VECTOR *pos;
-            Humanoid *human;
-            s32 itemID;
+            VECTOR *drop_position =
+                GetAbsolutePosition(item->locate, 0, 0, 0);
+            Humanoid *drop_owner = item->owner;
+            TItemType item_type = item->type;
 
-            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner;
-            itemID = item->type;
             drop_request = (PARAM_ITEM_LAUNCH){0};
-            drop_request.type = itemID;
-            drop_request.user = human;
-            copyVector(&drop_request.start, pos);
+            drop_request.type = item_type;
+            drop_request.user = drop_owner;
+            copyVector(&drop_request.start, drop_position);
             drop_request.end.vx = rand() % GOSIN_DROP_HORIZONTAL_SPREAD -
                                   GOSIN_DROP_HORIZONTAL_RADIUS;
             drop_request.end.vy = rand() % GOSIN_DROP_VERTICAL_SPREAD -
@@ -2994,9 +2991,7 @@ void ProcItemGosin(TItem *item)
             DISPOSE_ITEM(item);
             return;
         }
-        if (mot->count != 0)
-            return;
-        if (mot->loop == 0)
+        if (motion->count != 0 || motion->loop == 0)
             return;
         NowReturnNormal(item->owner);
         SetBleeds(
@@ -3014,24 +3009,27 @@ void ProcItemGosin(TItem *item)
 
     case GOSIN_MODE_ACTIVE:
     {
-        s16 c;
+        s16 remaining_count;
 
-        c = item->param.gosin.count - 1;
-        item->param.gosin.count = c;
-        if (c == 0)
+        remaining_count = --item->param.gosin.count;
+        if (remaining_count == 0)
         {
             if (item->proc == 0)
                 return;
             DISPOSE_ITEM(item);
             return;
         }
-        if ((c & (GOSIN_PULSE_INTERVAL - 1)) != 0)
+        if ((remaining_count & (GOSIN_PULSE_INTERVAL - 1)) != 0)
             return;
-        *(VECTOR *)&drop_request = vec_y_n1200_z_400;
-        set_impact_ex_((VECTOR *)&drop_request, &item->owner->model->locate,
-                       FIXED_ONE, GOSIN_PULSE_END_SIZE, COLOR_GRAY, 0,
-                       (s16)(rand() % 360), GOSIN_PULSE_ROTATE_SPEED,
-                       GOSIN_PULSE_LIFETIME, IMPACT_SPRITE_GOSIN);
+        {
+            VECTOR *pulse_offset = (VECTOR *)&drop_request;
+
+            *pulse_offset = vec_y_n1200_z_400;
+            set_impact_ex_(pulse_offset, &item->owner->model->locate,
+                           FIXED_ONE, GOSIN_PULSE_END_SIZE, COLOR_GRAY, 0,
+                           (s16)(rand() % 360), GOSIN_PULSE_ROTATE_SPEED,
+                           GOSIN_PULSE_LIFETIME, IMPACT_SPRITE_GOSIN);
+        }
         return;
     }
     }
