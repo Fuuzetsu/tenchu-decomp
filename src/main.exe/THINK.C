@@ -3078,11 +3078,25 @@ static short AttackLong(void)
 
 static short AttackIndirect(void)
 {
+    enum indirect_attack_policy
+    {
+        INDIRECT_CONTINUATION_AIM = 500,
+        INDIRECT_CLOSE_RANGE = 5000,
+        INDIRECT_CLOSE_AIM = 1000,
+        INDIRECT_RETREAT_DISTANCE = 1000,
+        INDIRECT_ADVANCE_DISTANCE = 3000,
+        INDIRECT_FIRE_AIM = 200,
+        INDIRECT_ATTACK_CHANCE_PER_LEVEL = 4,
+        INDIRECT_PURSUIT_DISTANCE = 15000,
+        INDIRECT_TURN_ANGLE = 200,
+        INDIRECT_DASH_ANGLE = 100
+    };
     s16 pad;
-    s32 degree;
+    s32 aim_error;
 
     pad = 0;
-    RETURN_ATTACK_CONTINUATION(pad, INDIRECT_RANGE, 500);
+    RETURN_ATTACK_CONTINUATION(pad, INDIRECT_RANGE,
+                               INDIRECT_CONTINUATION_AIM);
     if (Me->status == STAT_JUMP)
     {
         return pad;
@@ -3093,27 +3107,29 @@ static short AttackIndirect(void)
         SR = SR_NONE;
     }
 
-    if (Distance < 5000)
+    if (Distance < INDIRECT_CLOSE_RANGE)
     {
-        degree = Degree;
-        if (degree < 0)
+        aim_error = Degree;
+        if (aim_error < 0)
         {
-            degree = -degree;
+            aim_error = -aim_error;
         }
-        if (degree < 1000)
+        if (aim_error < INDIRECT_CLOSE_AIM)
         {
             pad = GotoPosition(0, 0) & (PADLleft | PADLright);
-            if ((u32)(Distance - 1000) > 3000 - 1000)
+            if (Distance < INDIRECT_RETREAT_DISTANCE ||
+                Distance > INDIRECT_ADVANCE_DISTANCE)
             {
                 pad |= PADLdown;
             }
 
-            degree = Degree;
-            if (degree < 0)
+            aim_error = Degree;
+            if (aim_error < 0)
             {
-                degree = -degree;
+                aim_error = -aim_error;
             }
-            if (degree < 200 && Me->motion->mid == MOT_ENGAGE_STANCE)
+            if (aim_error < INDIRECT_FIRE_AIM &&
+                Me->motion->mid == MOT_ENGAGE_STANCE)
             {
                 pad = PADRleft;
             }
@@ -3125,36 +3141,37 @@ static short AttackIndirect(void)
     }
     else
     {
-        if (rand() % (EngageLevel * 4) == 0)
+        if (rand() % (EngageLevel * INDIRECT_ATTACK_CHANCE_PER_LEVEL) == 0)
         {
-            degree = Degree;
-            if (degree < 0)
+            aim_error = Degree;
+            if (aim_error < 0)
             {
-                degree = -degree;
+                aim_error = -aim_error;
             }
-            if (degree < 200 && Me->motion->mid == MOT_ENGAGE_STANCE)
+            if (aim_error < INDIRECT_FIRE_AIM &&
+                Me->motion->mid == MOT_ENGAGE_STANCE)
             {
                 pad = PADRleft;
             }
         }
 
-        if (Distance > 15000)
+        if (Distance > INDIRECT_PURSUIT_DISTANCE)
         {
             pad = GotoPosition(0, 0);
         }
-        else if (Degree > 200)
+        else if (Degree > INDIRECT_TURN_ANGLE)
         {
             pad = PADLright;
         }
-        else if (Degree > 100)
+        else if (Degree > INDIRECT_DASH_ANGLE)
         {
             pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
         }
-        else if (Degree < -200)
+        else if (Degree < -INDIRECT_TURN_ANGLE)
         {
             pad = PADLleft;
         }
-        else if (Degree < -100)
+        else if (Degree < -INDIRECT_DASH_ANGLE)
         {
             pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
         }
