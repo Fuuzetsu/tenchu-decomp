@@ -66,7 +66,8 @@ enum think4_search_timing
 {
     THINK4_INITIAL_STEER_TICKS = 30,
     THINK4_ABANDON_TICKS = 91,
-    THINK4_ARRIVAL_DISTANCE = 1000
+    THINK4_ARRIVAL_DISTANCE = 1000,
+    THINK4_BOSS_ALERT_VOICE_CHANCE = 60
 };
 
 #define UPDATE_IDLE_LOOK_PAD(pad_)                                         \
@@ -3278,26 +3279,21 @@ static short AttackAnimal(void)
 
 s16 Think4abandon(void)
 {
-    u16 cleared;
+    u16 base_attrib;
     s16 pad;
 
-    cleared = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
+    base_attrib = Attrib & ~(ATTR_SEARCH | ATTR_PHASE);
     Me->chase[HUMANOID_CHASE_Z] = 0;
     Me->chase[HUMANOID_CHASE_X] = 0;
     if ((Me->type & PAGE_MASK) == PAGE_BOSS)
     {
-        if ((u16)(SR - 1) < 2)
+        if (SR == SR_SEEN || SR == SR_GLIMPSE)
         {
-            Attrib = cleared | PHASE_ALERT;
-            if (Me->motion->count == 0)
+            Attrib = base_attrib | PHASE_ALERT;
+            if (Me->motion->count == 0 &&
+                rand() % THINK4_BOSS_ALERT_VOICE_CHANCE == 0)
             {
-                s32 r;
-
-                r = rand();
-                if (r % 60 == 0)
-                {
-                    Sound(Me, CHAR_VOICE_ALERT);
-                }
+                Sound(Me, CHAR_VOICE_ALERT);
             }
         }
         return (GotoPosition(0, 0) & PAD_TURN_BUTTONS_SIGNED);
@@ -3306,7 +3302,7 @@ s16 Think4abandon(void)
     {
         if (SR == SR_SEEN)
         {
-            Attrib = cleared | PHASE_ALERT;
+            Attrib = base_attrib | PHASE_ALERT;
         }
         return (GotoPosition(0, 0) & PAD_TURN_BUTTONS_SIGNED);
     }
@@ -3324,16 +3320,16 @@ s16 Think4abandon(void)
         {
         case SR_GONE:
         case SR_UNSEEN:
-            Attrib = cleared;
+            Attrib = base_attrib;
             SetNowMotion(Me, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             Sound(Me, CHAR_VOICE_REACTION);
             break;
         case SR_GLIMPSE:
-            Attrib = cleared | PHASE_SUSPICIOUS;
+            Attrib = base_attrib | PHASE_SUSPICIOUS;
             SetNowMotion(Me, MOT_STATE_SHEATHE, MOTION_MOVE_APPLY);
             break;
         case SR_SEEN:
-            Attrib = cleared | PHASE_ALERT;
+            Attrib = base_attrib | PHASE_ALERT;
             break;
         default:
             break;
