@@ -87,35 +87,42 @@ static __inline__ void DropStayedItem(PARAM_ITEM_STAY *request)
  *     extern short Humans;
  * END PSX.SYM */
 
-extern VECTOR vec_z_n17000;
+extern VECTOR ItemTargetRay;
 
 
-static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start, VECTOR *target)
+static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot,
+                                  VECTOR *start, VECTOR *target)
 {
+    enum item_targeting_policy
+    {
+        ITEM_TARGET_MIN_FORWARD_DISTANCE = 100,
+        ITEM_TARGET_HORIZONTAL_LIMIT = 500,
+        ITEM_TARGET_VERTICAL_LIMIT = 1000
+    };
     int i;
-    int dist;
-    Humanoid *ret;
+    int nearest_distance;
+    Humanoid *nearest_target;
     Humanoid *human;
     MATRIX mat;
-    SVECTOR rrot;
-    VECTOR tv;
-    VECTOR lv;
-    int cond;
-    int z;
+    SVECTOR inverse_rotation;
+    VECTOR world_position;
+    VECTOR local_position;
+    int in_target_cone;
 
-    ret = 0;
-    tv = vec_z_n17000;
-    RotateVector(&tv, rot->vx, rot->vy, rot->vz);
-    tv.vx += start->vx;
-    tv.vy += start->vy;
-    tv.vz += start->vz;
-    trace_ground_(start, &tv, &lv, 0);
-    setVector(target, lv.vx, lv.vy, lv.vz);
-    dist = GetVectorDistance(&lv, start);
-    rrot.vx = -rot->vx;
-    rrot.vy = -rot->vy;
-    rrot.vz = -rot->vz;
-    RotMatrix(&rrot, &mat);
+    nearest_target = NULL;
+    world_position = ItemTargetRay;
+    RotateVector(&world_position, rot->vx, rot->vy, rot->vz);
+    world_position.vx += start->vx;
+    world_position.vy += start->vy;
+    world_position.vz += start->vz;
+    trace_ground_(start, &world_position, &local_position, 0);
+    setVector(target, local_position.vx, local_position.vy,
+              local_position.vz);
+    nearest_distance = GetVectorDistance(&local_position, start);
+    inverse_rotation.vx = -rot->vx;
+    inverse_rotation.vy = -rot->vy;
+    inverse_rotation.vz = -rot->vz;
+    RotMatrix(&inverse_rotation, &mat);
 
     i = 0;
     while (1)
@@ -123,37 +130,36 @@ static Humanoid *SearchItemTarget2(Humanoid *owner, SVECTOR *rot, VECTOR *start,
         if (i >= Humans)
             break;
         human = HumanGroup[i];
-        tv = *GetAbsolutePosition(*human->model->object, 0, 0, 0);
-        lv = tv;
+        world_position = *GetAbsolutePosition(
+            human->model->object[MODEL_PART_WAIST], 0, 0, 0);
+        local_position = world_position;
         if (human->life > 0 && human != owner)
         {
-            lv.vx -= start->vx;
-            lv.vy -= start->vy;
-            lv.vz -= start->vz;
-            ApplyMatrixLV(&mat, &lv, &lv);
-            lv.vz = -lv.vz;
-            if (lv.vz > 100)
+            local_position.vx -= start->vx;
+            local_position.vy -= start->vy;
+            local_position.vz -= start->vz;
+            ApplyMatrixLV(&mat, &local_position, &local_position);
+            local_position.vz = -local_position.vz;
+            if (local_position.vz > ITEM_TARGET_MIN_FORWARD_DISTANCE)
             {
-                cond = 0;
-                if (abs(lv.vx) < 500)
+                in_target_cone = 0;
+                if (abs(local_position.vx) < ITEM_TARGET_HORIZONTAL_LIMIT)
                 {
-                    cond = abs(lv.vy) < 1000;
+                    in_target_cone =
+                        abs(local_position.vy) < ITEM_TARGET_VERTICAL_LIMIT;
                 }
-                if (cond)
+                if (in_target_cone &&
+                    local_position.vz < nearest_distance)
                 {
-                    z = lv.vz;
-                    if (z < dist)
-                    {
-                        dist = z;
-                        *target = tv;
-                        ret = human;
-                    }
+                    nearest_distance = local_position.vz;
+                    *target = world_position;
+                    nearest_target = human;
                 }
             }
         }
         i++;
     }
-    return ret;
+    return nearest_target;
 }
 
 static __inline__ Humanoid *FindItemTarget(TFindItemTarget *find)
