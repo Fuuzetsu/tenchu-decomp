@@ -1,6 +1,15 @@
 #ifndef TENCHU_INFOVIEW_H
 #define TENCHU_INFOVIEW_H
 
+enum StrainThreatState
+{
+    STRAIN_NO_THREAT = 0x7fffffff,
+    STRAIN_ALERTED = -0x8000
+};
+
+extern s32 StrainRatio;
+extern u16 StrainPhase;
+
 /* Retail backing objects for INFOVIEW.C's fixed local menu initializers.
  * TAdtSelect and the surviving local names/bounds come from PSX.SYM; retail
  * data and copy extents determine the final bounds. This follows the other
