@@ -1593,7 +1593,8 @@ void ProcItemShinsoku(TItem *item)
         SHINSOKU_TRAIL_END_SIZE = 5 * FIXED_ONE,
         SHINSOKU_TRAIL_ROTATE_SPEED = -30,
         SHINSOKU_TRAIL_FRAMES = 16,
-        SHINSOKU_TURN_STEP = ANGLE_FULL / 64
+        SHINSOKU_TURN_STEP = ANGLE_FULL / 64,
+        SHINSOKU_CANCEL_BUTTONS = PADRleft | PADRdown | PADRright | PADRup
     };
     param_shinsoku *param;
     VECTOR pos;
@@ -1615,30 +1616,25 @@ void ProcItemShinsoku(TItem *item)
 
     case SHINSOKU_MODE_WAIT:
     {
-        MotionManager *motion;
+        MotionManager *motion = item->owner->motion;
 
-        motion = item->owner->motion;
         if (motion->mid != MOT_ITEM_SHINSOKU)
         {
-            VECTOR *pos;
-            Humanoid *human;
-            s32 itemID;
+            VECTOR *drop_position =
+                GetAbsolutePosition(item->locate, 0, 0, 0);
+            Humanoid *drop_owner = item->owner;
+            TItemType item_type = item->type;
             s32 rand_x;
             s32 rand_y;
             s32 rand_z;
 
-            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner;
-            itemID = item->type;
             {
                 PARAM_ITEM_LAUNCH drop_request;
 
                 ClearItemLaunchRequest(&drop_request);
-                drop_request.type = itemID;
-                drop_request.user = human;
-                drop_request.start.vx = pos->vx;
-                drop_request.start.vy = pos->vy;
-                drop_request.start.vz = pos->vz;
+                drop_request.type = item_type;
+                drop_request.user = drop_owner;
+                copyVector(&drop_request.start, drop_position);
                 rand_x = rand();
                 drop_request.end.vx =
                     rand_x % (INTERRUPTED_DROP_HORIZONTAL_RADIUS * 2) -
@@ -1660,11 +1656,7 @@ void ProcItemShinsoku(TItem *item)
             DISPOSE_ITEM(item);
             return;
         }
-        if (motion->count != 0)
-        {
-            return;
-        }
-        if (motion->loop == 0)
+        if (motion->count != 0 || motion->loop == 0)
         {
             return;
         }
@@ -1695,9 +1687,7 @@ void ProcItemShinsoku(TItem *item)
             return;
         }
 
-        pos.vx = item->owner->model->locate.coord.t[0];
-        pos.vy = item->owner->model->locate.coord.t[1];
-        pos.vz = item->owner->model->locate.coord.t[2];
+        copyVector(&pos, MODEL_POSITION(item->owner->model));
         pos.vx += param->vec.vx;
         pos.vy += param->vec.vy;
         pos.vz += param->vec.vz;
@@ -1769,7 +1759,8 @@ void ProcItemShinsoku(TItem *item)
         }
 
         param->count--;
-        if (param->count != 0 && (item->owner->pad.trig & (PADRleft | PADRdown | PADRright | PADRup)) == 0)
+        if (param->count != 0 &&
+            (item->owner->pad.trig & SHINSOKU_CANCEL_BUTTONS) == 0)
         {
             return;
         }
