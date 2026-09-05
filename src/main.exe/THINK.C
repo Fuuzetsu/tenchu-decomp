@@ -923,41 +923,53 @@ s16 ChasetoTarget(s32 length)
 
 void register_character_death(Humanoid *dead)
 {
+    enum death_witness_policy
+    {
+        DEATH_WITNESS_VIEW_ANGLE = 900,
+        DEATH_WITNESS_RANGE = 20000,
+        DEATH_WITNESS_PASSAGE_COMPONENT_LIMIT = 500
+    };
     VECTOR delta;
     SVECTOR passage;
-    Humanoid *human;
-    s16 scale;
-    s16 next;
-    s16 index;
-    s32 alert_time;
-    s32 chase_z;
+    Humanoid *witness;
+    s16 passage_scale;
+    s16 next_index;
+    s16 witness_index;
+    s32 alert_duration;
+    s32 target_z;
 
-    scale = 1;
+    passage_scale = 1;
     if ((dead->attribute & ATTR_SEARCH) == 0 && gNannido != DIFFICULTY_EASY)
     {
-        next = DeathIndex + 1;
-        DeathIndex = next;
-        index = next % Humans;
-        human = HumanGroup[index];
-        DeathIndex = index;
+        next_index = DeathIndex + 1;
+        DeathIndex = next_index;
+        witness_index = next_index % Humans;
+        witness = HumanGroup[witness_index];
+        DeathIndex = witness_index;
 
-        if ((human->attribute & (ATTR_SUSPEND | ATTR_PHASE)) == 0 &&
-            human->status != STAT_DEAD && human->status != STAT_DAMAGE &&
-            human != StagePlayer)
+        if ((witness->attribute & (ATTR_SUSPEND | ATTR_PHASE)) == 0 &&
+            witness->status != STAT_DEAD && witness->status != STAT_DAMAGE &&
+            witness != StagePlayer)
         {
-            delta.vx = dead->locate->vx - human->locate->vx;
-            delta.vz = dead->locate->vz - human->locate->vz;
+            delta.vx = dead->locate->vx - witness->locate->vx;
+            delta.vz = dead->locate->vz - witness->locate->vz;
             if (__builtin_abs(GetDirection(delta.vx, delta.vz,
-                                           human->rotate->vy)) <= 900 &&
-                SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) <= 20000)
+                                           witness->rotate->vy)) <=
+                    DEATH_WITNESS_VIEW_ANGLE &&
+                SquareRoot0(delta.vx * delta.vx + delta.vz * delta.vz) <=
+                    DEATH_WITNESS_RANGE)
             {
-                delta.vy = dead->locate->vy - human->locate->vy - human->height;
+                delta.vy = dead->locate->vy - witness->locate->vy -
+                           witness->height;
 
-                while (__builtin_abs(delta.vx) > 500 ||
-                       __builtin_abs(delta.vy) > 500 ||
-                       __builtin_abs(delta.vz) > 500)
+                while (__builtin_abs(delta.vx) >
+                           DEATH_WITNESS_PASSAGE_COMPONENT_LIMIT ||
+                       __builtin_abs(delta.vy) >
+                           DEATH_WITNESS_PASSAGE_COMPONENT_LIMIT ||
+                       __builtin_abs(delta.vz) >
+                           DEATH_WITNESS_PASSAGE_COMPONENT_LIMIT)
                 {
-                    scale <<= 1;
+                    passage_scale <<= 1;
                     delta.vx >>= 1;
                     delta.vy >>= 1;
                     delta.vz >>= 1;
@@ -966,19 +978,19 @@ void register_character_death(Humanoid *dead)
                 passage.vx = delta.vx;
                 passage.vy = delta.vy;
                 passage.vz = delta.vz;
-                if (GetAreaMapPassage(GlobalAreaMap, human->locate,
-                                      &passage, scale) == 0)
+                if (GetAreaMapPassage(GlobalAreaMap, witness->locate,
+                                      &passage, passage_scale) == 0)
                 {
-                    RESET_ALERT_DURATION(alert_time);
-                    Sound(human, CHAR_VOICE_NOTICE);
-                    SetNowMotion(human, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
+                    RESET_ALERT_DURATION(alert_duration);
+                    Sound(witness, CHAR_VOICE_NOTICE);
+                    SetNowMotion(witness, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
                     dead->attribute |= ATTR_SEARCH;
-                    human->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
-                    human->chase[HUMANOID_CHASE_X] = dead->locate->vx;
-                    chase_z = dead->locate->vz;
-                    human->actcnt = 0;
-                    human->actscnt = 0;
-                    human->chase[HUMANOID_CHASE_Z] = chase_z;
+                    witness->attribute |= ATTR_SEARCH | PHASE_SUSPICIOUS;
+                    witness->chase[HUMANOID_CHASE_X] = dead->locate->vx;
+                    target_z = dead->locate->vz;
+                    witness->actcnt = 0;
+                    witness->actscnt = 0;
+                    witness->chase[HUMANOID_CHASE_Z] = target_z;
                 }
             }
         }
