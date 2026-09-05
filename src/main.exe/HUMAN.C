@@ -812,7 +812,7 @@ enum
     SNEAKING_SIGHT_RAY_LIMIT = 300
 };
 
-static SearchSight searchsight[N_SIGHT_PROFILES] = {
+static SearchSight SightProfiles[N_SIGHT_PROFILES] = {
     {
         .sight_distance = 16000,
         .clear_distance = 10000,
@@ -827,16 +827,15 @@ static SearchSight searchsight[N_SIGHT_PROFILES] = {
 
 search_result SearchTarget(Humanoid *human, long *distance, short *degree)
 {
-    VECTOR vect;
+    VECTOR target_delta;
     VECTOR position;
-    SVECTOR svect;
+    SVECTOR passage_step;
     s32 raw_degree;
-    s32 roty;
+    s32 facing;
     s16 profile;
-    s32 limit;
-    s32 absolute;
+    s32 component_limit;
+    s32 absolute_degree;
     s32 base_y;
-    s32 initial_delta_y;
     s32 delta_y;
     s32 full_height;
     s32 half_height;
@@ -844,23 +843,24 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
     u16 player_height;
     s16 signed_degree;
     s16 result_degree;
-    s16 n;
+    s16 passage_scale;
 
     position = *human->locate;
-    n = 1;
-    if (human->target == 0)
+    passage_scale = 1;
+    if (human->target == NULL)
     {
         return SR_NONE;
     }
 
-    vect.vx = human->target->coord.t[0] - position.vx;
-    vect.vy = human->target->coord.t[1] - position.vy;
-    vect.vz = human->target->coord.t[2] - position.vz;
-    *distance = SquareRoot0(vect.vx * vect.vx + vect.vy * vect.vy +
-                            vect.vz * vect.vz);
+    target_delta.vx = human->target->coord.t[0] - position.vx;
+    target_delta.vy = human->target->coord.t[1] - position.vy;
+    target_delta.vz = human->target->coord.t[2] - position.vz;
+    *distance = SquareRoot0(target_delta.vx * target_delta.vx +
+                            target_delta.vy * target_delta.vy +
+                            target_delta.vz * target_delta.vz);
 
-    roty = (u16)human->rotate->vy;
-    raw_degree = ratan2(-vect.vx, -vect.vz) - roty;
+    facing = (u16)human->rotate->vy;
+    raw_degree = ratan2(-target_delta.vx, -target_delta.vz) - facing;
     signed_degree = raw_degree;
     result_degree = raw_degree;
     if (signed_degree > ANGLE_HALF)
@@ -879,22 +879,21 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
         return SR_NONE;
     }
 
-    /* Sneaking (STAT_SQUAT or STAT_STICKON) selects the short-range
-     * sight row. */
-    profile = (u16)(StagePlayer->status - STAT_SQUAT) < 2
+    profile = (StagePlayer->status == STAT_SQUAT ||
+               StagePlayer->status == STAT_STICKON)
                   ? SIGHT_PROFILE_SNEAKING
                   : SIGHT_PROFILE_STANDING;
     if (StagePlayer->status == STAT_HANG)
     {
-        if (vect.vy >= 0 ||
-            (vect.vy < -SIGHT_VERTICAL_LIMIT &&
+        if (target_delta.vy >= 0 ||
+            (target_delta.vy < -SIGHT_VERTICAL_LIMIT &&
              *distance < SIGHT_VERTICAL_NEAR_DISTANCE))
         {
             return SR_GONE;
         }
     }
 
-    if (__builtin_abs(vect.vy) >= SIGHT_VERTICAL_LIMIT)
+    if (__builtin_abs(target_delta.vy) >= SIGHT_VERTICAL_LIMIT)
     {
         if (EmergencyNotice == 0 ||
             *distance < SIGHT_VERTICAL_NEAR_DISTANCE)
@@ -903,34 +902,33 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
         }
     }
 
-    if (*distance >= searchsight[profile].far_distance)
+    if (*distance >= SightProfiles[profile].far_distance)
     {
         return SR_GONE;
     }
 
-    absolute = __builtin_abs(*degree);
-    if (absolute < STANDING_SIGHT_HALF_ANGLE)
+    absolute_degree = __builtin_abs(*degree);
+    if (absolute_degree < STANDING_SIGHT_HALF_ANGLE)
     {
-        if (absolute >= SNEAKING_SIGHT_HALF_ANGLE &&
+        if (absolute_degree >= SNEAKING_SIGHT_HALF_ANGLE &&
             profile != SIGHT_PROFILE_STANDING)
         {
             return SR_UNSEEN;
         }
-        if (*distance >= searchsight[profile].sight_distance)
+        if (*distance >= SightProfiles[profile].sight_distance)
         {
             return SR_UNSEEN;
         }
 
-        limit = STANDING_SIGHT_RAY_LIMIT;
+        component_limit = STANDING_SIGHT_RAY_LIMIT;
         if (profile != SIGHT_PROFILE_STANDING)
         {
-            limit = SNEAKING_SIGHT_RAY_LIMIT;
+            component_limit = SNEAKING_SIGHT_RAY_LIMIT;
         }
-        initial_delta_y = vect.vy;
-        delta_y = initial_delta_y - SIGHT_RAY_ORIGIN_HEIGHT;
+        delta_y = target_delta.vy - SIGHT_RAY_ORIGIN_HEIGHT;
         position.vy += SIGHT_RAY_ORIGIN_HEIGHT - human->height;
         base_y = delta_y + human->height;
-        vect.vy = base_y;
+        target_delta.vy = base_y;
         player_height = StagePlayer->height;
         full_height = (s16)player_height;
         if (StagePlayer->status == STAT_SQUAT)
@@ -942,27 +940,29 @@ search_result SearchTarget(Humanoid *human, long *distance, short *degree)
         {
             adjusted_y = base_y - full_height;
         }
-        vect.vy = adjusted_y;
+        target_delta.vy = adjusted_y;
 
-        while (limit < __builtin_abs(vect.vx) ||
-               limit < __builtin_abs(vect.vy) ||
-               limit < __builtin_abs(vect.vz))
+        while (component_limit < __builtin_abs(target_delta.vx) ||
+               component_limit < __builtin_abs(target_delta.vy) ||
+               component_limit < __builtin_abs(target_delta.vz))
         {
-            n <<= 1;
-            vect.vx >>= 1;
-            vect.vy >>= 1;
-            vect.vz >>= 1;
+            passage_scale <<= 1;
+            target_delta.vx >>= 1;
+            target_delta.vy >>= 1;
+            target_delta.vz >>= 1;
         }
 
-        svect.vx = vect.vx;
-        svect.vy = vect.vy;
-        svect.vz = vect.vz;
-        if (GetAreaMapPassage(GlobalAreaMap, &position, &svect, n) != 0)
+        passage_step.vx = target_delta.vx;
+        passage_step.vy = target_delta.vy;
+        passage_step.vz = target_delta.vz;
+        if (GetAreaMapPassage(GlobalAreaMap, &position, &passage_step,
+                              passage_scale) != 0)
         {
             return SR_GONE;
         }
-        return (*distance < searchsight[profile].clear_distance) ? SR_SEEN
-                                                                 : SR_GLIMPSE;
+        return (*distance < SightProfiles[profile].clear_distance)
+                   ? SR_SEEN
+                   : SR_GLIMPSE;
     }
     return SR_UNSEEN;
 }
