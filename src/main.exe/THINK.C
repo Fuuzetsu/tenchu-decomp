@@ -300,36 +300,34 @@ void StateTransition(Humanoid *human)
                                       player_dz * player_dz);
     }
 
+    if (StagePlayer->active_item == ACTIVE_ITEM_DISGUISE ||
+        StagePlayer->active_item == ACTIVE_ITEM_LURE)
     {
-        if (StagePlayer->active_item == ACTIVE_ITEM_DISGUISE ||
-            StagePlayer->active_item == ACTIVE_ITEM_LURE)
+        if ((Me->type & PAGE_MASK) != PAGE_BOSS &&
+            (Me->type & PAGE_MASK) != PAGE_BEAST &&
+            (StagePlayer->active_item != ACTIVE_ITEM_LURE ||
+             (Attrib & ATTR_PHASE) != PHASE_ALERT))
         {
-            if ((Me->type & PAGE_MASK) != PAGE_BOSS &&
-                (Me->type & PAGE_MASK) != PAGE_BEAST &&
-                (StagePlayer->active_item != ACTIVE_ITEM_LURE ||
-                 (Attrib & ATTR_PHASE) != PHASE_ALERT))
+            if (EmergencyNotice != 0)
             {
-                if (EmergencyNotice != 0)
-                {
-                    EmergencyNotice = 0;
-                }
-                SR = SR_GONE;
+                EmergencyNotice = 0;
             }
+            SR = SR_GONE;
         }
-        else if (EmergencyNotice != 0)
+    }
+    else if (EmergencyNotice != 0)
+    {
+        if (EmergencyNotice == 1)
         {
-            if (EmergencyNotice == 1)
-            {
-                SR = SR_UNSEEN;
-            }
-            else if ((Attrib & ATTR_PHASE) == PHASE_CALM)
-            {
-                SR = SR_GLIMPSE;
-            }
-            else if (SR == SR_GLIMPSE)
-            {
-                SR = SR_SEEN;
-            }
+            SR = SR_UNSEEN;
+        }
+        else if ((Attrib & ATTR_PHASE) == PHASE_CALM)
+        {
+            SR = SR_GLIMPSE;
+        }
+        else if (SR == SR_GLIMPSE)
+        {
+            SR = SR_SEEN;
         }
     }
 
@@ -458,7 +456,7 @@ void StateTransition(Humanoid *human)
             }
         }
         else if (EmergencyNotice < 2 &&
-                 (u16)(SR - SR_GONE) <= SR_UNSEEN - SR_GONE)
+                 (SR == SR_GONE || SR == SR_UNSEEN))
         {
             if ((Me->type & PAGE_MASK) != PAGE_BOSS)
             {
