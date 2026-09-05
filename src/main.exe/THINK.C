@@ -28,7 +28,12 @@ static s16 atkd[N_WEAPON_ATTACK_CLASSES] = {
     [WEAPON_ATTACK_LONG] = 4000,
     [WEAPON_ATTACK_RANGED] = 20000
 };
-static s16 atkd2[N_WEAPON_ATTACK_CLASSES] = {2000, 3000, 4000, 20000};
+static s16 atkd2[N_WEAPON_ATTACK_CLASSES] = {
+    [WEAPON_ATTACK_SHORT] = 2000,
+    [WEAPON_ATTACK_GENERAL] = 3000,
+    [WEAPON_ATTACK_LONG] = 4000,
+    [WEAPON_ATTACK_RANGED] = 20000
+};
 
 static ThinkFunc Think1Func[N_THINK1_PROGRAMS];
 static ThinkFunc Think2Func[N_THINK2_PROGRAMS];
@@ -2241,11 +2246,15 @@ s16 Think3hitaway(void)
  * (same shape as Think3attack.c's atkd table). */
 s16 Think3firstattack(void)
 {
-    s16 pad;
-    weapon_attack_class idx;
-    s32 degree;
+    enum
+    {
+        RANGED_FIRST_ATTACK_AIM = 100
+    };
+    s16 input;
+    weapon_attack_class attack_class;
+    s32 absolute_degree;
 
-    pad = GotoPosition(0, 0);
+    input = GotoPosition(0, 0);
     if (Distance < SR_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
@@ -2254,22 +2263,22 @@ s16 Think3firstattack(void)
     {
         Attrib |= ATTR_SEARCH;
     }
-    idx = WEAPON_ATTACK_CLASS(Me->wpatk);
-    if (idx == WEAPON_ATTACK_RANGED)
+    attack_class = WEAPON_ATTACK_CLASS(Me->wpatk);
+    if (attack_class == WEAPON_ATTACK_RANGED)
     {
-        pad &= PAD_TURN_BUTTONS_SIGNED;
-        degree = __builtin_abs(Degree);
-        if (degree > 100)
+        input &= PAD_TURN_BUTTONS_SIGNED;
+        absolute_degree = __builtin_abs(Degree);
+        if (absolute_degree > RANGED_FIRST_ATTACK_AIM)
         {
-            return pad;
+            return input;
         }
     }
-    if (Distance < atkd2[idx])
+    if (Distance < atkd2[attack_class])
     {
-        pad |= PADRleft;
+        input |= PADRleft;
         Attrib |= ATTR_SEARCH;
     }
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
