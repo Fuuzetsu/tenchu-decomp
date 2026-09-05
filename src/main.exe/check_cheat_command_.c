@@ -11,6 +11,7 @@ enum cheat_command check_cheat_command_(s16 buttons, s16 newly_pressed)
     const u16 *history;
     u32 outer_end;
     u32 inner_end;
+    u16 pattern_value;
     s32 i;
 
     if (newly_pressed != 0)
@@ -32,29 +33,30 @@ enum cheat_command check_cheat_command_(s16 buttons, s16 newly_pressed)
                 i = 0;
                 history_start = PAD_HISTORY_;
                 pattern_start = entry->presses;
-                if (*pattern_start == outer_end)
-                    goto matched;
-
-                inner_end = CHEAT_COMMAND_END;
-                pattern = pattern_start;
-                history = history_start;
-                do
+                pattern_value = *pattern_start;
+                if (pattern_value != outer_end)
                 {
-                    if (*pattern == *history)
+                    inner_end = CHEAT_COMMAND_END;
+                    pattern = pattern_start;
+                    history = history_start;
+                    do
                     {
-                        pattern++;
-                        history++;
-                        i++;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                } while (*pattern != inner_end);
+                        if (*pattern == *history)
+                        {
+                            pattern++;
+                            history++;
+                            i++;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    } while (*pattern != inner_end);
+                    pattern_value = pattern_start[i];
+                }
 
-                if (pattern_start[i] == outer_end)
+                if (pattern_value == outer_end)
                 {
-                matched:
                     for (i = N_CHEAT_HISTORY_ENTRIES - 1; i > 0; i--)
                     {
                         PAD_HISTORY_[i] = PAD_HISTORY_[i - 1];
