@@ -929,7 +929,7 @@ extern s16 ThinkBudget;
  * budget keeps PacketUsed a whole unit clear of the end of a Packet[]
  * row: 0x10000 - THINK_PACKET_COST == 0xec78. */
 #define THINK_PACKET_COST 5000
-#define THINK_PACKET_LIMIT (0x10000 - THINK_PACKET_COST)
+#define THINK_PACKET_LIMIT (PACKET_PAGE_SIZE - THINK_PACKET_COST)
 
 enum human_activation_state
 {
@@ -937,22 +937,29 @@ enum human_activation_state
     HUMAN_ACTIVE = 1
 };
 
+enum human_activation_policy
+{
+    HUMAN_ACTIVATION_PERIOD = 30,
+    STAGE_CHARACTER_POSITION_SCALE = 1000,
+    HOME_LEVEL_PROBE_DEPTH = 1500
+};
+
 void ActivateHumans(void)
 {
-    s32 i;
-    Humanoid *target;
-    VECTOR vc;
-    s32 activate_distance;
+    s32 human_index;
+    Humanoid *focus;
+    VECTOR focus_position;
+    s32 activation_radius;
 
-    target = CamState.Owner;
-    vc = *target->locate;
-    activate_distance = ACTIVATE_RADIUS_WIDE;
+    focus = CamState.Owner;
+    focus_position = *focus->locate;
+    activation_radius = ACTIVATE_RADIUS_WIDE;
     if (StagePlayer->motion->mid != MOT_ITEM_SHINSOKU)
     {
-        activate_distance = ACTIVATE_RADIUS;
+        activation_radius = ACTIVATE_RADIUS;
     }
 
-    if (GameClock % 30 != 0 || SkipFrame != 0)
+    if (GameClock % HUMAN_ACTIVATION_PERIOD != 0 || SkipFrame != 0)
     {
         return;
     }
@@ -966,26 +973,27 @@ void ActivateHumans(void)
     ThinkBudget = ThinkBudget < 7
                       ? (ThinkBudget < 3 ? 3 : ThinkBudget)
                       : 6;
-    i = 0;
+    human_index = 0;
     ThinkCount = 0;
     while (1)
     {
         Humanoid *human;
 
-        if ((s16)i >= Humans)
+        if ((s16)human_index >= Humans)
         {
             return;
         }
-        human = HumanGroup[(s16)i];
-        if (human != target)
+        human = HumanGroup[(s16)human_index];
+        if (human != focus)
         {
             enum human_activation_state active;
-            s32 final;
-            s32 distance;
-            s16 j;
+            s32 activation_result;
+            s32 distance_to_focus;
+            s16 scan_index;
 
-            distance = GetVectorDistance(human->locate, &vc);
-            if (distance > DEACTIVATE_RADIUS)
+            distance_to_focus =
+                GetVectorDistance(human->locate, &focus_position);
+            if (distance_to_focus > DEACTIVATE_RADIUS)
             {
                 active = HUMAN_INACTIVE;
             }
@@ -997,7 +1005,8 @@ void ActivateHumans(void)
             {
                 active = HUMAN_ACTIVE;
             }
-            else if (GameClock == 30 || StageID == STAGE_ID_TRAINING)
+            else if (GameClock == HUMAN_ACTIVATION_PERIOD ||
+                     StageID == STAGE_ID_TRAINING)
             {
                 active = HUMAN_ACTIVE;
             }
@@ -1008,11 +1017,12 @@ void ActivateHumans(void)
                     active = HUMAN_ACTIVE;
                     if (ThinkCount >= ThinkBudget)
                     {
-                        final = distance < activate_distance;
+                        activation_result =
+                            distance_to_focus < activation_radius;
                         goto visible_done;
                     }
                 }
-                else if (distance >= activate_distance)
+                else if (distance_to_focus >= activation_radius)
                 {
                     active = HUMAN_INACTIVE;
                 }
@@ -1023,64 +1033,73 @@ void ActivateHumans(void)
                 }
                 else
                 {
-                    j = 0;
-                    while (VISIBLE_CHARACTERS_ON_STAGE_[j] != human)
+                    scan_index = 0;
+                    while (VISIBLE_CHARACTERS_ON_STAGE_[scan_index] != human)
                     {
-                        if (VISIBLE_ENEMIES_ <= j)
+                        if (VISIBLE_ENEMIES_ <= scan_index)
                         {
                             break;
                         }
-                        j++;
+                        scan_index++;
                     }
-                    final = j != VISIBLE_ENEMIES_;
+                    activation_result = scan_index != VISIBLE_ENEMIES_;
 
                 visible_done:
-                    /* This earlier `final` lifetime ends at the visibility join; the
-                     * active-result join below overwrites it before its next use. */
-                    active = final;
+                    active = activation_result;
                 }
             }
             if (human)
             {
-                final = 0;
-                final = active;
+                activation_result = 0;
+                activation_result = active;
             }
             else
             {
-                final = active;
+                activation_result = active;
             }
-            if (final)
+            if (activation_result)
             {
                 if (((u16)human->attribute & ATTR_SUSPEND) == 0)
                 {
                     ThinkCount++;
                 }
-                else if (StageID == STAGE_ID_TRAINING || human->life < 0 || GameClock == 30 ||
-                         (ThinkCount < ThinkBudget && distance > ACTIVATE_RADIUS))
+                else if (StageID == STAGE_ID_TRAINING || human->life < 0 ||
+                         GameClock == HUMAN_ACTIVATION_PERIOD ||
+                         (ThinkCount < ThinkBudget &&
+                          distance_to_focus > ACTIVATE_RADIUS))
                 {
                     human->attribute = (u16)human->attribute & ~ATTR_SUSPEND;
                     ThinkCount++;
-                    (*human->model->object)->attribute |= MODEL_ATTR_COLLIDE;
+                    human->model->object[MODEL_PART_WAIST]->attribute |=
+                        MODEL_ATTR_COLLIDE;
                 }
             }
             else if (((u16)human->attribute & ATTR_SUSPEND) == 0 && human->type != ON)
             {
                 if ((human->type == NINJA_0 &&
                      (u32)(StageID - STAGE_ID_RECLAIM_CASTLE) <=
-                         STAGE_ID_FREE_PRINCESS - STAGE_ID_RECLAIM_CASTLE) ||
+                         STAGE_ID_FREE_PRINCESS -
+                             STAGE_ID_RECLAIM_CASTLE) ||
                     human->type == GOO)
                 {
-                    j = 0;
-                    while (StageChar[j].stage != STAGE_CHAR_END)
+                    scan_index = 0;
+                    while (StageChar[scan_index].stage != STAGE_CHAR_END)
                     {
-                        if (StageChar[j].stage == STAGE_NUMBER(StageID) &&
-                            StageChar[j].chrid == human->type)
+                        if (StageChar[scan_index].stage ==
+                                STAGE_NUMBER(StageID) &&
+                            StageChar[scan_index].chrid == human->type)
                         {
-                            human->model->locate.coord.t[0] = StageChar[j].position.vx * 1000;
-                            human->model->locate.coord.t[1] = StageChar[j].position.vy * 1000;
-                            human->model->locate.coord.t[2] = StageChar[j].position.vz * 1000;
+                            human->model->locate.coord.t[0] =
+                                StageChar[scan_index].position.vx *
+                                STAGE_CHARACTER_POSITION_SCALE;
+                            human->model->locate.coord.t[1] =
+                                StageChar[scan_index].position.vy *
+                                STAGE_CHARACTER_POSITION_SCALE;
+                            human->model->locate.coord.t[2] =
+                                StageChar[scan_index].position.vz *
+                                STAGE_CHARACTER_POSITION_SCALE;
                         }
-                        j++;
+                        scan_index++;
                     }
                     if (human->type == GOO && human->life == 0)
                     {
@@ -1091,12 +1110,13 @@ void ActivateHumans(void)
                 {
                     VECTOR query = {
                         .vx = human->point[HUMANOID_HOME_X],
-                        .vy = human->locate->vy - 1500,
+                        .vy = human->locate->vy - HOME_LEVEL_PROBE_DEPTH,
                         .vz = human->point[HUMANOID_HOME_Z]
                     };
                     s32 level;
 
-                    if (GetVectorDistance(&query, &vc) > DEACTIVATE_RADIUS)
+                    if (GetVectorDistance(&query, &focus_position) >
+                        DEACTIVATE_RADIUS)
                     {
                         level = GetAreaMapLevel(GlobalAreaMap, query.vx, query.vy,
                                                 query.vz, AREA_LEVEL_STEP_DOWN);
@@ -1110,11 +1130,12 @@ void ActivateHumans(void)
                 }
 
                 human->attribute = (u16)human->attribute | ATTR_SUSPEND;
-                (*human->model->object)->attribute &= ~MODEL_ATTR_COLLIDE;
+                human->model->object[MODEL_PART_WAIST]->attribute &=
+                    ~MODEL_ATTR_COLLIDE;
             }
         }
 
-        i++;
+        human_index++;
     }
 }
 
