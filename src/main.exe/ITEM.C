@@ -4276,21 +4276,17 @@ static void ProcItemNinken(TItem *item)
         {
             s32 valid;
             VECTOR *position;
-            VECTOR *query;
-            MapVector *map;
             VECTOR pos;
             VECTOR work;
             MapVector map_result;
 
             position = &pos;
-            query = &work;
-            map = &map_result;
             copyVector(&pos, MODEL_POSITION(item->locate));
             work.vx = position->vx;
             work.vy = position->vy;
             work.vz = position->vz;
             work.vy -= NINKEN_SPAWN_PROBE_DEPTH;
-            GetAreaMapVector(GlobalAreaMap, map, query,
+            GetAreaMapVector(GlobalAreaMap, &map_result, &work,
                              NINKEN_SPAWN_PROBE_RADIUS,
                              AREA_LEVEL_DEFAULT);
 
