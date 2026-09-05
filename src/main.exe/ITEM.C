@@ -3562,10 +3562,50 @@ enum
     HENSHIN_SMOKE_TIME = 6
 };
 
+static inline void DropUnusedHenshin(TItem *item)
+{
+    PARAM_ITEM_LAUNCH drop_request;
+    VECTOR *drop_position =
+        GetAbsolutePosition(item->locate, 0, 0, 0);
+    Humanoid *drop_owner = item->owner;
+    TItemType item_type = item->type;
+
+    drop_request = (PARAM_ITEM_LAUNCH){0};
+    drop_request.type = item_type;
+    drop_request.user = drop_owner;
+    copyVector(&drop_request.start, drop_position);
+    drop_request.end.vx =
+        rand() % HENSHIN_DROP_HORIZONTAL_SPREAD -
+        HENSHIN_DROP_HORIZONTAL_SPREAD / 2;
+    drop_request.end.vy =
+        rand() % HENSHIN_DROP_VERTICAL_SPREAD -
+        HENSHIN_DROP_UPWARD_SPEED;
+    drop_request.end.vz =
+        rand() % HENSHIN_DROP_HORIZONTAL_SPREAD -
+        HENSHIN_DROP_HORIZONTAL_SPREAD / 2;
+    ReqItemDrop(&drop_request);
+    if (item->proc == 0)
+    {
+        return;
+    }
+    DISPOSE_ITEM(item);
+}
+
+static inline void SpawnHenshinSmoke(ModelArchiveType *archive)
+{
+    SVECTOR velocity = {
+        .vx = 0,
+        .vy = HENSHIN_SMOKE_RISE_SPEED,
+        .vz = 0
+    };
+
+    SetSmoke(MODEL_POSITION(archive), &velocity,
+             HENSHIN_SMOKE_COUNT, HENSHIN_SMOKE_TIME);
+}
+
 static void ProcItemHenshin(TItem *item)
 {
     ModelArchiveType *archive = item->owner->model;
-    PARAM_ITEM_LAUNCH drop_request;
 
     if (item->mode == ITEM_MODE_DISPOSE)
     {
@@ -3599,30 +3639,7 @@ static void ProcItemHenshin(TItem *item)
         MotionManager *motion = human->motion;
         if (motion->mid != MOT_ITEM_KAENGEKI)
         {
-            VECTOR *drop_position =
-                GetAbsolutePosition(item->locate, 0, 0, 0);
-            Humanoid *drop_owner = item->owner;
-            TItemType item_type = item->type;
-
-            drop_request = (PARAM_ITEM_LAUNCH){0};
-            drop_request.type = item_type;
-            drop_request.user = drop_owner;
-            copyVector(&drop_request.start, drop_position);
-            drop_request.end.vx =
-                rand() % HENSHIN_DROP_HORIZONTAL_SPREAD -
-                HENSHIN_DROP_HORIZONTAL_SPREAD / 2;
-            drop_request.end.vy =
-                rand() % HENSHIN_DROP_VERTICAL_SPREAD -
-                HENSHIN_DROP_UPWARD_SPEED;
-            drop_request.end.vz =
-                rand() % HENSHIN_DROP_HORIZONTAL_SPREAD -
-                HENSHIN_DROP_HORIZONTAL_SPREAD / 2;
-            ReqItemDrop(&drop_request);
-            if (item->proc == 0)
-            {
-                return;
-            }
-            DISPOSE_ITEM(item);
+            DropUnusedHenshin(item);
             return;
         }
         if (motion->count != 0 || motion->loop == 0)
@@ -3631,17 +3648,7 @@ static void ProcItemHenshin(TItem *item)
         }
 
         NowReturnNormal(human);
-        {
-            SVECTOR *smoke_velocity = (SVECTOR *)&drop_request;
-
-            *smoke_velocity = (SVECTOR){
-                .vx = 0,
-                .vy = HENSHIN_SMOKE_RISE_SPEED,
-                .vz = 0
-            };
-            SetSmoke(MODEL_POSITION(archive), smoke_velocity,
-                     HENSHIN_SMOKE_COUNT, HENSHIN_SMOKE_TIME);
-        }
+        SpawnHenshinSmoke(archive);
         {
             TItem *previous_disguise = HenshinItem;
             if (previous_disguise != 0 && previous_disguise->proc != 0)
@@ -3692,17 +3699,7 @@ static void ProcItemHenshin(TItem *item)
                 return;
             }
         }
-        {
-            SVECTOR *smoke_velocity = (SVECTOR *)&drop_request;
-
-            *smoke_velocity = (SVECTOR){
-                .vx = 0,
-                .vy = HENSHIN_SMOKE_RISE_SPEED,
-                .vz = 0
-            };
-            SetSmoke(MODEL_POSITION(archive), smoke_velocity,
-                     HENSHIN_SMOKE_COUNT, HENSHIN_SMOKE_TIME);
-        }
+        SpawnHenshinSmoke(archive);
         if (item->proc == 0)
         {
             return;
