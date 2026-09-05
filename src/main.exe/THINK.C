@@ -2700,18 +2700,34 @@ static short AttackShort(void)
 
 static short AttackGeneral(void)
 {
-    enum close_attack_choice
+    enum general_attack_policy
     {
-        CLOSE_ATTACK_BACKFLIP,
-        CLOSE_ATTACK_CROUCH_STRIKE,
-        CLOSE_ATTACK_DASH_BACKWARD,
-        CLOSE_ATTACK_STRIKE,
-        N_CLOSE_ATTACK_CHOICES
+        GENERAL_ATTACK_POINT_BLANK_DISTANCE = 1000,
+        GENERAL_ATTACK_CLOSE_DISTANCE = 2000,
+        GENERAL_ATTACK_ENGAGE_DISTANCE = 3000,
+        GENERAL_ATTACK_ACTION_DISTANCE = 4000,
+        GENERAL_ATTACK_CHASE_DISTANCE = 5000,
+        GENERAL_ATTACK_PRECISE_AIM = 100,
+        GENERAL_ATTACK_CONTINUATION_AIM = 500,
+        GENERAL_ATTACK_CLOSE_AIM = 1000,
+        GENERAL_ATTACK_ACTION_AIM = 1200,
+        GENERAL_ATTACK_OUTER_AIM = 1500,
+        GENERAL_ATTACK_RECOVERY_CHANCE = 5,
+        GENERAL_ATTACK_BACKOFF_CHANCE = 3
     };
-    s16 pad;
+    enum general_close_attack_choice
+    {
+        GENERAL_CLOSE_ATTACK_BACKFLIP,
+        GENERAL_CLOSE_ATTACK_CROUCH_STRIKE,
+        GENERAL_CLOSE_ATTACK_DASH_BACKWARD,
+        GENERAL_CLOSE_ATTACK_STRIKE,
+        N_GENERAL_CLOSE_ATTACK_CHOICES
+    };
+    s16 input;
 
-    pad = 0;
-    RETURN_ATTACK_CONTINUATION(pad, 2000, 500);
+    input = 0;
+    RETURN_ATTACK_CONTINUATION(input, GENERAL_ATTACK_CLOSE_DISTANCE,
+                               GENERAL_ATTACK_CONTINUATION_AIM);
 
     if (Me->status == STAT_JUMP)
     {
@@ -2725,59 +2741,60 @@ static short AttackGeneral(void)
 
     if (Me->actmode == MELEE_ATTACK_CLOSING)
     {
-        s32 deg;
+        s32 aim_error;
 
-        pad = ChasetoTarget(3000);
-        if (pad == 0 || (Attrib & ATTR_HIT) != 0)
+        input = ChasetoTarget(GENERAL_ATTACK_ENGAGE_DISTANCE);
+        if (input == 0 || (Attrib & ATTR_HIT) != 0)
         {
             Me->actmode = MELEE_ATTACK_ENGAGED;
         }
-        if (Distance > 5000)
+        if (Distance > GENERAL_ATTACK_CHASE_DISTANCE)
         {
-            deg = Degree;
-            if (deg < 0)
+            aim_error = Degree;
+            if (aim_error < 0)
             {
-                deg = -deg;
+                aim_error = -aim_error;
             }
-            if (deg < 100 && rand() % 5 == 0)
+            if (aim_error < GENERAL_ATTACK_PRECISE_AIM &&
+                rand() % GENERAL_ATTACK_RECOVERY_CHANCE == 0)
             {
-                pad = PADLup | PADRdown;
+                input = PADLup | PADRdown;
             }
         }
-        return pad;
+        return input;
     }
 
     if ((Me->motion->count &
          (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
     {
-        s32 d;
-        s32 deg;
+        s32 raw_degree;
+        s32 aim_error;
 
-        pad = Me->pad.data;
-        if (Distance < 2000)
+        input = Me->pad.data;
+        if (Distance < GENERAL_ATTACK_CLOSE_DISTANCE)
         {
-            d = Degree;
-            deg = (d >= 0) ? d : -d;
-            if (deg < 1000)
+            raw_degree = Degree;
+            aim_error = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            if (aim_error < GENERAL_ATTACK_CLOSE_AIM)
             {
-                pad = PADLdown;
+                input = PADLdown;
             }
-            else if (deg > 1500)
+            else if (aim_error > GENERAL_ATTACK_OUTER_AIM)
             {
-                pad = PADLup;
+                input = PADLup;
             }
         }
-        return pad;
+        return input;
     }
 
-    if (Distance > 5000)
+    if (Distance > GENERAL_ATTACK_CHASE_DISTANCE)
     {
-        Humanoid *me;
+        Humanoid *actor;
 
         Me->actmode = MELEE_ATTACK_CLOSING;
-        me = Me;
+        actor = Me;
         Me->chase[HUMANOID_CHASE_Z] = 0;
-        me->chase[HUMANOID_CHASE_X] = 0;
+        actor->chase[HUMANOID_CHASE_X] = 0;
         ItemUse();
         return 0;
     }
@@ -2787,62 +2804,65 @@ static short AttackGeneral(void)
         Me->actmode = MELEE_ATTACK_CLOSING;
     }
 
-    if (Degree > 500)
+    if (Degree > GENERAL_ATTACK_CONTINUATION_AIM)
     {
-        pad = PADLright;
+        input = PADLright;
     }
-    else if (Degree < -500)
+    else if (Degree < -GENERAL_ATTACK_CONTINUATION_AIM)
     {
-        pad = PADLleft;
+        input = PADLleft;
     }
 
-    if (Distance > 1000 && Distance < 3000)
+    if (Distance > GENERAL_ATTACK_POINT_BLANK_DISTANCE &&
+        Distance < GENERAL_ATTACK_ENGAGE_DISTANCE)
     {
-        s32 deg;
+        s32 aim_error;
 
-        deg = Degree;
-        if (deg < 0)
+        aim_error = Degree;
+        if (aim_error < 0)
         {
-            deg = -deg;
+            aim_error = -aim_error;
         }
-        if (deg < 1200 && rand() % (EngageLevel + 1) == 0 &&
+        if (aim_error < GENERAL_ATTACK_ACTION_AIM &&
+            rand() % (EngageLevel + 1) == 0 &&
             GameClock > AttackActionCount)
         {
             AttackActionCount = GameClock + EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
-            if (rand() % 3 == 0)
+            if (rand() % GENERAL_ATTACK_BACKOFF_CHANCE == 0)
             {
-                pad = PADLdown;
+                input = PADLdown;
             }
-            return pad | PADRleft;
+            return input | PADRleft;
         }
     }
 
     {
-        s32 degree;
+        s32 aim_error;
 
-        degree = Degree;
-        if (degree < 0)
+        aim_error = Degree;
+        if (aim_error < 0)
         {
-            degree = -degree;
+            aim_error = -aim_error;
         }
 
-        if (degree > 1000 || Distance < 2000)
+        if (aim_error > GENERAL_ATTACK_CLOSE_AIM ||
+            Distance < GENERAL_ATTACK_CLOSE_DISTANCE)
         {
-            if (Distance < 1000)
+            if (Distance < GENERAL_ATTACK_POINT_BLANK_DISTANCE)
             {
-                switch (rand() % N_CLOSE_ATTACK_CHOICES)
+                switch (rand() % N_GENERAL_CLOSE_ATTACK_CHOICES)
                 {
-                case CLOSE_ATTACK_BACKFLIP:
-                    pad = PADLdown | PADRdown;
+                case GENERAL_CLOSE_ATTACK_BACKFLIP:
+                    input = PADLdown | PADRdown;
                     break;
-                case CLOSE_ATTACK_CROUCH_STRIKE:
-                    pad = PADRleft | PADRright;
+                case GENERAL_CLOSE_ATTACK_CROUCH_STRIKE:
+                    input = PADRleft | PADRright;
                     break;
-                case CLOSE_ATTACK_DASH_BACKWARD:
-                    pad = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
+                case GENERAL_CLOSE_ATTACK_DASH_BACKWARD:
+                    input = SetCommand(&Me->pad, CMD_DASH_BACKWARD);
                     break;
-                case CLOSE_ATTACK_STRIKE:
-                    pad |= PADRleft;
+                case GENERAL_CLOSE_ATTACK_STRIKE:
+                    input |= PADRleft;
                     break;
                 default:
                     break;
@@ -2850,30 +2870,30 @@ static short AttackGeneral(void)
             }
             else
             {
-                pad |= PADLdown;
+                input |= PADLdown;
             }
-            return pad;
+            return input;
         }
 
-        if (Distance > 3000)
+        if (Distance > GENERAL_ATTACK_ENGAGE_DISTANCE)
         {
-            pad |= PADLup;
-            if (Distance > 4000)
+            input |= PADLup;
+            if (Distance > GENERAL_ATTACK_ACTION_DISTANCE)
             {
                 if ((rand() & 1) != 0)
                 {
-                    pad = SetCommand(&Me->pad, CMD_DASH_FORWARD);
+                    input = SetCommand(&Me->pad, CMD_DASH_FORWARD);
                 }
                 else
                 {
-                    degree = Degree;
-                    if (degree < 0)
+                    aim_error = Degree;
+                    if (aim_error < 0)
                     {
-                        degree = -degree;
+                        aim_error = -aim_error;
                     }
-                    if (degree < 500)
+                    if (aim_error < GENERAL_ATTACK_CONTINUATION_AIM)
                     {
-                        pad = SetCommand(&Me->pad, CMD_LUNGE);
+                        input = SetCommand(&Me->pad, CMD_LUNGE);
                     }
                     else
                     {
@@ -2881,23 +2901,23 @@ static short AttackGeneral(void)
                     }
                 }
             }
-            return pad;
+            return input;
         }
 
         if ((rand() & 1) != 0)
         {
-            if (Degree > 100)
+            if (Degree > GENERAL_ATTACK_PRECISE_AIM)
             {
-                pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
+                input = SetCommand(&Me->pad, CMD_DASH_RIGHT);
             }
-            else if (Degree < -100)
+            else if (Degree < -GENERAL_ATTACK_PRECISE_AIM)
             {
-                pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
+                input = SetCommand(&Me->pad, CMD_DASH_LEFT);
             }
         }
     }
 
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
