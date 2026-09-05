@@ -2032,6 +2032,35 @@ void ActNORMAL(void)
     }
 }
 
+static inline void ClearAttackEffects(s16 mode)
+{
+    if (mode & ATTACK_CANCEL_CONFLICTS)
+    {
+        switch (Me_MOTION_C->wpatk)
+        {
+        case FIST:
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
+            break;
+        case JAW:
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
+            break;
+        case NO_WEAPON:
+            break;
+        default:
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
+            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
+            break;
+        }
+    }
+    if (mode & ATTACK_CANCEL_AFTERIMAGES)
+    {
+        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
+        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_1);
+    }
+    dtM->mask = MOTION_MASK_ALL;
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -2081,58 +2110,28 @@ void ActACTION(void)
     case MOT_ACTION:
         if (dtM->count == 1)
         {
-            s16 cleanup_guard;
-            MotionManager *motion;
-            Humanoid *human;
-            OrnamentType **weapon;
+            ClearAttackEffects(ATTACK_CANCEL_ALL);
+            if (Me_MOTION_C->wpatk == KATANAL)
+            {
+                OrnamentType **weapon;
 
-            cleanup_guard = ATTACK_CANCEL_ALL;
-            switch (Me_MOTION_C->wpatk)
-            {
-            case FIST:
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
-                break;
-            case JAW:
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
-                break;
-            case NO_WEAPON:
-                break;
-            default:
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-                DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
-                break;
-            }
-            if (cleanup_guard & ATTACK_CANCEL_AFTERIMAGES)
-            {
-                DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
-                DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_1);
-            }
-            motion = dtM;
-            human = Me_MOTION_C;
-            motion->mask = MOTION_MASK_ALL;
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
-            weapon = human->weapon;
-            if (human->wpatk == KATANAL && weapon[WEAPON_SLOT_INACTIVE_1] != 0)
-            {
-                weapon[WEAPON_SLOT_INACTIVE_0] = human->weapon[WEAPON_SLOT_ACTIVE_0];
-                human->weapon[WEAPON_SLOT_ACTIVE_0] = weapon[WEAPON_SLOT_INACTIVE_1];
-                weapon[WEAPON_SLOT_INACTIVE_1] = 0;
-                Sound(human, CHAR_SE_WEAPON_CHANGE_B);
+                weapon = Me_MOTION_C->weapon;
+                if (weapon[WEAPON_SLOT_INACTIVE_1] != 0)
+                {
+                    weapon[WEAPON_SLOT_INACTIVE_0] = weapon[WEAPON_SLOT_ACTIVE_0];
+                    weapon[WEAPON_SLOT_ACTIVE_0] = weapon[WEAPON_SLOT_INACTIVE_1];
+                    weapon[WEAPON_SLOT_INACTIVE_1] = 0;
+                    Sound(Me_MOTION_C, CHAR_SE_WEAPON_CHANGE_B);
+                }
             }
         }
+        if (dtM->count == 0 && dtM->loop > 0)
         {
-            if (dtM->count == 0 && dtM->loop > 0)
-            {
-                dtM->count = dtM->motion->time - 1;
-                PlayMotion(dtM, 1);
-                dtM->loop = MOTION_LOOP_DISABLED;
-                dtV->vz = 0;
-                dtV->vx = 0;
-            }
+            dtM->count = dtM->motion->time - 1;
+            PlayMotion(dtM, 1);
+            dtM->loop = MOTION_LOOP_DISABLED;
+            dtV->vz = 0;
+            dtV->vx = 0;
         }
         if (dtM->loop == MOTION_LOOP_DISABLED && dtPAD != 0)
         {
@@ -3269,35 +3268,6 @@ void ActCHASE(void)
         bow_shoot_logic(ITEM_GUN, pos);                                       \
         Sound(Me_MOTION_C, CHAR_SE_ATTACK);                                   \
     }
-
-static inline void ClearAttackEffects(s16 mode)
-{
-    if (mode & ATTACK_CANCEL_CONFLICTS)
-    {
-        switch (Me_MOTION_C->wpatk)
-        {
-        case FIST:
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_0]);
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_ONININ_HAND_1]);
-            break;
-        case JAW:
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_BEAST_HAND_0]);
-            break;
-        case NO_WEAPON:
-            break;
-        default:
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_0]);
-            DeleteConflict(Me_MOTION_C->model->object[MODEL_PART_WEAPON_HAND_1]);
-            break;
-        }
-    }
-    if (mode & ATTACK_CANCEL_AFTERIMAGES)
-    {
-        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
-        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_1);
-    }
-    dtM->mask = MOTION_MASK_ALL;
-}
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see

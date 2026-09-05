@@ -639,6 +639,11 @@ negated. Everything else here is corollaries:
   a runtime mode also emits AttackCancelControl exactly. Inspect nearby
   routines for a shared semantic operation before retaining an ABI lie merely
   because its RTL fingerprint explains the bytes.
+  ActACTION now reuses this same helper for full cancellation, removing its
+  constant cleanup carrier and empty loop. A call-only rewrite was four bytes
+  too long; putting the weapon-array local inside the actual KATANAL branch
+  recovered the remaining boundary and matched all 1392 bytes. Recover the
+  caller's real scope as well as the helper before declaring a fence necessary.
 - **Decode `<<16 >>N` compounds as fused narrowing casts**: combine merges a
   narrowing cast's sll/sra pair with an adjacent shift, so retail's
   `sll 16; sra 18` is source `(s16)x >> 2` (an lhu-read wants `(s16)(u16)x`),
