@@ -3929,16 +3929,20 @@ static void ProcItemKaengeki(TItem *item)
         KAENGEKI_MODE_FIRE = 2,
         KAENGEKI_AIM_TURN_STEP = ANGLE_FULL / 128,
         KAENGEKI_FLAME_OFFSET_SCALE = 12,
-        KAENGEKI_FLAME_REACH_SCALE = 2
+        KAENGEKI_FLAME_REACH_SCALE = 2,
+        KAENGEKI_DROP_HORIZONTAL_SPREAD = 200,
+        KAENGEKI_DROP_HORIZONTAL_RADIUS =
+            KAENGEKI_DROP_HORIZONTAL_SPREAD / 2,
+        KAENGEKI_DROP_VERTICAL_SPREAD = 100,
+        KAENGEKI_DROP_UPWARD_SPEED = 200
     };
-    param_kaengeki *param;
+    param_kaengeki *param = &item->param.kaengeki;
     PARAM_ITEM_LAUNCH request;
     s32 rx;
     s32 ry;
     s32 dispose_mode;
     item_mode current_mode;
 
-    param = &item->param.kaengeki;
     dispose_mode = ITEM_MODE_DISPOSE;
     current_mode = item->mode;
     if (current_mode == dispose_mode)
@@ -3955,9 +3959,8 @@ static void ProcItemKaengeki(TItem *item)
     {
     case KAENGEKI_MODE_START:
     {
-        Humanoid *human;
+        Humanoid *human = item->owner;
 
-        human = item->owner;
         if (ActionHalt == ACTION_HALT_NONE && human->life > 0)
         {
             dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
@@ -3985,22 +3988,24 @@ static void ProcItemKaengeki(TItem *item)
             return;
         }
         {
-            VECTOR *pos;
-            Humanoid *human;
-            s32 itemID;
+            VECTOR *drop_position =
+                GetAbsolutePosition(item->locate, 0, 0, 0);
+            Humanoid *drop_owner = item->owner;
+            TItemType item_type = item->type;
 
-            pos = GetAbsolutePosition(item->locate, 0, 0, 0);
-            human = item->owner;
-            itemID = item->type;
             request = (PARAM_ITEM_LAUNCH){0};
-            request.type = itemID;
-            request.user = human;
-            request.start.vx = pos->vx;
-            request.start.vy = pos->vy;
-            request.start.vz = pos->vz;
-            request.end.vx = rand() % 200 - 100;
-            request.end.vy = rand() % 100 - 200;
-            request.end.vz = rand() % 200 - 100;
+            request.type = item_type;
+            request.user = drop_owner;
+            copyVector(&request.start, drop_position);
+            request.end.vx =
+                rand() % KAENGEKI_DROP_HORIZONTAL_SPREAD -
+                KAENGEKI_DROP_HORIZONTAL_RADIUS;
+            request.end.vy =
+                rand() % KAENGEKI_DROP_VERTICAL_SPREAD -
+                KAENGEKI_DROP_UPWARD_SPEED;
+            request.end.vz =
+                rand() % KAENGEKI_DROP_HORIZONTAL_SPREAD -
+                KAENGEKI_DROP_HORIZONTAL_RADIUS;
             ReqItemDrop(&request);
             if (item->proc == 0)
             {
@@ -4030,9 +4035,7 @@ static void ProcItemKaengeki(TItem *item)
 
             request.user = item->owner;
             request.type = ITEM_NAPALM;
-            request.end.vx = param->end.vx;
-            request.end.vy = param->end.vy;
-            request.end.vz = param->end.vz;
+            copyVector(&request.end, &param->end);
             model = item->owner->model;
             if (CamState.Owner->model == model &&
                 CamState.Mode == CMODE_DIRECTION)
