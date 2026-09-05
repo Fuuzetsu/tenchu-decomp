@@ -4,6 +4,7 @@
 #include "padcmd.h"
 #include "sound.h"
 #include "appear.h"
+#include "infoview.h"
 
 /* The demo symbols retain source-line provenance for THINK.C and its
  * THINK_1.C through THINK_4.C fragments. Retail emits them as one contiguous
@@ -180,8 +181,6 @@ void StateTransition(Humanoid *human)
 {
     enum
     {
-        STRAIN_NO_THREAT = 0x7fffffff,
-        STRAIN_ALERTED = -0x8000,
         HALT_TARGET_RANGE = 2000,
         ATTACK_HEIGHT_RANGE = 2000,
         DANGER_PROBE_DELTA = 5000,
