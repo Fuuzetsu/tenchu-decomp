@@ -43,7 +43,7 @@ static ThinkFunc AttackFunc[N_WEAPON_ATTACK_CLASSES];
 static character_kind
     AIDHumanType[N_STAGE_CONFIGS][N_STAGE_REINFORCEMENT_CHOICES];
 
-static s16 ItemUse(void);
+static void ItemUse(void);
 static s16 SuccessionAttack(s32 dist, s16 deg);
 static s16 AttackAnimal(void);
 
@@ -2240,7 +2240,7 @@ s16 Think3firstattack(void)
  *     extern short Degree;
  * END PSX.SYM */
 
-static s16 ItemUse(void)
+static void ItemUse(void)
 {
     enum
     {
@@ -2252,11 +2252,11 @@ static s16 ItemUse(void)
 
     if (Me->motion->count != 0)
     {
-        return 5;
+        return;
     }
     if (Me->status != STAT_ENGAGE)
     {
-        return 5;
+        return;
     }
 
     if (Me->item[ITEM_KUSURI] != 0 &&
@@ -2283,7 +2283,6 @@ static s16 ItemUse(void)
     }
 
     SetNowMotion(me, id, MOTION_MOVE_APPLY);
-    return;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
