@@ -30,8 +30,13 @@ extern u8 str_cancel[];            /* cancel */
 extern char str_event_test[];      /* event test */
 extern u8 TelopText[];
 extern s16 CVAflag;
-extern u8 ctype_tab[];             /* BSD _ctype_+1: &4 = digit */
+extern u8 ctype_tab[];
 extern Sprite3D *TANKA_SPRITES_[N_TANKA_SPRITES];
+
+enum
+{
+    CTYPE_DIGIT_BIT = 4
+};
 
 #define PSTATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
@@ -315,9 +320,9 @@ s16 CVAupdate(void)
     Humanoid *human;
     ModelArchiveType *model;
     CVAType *cursor;
-    VECTOR vect;
+    VECTOR effect_position;
     s32 i;
-    s32 pan_value;
+    s32 pan_speed;
 
     cursor = CVAnow;
     if (cursor->mode != CVA_CMD_WAIT)
@@ -335,18 +340,13 @@ s16 CVAupdate(void)
 
             case CVA_CMD_MOTION:
                 human = GetHumanoid(CVAnow->payload.motion.actor);
-                if (human == 0)
+                if (human == NULL)
                     return 0;
-                i = 0;
-
                 human->attribute &= ~ATTR_SUSPEND;
                 human->motion->mask = MOTION_MASK_ALL;
-                while (1)
+                for (i = 0; i < N_CVA_HUMANS; i++)
                 {
-                    if (CVAhuman[i].human == 0)
-                        break;
-                    i++;
-                    if (i >= N_CVA_HUMANS)
+                    if (CVAhuman[i].human == NULL)
                         break;
                 }
                 if (i == N_CVA_HUMANS)
@@ -388,21 +388,24 @@ s16 CVAupdate(void)
                     human->rotate->vy = CVAnow->payload.motion.facing;
                     UpdateCoordinate((ModelType *)human->model);
                     if (__builtin_abs(human->locate->vy -
-                                      StagePlayer->locate->vy) > 20000)
+                                      StagePlayer->locate->vy) >
+                        CVA_ACTOR_SUSPEND_HEIGHT_DELTA)
                         human->attribute |= ATTR_SUSPEND;
                 }
                 break;
 
             case CVA_CMD_ACTOR:
                 human = GetHumanoid(CVAnow->payload.actor.actor);
-                if (human == 0)
+                if (human == NULL)
                     return 0;
 
                 /* ACTOR commands pack two signed bytes into the x field. */
                 if (CVAnow->payload.actor.motion == CVA_ACTOR_DESPAWN)
                 {
                     human->life = HUMANOID_LIFE_INACTIVE;
-                    human->attribute = (human->attribute | ATTR_SUSPEND | PHASE_ALERT) & ~ATTR_CUSTOMAI;
+                    human->attribute =
+                        (human->attribute | ATTR_SUSPEND | PHASE_ALERT) &
+                        ~ATTR_CUSTOMAI;
                     human->motion->mid = MOTION_ID_NONE;
                     SetNowMotion(human, MOT_NORMAL, MOTION_MOVE_APPLY);
                     PlayMotion(human->motion, 1);
@@ -414,33 +417,21 @@ s16 CVAupdate(void)
                     if (human->status == STAT_DEAD &&
                         (u32)(i - MOTION_STATUS(MOT_DAMAGE)) > 1)
                         return 0;
-                    if (human->life > 0)
+                    if (human->life > 0 && i == MOTION_STATUS(MOT_DEAD))
                     {
-                        if (i == MOTION_STATUS(MOT_DEAD))
-                        {
-                            human->life = 0;
-                            ReqLifeBar(human);
-                        }
+                        human->life = 0;
+                        ReqLifeBar(human);
                     }
-                    i = 0;
-
-                    while (1)
+                    for (i = 0; i < N_CVA_HUMANS; i++)
                     {
                         if (CVAhuman[i].human == human)
-                            break;
-                        i++;
-                        if (i >= N_CVA_HUMANS)
                             break;
                     }
                     if (i == N_CVA_HUMANS)
                     {
-                        i = 0;
-                        while (1)
+                        for (i = 0; i < N_CVA_HUMANS; i++)
                         {
-                            if (CVAhuman[i].human == 0)
-                                break;
-                            i++;
-                            if (i >= N_CVA_HUMANS)
+                            if (CVAhuman[i].human == NULL)
                                 break;
                         }
                         if (i == N_CVA_HUMANS)
@@ -448,7 +439,8 @@ s16 CVAupdate(void)
                     }
 
                     human->motion->mid = MOTION_ID_NONE;
-                    SetNowMotion(human, CVAnow->payload.actor.motion, MOTION_MOVE_APPLY);
+                    SetNowMotion(human, CVAnow->payload.actor.motion,
+                                 MOTION_MOVE_APPLY);
                     PlayMotion(human->motion, 1);
                     human->motion->count--;
                     CVAhuman[i].human = human;
@@ -491,7 +483,7 @@ s16 CVAupdate(void)
                 {
                     human = GetHumanoid(
                         CVAnow->payload.camera_pose.reference.humanoid.actor);
-                    if (human == 0)
+                    if (human == NULL)
                         return 0;
                     ViewInfo.vrx = human->locate->vx;
                     ViewInfo.vry = human->locate->vy - human->height +
@@ -504,23 +496,26 @@ s16 CVAupdate(void)
 
             case CVA_CMD_CAMERA_PAN:
                 CameraPanMode = CVAnow->payload.camera_pan.mode;
-                pan_value = CVA_CAMERA_DEFAULT_PAN_SPEED;
+                pan_speed = CVA_CAMERA_DEFAULT_PAN_SPEED;
                 if (CVAnow->payload.camera_pan.speed != 0)
-                    pan_value = CVAnow->payload.camera_pan.speed;
-                CameraSpeed = pan_value;
+                    pan_speed = CVAnow->payload.camera_pan.speed;
+                CameraSpeed = pan_speed;
                 break;
 
             case CVA_CMD_EFFECT:
-                vect.vx = CVAnow->payload.effect.parameters.raw.x *
-                          CVA_EFFECT_POSITION_SCALE;
-                vect.vy = CVAnow->payload.effect.parameters.raw.y *
-                          CVA_EFFECT_POSITION_SCALE;
-                vect.vz = CVAnow->payload.effect.parameters.raw.z *
-                          CVA_EFFECT_POSITION_SCALE;
+                effect_position.vx =
+                    CVAnow->payload.effect.parameters.raw.x *
+                    CVA_EFFECT_POSITION_SCALE;
+                effect_position.vy =
+                    CVAnow->payload.effect.parameters.raw.y *
+                    CVA_EFFECT_POSITION_SCALE;
+                effect_position.vz =
+                    CVAnow->payload.effect.parameters.raw.z *
+                    CVA_EFFECT_POSITION_SCALE;
                 switch (CVAnow->payload.effect.kind)
                 {
                 case CVA_EFFECT_BLOOD:
-                    SetBlood(&vect,
+                    SetBlood(&effect_position,
                              CVAnow->payload.effect.parameters.blood.count,
                              CVA_BLOOD_DURATION);
                     break;
@@ -546,7 +541,7 @@ s16 CVAupdate(void)
                         CHOSEN_CHARACTER != RIKIMARU_0)
                         break;
 
-                    if ((ctype_tab[TelopText[0]] & 4) == 0)
+                    if ((ctype_tab[TelopText[0]] & CTYPE_DIGIT_BIT) == 0)
                         break;
 
                     i = TelopText[0] - '0';
