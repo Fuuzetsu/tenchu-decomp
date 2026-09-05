@@ -3068,98 +3068,79 @@ static void SetLightningI(VECTOR *start, VECTOR *end, int gen, short r, short g,
     }
 }
 
-/*
- * The union models mutually exclusive stack scratch for the two branches;
- * the original source form is still uncertain.
- */
+static inline void CreateFrameEffect(VECTOR *pos, short size, short time,
+                                     GsCOORDINATE2 *super)
+{
+    long z;
+    TEffectSlot *slot;
+    FrameType *fp;
+
+    slot = GetFreeEffectSlot();
+    fp = &slot->param.frame;
+    fp->px = pos->vx;
+    fp->py = pos->vy;
+    z = pos->vz;
+    fp->mode = FRAME_MODE_FLASH;
+    fp->size = size;
+    fp->count = time;
+    fp->pz = z;
+    slot->param.frame.super = super;
+    slot->proc = DrawFrame;
+}
+
+
+static inline void SpawnNapalmDamage(Humanoid *human)
+{
+    PARAM_ITEM_LAUNCH launch;
+    s32 vx;
+    s32 vz;
+
+    launch.type = ITEM_NAPALM;
+    launch.user = human;
+    copyVector(&launch.start, MODEL_POSITION(human->model));
+    launch.start.vy -= 100;
+    copyVector(&launch.end, &launch.start);
+    vx = human->vector.vx;
+    launch.end.vx += vx;
+    vz = human->vector.vz;
+    launch.end.vy -= 15;
+    launch.end.vz += vz;
+    ReqItemUse(&launch);
+}
+
+
 void spawn_damage_effect_(Humanoid *human, DamageEffectKind kind)
 {
-    union
-    {
-        PARAM_ITEM_LAUNCH launch;
-        struct
-        {
-            VECTOR pos;
-            VECTOR scratch;
-        } blood;
-    } work;
-
     if (kind != DAMAGE_EFFECT_ATTACHED_FLASH)
     {
-        s32 x;
-        s32 y;
-        s32 z;
-        s32 vx;
-        s32 vz;
-
-        work.launch.type = ITEM_NAPALM;
-        work.launch.user = human;
-        /* The start.vy/end.vx/vy/vz double stores below are retail's own
-         * (both writes of each pair are in the bytes). */
-        x = human->model->locate.coord.t[0];
-        work.launch.start.vx = x;
-        y = human->model->locate.coord.t[1];
-        work.launch.start.vy = y;
-        z = human->model->locate.coord.t[2];
-        work.launch.start.vz = z;
-        work.launch.start.vy = y - 100;
-        work.launch.end.vx = x;
-        work.launch.end.vy = y - 100;
-        work.launch.end.vz = z;
-        vx = human->vector.vx;
-        work.launch.end.vx = x + vx;
-        vz = human->vector.vz;
-        work.launch.end.vy = y - 115;
-        work.launch.end.vz = z + vz;
-        ReqItemUse(&work.launch);
+        SpawnNapalmDamage(human);
     }
     else
     {
         ModelType **objects;
         ModelType *model;
-        VECTOR *position_base;
-        VECTOR *position;
         short time;
-        TEffectSlot *slot;
-        FrameType *frame;
 
         objects = human->model->object;
         if (human->model->n > 0)
-        {
             objects += rand() % human->model->n;
-        }
         model = *objects;
 
-        memset(&work.blood.scratch, 0, sizeof(VECTOR));
-        work.blood.scratch.vx = rand() % 200 - 100;
-        work.blood.scratch.vy = rand() % 200 - 100;
-        work.blood.scratch.vz = rand() % 200 - 100;
-        work.blood.pos = work.blood.scratch;
-        position_base = &work.blood.pos;
+        {
+            VECTOR pos = {
+                .vx = rand() % 200 - 100,
+                .vy = rand() % 200 - 100,
+                .vz = rand() % 200 - 100
+            };
+            SVECTOR velocity = {.vx = 0, .vy = -60, .vz = 0};
 
-        *(SVECTOR *)&work.blood.scratch = (SVECTOR){
-            .vx = 0,
-            .vy = -60,
-            .vz = 0
-        };
-        time = rand() % 60 + 60;
-        position = position_base;
+            time = rand() % 60 + 60;
+            CreateFrameEffect(&pos, 3 * FIXED_ONE, time, &model->locate);
 
-        slot = GetFreeEffectSlot();
-        frame = &slot->param.frame;
-        frame->px = position->vx;
-        frame->py = position->vy;
-        frame->pz = position->vz;
-        frame->mode = FRAME_MODE_FLASH;
-        frame->size = 3 * FIXED_ONE;
-        frame->count = time;
-        frame->super = &model->locate;
-        slot->proc = DrawFrame;
-
-        SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0),
-                     (SVECTOR *)&work.blood.scratch,
-                     100, 10, 30, RGB24(100, 100, 60));
-        SoundEx(MODEL_POSITION(human->model), SE_LIGHTNING);
+            SetBleedsDir(GetAbsolutePosition(model, 0, 0, 0), &velocity,
+                         100, 10, 30, RGB24(100, 100, 60));
+            SoundEx(MODEL_POSITION(human->model), SE_LIGHTNING);
+        }
     }
 }
 
@@ -3837,6 +3818,7 @@ void set_fade_(u8 r, u8 g, u8 b, long priority)
     slot->proc = draw_fade_;
 }
 
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -3857,21 +3839,7 @@ void set_fade_(u8 r, u8 g, u8 b, long priority)
 
 void SetFrame(VECTOR *pos, short size, short time, GsCOORDINATE2 *super)
 {
-    long z;
-    TEffectSlot *slot;
-    FrameType *fp;
-
-    slot = GetFreeEffectSlot();
-    fp = &slot->param.frame;
-    fp->px = pos->vx;
-    fp->py = pos->vy;
-    z = pos->vz;
-    fp->mode = FRAME_MODE_FLASH;
-    fp->size = size;
-    fp->count = time;
-    fp->pz = z;
-    slot->param.frame.super = super;
-    slot->proc = DrawFrame;
+    CreateFrameEffect(pos, size, time, super);
 }
 
 void SetSnow(VECTOR *pos, SVECTOR *velocity, s32 size, u8 sprite)

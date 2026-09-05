@@ -1365,11 +1365,16 @@ bytes.
   (LoadConstruction's 0x1a0 frame), and it prints `vector-array hint`s
   (SetGore). Replace neutral names with proven aggregates before treating
   it as source.
-- **Overlapping locals are one `u8 buf[N]` + casts** — cc1 2.8 never shares
-  sibling-scope slots (`(PARAM_ITEM_USE *)buf` views; LoadCard/SaveCard's single
-  0x2000 block buffer). For mutually-exclusive layouts write an explicit union
-  with one view per mode (ProcItemFire's 0x60 union; ProcItemJirai, DrawBlood,
-  ActDEAD…).
+- **Overlapping locals do not by themselves prove a buffer or union.** Plain
+  sibling-scope declarations do not share slots, but inlined helper frames and
+  aggregate-initialiser temporaries can. `ProcItemHenshin` recovers separate
+  drop-request and smoke helpers with an ordinary SVECTOR, eliminating its
+  cast over a launch request. `spawn_damage_effect_` combines an inline napalm
+  request with a caller-local VECTOR initialiser, followed by an SVECTOR:
+  the initialiser's temporary and the later velocity naturally share storage.
+  Extracting both branches instead loses a pointer copy; caller versus helper
+  ownership matters. Keep real tagged layouts and shared I/O buffers, but test
+  the operation boundaries before inventing a scratch union.
 - **Overlapping big buffers whose addresses rematerialise at every call are
   INLINED STATIC HELPERS** (DoInfoViewProc's menus): a nonzero frame-address
   argument is forced into a pseudo and same-valued pseudos CSE across calls
