@@ -93,62 +93,6 @@ enum think4_search_timing
         }                                                                   \
     }
 
-#define RETURN_ATTACK_CONTINUATION(input_, range_, aim_)                    \
-    if (Me->status == STAT_ATTACK)                                          \
-    {                                                                        \
-        s16 attack_result_;                                                  \
-        s32 attack_degree_;                                                  \
-                                                                             \
-        do                                                                   \
-        {                                                                    \
-            if (Me->motion->count != BattleDB[Me->warid].contfrm)           \
-            {                                                                \
-                attack_result_ = 0;                                          \
-                goto attack_continuation_return_;                            \
-            }                                                                \
-            if (Distance < (range_))                                         \
-            {                                                                \
-                attack_degree_ = Degree;                                     \
-                if (attack_degree_ < 0)                                      \
-                {                                                            \
-                    attack_degree_ = -attack_degree_;                        \
-                }                                                            \
-                if (attack_degree_ < (aim_))                                 \
-                {                                                            \
-                    goto choose_attack_continuation_;                        \
-                }                                                            \
-            }                                                                \
-            if (rand() % (EngageLevel + 1) != 0)                            \
-            {                                                                \
-                attack_result_ = input_;                                     \
-                goto attack_continuation_return_;                            \
-            }                                                                \
-        } while (0);                                                         \
-                                                                             \
-    choose_attack_continuation_:                                             \
-        if (Degree > 300)                                                    \
-        {                                                                    \
-            input_ = PADLright;                                              \
-        }                                                                    \
-        else                                                                 \
-        {                                                                    \
-            input_ |= PADRleft;                                              \
-            if (Degree < -300)                                               \
-            {                                                                \
-                input_ = PADLleft;                                           \
-            }                                                                \
-            else                                                             \
-            {                                                                \
-                goto attack_continuation_value_;                             \
-            }                                                                \
-        }                                                                    \
-        input_ |= PADRleft;                                                  \
-                                                                             \
-    attack_continuation_value_:                                              \
-        attack_result_ = input_;                                             \
-    attack_continuation_return_:                                             \
-        return attack_result_;                                               \
-    }
 
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -3163,8 +3107,10 @@ static short AttackIndirect(void)
     s32 aim_error;
 
     pad = 0;
-    RETURN_ATTACK_CONTINUATION(pad, INDIRECT_RANGE,
-                               INDIRECT_CONTINUATION_AIM);
+    if (Me->status == STAT_ATTACK)
+    {
+        return SuccessionAttack(INDIRECT_RANGE, INDIRECT_CONTINUATION_AIM);
+    }
     if (Me->status == STAT_JUMP)
     {
         return pad;
