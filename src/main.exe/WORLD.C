@@ -931,6 +931,12 @@ extern s16 ThinkBudget;
 #define THINK_PACKET_COST 5000
 #define THINK_PACKET_LIMIT (0x10000 - THINK_PACKET_COST)
 
+enum human_activation_state
+{
+    HUMAN_INACTIVE = 0,
+    HUMAN_ACTIVE = 1
+};
+
 void ActivateHumans(void)
 {
     s32 i;
@@ -973,7 +979,7 @@ void ActivateHumans(void)
         human = HumanGroup[(s16)i];
         if (human != target)
         {
-            s32 active;
+            enum human_activation_state active;
             s32 final;
             s32 distance;
             s16 j;
@@ -981,25 +987,25 @@ void ActivateHumans(void)
             distance = GetVectorDistance(human->locate, &vc);
             if (distance > DEACTIVATE_RADIUS)
             {
-                active = 0;
+                active = HUMAN_INACTIVE;
             }
             else if (((u16)human->type & PAGE_MASK) == PAGE_BOSS)
             {
-                active = 1;
+                active = HUMAN_ACTIVE;
             }
             else if (human->type == NINKEN || human->life < 0)
             {
-                active = 1;
+                active = HUMAN_ACTIVE;
             }
             else if (GameClock == 30 || StageID == STAGE_ID_TRAINING)
             {
-                active = 1;
+                active = HUMAN_ACTIVE;
             }
             else
             {
                 if (VISIBLE_ENEMIES_ < ThinkBudget)
                 {
-                    active = 1;
+                    active = HUMAN_ACTIVE;
                     if (ThinkCount >= ThinkBudget)
                     {
                         final = distance < activate_distance;
@@ -1008,12 +1014,12 @@ void ActivateHumans(void)
                 }
                 else if (distance >= activate_distance)
                 {
-                    active = 0;
+                    active = HUMAN_INACTIVE;
                 }
                 else if (((u16)human->attribute & ATTR_SUSPEND) == 0 &&
                          ThinkCount < ThinkBudget)
                 {
-                    active = 1;
+                    active = HUMAN_ACTIVE;
                 }
                 else
                 {
