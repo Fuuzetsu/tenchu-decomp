@@ -321,29 +321,29 @@ Humanoid *BreedLife(character_kind type, long x, long y, long z, long r)
     {
         human->item[ITEM_KUSURI] = 1;
     }
-    if (type >= ANI)
+    switch (type)
     {
-        if (type >= ARROW)
-            return human;
-        if (type < S1)
-            goto done;
-        goto high_type;
+    case RIKIMARU_0:
+    case AYAME_0:
+    case HANBE:
+    case TUZI:
+    case GOO:
+    case ON:
+    case BALMA:
+    case KUMA_0:
+    case NINJA_0:
+    case MEIOU:
+    case KUMA_1:
+    case NINJA_1:
+        human->attribute |= PHASE_ALERT;
+        EquipWeapon(human, WEAPON_DRAWN);
+        SetNowMotion(human, MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
+        break;
+    case S1:
+    case S2:
+        human->attribute |= ATTR_FLOAT;
+        break;
     }
-
-    if (type < HANBE)
-    {
-        if (type >= RIKIMARU_1)
-            return human;
-        if (type < 0)
-            return human;
-    }
-    human->attribute = human->attribute | PHASE_ALERT;
-    EquipWeapon(human, WEAPON_DRAWN);
-    SetNowMotion(human, MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-    return human;
-high_type:
-    human->attribute = human->attribute | ATTR_FLOAT;
-done:
     return human;
 }
 

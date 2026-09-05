@@ -998,6 +998,13 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   costs 17 lines), and if/else-if fails specifically because it
   interleaves the first body between the two tests where expand_case
   emits both tests first (ComputeAreaLevel, 21 lines).
+  This also applies to **range-test trees**, not only equality ladders:
+  BreedLife's character classification tested the boundaries of the player,
+  boss, and summon groups and jumped to `high_type`/`done`. Listing the real
+  character enum cases in a switch reproduces all 632 function bytes and
+  the complete image, including the original register allocation. An if/else
+  range rewrite is eight bytes short. The apparent interval algorithm was
+  expand_case grouping adjacent case values, not source-level range policy.
   Scaling rules from round 8 (71 gotos + 16 labels across nine files):
   normalize a local return ladder into ONE ordered if/else join BEFORE
   testing direct returns (AttackLong measures 71 lines in the
