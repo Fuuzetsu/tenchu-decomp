@@ -22,7 +22,12 @@ static s16 SR = 0;
 static PADtype *Pad = NULL;
 static s16 Attrib = 0;
 static u16 DeathIndex = 0;
-static s16 atkd[N_WEAPON_ATTACK_CLASSES] = {3000, 3500, 4000, 20000};
+static s16 atkd[N_WEAPON_ATTACK_CLASSES] = {
+    [WEAPON_ATTACK_SHORT] = 3000,
+    [WEAPON_ATTACK_GENERAL] = 3500,
+    [WEAPON_ATTACK_LONG] = 4000,
+    [WEAPON_ATTACK_RANGED] = 20000
+};
 static s16 atkd2[N_WEAPON_ATTACK_CLASSES] = {2000, 3000, 4000, 20000};
 
 static ThinkFunc Think1Func[N_THINK1_PROGRAMS];
@@ -1771,98 +1776,122 @@ s16 Think3chase(void)
 
 s16 Think3attack(void)
 {
-    s16 rng;
-    s16 pad;
-    weapon_attack_class idx;
+    enum
+    {
+        MELEE_CONTINUATION_RANGE = 3000,
+        MELEE_CONTINUATION_AIM = 1500,
+        RANGED_CONTINUATION_RANGE = 20000,
+        RANGED_CONTINUATION_AIM = 500,
+        RANGED_NOTICE_CLEAR_RANGE = 14000,
+        RANGED_CLOSE_RANGE = 4000,
+        CLOSE_ATTACK_AIM = 1000,
+        COMBINATION_ATTACK_RANGE = 2000,
+        RANGED_ATTACK_CHANCE_SCALE = 4,
+        LUNGE_AIM = 100,
+        LUNGE_RANGE_MARGIN = 1000,
+        MIDRANGE_ATTACK_AIM = 1200,
+        ADVANCE_RANGE_MARGIN = 500,
+        RANDOM_DASH_DIVISOR = 3,
+        RANDOM_TAUNT_DIVISOR = 30
+    };
+    s16 close_range;
+    s16 input;
+    weapon_attack_class attack_class;
 
-    pad = 0;
-    idx = WEAPON_ATTACK_CLASS(Me->wpatk);
+    input = 0;
+    attack_class = WEAPON_ATTACK_CLASS(Me->wpatk);
 
     if (Me->status == STAT_ATTACK)
     {
-        if (idx != WEAPON_ATTACK_RANGED)
+        if (attack_class != WEAPON_ATTACK_RANGED)
         {
-            pad = SuccessionAttack(3000, 1500);
+            input = SuccessionAttack(MELEE_CONTINUATION_RANGE,
+                                     MELEE_CONTINUATION_AIM);
         }
         else
         {
-            pad = SuccessionAttack(20000, 500);
+            input = SuccessionAttack(RANGED_CONTINUATION_RANGE,
+                                     RANGED_CONTINUATION_AIM);
         }
-        return pad;
+        return input;
     }
 
     if (SR != SR_GONE &&
-        ((idx == WEAPON_ATTACK_RANGED && Distance < 14000) || Distance < SR_CLEAR_RANGE))
+        ((attack_class == WEAPON_ATTACK_RANGED &&
+          Distance < RANGED_NOTICE_CLEAR_RANGE) ||
+         Distance < SR_CLEAR_RANGE))
     {
         SR = SR_NONE;
     }
 
-    if ((s16)((N_WEAPON_ATTACK_CLASSES - idx) * Me->turn) < Degree)
+    if ((s16)((N_WEAPON_ATTACK_CLASSES - attack_class) * Me->turn) < Degree)
     {
-        pad = PADLright;
+        input = PADLright;
     }
-    else if (Degree < -(s16)((N_WEAPON_ATTACK_CLASSES - idx) * Me->turn))
+    else if (Degree <
+             -(s16)((N_WEAPON_ATTACK_CLASSES - attack_class) * Me->turn))
     {
-        pad = PADLleft;
+        input = PADLleft;
     }
 
-    if (idx != WEAPON_ATTACK_RANGED)
+    if (attack_class != WEAPON_ATTACK_RANGED)
     {
-        rng = atkd[idx] / 2;
+        close_range = atkd[attack_class] / 2;
     }
     else
     {
-        rng = 4000;
+        close_range = RANGED_CLOSE_RANGE;
     }
 
-    if (Distance < rng)
+    if (Distance < close_range)
     {
-        if (__builtin_abs(Degree) < 1000 &&
+        if (__builtin_abs(Degree) < CLOSE_ATTACK_AIM &&
             Me->motion->count == 0)
         {
-            if (Distance < 2000)
+            if (Distance < COMBINATION_ATTACK_RANGE)
             {
                 if (rand() % (EngageLevel + 1) != 0)
                 {
-                    pad |= PADRleft;
+                    input |= PADRleft;
                 }
                 else
                 {
-                    pad = PADRleft | PADRright;
+                    input = PADRleft | PADRright;
                 }
             }
             else
             {
-                pad |= PADRleft;
+                input |= PADRleft;
             }
         }
         else
         {
-            pad |= PADLdown;
+            input |= PADLdown;
         }
     }
-    else if (Distance < atkd[idx])
+    else if (Distance < atkd[attack_class])
     {
-        if (idx == WEAPON_ATTACK_RANGED)
+        if (attack_class == WEAPON_ATTACK_RANGED)
         {
-            if (pad == 0 && rand() % (EngageLevel * 4) == 0)
+            if (input == 0 &&
+                rand() % (EngageLevel * RANGED_ATTACK_CHANCE_SCALE) == 0)
             {
-                pad = PADRleft;
+                input = PADRleft;
             }
         }
-        else if (__builtin_abs(Degree) < 100 &&
-                 atkd[idx] - 1000 < Distance)
+        else if (__builtin_abs(Degree) < LUNGE_AIM &&
+                 atkd[attack_class] - LUNGE_RANGE_MARGIN < Distance)
         {
-            pad = SetCommand(&Me->pad, CMD_LUNGE);
+            input = SetCommand(&Me->pad, CMD_LUNGE);
         }
         else if (Me->motion->count == 0 &&
-                 __builtin_abs(Degree) < 1200)
+                 __builtin_abs(Degree) < MIDRANGE_ATTACK_AIM)
         {
-            pad |= PADRleft;
+            input |= PADRleft;
         }
-        else if (rng + 500 < Distance)
+        else if (close_range + ADVANCE_RANGE_MARGIN < Distance)
         {
-            pad |= PADLup;
+            input |= PADLup;
         }
     }
     else if (Me->status == STAT_ENGAGE)
@@ -1878,11 +1907,12 @@ s16 Think3attack(void)
             {
                 command = CMD_DASH_LEFT;
             }
-            pad = SetCommand(&Me->pad, command);
+            input = SetCommand(&Me->pad, command);
         }
-        else if (Me->motion->count == 0 && rand() % 3 == 0)
+        else if (Me->motion->count == 0 &&
+                 rand() % RANDOM_DASH_DIVISOR == 0)
         {
-            pad = SetCommand(&Me->pad, CMD_DASH_FORWARD);
+            input = SetCommand(&Me->pad, CMD_DASH_FORWARD);
         }
         else
         {
@@ -1891,13 +1921,13 @@ s16 Think3attack(void)
     }
 
     if (Me->motion->count == 0 &&
-        rand() % 30 == 0 &&
+        rand() % RANDOM_TAUNT_DIVISOR == 0 &&
         Me->status == STAT_ENGAGE)
     {
-        SetNowMotion(Me, MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY); /* taunt */
+        SetNowMotion(Me, MOT_ATTACK_TAUNT, MOTION_MOVE_APPLY);
     }
 
-    return pad;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
