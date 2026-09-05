@@ -2346,6 +2346,55 @@ static s16 ItemUse(void)
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
  *
+ * static short SuccessionAttack(long dist, short deg);
+ *     THINK_3.C:247, 15 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
+ *
+ * Demo-build parameters and locals (evidence, not a retail spec —
+ * see docs/psx-sym.md):
+ *     param $a0       long dist
+ *     param $a1       short deg
+ *
+ * Globals it touches, as the original declared them:
+ *     extern struct BattleType BattleDB[78];
+ *     extern long Distance;
+ *     extern short Degree;
+ *     extern short EngageLevel;
+ * END PSX.SYM */
+
+static __inline__ s16 SuccessionAttack(s32 dist, s16 deg)
+{
+    s16 buttons;
+
+    buttons = 0;
+    if (Me->motion->count !=
+        BattleDB[Me->warid].contfrm)
+    {
+        return 0;
+    }
+    if ((Distance < dist && __builtin_abs((s32)Degree) < deg) ||
+        rand() % (EngageLevel + 1) == 0)
+    {
+        if (Degree > 300)
+        {
+            buttons = PADLright;
+        }
+        else
+        {
+            if (Degree < -300)
+            {
+                /* The signed view keeps PADLleft in addiu's immediate range. */
+                buttons = (s16)PADLleft;
+            }
+        }
+        buttons |= PADRleft;
+    }
+    return buttons;
+}
+
+/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
+ * debug symbols. Regenerate with `tools/symnote.py --write`; see
+ * docs/psx-sym.md. Do not hand-edit.
+ *
  * static short AttackShort(void);
  *     THINK_3.C:266, 98 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
  *
@@ -2388,7 +2437,6 @@ static short AttackShort(void)
     };
     MotionManager *motion;
     s16 input;
-    s32 continuation_result;
 
     input = 0;
     if ((Me->type & PAGE_MASK) == PAGE_BEAST)
@@ -2398,50 +2446,8 @@ static short AttackShort(void)
 
     if (Me->status == STAT_ATTACK)
     {
-        Humanoid *status_human;
-        s16 continuation_input;
-        s32 continuation_input_raw;
-
-        status_human = Me;
-        continuation_input_raw = 0;
-        continuation_input = continuation_input_raw;
-        /* These zero-code constructs retain the retail block layout. */
-        do
-        {
-        } while (0);
-        if (Degree != 0)
-        {
-            continuation_input_raw = (s32)continuation_input;
-        }
-        else
-        {
-            continuation_input_raw = (s32)continuation_input;
-        }
-        if (status_human->motion->count !=
-            BattleDB[status_human->warid].contfrm)
-        {
-            continuation_result = 0;
-        }
-        else
-        {
-            if ((Distance < SHORT_ATTACK_CONTINUATION_DISTANCE &&
-                 __builtin_abs(Degree) < SHORT_ATTACK_AIM) ||
-                rand() % (EngageLevel + 1) == 0)
-            {
-                if (Degree > SHORT_ATTACK_EVADE_ANGLE)
-                {
-                    continuation_input_raw = PADLright;
-                }
-                else if (Degree < -SHORT_ATTACK_EVADE_ANGLE)
-                {
-                    continuation_input_raw = (s16)PADLleft;
-                }
-                continuation_input_raw |= PADRleft;
-            }
-
-            continuation_result = continuation_input_raw;
-        }
-        return (s16)continuation_result;
+        return SuccessionAttack(SHORT_ATTACK_CONTINUATION_DISTANCE,
+                                SHORT_ATTACK_AIM);
     }
 
     if (Me->status == STAT_JUMP)
@@ -3734,55 +3740,6 @@ s16 Think2contact(void)
         Me->pad_hold = hint;
     }
     return GotoPosition(0, 0);
-}
-
-/* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
- * debug symbols. Regenerate with `tools/symnote.py --write`; see
- * docs/psx-sym.md. Do not hand-edit.
- *
- * static short SuccessionAttack(long dist, short deg);
- *     THINK_3.C:247, 15 src lines, frame 24 bytes, saved-reg mask 0x80010000 (DEMO build -- see below)
- *
- * Demo-build parameters and locals (evidence, not a retail spec —
- * see docs/psx-sym.md):
- *     param $a0       long dist
- *     param $a1       short deg
- *
- * Globals it touches, as the original declared them:
- *     extern struct BattleType BattleDB[78];
- *     extern long Distance;
- *     extern short Degree;
- *     extern short EngageLevel;
- * END PSX.SYM */
-
-static s16 SuccessionAttack(s32 dist, s16 deg)
-{
-    s16 buttons;
-
-    buttons = 0;
-    if (Me->motion->count !=
-        BattleDB[Me->warid].contfrm)
-    {
-        return 0;
-    }
-    if ((Distance < dist && __builtin_abs((s32)Degree) < deg) ||
-        rand() % (EngageLevel + 1) == 0)
-    {
-        if (Degree > 300)
-        {
-            buttons = PADLright;
-        }
-        else
-        {
-            if (Degree < -300)
-            {
-                /* The signed view keeps PADLleft in addiu's immediate range. */
-                buttons = (s16)PADLleft;
-            }
-        }
-        buttons |= PADRleft;
-    }
-    return buttons;
 }
 
 extern u8 think_name_pad1[];

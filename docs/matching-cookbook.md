@@ -368,7 +368,8 @@ early-exit tests); guard delay-slot fill tie → §3.13 skip-label rule
 (StickonCheck); adjacent loads in opposite order → prove independence through
 `.combine→.sched→.sched2` + LOOP_END fence check first (DefaultActionHumanoid);
 `commutative-plus-destination` → `initialized-global-compound` (AttackLong);
-narrow round-trip zero fence → the four-part AttackShort shape;
+narrow round-trip zero fence → check for an inlined helper and its source
+definition order (AttackShort / SuccessionAttack, §3.5);
 dead constant scratch feeding one narrow store → park after literal/direct
 spellings (ProcItemDokudango); `commutative-equality-register-order` →
 `eq-literal-swap` once, flat = stop (ActJUMP); pool-scan `addu` operand order
@@ -1322,6 +1323,15 @@ judgment:
   (briefing_screen_'s TimToDemoSprite); an inlined byte-pack helper may need both
   cursor identities as inputs (AfsGetEntry); keep helpers inside the caller's
   `#if` guard (stub TUs emit unreferenced statics). Demo-call inlining: §1.
+- **Source definition order need not be retail emission order.** Defining
+  `SuccessionAttack` as `static __inline__` at its demo position, between
+  `ItemUse` and `AttackShort`, preserves earlier callers' out-of-line calls
+  and emits the retained helper at the end of the retail THINK object.
+  `AttackShort` can then call it directly: all continuation-result staging,
+  the empty loop, and the identical-arm fence disappear with an exact image.
+  Record this distinction in the unit manifest's `definition_order`; do not
+  force helpers to the bottom of the C merely because their emitted code is
+  there.
 - **A guarded indirect call**: null-check through a variable, call through the
   FIELD (`ppu = item->proc; if (!ppu) return; … item->proc(item);`) — cse
   reuses the load and lands `$v0` (the item family).
