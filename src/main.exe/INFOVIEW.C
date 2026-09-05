@@ -319,14 +319,22 @@ static void PutStrain(s32 x, s32 y)
 
 static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
 {
-    GsSPRITE *img;
-    GsSPRITE *ou;
-    s32 q;
-    s16 oldh;
-    s32 color;
-    s32 dx;
-    s32 dy;
-    s32 u;
+    enum life_bar_rendering
+    {
+        LIFE_BAR_DIGIT_WIDTH = 4,
+        LIFE_BAR_DIGIT_GAP = 6,
+        LIFE_BAR_CRITICAL_DIVISOR = 4,
+        LIFE_BAR_NORMAL_BRIGHTNESS = 0x80,
+        LIFE_BAR_FLASH_BRIGHTNESS = 0xe6
+    };
+    GsSPRITE *digit_sprite;
+    GsSPRITE *bar_sprite;
+    s32 fill_height;
+    s16 saved_height;
+    s32 brightness;
+    s32 number_offset_x;
+    s32 number_offset_y;
+    s32 digit_base_u;
 
     {
         s32 px;
@@ -334,65 +342,67 @@ static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
         s32 count;
 
         count = n;
-        NumberImage.w = (dx = LifeBarStyle[style].dx,
-                         dy = LifeBarStyle[style].dy, 4);
-        img = &NumberImage;
-        u = img->u;
-        px = x + dx;
-        py = y + dy;
-        img->x = px;
-        img->y = py;
+        number_offset_x = LifeBarStyle[style].dx;
+        number_offset_y = LifeBarStyle[style].dy;
+        NumberImage.w = LIFE_BAR_DIGIT_WIDTH;
+        digit_sprite = &NumberImage;
+        digit_base_u = digit_sprite->u;
+        px = x + number_offset_x;
+        py = y + number_offset_y;
+        digit_sprite->x = px;
+        digit_sprite->y = py;
 
         {
-            s32 q;
+            s32 next_count;
 
         loop:
-            q = count / 10;
-            img->u = u + (count % 10) * 4;
-            GsSortSprite(img, OTablePt, 0);
-            img->x -= 6;
-            count = q;
+            next_count = count / 10;
+            digit_sprite->u = digit_base_u +
+                              (count % 10) * LIFE_BAR_DIGIT_WIDTH;
+            GsSortSprite(digit_sprite, OTablePt, 0);
+            digit_sprite->x -= LIFE_BAR_DIGIT_GAP;
+            count = next_count;
         }
         if (count != 0)
             goto loop;
     }
-    img->u = u;
+    digit_sprite->u = digit_base_u;
 
-    ou = &LifeBarStyle[style].frame;
-    ou->x = x;
-    ou->y = y;
-    GsSortSprite(ou, OTablePt, 1);
+    bar_sprite = &LifeBarStyle[style].frame;
+    bar_sprite->x = x;
+    bar_sprite->y = y;
+    GsSortSprite(bar_sprite, OTablePt, 1);
 
-    q = LifeBarStyle[style].scale * n / mx;
-    ou = &LifeBarStyle[style].fill;
-    oldh = ou->h;
-    ou->h = LifeBarStyle[style].base + q;
+    fill_height = LifeBarStyle[style].scale * n / mx;
+    bar_sprite = &LifeBarStyle[style].fill;
+    saved_height = bar_sprite->h;
+    bar_sprite->h = LifeBarStyle[style].base + fill_height;
 
-    if (mx / 4 < n)
-        color = 0x80;
+    if (mx / LIFE_BAR_CRITICAL_DIVISOR < n)
+        brightness = LIFE_BAR_NORMAL_BRIGHTNESS;
     else
     {
-        color = GameClock & 1;
-        if (color != 0)
-            color = 0xE6;
+        brightness = GameClock & 1;
+        if (brightness != 0)
+            brightness = LIFE_BAR_FLASH_BRIGHTNESS;
         else
-            color = 0x80;
+            brightness = LIFE_BAR_NORMAL_BRIGHTNESS;
     }
-    ou->b = color;
-    ou->g = color;
-    if (u != 0)
+    bar_sprite->b = brightness;
+    bar_sprite->g = brightness;
+    if (digit_base_u != 0)
     {
-        ou->r = color;
+        bar_sprite->r = brightness;
     }
     else
     {
-        ou->r = color;
+        bar_sprite->r = brightness;
     }
 
-    ou->x = x;
-    ou->y = y;
-    GsSortSprite(ou, OTablePt, 0);
-    ou->h = oldh;
+    bar_sprite->x = x;
+    bar_sprite->y = y;
+    GsSortSprite(bar_sprite, OTablePt, 0);
+    bar_sprite->h = saved_height;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
