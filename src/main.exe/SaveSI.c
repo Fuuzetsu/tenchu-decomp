@@ -114,8 +114,6 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
         s32 alignment;
         enum card_result create_result;
         s32 end;
-        s32 *cmdp;
-        enum card_result *resultp;
 
         /* The block header a PSX memory card expects. */
         hd->Magic[0] = 'S';
@@ -124,9 +122,9 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
         hd->BlockEntry = CARD_FILE_BLOCKS;
         sprintf(hd->Title, fmt_save_title, STAGE_NUMBER(StageID), name);
 
-        icon1 = (u8 *)GetArcData(ICON_CARD1);
-        icon2 = (u8 *)GetArcData(ICON_CARD2);
-        icon3 = (u8 *)GetArcData(ICON_CARD3);
+        icon1 = GetArcData(ICON_CARD1);
+        icon2 = GetArcData(ICON_CARD2);
+        icon3 = GetArcData(ICON_CARD3);
         __builtin_memcpy(hd->Clut, CARD_ICON_TIM_CLUT(icon1),
                          sizeof(hd->Clut));
         dst = hd->Icon[0];
@@ -200,9 +198,7 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
         }
 
         MemCardAccept(chan);
-        cmdp = &cmd;
-        resultp = &result;
-        MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
+        MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
         if (result != CARD_RESULT_SUCCESS && result != CARD_RESULT_NEW_CARD)
         {
             if (result == CARD_RESULT_UNFORMATTED)
@@ -216,7 +212,7 @@ void SaveSI(enum save_storage storage, u8 *name, void *mem, s32 size)
                 else
                 {
                     MemCardFormat(chan);
-                    MemCardSync(MEMCARD_SYNC_BLOCKING, cmdp, resultp);
+                    MemCardSync(MEMCARD_SYNC_BLOCKING, &cmd, &result);
                     if (result == CARD_RESULT_SUCCESS)
                     {
                         goto create_file;
