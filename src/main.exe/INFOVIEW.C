@@ -465,7 +465,7 @@ static s32 PutLifeBarS(void)
  *     extern struct Sprite3D *ItemImage[25];
  * END PSX.SYM */
 
-static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
+static inline void DrawItemCursor(short x, short y, short size, s32 rotdif)
 {
     CursorImage.x = x;
     CursorImage.y = y;
@@ -475,7 +475,7 @@ static inline void PutItemCursorInline(short x, short y, short size, s32 rotdif)
     GsSortSprite(&CursorImage, OTablePt, 1);
 }
 
-static inline void PutNumberInline(int x, int y, int cols, int n)
+static inline void PutNumberInline(int x, int y, int cols)
 {
     int ou;
 
@@ -491,6 +491,17 @@ static inline void PutNumberInline(int x, int y, int cols, int n)
         cols /= 10;
     } while (cols != 0);
     NumberImage.u = ou;
+}
+
+static inline void DrawItemIcon(s32 ItemID, short x, short y, short scale)
+{
+    GsSPRITE *sprite = &ItemImage[ItemID]->sprite;
+
+    sprite->x = x;
+    sprite->y = y;
+    sprite->scalex = scale;
+    sprite->scaley = scale;
+    GsSortSprite(sprite, OTablePt, 0);
 }
 
 static void PutItemList(void)
@@ -522,33 +533,20 @@ static void PutItemList(void)
             n = s;
             if (s != ITEM_INFINITE)
             {
-                PutNumberInline(x + 22, ItemY, n, 0);
+                PutNumberInline(x + 22, ItemY, n);
             }
 
             if (ItemCursor == i)
             {
-                GsSPRITE *spr;
-
-                PutItemCursorInline(x, ItemY - 8, FIXED_ONE, -6 * FIXED_ONE); /* spin 6 deg/frame (GsSPRITE.rotate is degrees<<12) */
+                /* Spin 6 deg/frame; GsSPRITE.rotate is degrees << 12. */
+                DrawItemCursor(x, ItemY - 8, FIXED_ONE, -6 * FIXED_ONE);
 
                 SelectedItem = i;
-                spr = &ItemImage[i]->sprite;
-                spr->x = x;
-                spr->y = ItemY - 8;
-                spr->scalex = FIXED_ONE;
-                spr->scaley = FIXED_ONE;
-                GsSortSprite(spr, OTablePt, 0);
+                DrawItemIcon(i, x, ItemY - 8, FIXED_ONE);
             }
             else
             {
-                GsSPRITE *spr;
-
-                spr = &ItemImage[i]->sprite;
-                spr->x = x;
-                spr->y = ItemY - 8;
-                spr->scalex = FIXED_ONE * 2 / 3;
-                spr->scaley = FIXED_ONE * 2 / 3;
-                GsSortSprite(spr, OTablePt, 0);
+                DrawItemIcon(i, x, ItemY - 8, FIXED_ONE * 2 / 3);
             }
             x -= ItemGap;
         }
@@ -1236,11 +1234,7 @@ void DemoPatchInit(void)
 
 void PutItemCursor(s16 x, s16 y, s16 size, s32 rotdif)
 {
-    CursorImage.x = x;
-    CursorImage.y = y;
-    CursorImage.scaley = CursorImage.scalex = size;
-    CursorImage.rotate += rotdif;
-    GsSortSprite(&CursorImage, OTablePt, 1);
+    DrawItemCursor(x, y, size, rotdif);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -1264,13 +1258,7 @@ void PutItemCursor(s16 x, s16 y, s16 size, s32 rotdif)
 
 void PutItemIcon(s32 ItemID, short x, short y, short scale)
 {
-    GsSPRITE *sprite = &ItemImage[ItemID]->sprite;
-
-    sprite->x = x;
-    sprite->y = y;
-    sprite->scalex = scale;
-    sprite->scaley = scale;
-    GsSortSprite(sprite, OTablePt, 0);
+    DrawItemIcon(ItemID, x, y, scale);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
