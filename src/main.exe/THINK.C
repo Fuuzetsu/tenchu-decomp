@@ -1295,8 +1295,6 @@ s16 Think1target(void)
         TARGET_REACHED_DISTANCE = 200,
         TARGET_FOLLOW_VERTICAL_LIMIT = 2000
     };
-    s32 xx;
-    s32 zz;
     s32 vx;
     s32 vz;
     s32 deg;
@@ -1313,42 +1311,26 @@ s16 Think1target(void)
     if ((GameClock & (TARGET_SCAN_INTERVAL - 1)) == 0)
     {
         s32 dy;
-        s32 abs_dy;
-        s32 direction;
 
-        vx = xx = StagePlayer->locate->vx - Me->locate->vx;
-        vz = zz = StagePlayer->locate->vz - Me->locate->vz;
+        vx = StagePlayer->locate->vx - Me->locate->vx;
+        vz = StagePlayer->locate->vz - Me->locate->vz;
         dy = StagePlayer->locate->vy - Me->locate->vy;
-        distance = SquareRoot0(vx * xx + vz * zz);
-        deg = GetDirection(xx, zz, Me->rotate->vy);
-        if (distance <= TARGET_NEAR_DISTANCE)
+        distance = SquareRoot0(vx * vx + vz * vz);
+        deg = GetDirection(vx, vz, Me->rotate->vy);
+        if (distance <= TARGET_NEAR_DISTANCE &&
+            __builtin_abs(dy) <= TARGET_ALERT_VERTICAL_LIMIT &&
+            __builtin_abs(deg) < TARGET_ALERT_HALF_ANGLE &&
+            StagePlayer->active_item != ACTIVE_ITEM_DISGUISE)
         {
-            /* Retail keeps identical branches here; their original distinction is unknown. */
-            if (distance != 0)
-            {
-                abs_dy = (dy >= 0) ? dy : -dy;
-            }
-            else
-            {
-                abs_dy = (dy >= 0) ? dy : -dy;
-            }
-            if (abs_dy <= TARGET_ALERT_VERTICAL_LIMIT)
-            {
-                direction = (deg >= 0) ? deg : -deg;
-                if (direction < TARGET_ALERT_HALF_ANGLE &&
-                    StagePlayer->active_item != ACTIVE_ITEM_DISGUISE)
-                {
-                    s32 alert_time;
+            s32 alert_time;
 
-                    Me->target = &StagePlayer->model->locate;
-                    Attrib = (Attrib & (u16)~ATTR_PHASE) | PHASE_ALERT;
-                    SetNowMotion(Me, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
-                    Me->chase[HUMANOID_CHASE_Z] = 0;
-                    Me->chase[HUMANOID_CHASE_X] = 0;
-                    Sound(Me, CHAR_VOICE_ALERT);
-                    RESET_ALERT_DURATION(alert_time);
-                }
-            }
+            Me->target = &StagePlayer->model->locate;
+            Attrib = (Attrib & (u16)~ATTR_PHASE) | PHASE_ALERT;
+            SetNowMotion(Me, MOT_STATE_DRAW, MOTION_MOVE_APPLY);
+            Me->chase[HUMANOID_CHASE_Z] = 0;
+            Me->chase[HUMANOID_CHASE_X] = 0;
+            Sound(Me, CHAR_VOICE_ALERT);
+            RESET_ALERT_DURATION(alert_time);
         }
     }
 
@@ -1359,20 +1341,12 @@ s16 Think1target(void)
     {
         return 0;
     }
-    if (distance < TARGET_NEAR_DISTANCE)
+    if (distance < TARGET_NEAR_DISTANCE &&
+        __builtin_abs(Me->target->coord.t[1] - Me->locate->vy) >
+            TARGET_FOLLOW_VERTICAL_LIMIT)
     {
-        s32 dy;
-
-        dy = __builtin_abs(Me->target->coord.t[1] - Me->locate->vy);
-
-        if (dy <= TARGET_FOLLOW_VERTICAL_LIMIT)
-        {
-            return GotoPosition(vx, vz);
-        }
-        {
-            UPDATE_IDLE_LOOK_PAD(pad);
-            return pad;
-        }
+        UPDATE_IDLE_LOOK_PAD(pad);
+        return pad;
     }
     return GotoPosition(vx, vz);
 }
