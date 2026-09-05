@@ -2902,12 +2902,26 @@ static short AttackGeneral(void)
 
 static short AttackLong(void)
 {
-    s16 ad;
+    enum long_attack_policy
+    {
+        LONG_ATTACK_POINT_BLANK_DISTANCE = 1000,
+        LONG_ATTACK_ENGAGE_DISTANCE = 3000,
+        LONG_ATTACK_ACTION_DISTANCE = 4000,
+        LONG_ATTACK_CHASE_DISTANCE = 5000,
+        LONG_ATTACK_PRECISE_AIM = 50,
+        LONG_ATTACK_TURN_ANGLE = 300,
+        LONG_ATTACK_CLOSE_AIM = 500,
+        LONG_ATTACK_EVASIVE_AIM = 1000,
+        LONG_ATTACK_OUTER_AIM = 1500,
+        LONG_ATTACK_RECOVERY_CHANCE = 5
+    };
+    s16 raw_degree;
     s16 pad;
-    s32 degree;
+    s32 aim_error;
 
     pad = 0;
-    RETURN_ATTACK_CONTINUATION(pad, 3000, 1500);
+    RETURN_ATTACK_CONTINUATION(pad, LONG_ATTACK_ENGAGE_DISTANCE,
+                               LONG_ATTACK_OUTER_AIM);
 
     if (Me->status == STAT_JUMP)
     {
@@ -2921,17 +2935,15 @@ static short AttackLong(void)
 
     if (Me->actmode == MELEE_ATTACK_CLOSING)
     {
-        pad = ChasetoTarget(3000);
+        pad = ChasetoTarget(LONG_ATTACK_ENGAGE_DISTANCE);
         if (pad == 0 || (Attrib & ATTR_HIT) != 0)
         {
             Me->actmode = MELEE_ATTACK_ENGAGED;
         }
-        if (Me->motion->count == 0)
+        if (Me->motion->count == 0 &&
+            rand() % LONG_ATTACK_RECOVERY_CHANCE == 0)
         {
-            if (rand() % 5 == 0)
-            {
-                pad = PADLup | PADRdown;
-            }
+            pad = PADLup | PADRdown;
         }
         return pad;
     }
@@ -2939,18 +2951,18 @@ static short AttackLong(void)
     if ((Me->motion->count &
          (MELEE_ATTACK_DECISION_PERIOD - 1)) != 0)
     {
-        s32 deg;
+        s32 tracking_error;
 
         pad = Me->pad.data;
-        if (Distance < 3000)
+        if (Distance < LONG_ATTACK_ENGAGE_DISTANCE)
         {
-            ad = Degree;
-            deg = (ad >= 0) ? ad : -ad;
-            if (deg < 500)
+            raw_degree = Degree;
+            tracking_error = (raw_degree >= 0) ? raw_degree : -raw_degree;
+            if (tracking_error < LONG_ATTACK_CLOSE_AIM)
             {
                 pad = PADLdown;
             }
-            else if (deg > 1500)
+            else if (tracking_error > LONG_ATTACK_OUTER_AIM)
             {
                 pad = PADLup;
             }
@@ -2958,7 +2970,7 @@ static short AttackLong(void)
         return pad;
     }
 
-    if (Distance > 5000)
+    if (Distance > LONG_ATTACK_CHASE_DISTANCE)
     {
         Humanoid *me;
 
@@ -2975,31 +2987,33 @@ static short AttackLong(void)
         Me->actmode = MELEE_ATTACK_CLOSING;
     }
 
-    if (Degree > 300)
+    if (Degree > LONG_ATTACK_TURN_ANGLE)
     {
         pad = PADLright;
     }
-    else if (Degree < -300)
+    else if (Degree < -LONG_ATTACK_TURN_ANGLE)
     {
         pad = PADLleft;
     }
 
-    if (Distance > 3000 && Distance < 4000)
+    if (Distance > LONG_ATTACK_ENGAGE_DISTANCE &&
+        Distance < LONG_ATTACK_ACTION_DISTANCE)
     {
         if (rand() % (EngageLevel + 1) == 0)
         {
-            AttackActionCount = GameClock;
-            AttackActionCount += EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
+            AttackActionCount = GameClock +
+                                EngageLevel * ATTACK_COOLDOWN_PER_LEVEL;
             return pad | PADRleft;
         }
     }
 
-    ad = Degree;
-    degree = (ad >= 0) ? ad : -ad;
+    raw_degree = Degree;
+    aim_error = (raw_degree >= 0) ? raw_degree : -raw_degree;
 
-    if (degree > 1000 || Distance < 3000)
+    if (aim_error > LONG_ATTACK_EVASIVE_AIM ||
+        Distance < LONG_ATTACK_ENGAGE_DISTANCE)
     {
-        if (Distance < 1000)
+        if (Distance < LONG_ATTACK_POINT_BLANK_DISTANCE)
         {
             pad = PADRleft | PADRright;
             if ((rand() & 1) != 0)
@@ -3018,12 +3032,12 @@ static short AttackLong(void)
         return pad;
     }
 
-    if (Distance <= 4000)
+    if (Distance <= LONG_ATTACK_ACTION_DISTANCE)
     {
         return pad;
     }
 
-    if (degree < 50)
+    if (aim_error < LONG_ATTACK_PRECISE_AIM)
     {
         pad = SetCommand(&Me->pad, CMD_LUNGE);
     }
@@ -3031,11 +3045,11 @@ static short AttackLong(void)
     {
         pad |= PADLup;
     }
-    else if (ad > 50)
+    else if (raw_degree > LONG_ATTACK_PRECISE_AIM)
     {
         pad = SetCommand(&Me->pad, CMD_DASH_RIGHT);
     }
-    else if (ad < -50)
+    else if (raw_degree < -LONG_ATTACK_PRECISE_AIM)
     {
         pad = SetCommand(&Me->pad, CMD_DASH_LEFT);
     }
