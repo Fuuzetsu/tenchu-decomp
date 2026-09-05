@@ -381,13 +381,9 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
 {
     MATRIX mat;
     SVECTOR pos; /* unused in retail, but present in the demo symbols */
-    ModelAttribute atr;
-    long sz;
     long result;
-    s32 iv;
     short i;
     ModelType *objp;
-    short rxy[2];
 
     if (SkipFrame != SKIPFRAME_SKIPPED)
     {
@@ -395,61 +391,7 @@ short DrawModelArchive(ModelArchiveType *mad, long gap)
         {
             GsGetLs(&mad->locate, &mat);
             GsSetLsMatrix(&mat);
-            atr = mad->attribute;
-            if ((atr & MODEL_ATTR_HIDDEN) != 0)
-                goto reject;
-            if ((atr & MODEL_ATTR_NOCULL) == 0)
-            {
-                sz = RotTransPers(&mad->clip, (s32 *)rxy, 0, 0) >> 2;
-                if ((atr & MODEL_ATTR_CULL_BEHIND) != 0 && sz == 0)
-                {
-                    result = MODEL_CLIP_REJECTED;
-                    goto tail;
-                }
-                if ((atr & MODEL_ATTR_CULL_SCREEN) != 0)
-                {
-                    iv = rxy[0];
-                    if (iv < 0)
-                    {
-                        iv = -iv;
-                    }
-                    if (iv <= MODEL_CULL_X_LIMIT)
-                    {
-                        iv = rxy[1];
-                        if (iv < 0)
-                        {
-                            iv = -iv;
-                        }
-                        if (iv > MODEL_CULL_Y_LIMIT)
-                            goto reject;
-                    }
-                    else
-                    {
-                        result = MODEL_CLIP_REJECTED;
-                        goto tail;
-                    }
-                }
-                if ((atr & MODEL_ATTR_CULL_FAR) != 0 && sz > DEPTH_LIMIT)
-                {
-                    result = MODEL_CLIP_REJECTED;
-                    goto tail;
-                }
-            }
-            sz = RotTransPers(&UnitVector, 0, 0, 0) >> 2;
-            if (sz > DEPTH_LIMIT)
-            {
-            reject:
-                result = MODEL_CLIP_REJECTED;
-            }
-            else
-            {
-                if (sz >= FOG_DEPTH)
-                    DrawTMDmode = TMD_BANK_FOG;
-                else
-                    DrawTMDmode = TMD_BANK_PLAIN;
-                result = sz;
-            }
-        tail:
+            result = GetModelDrawDepth((ModelType *)mad, 0);
             if (result + gap < 0)
             {
                 return 0;
