@@ -1135,25 +1135,29 @@ short ControlAllHumanoid(void)
     VISIBLE_ENEMIES_ = 0;
     i = 0;
     result = Humans;
-    if (result > 0)
-        do
+    if (result <= 0)
+    {
+        return result;
+    }
+    do
+    {
+        human = HumanGroup[i];
+        if ((human->attribute & ATTR_SUSPEND) == 0)
         {
-            human = HumanGroup[i];
-            if ((human->attribute & ATTR_SUSPEND) == 0)
+            if (human->type == BALMA)
             {
-                if (human->type == BALMA)
-                {
-                    swap_balma_area_map_();
-                    ControlHumanoid(human);
-                    swap_balma_area_map_();
-                }
-                else
-                {
-                    ControlHumanoid(human);
-                }
+                swap_balma_area_map_();
+                ControlHumanoid(human);
+                swap_balma_area_map_();
             }
-            i++;
-        } while (result = i < Humans);
+            else
+            {
+                ControlHumanoid(human);
+            }
+        }
+        i++;
+        result = i < Humans;
+    } while (result != 0);
     return result;
 }
 
