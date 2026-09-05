@@ -876,41 +876,49 @@ s16 GotoPosition(s32 vx, s32 vz)
 
 s16 ChasetoTarget(s32 length)
 {
-    Humanoid *me;
-    long xx, zz;
-    long *chase;
-    long vx, vz;
-    short deg;
+    enum chase_target_policy
+    {
+        CHASE_TARGET_AXIS_TOLERANCE = 500,
+        CHASE_TARGET_MIN_DISTANCE = 1000
+    };
+    Humanoid *self;
+    long delta_x, delta_z;
+    long *chase_offset;
+    long offset_x, offset_z;
+    short direction;
 
-    me = Me;
-    chase = &me->chase[HUMANOID_CHASE_X];
-    if (me->target == 0)
+    self = Me;
+    chase_offset = self->chase;
+    if (self->target == 0)
     {
         return 0;
     }
 
-    xx = me->target->coord.t[0] +
-         me->chase[HUMANOID_CHASE_X] - me->locate->vx;
-    zz = me->target->coord.t[2] +
-         chase[HUMANOID_CHASE_Z] - me->locate->vz;
+    delta_x = self->target->coord.t[0] +
+              chase_offset[HUMANOID_CHASE_X] - self->locate->vx;
+    delta_z = self->target->coord.t[2] +
+              chase_offset[HUMANOID_CHASE_Z] - self->locate->vz;
 
-    if (((xx >= 0 ? xx : -xx) < 500 &&
-         (zz >= 0 ? zz : -zz) < 500) ||
-        (Attrib & ATTR_WALL) != 0 || Distance < 1000)
+    if (((delta_x >= 0 ? delta_x : -delta_x) <
+             CHASE_TARGET_AXIS_TOLERANCE &&
+         (delta_z >= 0 ? delta_z : -delta_z) <
+             CHASE_TARGET_AXIS_TOLERANCE) ||
+        (Attrib & ATTR_WALL) != 0 || Distance < CHASE_TARGET_MIN_DISTANCE)
     {
         return 0;
     }
 
     if ((Attrib & (ATTR_HIT | ATTR_PUSH)) != 0 ||
-        (me->chase[HUMANOID_CHASE_X] | chase[HUMANOID_CHASE_Z]) == 0)
+        (chase_offset[HUMANOID_CHASE_X] |
+         chase_offset[HUMANOID_CHASE_Z]) == 0)
     {
-        deg = rand();
-        vx = rcos(deg) * length >> FIXED_SHIFT;
-        me->chase[HUMANOID_CHASE_X] = vx;
-        vz = rsin(deg) * length >> FIXED_SHIFT;
-        chase[HUMANOID_CHASE_Z] = vz;
+        direction = rand();
+        offset_x = rcos(direction) * length >> FIXED_SHIFT;
+        chase_offset[HUMANOID_CHASE_X] = offset_x;
+        offset_z = rsin(direction) * length >> FIXED_SHIFT;
+        chase_offset[HUMANOID_CHASE_Z] = offset_z;
     }
-    return GotoPosition(xx, zz);
+    return GotoPosition(delta_x, delta_z);
 }
 
 void register_character_death(Humanoid *dead)
