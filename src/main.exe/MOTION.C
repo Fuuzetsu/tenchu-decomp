@@ -3269,6 +3269,37 @@ void ActCHASE(void)
         Sound(Me_MOTION_C, CHAR_SE_ATTACK);                                   \
     }
 
+static inline void TrackAttackTarget(GsCOORDINATE2 *target)
+{
+    enum
+    {
+        ATTACK_TRACK_TURN_STEP = 100
+    };
+    MotionDataType *mot;
+    Humanoid *human;
+    short turn;
+    short direction;
+
+    direction = GetDirection(target->coord.t[0] - dtL->vx,
+                             target->coord.t[2] - dtL->vz, dtR->vy);
+    human = Me_MOTION_C;
+    turn = human->turn;
+    if (direction > turn)
+    {
+        dtR->vy += ATTACK_TRACK_TURN_STEP;
+    }
+    else if (-turn > direction)
+    {
+        dtR->vy -= ATTACK_TRACK_TURN_STEP;
+    }
+    else
+    {
+        return;
+    }
+    mot = human->motion->motion;
+    MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -3322,7 +3353,6 @@ void ActATTACK(void)
 {
     enum
     {
-        ATTACK_TRACK_TURN_STEP = 100,
         GUN_MUZZLE_Z = -100,
         HANDGUN_MUZZLE_Y = 100,
         TEPPO_MUZZLE_Y = 700,
@@ -3338,7 +3368,6 @@ void ActATTACK(void)
     };
     bool is_player;
     SVECTOR *v;
-    MotionManager *mmp;
     short warid;
     short t;
     short conflict_id;
@@ -3390,32 +3419,8 @@ void ActATTACK(void)
         battle = &BattleDB[warid];
         target = human->target;
     }
-    if (((target != 0) && (dtM->count < battle->revise)) && (dtM->count >= 0))
-    {
-        Humanoid *human;
-        short turn;
-        short direction;
-
-        direction = GetDirection(target->coord.t[0] - dtL->vx,
-                                 target->coord.t[2] - dtL->vz, dtR->vy);
-        human = Me_MOTION_C;
-        turn = human->turn;
-        if (direction > turn)
-        {
-            dtR->vy += ATTACK_TRACK_TURN_STEP;
-        }
-        else if (-turn > direction)
-        {
-            dtR->vy -= ATTACK_TRACK_TURN_STEP;
-        }
-        else
-        {
-            goto dispatch;
-        }
-        mot = human->motion->motion;
-        MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
-    }
-dispatch:
+    if (target != NULL && dtM->count < battle->revise && dtM->count >= 0)
+        TrackAttackTarget(target);
     switch (dtM->mid)
     {
     case MOT_ATTACK:
@@ -3681,12 +3686,7 @@ dispatch:
         }
         if (motID != MOT_ATTACK_DIVE)
         {
-            short cleanup_guard;
-            short kind;
-
-            kind = Me_MOTION_C->wpatk;
-            CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
-            dtM->mask = MOTION_MASK_ALL;
+            ClearAttackEffects(ATTACK_CANCEL_ALL);
             SetCameraMode(CMODE_NORMAL);
             if (motID == MOT_STATE_FALL)
             {
@@ -3696,20 +3696,14 @@ dispatch:
         break;
     case MOT_ATTACK_DIVE_LAND:
     {
-        short cleanup_guard;
-        short kind;
-
         if (dtM->loop < 0)
         {
             dtM->loop = 0;
         }
         if ((dtM->count == 0) && (dtM->loop != 0))
         {
-            kind = Me_MOTION_C->wpatk;
-            CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
-            mmp = dtM;
+            ClearAttackEffects(ATTACK_CANCEL_ALL);
             SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-            mmp->mask = MOTION_MASK_ALL;
             return;
         }
         if (Me_MOTION_C->map.height > 0)
@@ -3806,16 +3800,11 @@ dispatch:
     }
     if ((dtM->count == 0) && (dtM->loop == 1))
     {
-        short cleanup_guard;
-        short kind;
         motion_id saved_mid;
-        short i;
 
         saved_mid = motID;
-        kind = Me_MOTION_C->wpatk;
-        CLEAR_WEAPON_ATTACK_EFFECTS(Me_MOTION_C, kind, cleanup_guard);
+        ClearAttackEffects(ATTACK_CANCEL_ALL);
         SET_MOTION(MOT_ENGAGE_STANCE, MOTION_MOVE_APPLY);
-        dtM->mask = MOTION_MASK_ALL;
         SetNowMotionUnlessCva();
         dtR->vy += (((*Me_MOTION_C->model->object)->rotate).vy -
                     dtM->motion->rotate[MODEL_PART_WAIST]->y);
@@ -3909,10 +3898,7 @@ dispatch:
         {
             return;
         }
-        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_0);
-        DISPOSE_WEAPON_AFTERIMAGE(Me_MOTION_C, WEAPON_HAND_1);
-        mmp = dtM;
-        mmp->mask = MOTION_MASK_ALL;
+        ClearAttackEffects(ATTACK_CANCEL_AFTERIMAGES);
         return;
     }
 }
