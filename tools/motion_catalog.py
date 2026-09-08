@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Name retail motion states/clips and annotate unregistered entries.
+"""Catalog retail animation clips and annotate unregistered motion states.
 
     python3 tools/motion_catalog.py --write
     python3 tools/motion_catalog.py --check
 
-MOT_* is the state/handler ID space; animation_clip is the AMD clip ID space.
-Existing clip names are retained; new unknown clips get ANIM_* placeholders.
+MOT_* state IDs stay in C; AMD clip IDs live in reference/motion-clips.tsv.
+C attack constants take precedence over catalog labels. Other reviewed labels
+are retained; new unknown clips get ANIM_* placeholders in the TSV only.
 Inputs are main.exe, DATA.VOL (including trial assets), and the current C.
 Only evidenced IDs are named: gaps in either numeric space are not motions.
 Usage comments are limited to entries without MAIN registrations.
@@ -15,6 +16,8 @@ from __future__ import annotations
 
 import argparse
 from collections import defaultdict
+import csv
+import io
 import mmap
 from pathlib import Path
 import re
@@ -31,7 +34,8 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parent.parent
 TYPES = ROOT / "src/main.exe/game_types.h"
-CLIPS = ROOT / "src/main.exe/motion_clips.h"
+CATALOG = ROOT / "reference/motion-clips.tsv"
+HUMANOID = ROOT / "src/main.exe/humanoid.h"
 INTEGER = r"-?(?:0[xX][0-9a-fA-F]+|[0-9]+)"
 DEFINITION = re.compile(rf"\b(MOT_\w+)\s*=\s*({INTEGER})\b")
 GENERATED = re.compile(r"    /\* (?:Usage|Unregistered) \(motion_catalog.py\):.*?\*/\n", re.S)
@@ -68,15 +72,35 @@ def character_names(source):
 
 
 def clip_names(source):
-    """Preserve reviewed names in the generated enum when refreshing the catalog."""
-    body = re.search(r"enum animation_clip\s*\{(.*?)\};", c_code(source), re.S)
-    if body is None:
-        raise ValueError("animation_clip enum not found")
+    """Read reviewed asset labels without making them C types/constants."""
+    rows = csv.DictReader(io.StringIO(source), delimiter="\t")
+    if rows.fieldnames != ["id", "name", "note"]:
+        raise ValueError("clip catalog must have id, name, note columns")
     names = {}
-    for name, value in re.findall(rf"(\w+)\s*=\s*({INTEGER})", body[1]):
+    for row in rows:
+        if None in row or any(value is None for value in row.values()):
+            raise ValueError("invalid clip catalog row")
+        name, value = row["name"], row["id"]
+        if not re.fullmatch(r"[A-Za-z_]\w*", name):
+            raise ValueError(f"invalid clip name: {name}")
         clip = int(value, 0)
+        if not 0 <= clip <= 0x7fff:
+            raise ValueError(f"invalid clip ID: {value}")
         if clip in names or name in names.values():
             raise ValueError(f"duplicate animation clip name/ID: {name} = {value}")
+        names[clip] = name
+    return names
+
+
+def attack_clip_names(source):
+    """The constants actually used by C remain the authority for their names."""
+    names = {}
+    for name, value in re.findall(
+            rf"(?m)^#define[ \t]+(ATTACK_MOTID_\w+)[ \t]+({INTEGER})[ \t]*$",
+            c_code(source)):
+        clip = int(value, 0)
+        if clip in names or name in names.values():
+            raise ValueError(f"duplicate attack clip name/ID: {name} = {value}")
         names[clip] = name
     return names
 
@@ -164,7 +188,7 @@ def source_uses(tokens):
     uses = defaultdict(set)
     function = re.compile(r"(?m)^[A-Za-z_][\w \t*]*?\b(\w+)\s*\([^;{}]*\)\s*\{")
     for path in sorted((ROOT / "src/main.exe").rglob("*")):
-        if path.suffix.lower() not in (".c", ".h") or path in (TYPES, CLIPS):
+        if path.suffix.lower() not in (".c", ".h") or path == TYPES:
             continue
         code = c_code(path.read_text())
         regions = []
@@ -176,10 +200,12 @@ def source_uses(tokens):
                 end += 1
             regions.append((match.start(), end, match[1]))
         offset = 0
+        definitions = set()
         lines = code.splitlines(keepends=True)
         for index, line in enumerate(lines):
             match = re.match(r"#define\s+(\w+)", line)
             if match:
+                definitions.add(offset + match.start(1))
                 end = offset + len(line)
                 following = index + 1
                 while lines[following - 1].rstrip().endswith("\\") and following < len(lines):
@@ -189,7 +215,7 @@ def source_uses(tokens):
             offset += len(line)
         relative = str(path.relative_to(ROOT / "src/main.exe"))
         for match in re.finditer(r"\b[A-Za-z_]\w*\b", code):
-            if match[0] not in tokens:
+            if match[0] not in tokens or match.start() in definitions:
                 continue
             owner = next((name for start, end, name in regions
                           if start <= match.start() < end), "file scope")
@@ -248,11 +274,14 @@ def collect(source):
     else:
         raise ValueError("BattleDB has no end sentinel")
 
-    reviewed = clip_names(CLIPS.read_text()) if CLIPS.exists() else {}
-    if reviewed.keys() - clips.keys():
-        raise ValueError("animation_clip contains IDs without resource evidence")
+    reviewed = clip_names(CATALOG.read_text()) if CATALOG.exists() else {}
+    known = attack_clip_names(HUMANOID.read_text())
+    if (reviewed.keys() | known.keys()) - clips.keys():
+        raise ValueError("clip catalog or C constants contain IDs without resource evidence")
     for clip, row in clips.items():
-        row["name"] = reviewed.get(clip, f"ANIM_{clip:04X}")
+        row["name"] = known.get(clip, reviewed.get(clip, f"ANIM_{clip:04X}"))
+    if len({row["name"] for row in clips.values()}) != len(clips):
+        raise ValueError("catalog labels conflict with C attack clip names")
     tokens = {name: ("state", mid) for mid, name in names.items()}
     tokens.update({row["name"]: ("clip", clip) for clip, row in clips.items()})
     uses = source_uses(tokens)
@@ -306,26 +335,22 @@ def render_states(source, names, states, uses):
 
 
 def render_clips(clips, uses):
-    out = ["#ifndef TENCHU_MOTION_CLIPS_H\n#define TENCHU_MOTION_CLIPS_H\n\n",
-           "/* AMD animation clip IDs (MotionDataType.id / MotionRegistType.id),\n",
-           " * distinct from MOT_* state IDs. Descriptive names are retained where\n",
-           " * known; ANIM_XXXX suffixes are hexadecimal placeholders for the rest.\n",
-           " * Only clips without MAIN registrations have usage comments, listing\n",
-           " * their DATA.VOL assets.\n",
-           " * No MAIN registration does not establish that a trial clip is unused.\n",
-           " * Regenerate with: python3 tools/motion_catalog.py --write\n */\n\n",
-           "enum animation_clip\n{\n"]
+    out = io.StringIO()
+    writer = csv.writer(out, delimiter="\t", lineterminator="\n")
+    writer.writerow(("id", "name", "note"))
     for clip, row in sorted(clips.items()):
+        notes = []
         if not row["reg"]:
-            lines = ["Assets: " + (asset_list(row["assets"]) or "none found") + "."]
+            notes.append("No MAIN registration.")
+            if any(path.startswith("TRIAL/") for path in row["assets"]):
+                notes.append("Trial use not audited.")
+            notes.append("Assets: " + (asset_list(row["assets"]) or "none found") + ".")
             if row["battle"]:
-                lines.append("BattleDB rows: " + ", ".join(map(str, sorted(row["battle"]))) + ".")
+                notes.append("BattleDB rows: " + ", ".join(map(str, sorted(row["battle"]))) + ".")
             if uses.get(("clip", clip)):
-                lines.append("C references: " + grouped(uses["clip", clip]) + ".")
-            out.append(comment(lines, "No MAIN registration."))
-        out.append(f"    {row['name']} = 0x{clip:04x},\n")
-    out.append("};\n\n#endif\n")
-    return "".join(out)
+                notes.append("C references: " + grouped(uses["clip", clip]) + ".")
+        writer.writerow((f"0x{clip:04x}", row["name"], " ".join(notes) or "-"))
+    return out.getvalue()
 
 
 def main():
@@ -337,7 +362,7 @@ def main():
     source = TYPES.read_text()
     names, states, clips, uses, counts = collect(source)
     outputs = {TYPES: render_states(source, names, states, uses),
-               CLIPS: render_clips(clips, uses)}
+               CATALOG: render_clips(clips, uses)}
     stale = []
     for path, wanted in outputs.items():
         if not path.exists() or path.read_text() != wanted:
@@ -354,5 +379,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except (ValueError, OSError, struct.error) as error:
+    except (ValueError, OSError, struct.error, csv.Error) as error:
         sys.exit(f"motion_catalog: {error}")

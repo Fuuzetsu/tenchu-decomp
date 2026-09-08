@@ -5,7 +5,6 @@
 #include <psxsdk/libapi.h>
 #include <psxsdk/libcd.h>
 #include <psxsdk/libgpu.h>
-#include "motion_clips.h"
 //
 // This file is the round-trip unit with Ghidra: `tools/sync_to_ghidra.py`
 // pushes it into the Ghidra program; `tools/ghidra/ExportSymbolsTypes.java`
@@ -1393,7 +1392,7 @@ enum motion_family
  * (0x100, 0x200, ...) keep their MOT_* family names above. Only entries without
  * MAIN registrations get generated usage comments (tools/motion_catalog.py).
  * C references list literal uses; CAD actors include queued next motions.
- * Animation clip IDs are in motion_clips.h. */
+ * Clip inventory: reference/motion-clips.tsv; C attack constants: humanoid.h. */
 enum
 {
     MOT_NORMAL_TURN_R = 0x001,    /* idle pivot (ActNORMAL) */

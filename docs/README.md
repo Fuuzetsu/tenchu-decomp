@@ -83,8 +83,9 @@ decisions behind the toolchain. It's the reference companion to the terse
   the characters and weapon that use it.
   `tools/motion_catalog.py --check` checks all named motion states and AMD
   clips against registrations, scripts, asset files, and C uses; `--write`
-  regenerates names and comments for unregistered entries in `game_types.h`
-  and `motion_clips.h`.
+  regenerates unregistered-state comments in `game_types.h` and the clip
+  inventory in `reference/motion-clips.tsv`. Only the seven clip constants
+  used by C live in `humanoid.h`.
   `tools/symtypes.py` audits our declarations against the ones it recorded:
   bare, the global type mismatches; `--locals`, the 271 functions whose local
   set differs from the original's. A local we invented is the usual reason a

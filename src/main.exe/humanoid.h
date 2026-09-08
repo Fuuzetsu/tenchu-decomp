@@ -175,6 +175,15 @@ typedef s16 facing_angle;
         }                                                                     \
     }
 
+/* Clip IDs returned by GetMotionID and tested directly by ActATTACK. */
+#define ATTACK_MOTID_YUMI 0x00aa
+#define ATTACK_MOTID_GUN 0x00ab
+#define ATTACK_MOTID_TEPPO 0x00ac
+#define ATTACK_MOTID_SEVEN 0x00e9
+#define ATTACK_MOTID_KATANAL 0x00f1
+#define ATTACK_MOTID_MANJI 0x00f5
+#define ATTACK_MOTID_KATAYUMI 0x01a4
+
 extern short Sound(struct Humanoid *human, short seid);
 extern short SoundEx(VECTOR *locate, short seid);
 extern struct Humanoid *CreateHumanoid(character_kind type,

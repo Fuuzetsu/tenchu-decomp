@@ -587,13 +587,20 @@ The complete naming catalog has two separate ID spaces:
   without MAIN registrations, listing remaining C/script references or noting
   that an ID is only a family base. Existing descriptive names are retained;
   `VARIANT_*` names describe numeric indices where the intended pose is unknown.
-* **427 animation clip IDs** in `src/main.exe/motion_clips.h`. These are the
+* **427 animation clip IDs** in `reference/motion-clips.tsv`. These are the
   `MotionDataType.id` / `MotionRegistType.id` values, also used by `BattleDB`.
-  Seven keep their descriptive `ATTACK_MOTID_*` names directly in the enum;
+  The TSV has `id`, `name`, and `note` columns; `-` means no note. Seven names
+  come from the numeric `ATTACK_MOTID_*` definitions in `src/main.exe/humanoid.h`;
   the remaining 420 use `ANIM_*` placeholders with hexadecimal suffixes. Only
-  the three clips without MAIN registrations have usage comments, listing
-  their asset files and any other references. Regeneration preserves reviewed
-  clip names, so replacing a placeholder with a descriptive name needs no alias.
+  the three clips without MAIN registrations have notes, listing their asset
+  files and any other references. Regeneration preserves reviewed catalog
+  labels, with the C attack constants taking precedence for their IDs.
+
+The clip inventory is data for reference and tools. C keeps only the seven
+descriptive clip constants used by `ActATTACK`, as direct `#define`s. The
+original debug types use `short` for clip IDs; they provide no evidence for an
+`animation_clip` enum. This organization is a reconstruction choice, not a
+claim that the original headers used macros rather than enum constants.
 
 Regenerate and validate both sets with:
 
@@ -607,18 +614,19 @@ python3 -m unittest tools.tests.test_motion_catalog
 The catalog reads the retail executable, all **29 AMD**, **104 CAD**, and
 **13 ESD** files in `DATA.VOL`, and current MAIN C/header references. It
 resolves the AFS parent tree, so `HUMAN/MOTION` and `TRIAL/HUMAN/MOTION` remain
-distinct. Paths in comments are relative to `K:/WORK/CDIMAGE`. CAD usage
-includes both immediate and queued actor motions; the queued value zero means
+distinct. Paths in comments and catalog notes are relative to `K:/WORK/CDIMAGE`.
+CAD usage includes both immediate and queued actor motions; the queued value zero means
 `MOT_ENGAGE_STANCE`, not `MOT_NORMAL`. ESD status triggers and CAD position
 fields are not motion IDs. No retail ESD currently has a motion trigger.
 
 Of the 427 clips, 424 have MAIN registrations. `ANIM_018F` (399) occurs in
 `HUMAN/MOTION/STAGE10.AMD` and `TRIAL/HUMAN/MOTION/TRIAL5.AMD`; `ANIM_0202`
-(514) and `ANIM_0203` (515) occur in trial packs. Their comments say there is
+(514) and `ANIM_0203` (515) occur in trial packs. Their catalog notes say there is
 no **MAIN** registration, which does not establish that a trial clip is unused.
 The catalog covers evidenced IDs, not every integer between them; absent
 numeric slots are not assigned fictional motions. The checker rejects missing
-state names, malformed resources, and stale generated comments.
+state names, malformed resources, conflicting clip names/IDs, and stale
+generated comments or catalog rows.
 
 The `MOT_*` constants in `game_types.h` are reconstructed names, not enums
 recovered from `PSX.SYM`. Checking only setters and explicit `Act*` switch

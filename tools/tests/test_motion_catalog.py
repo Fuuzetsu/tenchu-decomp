@@ -39,6 +39,25 @@ class ScriptTests(unittest.TestCase):
 
 
 class ClipTests(unittest.TestCase):
+    def test_reviewed_catalog_names_survive_regeneration(self):
+        names = catalog.clip_names("id\tname\tnote\n"
+                                   "0x0001\tREVIEWED_POSE\t-\n"
+                                   "0x00ac\tATTACK_MOTID_TEPPO\t-\n")
+        clips = {clip: dict(name=name, reg={"registered"}, assets=set(), battle=set())
+                 for clip, name in names.items()}
+        self.assertEqual(catalog.clip_names(catalog.render_clips(clips, {})), names)
+        self.assertEqual(names, {1: "REVIEWED_POSE", 172: "ATTACK_MOTID_TEPPO"})
+
+    def test_invalid_catalog_rows_cannot_hide_clips(self):
+        for rows in ("0x0001\tANIM_0001\n",  # missing column
+                     "0x0001\tANIM_0001\t-\textra\n",
+                     "0x0001\tANIM_0001\t-\n1\tOTHER_NAME\t-\n",
+                     "0x0001\tSAME_NAME\t-\n0x0002\tSAME_NAME\t-\n",
+                     "0x8000\tOUT_OF_RANGE\t-\n",
+                     "0x0001\tinvalid name\t-\n"):
+            with self.subTest(rows=rows), self.assertRaises(ValueError):
+                catalog.clip_names("id\tname\tnote\n" + rows)
+
     def test_amd_ids_come_from_relocated_records_not_array_indices(self):
         data = struct.pack("<iII", 2, 12, 20)
         data += struct.pack("<4Bhh", 0, 0, 0, 0, 1, 475)
@@ -63,13 +82,14 @@ class ClipTests(unittest.TestCase):
 
 
 class SourceTests(unittest.TestCase):
-    def test_comments_and_strings_do_not_manufacture_c_uses(self):
+    def test_comments_strings_and_definitions_do_not_manufacture_c_uses(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             source = root / "src/main.exe"
             source.mkdir(parents=True)
             (source / "example.C").write_text('''
 /* MOT_FAKE */
+#define MOT_REAL 0x107
 void First(void)
 {
     Print("MOT_FAKE");
