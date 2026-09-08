@@ -2135,6 +2135,8 @@ void ActACTION(void)
     case MOT_ACTION_GESTURE:
     case MOT_ACTION_VARIANT_3:
     default:
+        /* Also handles the registered MOT_ACTION_VARIANT_8, _9, and _10.
+         * Explicit case labels would extend the original jump table. */
         if (dtM->count != 0)
             return;
         if (dtM->loop == 0)

@@ -1379,9 +1379,9 @@ enum motion_family
 };
 
 /* Specific motion ids (family | index). Invented names — none appear in
- * the demo symbols; each derived from the id's setter and handler arm
- * (see the Act* files). Family roots (0x100, 0x200, ...) keep their
- * MOT_* family names above. */
+ * the demo symbols; derived from setters, Act* handler arms, and the retail
+ * registration tables (HumanData[].mtbl / MOTcommon). Family roots
+ * (0x100, 0x200, ...) keep their MOT_* family names above. */
 enum
 {
     MOT_NORMAL_TURN_R = 0x001,    /* idle pivot (ActNORMAL) */
@@ -1394,6 +1394,12 @@ enum
     MOT_ACTION_FIDGET_A = 0x104,  /* random standing fidget (coin flip) */
     MOT_ACTION_FIDGET_B = 0x105,
     MOT_ACTION_NOTICE = 0x106,    /* guard spots the player */
+    /* Character-specific registered actions, handled by ActACTION's default
+     * arm. Both Rikimaru tables map these to animation ids 475, 476, 477.
+     * The variant numbers name the low-byte indices, not identified poses. */
+    MOT_ACTION_VARIANT_8 = 0x108,
+    MOT_ACTION_VARIANT_9 = 0x109,
+    MOT_ACTION_VARIANT_10 = 0x10a,
     MOT_MOVE_BACK = 0x201,
     MOT_MOVE_DASH_FWD = 0x202,
     MOT_MOVE_DASH_BACK = 0x203,

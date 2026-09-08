@@ -578,6 +578,32 @@ On the disc itself:
 `.TXT` entries are the memory-card description strings (`CARD_J.TXT` etc.); no `.BAT`,
 no `.EXE`, no `.SYM`. The demo is the single source.
 
+## Motion ids supplied by registration tables
+
+The `MOT_*` constants in `game_types.h` are reconstructed names, not enums
+recovered from `PSX.SYM`. Checking only setters and explicit `Act*` switch
+cases missed `0x0108`, `0x0109`, and `0x010a`: the retail `RIKIMARU_0`
+registration table at `0x80086cec` contains them at `0x80086ec4`,
+`0x80086ecc`, and `0x80086ed4`, mapped to animation ids 475, 476, and 477.
+`RIKIMARU_1`'s table at `0x80087194` has the same mappings. Ayame and several
+NPC tables also register these motion ids with character-specific animations.
+
+They are named `MOT_ACTION_VARIANT_8`, `MOT_ACTION_VARIANT_9`, and
+`MOT_ACTION_VARIANT_10`, following the existing variant convention. The suffix
+is the decimal low-byte index; the precise animation meanings remain
+unidentified. The retail `ActACTION` dispatch at `0x8001fbbc` only indexes its
+jump table for `0x100..0x106`, so all three reach the default arm at
+`0x8002007c`. That arm requests the normal or weapon-drawn stance when
+`count == 0 && loop != 0`.
+
+To audit coverage, use `tools/gamedata.py`'s `Image.rows("HumanData")` and
+`Image.motion_rows(mtbl)` to walk every character table, plus `MOTcommon`,
+through each table's `mid == -1` sentinel. Comparing their union to the
+`MOT_*` constants now covers all 119 distinct registered motion ids; these
+three were the only omissions. The default arm documents these variants in a
+comment: adding redundant case labels makes cc1 extend its jump table by four
+words, breaking the byte match despite identical C behavior.
+
 ## Array extents: retail grew them, and ours check out
 
 `symtypes.py` reports 15 arrays whose count differs from PSX.SYM's. All
