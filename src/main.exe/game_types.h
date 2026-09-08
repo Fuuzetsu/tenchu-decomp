@@ -5,6 +5,7 @@
 #include <psxsdk/libapi.h>
 #include <psxsdk/libcd.h>
 #include <psxsdk/libgpu.h>
+#include "motion_clips.h"
 //
 // This file is the round-trip unit with Ghidra: `tools/sync_to_ghidra.py`
 // pushes it into the Ghidra program; `tools/ghidra/ExportSymbolsTypes.java`
@@ -1362,11 +1363,19 @@ enum motion_family
     MOT_ENGAGE = 0x500,
     MOT_CHASE = 0x600,
     MOT_ATTACK = 0x700,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * Family base for ActSTATE only.
+     */
     MOT_STATE = 0x800,
     MOT_JUMP = 0x900,
     MOT_HANG = 0xA00,
     MOT_SQUAT = 0xB00,
     MOT_STICKON = 0xC00,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * Family base for ActCEILHANG only.
+     */
     MOT_CEILHANG = 0xD00,
     MOT_SYURI = 0xE00,
     /* MOT_ITEM sub-ids: +0 scatter makibishi, +1 drink/eat (kusuri,
@@ -1379,37 +1388,70 @@ enum motion_family
 };
 
 /* Specific motion ids (family | index). Invented names — none appear in
- * the demo symbols; derived from setters, Act* handler arms, and the retail
- * registration tables (HumanData[].mtbl / MOTcommon). Family roots
- * (0x100, 0x200, ...) keep their MOT_* family names above. */
+ * the demo symbols; derived from setters, Act* handler arms, cutscene scripts,
+ * and retail registration tables (HumanData[].mtbl / MOTcommon). Family roots
+ * (0x100, 0x200, ...) keep their MOT_* family names above. Only entries without
+ * MAIN registrations get generated usage comments (tools/motion_catalog.py).
+ * C references list literal uses; CAD actors include queued next motions.
+ * Animation clip IDs are in motion_clips.h. */
 enum
 {
     MOT_NORMAL_TURN_R = 0x001,    /* idle pivot (ActNORMAL) */
     MOT_NORMAL_TURN_L = 0x002,
     MOT_ACTION_LOOP = 0x101,      /* AI scripted idle, loops until pad */
     MOT_ACTION_GESTURE = 0x102,   /* AI scripted one-shot */
-    /* Character-specific registration-table variants whose behavior is only
-     * visible in their family handler; main.exe never requests them directly. */
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration.
+     * C references: MOTION.C (ActACTION).
+     * CAD actors: ANIM/STAGE10A.CAD (ANI); ANIM/STAGE3A.CAD (RIKIMARU_1);
+     * ANIM/STAGE7R.CAD (NINJA_0).
+     */
     MOT_ACTION_VARIANT_3 = 0x103,
     MOT_ACTION_FIDGET_A = 0x104,  /* random standing fidget (coin flip) */
     MOT_ACTION_FIDGET_B = 0x105,
     MOT_ACTION_NOTICE = 0x106,    /* guard spots the player */
-    /* Character-specific registered actions, handled by ActACTION's default
-     * arm. Both Rikimaru tables map these to animation ids 475, 476, 477.
-     * The variant numbers name the low-byte indices, not identified poses. */
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration.
+     * CAD actors: ANIM/STAGE11A.CAD (HIKONE); ANIM/STAGE11R.CAD (HIKONE).
+     */
+    MOT_ACTION_VARIANT_7 = 0x107,
     MOT_ACTION_VARIANT_8 = 0x108,
     MOT_ACTION_VARIANT_9 = 0x109,
     MOT_ACTION_VARIANT_10 = 0x10a,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActMOVE, ActNORMAL).
+     */
     MOT_MOVE_BACK = 0x201,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActMOVE, ActNORMAL).
+     */
     MOT_MOVE_DASH_FWD = 0x202,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActMOVE, ActNORMAL).
+     */
     MOT_MOVE_DASH_BACK = 0x203,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActMOVE, ActNORMAL).
+     */
     MOT_MOVE_DASH_RIGHT = 0x204,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActMOVE, ActNORMAL).
+     */
     MOT_MOVE_DASH_LEFT = 0x205,
     MOT_SWIM_EXIT = 0x301,
     MOT_SWIM_STROKE = 0x302,
     MOT_KAGI_FLY = 0x401,         /* hook in flight */
     MOT_KAGI_PULL = 0x402,        /* reel-in to the wall */
     MOT_ENGAGE_STANCE = 0x501,    /* weapon-drawn alert idle */
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActENGAGE).
+     */
     MOT_ENGAGE_VARIANT_2 = 0x502,
     MOT_ENGAGE_SHEATHE = 0x503,   /* stance exit into MOT_STATE_SHEATHE */
     MOT_ENGAGE_TURN_R = 0x504,
@@ -1420,7 +1462,15 @@ enum
     MOT_CHASE_DASH_LEFT = 0x606,
     MOT_CHASE_DASH_FWD = 0x607,   /* cancellable into lunge/roll */
     MOT_ATTACK_SLASH2 = 0x701,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActATTACK).
+     */
     MOT_ATTACK_SLASH2_RIGHT = 0x702,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActATTACK).
+     */
     MOT_ATTACK_SLASH2_LEFT = 0x703,
     MOT_ATTACK_SLASH3 = 0x704,
     MOT_ATTACK_SLASH4 = 0x705,
@@ -1444,6 +1494,10 @@ enum
     MOT_ATTACK_STEALTH_FRONT_AYAME = 0x718,
     MOT_ATTACK_STEALTH_SIDE_AYAME = 0x719,
     MOT_STATE_CLIMB = 0x801,
+    /* Unregistered (motion_catalog.py):
+     * No MAIN registration or CAD/ESD requests.
+     * C references: MOTION.C (ActSTATE).
+     */
     MOT_STATE_VARIANT_2 = 0x802,
     MOT_STATE_FALL = 0x803,
     MOT_STATE_LAND = 0x804,

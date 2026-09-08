@@ -578,7 +578,47 @@ On the disc itself:
 `.TXT` entries are the memory-card description strings (`CARD_J.TXT` etc.); no `.BAT`,
 no `.EXE`, no `.SYM`. The demo is the single source.
 
-## Motion ids supplied by registration tables
+## Motion ids supplied by registration tables and scripts
+
+The complete naming catalog has two separate ID spaces:
+
+* **132 `MOT_*` state IDs** in `src/main.exe/game_types.h`. Their high byte
+  selects the handler family. Generated comments are limited to the 13 states
+  without MAIN registrations, listing remaining C/script references or noting
+  that an ID is only a family base. Existing descriptive names are retained;
+  `VARIANT_*` names describe numeric indices where the intended pose is unknown.
+* **427 animation clip IDs** in `src/main.exe/motion_clips.h`. These are the
+  `MotionDataType.id` / `MotionRegistType.id` values, also used by `BattleDB`.
+  Seven keep their descriptive `ATTACK_MOTID_*` names directly in the enum;
+  the remaining 420 use `ANIM_*` placeholders with hexadecimal suffixes. Only
+  the three clips without MAIN registrations have usage comments, listing
+  their asset files and any other references. Regeneration preserves reviewed
+  clip names, so replacing a placeholder with a descriptive name needs no alias.
+
+Regenerate and validate both sets with:
+
+```console
+python3 tools/motion_catalog.py --write
+python3 tools/motion_catalog.py --check
+python3 -m unittest tools.tests.test_motion_catalog
+./Build check
+```
+
+The catalog reads the retail executable, all **29 AMD**, **104 CAD**, and
+**13 ESD** files in `DATA.VOL`, and current MAIN C/header references. It
+resolves the AFS parent tree, so `HUMAN/MOTION` and `TRIAL/HUMAN/MOTION` remain
+distinct. Paths in comments are relative to `K:/WORK/CDIMAGE`. CAD usage
+includes both immediate and queued actor motions; the queued value zero means
+`MOT_ENGAGE_STANCE`, not `MOT_NORMAL`. ESD status triggers and CAD position
+fields are not motion IDs. No retail ESD currently has a motion trigger.
+
+Of the 427 clips, 424 have MAIN registrations. `ANIM_018F` (399) occurs in
+`HUMAN/MOTION/STAGE10.AMD` and `TRIAL/HUMAN/MOTION/TRIAL5.AMD`; `ANIM_0202`
+(514) and `ANIM_0203` (515) occur in trial packs. Their comments say there is
+no **MAIN** registration, which does not establish that a trial clip is unused.
+The catalog covers evidenced IDs, not every integer between them; absent
+numeric slots are not assigned fictional motions. The checker rejects missing
+state names, malformed resources, and stale generated comments.
 
 The `MOT_*` constants in `game_types.h` are reconstructed names, not enums
 recovered from `PSX.SYM`. Checking only setters and explicit `Act*` switch
@@ -603,6 +643,23 @@ through each table's `mid == -1` sentinel. Comparing their union to the
 three were the only omissions. The default arm documents these variants in a
 comment: adding redundant case labels makes cc1 extend its jump table by four
 words, breaking the byte match despite identical C behavior.
+
+Registration coverage does not cover every script reference. Walking all 104
+retail `.CAD` files as 12-byte `CVAType` rows through `CVA_CMD_END`, checking
+both motion fields of `CVA_CMD_ACTOR`, finds one further unnamed id: `0x0107`.
+It occurs in `ANIM/STAGE11R.CAD` at offset `0x57c` and
+`ANIM/STAGE11A.CAD` at offset `0x540`. Both commands are in sequence 10 and
+request it for `HIKONE` (`0x8d`), with loop count 1 and next-motion field 0.
+It is now named `MOT_ACTION_VARIANT_7` to preserve the script evidence.
+
+No retail character table or `MOTcommon` registers `0x0107`. `UpdateMotion`
+therefore returns `MOTION_UPDATE_NOT_FOUND`, and `SetNowMotion` returns 0
+before changing the actor's status. `CVAupdate` ignores that return value and
+continues playback using the previous animation pointer. This looks like a
+stale script request; the intended animation is unknown. It does not establish
+an additional playable animation or a need to alter `ActACTION`. Including
+this script-only id leaves no unnamed nonnegative motion ids in the checked
+registration tables or `.CAD` actor commands.
 
 ## Array extents: retail grew them, and ours check out
 

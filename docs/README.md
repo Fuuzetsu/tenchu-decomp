@@ -81,6 +81,10 @@ decisions behind the toolchain. It's the reference companion to the terse
   can take the game's own name instead of one we invent; `--whatis <value>`
   searches every table at once and `--attack-ids` maps a MOT_ATTACK id to
   the characters and weapon that use it.
+  `tools/motion_catalog.py --check` checks all named motion states and AMD
+  clips against registrations, scripts, asset files, and C uses; `--write`
+  regenerates names and comments for unregistered entries in `game_types.h`
+  and `motion_clips.h`.
   `tools/symtypes.py` audits our declarations against the ones it recorded:
   bare, the global type mismatches; `--locals`, the 271 functions whose local
   set differs from the original's. A local we invented is the usual reason a
