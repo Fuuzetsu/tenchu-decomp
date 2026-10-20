@@ -1529,3 +1529,62 @@ helper that instead returns the caller's filename pointer directly into
 an unsigned left shift followed by an arithmetic right shift gives 136 / 25:
 the left shift moves to the block's beginning, but the right shift remains in
 the `sprintf` delay slot. None of these alternatives is adopted.
+
+### Subtitle argument-lifetime diagnostic — 2026-10-21
+
+A new source diagnostic reduces the subtitle residual to 136 / 6. With
+function-scope locals `int argument` and `int stage_number`, it replaces the
+promotion and formatting call after the conditional `vfree` with:
+
+```c
+argument = (unsigned int)stage << 16;
+stage_number = argument >> 16;
+argument = 'R';
+sprintf(filename, fmt_movie_subtitles,
+        MovieSubtitleDirectories[CHOSEN_LANGUAGE], stage_number, argument);
+```
+
+The overwrite of the left-shift carrier prevents combine from moving the
+right shift into the final `$a3` argument assignment. The two shifts now
+match retail, including their registers and their position immediately after
+the conditional release. The entire remaining difference is:
+
+| Retail order | Diagnostic order |
+| --- | --- |
+| `sll v0,s0,16` | `sll v0,s0,16` |
+| `sra a3,v0,16` | `sra a3,v0,16` |
+| `addiu a0,sp,24` | `li v0,82` |
+| `li v0,82` | `addiu a0,sp,24` |
+
+This is confirmed both by the standalone linked comparison and by compiling
+the complete MENU `MAIN.C` with `NON_MATCHING=MAIN`. The candidate is not
+adopted: explicitly shifting a short and reusing that carrier for a character
+does not yet provide the requested readable, exact implementation.
+
+The first scheduler does not raise the character load's priority through
+`birthing_insn_p`: its pseudo has multiple assignments. At the final tie
+between that load and the filename-address instruction, both have priority
+one, and their original order wins. The second scheduler preserves that
+order. Reusing the carrier for the language index instead gives 136 / 25;
+cast-based spellings return to 136 / 28. Moving declarations into narrower
+scopes, comma sequencing, and equivalent character-selection helpers do
+not resolve the six-byte pair.
+
+Naming the filename pointer causes it to survive across calls and adds an
+instruction (140 / 79), including when its source scope ends after `sprintf`.
+Inline file helpers with their own buffer and different stage/character
+parameter widths preserve the same residuals. Taking the stage's address or
+grouping the stage and suffix in a local structure introduces stack traffic.
+A fresh 90-second permuter run from the six-byte candidate reaches 2,909
+iterations without improving its initial score of 60.
+
+The original PsyQ 4.3/4.4 compilers and ASPSX 2.77/2.79 also retain
+`li v0,82; addiu a0,sp,24` in their objects. Thus the adjacent-pair residual
+is not a replacement-assembler reorder. Separately, a debugger-only control
+that suppresses the baseline SRA-to-argument combine gives 136 / 15:
+both shifts still use `$a3`, so blocking that combine alone is insufficient.
+No compiler modification or option change is adopted.
+
+The guarded source has been restored, and `./Build -j8 check-all` again
+passes all six complete images. Coverage remains 218 / 219 game routines
+and 81,116 / 81,252 bytes in exact C.

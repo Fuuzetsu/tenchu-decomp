@@ -412,6 +412,13 @@ screens register questions; scheduling/copy-survival answers do NOT transfer).
 Hard regs: 0 zero, 1 at, 2 v0, 3 v1, 4–7 a0–a3, 8–15 t0–t7, 16–23 s0–s7,
 24–25 t8/t9, 28 gp, 29 sp, 30 fp/s8, 31 ra.
 
+When assembling a diagnostic compilation, use `-da` without `-dp`. The latter
+appends instruction-pattern comments to assembly lines; these prevent the
+current maspsx `--gp-extern` handling from recognizing affected loads/stores
+and can introduce spurious `lui` instructions. `-dp` remains useful for
+reading an unassembled listing. Always rescore the ordinary compiler output,
+without diagnostic options, before attributing a byte difference to C.
+
 ### The escalation procedure (correct length, small residual, respelling failed)
 
 1. Locate the diverging instruction and what differs (register, offset,
