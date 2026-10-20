@@ -1252,7 +1252,7 @@ short LoadTIMpack(unsigned long *adr)
     adr = index->offsets;
     n = (short)hw;
     p = adr;
-    for (i = 0; i < n; i++)
+    for (i = 0; i < n; i++, adr++)
     {
         GsGetTimInfo(TIM_PACK_IMAGE(p, adr), &tim);
         setRECT(&rect, tim.px, tim.py, tim.pw, tim.ph);
@@ -1261,12 +1261,7 @@ short LoadTIMpack(unsigned long *adr)
         {
             setRECT(&rect, tim.cx, tim.cy, tim.cw, tim.ch);
             LoadImage(&rect, tim.clut);
-            /* Empty loop retained for code layout; its original source construct is unknown. */
-            do
-            {
-            } while (0);
         }
-        adr++;
     }
     DrawSync(0);
 }

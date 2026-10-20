@@ -28,6 +28,9 @@ byte-identical `main.exe`.
   persistent state. All twelve PADCMD routines are exact C. `ComPad` shares
   the digital-report decoder with MAIN despite their different pad-record
   layouts; this also removes MAIN's empty loop and identical-branch workaround.
+  MENU and MAIN's TIM-pack loader now advances its image index and offset-table
+  cursor together in the `for` header, removing another inherited empty loop
+  while preserving both complete 276-byte routines.
   All ten OPMOVIE streaming routines and all three EXECFILE routines are exact
   C. The boot handoff's indexed filename copy reproduces its pointer walk
   through compiler strength reduction.
@@ -745,6 +748,10 @@ mission_score(rest). Load-bearing EMPTY barriers
 (honest, DBG-readable) stay: LoadTIMpack, set_boot_exec_,
 SetupImageToPolyGT4/FT4, SearchTarget(85!), PlayVoice, ComPad,
 AttackShort(262!).
+
+Later resolution (2026-10-21): `LoadTIMpack` no longer needs its empty barrier.
+Moving its offset-cursor advance into the existing `for` header matches both
+MAIN and MENU; the full six-image check passes.
 
 CODEX ROUNDS 3-4 LANDED (2026-08-31): DrawTargetS zero-fence (sign-
 staged edges; ten cages gone; corner-locals structure proven

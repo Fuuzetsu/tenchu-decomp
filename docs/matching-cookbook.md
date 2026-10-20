@@ -2673,9 +2673,20 @@ LUID, barriers). The levers:
   load-bearing statement first, or wrap a no-load body in a fence
   (ReqItemStay; EVENT_OBJ). An empty `do{}while(0)` at the END of an if body
   flips reorg's prediction toward the TARGET thread (+1 COPY) — the flip has a
-  DIRECTION; check which outcome you need (LoadTIMpack wanted it; StickonCheck
+  DIRECTION; check which outcome you need (the old LoadTIMpack diagnostic
+  produced it; StickonCheck
   measured 90→90 because EQ already predicted 0; a brief once handed this rule
-  pointing the wrong way).
+  pointing the wrong way). This is diagnostic evidence, not a reason to retain
+  an empty source construct.
+- **Put related loop advances in the `for` header before adding control-flow
+  scaffolding.** MENU and MAIN's `LoadTIMpack` now use
+  `for (i = 0; i < n; i++, adr++)`. Both the image index and the offset-table
+  cursor advance once per image. This removes the inherited empty loop after
+  the optional palette upload and still matches all 276 bytes in both images.
+  Merely deleting the empty loop while leaving `adr++` in the body gives
+  272 bytes / 67 differing bytes: the palette-skip delay slot takes the RECT
+  address instead of `i + 1`. Advancing the cursor in the header restores the
+  retail slot and instruction count with ordinary control flow.
 - **`tools/sched-deps.py <Name> [--pass sched2]` reads the scheduler's
   decisions instead of hand-deriving them**: equal-priority group membership
   (who ties, which producer cost, which one-point demotion dissolves the

@@ -1588,3 +1588,24 @@ No compiler modification or option change is adopted.
 The guarded source has been restored, and `./Build -j8 check-all` again
 passes all six complete images. Coverage remains 218 / 219 game routines
 and 81,116 / 81,252 bytes in exact C.
+
+## MENU/MAIN LoadTIMpack — 2026-10-21
+
+The menu readability review found an inherited empty `do { } while (0)`
+after the optional CLUT upload in `LoadTIMpack`. Deleting it alone makes
+the function 272 bytes instead of 276, with 67 differing bytes. The
+palette-skip branch's delay slot then computes the RECT address rather
+than the next image index; the four-byte size change shifts the tail.
+
+The natural loop already has two advances: increment the image index and
+advance the offset-table cursor. Putting both in the `for` header,
+`for (i = 0; i < n; i++, adr++)`, restores the exact 276-byte function
+without the empty loop. The pixel upload, optional palette upload, and
+signed-short loop bound retain their behavior. An early `continue` for images
+without a palette also matches with that header, but the existing simple
+`if` is retained.
+
+Both MENU and MAIN now use this spelling. The standalone MENU comparison,
+the linked MAIN function comparison, and `./Build -j8 check-all` all pass;
+all six complete executables remain byte-identical. No macro or inline
+helper was needed.
