@@ -7,4 +7,24 @@
 /* This state survives executable replacement at a fixed protocol address. */
 #define MENU_STATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
+/* MENU retains the earlier 12-byte controller record. MAIN inserts an
+ * active flag before fAnalog and uses a different array stride. */
+typedef struct MenuPadPort
+{
+    u16 button;
+    s16 x;
+    s16 y;
+    u8 fAnalog;
+    u8 act1;
+    u8 act2;
+    u8 actbuf[PAD_ACTUATOR_COUNT];
+    u8 Send;
+} MenuPadPort;
+
+extern MenuPadPort MenuPads[PAD_PORT_COUNT][PAD_SLOTS_PER_PORT];
+
+short PlaySEHigh(SoundEffect *effect, short sound_id, long spatial_value);
+void StopSE(short channel);
+short FindSETone(SoundEffect *effect, short sound_id);
+
 #endif

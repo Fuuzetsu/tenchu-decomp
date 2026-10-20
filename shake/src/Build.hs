@@ -442,11 +442,13 @@ maspsxGpExterns :: FilePath -> [String]
 maspsxGpExterns src = extra (takeBaseName src) <>
   concat [["--gp-extern", s] | s <- syms (takeBaseName src) <> targetSyms]
   where
-    -- MENU's scalar spline evaluator caches four short coefficients.
-    -- MAIN's later GTE version instead caches a pointer to the Hermite row.
+    -- MENU retains separate small globals for its scalar spline coefficients
+    -- and the higher-pitched sound-effect voice counter.
     targetSyms
       | takeFileName (takeDirectory src) == "menu.exe" &&
         takeBaseName src == "ACTION" = ["SplineH00", "SplineH01", "SplineH10", "SplineH11"]
+      | takeFileName (takeDirectory src) == "menu.exe" &&
+        takeBaseName src == "AUDIO" = ["highVoice"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
@@ -611,6 +613,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     syms "AttackCancelControl" = ["Me_MOTION_C", "dtM"]
     syms "DoItemProc" = ["Item_fInitial"]
     syms "PADCMD" = ["ControlScheme"]
+    syms "FRONTEND" = ["MenuWideMode", "MenuFadeSprite", "MenuDrawCallback"]
     syms "debug_printf_" = ["AdtMsgPtr"]
     syms "set_fade_" = ["EFFECT_CURSOR_"]
     syms "set_impact_ex_" = ["EFFECT_CURSOR_"]

@@ -265,12 +265,16 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE now compiles its `VALLOC.C`, `FILEIO.C`, `IMAGES.C`, `OPAUDIO.C`,
-`ACTION.C`, and `MAIN.C` from C. FILEIO, IMAGES, and OPAUDIO include the
-existing engine implementations and link them against menu-specific symbols.
-VALLOC retains the menu's fatal-error message box; ACTION retains its scalar
-Hermite interpolation and missing-motion message; MAIN contains the title,
-character/mission selection, training, editor, and options dispatch.
+MENU.EXE has twelve recovered C modules. FILEIO, IMAGES, OPAUDIO, and MEMCARD
+include the existing engine implementations and link them against menu-specific
+symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
+menu's two playback pitches and full-volume effects. VALLOC retains the fatal
+message box, ACTION the scalar Hermite evaluator, FRONTEND the fade/skip and
+opening-movie loops, and MAIN the persistent-state defaults and screen dispatch.
+PADCMD explicitly models MENU's earlier 12-byte controller record instead of
+MAIN's 14-byte record. Eleven PADCMD routines match; `ComPad` remains guarded
+and is excluded from C coverage. `NON_MATCHING=PADCMD ./Build
+.shake/build/tenchu/menu.exe` compiles that draft for comparison.
 `config/translation-units.menu.exe.json` records the combined source owners.
 Both `tools/progress.py --target menu.exe` and the objdiff report use that
 manifest; included assembly fallbacks and missing shared sources do not count
@@ -282,7 +286,11 @@ MAIN build and permits differences only in actual object relocation operands;
 it does not mask arbitrary immediates as the discovery matcher does. Use
 `--function` for one member and `--size` to stop before a changed suffix.
 Its printed symbols are proposals, not a match verdict: compile the recovered
-C for the destination and run `./Build check-menu.exe`. `_gp` is already
+C for the destination and run `./Build check-menu.exe`. Confirm object layouts
+as well: one relocated field access cannot distinguish a moved object from a
+changed member offset. MENU's pad record needs its own type and array symbol;
+transferring MAIN's `PadPort` from just the analog-flag accessor would infer a
+base one byte before the real array. `_gp` is already
 defined by splat's linker script, so do not add a duplicate symbol when an
 actual object occupies that address. Remove superseded `D_` aliases when
 adopting a semantic name; the symbols file is also a GNU ld script and accepts

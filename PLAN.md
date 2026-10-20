@@ -10,18 +10,23 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its first six C modules
-  recover 60 functions / 15,196 bytes: allocator, file I/O, images, CD audio,
-  motion/splines, and the menu entry/dispatch loop. Three unchanged engine
-  modules share MAIN's readable implementations; menu-specific allocator
-  diagnostics, scalar spline evaluation, missing-motion diagnostics, and
-  startup/selection flow have their own C. `./Build check-menu.exe` gates the
+- **MENU.EXE decompilation is active (2026-10-20).** Its twelve C modules
+  recover 124 functions / 28,576 bytes: allocator, graphics, file I/O, images,
+  CD audio, sound effects, motion/splines, card-file I/O, most controller
+  handling, screen transitions, opening-movie playback, and startup/dispatch.
+  Four unchanged engine modules share MAIN's readable implementations.
+  Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
+  12-byte pad records, two playback pitches, fade/skip loops, and default
+  persistent state. `ComPad` remains a guarded 420-byte C draft: its digital
+  button path has a compiler copy/branch mismatch; the other eleven PADCMD
+  routines are exact. Compile that draft with `NON_MATCHING=PADCMD`.
+  `./Build check-menu.exe` gates the
   full menu image; `tools/progress.py --target menu.exe` reports current source
-  coverage. The 833-row scaffold inventory is coarse: some remaining rows
+  coverage. The 846-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 10,944-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
-  discovery. Remaining work includes graphics, controller input, streaming
-  movies, card/UI state machines, title/character/mission/options screens,
+  discovery. Remaining work includes the controller draft, streaming decoder,
+  card/UI state machines, title/character/mission/options screens,
   font/telop code, and the inherited SDK/assembly boundary audit. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.

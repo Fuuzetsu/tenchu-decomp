@@ -29,6 +29,7 @@ void SsSetStereo(void);
 short SsUtKeyOnV(short voice, short vab_id, short program, short tone,
                   short note, short fine, short volume_left,
                   short volume_right);
+short SsUtKeyOffV(short voice);
 short SsUtAutoPan(short voice, short start, short end, short duration);
 void SsUtAllKeyOff(short mode);
 

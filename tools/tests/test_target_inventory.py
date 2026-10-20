@@ -32,7 +32,9 @@ class TargetInventoryTests(unittest.TestCase):
             )
             (source / "MODULE.C").write_text('#include "implementation.inc"\n')
             (source / "implementation.inc").write_text(
-                'void First(void) {}\nINCLUDE_ASM("x", Second);\n'
+                'void First(void) {}\n#ifndef NON_MATCHING\n'
+                'INCLUDE_ASM("x", Second);\n#else\n'
+                'void Second(void) {}\n#endif\n'
             )
             (source / "Uncarved.c").write_text("void Uncarved(void) {}\n")
             functions, matched, sources = load_target_units("menu.exe", root)
@@ -40,20 +42,19 @@ class TargetInventoryTests(unittest.TestCase):
             self.assertEqual(matched, {0x80011000})
             self.assertEqual(sources[0x80011000], str(source / "MODULE.C"))
 
-    def test_live_menu_modules_have_contiguous_reviewed_members(self):
+    def test_live_menu_modules_have_contiguous_members(self):
         from tools import source_units as su
 
-        functions, matched, _ = load_target_units("menu.exe", su.ROOT)
+        functions, _, _ = load_target_units("menu.exe", su.ROOT)
         by_name = {n: (a, s) for a, s, n in functions}
         units = su.load_units(su.ROOT / "config/translation-units.menu.exe.json")
         for unit in units:
+            self.assertTrue((su.ROOT / "src/menu.exe" / unit.source).is_file())
             for left, right in zip(unit.functions, unit.functions[1:]):
                 self.assertEqual(
                     sum(by_name[left]), by_name[right][0],
                     f"{unit.source}: gap between {left} and {right}",
                 )
-            for name in unit.functions:
-                self.assertIn(by_name[name][0], matched)
 
 
 if __name__ == "__main__":
