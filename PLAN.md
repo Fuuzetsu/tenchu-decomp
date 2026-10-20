@@ -33,8 +33,9 @@ byte-identical `main.exe`.
   while preserving both complete 276-byte routines.
   Their allocators now express split-block arithmetic in words and use the
   block-in-use constant directly, removing three matching-only temporaries.
-  Both 460-byte routines remain exact; the allocator's inherited empty-loop
-  boundary is still unresolved. All six image checks and the normal-link
+  Advancing the split cursor before reading the old header also removes the
+  allocator's inherited empty loop and exit label. A normal free-list `for`
+  loop matches both complete 460-byte routines. All six image checks and the normal-link
   relocation/growth checks pass after updating the latter for C-owned THINK data.
   All ten OPMOVIE streaming routines and all three EXECFILE routines are exact
   C. The boot handoff's indexed filename copy reproduces its pointer walk

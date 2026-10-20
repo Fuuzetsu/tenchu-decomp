@@ -55,39 +55,29 @@ void *valloc(u32 size)
         size += 4;
     size >>= 2;
 
-    vmpt = (u32 *)virtual_memory_pool;
-    if (vmpt != 0)
+    for (vmpt = (u32 *)virtual_memory_pool; vmpt != 0;
+         vmpt = (u32 *)vhp->next)
     {
-        do
+        vhp = (struct VMhead *)vmpt;
+        if (!(vmpt[0] & VMEM_BLOCK_IN_USE) && size <= vmpt[0])
         {
-            vhp = (struct VMhead *)vmpt;
-            if (!(vmpt[0] & VMEM_BLOCK_IN_USE) && size <= vmpt[0])
+            if (vmpt[0] - size < VMEM_MIN_SPLIT_SLACK)
             {
-                if (vmpt[0] - size < VMEM_MIN_SPLIT_SLACK)
-                {
-                    /* The unreachable empty loop preserves a control-flow boundary whose source form is unknown. */
-                    vmpt[0] |= VMEM_BLOCK_IN_USE;
-                    vmpt = vmpt + VMEM_HEADER_WORDS;
-                    goto search_done;
-                    do
-                    {
-                    } while (0);
-                }
-                else
-                {
-                    vh.size = vhp->size - size - VMEM_HEADER_WORDS;
-                    vh.next = vhp->next;
-                    vmpt += size + VMEM_HEADER_WORDS;
-                    vhp->size = size | VMEM_BLOCK_IN_USE;
-                    vhp->next = (struct VMhead *)vmpt;
-                    *(struct VMhead *)vmpt = vh;
-                    vmpt = (u32 *)(vhp + 1);
-                }
-                break;
+                vmpt[0] |= VMEM_BLOCK_IN_USE;
+                vmpt = vmpt + VMEM_HEADER_WORDS;
             }
-            vmpt = (u32 *)vhp->next;
-        } while (vmpt != 0);
-    search_done:
+            else
+            {
+                vmpt += size + VMEM_HEADER_WORDS;
+                vh.size = vhp->size - size - VMEM_HEADER_WORDS;
+                vh.next = vhp->next;
+                vhp->size = size | VMEM_BLOCK_IN_USE;
+                vhp->next = (struct VMhead *)vmpt;
+                *(struct VMhead *)vmpt = vh;
+                vmpt = (u32 *)(vhp + 1);
+            }
+            break;
+        }
     }
 
     if (vmpt == 0)

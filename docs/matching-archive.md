@@ -1620,8 +1620,8 @@ operation and advancing the split cursor with
 invariants itself. Both complete 460-byte functions remain exact, with fewer
 locals and no byte-pointer cast in the split calculation.
 
-The inherited unreachable empty loop is still present and explicitly marked
-as unresolved. Removing it loses the split branch's fresh header-size load
+The first arithmetic cleanup retained the inherited unreachable empty loop,
+explicitly marked as unresolved. Removing it loses the split branch's fresh header-size load
 and produces 448 bytes / 229 differing bytes. Ordinary guard, loop, and
 early-exit variations did not recover the target. A meaningful allocation
 helper produced 460 bytes / 89 differing bytes with a caller-owned temporary,
@@ -1633,3 +1633,36 @@ the normal-link manifest's stale raw `ThinkDB` entries and narrowly reviewing
 two numeric windows in the C-owned attack-distance arrays. All six images
 are exact, the input/final-image audits report zero findings, and the ordinary
 GNU-ld `+0x10004` growth proof passes. The 96 focused relocation tests pass.
+
+### Allocator control-flow resolution
+
+The remaining workaround was also caused by statement order. Advancing
+`vmpt` to the new free block **before** reading the saved `vhp` header
+preserves both the required reload and the original header-pointer register.
+The split arm is now:
+
+```c
+vmpt += size + VMEM_HEADER_WORDS;
+vh.size = vhp->size - size - VMEM_HEADER_WORDS;
+vh.next = vhp->next;
+vhp->size = size | VMEM_BLOCK_IN_USE;
+vhp->next = (struct VMhead *)vmpt;
+*(struct VMhead *)vmpt = vh;
+vmpt = (u32 *)(vhp + 1);
+```
+
+With those ordinary operations, the entire 460-byte MENU function matches
+without the empty loop. The `goto` and exit label are also unnecessary:
+a `for` loop walks the free list, and a common `break` follows the whole-block
+and split branches. A plain `while` loop also matches. The `for` form is
+adopted in MAIN and MENU.
+
+The CSE dumps explain the earlier failure: leaving the cursor unchanged let
+the first pass forward the earlier header-size subtraction into the split
+arm. The old unreachable loop suppressed that optimization. Merely storing
+`vh.next` before `vh.size` recovered the reload and length but left 24 differing
+bytes; the cursor advance fixes the complete instruction order naturally.
+
+Both linked function comparisons and `./Build -j8 check-all check-relink`
+pass. All six images remain exact, and the normal allocator rewrite and
+complete `+0x10004` growth proof still pass.

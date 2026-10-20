@@ -2175,8 +2175,17 @@ irreducible nest: DrawConstruction's 3.
   displacement, mask, and tagged size itself; the former `off`, `mask`, and
   `tag` locals are unnecessary. Both complete 460-byte functions stay exact.
   `vmpt = vmpt + size + VMEM_HEADER_WORDS` associates the two pointer additions
-  differently and produced 456 bytes in this case. This cleanup does not
-  resolve the inherited empty-loop boundary in the whole-block branch.
+  differently and produced 456 bytes in this case.
+- **Advance a reused cursor before reading through its saved header pointer
+  when that is the natural operation order.** `valloc` first sets
+  `vhp = (struct VMhead *)vmpt`. In the split arm, moving
+  `vmpt += size + VMEM_HEADER_WORDS` before both `vh` field assignments
+  preserves the old-header reloads and matches all 460 bytes. Keeping that
+  advance after the reads allowed CSE to reuse the earlier free-size
+  calculation, producing 448 bytes. This ordinary pointer-lifetime change
+  removes the old empty loop and `goto`; a single free-list `for` loop with
+  one common `break` matches in both MAIN and MENU. Reordering just the two
+  field assignments instead recovered the length but left 24 differing bytes.
 - **Split vs unsplit is the DECLARATION** (compiler-facts): a two-register
   `lui %hi / addiu %lo` needs a non-small decl (`extern T SYM[];` — the
   `extern-array` rule sweeps it, gp-aware); an interleaved hi/lo pair is the
