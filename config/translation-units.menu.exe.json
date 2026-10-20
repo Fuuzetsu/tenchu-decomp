@@ -220,6 +220,29 @@
         "ClearMenuPages",
         "EmptyMenuCallback"
       ]
+    },
+    {
+      "source": "OPMOVIE.C",
+      "functions": [
+        "DecodeMovieFrame",
+        "strCallback",
+        "strNext",
+        "open_stream",
+        "close_stream",
+        "strSetDefDecEnv",
+        "strInit",
+        "strNextVlc",
+        "strSync",
+        "strKickCD"
+      ]
+    },
+    {
+      "source": "EXECFILE.C",
+      "functions": [
+        "run_exec_file",
+        "set_boot_exec_",
+        "LoadExecFromHost"
+      ]
     }
   ]
 }

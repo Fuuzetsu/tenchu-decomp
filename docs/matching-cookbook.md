@@ -774,6 +774,18 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   spelling is the scheduler's interleave and is byte-required. Test each;
   adjudicate the failures in place.
 
+- **Equivalent arithmetic can retain different stack frames.** MENU's
+  `DecodeMovieFrame` and `strCallback` both compute a DMA word count as
+  `width * (((height - 1) / 16 + 1) * 16) / 2`. Replacing the final division
+  with `>> 1` produces the same arithmetic instructions in these functions
+  but shrinks each frame by eight bytes. The ordinary division reproduces
+  the original frame without artificial padding. Check the full function,
+  including its frame, before simplifying an apparently redundant operation.
+  In the callback, taking `id = dec.imgid` before copying `dec.slice` also
+  preserves the original buffer-swap copy; reversing those statements
+  removes one instruction. A bounded permuter found that ordinary
+  statement-order change; the complete linked image verified it.
+
 - **Off-by-one bounds are `<=`/`>` in disguise**: the decompiler renders
   `x <= N` as `x < N+1` and `x > N` as `x >= N+1` (slti encodings are
   identical), which hides round thresholds behind odd constants — 0x7531

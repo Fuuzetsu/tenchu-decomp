@@ -54,6 +54,14 @@ vendor or download the SDK. It must preserve the header order above, overlay
 only target-proven exceptions, and finish with `./Build check`. The default
 hermetic build should continue to use the clean minimal shims.
 
+MENU's streaming and host-loader work also checked the small `libpress.h`,
+`libcd.h`, and `kernel.h` declarations against a separate PsyQ 4.6 header
+reference and the demo's recorded `DECENV`, `StHEADER`, `DECDCTTAB`, and
+`XF_HDR` types. The shims expose only the interfaces used here. In particular,
+`DecDCToutCallback` returns `int`, `DecDCTvlc2` receives a `DECDCTTAB` array
+parameter, and the stream reader is `CdRead2`. No reference headers are
+included in the repository or fetched by the build.
+
 The same external installation may supply original `.LIB`/`.OBJ` members to an
 opt-in relocatable build. Headers and library objects solve different problems:
 the shims give game C accurate types, while converted objects retain the SDK

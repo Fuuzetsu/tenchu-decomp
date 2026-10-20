@@ -455,6 +455,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     -- in the image can change.
     extra "CONFLICT" = ["--expand-div"]
     extra "ACTION" = ["--expand-div"]
+    extra "OPMOVIE" = ["--expand-div"]
     extra "3DCTRL" = ["--expand-div"]
     extra "PADCMD" = ["--expand-div"]
     extra "EFFECT" = ["--expand-div"]
@@ -539,6 +540,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     syms "SetBleedsDir" = ["EFFECT_CURSOR_"]
     syms "spawn_damage_effect_" = ["EFFECT_CURSOR_"]
     syms "AUDIO" = ["voice"]
+    syms "OPMOVIE" = ["MovieFrame", "MovieReadMode", "MovieFirstSlice", "MovieWidth", "MovieHeight", "MovieRing", "vlcbuf0", "vlcbuf1", "imgbuf0", "imgbuf1"]
     syms "SetupTexScroll" = ["EFFECT_CURSOR_", "TexScrollX", "TexScrollY"]
     syms "CHRANIM" = ["CVAdata", "CVAnow", "CameraTarget", "CVAflag", "CVAtime", "CameraPanMode", "CameraSpeed"]
     -- PutItemList.c is also part of the info-view TU; it defines/uses both

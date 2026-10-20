@@ -265,13 +265,17 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE has twelve combined C modules and additional shared helpers.
+MENU.EXE has fourteen combined C modules and additional shared helpers.
 FILEIO, IMAGES, OPAUDIO, and MEMCARD
 include the existing engine implementations and link them against menu-specific
 symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
 menu's two playback pitches and full-volume effects. VALLOC retains the fatal
 message box, ACTION the scalar Hermite evaluator, FRONTEND the fade/skip and
 opening-movie loops, and MAIN the persistent-state defaults and screen dispatch.
+OPMOVIE recovers all ten streaming helpers, including the RGB24 CD-interrupt
+callback, slice buffering, VLC decode, and timeouts. EXECFILE recovers the CD
+launcher and host loader; its boot-handoff draft retains an assembly fallback
+for an eight-byte instruction-order difference (`NON_MATCHING=EXECFILE`).
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with

@@ -10,27 +10,31 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its twelve combined C
-  modules and shared helpers recover 168 functions / 41,184 bytes:
+- **MENU.EXE decompilation is active (2026-10-20).** Its fourteen combined C
+  modules and shared helpers recover 180 functions / 43,580 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
   archives, CD-file access, debug display, card-screen prompts, fonts/telop,
-  score calculation, and cheat-command recognition.
+  score calculation, cheat-command recognition, movie streaming, and the
+  CD/host executable loaders.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
   persistent state. `ComPad` remains a guarded 420-byte C draft: its digital
   button path has a compiler copy/branch mismatch; the other eleven PADCMD
   routines are exact. Compile that draft with `NON_MATCHING=PADCMD`.
+  All ten OPMOVIE streaming routines are exact C. EXECFILE's boot handoff
+  helper remains guarded for an eight-byte instruction-order difference;
+  compile its draft with `NON_MATCHING=EXECFILE`.
   `./Build check-menu.exe` gates the
   full menu image; `tools/progress.py --target menu.exe` reports current source
-  coverage. The 850-row scaffold inventory is coarse: some remaining rows
+  coverage. The 852-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 10,320-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
-  discovery. Remaining work includes the controller draft, streaming decoder,
+  discovery. Remaining work includes the controller and boot-handoff drafts,
   menu-specific card/UI state machines, title/character/mission/options screens,
-  executable loaders, and the inherited SDK/assembly boundary audit. Shared-code
+  and the inherited SDK/assembly boundary audit. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.
 - **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a

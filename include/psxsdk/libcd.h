@@ -84,6 +84,21 @@ typedef struct
     u_char name[16];
 } CdlFILE;
 
+typedef struct
+{
+    u_short id;
+    u_short type;
+    u_short secCount;
+    u_short nSectors;
+    u_long frameCount;
+    u_long frameSize;
+    u_short width;
+    u_short height;
+    u_long dummy1;
+    u_long dummy2;
+    CdlLOC loc;
+} StHEADER;
+
 int CdInit(void);
 int CdLastCom(void);
 void CdFlush(void);
@@ -96,7 +111,17 @@ int CdGetSector(void *address, int size);
 int CdPosToInt(CdlLOC *position);
 int CdReady(int mode, u_char *result);
 EXEC *CdReadExec(u_char *name);
+int CdRead2(long mode);
 int CdReadSync(int mode, u_char *result);
 int CdSync(int mode, u_char *result);
+
+void StSetRing(u_long *buffer, u_long sectors);
+void StUnSetRing(void);
+void StSetStream(u_long mode, u_long start, u_long end,
+                 void (*callback)(void), void (*callback2)(void));
+u_long StGetNext(u_long **address, u_long **header);
+u_long StFreeRing(u_long *address);
+void StCdInterrupt(void);
+extern int StCdIntrFlag;
 
 #endif
