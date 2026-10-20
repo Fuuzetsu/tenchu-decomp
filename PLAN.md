@@ -58,12 +58,17 @@ byte-identical `main.exe`.
   assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
+  Its reviewed game/SDK split puts 213 of 219 identified game/engine routines
+  in exact C (73,764 / 81,252 bytes). Six readable C drafts remain guarded:
+  ComPad, DrawTitleSprites, UpdateChoiceOptions, LoadMovieSubtitles,
+  SetupMissionSprites, and SetupMenuImageGrid. SDK/CRT begins with Exec at
+  `0x80027824`; the remaining 641 scaffold rows are library code.
   The 860-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 9,792-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
   discovery. Remaining work includes those guarded drafts,
   verification of the leading text/data inventory,
-  and the inherited SDK/assembly boundary audit. Shared-code
+  and refinement of the inherited SDK inventory. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.
 - **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a

@@ -8,6 +8,32 @@ except ModuleNotFoundError:
     import source_units as SU
 
 
+# MENU's game/engine span ends at AdtSelect; Exec starts the SDK/CRT span.
+# See docs/build-system.md for the binary comparison and call-target audit.
+SDK_STARTS = {"menu.exe": 0x80027824}
+
+
+def code_buckets(target, functions, matched):
+    """Split reviewed targets without changing their whole-image totals."""
+    if target not in SDK_STARTS:
+        return {}
+    boundary = SDK_STARTS[target]
+    buckets = {
+        name: {"fns": 0, "fns_matched": 0, "bytes": 0, "bytes_matched": 0}
+        for name in ("game", "sdk")
+    }
+    for address, size, name in functions:
+        if address < boundary < address + size:
+            raise ValueError(f"{target}: {name} crosses the game/SDK boundary")
+        bucket = buckets["game" if address < boundary else "sdk"]
+        bucket["fns"] += 1
+        bucket["bytes"] += size
+        if address in matched:
+            bucket["fns_matched"] += 1
+            bucket["bytes_matched"] += size
+    return buckets
+
+
 def textbin_bytes(config):
     """Count raw spans, including boundaries supplied by inline rodata entries."""
     segments = []

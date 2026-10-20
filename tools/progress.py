@@ -20,7 +20,7 @@ import argparse, json, os, re
 
 import function_inventory as FI
 import source_units as SU
-from target_inventory import load_target_units, textbin_bytes
+from target_inventory import code_buckets, load_target_units, textbin_bytes
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -165,11 +165,17 @@ def report_target(target, as_json):
     result["uncarved_textbin_bytes"] = textbin_bytes(
         open(f"config/splat.{target}.yaml").read()
     )
+    buckets = code_buckets(target, functions, matched)
+    result.update(buckets)
     if as_json:
         print(json.dumps(result, indent=2))
         return
     print(f"{target}: {len(complete)}/{len(functions)} identified functions "
           f"compile from C; {result['bytes_matched']}/{result['bytes']} bytes")
+    for name, bucket in buckets.items():
+        print(f"  {'Game/engine' if name == 'game' else 'SDK/CRT'}: "
+              f"{bucket['fns_matched']}/{bucket['fns']} functions; "
+              f"{bucket['bytes_matched']}/{bucket['bytes']} bytes from C")
     print(f"Raw textbin outside that inventory: "
           f"{result['uncarved_textbin_bytes']} bytes")
     print("matched:", ", ".join(result["matched_names"]))

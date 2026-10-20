@@ -3,10 +3,31 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.target_inventory import load_target_units, textbin_bytes
+from tools.target_inventory import SDK_STARTS, code_buckets, load_target_units, textbin_bytes
 
 
 class TargetInventoryTests(unittest.TestCase):
+    def test_sdk_boundary_preserves_unmatched_functions_in_each_bucket(self):
+        boundary = SDK_STARTS["menu.exe"]
+        functions = [
+            (boundary - 16, 8, "Complete"),
+            (boundary - 8, 8, "Draft"),
+            (boundary, 16, "Sdk"),
+        ]
+        buckets = code_buckets("menu.exe", functions, {boundary - 16})
+        self.assertEqual(buckets["game"], {
+            "fns": 2, "fns_matched": 1, "bytes": 16, "bytes_matched": 8,
+        })
+        self.assertEqual(buckets["sdk"], {
+            "fns": 1, "fns_matched": 0, "bytes": 16, "bytes_matched": 0,
+        })
+        self.assertEqual(code_buckets("trial.exe", functions, set()), {})
+
+    def test_inventory_cannot_straddle_reviewed_sdk_boundary(self):
+        boundary = SDK_STARTS["menu.exe"]
+        with self.assertRaisesRegex(ValueError, "crosses the game/SDK boundary"):
+            code_buckets("menu.exe", [(boundary - 4, 8, "Unsplit")], set())
+
     def test_compiler_jump_tables_end_raw_textbin_spans(self):
         config = (
             "      - [0x800, textbin]\n"

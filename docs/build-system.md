@@ -326,6 +326,21 @@ Both `tools/progress.py --target menu.exe` and the objdiff report use that
 manifest; included assembly fallbacks and missing shared sources do not count
 as C.
 
+MENU's reviewed game/SDK boundary is `0x80027824`, immediately after
+AdtSelect. Exec and Krom2RawAdd match MAIN's BIOS thunks byte-for-byte there,
+followed by matching PCopen/PCclose/PClseek/PCcreat host-I/O entries. The SDK/CRT
+span continues to `0x800503e4`; its only direct call back into the game/engine
+span is the CRT call to `main` at `0x80027964`. The leading strings/tables have
+no `jr ra` or negative stack-adjustment instructions; their unowned raw bytes
+remain visible separately rather than being counted as recovered functions.
+`tools/target_inventory.py` records this boundary, and `tools/progress.py`
+reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
+The identified game/engine inventory has 219 routines / 81,252 bytes; 213
+routines / 73,764 bytes are exact C. The six guarded drafts are ComPad,
+DrawTitleSprites, UpdateChoiceOptions, LoadMovieSubtitles, SetupMissionSprites,
+and SetupMenuImageGrid. The remaining 641 scaffold rows / 166,848 bytes belong
+to the SDK/CRT span; those coarse rows are not a precise library function count.
+
 For additional shared modules, `python3 tools/shared_symbols.py FILEIO --at
 0x80015f74` demonstrates the address-recovery check. It requires a matching
 MAIN build and permits differences only in actual object relocation operands;

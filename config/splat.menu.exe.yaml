@@ -118,6 +118,7 @@ segments:
       - [0x16c88, c, debug_printf_]
       - [0x16cd8, c, debug_msg_open_]
       - [0x16d1c, c, AdtSelect]
+      # SDK/CRT starts here with the Exec BIOS thunk (VRAM 0x80027824).
       - [0x17024, c, FUN_80027824]
       - [0x17034, c, FUN_80027834]
       - [0x17044, c, FUN_80027844]
