@@ -583,7 +583,7 @@ short UpdateChoiceOptions(short mode)
             ChoiceOptionFirst = 0;
             ChoiceOptionCount = N_LANGUAGES;
             ChoiceOptionSelection = ChoicePreviousLanguage = MENU_STATE->language;
-            if (ChoiceOptionSelection >= N_LANGUAGES)
+            if ((unsigned)ChoiceOptionSelection >= N_LANGUAGES)
                 ChoiceOptionSelection = LANG_JAPANESE;
             ChoiceOptionSelection =
                 ChoiceOptionSelection == LANG_JAPANESE ? 0 : ChoiceOptionSelection + 1;
