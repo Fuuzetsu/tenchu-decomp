@@ -198,3 +198,9 @@ short UpdateLoadCardScreen(int buttons)
     LoadCardState += draw_card_help_(LoadCardPage, buttons);
     return 0;
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char path_demo_start_card_j[] = "K:\\WORK\\CDIMAGE\\DEMO\\start\\card_j.txt";
+char path_demo_start_mcard_tim[] = "K:\\WORK\\CDIMAGE\\DEMO\\start\\mcard.tim";
+char path_demo_start_mbuttonj_tim[] = "K:\\WORK\\CDIMAGE\\DEMO\\start\\mbuttonj.tim";
+char path_demo_start_xtoselj_tim[] = "K:\\WORK\\CDIMAGE\\DEMO\\start\\xtoselj.tim";

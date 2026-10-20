@@ -780,3 +780,11 @@ short GetTIMpackInfo(unsigned long *adr, GsIMAGE *image, int idx)
     GsGetTimInfo(TIM_PACK_IMAGE(offsets, cursor), image);
     return 1;
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char msg_bad_skip_mode[] = "bad skip mode";
+char msg_no_model_archive_data[] = "NO MODEL ARCHIVE DATA";
+char msg_no_source_model_archive[] = "NO SOURCE MODEL ARCHIVE DATA";
+char msg_no_background_image_data[] = "NO BACKGROUND IMAGE DATA";
+char msg_no_image_data[] = "NO IMAGE DATA";
+char msg_no_image_pack_data[] = "NO IMAGE PACK DATA";

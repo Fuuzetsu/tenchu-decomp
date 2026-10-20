@@ -86,13 +86,13 @@
 0x80011e7e	0x80011e80	2	zero-fill		purpose unspecified
 0x80011e80	0x80011e98	24	ascii-string	msg_movie_decode_timeout	"time out in decoding !\n"
 0x80011e98	0x80011eac	20	ascii-string	msg_sound_setup_failure	"SOUND SETUP FAILURE"
-0x80011eac	0x80011ec3	23	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\"
+0x80011eac	0x80011ec3	23	ascii-string	StageSoundJapaneseDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\"
 0x80011ec3	0x80011ec4	1	zero-fill		purpose unspecified
-0x80011ec4	0x80011ee3	31	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\ITALIAN\\"
+0x80011ec4	0x80011ee3	31	ascii-string	StageSoundItalianDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\ITALIAN\\"
 0x80011ee3	0x80011ee4	1	zero-fill		purpose unspecified
-0x80011ee4	0x80011f02	30	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\FRENCH\\"
+0x80011ee4	0x80011f02	30	ascii-string	StageSoundFrenchDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\FRENCH\\"
 0x80011f02	0x80011f04	2	zero-fill		purpose unspecified
-0x80011f04	0x80011f23	31	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\ENGLISH\\"
+0x80011f04	0x80011f23	31	ascii-string	StageSoundEnglishDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\ENGLISH\\"
 0x80011f23	0x80011f24	1	zero-fill		purpose unspecified
 0x80011f24	0x80011f34	16	ascii-string	fmt_stage_vab	"%sSTAGE%d%c.VAB"
 0x80011f34	0x80011f5a	38	ascii-string	path_menu_fade	"K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim"
@@ -100,13 +100,13 @@
 0x80011f5c	0x80011f80	36	ascii-string	path_title_archive	"K:\\WORK\\CDIMAGE\\DEMO\\open\\title.arc"
 0x80011f80	0x80011f84	4	zero-fill		purpose unspecified
 0x80011f84	0x80011fb8	52	switch-table	RunTitleMenu	LUI reference 0x80019770
-0x80011fb8	0x80011fdf	39	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_j.arc"
+0x80011fb8	0x80011fdf	39	ascii-string	CharacterJapaneseArchive	"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_j.arc"
 0x80011fdf	0x80011fe0	1	zero-fill		purpose unspecified
-0x80011fe0	0x80012007	39	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_i.arc"
+0x80011fe0	0x80012007	39	ascii-string	CharacterItalianArchive	"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_i.arc"
 0x80012007	0x80012008	1	zero-fill		purpose unspecified
-0x80012008	0x8001202f	39	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_f.arc"
+0x80012008	0x8001202f	39	ascii-string	CharacterFrenchArchive	"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_f.arc"
 0x8001202f	0x80012030	1	zero-fill		purpose unspecified
-0x80012030	0x80012057	39	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_e.arc"
+0x80012030	0x80012057	39	ascii-string	CharacterEnglishArchive	"K:\\WORK\\CDIMAGE\\DEMO\\player\\play_e.arc"
 0x80012057	0x80012058	1	zero-fill		purpose unspecified
 0x80012058	0x8001207b	35	ascii-string	path_menu_rikimaru_texture	"K:\\WORK\\CDIMAGE\\HUMAN\\rikimaru.tpd"
 0x8001207b	0x8001207c	1	zero-fill		purpose unspecified
@@ -127,9 +127,9 @@
 0x800121db	0x800121dc	1	zero-fill		purpose unspecified
 0x800121dc	0x800121eb	15	ascii-string	fmt_missing_motion_id	"no-assign [%d]"
 0x800121eb	0x800121ec	1	zero-fill		purpose unspecified
-0x800121ec	0x800121f9	13	ascii-string		"BISLPS-00000"
+0x800121ec	0x800121f9	13	ascii-string	CardDevelopmentProductId	"BISLPS-00000"
 0x800121f9	0x800121fc	3	zero-fill		purpose unspecified
-0x800121fc	0x80012209	13	ascii-string		"BISLPS-01901"
+0x800121fc	0x80012209	13	ascii-string	CardRetailProductId	"BISLPS-01901"
 0x80012209	0x8001220c	3	zero-fill		purpose unspecified
 0x8001220c	0x80012221	21	shift-jis-string	str_sjis_title	"Ｔｅｎｃｈｕ−忍凱旋"
 0x80012221	0x80012224	3	zero-fill		purpose unspecified
@@ -153,29 +153,29 @@
 0x80012749	0x8001274c	3	zero-fill		purpose unspecified
 0x8001274c	0x80012767	27	ascii-string	path_training_movie	"\\TENCHU\\MOVIE\\TRAINING.STR"
 0x80012767	0x80012768	1	zero-fill		purpose unspecified
-0x80012768	0x8001277e	22	ascii-string		"K:\\WORK\\CDIMAGE\\ANIM\\"
+0x80012768	0x8001277e	22	ascii-string	MovieSubtitleJapaneseDirectory	"K:\\WORK\\CDIMAGE\\ANIM\\"
 0x8001277e	0x80012780	2	zero-fill		purpose unspecified
-0x80012780	0x8001279e	30	ascii-string		"K:\\WORK\\CDIMAGE\\ANIM\\ITALIAN\\"
+0x80012780	0x8001279e	30	ascii-string	MovieSubtitleItalianDirectory	"K:\\WORK\\CDIMAGE\\ANIM\\ITALIAN\\"
 0x8001279e	0x800127a0	2	zero-fill		purpose unspecified
-0x800127a0	0x800127bd	29	ascii-string		"K:\\WORK\\CDIMAGE\\ANIM\\FRENCH\\"
+0x800127a0	0x800127bd	29	ascii-string	MovieSubtitleFrenchDirectory	"K:\\WORK\\CDIMAGE\\ANIM\\FRENCH\\"
 0x800127bd	0x800127c0	3	zero-fill		purpose unspecified
-0x800127c0	0x800127de	30	ascii-string		"K:\\WORK\\CDIMAGE\\ANIM\\ENGLISH\\"
+0x800127c0	0x800127de	30	ascii-string	MovieSubtitleEnglishDirectory	"K:\\WORK\\CDIMAGE\\ANIM\\ENGLISH\\"
 0x800127de	0x800127e0	2	zero-fill		purpose unspecified
 0x800127e0	0x800127f0	16	ascii-string	fmt_movie_subtitles	"%sSTAGE%d%c.CAD"
-0x800127f0	0x80012807	23	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\"
+0x800127f0	0x80012807	23	ascii-string	MovieVoiceJapaneseDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\"
 0x80012807	0x80012808	1	zero-fill		purpose unspecified
-0x80012808	0x80012827	31	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\ITALIAN\\"
+0x80012808	0x80012827	31	ascii-string	MovieVoiceItalianDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\ITALIAN\\"
 0x80012827	0x80012828	1	zero-fill		purpose unspecified
-0x80012828	0x80012846	30	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\FRENCH\\"
+0x80012828	0x80012846	30	ascii-string	MovieVoiceFrenchDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\FRENCH\\"
 0x80012846	0x80012848	2	zero-fill		purpose unspecified
-0x80012848	0x80012867	31	ascii-string		"K:\\WORK\\CDIMAGE\\SOUND\\ENGLISH\\"
+0x80012848	0x80012867	31	ascii-string	MovieVoiceEnglishDirectory	"K:\\WORK\\CDIMAGE\\SOUND\\ENGLISH\\"
 0x80012867	0x80012868	1	zero-fill		purpose unspecified
 0x80012868	0x80012877	15	ascii-string	fmt_movie_voice_bank	"%sTRAINING.VAB"
 0x80012877	0x80012878	1	zero-fill		purpose unspecified
-0x80012878	0x800128a0	40	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_j.Arc"
-0x800128a0	0x800128c8	40	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_i.Arc"
-0x800128c8	0x800128f0	40	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_f.Arc"
-0x800128f0	0x80012918	40	ascii-string		"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_e.Arc"
+0x80012878	0x800128a0	40	ascii-string	MissionJapaneseArchive	"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_j.Arc"
+0x800128a0	0x800128c8	40	ascii-string	MissionItalianArchive	"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_i.Arc"
+0x800128c8	0x800128f0	40	ascii-string	MissionFrenchArchive	"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_f.Arc"
+0x800128f0	0x80012918	40	ascii-string	MissionEnglishArchive	"K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_e.Arc"
 0x80012918	0x8001292f	23	ascii-string	IMAGES_PREFIX_STR	"K:\\WORK\\CDIMAGE\\IMAGE\\"
 0x8001292f	0x80012930	1	zero-fill		purpose unspecified
 0x80012930	0x80012939	9	ascii-string	FONT_FILE_NAME	"font.tim"
@@ -211,7 +211,7 @@
 0x80012adc	0x80012af4	24	ascii-string	msg_afsread_invalid_handle	"AfsRead: invalid handle"
 0x80012af4	0x80012aff	11	ascii-string	AfsPathFormat	"@%d_%.195s"
 0x80012aff	0x80012b00	1	zero-fill		purpose unspecified
-0x80012b00	0x80012b14	20	ascii-string		"waitcd: read error!"
+0x80012b00	0x80012b14	20	ascii-string	msg_waitcd_read_error	"waitcd: read error!"
 0x80012b14	0x80012b27	19	ascii-string	str_open_out_of_handle	"open:out of handle"
 0x80012b27	0x80012b28	1	zero-fill		purpose unspecified
 0x80012b28	0x80012b3c	20	ascii-string	msg_open_file_not_found	"open:file not found"

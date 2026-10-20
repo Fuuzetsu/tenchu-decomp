@@ -43,17 +43,52 @@ segments:
     vram: 0x80011000
     subalign: 4
     subsegments:
-      - [0x800, textbin]
-      - { start: 0xadc, type: .data, name: IMAGES, linker_section_order: .text }
-      - [0x1680, textbin]
+      - { start: 0x800, type: .data, name: VALLOC, linker_section_order: .text }
+      - { start: 0x858, type: .data, name: 3DCTRL, linker_section_order: .text }
+      - { start: 0x8e0, type: .data, name: FILEIO, linker_section_order: .text }
+      - { start: 0x9d8, type: .data, name: IMAGES, linker_section_order: .text }
+      - { start: 0x1680, type: .data, name: OPMOVIE, linker_section_order: .text }
+      - { start: 0x1698, type: .data, name: AUDIO, linker_section_order: .text }
+      - { start: 0x16ac, type: .data, name: SEMNG, linker_section_order: .text }
+      - { start: 0x1734, type: .data, name: FRONTEND, linker_section_order: .text }
+      - { start: 0x175c, type: .data, name: TITLE, linker_section_order: .text }
+      - [0x1780, textbin]
       - { start: 0x1784, type: .rodata, name: TITLE, linker_section_order: .text }
-      - [0x17b8, textbin]
+      - { start: 0x17b8, type: .data, name: CHARACTER, linker_section_order: .text }
+      - { start: 0x1958, type: .data, name: OPTIONS, linker_section_order: .text }
+      - [0x1980, textbin]
+      - { start: 0x19cc, type: .data, name: ACTION, linker_section_order: .text }
+      - { start: 0x19ec, type: .data, name: MEMCARD, linker_section_order: .text }
+      - { start: 0x1a3c, type: .data, name: CARDMENU, linker_section_order: .text }
       - { start: 0x1adc, type: .rodata, name: CARDMENU, linker_section_order: .text }
       - [0x1cb8, textbin]
       - { start: 0x1cbc, type: .rodata, name: update_card_screen_, linker_section_order: .text }
       - [0x1db8, textbin]
       - { start: 0x1dbc, type: .rodata, name: update_card_message_, linker_section_order: .text }
-      - [0x1f30, textbin]
+      - { start: 0x1f30, type: .data, name: MAIN, linker_section_order: .text }
+      - { start: 0x2078, type: .data, name: MISSION, linker_section_order: .text }
+      - { start: 0x2118, type: .data, name: initialise_font, linker_section_order: .text }
+      - { start: 0x213c, type: .data, name: EXECFILE, linker_section_order: .text }
+      - { start: 0x217c, type: .data, name: AfsOpenVolume, linker_section_order: .text }
+      - { start: 0x21d0, type: .data, name: AfsGetHeader, linker_section_order: .text }
+      - [0x21dc, textbin]
+      - { start: 0x21e0, type: .data, name: AfsGetEntry, linker_section_order: .text }
+      - { start: 0x2250, type: .data, name: AfsInit, linker_section_order: .text }
+      - { start: 0x226c, type: .data, name: AfsOpen, linker_section_order: .text }
+      - { start: 0x22a4, type: .data, name: AfsClose, linker_section_order: .text }
+      - { start: 0x22c0, type: .data, name: AfsFileSize, linker_section_order: .text }
+      - { start: 0x22dc, type: .data, name: AfsRead, linker_section_order: .text }
+      - { start: 0x22f4, type: .data, name: AfsFindFile, linker_section_order: .text }
+      - { start: 0x2300, type: .data, name: cd_read_sectors_, linker_section_order: .text }
+      - { start: 0x2314, type: .data, name: cd_open, linker_section_order: .text }
+      - { start: 0x233c, type: .data, name: cd_close, linker_section_order: .text }
+      - { start: 0x2354, type: .data, name: cd_seek, linker_section_order: .text }
+      - { start: 0x236c, type: .data, name: cd_tell, linker_section_order: .text }
+      - { start: 0x2384, type: .data, name: cd_getsize, linker_section_order: .text }
+      - { start: 0x23a0, type: .data, name: cd_read, linker_section_order: .text }
+      - { start: 0x23b8, type: .data, name: AdtMessageBox, linker_section_order: .text }
+      - { start: 0x2408, type: .data, name: AdtSelect, linker_section_order: .text }
+      - [0x2420, textbin]
       - [0x32c0, c, VALLOC]
       - [0x3c00, c, 3DCTRL]
       - [0x5774, c, FILEIO]

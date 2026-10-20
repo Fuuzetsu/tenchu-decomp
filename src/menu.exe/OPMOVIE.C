@@ -277,3 +277,6 @@ void strKickCD(CdlLOC *loc)
         }
     } while (CdRead2(MovieReadMode) == 0);
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char msg_movie_decode_timeout[] = "time out in decoding !\n";

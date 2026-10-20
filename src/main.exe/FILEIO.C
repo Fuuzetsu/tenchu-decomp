@@ -23,7 +23,7 @@ extern char fmt_load_pc[];       /* "%$LOAD(PC)\n%d[%s]" */
 extern char msg_load_pc_error[]; /* "LOAD(PC) ERROR\n%d[%s]" */
 extern char path_tenchu_run_exe_1[]; /* \\TENCHU\\RUN.EXE;1 */
 extern char fmt_concat_2[];          /* %s%s */
-extern u8 str_acqurememorydisk[16];  /* "ACQUREMEMORYDISK" */
+extern u8 str_acqurememorydisk[];  /* "ACQUREMEMORYDISK" */
 extern char path_tenchu_data[];      /* TENCHU\\DATA */
 extern char path_demo_loading_tim[];  /* K:\WORK\CDIMAGE\DEMO\loading.tim */
 extern char path_demo_load_ten_tim[]; /* K:\WORK\CDIMAGE\DEMO\load_ten.tim */
@@ -244,7 +244,7 @@ void InitFileSystem(file_read_mode mode)
         {
             vinit(0, 0);
             __builtin_memcpy((void *)TENCHU_PC_MEMORY_HANDSHAKE_ADDRESS,
-                             str_acqurememorydisk, sizeof(str_acqurememorydisk));
+                             str_acqurememorydisk, TENCHU_PC_MEMORY_HANDSHAKE_SIZE);
             ReadMode |= READ_MODE_MEMORY_DISK_MASK;
         }
         if (ReadMode & READ_MODE_MEMORY_DISK_MASK)

@@ -1,6 +1,18 @@
 /* Shared engine implementation with MENU's XA tables below. */
 #include "../main.exe/IMAGES.C"
 
+/* MENU string storage. Keep the retail spelling and development paths. */
+char path_image_images_arc[] = "K:\\WORK\\CDIMAGE\\IMAGE\\images.arc";
+char msg_bad_image_file[] = "bad image file";
+char msg_bad_image_index[] = "bad image index";
+char fmt_bad_archive_index[] = "bad archive index %d";
+char path_image_models_arc[] = "K:\\WORK\\CDIMAGE\\IMAGE\\models.arc";
+char path_tenchu_menu_exe_1[] = "cdrom:\\TENCHU\\MENU.EXE;1";
+char path_tenchu_main_exe_1[] = "cdrom:\\TENCHU\\MAIN.EXE;1";
+char path_tenchu_ending_exe_1[] = "cdrom:\\TENCHU\\ENDING.EXE;1";
+char path_tenchu_trial_exe_1[] = "cdrom:\\TENCHU\\TRIAL.EXE;1";
+char fmt_bad_process_id[] = "bad process id %x";
+
 /* XA positions are packed BCD minute/second pairs, as consumed by libcd.
  * The English table also supplies the language-independent voice fallback. */
 

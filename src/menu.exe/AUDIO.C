@@ -173,3 +173,6 @@ short FindSETone(SoundEffect *se, short sound_id)
     }
     return -1;
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char msg_sound_setup_failure[] = "SOUND SETUP FAILURE";

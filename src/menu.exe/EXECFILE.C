@@ -77,3 +77,9 @@ EXEC *LoadExecFromHost(char *name)
     MenuHostExec = xf->exec;
     return &MenuHostExec;
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char fmt_host_exec_header[] = "xf = %x\n";
+char fmt_host_exec_text[] = "t_addr = %x, t_size = %x\n";
+char msg_host_exec_read_ok[] = "read ok\n";
+char fmt_menu_exec[] = "exec = %x\n";

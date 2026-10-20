@@ -512,3 +512,9 @@ short UpdateMissionSelection(void)
     }
     return result;
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char MissionJapaneseArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_j.Arc";
+char MissionItalianArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_i.Arc";
+char MissionFrenchArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_f.Arc";
+char MissionEnglishArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\score\\Selstg_e.Arc";

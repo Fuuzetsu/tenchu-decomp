@@ -74,7 +74,14 @@ byte-identical `main.exe`.
   324 voice rows including sentinels, filenames, diagnostics, and the language
   pointer table. All 23 table pointers have real relocations. The 504 zero bytes
   between the music rows and filenames retain an explicitly unknown purpose.
-  Of the leading region, 6,812 bytes still use raw textbin storage.
+  Another 110 strings now have C definitions in their consuming modules,
+  replacing 2,976 bytes of raw storage including alignment. These retain the
+  development paths, diagnostics, localized archive names, and Shift-JIS save
+  title. The shared font declarations now identify arrays; the memory-disk
+  handshake explicitly copies sixteen bytes from its terminated identifier.
+  Of the leading region, 3,836 bytes still use raw textbin storage: 3,744 bytes
+  belong to SDK data, and 92 bytes hold the guarded choice handler's two switch
+  tables plus zero fill. All six executables remain byte-identical.
   Classification does not imply complete C ownership or SDK function discovery.
   Remaining work includes the four guarded drafts and refinement of the
   inherited SDK inventory. Shared-code

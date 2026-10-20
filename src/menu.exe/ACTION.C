@@ -721,3 +721,7 @@ void SetupSpline(MotionManager *mmp)
         }
     }
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char msg_no_motion_data[] = "NO MOTION DATA";
+char fmt_missing_motion_id[] = "no-assign [%d]";

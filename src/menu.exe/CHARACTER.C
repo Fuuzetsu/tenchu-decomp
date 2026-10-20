@@ -247,3 +247,16 @@ void SetupCharacterModels(short dispose)
     CharacterMotions[AYAME_0] =
         SetupMotionManager(CharacterModels[AYAME_0], AyameSelectionMotions);
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char CharacterJapaneseArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\player\\play_j.arc";
+char CharacterItalianArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\player\\play_i.arc";
+char CharacterFrenchArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\player\\play_f.arc";
+char CharacterEnglishArchive[] = "K:\\WORK\\CDIMAGE\\DEMO\\player\\play_e.arc";
+char path_menu_rikimaru_texture[] = "K:\\WORK\\CDIMAGE\\HUMAN\\rikimaru.tpd";
+char path_menu_rikimaru_model[] = "K:\\WORK\\CDIMAGE\\HUMAN\\rikimaru.mad";
+char path_menu_ayame_texture[] = "K:\\WORK\\CDIMAGE\\HUMAN\\ayame.tpd";
+char path_menu_ayame_model[] = "K:\\WORK\\CDIMAGE\\HUMAN\\ayame.mad";
+char path_menu_ninja_sword[] = "K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\ninja.tmd";
+char path_menu_kodachi[] = "K:\\WORK\\CDIMAGE\\HUMAN\\WEAPON\\kodati.tmd";
+char path_menu_character_motion[] = "K:\\WORK\\CDIMAGE\\HUMAN\\motion\\stage9.amd";

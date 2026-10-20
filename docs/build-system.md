@@ -226,8 +226,9 @@ contracts.
 
 ## The other five executables
 
-Tenchu ships six PS-EXEs. Only `main.exe` is being decompiled; the other five are
-still whole, but the build carries all of them:
+Tenchu ships six PS-EXEs, and the build reconstructs all of them. MAIN's game
+code is recovered; MENU decompilation is active. The other four retain their
+assembly or whole-image scaffolds:
 
 | exe | size | text vram | `$gp` | what it is |
 |---|---|---|---|---|
@@ -367,9 +368,22 @@ an explicitly named byte array, with its original purpose left unknown.
 All 23 table pointers use ordinary `R_MIPS_32` relocations. The source preserves
 packed BCD times and the Japanese channel-`0xff` rows. The complete MENU image
 still matches retail.
-Another 1,152 bytes come from C-owned switch-table sections and their alignment;
-6,812 bytes remain in raw textbin segments. Regenerate with `--write` only after reviewing
-the classification. The focused tests include corrupted table references,
+Another 1,152 bytes come from C-owned switch-table sections and their alignment.
+The 110 other game strings now have C array definitions in their consuming
+modules, accounting for another 2,976 bytes with alignment. The Shift-JIS save
+title retains its encoded bytes with a readable Japanese comment. Localized
+archive and directory strings have names, and the retained `waitcd` diagnostic
+is explicitly marked as having no known surviving reference. The font path
+declarations are arrays. The memory-disk identifier includes its terminating
+NUL while the handshake copies only `TENCHU_PC_MEMORY_HANDSHAKE_SIZE` bytes.
+All six executable byte checks pass with these shared declaration corrections.
+
+The remaining raw textbin spans total 3,836 bytes: SDK data occupies
+`0x80012c20..0x80013ac0` (3,744 bytes), while the game portion retains the
+guarded choice handler's two switch tables (72 bytes) and 20 zero bytes.
+The original declarations behind the extra zero fill are still unknown.
+Regenerate the inventory with `--write` only after reviewing the classification.
+The focused tests include corrupted table references,
 targets, sentinels, padding, and a valid-but-changed cue.
 
 For additional shared modules, `python3 tools/shared_symbols.py FILEIO --at

@@ -173,3 +173,6 @@ void ClearMenuPages(void)
 void EmptyMenuCallback(int unused)
 {
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char path_menu_fade[] = "K:\\WORK\\CDIMAGE\\DEMO\\start\\fadeio.tim";

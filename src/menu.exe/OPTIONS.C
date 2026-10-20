@@ -1404,3 +1404,6 @@ void DrawOptionNumber(char *text, short x, short y)
         }
     }
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char path_options_archive[] = "K:\\WORK\\CDIMAGE\\DEMO\\menu\\menu_j.arc";

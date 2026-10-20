@@ -541,3 +541,6 @@ void DrawTitleSprites(void)
         }
     }
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char path_title_archive[] = "K:\\WORK\\CDIMAGE\\DEMO\\open\\title.arc";

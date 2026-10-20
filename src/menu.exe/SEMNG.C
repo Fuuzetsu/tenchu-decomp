@@ -30,3 +30,10 @@ short Sound(Humanoid *human, short seid)
 {
     return PlaySE(StageSE, seid, SOUND_SPATIAL(0, SOUND_VOLUME_MAX));
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char StageSoundJapaneseDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\";
+char StageSoundItalianDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\ITALIAN\\";
+char StageSoundFrenchDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\FRENCH\\";
+char StageSoundEnglishDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\ENGLISH\\";
+char fmt_stage_vab[] = "%sSTAGE%d%c.VAB";

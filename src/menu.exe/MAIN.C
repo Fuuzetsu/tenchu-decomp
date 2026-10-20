@@ -291,3 +291,17 @@ short UpdateMovieSubtitles(int frame, SoundEffect *voices)
 {
     return DrawMovieSubtitles(frame, voices);
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char path_opening_movie[] = "\\TENCHU\\MOVIE\\OPEN06.STR";
+char path_training_movie[] = "\\TENCHU\\MOVIE\\TRAINING.STR";
+char MovieSubtitleJapaneseDirectory[] = "K:\\WORK\\CDIMAGE\\ANIM\\";
+char MovieSubtitleItalianDirectory[] = "K:\\WORK\\CDIMAGE\\ANIM\\ITALIAN\\";
+char MovieSubtitleFrenchDirectory[] = "K:\\WORK\\CDIMAGE\\ANIM\\FRENCH\\";
+char MovieSubtitleEnglishDirectory[] = "K:\\WORK\\CDIMAGE\\ANIM\\ENGLISH\\";
+char fmt_movie_subtitles[] = "%sSTAGE%d%c.CAD";
+char MovieVoiceJapaneseDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\";
+char MovieVoiceItalianDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\ITALIAN\\";
+char MovieVoiceFrenchDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\FRENCH\\";
+char MovieVoiceEnglishDirectory[] = "K:\\WORK\\CDIMAGE\\SOUND\\ENGLISH\\";
+char fmt_movie_voice_bank[] = "%sTRAINING.VAB";

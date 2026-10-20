@@ -590,3 +590,8 @@ void SystemOut(unsigned char *string)
     {
     }
 }
+
+/* MENU string storage. Keep the retail spelling and development paths. */
+char msg_out_of_memory[] = "OUT OF MEMORY\nREQUEST=%d\nFREE=%d(%d)\n";
+char msg_double_memory_release[] = "DOUBLE MEMORY RELEASE";
+char msg_system_out[] = "*** SYSTEM OUT ***\n\n%s";
