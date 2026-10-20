@@ -1609,3 +1609,27 @@ Both MENU and MAIN now use this spelling. The standalone MENU comparison,
 the linked MAIN function comparison, and `./Build -j8 check-all` all pass;
 all six complete executables remain byte-identical. No macro or inline
 helper was needed.
+
+## MENU/MAIN valloc readability — 2026-10-21
+
+The old exact source explicitly cached a byte displacement, block-in-use
+mask, and tagged allocation size before scanning the free list. These three
+locals are absent from the demo's debug record. Using the named mask at each
+operation and advancing the split cursor with
+`vmpt += size + VMEM_HEADER_WORDS` lets the compiler recover all three
+invariants itself. Both complete 460-byte functions remain exact, with fewer
+locals and no byte-pointer cast in the split calculation.
+
+The inherited unreachable empty loop is still present and explicitly marked
+as unresolved. Removing it loses the split branch's fresh header-size load
+and produces 448 bytes / 229 differing bytes. Ordinary guard, loop, and
+early-exit variations did not recover the target. A meaningful allocation
+helper produced 460 bytes / 89 differing bytes with a caller-owned temporary,
+but it did not recover the missing load; equal size was not an exact match.
+Neither helper nor a new control-flow workaround was adopted.
+
+`./Build -j8 check-all check-relink check-reloc-data` passes after repairing
+the normal-link manifest's stale raw `ThinkDB` entries and narrowly reviewing
+two numeric windows in the C-owned attack-distance arrays. All six images
+are exact, the input/final-image audits report zero findings, and the ordinary
+GNU-ld `+0x10004` growth proof passes. The 96 focused relocation tests pass.

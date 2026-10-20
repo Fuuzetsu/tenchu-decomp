@@ -2168,6 +2168,15 @@ irreducible nest: DrawConstruction's 3.
 
 ### 3.12 Addressing shapes
 
+- **Keep pointer arithmetic in the object's units before naming compiler
+  intermediates.** MAIN and MENU's `valloc` use
+  `vmpt += size + VMEM_HEADER_WORDS` for a split's new header and spell
+  `VMEM_BLOCK_IN_USE` directly at its tests and updates. cc1 hoists the byte
+  displacement, mask, and tagged size itself; the former `off`, `mask`, and
+  `tag` locals are unnecessary. Both complete 460-byte functions stay exact.
+  `vmpt = vmpt + size + VMEM_HEADER_WORDS` associates the two pointer additions
+  differently and produced 456 bytes in this case. This cleanup does not
+  resolve the inherited empty-loop boundary in the whole-block branch.
 - **Split vs unsplit is the DECLARATION** (compiler-facts): a two-register
   `lui %hi / addiu %lo` needs a non-small decl (`extern T SYM[];` — the
   `extern-array` rule sweeps it, gp-aware); an interleaved hi/lo pair is the

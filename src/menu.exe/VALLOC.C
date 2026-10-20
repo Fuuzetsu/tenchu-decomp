@@ -40,16 +40,13 @@ extern char msg_double_memory_release[]; /* "DOUBLE MEMORY RELEASE" */
 
 void *valloc(u32 size)
 {
-    struct VMhead vh;   /* split tmp, sp+0x18 */
-    struct VMhead *vhp; /* search-loop copy of the cursor */
-    u32 *vmpt;          /* cursor AND result — returned after SystemOut, hence $s1 */
-    u32 off;
-    u32 mask;
-    u32 tag;
+    struct VMhead vh; /* Header for the free block left after a split. */
+    struct VMhead *vhp;
+    u32 *vmpt;
 
     if (virtual_memory_pool == 0)
     {
-        struct VMhead vh; /* nested shadow, sp+0x20 */
+        struct VMhead vh;
 
         virtual_memory_pool = VMEM_DEFAULT_POOL;
         vh.size = VMEM_DEFAULT_CAPACITY;
@@ -59,23 +56,20 @@ void *valloc(u32 size)
 
     if ((size & 3) != 0)
         size += 4;
-    size = size >> 2;
+    size >>= 2;
 
     vmpt = (u32 *)virtual_memory_pool;
     if (vmpt != 0)
     {
-        off = (size << 2) + VMEM_HEADER_BYTES;
-        mask = VMEM_BLOCK_IN_USE;
-        tag = size | mask;
         do
         {
             vhp = (struct VMhead *)vmpt;
-            if (!(vmpt[0] & mask) && size <= vmpt[0])
+            if (!(vmpt[0] & VMEM_BLOCK_IN_USE) && size <= vmpt[0])
             {
                 if (vmpt[0] - size < VMEM_MIN_SPLIT_SLACK)
                 {
                     /* The unreachable empty loop preserves a control-flow boundary whose source form is unknown. */
-                    vmpt[0] = vmpt[0] | mask;
+                    vmpt[0] |= VMEM_BLOCK_IN_USE;
                     vmpt = vmpt + VMEM_HEADER_WORDS;
                     goto search_done;
                     do
@@ -84,10 +78,10 @@ void *valloc(u32 size)
                 }
                 else
                 {
-                    vh.size = vhp->size - size - 2;
+                    vh.size = vhp->size - size - VMEM_HEADER_WORDS;
                     vh.next = vhp->next;
-                    vmpt = (u32 *)((u8 *)vmpt + off);
-                    vhp->size = tag;
+                    vmpt += size + VMEM_HEADER_WORDS;
+                    vhp->size = size | VMEM_BLOCK_IN_USE;
                     vhp->next = (struct VMhead *)vmpt;
                     *(struct VMhead *)vmpt = vh;
                     vmpt = (u32 *)(vhp + 1);
@@ -101,7 +95,7 @@ void *valloc(u32 size)
 
     if (vmpt == 0)
     {
-        u8 str[1024]; /* sp+0x28 */
+        u8 str[1024];
         u32 maxsize;
         u32 freesize;
         maxsize = 0;
