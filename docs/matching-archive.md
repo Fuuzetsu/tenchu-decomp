@@ -1589,6 +1589,22 @@ The guarded source has been restored, and `./Build -j8 check-all` again
 passes all six complete images. Coverage remains 218 / 219 game routines
 and 81,116 / 81,252 bytes in exact C.
 
+Further parameter-lifetime probes did not improve the subtitle match.
+Overwriting an integer stage parameter with the character after capturing
+its short value gives 136 / 35; keeping the original short parameter gives
+136 / 28. Short fields, signed 16-bit bitfields, and union/struct descriptors
+either preserve an existing residual or introduce stack traffic. None is
+adopted.
+
+Reusing a filename-pointer local for `MovieSubtitleText` before `FileRead`,
+then clearing through it afterward, removes the extra saved-pointer lifetime
+seen in earlier named-path probes. It still leaves 136 / 28 for the readable
+draft and 136 / 6 for the explicit-shift diagnostic. Complete inline file
+helpers with Rikimaru/Ayame character selection likewise leave the known
+28/38-byte residuals. `"RA"[RIKIMARU_0]` folds to the same letter as `'R'`;
+alternate pointer spellings of the string add a load instead. The closest
+diagnostic and the committed guarded draft are unchanged.
+
 ## MENU/MAIN LoadTIMpack — 2026-10-21
 
 The menu readability review found an inherited empty `do { } while (0)`
