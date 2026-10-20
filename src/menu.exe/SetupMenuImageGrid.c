@@ -6,8 +6,9 @@
 
 extern u_long *MissionImageArchive;
 
-/* Draft: scalar lifetimes and the packet-copy schedule differ.
- * The readable C emits 792 bytes; retail emits 800. */
+/* Draft: the compiler hoists the texture-U mask out of the tile loop,
+ * while retail keeps that calculation inside. Scalar lifetimes and the
+ * packet-copy schedule also differ: this C emits 792 bytes against 800. */
 #ifndef NON_MATCHING
 INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/SetupMenuImageGrid", SetupMenuImageGrid);
 #else
@@ -32,7 +33,7 @@ void SetupMenuImageGrid(MenuImageGrid *grid, short image_index)
     columns = grid->columns;
     rows = grid->rows;
     image = &grid->image;
-    grid->polygons = valloc(columns * rows * sizeof(POLY_FT4));
+    grid->polygons = valloc((columns * sizeof(POLY_FT4)) * rows);
     data = get_tim_from_archive(MissionImageArchive, image_index);
     GetTIMInfo(data, image);
     LoadTIM(data);

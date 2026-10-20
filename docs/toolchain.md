@@ -80,6 +80,23 @@ one overlay, 2.77 elsewhere).
 
 ## Compiler versions are original-object profiles
 
+For compiler-pass investigations, `tools/ccsrc.py` accepts `CC1_SOURCE`. Its old
+unpacked store path may no longer exist after garbage collection. The flake's
+pinned upstream GCC 2.8.1 archive can be recovered without guessing a store path:
+
+```sh
+cc1_archive=$(nix build --no-link --print-out-paths .#cc1-281-gs107.src)
+mkdir -p .shake/cc1-source
+tar -xzf "$cc1_archive" -C .shake/cc1-source --strip-components=1
+CC1_SOURCE="$PWD/.shake/cc1-source" python3 tools/ccsrc.py --file loop.c
+```
+
+This supplies the unpatched optimization-pass sources, including `loop.c`,
+`local-alloc.c`, and `reload1.c`. Target-backend questions also need the PsyQ
+patches listed in `flake.nix`; the upstream `config/mips/` files alone are not
+the consumer compiler's backend. Extracting these sources does not change the
+compiler used by the build.
+
 GCC 2.8.1 remains the game's default compiler, but the contiguous reused ADT
 library object at `0x8005f7f4..0x800601d4` was built with GCC 2.8.0. The build
 therefore pins both `cc1-281` and `cc1-280` and selects the executable through
