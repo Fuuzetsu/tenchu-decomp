@@ -82,6 +82,23 @@ class SourceUnitTests(unittest.TestCase):
             self.assertTrue(su.source_has_asm_fallback(path, "First"))
             self.assertFalse(su.source_has_asm_fallback(path, "Second"))
 
+    def test_shared_wrapper_does_not_hide_an_assembly_fallback(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            wrapper = Path(temporary) / "WRAPPER.C"
+            implementation = Path(temporary) / "shared.inc"
+            wrapper.write_text('#include "shared.inc"\n')
+            implementation.write_text(
+                'INCLUDE_ASM("x", First);\nvoid Second(void) {}\n'
+            )
+            self.assertTrue(su.source_has_asm_fallback(wrapper, "First"))
+            self.assertFalse(su.source_has_asm_fallback(wrapper, "Second"))
+
+    def test_missing_shared_implementation_is_not_counted_as_c(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            wrapper = Path(temporary) / "WRAPPER.C"
+            wrapper.write_text('#include "removed.c"\n')
+            self.assertTrue(su.source_has_asm_fallback(wrapper, "First"))
+
     def test_rejects_duplicate_members(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             path = Path(temporary) / "units.json"

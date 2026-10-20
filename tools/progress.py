@@ -20,6 +20,7 @@ import argparse, json, os, re
 
 import function_inventory as FI
 import source_units as SU
+from target_inventory import load_target_units
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -50,7 +51,12 @@ def load_functions(tsv=TSV, splat=YAML):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--target", default="main.exe",
+                    choices=("main.exe", "menu.exe", "ending.exe", "trial.exe"))
     args = ap.parse_args()
+    if args.target != "main.exe":
+        report_target(args.target, args.json)
+        return
 
     funcs = load_functions()
 
@@ -140,6 +146,39 @@ def main():
         done_line("game done (C+asm)", game_done_fns, game_done_bytes, game)
     if matched:
         print("matched:", ", ".join(sorted(matched)))
+
+
+def report_target(target, as_json):
+    functions, matched, _ = load_target_units(target)
+    complete = [(a, s, n) for a, s, n in functions if a in matched]
+    result = {
+        "target": target,
+        "functions": len(functions),
+        "functions_matched": len(complete),
+        "bytes": sum(s for _, s, _ in functions),
+        "bytes_matched": sum(s for _, s, _ in complete),
+        "matched_names": sorted(n for _, _, n in complete),
+    }
+    # textbin may contain code or data. Keep these raw spans visible rather
+    # than silently treating them as recovered C or adding them to function
+    # coverage. MENU's prefix includes strings and tables.
+    segments = re.findall(
+        r"^\s+- \[(0x[0-9A-Fa-f]+)(?:,\s*(\w+)[^\]]*)?\]",
+        open(f"config/splat.{target}.yaml").read(), re.M
+    )
+    result["uncarved_textbin_bytes"] = sum(
+        int(segments[i + 1][0], 16) - int(offset, 16)
+        for i, (offset, kind) in enumerate(segments[:-1])
+        if kind == "textbin"
+    )
+    if as_json:
+        print(json.dumps(result, indent=2))
+        return
+    print(f"{target}: {len(complete)}/{len(functions)} identified functions "
+          f"compile from C; {result['bytes_matched']}/{result['bytes']} bytes")
+    print(f"Raw textbin outside that inventory: "
+          f"{result['uncarved_textbin_bytes']} bytes")
+    print("matched:", ", ".join(result["matched_names"]))
 
 
 if __name__ == "__main__":

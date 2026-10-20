@@ -10,6 +10,21 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
+- **MENU.EXE decompilation is active (2026-10-20).** Its first six C modules
+  recover 60 functions / 15,196 bytes: allocator, file I/O, images, CD audio,
+  motion/splines, and the menu entry/dispatch loop. Three unchanged engine
+  modules share MAIN's readable implementations; menu-specific allocator
+  diagnostics, scalar spline evaluation, missing-motion diagnostics, and
+  startup/selection flow have their own C. `./Build check-menu.exe` gates the
+  full menu image; `tools/progress.py --target menu.exe` reports current source
+  coverage. The 833-row scaffold inventory is coarse: some remaining rows
+  contain multiple functions, and the 10,944-byte leading textbin includes
+  strings and tables. Do not treat either as proof of complete function
+  discovery. Remaining work includes graphics, controller input, streaming
+  movies, card/UI state machines, title/character/mission/options screens,
+  font/telop code, and the inherited SDK/assembly boundary audit. Shared-code
+  symbol recovery is documented in `docs/build-system.md`; its strict
+  `tools/shared_symbols.py` check is stronger than normalized name discovery.
 - **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a
   **byte-identical** `main.exe` (sha256 `0690a5c1…3558`) from a clean state.
 - **Toolchain is complete for matching.** Pipeline is

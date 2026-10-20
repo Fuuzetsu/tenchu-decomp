@@ -351,11 +351,9 @@ normalRelinkTailObject = normalRelinkDir </> "obj" </> "87458.bss.s.o"
 mainModExe :: FilePath
 mainModExe = buildDir </> "tenchu" </> "main_mod.exe"
 
--- | Every executable on the disc. `main.exe` is the one we are decompiling; the
--- rest are still whole -- their splat config (tools/newexe.py) splits each into a
--- single `data` blob and the build reassembles it byte-identically. They cost
--- nothing until you carve a function out of one, at which point the workflow is
--- exactly main.exe's.
+-- | Every executable on the disc. MAIN and MENU have recovered C modules;
+-- remaining code uses per-function assembly scaffolds or raw image spans.
+-- Each target independently gates its full image against the original.
 data Target = Target
   { tgName :: String,      -- ^ e.g. @"main.exe"@; also the gen/build subdirectory
     tgImage :: FilePath,   -- ^ the original image we must reproduce
@@ -441,8 +439,15 @@ maspsxFlags = ["--aspsx-version=2.77", "-G8"]
 -- link), so per file we list the small globals its ORIGINAL translation unit
 -- defined — maspsx then gp-addresses exactly those and leaves the rest absolute.
 maspsxGpExterns :: FilePath -> [String]
-maspsxGpExterns src = extra (takeBaseName src) <> concat [["--gp-extern", s] | s <- syms (takeBaseName src)]
+maspsxGpExterns src = extra (takeBaseName src) <>
+  concat [["--gp-extern", s] | s <- syms (takeBaseName src) <> targetSyms]
   where
+    -- MENU's scalar spline evaluator caches four short coefficients.
+    -- MAIN's later GTE version instead caches a pointer to the Hermite row.
+    targetSyms
+      | takeFileName (takeDirectory src) == "menu.exe" &&
+        takeBaseName src == "ACTION" = ["SplineH00", "SplineH01", "SplineH10", "SplineH11"]
+      | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
     -- in the image can change.
@@ -1310,8 +1315,8 @@ objRules = do
     cmd_ ld ["-r", "-b", "binary", "-o", out, asset]
 
 -- | Rules for one executable. Identical for every target: splat -> asm/C -> objects
--- -> elf -> raw binary. `main.exe` is the only one with C sources today; the others
--- are one `data` blob each, and everything below is oblivious to the difference.
+-- -> elf -> raw binary. Each target can progressively replace its generated
+-- assembly scaffolds with C without changing the link and verification rules.
 exeRules :: Target -> Rules ()
 exeRules t = do
   let gen = tgGen t
@@ -2165,6 +2170,7 @@ phonyRules = do
   -- The matching gate: main.exe only, so it stays fast (matchdiff runs ./Build once
   -- per function). `check-all` verifies every executable on the disc.
   phony "check" $ checkTarget mainTarget
+  mapM_ (\t -> phony ("check-" <> tgName t) (checkTarget t)) targets
 
   -- Normal GNU-ld output. Unlike the same-slot `mod` target this allows sections
   -- to grow and accepts new sources under src/main.exe/reloc/. `check-relink`

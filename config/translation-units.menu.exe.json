@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "units": [
+    {
+      "source": "VALLOC.C",
+      "functions": [
+        "valloc",
+        "vrealloc",
+        "vmemoryGC",
+        "vinit",
+        "vgetmaxsize",
+        "vgetfreesize",
+        "vcalloc",
+        "vfree",
+        "vsize",
+        "SystemOut"
+      ]
+    },
+    {
+      "source": "FILEIO.C",
+      "functions": [
+        "cbAccess",
+        "stop_access_meter_",
+        "FileRead",
+        "draw_loading_splash_",
+        "InitFileSystem",
+        "PathFileRead",
+        "FileWrite",
+        "LoadExecEx",
+        "InitAccessInfo",
+        "LoadFromDEVPC",
+        "LoadFromMEMORY",
+        "LoadFromCDROM",
+        "PrepareAccess"
+      ]
+    },
+    {
+      "source": "IMAGES.C",
+      "functions": [
+        "InitSprite",
+        "SetupImageToPolyFT4",
+        "SetupImageToPolyGT4",
+        "_PlayMusic",
+        "PlayVoice",
+        "get_tim_from_archive",
+        "GetImage",
+        "GetArcData",
+        "InitializeImage",
+        "load_background_",
+        "load_archive_sprite_",
+        "PlayMusicFormID",
+        "apply_cd_volume_",
+        "exec_process_",
+        "search_id_table_"
+      ]
+    },
+    {
+      "source": "OPAUDIO.C",
+      "functions": [
+        "cbCheckCD",
+        "CdaPlayXA",
+        "CdaStop",
+        "CdaGetCurrentLength",
+        "CdaReady",
+        "set_cda_volume_",
+        "apply_cda_attr_"
+      ]
+    },
+    {
+      "source": "ACTION.C",
+      "functions": [
+        "SearchMotion",
+        "UpdateMotion",
+        "HoldMotion",
+        "SweepMotion",
+        "ActiveMotion",
+        "UpdateSplineControl",
+        "GetSpline",
+        "LoadMotion",
+        "SetupMotionRegist",
+        "SetupMotionManager",
+        "DisposeMotionManager",
+        "GetMotionID",
+        "PlayMotion",
+        "SetupSpline"
+      ]
+    },
+    {
+      "source": "MAIN.C",
+      "functions": [
+        "main"
+      ]
+    }
+  ]
+}

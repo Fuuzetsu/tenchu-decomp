@@ -101,6 +101,7 @@ works from anywhere in the tree.
 ./Build check-reloc-bss       # exact linker-owned BSS/pool/header oracle
 ./Build all             # build all six executables
 ./Build check-all       # build + assert sha256 for all six
+./Build check-menu.exe  # focused MENU.EXE matching gate (also check-<other target>)
 ./Build clean           # remove .shake/{gen,build,processed}
 ./Build extract_main.exe# just run splat
 ```
@@ -263,6 +264,35 @@ report, which gives each scaffolded executable its own decomp.dev category.
 Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
+
+MENU.EXE now compiles its `VALLOC.C`, `FILEIO.C`, `IMAGES.C`, `OPAUDIO.C`,
+`ACTION.C`, and `MAIN.C` from C. FILEIO, IMAGES, and OPAUDIO include the
+existing engine implementations and link them against menu-specific symbols.
+VALLOC retains the menu's fatal-error message box; ACTION retains its scalar
+Hermite interpolation and missing-motion message; MAIN contains the title,
+character/mission selection, training, editor, and options dispatch.
+`config/translation-units.menu.exe.json` records the combined source owners.
+Both `tools/progress.py --target menu.exe` and the objdiff report use that
+manifest; included assembly fallbacks and missing shared sources do not count
+as C.
+
+For additional shared modules, `python3 tools/shared_symbols.py FILEIO --at
+0x80015f74` demonstrates the address-recovery check. It requires a matching
+MAIN build and permits differences only in actual object relocation operands;
+it does not mask arbitrary immediates as the discovery matcher does. Use
+`--function` for one member and `--size` to stop before a changed suffix.
+Its printed symbols are proposals, not a match verdict: compile the recovered
+C for the destination and run `./Build check-menu.exe`. `_gp` is already
+defined by splat's linker script, so do not add a duplicate symbol when an
+actual object occupies that address. Remove superseded `D_` aliases when
+adopting a semantic name; the symbols file is also a GNU ld script and accepts
+no standalone comment syntax shared with splat.
+
+The original sibling wrappers for `GetMotionID` and `search_id_table_` referred
+to MAIN files that no longer existed after translation-unit reconstruction.
+Their short implementations now live under `src/shared/` for the remaining
+standalone wrappers. MAIN and MENU keep these functions in their full engine
+translation units. `check-all` verifies both forms against their binaries.
 
 **`textbin`, not `data` — splat groups a segment's subsegments by section, not by
 address.** The output section for each subsegment is chosen by type (`c`/`asm` →

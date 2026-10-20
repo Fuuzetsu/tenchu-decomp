@@ -1,2 +1,4 @@
-/* Shared implementation; this target adds no function-specific relocations. */
-#include "../main.exe/GetMotionID.c"
+#include "common.h"
+#include "../main.exe/main.exe.h"
+#include "../main.exe/item.h"
+#include "../shared/GetMotionID.inc"

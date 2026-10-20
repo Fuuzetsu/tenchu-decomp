@@ -33,6 +33,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import function_inventory as FI
 import fuzzy_inventory as FZI
 import source_units as SU
+from target_inventory import load_target_units
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -72,43 +73,6 @@ EXTRA_TARGETS = [
     ("ending", "ENDING.EXE", "ending.exe"),
     ("trial", "TRIAL.EXE (Mission Editor)", "trial.exe"),
 ]
-
-
-def load_target_units(target: str):
-    """[(addr, size, name)], matched addr set, and addr->cfile for one
-    scaffolded executable, using the same carved-and-no-INCLUDE_ASM rule as
-    main.exe."""
-    tsv = f"config/functions.{target}.tsv"
-    if not os.path.exists(tsv):
-        return None
-    funcs = []
-    for line in open(tsv):
-        if line.startswith("#"):
-            continue
-        addr, size, name = line.rstrip("\n").split("\t")
-        funcs.append((int(addr, 16), int(size), name))
-    sym_addr = {}
-    for line in open(f"config/symbols.{target}.txt"):
-        m = re.match(r"([A-Za-z_$][\w$]*)\s*=\s*(0x[0-9A-Fa-f]+)\s*;", line)
-        if m:
-            sym_addr[m.group(1)] = int(m.group(2), 16)
-    for addr, _size, name in funcs:      # FUN_ stubs are not in the symbols file
-        sym_addr.setdefault(name, addr)
-    carved = set(re.findall(r"^\s+- \[0x[0-9A-Fa-f]+,\s*c,\s*(\S+)\]",
-                            open(f"config/splat.{target}.yaml").read(), re.M))
-    src = f"src/{target}"
-    matched_addrs, addr_to_cfile = set(), {}
-    if os.path.isdir(src):
-        for f in sorted(os.listdir(src)):
-            name = f[:-2]
-            if not f.endswith(".c") or name not in carved or name not in sym_addr:
-                continue
-            if re.search(r"^\s*INCLUDE_ASM",
-                         open(os.path.join(src, f)).read(), re.M):
-                continue
-            matched_addrs.add(sym_addr[name])
-            addr_to_cfile[sym_addr[name]] = f"{src}/{f}"
-    return funcs, matched_addrs, addr_to_cfile
 
 
 def resolve_inventory(explicit):

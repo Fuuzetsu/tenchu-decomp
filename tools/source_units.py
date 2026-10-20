@@ -205,10 +205,28 @@ def iter_function_sources(
 
 def source_has_asm_fallback(path: str | Path, name: str | None = None) -> bool:
     """Whether a source (or one named member) still delegates to INCLUDE_ASM."""
-    text = Path(path).read_text(errors="replace")
-    if name is None:
-        return bool(INCLUDE_ASM.search(text))
-    invocation = re.compile(
-        rf"\bINCLUDE_ASM\s*\([^;]*,\s*{re.escape(name)}\s*\)", re.S
+    invocation = (
+        INCLUDE_ASM if name is None else re.compile(
+            rf"\bINCLUDE_ASM\s*\([^;]*,\s*{re.escape(name)}\s*\)", re.S
+        )
     )
-    return bool(invocation.search(text))
+    seen: set[Path] = set()
+
+    def inspect(source: Path) -> bool:
+        source = source.resolve()
+        if source in seen:
+            return False
+        seen.add(source)
+        # Broken shared-source includes cannot count as decompiled code.
+        if not source.exists():
+            return True
+        text = source.read_text(errors="replace")
+        if invocation.search(text):
+            return True
+        for include in re.findall(r'^\s*#\s*include\s+"([^"]+)"', text, re.M):
+            if Path(include).suffix.lower() in (".c", ".inc"):
+                if inspect(source.parent / include):
+                    return True
+        return False
+
+    return inspect(Path(path))

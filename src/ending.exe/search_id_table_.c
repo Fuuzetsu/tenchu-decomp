@@ -1,2 +1,3 @@
-/* Shared implementation; this target adds no function-specific relocations. */
-#include "../main.exe/search_id_table_.c"
+#include "common.h"
+#include "../main.exe/sound.h"
+#include "../shared/search_id_table_.inc"
