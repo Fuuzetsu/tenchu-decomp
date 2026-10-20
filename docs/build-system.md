@@ -265,7 +265,7 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE has fourteen combined C modules and additional shared helpers.
+MENU.EXE has fifteen combined C modules and additional shared helpers.
 FILEIO, IMAGES, OPAUDIO, and MEMCARD
 include the existing engine implementations and link them against menu-specific
 symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
@@ -276,6 +276,12 @@ OPMOVIE recovers all ten streaming helpers, including the RGB24 CD-interrupt
 callback, slice buffering, VLC decode, and timeouts. EXECFILE recovers the CD
 launcher and host loader; its boot-handoff draft retains an assembly fallback
 for an eight-byte instruction-order difference (`NON_MATCHING=EXECFILE`).
+MAIN also owns the movie command interpreter, subtitle playback/drawing, and
+startup card input loop. Its subtitle file loader is guarded
+(`NON_MATCHING=MAIN`). IMAGEGRID draws and disposes the mission menu's tiled
+image packets; the separate `SetupMenuImageGrid` constructor remains a draft.
+The movie player preserves a 64-byte unaccessed stack region, with no claim
+about the original local's type.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with
@@ -305,6 +311,12 @@ defined by splat's linker script, so do not add a duplicate symbol when an
 actual object occupies that address. Remove superseded `D_` aliases when
 adopting a semantic name; the symbols file is also a GNU ld script and accepts
 no standalone comment syntax shared with splat.
+
+When extending an existing combined segment, splat may retain its old generated
+`src/<unit>.c` stub and omit new fallback assembly. Remove only that generated
+stub and `.shake/gen/<target>.done`, then run the normal build to regenerate
+the complete stub and linker script. Checked-in sources are independent of
+those generated files. This occurred when MAIN grew from two to seven functions.
 
 The original sibling wrappers for `GetMotionID` and `search_id_table_` referred
 to MAIN files that no longer existed after translation-unit reconstruction.

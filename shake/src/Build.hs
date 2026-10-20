@@ -449,6 +449,8 @@ maspsxGpExterns src = extra (takeBaseName src) <>
         takeBaseName src == "ACTION" = ["SplineH00", "SplineH01", "SplineH10", "SplineH11"]
       | takeFileName (takeDirectory src) == "menu.exe" &&
         takeBaseName src == "AUDIO" = ["highVoice"]
+      | takeFileName (takeDirectory src) == "menu.exe" &&
+        takeBaseName src == "MAIN" = ["MovieSubtitleData", "MovieCommandCursor"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
@@ -616,6 +618,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     syms "DoItemProc" = ["Item_fInitial"]
     syms "PADCMD" = ["ControlScheme"]
     syms "FRONTEND" = ["MenuWideMode", "MenuFadeSprite", "MenuDrawCallback"]
+    syms "SetupMenuImageGrid" = ["MissionImageArchive"]
     syms "debug_printf_" = ["AdtMsgPtr"]
     syms "set_fade_" = ["EFFECT_CURSOR_"]
     syms "set_impact_ex_" = ["EFFECT_CURSOR_"]

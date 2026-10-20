@@ -10,14 +10,15 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its fourteen combined C
-  modules and shared helpers recover 180 functions / 43,580 bytes:
+- **MENU.EXE decompilation is active (2026-10-20).** Its fifteen combined C
+  modules and shared helpers recover 186 functions / 45,064 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
   archives, CD-file access, debug display, card-screen prompts, fonts/telop,
   score calculation, cheat-command recognition, movie streaming, and the
-  CD/host executable loaders.
+  CD/host executable loaders, subtitle playback, the startup card loop, and
+  mission-image grid drawing/cleanup.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
@@ -27,12 +28,17 @@ byte-identical `main.exe`.
   All ten OPMOVIE streaming routines are exact C. EXECFILE's boot handoff
   helper remains guarded for an eight-byte instruction-order difference;
   compile its draft with `NON_MATCHING=EXECFILE`.
+  MAIN's subtitle file loader is guarded for argument scheduling
+  (`NON_MATCHING=MAIN`); its command processor, playback, subtitle drawing,
+  and startup input loop are exact. `SetupMenuImageGrid` has a guarded
+  792-byte draft against the 800-byte original. The movie player's untouched
+  64-byte stack region is explicitly recorded as an unknown unused local.
   `./Build check-menu.exe` gates the
   full menu image; `tools/progress.py --target menu.exe` reports current source
-  coverage. The 852-row scaffold inventory is coarse: some remaining rows
+  coverage. The 853-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 10,320-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
-  discovery. Remaining work includes the controller and boot-handoff drafts,
+  discovery. Remaining work includes those guarded drafts,
   menu-specific card/UI state machines, title/character/mission/options screens,
   and the inherited SDK/assembly boundary audit. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict

@@ -160,7 +160,12 @@
       "source": "MAIN.C",
       "functions": [
         "InitMenuPersistentState",
-        "main"
+        "main",
+        "ProcessMovieCommands",
+        "PlaySubtitledMovie",
+        "RunStartupCardCheck",
+        "LoadMovieSubtitles",
+        "UpdateMovieSubtitles"
       ]
     },
     {
@@ -242,6 +247,13 @@
         "run_exec_file",
         "set_boot_exec_",
         "LoadExecFromHost"
+      ]
+    },
+    {
+      "source": "IMAGEGRID.C",
+      "functions": [
+        "DrawMenuImageGrid",
+        "DisposeMenuImageGrid"
       ]
     }
   ]

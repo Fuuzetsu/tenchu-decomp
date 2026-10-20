@@ -411,6 +411,18 @@ enum gpu_polygon_command
     (p)->x2 = (_x2), (p)->y2 = (_y2), \
     (p)->x3 = (_x3), (p)->y3 = (_y3)
 
+#define setXYWH(p, x, y, w, h) \
+    setXY4((p), (x), (y), (x) + (w), (y), \
+           (x), (y) + (h), (x) + (w), (y) + (h))
+
+#define getClut(x, y) (((y) << 6) | (((x) >> 4) & 0x3f))
+#define getTPage(mode, blend, x, y) \
+    ((((mode) & 3) << 7) | (((blend) & 3) << 5) | \
+     (((y) & 0x100) >> 4) | (((x) & 0x3ff) >> 6) | (((y) & 0x200) << 2))
+#define setClut(p, x, y) ((p)->clut = getClut((x), (y)))
+#define setTPage(p, mode, blend, x, y) \
+    ((p)->tpage = getTPage((mode), (blend), (x), (y)))
+
 #define setlen(p, _len) (((P_TAG *)(p))->len = (u_char)(_len))
 #define setcode(p, _code) (((P_TAG *)(p))->code = (u_char)(_code))
 #define getcode(p) ((u_char)((P_TAG *)(p))->code)
