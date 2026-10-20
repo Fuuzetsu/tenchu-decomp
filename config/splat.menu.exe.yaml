@@ -44,6 +44,8 @@ segments:
     subalign: 4
     subsegments:
       - [0x800, textbin]
+      - { start: 0x1784, type: .rodata, name: TITLE, linker_section_order: .text }
+      - [0x17b8, textbin]
       - { start: 0x1cbc, type: .rodata, name: update_card_screen_, linker_section_order: .text }
       - [0x1db8, textbin]
       - { start: 0x1dbc, type: .rodata, name: update_card_message_, linker_section_order: .text }
@@ -58,15 +60,9 @@ segments:
       - [0x83d0, c, AUDIO]
       - [0x887c, c, SEMNG]
       - [0x894c, c, FRONTEND]
-      - [0x8e7c, c, RunTitleMenu]
-      - [0x9414, c, FUN_80019c14]
-      - [0xa154, c, FUN_8001a954]
-      - [0xa8b8, c, FUN_8001b0b8]
-      - [0xabb4, c, FUN_8001b3b4]
-      - [0xadb0, c, FUN_8001b5b0]
-      - [0xaf64, c, SelectMenuCharacter]
-      - [0xb3f4, c, FUN_8001bbf4]
-      - [0xb600, c, FUN_8001be00]
+      - [0x8e7c, c, TITLE]
+      - [0xa8b8, c, TITLEMESH]
+      - [0xaf64, c, CHARACTER]
       - [0xb88c, c, RunOptionsMenu]
       - [0xba78, c, FUN_8001c278]
       - [0xfa60, c, FUN_80020260]

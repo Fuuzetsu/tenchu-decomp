@@ -764,6 +764,12 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   sizeof(Elem)`) is usually just an indexed `base->slot[i].field` loop —
   cc1's own strength reduction produces the offset walk (LoadConstruction's
   model-slot dispose loop; hoisted mask/base constants folded too).
+- **A post-increment inside a call can explain an old-pointer copy.**
+  MENU's `SetupCharacterImages` cleanup matches
+  `while (i < 3) vfree(CharacterSprites[i++]);`. Moving the increment into
+  a `for` update removes the target's pointer copy and changes the loop
+  branch, producing 520 bytes instead of 524. The indexed post-increment
+  expresses the iteration directly; no manual pointer walk is needed.
 - **Biased-shift divisions fold to `/` ONLY when self-contained**: the
   decompiler's `if (x < 0) x += (1<<N)-1; y = x >> N;` respells as
   `y = x / (1<<N)` byte-free when each occurrence is independent
@@ -1162,6 +1168,10 @@ judgment:
     `lhu` while a comparison needs `lh` — two un-CSE'd loads, give the narrowing
     use its own short temp (DeleteConflict). A pure narrowing field-to-field
     copy is `lhu/lbu` regardless of signedness — don't fight it.
+    Known masked values are another exception to inferring signedness from
+    the load alone: `InitTitleMesh` needs a signed `short mode` holding
+    `image.pmode & 3`. Its later reload is still `lhu`; `u_short mode`
+    introduces an early spill/reload and removes a later promotion copy.
   - Store + later `sll/sra` at the consumer = u16 storage + `(s16)` cast AT THE
     CONSUMER, in a wide working local — not an `s16` field or an early cast
     (mission_score_screen; camera_terrain_pitch_).
@@ -2176,6 +2186,10 @@ irreducible nest: DrawConstruction's 3.
   every `>> 12` is fixed-point at all — `(dtPAD >> 12) & 1` is a bit
   position. The division sites are safe to name (`/ FIXED_ONE`, done
   across ten files); the shift sites are not the same question.
+  The operations can also appear together: MENU's `UpdateTitleMesh`
+  computes `(rcos(phase) * coordinate / 20) >> 12`. Combining them into
+  `/ 81920` changes negative rounding and emits 500 bytes rather than the
+  original 508. Keep both rounding steps.
 - **`if (x < 0) x += 2**n - 1;` before `x >> n` is cc1's OWN signed
   division, written out.** Where our source spells that sequence, the
   original almost certainly wrote `x / 2**n` and we transcribed the
@@ -2469,6 +2483,14 @@ irreducible nest: DrawConstruction's 3.
 Mechanics in compiler-facts (backward scheduler, priorities, LAUNCH_PRIORITY,
 LUID, barriers). The levers:
 
+- **A local assigned after a call can appear before it in the final code.**
+  MENU's `RunTitleMenu` matches with `phase = -1` after the palette's
+  `LoadImage` call; the compiler places that assignment among the call's
+  argument setup. Writing it before the call leaves a 12-byte order
+  difference. `SelectMenuCharacter` likewise assigns `fade = 0` and
+  `phase = -2` after starting the confirmation motion. Preserve the natural
+  state transition, then inspect scheduling; final instruction order alone
+  does not prove which side of a call an independent local assignment used.
 - **Statement order IS the sched lever inside a block** — sched breaks
   same-priority ties by UID order, which follows source scan order: capture the
   must-come-first value as an explicit statement (SetCommand); two independent

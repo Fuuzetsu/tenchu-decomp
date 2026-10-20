@@ -255,6 +255,30 @@
         "DrawMenuImageGrid",
         "DisposeMenuImageGrid"
       ]
+    },
+    {
+      "source": "TITLEMESH.C",
+      "functions": [
+        "InitTitleMesh",
+        "UpdateTitleMesh",
+        "DrawTitleMesh"
+      ]
+    },
+    {
+      "source": "TITLE.C",
+      "functions": [
+        "RunTitleMenu",
+        "LoadTitleSprites",
+        "DrawTitleSprites"
+      ]
+    },
+    {
+      "source": "CHARACTER.C",
+      "functions": [
+        "SelectMenuCharacter",
+        "SetupCharacterImages",
+        "SetupCharacterModels"
+      ]
     }
   ]
 }

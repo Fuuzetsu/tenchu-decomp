@@ -10,15 +10,16 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its fifteen combined C
-  modules and shared helpers recover 186 functions / 45,064 bytes:
+- **MENU.EXE decompilation is active (2026-10-20).** Its eighteen combined C
+  modules and shared helpers recover 194 functions / 53,940 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
   archives, CD-file access, debug display, card-screen prompts, fonts/telop,
   score calculation, cheat-command recognition, movie streaming, and the
   CD/host executable loaders, subtitle playback, the startup card loop, and
-  mission-image grid drawing/cleanup.
+  mission-image grid drawing/cleanup, the title mesh and input loop,
+  title resource loading, and character selection.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
@@ -33,13 +34,18 @@ byte-identical `main.exe`.
   and startup input loop are exact. `SetupMenuImageGrid` has a guarded
   792-byte draft against the 800-byte original. The movie player's untouched
   64-byte stack region is explicitly recorded as an unknown unused local.
+  TITLE's sprite renderer remains guarded for an eight-byte rotation-expression
+  difference (`NON_MATCHING=TITLE`); its loader and input loop are exact.
+  TITLEMESH and CHARACTER are entirely exact C. The title resource names
+  come from inspecting TITLE.ARC, and character-selection motion IDs are
+  named for their own STAGE9.AMD registration tables.
   `./Build check-menu.exe` gates the
   full menu image; `tools/progress.py --target menu.exe` reports current source
   coverage. The 853-row scaffold inventory is coarse: some remaining rows
-  contain multiple functions, and the 10,320-byte leading textbin includes
+  contain multiple functions, and the 10,268-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
   discovery. Remaining work includes those guarded drafts,
-  menu-specific card/UI state machines, title/character/mission/options screens,
+  menu-specific card/UI state machines, mission/options screens,
   and the inherited SDK/assembly boundary audit. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.

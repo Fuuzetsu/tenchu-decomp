@@ -265,7 +265,7 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE has fifteen combined C modules and additional shared helpers.
+MENU.EXE has eighteen combined C modules and additional shared helpers.
 FILEIO, IMAGES, OPAUDIO, and MEMCARD
 include the existing engine implementations and link them against menu-specific
 symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
@@ -282,6 +282,13 @@ startup card input loop. Its subtitle file loader is guarded
 image packets; the separate `SetupMenuImageGrid` constructor remains a draft.
 The movie player preserves a 64-byte unaccessed stack region, with no claim
 about the original local's type.
+TITLEMESH recovers the rippling background. TITLE owns the title input loop,
+TIM/sprite setup, and its compiler jump table at `0x80011f84`; its sprite
+renderer remains guarded for an eight-byte arithmetic-order difference
+(`NON_MATCHING=TITLE`). CHARACTER recovers character selection, its image
+setup, model/weapon attachment, motion registration, and cleanup. All three
+CHARACTER routines match. Its STAGE9.AMD registrations reuse gameplay motion
+IDs for different clips, so those IDs have screen-specific names.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with
