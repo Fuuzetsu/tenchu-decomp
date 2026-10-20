@@ -356,12 +356,19 @@ voice cues, 16 of voice-table pointers, 2,224 in twenty switch tables, and
 1,070 zero bytes. The check validates the switch consumers' address loads and
 table targets, the typed audio rows and sentinels, contiguous coverage, and the
 leading-data hash. MusicTable has nineteen populated rows; the following
-504 zero bytes have no assigned type. Four Japanese voice entries use channel
+504 zero bytes have no recovered original declaration. Four Japanese voice entries use channel
 `0xff` with zero times, and are preserved as present in retail.
 The report records zero fill without assuming all of it is alignment padding.
-This is a data inventory, not a claim of recovered C: 9,792 bytes still reside
-in raw textbin segments, while 1,152 bytes come from C-owned switch-table
-sections and their alignment. Regenerate with `--write` only after reviewing
+The inventory is separate from C ownership. `IMAGES.C` now owns the 2,980-byte
+audio span at `0x800112dc..0x80011e80`: nineteen typed music rows, four voice
+tables (324 rows including sentinels), their filenames and diagnostics, the
+language-to-table pointer array, and the unexplained zero fill. The latter is
+an explicitly named byte array, with its original purpose left unknown.
+All 23 table pointers use ordinary `R_MIPS_32` relocations. The source preserves
+packed BCD times and the Japanese channel-`0xff` rows. The complete MENU image
+still matches retail.
+Another 1,152 bytes come from C-owned switch-table sections and their alignment;
+6,812 bytes remain in raw textbin segments. Regenerate with `--write` only after reviewing
 the classification. The focused tests include corrupted table references,
 targets, sentinels, padding, and a valid-but-changed cue.
 

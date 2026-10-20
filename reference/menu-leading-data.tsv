@@ -59,21 +59,21 @@
 0x800112da	0x800112dc	2	zero-fill		purpose unspecified
 0x800112dc	0x800113c0	228	music-table	MusicTable	19 TMusicTable rows; src/main.exe/music.h
 0x800113c0	0x800115b8	504	zero-fill		purpose unspecified
-0x800115b8	0x800115c1	9	ascii-string		"MUSIC.XA"
+0x800115b8	0x800115c1	9	ascii-string	MusicXaFilename	"MUSIC.XA"
 0x800115c1	0x800115c4	3	zero-fill		purpose unspecified
-0x800115c4	0x800115ce	10	ascii-string		"STAGES.XA"
+0x800115c4	0x800115ce	10	ascii-string	StagesXaFilename	"STAGES.XA"
 0x800115ce	0x800115d0	2	zero-fill		purpose unspecified
-0x800115d0	0x800115e6	22	ascii-string		"\\TENCHU\\XA\\INTRO.XA;1"
+0x800115d0	0x800115e6	22	ascii-string	IntroVoiceXaPath	"\\TENCHU\\XA\\INTRO.XA;1"
 0x800115e6	0x800115e8	2	zero-fill		purpose unspecified
-0x800115e8	0x800115fd	21	ascii-string		"\\TENCHU\\XA\\TORA.XA;1"
+0x800115e8	0x800115fd	21	ascii-string	ToraVoiceXaPath	"\\TENCHU\\XA\\TORA.XA;1"
 0x800115fd	0x80011600	3	zero-fill		purpose unspecified
-0x80011600	0x80011618	24	ascii-string		"\\TENCHU\\XA\\EVENT_E.XA;1"
+0x80011600	0x80011618	24	ascii-string	EnglishVoiceXaPath	"\\TENCHU\\XA\\EVENT_E.XA;1"
 0x80011618	0x800117f8	480	voice-table	English/CommonVoiceTable	80 TVoiceTable rows including sentinel; src/main.exe/music.h
-0x800117f8	0x80011810	24	ascii-string		"\\TENCHU\\XA\\EVENT_F.XA;1"
+0x800117f8	0x80011810	24	ascii-string	FrenchVoiceXaPath	"\\TENCHU\\XA\\EVENT_F.XA;1"
 0x80011810	0x800119f0	480	voice-table	French	80 TVoiceTable rows including sentinel; src/main.exe/music.h
-0x800119f0	0x80011a08	24	ascii-string		"\\TENCHU\\XA\\EVENT_I.XA;1"
+0x800119f0	0x80011a08	24	ascii-string	ItalianVoiceXaPath	"\\TENCHU\\XA\\EVENT_I.XA;1"
 0x80011a08	0x80011be8	480	voice-table	Italian	80 TVoiceTable rows including sentinel; src/main.exe/music.h
-0x80011be8	0x80011c00	24	ascii-string		"\\TENCHU\\XA\\EVENT_J.XA;1"
+0x80011be8	0x80011c00	24	ascii-string	JapaneseVoiceXaPath	"\\TENCHU\\XA\\EVENT_J.XA;1"
 0x80011c00	0x80011df8	504	voice-table	Japanese	84 TVoiceTable rows including sentinel; src/main.exe/music.h
 0x80011df8	0x80011e05	13	ascii-string	msg_bad_music_no	"bad music no"
 0x80011e05	0x80011e08	3	zero-fill		purpose unspecified

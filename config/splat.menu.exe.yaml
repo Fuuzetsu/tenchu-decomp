@@ -1,5 +1,5 @@
 # MENU.EXE: shared engine C modules and remaining assembly-backed functions.
-# The leading textbin contains strings and tables awaiting data ownership.
+# Leading data has C-owned audio tables and switch tables; other spans remain raw.
 # Verify the complete image with ./Build check-menu.exe.
 options:
   platform: psx
@@ -44,6 +44,8 @@ segments:
     subalign: 4
     subsegments:
       - [0x800, textbin]
+      - { start: 0xadc, type: .data, name: IMAGES, linker_section_order: .text }
+      - [0x1680, textbin]
       - { start: 0x1784, type: .rodata, name: TITLE, linker_section_order: .text }
       - [0x17b8, textbin]
       - { start: 0x1adc, type: .rodata, name: CARDMENU, linker_section_order: .text }

@@ -70,8 +70,12 @@ byte-identical `main.exe`.
   contain multiple functions. The full 10,944-byte leading region is now
   accounted for by strings, music/voice cues, switch tables, and zero fill;
   `tools/menu_data_inventory.py --check` verifies the byte inventory and table
-  consumers. Of that region, 9,792 bytes still use raw textbin storage.
-  Classification does not imply C ownership or complete SDK function discovery.
+  consumers. `IMAGES.C` now owns the 2,980-byte audio span: nineteen music rows,
+  324 voice rows including sentinels, filenames, diagnostics, and the language
+  pointer table. All 23 table pointers have real relocations. The 504 zero bytes
+  between the music rows and filenames retain an explicitly unknown purpose.
+  Of the leading region, 6,812 bytes still use raw textbin storage.
+  Classification does not imply complete C ownership or SDK function discovery.
   Remaining work includes the four guarded drafts and refinement of the
   inherited SDK inventory. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
