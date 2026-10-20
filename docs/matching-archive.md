@@ -1521,3 +1521,11 @@ or its address all retain 136 / 28. Parenthesized or dereferenced `sprintf`
 call spellings do likewise. Temporary fixed-argument prototype diagnostics
 with a short fourth parameter give 136 / 38; the correct variadic declaration
 remains unchanged.
+
+A file-reading inline helper that owns its 64-byte filename buffer and takes
+an already-promoted `int stage_number` still gives 136 / 28. A formatting
+helper that instead returns the caller's filename pointer directly into
+`FileRead` gives 144 / 94. Explicitly staging the signed-short promotion as
+an unsigned left shift followed by an arithmetic right shift gives 136 / 25:
+the left shift moves to the block's beginning, but the right shift remains in
+the `sprintf` delay slot. None of these alternatives is adopted.
