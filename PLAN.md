@@ -66,12 +66,14 @@ byte-identical `main.exe`.
   Fifty-eight previously unnamed SDK entries now use MAIN's names, verified
   by complete byte-identical spans in `reference/menu-sdk-identical.tsv`.
   This improves the inventory without counting library assembly as recovered C.
-  The 860-row scaffold inventory is coarse: some remaining rows
-  contain multiple functions, and the 9,792-byte leading textbin includes
-  strings and tables. Do not treat either as proof of complete function
-  discovery. Remaining work includes those guarded drafts,
-  verification of the leading text/data inventory,
-  and refinement of the inherited SDK inventory. Shared-code
+  The 860-row scaffold inventory is coarse: some remaining SDK rows
+  contain multiple functions. The full 10,944-byte leading region is now
+  accounted for by strings, music/voice cues, switch tables, and zero fill;
+  `tools/menu_data_inventory.py --check` verifies the byte inventory and table
+  consumers. Of that region, 9,792 bytes still use raw textbin storage.
+  Classification does not imply C ownership or complete SDK function discovery.
+  Remaining work includes the four guarded drafts and refinement of the
+  inherited SDK inventory. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.
 - **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a

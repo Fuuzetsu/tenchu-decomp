@@ -331,9 +331,7 @@ MENU's reviewed game/SDK boundary is `0x80027824`, immediately after
 AdtSelect. Exec and Krom2RawAdd match MAIN's BIOS thunks byte-for-byte there,
 followed by matching PCopen/PCclose/PClseek/PCcreat host-I/O entries. The SDK/CRT
 span continues to `0x800503e4`; its only direct call back into the game/engine
-span is the CRT call to `main` at `0x80027964`. The leading strings/tables have
-no `jr ra` or negative stack-adjustment instructions; their unowned raw bytes
-remain visible separately rather than being counted as recovered functions.
+span is the CRT call to `main` at `0x80027964`.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
 The identified game/engine inventory has 219 routines / 81,252 bytes; 215
@@ -347,6 +345,22 @@ delay-slot/alignment bytes allowed beyond MAIN's recorded function size.
 These names do not change C coverage. Spans with nonzero trailing code remain
 unresolved: for example, the 60-byte row at `0x8004d464` starts with StopCARD2
 but also contains a separate instruction sequence.
+
+`python3 tools/menu_data_inventory.py --check` audits every byte in the leading
+`0x80011000..0x80013ac0` region against `reference/menu-leading-data.tsv`:
+5,441 bytes of ASCII strings, 21 of Shift-JIS text, 228 of music cues, 1,944 of
+voice cues, 16 of voice-table pointers, 2,224 in twenty switch tables, and
+1,070 zero bytes. The check validates the switch consumers' address loads and
+table targets, the typed audio rows and sentinels, contiguous coverage, and the
+leading-data hash. MusicTable has nineteen populated rows; the following
+504 zero bytes have no assigned type. Four Japanese voice entries use channel
+`0xff` with zero times, and are preserved as present in retail.
+The report records zero fill without assuming all of it is alignment padding.
+This is a data inventory, not a claim of recovered C: 9,792 bytes still reside
+in raw textbin segments, while 1,152 bytes come from C-owned switch-table
+sections and their alignment. Regenerate with `--write` only after reviewing
+the classification. The focused tests include corrupted table references,
+targets, sentinels, padding, and a valid-but-changed cue.
 
 For additional shared modules, `python3 tools/shared_symbols.py FILEIO --at
 0x80015f74` demonstrates the address-recovery check. It requires a matching
