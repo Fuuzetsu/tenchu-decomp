@@ -2635,6 +2635,18 @@ LUID, barriers). The levers:
   by loads into fresh single-set temps regardless of source order — a
   same-length load-order residual between two such loads can flip on which
   side is the multi-set one (DefaultActionHumanoid's size/position pair).
+- **A shared report decoder can preserve a full-width intermediate without
+  changing the stored field's type.** MAIN and MENU's `ComPad` share
+  `PAD_DECODE_DIGITAL_REPORT`: accumulate the high byte into the output,
+  read the low byte, clear both axes, invert the packed report, and store
+  the unsigned-short button field. Its ordinary statement-macro wrapper
+  contains that complete operation and supports the two different pad-record
+  layouts. Keep the returned full mask for the first axis, then mask the
+  accumulator for the right-button predicate. This matches both functions
+  and replaces MAIN's empty loop and identical-arm branch. A field reload
+  instead inserts a zero-extension; flattening the decoder lets scheduling
+  reorder the store/copy pair. This is a shared semantic operation, not a
+  general prescription to wrap individual stores in macros.
 - **Delay slots** (reorg mechanics in compiler-facts): read the BLOCK LEADER,
   not the branch — `.flow` vs `.sched` first: if pre-sched order already
   matches, the lever is sched1 priority, not reorg (DrawBleed, where every

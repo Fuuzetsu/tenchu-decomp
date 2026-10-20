@@ -1413,7 +1413,8 @@ bytes in exact C; only ComPad and LoadMovieSubtitles remain guarded.
 
 ## MENU remaining controller/subtitle diagnostics — 2026-10-21
 
-`ComPad`'s committed draft remains 420 bytes / four differing bytes. Its
+At the start of this investigation, `ComPad`'s committed draft was 420 bytes /
+four differing bytes. Its
 first `int buttons = pad->button` is still a halfword load with zero extension
 after combine. Later store forwarding substitutes the stored register, leaving
 `andi v1,v0,0xffff` where retail has `move v1,v0`. Reading an untruncated
@@ -1462,4 +1463,61 @@ Temporary old-style, variadic, and fixed-five-argument `sprintf` declarations
 all leave the 136 / 28 result unchanged; none is a proposed header change.
 Normalizing an integer stage parameter in place after the free also leaves
 136 / 28. Normalizing before the free changes the prologue and usually shrinks
-the routine to 132 bytes. Both committed drafts therefore remain unchanged.
+the routine to 132 bytes. Neither diagnostic changed the committed drafts.
+
+### Controller resolution
+
+`ComPad` now matches all 420 bytes. The shared
+`PAD_DECODE_DIGITAL_REPORT` statement macro owns the complete report decode:
+read the high byte into the accumulator, read the low byte, clear Y/X,
+invert the packed word, and store the unsigned-short button field. It also
+returns the full decoded accumulator to the caller. The first direction
+block saves that mask in `buttons`, applies `pressed &= PADLright`, and tests
+`pressed`; the left-direction test uses the saved mask. The vertical block
+still reads the button field.
+
+Both parts matter. With the decoder flattened, the first scheduling pass
+keeps the store before the copy, but the second pass groups them at priority
+two and its memory-unit hazard tie-break reverses them. With an ordinary
+field reload, the zero-extension survives. In the shared decoder, the
+standard `do { ... } while (0)` macro wrapper contains all the real report
+work; there is no empty loop or fabricated conditional.
+
+This is shared by the 12-byte MENU and 14-byte MAIN pad records. Replacing
+MAIN's previous empty loop, identical `if (port)` arms, and temporary axis
+assignments with the same decoder and direction block also matches its
+complete 480-byte function. The macro is a refactoring of common behavior,
+not a claim that the original source used this macro.
+
+`./Build -j8 check-all` passes all six executables; the focused
+inventory/source-unit/shared-symbol suite passes all 29 tests. MENU now has
+218 of 219 game routines / 81,116 of 81,252 bytes in exact C.
+`LoadMovieSubtitles` is the sole remaining guarded game routine.
+
+### Original compiler cross-check
+
+Original compilers were run with wibo and named input/output files. The 4.3–4.5
+packages came from the URLs in
+[decomp.me's compiler definitions](https://github.com/decompme/compilers/blob/main/values.yaml);
+the 4.6 compiler came from the local SDK archive. Their reported versions are:
+
+| Package | Compiler version |
+| --- | --- |
+| psyq4.3 | GCC 2.8.0, SN32 Build 4.0.0007 |
+| psyq4.4 | GCC 2.8.1, SN32 Build 4.0.0010 |
+| psyq4.5 | egcs-2.91.66, 19990314 |
+| psyq4.6 | GCC 2.95.2, Build 4.0.0030 |
+
+The 4.3 and 4.4 compilers reproduce the native compiler's old controller
+residuals (420 / 4 for the field-read draft, 420 / 8 for the predicate
+diagnostic) and the subtitle residual (136 / 28). The corresponding original
+ASPSX 2.77 and 2.79 objects also contain the controller's `sh; andi; andi`
+sequence unchanged. This rules out a replacement-assembler rewrite for that
+old residual. The 4.5/4.6 packages produce different instruction streams.
+No build profile or compiler flag was changed.
+
+For the subtitle loader, inline release helpers taking the global, its value,
+or its address all retain 136 / 28. Parenthesized or dereferenced `sprintf`
+call spellings do likewise. Temporary fixed-argument prototype diagnostics
+with a short fourth parameter give 136 / 38; the correct variadic declaration
+remains unchanged.

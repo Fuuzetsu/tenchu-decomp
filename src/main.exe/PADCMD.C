@@ -41,9 +41,8 @@ void ComPad(int port, u8 *rxbuf)
     TPadPort *pad;
     u8 *act;
     int i;
-    int raw;
     int initlevel;
-    int hi, lo;
+    int pressed;
 
     if (PAD_REPORT_TYPE(rxbuf) == PAD_REPORT_TYPE_MULTITAP)
     {
@@ -68,33 +67,16 @@ void ComPad(int port, u8 *rxbuf)
         return;
     }
 
-    hi = rxbuf[PAD_REPORT_BUTTON_HIGH];
-    lo = rxbuf[PAD_REPORT_BUTTON_LOW];
-    pad->y = 0;
-    pad->x = 0;
-    raw = ~(lo | (hi << 8));
+    PAD_DECODE_DIGITAL_REPORT(pad, rxbuf, pressed);
     {
-        int i;
+        int buttons = pressed;
 
-        pad->button = raw;
-        do
-        {
-        } while (0);
-        if (port != 0)
-            i = raw;
-        else
-            i = raw;
         /* Digital pads synthesize a stick deflection of 45. */
-        if (i & PADLright)
-        {
-            raw = PAD_DIGITAL_AXIS_MAGNITUDE;
-            pad->x = raw;
-        }
-        else if (i & PADLleft)
-        {
-            raw = -PAD_DIGITAL_AXIS_MAGNITUDE;
-            pad->x = raw;
-        }
+        pressed &= PADLright;
+        if (pressed)
+            pad->x = PAD_DIGITAL_AXIS_MAGNITUDE;
+        else if (buttons & PADLleft)
+            pad->x = -PAD_DIGITAL_AXIS_MAGNITUDE;
     }
     {
         int i;

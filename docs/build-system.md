@@ -324,12 +324,12 @@ jump tables in the leading text region via `.rodata` entries with
 `linker_section_order: .text`. The score calculation is copied from STAGE.C;
 card help calls MENU's nonspatial `Sound` entry point.
 PADCMD explicitly models MENU's earlier 12-byte controller record instead of
-MAIN's 14-byte record. Eleven PADCMD routines match; `ComPad` remains guarded
-and is excluded from C coverage. Its 420-byte C draft differs in one instruction
-(four bytes): a button-field read becomes `andi v1,v0,0xffff` where retail has
-`move v1,v0`. Its subsequent axis tests use only the low sixteen bits.
-`NON_MATCHING=PADCMD ./Build
-.shake/build/tenchu/menu.exe` compiles that draft for comparison.
+MAIN's 14-byte record. All twelve PADCMD routines match. The shared
+`PAD_DECODE_DIGITAL_REPORT` macro reads the active-low button bytes, clears
+the synthesized axes, stores the button field, and retains the full decoded
+value for direction tests. It supports both record layouts and removes the
+empty loop and identical-branch workaround from MAIN's `ComPad`. Both complete
+functions match: 420 bytes in MENU and 480 bytes in MAIN.
 `config/translation-units.menu.exe.json` records the combined source owners.
 Both `tools/progress.py --target menu.exe` and the objdiff report use that
 manifest; included assembly fallbacks and missing shared sources do not count
@@ -342,9 +342,9 @@ span continues to `0x800503e4`; its only direct call back into the game/engine
 span is the CRT call to `main` at `0x80027964`.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
-The identified game/engine inventory has 219 routines / 81,252 bytes; 217
-routines / 80,696 bytes are exact C. The two guarded drafts are ComPad and
-LoadMovieSubtitles.
+The identified game/engine inventory has 219 routines / 81,252 bytes; 218
+routines / 81,116 bytes are exact C. Only the 136-byte LoadMovieSubtitles
+draft remains guarded.
 The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
 `reference/menu-sdk-identical.tsv` records 58 recovered SDK entry names across

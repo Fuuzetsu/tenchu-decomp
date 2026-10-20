@@ -10,19 +10,13 @@
 extern u8 Anakon;
 extern u8 align[6];
 
-/* Draft: 420 bytes with one instruction differing. The first button read
- * becomes a zero-extension where retail retains a plain register copy.
- * The other routines below match. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/PADCMD", ComPad);
-#else
 void ComPad(int port, u8 *rxbuf)
 {
     MenuPadPort *pad;
     u8 *act;
     int i;
     int initlevel;
-    int hi, lo;
+    int pressed;
 
     if (PAD_REPORT_TYPE(rxbuf) == PAD_REPORT_TYPE_MULTITAP)
     {
@@ -46,16 +40,13 @@ void ComPad(int port, u8 *rxbuf)
         return;
     }
 
-    hi = rxbuf[PAD_REPORT_BUTTON_HIGH];
-    lo = rxbuf[PAD_REPORT_BUTTON_LOW];
-    pad->y = 0;
-    pad->x = 0;
-    pad->button = ~(lo | (hi << 8));
+    PAD_DECODE_DIGITAL_REPORT(pad, rxbuf, pressed);
     {
-        int buttons = pad->button;
+        int buttons = pressed;
 
         /* Digital pads synthesize a stick deflection of 45. */
-        if (buttons & PADLright)
+        pressed &= PADLright;
+        if (pressed)
             pad->x = PAD_DIGITAL_AXIS_MAGNITUDE;
         else if (buttons & PADLleft)
             pad->x = -PAD_DIGITAL_AXIS_MAGNITUDE;
@@ -91,7 +82,6 @@ void ComPad(int port, u8 *rxbuf)
         pad->Send = 1;
     }
 }
-#endif
 
 static inline void PadShockApply(s32 port, s32 act1, s32 act2)
 {

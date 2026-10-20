@@ -3,6 +3,21 @@
 
 struct PADtype;
 
+/* MAIN and MENU use different pad records with the same button/x/y fields.
+ * Decode the active-low report and clear the synthesized stick coordinates.
+ * Keep the full decoded value in pressed for the following direction tests. */
+#define PAD_DECODE_DIGITAL_REPORT(pad, report, pressed)                 \
+    do                                                               \
+    {                                                                \
+        int pad_report_low;                                          \
+        (pressed) = (report)[PAD_REPORT_BUTTON_HIGH];                 \
+        pad_report_low = (report)[PAD_REPORT_BUTTON_LOW];             \
+        (pad)->y = 0;                                                \
+        (pad)->x = 0;                                                \
+        (pressed) = ~(pad_report_low | ((pressed) << 8));              \
+        (pad)->button = (pressed);                                   \
+    } while (0)
+
 /* Saved/control-global values select one of four authored button maps. The
  * first eight-byte run is the canonical physical layout and is also the input
  * side of every remap operation. */

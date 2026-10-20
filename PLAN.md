@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **MENU.EXE decompilation is active (2026-10-21).** Its twenty-one combined C
-  modules and shared helpers recover 217 functions / 80,696 bytes:
+  modules and shared helpers recover 218 functions / 81,116 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -25,9 +25,9 @@ byte-identical `main.exe`.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
-  persistent state. `ComPad` remains a guarded 420-byte C draft: one button-read
-  zero-extension differs from retail's register copy; the other eleven PADCMD
-  routines are exact. Compile that draft with `NON_MATCHING=PADCMD`.
+  persistent state. All twelve PADCMD routines are exact C. `ComPad` shares
+  the digital-report decoder with MAIN despite their different pad-record
+  layouts; this also removes MAIN's empty loop and identical-branch workaround.
   All ten OPMOVIE streaming routines and all three EXECFILE routines are exact
   C. The boot handoff's indexed filename copy reproduces its pointer walk
   through compiler strength reduction.
@@ -59,9 +59,9 @@ byte-identical `main.exe`.
   without assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
-  Its reviewed game/SDK split puts 217 of 219 identified game/engine routines
-  in exact C (80,696 / 81,252 bytes). Two readable C drafts remain guarded:
-  ComPad and LoadMovieSubtitles.
+  Its reviewed game/SDK split puts 218 of 219 identified game/engine routines
+  in exact C (81,116 / 81,252 bytes). Only the 136-byte LoadMovieSubtitles
+  draft remains guarded.
   SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
   Fifty-eight previously unnamed SDK entries now use MAIN's names, verified
@@ -84,7 +84,7 @@ byte-identical `main.exe`.
   belong to SDK data, and sixteen game-side zero bytes retain unknown original
   declarations. All six executables remain byte-identical.
   Classification does not imply complete C ownership or SDK function discovery.
-  Remaining work includes the two guarded drafts and refinement of the
+  Remaining work includes the subtitle-loader draft and refinement of the
   inherited SDK inventory. The 2026-10-21
   [image-grid investigation](docs/matching-archive.md#menu-setupmenuimagegrid--2026-10-21)
   records the exact grid solution and the compiler diagnostics that preceded it.
