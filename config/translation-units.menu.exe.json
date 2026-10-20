@@ -295,6 +295,13 @@
         "DrawOptionTwoDigits",
         "DrawOptionNumber"
       ]
+    },
+    {
+      "source": "CARDMENU.C",
+      "functions": [
+        "UpdateStartupCardCheck",
+        "UpdateLoadCardScreen"
+      ]
     }
   ]
 }

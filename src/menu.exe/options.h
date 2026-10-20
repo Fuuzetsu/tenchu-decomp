@@ -2,6 +2,7 @@
 #define MENU_OPTIONS_H
 
 #include "frontend.h"
+#include "cardmenu.h"
 
 enum
 {
@@ -139,8 +140,6 @@ enum
     MENU_EXTRA_LANGUAGES = 0x20,
     MENU_CHEAT_LANGUAGES = 0x800
 };
-
-short UpdateLoadCardScreen(int buttons);
 
 void RunOptionsMenu(void);
 void SetupOptionsImages(short load);

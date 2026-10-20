@@ -152,7 +152,7 @@
 0x80021bf4	84	DeleteCard
 0x80021c48	56	FormatCard
 0x80021c80	360	LoadCard
-0x80021de8	924	FUN_80021de8
+0x80021de8	924	UpdateStartupCardCheck
 0x80022184	804	UpdateLoadCardScreen
 0x800224a8	1024	update_card_screen_
 0x800228a8	536	update_card_message_

@@ -298,6 +298,12 @@ extra-language unlock in persistent GameRetry bit 5. Its two jump tables remain
 in the original textbin until the C handler matches.
 MENU_J.ARC supplies the image identities; the controller action labels use a
 four-language coordinate table with an explicit Japanese selection.
+CARDMENU recovers startup card checks and manual loading, including its two
+jump tables at `0x800122dc`/`0x8001236c`, the temporary save-file space probe,
+and incompatible-save recovery. Its page names are checked against retail
+START/CARD_J.TXT. `persistent.h` gives MAIN the callable reset definition and
+the card handlers GNU C extern-inline copies of that same body; all three
+emitted copies match. The existing signed-short state/message APIs are retained.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with

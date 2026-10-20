@@ -10,14 +10,14 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its nineteen combined C
-  modules and shared helpers recover 204 functions / 67,784 bytes:
+- **MENU.EXE decompilation is active (2026-10-20).** Its twenty combined C
+  modules and shared helpers recover 206 functions / 69,512 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
   archives, CD-file access, debug display, card-screen prompts, fonts/telop,
   score calculation, cheat-command recognition, movie streaming, and the
-  CD/host executable loaders, subtitle playback, the startup card loop, and
+  CD/host executable loaders, subtitle playback, startup and manual card loading, and
   mission-image grid drawing/cleanup, the title mesh and input loop,
   title resource loading, character selection, the options controller,
   options resource loading and animated list, controller configuration,
@@ -48,10 +48,13 @@ byte-identical `main.exe`.
   language layouts. The records screen retains the original signed-short
   time display and training-layout handling. The choice screen identifies
   persistent GameRetry bit 5 as the French/Italian unlock.
+  CARDMENU's startup/load handlers are exact C, including their jump tables,
+  save-version checks and file-space probe. `persistent.h` shares one reset
+  body between MAIN's callable definition and the card handlers' inline copies.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
   The 860-row scaffold inventory is coarse: some remaining rows
-  contain multiple functions, and the 10,268-byte leading textbin includes
+  contain multiple functions, and the 9,792-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
   discovery. Remaining work includes those guarded drafts,
   menu-specific card/UI state machines, mission/options screens,

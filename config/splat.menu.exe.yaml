@@ -46,6 +46,8 @@ segments:
       - [0x800, textbin]
       - { start: 0x1784, type: .rodata, name: TITLE, linker_section_order: .text }
       - [0x17b8, textbin]
+      - { start: 0x1adc, type: .rodata, name: CARDMENU, linker_section_order: .text }
+      - [0x1cb8, textbin]
       - { start: 0x1cbc, type: .rodata, name: update_card_screen_, linker_section_order: .text }
       - [0x1db8, textbin]
       - { start: 0x1dbc, type: .rodata, name: update_card_message_, linker_section_order: .text }
@@ -66,8 +68,7 @@ segments:
       - [0xb88c, c, OPTIONS]
       - [0xfbf8, c, ACTION]
       - [0x10f6c, c, MEMCARD]
-      - [0x115e8, c, FUN_80021de8]
-      - [0x11984, c, UpdateLoadCardScreen]
+      - [0x115e8, c, CARDMENU]
       - [0x11ca8, c, update_card_screen_]
       - [0x120a8, c, update_card_message_]
       - [0x122c0, c, setup_card_screen_]

@@ -1342,6 +1342,16 @@ judgment:
 
 ### 3.5 Calls, prototypes, inline helpers
 
+**A callable function and its inlined copies can share one definition.**
+MENU's persistent-state reset appears as a 292-byte function in MAIN and as
+inlined bodies in both card handlers. A wrapper around a `static inline`
+helper made MAIN's version 12 bytes longer: its zero stores acquired three
+absolute-address materializations. `menu.exe/persistent.h` instead exposes
+the same body as an ordinary definition to MAIN and `extern __inline__` to
+the card unit. This preserves both code-generation forms without duplicating
+the initialization logic. The macro selects linkage, not different bodies
+or compiler options; the whole MENU image is byte-identical.
+
 - **Per-TU prototypes are a lever, not a bug**: a caller-side `extern u32 f()`
   for a u16-returning callee moves the extension after the bit-chain
   (GetRealPad); `extern u16 f()` lets a sign test compile `sll+bltz` with no sra

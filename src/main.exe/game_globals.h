@@ -32,8 +32,8 @@ extern unsigned char gfMemory;
  * Bit 0 says the player is replaying this stage rather than reaching it
  * fresh: StageEndScreen's retry arm and the game-over screen set it, the
  * briefing and stage-end paths clear it, and the briefing cinematic is
- * skipped while it is up. MENU.EXE also uses bit 5 to unlock French and
- * Italian in its language selector; MAIN.EXE only tests the replay bit. */
+ * skipped while it is up. MENU.EXE also uses bit 1 to record a menu visit and
+ * bit 5 to unlock French and Italian in its language selector. */
 #define GAME_RETRY_REPLAY 1
 extern unsigned char GameRetry;
 /* Named byte views into PersistentState, retained alongside the structured

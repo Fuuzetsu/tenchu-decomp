@@ -223,6 +223,7 @@ extern card_result SaveCard(s32 target, u8 *name, void *data, s32 size,
 extern card_result ChkCard(void);
 extern card_result check_card_file_(char *name);
 extern card_result FormatCard(void);
+extern card_result DeleteCard(u8 *name);
 extern card_result LoadCard(s32 target, u8 *name);
 
 extern s16 update_card_message_(card_state *state, card_page *message);

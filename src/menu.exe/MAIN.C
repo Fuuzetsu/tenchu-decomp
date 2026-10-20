@@ -1,6 +1,9 @@
 #include "common.h"
 #include "menu.exe.h"
 #include "frontend.h"
+#include "cardmenu.h"
+#define MENU_DEFINE_PERSISTENT_RESET
+#include "persistent.h"
 #include "../main.exe/adt.h"
 #include "../main.exe/font.h"
 #include "../main.exe/graphics.h"
@@ -20,8 +23,6 @@ enum
     MENU_TRAINING = 1,
     MENU_MISSION_EDITOR = 2,
     MENU_OPTIONS = 3,
-    MENU_VISITED = 2,
-    PERSISTENT_STATE_MAGIC = 0x19981110,
     OPENING_MOVIE_FRAMES = 1879,
     TRAINING_MOVIE_FRAMES = 247
 };
@@ -66,42 +67,9 @@ void LoadMovieSubtitles(short stage);
 void PlaySubtitledMovie(char *path, int frames, u_short rgb24);
 void RunOptionsMenu(void);
 short ProcessMovieCommands(SoundEffect *voices);
-short UpdateStartupCardCheck(int buttons);
 void GsInitGraph2(unsigned short width, unsigned short height,
                  unsigned short mode, unsigned short dither,
                  unsigned short rgb24);
-
-void InitMenuPersistentState(void)
-{
-    TLinkInfo *state = MENU_STATE;
-
-    memset(state, 0, TENCHU_PERSISTENT_STATE_SIZE);
-    state->magic = PERSISTENT_STATE_MAGIC;
-    state->Nannido = DIFFICULTY_NORMAL;
-    state->Stereo = SOUND_MODE_STEREO;
-    state->SoundLevel = 96;
-    state->SELevel = 96;
-    state->fMemory = 0;
-    state->Anakon = 1;
-    state->language = LANG_JAPANESE;
-    state->StageNoMAX[AYAME_0] = 0;
-    state->StageNoMAX[RIKIMARU_0] = 0;
-    memset(state->gItem, (s8)ITEM_LOCKED, sizeof(state->gItem));
-    state->gItem[RIKIMARU_0][ITEM_KAGINAWA] = ITEM_INFINITE;
-    state->gItem[RIKIMARU_0][ITEM_SHURIKEN] = 6;
-    state->gItem[RIKIMARU_0][ITEM_MAKIBISHI] = 6;
-    state->gItem[RIKIMARU_0][ITEM_KUSURI] = 2;
-    state->gItem[RIKIMARU_0][ITEM_FIRE] = 1;
-    state->gItem[RIKIMARU_0][ITEM_SMOKE] = 1;
-    state->gItem[RIKIMARU_0][ITEM_DOKUDANGO] = 3;
-    state->gItem[RIKIMARU_0][ITEM_GOSHIKIMAI] = 5;
-    __builtin_memcpy(state->gItem[AYAME_0], state->gItem[RIKIMARU_0],
-                     sizeof(state->gItem[RIKIMARU_0]));
-
-    /* The save image reserves another 0xA00 bytes beyond the game state. */
-    memset(state + 1, 0xff,
-           TENCHU_PERSISTENT_STATE_SIZE - sizeof(*state));
-}
 
 int main(void)
 {
@@ -109,7 +77,7 @@ int main(void)
     short selection;
     RECT clear_rect;
 
-    if (MENU_STATE->GameRetry == 0 || MENU_STATE->magic != PERSISTENT_STATE_MAGIC)
+    if (MENU_STATE->GameRetry == 0 || MENU_STATE->magic != MENU_STATE_MAGIC)
         InitMenuPersistentState();
 
     AdtPadRead = GetRealPad;
@@ -138,7 +106,7 @@ int main(void)
         RunStartupCardCheck();
         opening_count = -1;
     }
-    MENU_STATE->GameRetry |= MENU_VISITED;
+    MENU_STATE->GameRetry |= MENU_STATE_VISITED;
 
     for (;;)
     {
