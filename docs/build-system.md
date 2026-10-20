@@ -306,13 +306,13 @@ START/CARD_J.TXT. `persistent.h` gives MAIN the callable reset definition and
 the card handlers GNU C extern-inline copies of that same body; all three
 emitted copies match. The existing signed-short state/message APIs are retained.
 MISSION recovers the mission screen's controller, initialization, cleanup,
-archive loading, drawing, and input in exact C. Its local clear rectangle owns
+archive loading, sprite setup, drawing, and input in exact C. Its local clear rectangle owns
 the eight-byte `.sdata` initializer at `0x8005b58c`. Layout grades, unlock rules,
 preview/title replacement, and the sliding banner/cursor retain their original
 short arithmetic. The image identities come from SELSTG_J.ARC. Sprite setup
-remains guarded (`NON_MATCHING=MISSION`): its 824-byte C draft differs in loop
-initialization scheduling, including a hoisted y-coordinate constant. Its
-unaccessed 128-byte stack region is explicitly unknown.
+computes rank-label X positions from the layout index, reproducing the original
+coordinate increments and constant placement through compiler strength reduction.
+Its unaccessed 128-byte stack region is explicitly unknown.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with
@@ -336,9 +336,9 @@ no `jr ra` or negative stack-adjustment instructions; their unowned raw bytes
 remain visible separately rather than being counted as recovered functions.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
-The identified game/engine inventory has 219 routines / 81,252 bytes; 214
-routines / 75,656 bytes are exact C. The five guarded drafts are ComPad,
-UpdateChoiceOptions, LoadMovieSubtitles, SetupMissionSprites,
+The identified game/engine inventory has 219 routines / 81,252 bytes; 215
+routines / 76,480 bytes are exact C. The four guarded drafts are ComPad,
+UpdateChoiceOptions, LoadMovieSubtitles,
 and SetupMenuImageGrid. The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
 

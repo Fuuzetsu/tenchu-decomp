@@ -788,6 +788,13 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   Conversely, `UpdateMissionSelection` needs a row pointer to its layout
   grades, with `ranks++` after publishing each visible sprite; indexing the
   whole matrix in that loop changes address formation and adds four bytes.
+- **A running coordinate can also be a compiler-created induction variable.**
+  `SetupMissionSprites` matches `sprite->x = -42 + layout * 120` in both its
+  rank and unplayed-label loops. A manual `short x = -42; …; x += 120;`
+  produced the same 824-byte length but changed a preheader copy and hoisted
+  the second loop's y=75 constant. Restoring the indexed coordinate fixed all
+  74 differing bytes and removed both x locals. Do not limit the
+  index-versus-pointer investigation to memory addresses.
 - **Biased-shift divisions fold to `/` ONLY when self-contained**: the
   decompiler's `if (x < 0) x += (1<<N)-1; y = x >> N;` respells as
   `y = x / (1<<N)` byte-free when each occurrence is independent

@@ -1280,7 +1280,15 @@ the tie is exactly the GLOBAL one ROUND 2/3 proved. New results:
 ```
 ## MENU SetupMissionSprites — 2026-10-20
 
-STATUS: guarded readable C, 824/824 bytes, 74 raw differing bytes. The original
+RESOLVED: all 824 bytes now match. Both loops use
+`sprite->x = -42 + layout * 120`; the compiler generates their running
+coordinates. Applying this to only the rank loop left 66 differing bytes;
+only the unplayed loop left eight; both together matched. Removing the obsolete
+x declarations, initializers, and extra scope preserved the match. All seven
+MISSION routines and all six executable SHA checks pass. The earlier
+investigation below explains the discarded manual-coordinate draft.
+
+Previous status: guarded readable C, 824/824 bytes, 74 raw differing bytes. The original
 216-byte frame includes 128 bytes that no instruction accesses; the draft
 records these as unknown unused storage. Rank and unplayed loops each have a
 block-local x coordinate. Their image identities were checked in SELSTG_J.ARC.
@@ -1297,7 +1305,3 @@ do-while spellings, x initialization placement, clone-result temporaries,
 signed/unsigned x, and explicit row pointers did not match. A bounded 60-second
 permuter run moved LoadTIM into the clone loop and inserted an empty statement;
 that candidate was rejected for changing behavior and adding a fence.
-
-Continue from `src/menu.exe/MISSION.C` with `NON_MATCHING=MISSION`; inspect the
-loop-invariant decisions for y=77 and y=75 before repeating source variations.
-The other six MISSION routines and all six executable SHA checks pass.

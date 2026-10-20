@@ -197,10 +197,6 @@ void LoadMissionImages(void)
     SetupMissionSprites();
 }
 
-/* Draft: 824 bytes, with two loop initialization schedules still differing. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/MISSION", SetupMissionSprites);
-#else
 void SetupMissionSprites(void)
 {
     GsIMAGE image;
@@ -250,36 +246,28 @@ void SetupMissionSprites(void)
     sprite->attribute |= 0x08000000;
     for (rank = 0; rank < N_STAGE_RANKS; rank++)
     {
-        short x;
-
         data = get_tim_from_archive(MissionImageArchive, MISSION_IMAGE_RANK_LAST - rank);
         GetTIMInfo(data, &image);
         LoadTIM(data);
-        for (layout = 0, x = -42; layout < N_STAGE_LAYOUTS; layout++)
+        for (layout = 0; layout < N_STAGE_LAYOUTS; layout++)
         {
             MissionRankSprites[rank][layout] = SetupSprite(MissionRankSprites[rank][0], &image);
             sprite = &MissionRankSprites[rank][layout]->sprite;
-            sprite->x = x;
-            x += 120;
+            sprite->x = -42 + layout * 120;
             sprite->y = 77;
             sprite->attribute |= 0x08000000 | GS_ATTR_SEMITRANS(GPU_BLEND_ADD_QUARTER);
         }
     }
+    data = get_tim_from_archive(MissionImageArchive, MISSION_IMAGE_UNPLAYED);
+    GetTIMInfo(data, &image);
+    LoadTIM(data);
+    for (layout = 0; layout < N_STAGE_LAYOUTS; layout++)
     {
-        short x;
-
-        data = get_tim_from_archive(MissionImageArchive, MISSION_IMAGE_UNPLAYED);
-        GetTIMInfo(data, &image);
-        LoadTIM(data);
-        for (layout = 0, x = -42; layout < N_STAGE_LAYOUTS; layout++)
-        {
-            MissionUnplayedSprites[layout] = SetupSprite(MissionUnplayedSprites[0], &image);
-            sprite = &MissionUnplayedSprites[layout]->sprite;
-            sprite->x = x;
-            x += 120;
-            sprite->y = 75;
-            sprite->attribute |= 0x08000000 | GS_ATTR_SEMITRANS(GPU_BLEND_ADD_QUARTER);
-        }
+        MissionUnplayedSprites[layout] = SetupSprite(MissionUnplayedSprites[0], &image);
+        sprite = &MissionUnplayedSprites[layout]->sprite;
+        sprite->x = -42 + layout * 120;
+        sprite->y = 75;
+        sprite->attribute |= 0x08000000 | GS_ATTR_SEMITRANS(GPU_BLEND_ADD_QUARTER);
     }
     data = get_tim_from_archive(MissionImageArchive, MissionBestRanks[0] + MISSION_IMAGE_OVERALL_RANK_FIRST);
     GetTIMInfo(data, &image);
@@ -290,7 +278,6 @@ void SetupMissionSprites(void)
     sprite->y = 73;
     sprite->attribute |= 0x08000000;
 }
-#endif
 
 void DrawMissionSelection(void)
 {

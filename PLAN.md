@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **MENU.EXE decompilation is active (2026-10-20).** Its twenty-one combined C
-  modules and shared helpers recover 214 functions / 75,656 bytes:
+  modules and shared helpers recover 215 functions / 76,480 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -51,17 +51,17 @@ byte-identical `main.exe`.
   CARDMENU's startup/load handlers are exact C, including their jump tables,
   save-version checks and file-space probe. `persistent.h` shares one reset
   body between MAIN's callable definition and the card handlers' inline copies.
-  MISSION has six exact routines covering its controller, resources, layout
-  unlocks, banner/cursor animation, input, and cleanup. Its sprite setup has a
-  guarded 824-byte draft (`NON_MATCHING=MISSION`): two loop initialization
-  schedules still differ. The unused 128-byte stack region is retained without
-  assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
+  All seven MISSION routines are exact C, covering its controller, resources,
+  layout unlocks, sprite setup, banner/cursor animation, input, and cleanup.
+  Rank-label positions are calculated from their layout index; the compiler
+  produces the running coordinates. The unused 128-byte stack region is retained
+  without assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
-  Its reviewed game/SDK split puts 214 of 219 identified game/engine routines
-  in exact C (75,656 / 81,252 bytes). Five readable C drafts remain guarded:
-  ComPad, UpdateChoiceOptions, LoadMovieSubtitles,
-  SetupMissionSprites, and SetupMenuImageGrid. SDK/CRT begins with Exec at
+  Its reviewed game/SDK split puts 215 of 219 identified game/engine routines
+  in exact C (76,480 / 81,252 bytes). Four readable C drafts remain guarded:
+  ComPad, UpdateChoiceOptions, LoadMovieSubtitles, and SetupMenuImageGrid.
+  SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
   The 860-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 9,792-byte leading textbin includes
