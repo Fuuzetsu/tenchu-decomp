@@ -302,6 +302,18 @@
         "UpdateStartupCardCheck",
         "UpdateLoadCardScreen"
       ]
+    },
+    {
+      "source": "MISSION.C",
+      "functions": [
+        "SelectMenuMission",
+        "InitMissionSelection",
+        "DisposeMissionSelection",
+        "LoadMissionImages",
+        "SetupMissionSprites",
+        "DrawMissionSelection",
+        "UpdateMissionSelection"
+      ]
     }
   ]
 }

@@ -777,6 +777,14 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   a `for` update removes the target's pointer copy and changes the loop
   branch, producing 520 bytes instead of 524. The indexed post-increment
   expresses the iteration directly; no manual pointer walk is needed.
+- **A pointer increment in the output may come from an indexed source.**
+  MENU's `DrawMissionSelection` first assigned `polygon = &polygons[i]` inside
+  its three-quad loop. A manual pointer walk had the correct 996-byte length
+  but scheduled the priority argument later (19 differing bytes). The indexed
+  assignment reproduces the same pointer increment and matches exactly.
+  Conversely, `UpdateMissionSelection` needs a row pointer to its layout
+  grades, with `ranks++` after publishing each visible sprite; indexing the
+  whole matrix in that loop changes address formation and adds four bytes.
 - **Biased-shift divisions fold to `/` ONLY when self-contained**: the
   decompiler's `if (x < 0) x += (1<<N)-1; y = x >> N;` respells as
   `y = x / (1<<N)` byte-free when each occurrence is independent
@@ -1156,6 +1164,13 @@ Mechanised spellings live in the index (`type-width`, `param-width`,
 `call-result-split`, `vector-copy`, `assignment-chain`…). What remains is
 judgment:
 
+- **A narrow ternary arm can preserve separate comparison and store loads.**
+  MENU's banner clamp compares `MissionBannerX - 80` at full width but selects
+  `(short)(MissionBannerX - 80)` for storage. Removing the arm's cast merges
+  its `lh`/`lhu` loads and changes the comparison boundary. Its vertical cursor
+  clamp instead matches an `if/else` assigning a block-local short before the
+  final field store. Read both the comparison width and the selected value's
+  width; the destination field alone does not describe the intermediate C.
 - **fold reassociation is a spelling contract** (compiler-facts): spell the
   grouping the target's `addiu`+`addu/subu` pair implies — `t + (rand() % 1000
   - 500)`, `dtL->vy - (0x69 - y)` (HangCheck); `A + (B + 25)` to land the

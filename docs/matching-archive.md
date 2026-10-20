@@ -1278,3 +1278,26 @@ the tie is exactly the GLOBAL one ROUND 2/3 proved. New results:
     previously-live local (here the U-coordinate `u`) over an arbitrary one --
     any previously-live local supplies the pressure, so pick the human one.
 ```
+## MENU SetupMissionSprites — 2026-10-20
+
+STATUS: guarded readable C, 824/824 bytes, 74 raw differing bytes. The original
+216-byte frame includes 128 bytes that no instruction accesses; the draft
+records these as unknown unused storage. Rank and unplayed loops each have a
+block-local x coordinate. Their image identities were checked in SELSTG_J.ARC.
+
+The residual is at `0x800243d8` (row-offset copy versus x initializer order)
+and `0x8002446c`–`0x800244cc` (the draft hoists the unplayed y=75 constant into
+s5; retail materializes it in v1 inside the loop). This is a measured source
+mismatch, not a claim that the compiler cannot reproduce the target.
+
+Measured alternatives: function-wide x gives 86 differing bytes; block-local
+x gives 74; local sprite pointers give 83; separate attribute OR statements
+grow to 840/856 bytes; a named y coordinate grows to 832/836 bytes. For/while/
+do-while spellings, x initialization placement, clone-result temporaries,
+signed/unsigned x, and explicit row pointers did not match. A bounded 60-second
+permuter run moved LoadTIM into the clone loop and inserted an empty statement;
+that candidate was rejected for changing behavior and adding a fence.
+
+Continue from `src/menu.exe/MISSION.C` with `NON_MATCHING=MISSION`; inspect the
+loop-invariant decisions for y=77 and y=75 before repeating source variations.
+The other six MISSION routines and all six executable SHA checks pass.

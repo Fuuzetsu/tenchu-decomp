@@ -265,7 +265,7 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE has nineteen combined C modules and additional shared helpers.
+MENU.EXE has twenty-one combined C modules and additional shared helpers.
 FILEIO, IMAGES, OPAUDIO, and MEMCARD
 include the existing engine implementations and link them against menu-specific
 symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
@@ -304,6 +304,14 @@ and incompatible-save recovery. Its page names are checked against retail
 START/CARD_J.TXT. `persistent.h` gives MAIN the callable reset definition and
 the card handlers GNU C extern-inline copies of that same body; all three
 emitted copies match. The existing signed-short state/message APIs are retained.
+MISSION recovers the mission screen's controller, initialization, cleanup,
+archive loading, drawing, and input in exact C. Its local clear rectangle owns
+the eight-byte `.sdata` initializer at `0x8005b58c`. Layout grades, unlock rules,
+preview/title replacement, and the sliding banner/cursor retain their original
+short arithmetic. The image identities come from SELSTG_J.ARC. Sprite setup
+remains guarded (`NON_MATCHING=MISSION`): its 824-byte C draft differs in loop
+initialization scheduling, including a hoisted y-coordinate constant. Its
+unaccessed 128-byte stack region is explicitly unknown.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with
