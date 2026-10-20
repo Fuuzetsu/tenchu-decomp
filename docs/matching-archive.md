@@ -1410,3 +1410,56 @@ The assembly fallback is removed. `./Build -j8 check-all` confirms all six
 executables remain byte-identical, and the focused inventory/source-unit/shared-
 symbol suite passes. MENU now has 217 of 219 game routines / 80,696 of 81,252
 bytes in exact C; only ComPad and LoadMovieSubtitles remain guarded.
+
+## MENU remaining controller/subtitle diagnostics — 2026-10-21
+
+`ComPad`'s committed draft remains 420 bytes / four differing bytes. Its
+first `int buttons = pad->button` is still a halfword load with zero extension
+after combine. Later store forwarding substitutes the stored register, leaving
+`andi v1,v0,0xffff` where retail has `move v1,v0`. Reading an untruncated
+decoded local instead makes CSE forward that local into the second direction
+test; combine deletes the copy and the branch layout changes (420 / 14).
+
+A different diagnostic retains the full-width copy without an artificial
+control-flow fence. Replace the decode/store and first direction block with:
+
+```c
+hi = ~(lo | (hi << 8));
+pad->button = hi;
+{
+    int buttons = hi;
+
+    if ((hi = buttons & PADLright))
+        pad->x = PAD_DIGITAL_AXIS_MAGNITUDE;
+    else if (buttons & PADLleft)
+        pad->x = -PAD_DIGITAL_AXIS_MAGNITUDE;
+}
+```
+
+Everything else stays as in the committed draft. The reused carrier prevents
+the original value from replacing `buttons` in the left-button test. This
+produces 420 bytes / eight differing bytes, with the correct instructions,
+registers, and branches. Its only difference is the order of two adjacent
+instructions at `0x80017c84`:
+
+```text
+retail:     sh v0,0(s0); move v1,v0
+diagnostic: move v1,v0; sh v0,0(s0)
+```
+
+This is not an adopted implementation. Reordering the zero resets, decode,
+store, and copy does not fix it: keeping the store before the source copy
+leaves eight differing bytes; putting the copy first leaves seventeen.
+Function/block scopes, a separate predicate statement, unsigned carriers,
+boolean predicates, narrow copies, output helpers, and real inverted/switch
+branches did not match. A fresh field read for the first predicate also fails.
+Do not mistake the correct instruction inventory for an exact match.
+
+The ordinary cc1-280 profile produces the same 420 / four-byte controller
+residual as cc1-281; cc1-272 produces 428 / 45. For `LoadMovieSubtitles`, the
+first two compilers both produce 136 / 28, and cc1-272 gives 136 / 86.
+Temporary old-style, variadic, and fixed-five-argument `sprintf` declarations
+all leave the 136 / 28 result unchanged; none is a proposed header change.
+Normalizing an integer stage parameter in place after the free also leaves
+136 / 28. Normalizing before the free changes the prologue and usually shrinks
+the routine to 132 bytes. Both committed drafts therefore remain unchanged.
