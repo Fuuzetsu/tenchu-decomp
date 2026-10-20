@@ -10,8 +10,8 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its eighteen combined C
-  modules and shared helpers recover 194 functions / 53,940 bytes:
+- **MENU.EXE decompilation is active (2026-10-20).** Its nineteen combined C
+  modules and shared helpers recover 203 functions / 63,964 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -19,7 +19,9 @@ byte-identical `main.exe`.
   score calculation, cheat-command recognition, movie streaming, and the
   CD/host executable loaders, subtitle playback, the startup card loop, and
   mission-image grid drawing/cleanup, the title mesh and input loop,
-  title resource loading, and character selection.
+  title resource loading, character selection, the options controller,
+  options resource loading and animated list, controller configuration,
+  volume controls, sound test, and number drawing.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
@@ -39,9 +41,12 @@ byte-identical `main.exe`.
   TITLEMESH and CHARACTER are entirely exact C. The title resource names
   come from inspecting TITLE.ARC, and character-selection motion IDs are
   named for their own STAGE9.AMD registration tables.
-  `./Build check-menu.exe` gates the
-  full menu image; `tools/progress.py --target menu.exe` reports current source
-  coverage. The 853-row scaffold inventory is coarse: some remaining rows
+  OPTIONS has nine exact routines; its shared choice handler and records
+  screen remain assembly-backed. Its image names come from inspecting
+  MENU_J.ARC, and the controller-label tables retain all four language layouts.
+  `./Build check-menu.exe` gates the full menu image;
+  `tools/progress.py --target menu.exe` reports current source coverage.
+  The 860-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 10,268-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
   discovery. Remaining work includes those guarded drafts,

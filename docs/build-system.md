@@ -265,7 +265,7 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE has eighteen combined C modules and additional shared helpers.
+MENU.EXE has nineteen combined C modules and additional shared helpers.
 FILEIO, IMAGES, OPAUDIO, and MEMCARD
 include the existing engine implementations and link them against menu-specific
 symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
@@ -289,6 +289,11 @@ renderer remains guarded for an eight-byte arithmetic-order difference
 setup, model/weapon attachment, motion registration, and cleanup. All three
 CHARACTER routines match. Its STAGE9.AMD registrations reuse gameplay motion
 IDs for different clips, so those IDs have screen-specific names.
+OPTIONS recovers the screen controller, shared image setup, animated menu
+list, controller configuration, volume controls, sound test, and number
+renderers. Its shared choice handler and records screen remain assembly.
+MENU_J.ARC supplies the image identities; the controller action labels use a
+four-language coordinate table with an explicit Japanese selection.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
 and card-screen implementations. The card-screen switches own their compiler
 jump tables in the leading text region via `.rodata` entries with

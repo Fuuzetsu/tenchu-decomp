@@ -533,6 +533,13 @@ negated. Everything else here is corollaries:
 
 ### 3.2 Guards, return islands, shared tails
 
+- **A switch's shared return can resolve a tiny register-only residual.**
+  `UpdateControlOptions` matched all 1,900 bytes with `break` in the
+  initialization, cleanup, and update cases followed by one `return 0`.
+  Returning zero inside each case left five differing bytes in the final
+  initialization loads/stores, despite identical instruction count and control
+  flow after optimization. A bounded permuter found only an empty fence;
+  the ordinary shared return removed the residual without it.
 - **Guard `return 0;`s cross-jump into the LAST plain island in emission
   order** — which mid-function label the target's guards branch to tells you
   whether the shared return was an end-of-function `if (cond){body} return 0;`
@@ -2131,6 +2138,19 @@ irreducible nest: DrawConstruction's 3.
 - **`lui`+`addiu(base)` + scaled index + load at `0(base+index)` is a REAL named
   array** — resolve the address, declare the table with real element
   width/count (DamageControl's `damagemotion[deg]`).
+- **Adjacent sprite handles can be an array even when every access uses a
+  constant index.** MENU's `UpdateVolumeOptions` was eight bytes short when
+  its slider track and knob were separate pointer globals. A two-element
+  pointer array restored the target's reloads after sprite-field stores.
+  The readable chained Y assignment then matched. Its paired persistent
+  volume bytes also require the established `MENU_STATE` struct view to
+  share one address base; unrelated byte externs generated extra `lui`s.
+- **Keep a selected array element's compound update intact before inventing
+  a pointer/value pair.** In `UpdateSoundTest`,
+  `choices[selection] += buttons == PADLright ? 1 : -1` reproduces the
+  target's two increment/decrement paths and delayed store. Expanding it
+  through `short *choice` and a temporary value left the store before the
+  following selection load, a 14-byte scheduling residual at equal length.
 - **The addu-order family** (pick per SITE from the target's operand order):
   ARRAY_REF is base-first; pointer index is index-first; `(&p->arr[0])[i]`
   works only through a POINTER (no effect on top-level externs — leSetEnemy);

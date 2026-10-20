@@ -621,6 +621,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     syms "SetupMenuImageGrid" = ["MissionImageArchive"]
     syms "TITLE" = ["TitleImageArchive", "TitleSealClutX", "TitleSealClutY", "TitleSealFrame", "TitleSealAngle", "TitleSealSpeed", "TitleBloodClutX", "TitleBloodClutY", "TitleBloodFrame", "TitleLogoFrame", "TitleGenreFrame", "TitleSubtitleFrame", "TitleKunaiFrame", "TitleCopyrightFrame", "TitleSelection", "TitlePadRetryFrames"]
     syms "CHARACTER" = ["CharacterImageArchive", "CharacterModelData", "CharacterModels", "CharacterMotionData", "CharacterMotions", "CharacterWeaponData", "CharacterBackground"]
+    syms "OPTIONS" = ["OptionsImageArchive", "OptionsBackground", "OptionsHeaders", "OptionsHelp", "OptionsSmallPanel", "OptionsCheckmark", "OptionsButtons", "OptionsPreviousButtons", "OptionsNextScreen", "OptionsSelection", "OptionsCursor", "OptionsListSlide", "ControlOptionPanels", "ControlOptionSlide", "ControlOptionScheme", "OptionsMusicTrack", "VolumeOptionSlide", "VolumeOptionSelection", "VolumePositions", "VolumeSavedLevels", "VolumeSliders", "VolumeLabels", "VolumePanel", "SoundTestLabels", "SoundTestPanel", "SoundTestSlide", "SoundTestSelection", "SoundTestChoices"]
     syms "TITLEMESH" = ["TitleImageArchive"]
     syms "debug_printf_" = ["AdtMsgPtr"]
     syms "set_fade_" = ["EFFECT_CURSOR_"]
