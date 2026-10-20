@@ -341,6 +341,12 @@ routines / 76,480 bytes are exact C. The four guarded drafts are ComPad,
 UpdateChoiceOptions, LoadMovieSubtitles,
 and SetupMenuImageGrid. The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
+`reference/menu-sdk-identical.tsv` records 58 recovered SDK entry names across
+1,068 bytes. Each complete MENU span equals the named MAIN span, with only zero
+delay-slot/alignment bytes allowed beyond MAIN's recorded function size.
+These names do not change C coverage. Spans with nonzero trailing code remain
+unresolved: for example, the 60-byte row at `0x8004d464` starts with StopCARD2
+but also contains a separate instruction sequence.
 
 For additional shared modules, `python3 tools/shared_symbols.py FILEIO --at
 0x80015f74` demonstrates the address-recovery check. It requires a matching

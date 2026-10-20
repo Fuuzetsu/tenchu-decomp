@@ -63,6 +63,9 @@ byte-identical `main.exe`.
   ComPad, UpdateChoiceOptions, LoadMovieSubtitles, and SetupMenuImageGrid.
   SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
+  Fifty-eight previously unnamed SDK entries now use MAIN's names, verified
+  by complete byte-identical spans in `reference/menu-sdk-identical.tsv`.
+  This improves the inventory without counting library assembly as recovered C.
   The 860-row scaffold inventory is coarse: some remaining rows
   contain multiple functions, and the 9,792-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
