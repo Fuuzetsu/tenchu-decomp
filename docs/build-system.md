@@ -265,12 +265,18 @@ Boundary imperfections cannot break bytes — INCLUDE_ASM stubs concatenate
 identically regardless — they only shape stub granularity, refinable later
 with `tools/reverse.py`.
 
-MENU.EXE has twelve recovered C modules. FILEIO, IMAGES, OPAUDIO, and MEMCARD
+MENU.EXE has twelve combined C modules and additional shared helpers.
+FILEIO, IMAGES, OPAUDIO, and MEMCARD
 include the existing engine implementations and link them against menu-specific
 symbols. Its own 3DCTRL uses the SDK model renderer; AUDIO and SEMNG retain the
 menu's two playback pitches and full-volume effects. VALLOC retains the fatal
 message box, ACTION the scalar Hermite evaluator, FRONTEND the fade/skip and
 opening-movie loops, and MAIN the persistent-state defaults and screen dispatch.
+Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,
+and card-screen implementations. The card-screen switches own their compiler
+jump tables in the leading text region via `.rodata` entries with
+`linker_section_order: .text`. The score calculation is copied from STAGE.C;
+card help calls MENU's nonspatial `Sound` entry point.
 PADCMD explicitly models MENU's earlier 12-byte controller record instead of
 MAIN's 14-byte record. Eleven PADCMD routines match; `ComPad` remains guarded
 and is excluded from C coverage. `NON_MATCHING=PADCMD ./Build

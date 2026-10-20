@@ -55,7 +55,9 @@ def infer_symbols(original, target, relocations, symbols, original_gp, target_gp
 
     proposals = defaultdict(set)
     highs = {}
-    for relocation in relocations:
+    # ELF can defer a HI16 record until the last of several LO16 uses.
+    # Recover the address from instruction order, not relocation-table order.
+    for relocation in sorted(relocations, key=lambda item: item.offset):
         name, offset, kind = (
             relocation.symbol, relocation.offset, relocation.type
         )
@@ -136,9 +138,14 @@ def main():
     size = args.size if args.size is not None else available
     if not 0 < size <= available:
         raise ValueError("--size is outside the selected C span")
+    text_relocations = (
+        obj.relocations(".rel.text")
+        if any(section.name == ".rel.text" for section in obj.sections)
+        else []
+    )
     relocations = [
         Relocation(r.offset - start, r.type, r.symbol)
-        for r in obj.relocations(".rel.text")
+        for r in text_relocations
         if start <= r.offset < start + size
     ]
 

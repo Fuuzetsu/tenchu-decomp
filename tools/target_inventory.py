@@ -8,6 +8,28 @@ except ModuleNotFoundError:
     import source_units as SU
 
 
+def textbin_bytes(config):
+    """Count raw spans, including boundaries supplied by inline rodata entries."""
+    segments = []
+    for line in config.splitlines():
+        match = re.match(
+            r"\s+- \[(0x[\da-fA-F]+)(?:,\s*(\w+)[^\]]*)?\]", line
+        )
+        if match:
+            segments.append((int(match[1], 16), match[2]))
+            continue
+        match = re.match(
+            r"\s+- \{\s*start:\s*(0x[\da-fA-F]+),\s*type:\s*([\w.]+)", line
+        )
+        if match:
+            segments.append((int(match[1], 16), match[2]))
+    return sum(
+        next_address - address
+        for (address, kind), (next_address, _) in zip(segments, segments[1:])
+        if kind == "textbin"
+    )
+
+
 def load_target_units(target, root=Path(".")):
     """Return function rows, C-owned addresses, and address-to-source paths.
 

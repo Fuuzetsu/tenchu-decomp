@@ -10,10 +10,13 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its twelve C modules
-  recover 124 functions / 28,576 bytes: allocator, graphics, file I/O, images,
+- **MENU.EXE decompilation is active (2026-10-20).** Its twelve combined C
+  modules and shared helpers recover 168 functions / 41,184 bytes:
+  allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
-  handling, screen transitions, opening-movie playback, and startup/dispatch.
+  handling, screen transitions, opening-movie playback, startup/dispatch,
+  archives, CD-file access, debug display, card-screen prompts, fonts/telop,
+  score calculation, and cheat-command recognition.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
@@ -22,12 +25,12 @@ byte-identical `main.exe`.
   routines are exact. Compile that draft with `NON_MATCHING=PADCMD`.
   `./Build check-menu.exe` gates the
   full menu image; `tools/progress.py --target menu.exe` reports current source
-  coverage. The 846-row scaffold inventory is coarse: some remaining rows
-  contain multiple functions, and the 10,944-byte leading textbin includes
+  coverage. The 850-row scaffold inventory is coarse: some remaining rows
+  contain multiple functions, and the 10,320-byte leading textbin includes
   strings and tables. Do not treat either as proof of complete function
   discovery. Remaining work includes the controller draft, streaming decoder,
-  card/UI state machines, title/character/mission/options screens,
-  font/telop code, and the inherited SDK/assembly boundary audit. Shared-code
+  menu-specific card/UI state machines, title/character/mission/options screens,
+  executable loaders, and the inherited SDK/assembly boundary audit. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.
 - **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a

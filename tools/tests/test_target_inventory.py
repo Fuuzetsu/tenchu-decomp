@@ -3,10 +3,21 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.target_inventory import load_target_units
+from tools.target_inventory import load_target_units, textbin_bytes
 
 
 class TargetInventoryTests(unittest.TestCase):
+    def test_compiler_jump_tables_end_raw_textbin_spans(self):
+        config = (
+            "      - [0x800, textbin]\n"
+            "      - { start: 0x900, type: .rodata, name: Switch, "
+            "linker_section_order: .text }\n"
+            "      - [0x920, textbin]\n"
+            "      - [0x980, c, Switch]\n"
+            "      - [0xa00]\n"
+        )
+        self.assertEqual(textbin_bytes(config), 0x160)
+
     def test_combined_menu_source_uses_its_own_manifest(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

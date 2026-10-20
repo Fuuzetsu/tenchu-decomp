@@ -31,6 +31,16 @@ class SharedSymbolTests(unittest.TestCase):
         )
         self.assertEqual(result, {"Pool": 0x8005B48C})
 
+    def test_deferred_high_record_with_multiple_low_uses(self):
+        result = infer_symbols(
+            words(0x3C108009, 0x8E047000, 0x26107000),
+            words(0x3C108006, 0x8E04B500, 0x2610B500),
+            [Relocation(4, 6, "Data"), Relocation(0, 5, "Data"),
+             Relocation(8, 6, "Data")],
+            {"Data": 0x80097000}, 0, 0
+        )
+        self.assertEqual(result, {"Data": 0x8005B500})
+
     def test_changed_registers_are_rejected_even_at_relocations(self):
         with self.assertRaisesRegex(ValueError, "non-relocation"):
             infer_symbols(
