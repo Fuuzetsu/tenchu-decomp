@@ -2545,6 +2545,7 @@ typedef struct TLinkInfo
                                        *       retail expansion of demo saveItem[30] */
     u8 analog_pad_present;            /* 0x047 bit0: analog pad detected */
     u8 GameRetry;                     /* 0x048 bit0: retry/continue current stage;
+                                       *       bit5: MENU extra languages unlocked;
                                        *       original demo member name (+0x0D) */
     ScoreStats score_stats;           /* 0x04C current mission counters */
     game_difficulty Nannido;          /* 0x058 gNannido (demo +0x5) */

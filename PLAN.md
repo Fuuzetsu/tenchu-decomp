@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **MENU.EXE decompilation is active (2026-10-20).** Its nineteen combined C
-  modules and shared helpers recover 203 functions / 63,964 bytes:
+  modules and shared helpers recover 204 functions / 67,784 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -21,7 +21,7 @@ byte-identical `main.exe`.
   mission-image grid drawing/cleanup, the title mesh and input loop,
   title resource loading, character selection, the options controller,
   options resource loading and animated list, controller configuration,
-  volume controls, sound test, and number drawing.
+  volume controls, sound test, records, and number drawing.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
@@ -41,9 +41,13 @@ byte-identical `main.exe`.
   TITLEMESH and CHARACTER are entirely exact C. The title resource names
   come from inspecting TITLE.ARC, and character-selection motion IDs are
   named for their own STAGE9.AMD registration tables.
-  OPTIONS has nine exact routines; its shared choice handler and records
-  screen remain assembly-backed. Its image names come from inspecting
-  MENU_J.ARC, and the controller-label tables retain all four language layouts.
+  OPTIONS has ten exact routines. Its shared choice handler has a guarded
+  3,408-byte draft against the 3,416-byte original (`NON_MATCHING=OPTIONS`);
+  label layout and checkmark drawing still differ. Its image names come from
+  inspecting MENU_J.ARC, and the controller-label tables retain all four
+  language layouts. The records screen retains the original signed-short
+  time display and training-layout handling. The choice screen identifies
+  persistent GameRetry bit 5 as the French/Italian unlock.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
   The 860-row scaffold inventory is coarse: some remaining rows

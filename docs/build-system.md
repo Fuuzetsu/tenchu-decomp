@@ -290,8 +290,12 @@ setup, model/weapon attachment, motion registration, and cleanup. All three
 CHARACTER routines match. Its STAGE9.AMD registrations reuse gameplay motion
 IDs for different clips, so those IDs have screen-specific names.
 OPTIONS recovers the screen controller, shared image setup, animated menu
-list, controller configuration, volume controls, sound test, and number
-renderers. Its shared choice handler and records screen remain assembly.
+list, controller configuration, volume controls, sound test, records, and number
+renderers. Its shared choice handler remains assembly-backed with a guarded
+C draft (`NON_MATCHING=OPTIONS`, 3,408 versus 3,416 bytes). That draft recovers
+the difficulty/audio/rumble/autosave/language/card dispatch, including the
+extra-language unlock in persistent GameRetry bit 5. Its two jump tables remain
+in the original textbin until the C handler matches.
 MENU_J.ARC supplies the image identities; the controller action labels use a
 four-language coordinate table with an explicit Japanese selection.
 Standalone helpers reuse MAIN's archive, CD-file, debug-display, font/telop,

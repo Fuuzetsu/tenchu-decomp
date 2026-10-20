@@ -1513,6 +1513,16 @@ bytes.
 
 ### 3.8 Variable identity
 
+**MENU records: inspect the load width before merging arithmetic.**
+`UpdateRecordOptions` stores cached times as 32-bit seconds, but rendering
+loads them through a reused signed-short `i` before dividing by 60. A draft
+that divided the full word was 20 bytes short. Restoring that narrowing and
+the loop-counter reuse produced the correct 3,820-byte shape; reusing the
+other short counter for displayed minutes removed the remaining 27
+register-only byte differences. The decompiler's direct `record.time / 60`
+expression hid the narrowing. Keep the cache wide: initialization really
+does use word loads/stores and divides frame counts by 30.
+
 The identity canon — the cheapest questions on the board, asked in order:
 
 1. **TWO REGISTERS FOR ONE VALUE = TWO VARIABLES.** cc1 never splits a live

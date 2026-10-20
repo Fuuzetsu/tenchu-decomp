@@ -104,6 +104,43 @@ extern short SoundTestSelection;
 extern short SoundTestChoices[2];
 extern short SoundTestEffects[100];
 extern int SoundTestMusic[19];
+extern Sprite3D *ChoiceOptionHeader;
+extern short ChoiceOptionSlide;
+extern short ChoiceOptionScreen;
+extern short ChoiceOptionFirst;
+extern short ChoiceOptionCount;
+extern short ChoiceOptionSelection;
+extern short ChoiceCardOperation;
+extern short ChoicePreviousLanguage;
+extern Sprite3D *ChoiceOptionLabels[7];
+
+/* Display order starts with training, followed by the ten story missions. */
+enum { RECORD_STAGE_COUNT = 11 };
+extern packed_stage_id RecordStageOrder[RECORD_STAGE_COUNT];
+extern short RecordCharacter;
+extern short RecordExiting;
+extern Sprite3D *RecordNameplates[N_PLAYABLE_CHARACTERS];
+extern Sprite3D *RecordRankSprites[N_STAGE_RANKS];
+extern Sprite3D *RecordStageLabels[RECORD_STAGE_COUNT];
+enum { RECORD_COLUMNS, RECORD_RANK_BACKING, RECORD_COLON, RECORD_EXIT_HELP };
+extern Sprite3D *RecordWidgets[4];
+extern short RecordRanks[N_PLAYABLE_CHARACTERS][RECORD_STAGE_COUNT][N_STAGE_LAYOUTS];
+typedef struct OptionRecord
+{
+    int score;
+    int time; /* Frames while collecting records; seconds when drawing. */
+} OptionRecord;
+extern OptionRecord OptionRecords[N_PLAYABLE_CHARACTERS][RECORD_STAGE_COUNT];
+extern char RecordNumberFormat[4];
+extern char RecordSecondsFormat[8];
+
+enum
+{
+    MENU_EXTRA_LANGUAGES = 0x20,
+    MENU_CHEAT_LANGUAGES = 0x800
+};
+
+short UpdateLoadCardScreen(int buttons);
 
 void RunOptionsMenu(void);
 void SetupOptionsImages(short load);

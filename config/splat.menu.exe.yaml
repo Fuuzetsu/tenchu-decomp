@@ -67,7 +67,7 @@ segments:
       - [0xfbf8, c, ACTION]
       - [0x10f6c, c, MEMCARD]
       - [0x115e8, c, FUN_80021de8]
-      - [0x11984, c, FUN_80022184]
+      - [0x11984, c, UpdateLoadCardScreen]
       - [0x11ca8, c, update_card_screen_]
       - [0x120a8, c, update_card_message_]
       - [0x122c0, c, setup_card_screen_]

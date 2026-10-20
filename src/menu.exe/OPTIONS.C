@@ -2,7 +2,11 @@
 #include "options.h"
 #include "../main.exe/graphics.h"
 #include "../main.exe/images.h"
+#include "../main.exe/font.h"
+#include "../main.exe/memcard.h"
 #include "../main.exe/music.h"
+#include "../main.exe/padcmd.h"
+#include "../main.exe/score.h"
 #include "../main.exe/tim.h"
 #include "../main.exe/vmemory.h"
 
@@ -467,7 +471,319 @@ short UpdateControlOptions(short mode)
     return 0;
 }
 
+/* Draft: the screen logic is recovered; label layout and checkmark drawing
+ * still have compiler scheduling differences (3,408 versus 3,416 bytes). */
+#ifndef NON_MATCHING
 INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/OPTIONS", UpdateChoiceOptions);
+#else
+short UpdateChoiceOptions(short mode)
+{
+    GsIMAGE image;
+    u_long *data;
+    int i;
+    short y;
+
+    switch (mode)
+    {
+    case -1:
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_CHOICES);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        for (i = 0; i < 7; i++)
+        {
+            if (i == 0)
+            {
+                ChoiceOptionLabels[0] = SetupSprite(0, &image);
+                ChoiceOptionLabels[0]->sprite.h /= 7;
+                ChoiceOptionLabels[0]->sprite.my = image.ph / 14;
+                ChoiceOptionLabels[0]->sprite.attribute |= GS_ATTR_SEMITRANS_SUBTRACT;
+                ChoiceOptionLabels[0]->sprite.x = 15;
+            }
+            else
+                ChoiceOptionLabels[i] = SetupSprite(ChoiceOptionLabels[0], 0);
+            ChoiceOptionLabels[i]->sprite.v += (u_short)(image.ph / 7) * i;
+        }
+        ChoiceOptionScreen = OptionsNextScreen;
+        switch (OptionsNextScreen)
+        {
+        case OPTIONS_DIFFICULTY:
+            ChoiceOptionHeader = OptionsHeaders[0];
+            ChoiceOptionHeader->sprite.v = ChoiceOptionHeader->id + ChoiceOptionHeader->sprite.h * 2;
+            ChoiceOptionFirst = 0;
+            ChoiceOptionCount = 3;
+            ChoiceOptionSelection = MENU_STATE->Nannido;
+            break;
+        case OPTIONS_SOUND_MODE:
+            ChoiceOptionHeader = OptionsHeaders[0];
+            ChoiceOptionHeader->sprite.v = ChoiceOptionHeader->id + ChoiceOptionHeader->sprite.h * 3;
+            ChoiceOptionFirst = 3;
+            ChoiceOptionCount = 2;
+            ChoiceOptionSelection = !MENU_STATE->Stereo;
+            break;
+        case OPTIONS_RUMBLE:
+            ChoiceOptionHeader = OptionsHeaders[1];
+            ChoiceOptionHeader->sprite.v = ChoiceOptionHeader->id + ChoiceOptionHeader->sprite.h;
+            ChoiceOptionFirst = 5;
+            ChoiceOptionCount = 2;
+            ChoiceOptionSelection = !MENU_STATE->Anakon;
+            break;
+        case OPTIONS_AUTO_SAVE:
+            ChoiceOptionHeader = OptionsHeaders[1];
+            ChoiceOptionHeader->sprite.v = ChoiceOptionHeader->id + ChoiceOptionHeader->sprite.h * 3;
+            ChoiceOptionFirst = 5;
+            ChoiceOptionCount = 2;
+            ChoiceOptionSelection = !MENU_STATE->fMemory;
+            break;
+        case OPTIONS_MEMORY_CARD:
+            ChoiceOptionHeader = OptionsHeaders[1];
+            ChoiceOptionHeader->sprite.v = ChoiceOptionHeader->id + ChoiceOptionHeader->sprite.h * 2;
+            data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_LOAD_SAVE);
+            GetTIMInfo(data, &image);
+            LoadTIM(data);
+            for (i = 0; i < 2; i++)
+            {
+                vfree(ChoiceOptionLabels[i]);
+                if (i == 0)
+                {
+                    ChoiceOptionLabels[0] = SetupSprite(0, &image);
+                    ChoiceOptionLabels[0]->sprite.h /= 2;
+                    ChoiceOptionLabels[0]->sprite.my = image.ph / 4;
+                    ChoiceOptionLabels[0]->sprite.attribute |= GS_ATTR_SEMITRANS_SUBTRACT;
+                }
+                else
+                    ChoiceOptionLabels[i] = SetupSprite(ChoiceOptionLabels[0], 0);
+                ChoiceOptionLabels[i]->sprite.v += (image.ph / 2) * i;
+            }
+            initialise_font();
+            ChoiceOptionFirst = 0;
+            ChoiceOptionCount = 2;
+            ChoiceOptionSelection = 0;
+            break;
+        case OPTIONS_LANGUAGE:
+            ChoiceOptionHeader = OptionsHeaders[1];
+            ChoiceOptionHeader->sprite.v = ChoiceOptionHeader->id + ChoiceOptionHeader->sprite.h * 4;
+            data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_LANGUAGES);
+            GetTIMInfo(data, &image);
+            LoadTIM(data);
+            for (i = 0; i < 5; i++)
+            {
+                vfree(ChoiceOptionLabels[i]);
+                if (i == 0)
+                {
+                    ChoiceOptionLabels[0] = SetupSprite(0, &image);
+                    ChoiceOptionLabels[0]->sprite.h /= 5;
+                    ChoiceOptionLabels[0]->sprite.my = image.ph / 10;
+                    ChoiceOptionLabels[0]->sprite.attribute |= GS_ATTR_SEMITRANS_SUBTRACT;
+                    ChoiceOptionLabels[0]->sprite.x = 15;
+                }
+                else
+                    ChoiceOptionLabels[i] = SetupSprite(ChoiceOptionLabels[0], 0);
+                ChoiceOptionLabels[i]->sprite.v += (u_short)(image.ph / 5) * i;
+            }
+            ChoiceOptionFirst = 0;
+            ChoiceOptionCount = N_LANGUAGES;
+            ChoiceOptionSelection = ChoicePreviousLanguage = MENU_STATE->language;
+            if (ChoiceOptionSelection >= N_LANGUAGES)
+                ChoiceOptionSelection = LANG_JAPANESE;
+            ChoiceOptionSelection =
+                ChoiceOptionSelection == LANG_JAPANESE ? 0 : ChoiceOptionSelection + 1;
+            if (!(MENU_STATE->GameRetry & MENU_EXTRA_LANGUAGES))
+            {
+                ScoreStats *finale[2] = {
+                    MENU_STATE->stage_stats[RIKIMARU_0][STAGE_ID_FREE_PRINCESS],
+                    MENU_STATE->stage_stats[AYAME_0][STAGE_ID_FREE_PRINCESS]
+                };
+
+                for (i = 0; i < N_STAGE_LAYOUTS; i++)
+                {
+                    if (finale[0][i].stageBosses + finale[0][i].stageEnemies != 0 ||
+                        finale[1][i].stageBosses + finale[1][i].stageEnemies != 0)
+                        break;
+                }
+                if (i != N_STAGE_LAYOUTS)
+                    MENU_STATE->GameRetry |= MENU_EXTRA_LANGUAGES;
+                else
+                {
+                    if (ChoiceOptionSelection >= 2)
+                        ChoiceOptionSelection = 0;
+                    /* The fifth row is the locked-language label. */
+                    vfree(ChoiceOptionLabels[2]);
+                    ChoiceOptionLabels[2] = SetupSprite(ChoiceOptionLabels[4], 0);
+                    vfree(ChoiceOptionLabels[3]);
+                    ChoiceOptionLabels[3] = SetupSprite(ChoiceOptionLabels[4], 0);
+                }
+            }
+            break;
+        }
+        for (i = 0; i < ChoiceOptionCount; i++)
+        {
+            if (ChoiceOptionCount == 2)
+                ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = i != 0 ? 20 : -20;
+            else if (ChoiceOptionCount == 4)
+                ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = i * 20 - 30;
+            else
+                ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = i * 28 - 28;
+        }
+        ChoiceCardOperation = 0;
+        ChoiceOptionSlide = 250;
+        break;
+    case 1:
+        i = 0;
+        while (i < 7)
+            vfree(ChoiceOptionLabels[i++]);
+        break;
+    default:
+        if (ChoiceOptionSlide != 0)
+        {
+            if (ChoiceOptionSlide > 0)
+            {
+                ChoiceOptionSlide -= 20;
+                if (ChoiceOptionSlide <= 0)
+                    ChoiceOptionSlide = 0;
+                OptionsSmallPanel->sprite.y = -ChoiceOptionSlide;
+                for (i = 0; i < ChoiceOptionCount; i++)
+                    ChoiceOptionLabels[ChoiceOptionFirst + i]->sprite.y =
+                        ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy - ChoiceOptionSlide;
+            }
+            else
+            {
+                ChoiceOptionSlide += 20;
+                if (ChoiceOptionSlide >= 0)
+                {
+                    if (ChoiceCardOperation != 0)
+                        ChoiceOptionSlide = 0;
+                    else
+                        return 1;
+                }
+                OptionsSmallPanel->sprite.y = -(ChoiceOptionSlide + 250);
+                for (i = 0; i < ChoiceOptionCount; i++)
+                {
+                    y = ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy - 250;
+                    ChoiceOptionLabels[ChoiceOptionFirst + i]->sprite.y = y - ChoiceOptionSlide;
+                }
+            }
+            OptionsCheckmark->sprite.y =
+                ChoiceOptionLabels[ChoiceOptionFirst + ChoiceOptionSelection]->sprite.y;
+        }
+        if (ChoiceOptionSlide == 0)
+        {
+            if (ChoiceCardOperation != 0)
+            {
+                i = 0;
+                if (OptionsPreviousButtons == 0 && OptionsButtons != 0 && ChoiceOptionSlide == 0)
+                    i = OptionsButtons;
+                if (ChoiceCardOperation == 1)
+                    i = UpdateLoadCardScreen(i);
+                else
+                    i = update_card_screen_(i);
+                if (i != 0)
+                {
+                    ChoiceCardOperation = 0;
+                    ChoiceOptionSlide = 250;
+                }
+                return 0;
+            }
+            GsSortSprite(&ChoiceOptionHeader->sprite, OTablePt, 9);
+            GsSortSprite(&OptionsHelp[ChoiceOptionScreen != OPTIONS_MEMORY_CARD]->sprite, OTablePt, 9);
+        }
+        GsSortSprite(&OptionsSmallPanel->sprite, OTablePt, 9);
+        if (ChoiceOptionScreen != OPTIONS_MEMORY_CARD)
+        {
+            OptionsCheckmark->sprite.r = OptionsCheckmark->sprite.g =
+                OptionsCheckmark->sprite.b = 255;
+            OptionsCheckmark->sprite.attribute =
+                (OptionsCheckmark->sprite.attribute & ~GS_ATTR_SEMITRANS_MASK) |
+                GS_ATTR_SEMITRANS_SUBTRACT;
+            GsSortSprite(&OptionsCheckmark->sprite, OTablePt, 8);
+            OptionsCheckmark->sprite.r = 143;
+            OptionsCheckmark->sprite.attribute =
+                (OptionsCheckmark->sprite.attribute & ~GS_ATTR_SEMITRANS_MASK) |
+                GS_ATTR_SEMITRANS_ADD;
+            OptionsCheckmark->sprite.g = 8;
+            OptionsCheckmark->sprite.b = 10;
+            GsSortSprite(&OptionsCheckmark->sprite, OTablePt, 7);
+        }
+        for (i = 0; i < ChoiceOptionCount; i++)
+        {
+            GsSPRITE *sprite = &ChoiceOptionLabels[ChoiceOptionFirst + i]->sprite;
+            if (i == ChoiceOptionSelection)
+                sprite->r = sprite->g = sprite->b = 128;
+            else
+                sprite->r = sprite->g = sprite->b = 32;
+            GsSortSprite(sprite, OTablePt, 8);
+        }
+        if ((short)check_cheat_command_(OptionsButtons,
+                OptionsButtons & (OptionsPreviousButtons ^ OptionsButtons)) == MENU_CHEAT_LANGUAGES)
+        {
+            MENU_STATE->GameRetry |= MENU_EXTRA_LANGUAGES;
+            Sound(0, 4);
+            ChoiceOptionSlide = -250;
+            OptionsNextScreen = OPTIONS_MAIN;
+            return 0;
+        }
+        if (OptionsPreviousButtons == 0 && ChoiceOptionSlide == 0)
+        {
+            if (OptionsButtons & (PADLup | PADLdown))
+            {
+                i = ChoiceOptionSelection;
+                if (OptionsButtons == PADLup && ChoiceOptionSelection > 0)
+                    ChoiceOptionSelection--;
+                else if (OptionsButtons == PADLdown && ChoiceOptionSelection < ChoiceOptionCount - 1)
+                    ChoiceOptionSelection++;
+                if (!(MENU_STATE->GameRetry & MENU_EXTRA_LANGUAGES) &&
+                    ChoiceOptionScreen == OPTIONS_LANGUAGE && ChoiceOptionSelection >= 2)
+                    ChoiceOptionSelection = 1;
+                if (i != ChoiceOptionSelection)
+                {
+                    Sound(0, 3);
+                    OptionsCheckmark->sprite.y =
+                        ChoiceOptionLabels[ChoiceOptionFirst + ChoiceOptionSelection]->sprite.y;
+                }
+            }
+            else if (OptionsButtons & (PADRright | PADRdown))
+            {
+                if (ChoiceOptionScreen != OPTIONS_LANGUAGE || OptionsButtons == PADRdown)
+                    Sound(0, 4);
+                ChoiceOptionSlide = -250;
+                OptionsNextScreen = OPTIONS_MAIN;
+                if (OptionsButtons == PADRdown)
+                    return 0;
+                switch (ChoiceOptionScreen)
+                {
+                case OPTIONS_DIFFICULTY:
+                    MENU_STATE->Nannido = ChoiceOptionSelection;
+                    break;
+                case OPTIONS_SOUND_MODE:
+                    MENU_STATE->Stereo = 1 - ChoiceOptionSelection;
+                    if (MENU_STATE->Stereo)
+                        SsSetStereo();
+                    else
+                        SsSetMono();
+                    break;
+                case OPTIONS_RUMBLE:
+                    MENU_STATE->Anakon = 1 - ChoiceOptionSelection;
+                    break;
+                case OPTIONS_AUTO_SAVE:
+                    MENU_STATE->fMemory = 1 - ChoiceOptionSelection;
+                    break;
+                case OPTIONS_MEMORY_CARD:
+                    ChoiceCardOperation = ChoiceOptionSelection + 1;
+                    break;
+                case OPTIONS_LANGUAGE:
+                    MENU_STATE->language =
+                        ChoiceOptionSelection != 0 ? ChoiceOptionSelection - 1 : LANG_JAPANESE;
+                    if (MENU_STATE->language != ChoicePreviousLanguage)
+                        SetupSoundEffect(0, 9);
+                    Sound(0, 4);
+                    break;
+                }
+            }
+        }
+        break;
+    }
+    return 0;
+}
+#endif
 
 short UpdateVolumeOptions(short mode)
 {
@@ -794,7 +1110,257 @@ short UpdateSoundTest(short mode)
 }
 
 
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/OPTIONS", UpdateRecordOptions);
+short UpdateRecordOptions(short mode)
+{
+    GsIMAGE image;
+    char text[16];
+    u_long *data;
+    short i, mission, character, stage;
+    short row, j;
+    ScoreStats *stats;
+    ScoreResult *result;
+    GsSPRITE *sprite;
+
+    switch (mode)
+    {
+    case -1:
+        memset(OptionRecords, -1, sizeof(OptionRecords));
+        memset(RecordRanks, -1, sizeof(RecordRanks));
+        for (character = 0; character < N_PLAYABLE_CHARACTERS; character++)
+        {
+            for (i = 0; i < RECORD_STAGE_COUNT; i++)
+            {
+                stage = RecordStageOrder[i];
+                for (j = 0; j < N_STAGE_LAYOUTS; j++)
+                {
+                    stats = &MENU_STATE->stage_stats[character][stage][j];
+                    result = calculate_score(stats, stage);
+                    if (stats->stageBosses + stats->stageEnemies != 0)
+                    {
+                        RecordRanks[character][i][j] = RANK_GRAND_MASTER - result->grade;
+                        if (OptionRecords[character][i].score < result->score)
+                            OptionRecords[character][i].score = result->score;
+                        if (OptionRecords[character][i].time == -1 ||
+                            stats->clock < OptionRecords[character][i].time)
+                            OptionRecords[character][i].time = stats->clock;
+                        /* Training has just one recorded layout. */
+                        if (i == 0)
+                            break;
+                    }
+                }
+                if (OptionRecords[character][i].time < -1)
+                    OptionRecords[character][i].time = 0;
+                OptionRecords[character][i].time /= 30;
+            }
+        }
+
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_RIKIMARU_NAME);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        RecordNameplates[0] = SetupSprite(0, &image);
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_AYAME_NAME);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        RecordNameplates[1] = SetupSprite(0, &image);
+        RecordNameplates[0]->sprite.y = RecordNameplates[1]->sprite.y = -96;
+        RecordNameplates[0]->sprite.x = 40;
+        RecordNameplates[1]->sprite.x = 120;
+
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_RANKS);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        for (i = 0; i < N_STAGE_RANKS; i++)
+        {
+            if (i == 0)
+            {
+                RecordRankSprites[0] = SetupSprite(0, &image);
+                RecordRankSprites[0]->sprite.h /= N_STAGE_RANKS;
+                RecordRankSprites[0]->sprite.my = image.ph / (N_STAGE_RANKS * 2);
+            }
+            else
+            {
+                RecordRankSprites[i] = SetupSprite(RecordRankSprites[0], 0);
+                RecordRankSprites[i]->sprite.v += (u_short)(image.ph / N_STAGE_RANKS) * i;
+            }
+        }
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_SMALL_DIGITS);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        for (i = 0; i < 10; i++)
+        {
+            if (i == 0)
+            {
+                OptionDigitSprites[0] = SetupSprite(0, &image);
+                OptionDigitSprites[0]->sprite.h /= 10;
+                OptionDigitSprites[0]->sprite.my = image.ph / 20;
+                OptionDigitSprites[0]->sprite.attribute |= GS_ATTR_SEMITRANS_ADD;
+            }
+            else
+            {
+                OptionDigitSprites[i] = SetupSprite(OptionDigitSprites[0], 0);
+                OptionDigitSprites[i]->sprite.v += (u_short)(image.ph / 10) * i;
+            }
+        }
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_STAGES);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        for (i = 0; i < RECORD_STAGE_COUNT; i++)
+        {
+            if (i == 0)
+            {
+                RecordStageLabels[0] = SetupSprite(0, &image);
+                RecordStageLabels[0]->sprite.h /= RECORD_STAGE_COUNT;
+                RecordStageLabels[0]->sprite.my = image.ph / (RECORD_STAGE_COUNT * 2);
+                RecordStageLabels[0]->sprite.attribute |= GS_ATTR_SEMITRANS_ADD;
+                RecordStageLabels[0]->sprite.x = -132;
+            }
+            else
+            {
+                RecordStageLabels[i] = SetupSprite(RecordStageLabels[0], 0);
+                RecordStageLabels[i]->sprite.v += (u_short)(image.ph / RECORD_STAGE_COUNT) * i;
+            }
+        }
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_RECORD_COLUMNS);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        RecordWidgets[RECORD_COLUMNS] = SetupSprite(0, &image);
+        RecordWidgets[RECORD_COLUMNS]->sprite.attribute |= GS_ATTR_SEMITRANS_ADD;
+        RecordWidgets[RECORD_COLUMNS]->sprite.x = 25;
+        RecordWidgets[RECORD_COLUMNS]->sprite.y = -77;
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_RECORD_HIGHLIGHT);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        RecordWidgets[RECORD_RANK_BACKING] = SetupSprite(0, &image);
+        RecordWidgets[RECORD_RANK_BACKING]->sprite.attribute |= GS_ATTR_SEMITRANS_ADD;
+        data = get_tim_from_archive(OptionsImageArchive, OPTION_IMAGE_COLON);
+        GetTIMInfo(data, &image);
+        LoadTIM(data);
+        RecordWidgets[RECORD_COLON] = SetupSprite(0, &image);
+        RecordWidgets[RECORD_COLON]->sprite.attribute |= GS_ATTR_SEMITRANS_ADD;
+        RecordWidgets[RECORD_COLON]->sprite.x = 139;
+        OptionsHeaders[0]->sprite.v = OptionsHeaders[0]->id + OptionsHeaders[0]->sprite.h;
+        OptionsHeaders[0]->sprite.x = -90;
+        RecordWidgets[RECORD_EXIT_HELP] = SetupSprite(OptionsHelp[0], 0);
+        RecordWidgets[RECORD_EXIT_HELP]->sprite.w = RecordWidgets[RECORD_EXIT_HELP]->sprite.w / 2 - 2;
+        RecordWidgets[RECORD_EXIT_HELP]->sprite.mx /= 2;
+        RecordWidgets[RECORD_EXIT_HELP]->sprite.u += RecordWidgets[RECORD_EXIT_HELP]->sprite.w + 4;
+        _PlayMusic(12, 1);
+        RecordCharacter = RecordExiting = 0;
+        break;
+    case 1:
+        vfree(RecordNameplates[0]);
+        vfree(RecordNameplates[1]);
+        i = 0;
+        while (i < N_STAGE_RANKS)
+            vfree(RecordRankSprites[i++]);
+        i = 0;
+        while (i < 10)
+            vfree(OptionDigitSprites[i++]);
+        i = 0;
+        while (i < RECORD_STAGE_COUNT)
+            vfree(RecordStageLabels[i++]);
+        i = 0;
+        while (i < 4)
+            vfree(RecordWidgets[i++]);
+        OptionsHeaders[0]->sprite.x = 0;
+        break;
+    default:
+        for (i = 0; i < N_PLAYABLE_CHARACTERS; i++)
+        {
+            sprite = &RecordNameplates[i]->sprite;
+            if (i != RecordCharacter)
+                sprite->attribute |= GS_ATTR_SEMITRANS(GPU_BLEND_ADD_QUARTER);
+            else
+                sprite->attribute &= ~GS_ATTR_SEMITRANS_MASK;
+            GsSortSprite(sprite, OTablePt, 9);
+        }
+        GsSortSprite(&OptionsHeaders[0]->sprite, OTablePt, 9);
+        GsSortSprite(&RecordWidgets[RECORD_EXIT_HELP]->sprite, OTablePt, 9);
+        row = 0;
+        for (mission = 1; mission < RECORD_STAGE_COUNT; mission++)
+        {
+            for (i = 0; i < N_STAGE_LAYOUTS; i++)
+            {
+                if (RecordRanks[RecordCharacter][mission][i] != -1)
+                {
+                    sprite = &RecordRankSprites[RecordRanks[RecordCharacter][mission][i]]->sprite;
+                    sprite->x = i * 67 - 77;
+                    sprite->y = row * 15 - 65;
+                    GsSortSprite(sprite, OTablePt, 2);
+                    sprite = &RecordWidgets[RECORD_RANK_BACKING]->sprite;
+                    sprite->x = i * 67 - 77;
+                    sprite->y = row * 15 - 64;
+                    GsSortSprite(sprite, OTablePt, 3);
+                }
+            }
+            if (OptionRecords[RecordCharacter][mission].score != -1)
+            {
+                sprintf(text, RecordNumberFormat, OptionRecords[RecordCharacter][mission].score);
+                DrawOptionNumber(text, 116, row * 15 - 63);
+                /* The original display narrows elapsed seconds to a short. */
+                i = OptionRecords[RecordCharacter][mission].time;
+                j = i / 60;
+                sprintf(text, RecordSecondsFormat, (short)(i % 60));
+                DrawOptionNumber(text, 151, row * 15 - 63);
+                sprintf(text, RecordNumberFormat, j);
+                DrawOptionNumber(text, 133, row * 15 - 63);
+                sprite = &RecordWidgets[RECORD_COLON]->sprite;
+                sprite->y = row * 15 - 63;
+                GsSortSprite(sprite, OTablePt, 3);
+                sprite = &RecordStageLabels[mission - 1]->sprite;
+                sprite->y = row * 15 - 65;
+                GsSortSprite(sprite, OTablePt, 3);
+                row++;
+            }
+        }
+        if (RecordRanks[RecordCharacter][0][0] != -1)
+        {
+            sprite = &RecordRankSprites[RecordRanks[RecordCharacter][0][0]]->sprite;
+            sprite->x = -77;
+            sprite->y = row * 15 - 65;
+            GsSortSprite(sprite, OTablePt, 2);
+            sprite = &RecordWidgets[RECORD_RANK_BACKING]->sprite;
+            sprite->x = -77;
+            sprite->y = row * 15 - 64;
+            GsSortSprite(sprite, OTablePt, 3);
+            i = OptionRecords[RecordCharacter][0].time;
+            j = i / 60;
+            sprintf(text, RecordSecondsFormat, (short)(i % 60));
+            DrawOptionNumber(text, 151, row * 15 - 63);
+            sprintf(text, RecordNumberFormat, j);
+            DrawOptionNumber(text, 133, row * 15 - 63);
+            sprite = &RecordWidgets[RECORD_COLON]->sprite;
+            sprite->y = row * 15 - 63;
+            GsSortSprite(sprite, OTablePt, 3);
+            sprite = &RecordStageLabels[RECORD_STAGE_COUNT - 1]->sprite;
+            sprite->y = row * 15 - 65;
+            GsSortSprite(sprite, OTablePt, 3);
+            row++;
+        }
+        if (row != 0)
+            GsSortSprite(&RecordWidgets[RECORD_COLUMNS]->sprite, OTablePt, 3);
+        if (OptionsPreviousButtons == 0 && !RecordExiting)
+        {
+            if (OptionsButtons & (PADLleft | PADLright))
+            {
+                i = RecordCharacter;
+                RecordCharacter = OptionsButtons != PADLleft;
+                if (i != RecordCharacter)
+                    Sound(0, RecordCharacter != 0 ? 8 : 7);
+            }
+            else if (OptionsButtons == PADRdown)
+            {
+                RecordExiting = 1;
+                CdaStop();
+                Sound(0, 4);
+                OptionsNextScreen = OPTIONS_MAIN;
+                return -1;
+            }
+        }
+        break;
+    }
+    return 0;
+}
 
 int UnusedOptionHandler(void)
 {
