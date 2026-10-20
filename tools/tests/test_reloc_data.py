@@ -105,7 +105,7 @@ class Fixture:
 class RewriteTests(unittest.TestCase):
     def test_repository_manifest_contains_only_reviewed_pointer_tables(self) -> None:
         entries = reloc_data.load_manifest(ROOT / "config/reloc-data.main.exe.json")
-        self.assertEqual(len(entries), 208)
+        self.assertEqual(len(entries), 190)
         self.assertEqual(
             {entry.source_owner for entry in entries},
             {
@@ -120,7 +120,6 @@ class RewriteTests(unittest.TestCase):
                 "GAME_OVER_ARCHIVE_PATHS",
                 "HumanData",
                 "WeaponModel",
-                "ThinkDB",
                 "CD_comstr",
                 "CD_intstr",
                 "D_8008F580",
@@ -155,7 +154,6 @@ class RewriteTests(unittest.TestCase):
                 *(f"game_over_archive_name_{language}" for language in
                   ("english", "french", "italian", "japanese")),
                 "msg_no_trace_point",
-                "D_80011960",
                 "path_stages_xa",
                 "CommonVoiceTable",
                 "D_80012EB4",
@@ -234,7 +232,6 @@ class RewriteTests(unittest.TestCase):
                 0x80097D8C,
                 0x80097E98,
             }
-            | set(range(0x80089E40, 0x80089ED0, 8))
             | set(range(0x8008F2C4, 0x8008F364, 4))
             | set(range(0x80097C98, 0x80097CB0, 4))
         )
@@ -244,7 +241,7 @@ class RewriteTests(unittest.TestCase):
         )
         self.assertEqual(
             len({(entry.target_file, entry.target_address) for entry in entries}),
-            135,
+            117,
         )
         self.assertEqual(
             {str(entry.source_file) for entry in entries}
@@ -256,7 +253,6 @@ class RewriteTests(unittest.TestCase):
             {
                 "149C.data.s",
                 "E58.data.s",
-                "1160.data.s",
                 "207C.data.s",
                 "2EB0.data.s",
                 "33C4.data.s",
@@ -343,7 +339,6 @@ class RewriteTests(unittest.TestCase):
         owner_counts = {
             "HumanData": 4,
             "WeaponModel": 3,
-            "ThinkDB": 18,
             "CD_comstr": 32,
             "CD_intstr": 8,
             "D_8008F580": 1,
@@ -369,7 +364,7 @@ class RewriteTests(unittest.TestCase):
         final_entries = [
             entry for entry in entries if entry.source_address in final_sources
         ]
-        self.assertEqual(len(final_entries), 78)
+        self.assertEqual(len(final_entries), 60)
         self.assertEqual(
             sum(entry.symbol == "human_name_rikimaru" for entry in final_entries),
             2,
@@ -377,20 +372,6 @@ class RewriteTests(unittest.TestCase):
         self.assertEqual(
             sum(entry.symbol == "cd_unknown_name" for entry in final_entries),
             12,
-        )
-        self.assertEqual(
-            {entry.symbol for entry in final_entries if entry.source_owner == "ThinkDB"},
-            {
-                "think_db_name_1_pad_1",
-                "think_db_name_1_pad_2",
-                *(f"think_db_name_{name}" for name in (
-                    "1a_trace", "1b_watch", "1c_random", "1d_ninja",
-                    "1e_sleep", "1f_chase", "2a_confirm", "2b_contact",
-                    "3a_callaid", "3b_atk_chase", "3c_atk_point",
-                    "3d_escape", "3e_atk_area", "3f_atk_hitaway",
-                    "4a_abandon", "4b_contact",
-                )),
-            },
         )
 
     def test_rewrite_inserts_exact_label_and_symbolic_word(self) -> None:

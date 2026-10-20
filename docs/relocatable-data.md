@@ -1,36 +1,36 @@
 # Relocatable loaded data
 
-The reviewed manifest covers 208 literal pointer words and 135 targets in the
+The reviewed manifest covers 190 literal pointer words and 117 targets in the
 current loaded image. Use the live widened audit rather than treating either
 count as an invariant. The inventory includes more than aligned `.word`
 directives: 22 pointers are little-endian fields emitted as four `.byte`
 directives in `StageConfig`, and one aligned pointer value targets an unaligned
 cursor two bytes into a BSS buffer.
 
-There are three pointer-source files and eleven files once exact target-label owners
+There are four pointer-source files and eleven files once exact target-label owners
 are included:
 
-- `1490.data.s` contains 22 `StageConfig` name/path pointers;
-- `75F64.data.s` contains 177 other pointer words;
+- `149C.data.s` contains 22 `StageConfig` name/path pointers;
+- `76394.data.s` contains seven `HumanData` and `WeaponModel` name pointers;
+- `797F0.data.s` contains 152 other pointer words;
 - `87458.data.s` contains the final 9 pointer words after the recovered
   compiler-generated `.sdata` sections; and
-- targets span those files plus `E58`, `1160`, `207C`, `2EB0`, `33C4`, `37A8`,
+- targets span those files plus `E58`, `207C`, `2EB0`, `33C4`, `37A8`,
   `400C`, and `4900`.
 
 The generated owner around a target is often broader than the object being
 addressed, so rewriting an interior pointer as `D_800xxxxx + addend` would
 normally invent an ownership claim. The one addend in the manifest is explicit
-and independently supported by matching C: `D_80097E98` is the write cursor
-`D_800C2EB0 + 2` after the `"%#"` prefix.
+and independently supported by matching C: `AdtMsgPtr` is the write cursor
+`AdtMsgBuf + 2` after the `"%#"` prefix.
 
-The initial owner distribution is useful for batching the work:
+The current owner distribution is:
 
 | Generated source owner | Pointers |
 |---|---:|
-| `D_8008EA90` | 76 |
+| `BriefingAssets` | 76 |
 | `CD_comstr` | 32 |
 | `StageConfig` | 22 |
-| `ThinkDB` | 18 |
 | `CD_intstr` | 8 |
 | Nine coherent four-entry tables | 36 |
 | `WeaponModel` | 3 |
@@ -73,7 +73,7 @@ The enclosing generated owner is only an evidence guard. It is deliberately
 not used as the relocation base. This prevents a label at `0x80013524` from
 silently becoming `D_80013500 + 0x24`, a top-level relationship not supported
 by the data itself. The cursor entry is the deliberately narrow exception:
-the manifest spells `D_800C2EB0 + 2`, and the transformer and all link probes
+the manifest spells `AdtMsgBuf + 2`, and the transformer and all link probes
 check that exact expression.
 
 For byte-packed fields the transformer first proves that four consecutive
@@ -103,18 +103,18 @@ typed demo-screen asset matrix. The first slice was:
 
 The second slice adds six adjacent, named four-entry tables:
 
-- `ITEM_SEL_SPRITE_PTRS`;
-- `RS_ARCHIVE_PTRS`;
-- `RANK_ARCHIVE_PTRS` and `RANKS_ARCHIVE_PTRS`, which deliberately share the
+- `ITEM_SELECTION_SCREEN_PATHS`;
+- `STAGE_RESULT_BACKGROUND_PATHS`;
+- `STAGE_RESULT_RANK_ARCHIVE_PATHS` and `MISSION_SCORE_RANK_ARCHIVE_PATHS`, which deliberately share the
   same four targets;
-- `TRN_SPRITE_PTRS`; and
-- `GOV_ARCHIVE_PTRS`.
+- `MISSION_SCORE_BACKGROUND_PATHS`; and
+- `GAME_OVER_ARCHIVE_PATHS`.
 
 Their strings spell the English, French, Italian, and Japanese filenames in
 the same order as the tables.
 
-The next slice covers all 76 remaining literal pointers in `D_8008EA90`.
-`FUN_800519bc.c` declares this as `DemoScreenAssets D_8008EA90[][11]`, where
+The next slice covers all 76 remaining literal pointers in `BriefingAssets`.
+The C declaration is `DemoScreenAssets BriefingAssets[][11]`, where
 each record contains `background`, `foreground`, and `music` fields. The data
 is four language blocks of eleven stage records, and each reviewed target is
 the exact start of the corresponding `stNNN.tim` or `mojoN.tim` string. Stage
@@ -122,13 +122,11 @@ the exact start of the corresponding `stNNN.tim` or `mojoN.tim` string. Stage
 references to the exact enclosing `D_800136B0` label, so the manifest leaves
 them alone rather than manufacturing redundant aliases.
 
-The later trailing slice covers 77 words:
+The later trailing slice covers 59 words:
 
 - four `HumanData[].name` fields and three `WeaponModel[].name` fields, whose
   0x18-byte and 0x0c-byte record types are exercised directly by the matching
   C sources;
-- all 18 non-null literal `ThinkDB[].name` fields, paired with their adjacent
-  values and used as strings by `AddEnemy`;
 - all 32 `CD_comstr` and eight `CD_intstr` entries, including their shared
   `"?"` string;
 - four SDK singleton pointers to the BIOS/intr/GPU revision strings and the
@@ -137,13 +135,20 @@ The later trailing slice covers 77 words:
 - the `TENCHU_ID` and `CID` card-id string pointers consumed by the card/save
   C sources.
 
-The final cursor word is `D_80097E98`. Matching `FUN_8005fe88.c` writes `"%#"`
-to `D_800C2EB0`, presents the buffer to `AdtMessageBox`, and stores
-`&D_800C2EB0[2]` as the cursor continued by `FUN_8005fe38.c`. Its target is
+The old manifest also covered 18 literal `ThinkDB[].name` fields. `THINK.C`
+now owns the complete typed table: its compiled object carries `R_MIPS_32`
+for all 19 non-null names, followed by a null sentinel. Those 18 raw-assembly
+records were removed on 2026-10-21 because their source words no longer exist
+in generated assembly. The C object's relocations remain covered by the
+normal-link input audit and growth proof.
+
+The final cursor word is `AdtMsgPtr` at `0x80097E98`. Matching C writes `"%#"`
+to `AdtMsgBuf`, presents the buffer to `AdtMessageBox`, and stores
+`&AdtMsgBuf[2]` as the cursor. Its target is
 therefore intentionally unaligned and belongs to linker-owned BSS rather than
 one of the generated initialized-data files.
 
-Together the slices cover 208 pointer words and 135 targets across ten
+Together the slices cover 190 pointer words and 117 targets across eleven
 generated files. The names and the sole addend are supported by PSX.SYM types,
 matching source table/field uses, or literal contents. No wider top-level
 ownership is inferred.
@@ -155,7 +160,7 @@ $ tools/reloc_data.py \
     --manifest config/reloc-data.main.exe.json \
     --input-dir .shake/gen/main.exe/asm/data \
     --check
-reloc-data: validated 208 pointer words and 135 exact targets across 10 files
+reloc-data: validated 190 pointer words and 117 exact targets across 11 files
 ```
 
 Or write separate assembly inputs directly:
@@ -167,7 +172,7 @@ $ tools/reloc_data.py \
     --output-dir .shake/build/reloc-data/asm
 ```
 
-Only the ten touched files are emitted. The default matching lane still
+Only the eleven touched files are emitted. The default matching lane still
 consumes Splat's files unchanged.
 
 The standalone build gate applies the transform to temporary copies, assembles
@@ -175,12 +180,12 @@ the touched objects, and performs the controlled links described below:
 
 ```console
 $ ./Build check-reloc-data
-reloc-data-lane: verified 208 R_MIPS_32 pointer words, 135 exact targets, and 3 link layouts across 11 files
+reloc-data-lane: verified 190 R_MIPS_32 pointer words, 117 exact targets, and 3 link layouts across 11 files
 check-reloc-data: reviewed pointer tables are retail-exact and shift-relocatable
 ```
 
-`./Build relink` composes all eleven replacements: `E58`, `1160`, `1490`,
-`207C`, `2EB0`, `33C4`, `37A8`, `400C`, `4900`, `75F64`, and `87458`. The BSS
+`./Build relink` composes all eleven replacements: `E58`, `149C`, `207C`,
+`2EB0`, `33C4`, `37A8`, `400C`, `4900`, `76394`, `797F0`, and `87458`. The BSS
 transform runs after the `87458` pointer rewrite so both changes survive in one object. The
 standalone gate remains the stricter per-record controlled-shift oracle.
 
@@ -189,11 +194,11 @@ standalone gate remains the stricter per-record controlled-shift oracle.
 The proof uses GNU MIPS assembler and linker output, not a source-level
 assumption:
 
-- all 208 reviewed sources are individually required to carry `R_MIPS_32` at
+- all 190 reviewed sources are individually required to carry `R_MIPS_32` at
   their exact offsets and against the expected target symbol/expression;
-- inserted target labels and the existing `D_800C2EB0` base are
+- inserted target labels and the existing `AdtMsgBuf` base are
   section-relative, never `ABS`;
-- a retail-address partial link reproduces all 208 shipped pointer words;
+- a retail-address partial link reproduces all 190 shipped pointer words;
 - moving the relevant source/target sections by `+4` produces the exact moved
   values; and
 - the `+0x10004` layout does the same across a high-word carry, including the
@@ -208,11 +213,11 @@ $ python3 -m unittest -v \
 ```
 
 Applying the manifest to the current generated inputs reduces the widened live
-literal-pointer inventory from 208 to zero. The ordinary generated inputs are
+literal-pointer inventory from 190 to zero. The ordinary generated inputs are
 unchanged; only the relocation lane consumes transformed copies.
 
 The default `tools/reloc_audit.py` invocation audits that composed normal
-relink, not the untouched matching linker. It maps all ten substituted objects
+relink, not the untouched matching linker. It maps all eleven substituted objects
 to their transformed sources, reconstructs pointer-sized values from remaining
 `.byte` directives, and accepts unaligned movable targets as candidates. The
 audit rejects a linked replacement without an exact object-to-source mapping,

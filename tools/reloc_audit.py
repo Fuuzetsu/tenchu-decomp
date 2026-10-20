@@ -55,8 +55,6 @@ DEFAULT_NM = "mipsel-unknown-linux-gnu-nm"
 DEFAULT_OBJECT_SOURCES = {
     ".shake/build/reloc-bss/obj/E58.data.s.o":
         ".shake/build/reloc-bss/data/E58.data.s",
-    ".shake/build/reloc-bss/obj/1160.data.s.o":
-        ".shake/build/reloc-bss/data/1160.data.s",
     ".shake/build/reloc-bss/obj/149C.data.s.o":
         ".shake/build/reloc-bss/data/149C.data.s",
     ".shake/build/reloc-bss/obj/207C.data.s.o":

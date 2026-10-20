@@ -47,7 +47,7 @@ decisions behind the toolchain. It's the reference companion to the terse
   complete `+0x10004` GNU-ld growth proof.
 - [relocatable-data.md](relocatable-data.md) — the loaded-data pointer
   inventory, exact-interior-label policy, and the manifest-driven
-  208-word `R_MIPS_32` set—including byte-packed and unaligned cases—with a
+  190-word `R_MIPS_32` set—including byte-packed and unaligned cases—with a
   standalone retail/`+4`/`+0x10004` gate.
 - [psx-exe-finalizer.md](psx-exe-finalizer.md) — the PS-X EXE
   finalizer/validator used by the normal-link BSS proof: ELF/map symbol

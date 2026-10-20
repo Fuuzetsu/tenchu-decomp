@@ -482,6 +482,44 @@ class LiteralInstructionTests(unittest.TestCase):
 
 
 class LiteralDataTests(unittest.TestCase):
+    def test_attack_distance_windows_require_exact_object_location_and_arrays(self) -> None:
+        object_name = ".shake/build/main.exe/THINK.c.o"
+        arrays = struct.pack("<8h", 3000, 3500, 4000, 20000,
+                             2000, 3000, 4000, 20000)
+        data = bytes(0x24) + arrays
+        findings, reviewed, _evidence = audit.analyse_data_section(
+            data, {}, model(), object_name=object_name, section_name=".sdata",
+        )
+        self.assertEqual(findings, [])
+        self.assertEqual(reviewed["numeric_data_window"], 2)
+
+        # Moving the arrays or copying them to another object/section must
+        # trigger review again. A changed byte outside the apparent pointer
+        # also invalidates the complete-array evidence.
+        changed = bytearray(data)
+        changed[0x24] ^= 1
+        changed[0x2C] ^= 1
+        for candidate, path, section in (
+            (bytes(4) + data, object_name, ".sdata"),
+            (data, "elsewhere/THINK.c.o", ".sdata"),
+            (data, object_name, ".data"),
+            (bytes(changed), object_name, ".sdata"),
+        ):
+            with self.subTest(path=path, section=section, data=candidate):
+                findings, reviewed, _evidence = audit.analyse_data_section(
+                    candidate, {}, model(), object_name=path,
+                    section_name=section,
+                )
+                self.assertEqual(len(findings), 2)
+                self.assertEqual(reviewed["numeric_data_window"], 0)
+
+        findings, reviewed, _evidence = audit.analyse_data_section(
+            data + words(0x800162A4), {}, model(), object_name=object_name,
+            section_name=".sdata",
+        )
+        self.assertTrue(any(finding.offset == "0x34" for finding in findings))
+        self.assertEqual(reviewed["numeric_data_window"], 2)
+
     def test_numeric_pointer_word_fails_but_r_mips_32_passes(self) -> None:
         data = words(0x800162A4)
         findings, _reviewed, _evidence = audit.analyse_data_section(

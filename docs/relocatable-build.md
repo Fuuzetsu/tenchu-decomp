@@ -306,25 +306,26 @@ retail matching lanes retain their generated discard behavior unchanged.
 Every `./Build relink` runs `tools/reloc_input_audit.py` immediately after GNU
 `ld`, using the generated linker script, linked ELF, and the exact object order
 from the link map. `./Build check-relink` reruns the same gate before its growth
-proof. The current result is:
+proof. The current result (2026-10-21, after consolidating game translation
+units and restoring typed `THINK.C` data) is:
 
 ```text
-map-LOAD objects:                         731
-owned nonempty allocatable PROGBITS:      767
-reviewed .reginfo/.MIPS.abiflags:        1462
+map-LOAD objects:                         306
+owned nonempty allocatable PROGBITS:      335
+reviewed .reginfo/.MIPS.abiflags:          612
 direct J/JAL backed by R_MIPS_26:   6918/6918
 PC-relative branches:                    8148
   same input section / R_MIPS_PC16: 7090/1058
 gp address uses relocation-backed:  2494/2494
-symbolic R_MIPS_HI16:                    4788
-alloc-data four-byte windows:           25699
+symbolic R_MIPS_HI16:                    4787
+alloc-data four-byte windows:           26263
   backed by R_MIPS_32:                   1939
 findings:                                   0
 ```
 
 Every allocatable input section must have a normal-link owner. An unknown
 section is rejected even when it is empty or has a debug-looking name; the
-1,462 unowned metadata sections above pass only because their `.reginfo` or
+612 unowned metadata sections above pass only because their `.reginfo` or
 `.MIPS.abiflags` type, flags, size, alignment, and entry size are structurally
 exact. A selected allocatable section must also have a supported runtime type;
 selection does not bless an unexpected type such as an init array. Expected
@@ -332,6 +333,14 @@ empty compiler companions have an explicit, zero-size-only allowance. The
 stock-SDK constant, CRT `_gp`, and PS-X header allowances are scoped to the
 exact object path, section, offset, and instruction or value rather than a
 reusable basename or constant.
+
+Two additional exact-site exceptions cover byte windows one byte into
+`THINK.C`'s `s16 atkd[4]` and `atkd2[4]` distance arrays. Their bytes happen
+to spell KSEG1 addresses when read across element boundaries. Each exception
+requires the canonical object path, `.sdata` offset, and all eight initializer
+bytes. Moving or changing either array triggers review again, and other
+windows in the same object remain checked. The focused tests cover those
+boundaries, including a changed byte outside the apparent pointer.
 
 The relocation checks reject future canonical numeric MAIN references: direct
 `J`/`JAL` without `R_MIPS_26`, unrelocated LUI plus canonical low-half address
@@ -376,12 +385,14 @@ wrote those routines in C.
 
 ## Loaded data and the final-image audit
 
-The reviewed manifest now covers 208 pointer words and 135 targets across ten
+The reviewed manifest now covers 190 pointer words and 117 targets across eleven
 generated data files. It includes the 22 name/path pointers in byte-packed
 `StageConfig`, all previously reviewed trailing tables, and the cursor stored
-in `D_80097E98` that intentionally points to `D_800C2EB0 + 2`. Every entry
+in `AdtMsgPtr` that intentionally points to `AdtMsgBuf + 2`. Every entry
 produces an exact `R_MIPS_32` and passes retail, `+4`, and `+0x10004` links. See
 [`relocatable-data.md`](relocatable-data.md) for the representation and evidence.
+The 18 former raw `ThinkDB` entries have moved to C ownership; the compiler
+emits relocations for all 19 non-null names in that table.
 
 `tools/reloc_audit.py` audits the actual objects selected by the composed
 linker, not stale Splat inputs. It reconstructs little-endian words from

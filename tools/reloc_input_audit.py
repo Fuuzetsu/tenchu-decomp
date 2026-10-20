@@ -23,7 +23,8 @@ Reviewed fixed PS1 contracts (persistent save state, executable handoff,
 scratchpad/MMIO, RAM end and initial stack) are reported but accepted.  The
 PS-X EXE header's entry/load placeholders are accepted because ``psxexe.py``
 regenerates those fields after every link.  One stock libsnd arithmetic magic
-constant is accepted by exact object and value.
+constant and two overlapping byte windows in typed attack-distance arrays
+are accepted only at their reviewed object/section/offset and exact bytes.
 
 This is a regression gate, not a type-system proof.  In particular its LUI
 scan is bounded and linear rather than control-flow-aware, and it does not try
@@ -125,6 +126,17 @@ SAFE_NUMERIC_CONSTANTS = {
         0x9F84,
         0x36940009,
     ): "libsnd arithmetic constant",
+}
+
+# THINK.C's atkd and atkd2 are four-element s16 distance arrays. Reading four
+# bytes starting one byte into either array produces a coincidental KSEG1
+# address. Require the complete eight-byte initializer, not just the apparent
+# pointer, and do not exempt any other window in the object.
+SAFE_NUMERIC_DATA_WINDOWS = {
+    (".shake/build/main.exe/THINK.c.o", ".sdata", 0x25):
+        (0x24, struct.pack("<4h", 3000, 3500, 4000, 20000)),
+    (".shake/build/main.exe/THINK.c.o", ".sdata", 0x2D):
+        (0x2C, struct.pack("<4h", 2000, 3000, 4000, 20000)),
 }
 
 # crt0 loads the absolute `_gp` value with a normal HI16/LO16 pair.  The low
@@ -1167,6 +1179,14 @@ def analyse_data_section(
         if placeholder is not None:
             reviewed["psx_header_placeholder"] += 1
             continue
+        numeric_window = SAFE_NUMERIC_DATA_WINDOWS.get(
+            (object_name, section_name, offset)
+        )
+        if numeric_window is not None:
+            start, expected_bytes = numeric_window
+            if data[start:start + len(expected_bytes)] == expected_bytes:
+                reviewed["numeric_data_window"] += 1
+                continue
         findings.append(
             Finding(
                 kind="literal_alloc_data_main_address",
