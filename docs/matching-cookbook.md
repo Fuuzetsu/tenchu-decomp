@@ -1179,6 +1179,15 @@ judgment:
   - 500)`, `dtL->vy - (0x69 - y)` (HangCheck); `A + (B + 25)` to land the
   constant on A (MoveKorogari; rtlguide rejoins the pair as
   `constant-add-reassociation`).
+- **Name both independently calculated contributions when grouping alone
+  loses a constant's owner.** MENU's `DrawTitleSprites` needs the seal index
+  scaled to degrees before the animated angle is converted to degrees and
+  offset by 90. An all-in-one expression moves the 90 to the final sum; naming
+  only the animated rotation preserves the additions but changes their
+  registers and schedule. Two block-local values, `offset_degrees` followed by
+  `rotation_degrees`, reproduce all 1,892 bytes without an assignment hidden in
+  the final expression. Inspect the order of the independent producers as well
+  as the association of the additions.
 - **Keep calls inline in expressions** (`x = rand() % 200 - 100;` computes on
   `$v0`; a temp inserts a move) — but a two-statement remainder temp is provable
   from the asm: `mult/subu` operating on the MOVED result's `$sN` (the

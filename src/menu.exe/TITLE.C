@@ -377,12 +377,6 @@ void LoadTitleSprites(void)
     }
 }
 
-/* Draft: all 1,892 bytes have the same control flow, but the compiler
- * reassociates the seal rotation's additions (eight differing bytes).
- * A named degree temporary changes allocation without resolving the tie. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/TITLE", DrawTitleSprites);
-#else
 void DrawTitleSprites(void)
 {
     RECT rect;
@@ -451,13 +445,17 @@ void DrawTitleSprites(void)
             priority = 1248;
         for (i = 0; i < TITLE_SEAL_COUNT; i++)
         {
+            int offset_degrees;
+            int rotation_degrees;
+
             sprite = &TitleSealSprites[i];
             angle = TitleSealAngle + (i << FIXED_SHIFT) / TITLE_SEAL_COUNT;
             sprite->x = (radius * rcos(angle)) >> FIXED_SHIFT;
             sprite->y = ((radius * rsin(angle)) >> FIXED_SHIFT) - 24;
+            offset_degrees = i * (360 / TITLE_SEAL_COUNT);
+            rotation_degrees = ((TitleSealAngle * 360) >> FIXED_SHIFT) + 90;
             sprite->rotate =
-                (90 + (i * 40 + ((TitleSealAngle * 360) >> FIXED_SHIFT)))
-                << FIXED_SHIFT;
+                (offset_degrees + rotation_degrees) << FIXED_SHIFT;
             GsSortSprite(sprite, OTablePt, priority);
         }
     }
@@ -543,4 +541,3 @@ void DrawTitleSprites(void)
         }
     }
 }
-#endif

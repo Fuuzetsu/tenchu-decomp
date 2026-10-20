@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **MENU.EXE decompilation is active (2026-10-20).** Its twenty-one combined C
-  modules and shared helpers recover 213 functions / 73,764 bytes:
+  modules and shared helpers recover 214 functions / 75,656 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -36,9 +36,9 @@ byte-identical `main.exe`.
   and startup input loop are exact. `SetupMenuImageGrid` has a guarded
   792-byte draft against the 800-byte original. The movie player's untouched
   64-byte stack region is explicitly recorded as an unknown unused local.
-  TITLE's sprite renderer remains guarded for an eight-byte rotation-expression
-  difference (`NON_MATCHING=TITLE`); its loader and input loop are exact.
-  TITLEMESH and CHARACTER are entirely exact C. The title resource names
+  TITLE, TITLEMESH, and CHARACTER are entirely exact C. The seal renderer
+  computes its per-seal degree offset before the animated rotation, then
+  combines them for the sprite's fixed-point rotation. The title resource names
   come from inspecting TITLE.ARC, and character-selection motion IDs are
   named for their own STAGE9.AMD registration tables.
   OPTIONS has ten exact routines. Its shared choice handler has a guarded
@@ -58,9 +58,9 @@ byte-identical `main.exe`.
   assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
-  Its reviewed game/SDK split puts 213 of 219 identified game/engine routines
-  in exact C (73,764 / 81,252 bytes). Six readable C drafts remain guarded:
-  ComPad, DrawTitleSprites, UpdateChoiceOptions, LoadMovieSubtitles,
+  Its reviewed game/SDK split puts 214 of 219 identified game/engine routines
+  in exact C (75,656 / 81,252 bytes). Five readable C drafts remain guarded:
+  ComPad, UpdateChoiceOptions, LoadMovieSubtitles,
   SetupMissionSprites, and SetupMenuImageGrid. SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
   The 860-row scaffold inventory is coarse: some remaining rows

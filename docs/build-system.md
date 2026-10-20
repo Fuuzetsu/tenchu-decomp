@@ -283,9 +283,10 @@ image packets; the separate `SetupMenuImageGrid` constructor remains a draft.
 The movie player preserves a 64-byte unaccessed stack region, with no claim
 about the original local's type.
 TITLEMESH recovers the rippling background. TITLE owns the title input loop,
-TIM/sprite setup, and its compiler jump table at `0x80011f84`; its sprite
-renderer remains guarded for an eight-byte arithmetic-order difference
-(`NON_MATCHING=TITLE`). CHARACTER recovers character selection, its image
+TIM/sprite setup, sprite rendering, and its compiler jump table at `0x80011f84`.
+All three TITLE routines match; the renderer names the per-seal degree offset
+and animated rotation separately before combining them.
+CHARACTER recovers character selection, its image
 setup, model/weapon attachment, motion registration, and cleanup. All three
 CHARACTER routines match. Its STAGE9.AMD registrations reuse gameplay motion
 IDs for different clips, so those IDs have screen-specific names.
@@ -335,9 +336,9 @@ no `jr ra` or negative stack-adjustment instructions; their unowned raw bytes
 remain visible separately rather than being counted as recovered functions.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
-The identified game/engine inventory has 219 routines / 81,252 bytes; 213
-routines / 73,764 bytes are exact C. The six guarded drafts are ComPad,
-DrawTitleSprites, UpdateChoiceOptions, LoadMovieSubtitles, SetupMissionSprites,
+The identified game/engine inventory has 219 routines / 81,252 bytes; 214
+routines / 75,656 bytes are exact C. The five guarded drafts are ComPad,
+UpdateChoiceOptions, LoadMovieSubtitles, SetupMissionSprites,
 and SetupMenuImageGrid. The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
 
