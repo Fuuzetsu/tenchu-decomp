@@ -1308,9 +1308,10 @@ that candidate was rejected for changing behavior and adding a fence.
 
 ## MENU SetupMenuImageGrid — 2026-10-21
 
-Still guarded. The committed source emits 792 bytes against the 800-byte
+**Resolved in exact C; see the resolution below.** The earlier guarded source
+emitted 792 bytes against the 800-byte
 retail span at `0x80024e8c`, with 433 raw differing bytes when linked at the
-retail address. No new game routine was promoted in this investigation.
+retail address. The following diagnostic history predates the exact solution.
 
 The inner loop has 107 real instructions at the loop pass. At the
 `1 << (8 - mode)` group, threshold 28, savings two, and lifetime two make
@@ -1366,4 +1367,46 @@ and texture helpers, guarded do-while loops, and equivalent loop bounds.
 None matched. The controller predicate/cast variants still leave
 `ComPad`'s single differing instruction; filename-formatting helpers do
 not resolve `LoadMovieSubtitles`' argument schedule. Coverage remains
-216 of 219 game routines.
+216 of 219 game routines at that checkpoint.
+
+### Resolution
+
+The exact source calculates both `tx` and `ty` before setting the CLUT and
+texture page, then converts the absolute texture X coordinate to page-local
+U in two statements:
+
+```c
+short u;
+
+/* Inside the cell loop, after packet geometry. */
+tx = image->px + ((width * x) >> (2 - mode));
+ty = image->py + height * y;
+setClut(polygon, image->cx, image->cy);
+setTPage(polygon, mode, 0, tx, ty);
+u = tx << (2 - mode);
+u &= (1 << (8 - mode)) - 1;
+setUV4(polygon, u, ty, u + width - 1, ty,
+       u, ty + height - 1, u + width - 1, ty + height - 1);
+grid->polygons[y * columns + x] = *polygon;
+```
+
+This matches all 800 bytes under the ordinary cc1-281 profile. With `int u`
+and the former `x + y * columns` index, the same statement order already
+matched the frame, allocation, and schedule, leaving three bytes in two
+commutative additions. Putting the row product first fixes the index addition;
+making `u` a short fixes the UV addition. Merely swapping the written operands
+of `u + width` does not fix the latter. No artificial seed, fence, compiler
+change, or per-function option is needed.
+
+The intermediate experiments distinguish the two problems. Moving only `tx`
+before the CLUT, with `ty` still after it, leaves the otherwise promising
+two-step U version at 800 bytes / 163 differing bytes. Moving both coordinates
+first reduces that to three. A temporary GDB intervention rejecting only the
+original literal-one hoist produces 784 bytes / 525 differing bytes: suppressing
+that optimization does not by itself reproduce the target's register pressure.
+The natural arithmetic stages and their surrounding order are both necessary.
+
+The assembly fallback is removed. `./Build -j8 check-all` confirms all six
+executables remain byte-identical, and the focused inventory/source-unit/shared-
+symbol suite passes. MENU now has 217 of 219 game routines / 80,696 of 81,252
+bytes in exact C; only ComPad and LoadMovieSubtitles remain guarded.

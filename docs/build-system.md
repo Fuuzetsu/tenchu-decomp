@@ -280,7 +280,9 @@ filename copy, which the compiler turns into a pointer walk.
 MAIN also owns the movie command interpreter, subtitle playback/drawing, and
 startup card input loop. Its subtitle file loader is guarded
 (`NON_MATCHING=MAIN`). IMAGEGRID draws and disposes the mission menu's tiled
-image packets; the separate `SetupMenuImageGrid` constructor remains a draft.
+image packets; the separate `SetupMenuImageGrid` constructor is also exact C.
+It calculates both texture coordinates before setting the CLUT/page, then
+shifts and masks a short U coordinate in separate statements.
 The movie player preserves a 64-byte unaccessed stack region, with no claim
 about the original local's type.
 TITLEMESH recovers the rippling background. TITLE owns the title input loop,
@@ -340,9 +342,9 @@ span continues to `0x800503e4`; its only direct call back into the game/engine
 span is the CRT call to `main` at `0x80027964`.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
-The identified game/engine inventory has 219 routines / 81,252 bytes; 216
-routines / 79,896 bytes are exact C. The three guarded drafts are ComPad,
-LoadMovieSubtitles, and SetupMenuImageGrid.
+The identified game/engine inventory has 219 routines / 81,252 bytes; 217
+routines / 80,696 bytes are exact C. The two guarded drafts are ComPad and
+LoadMovieSubtitles.
 The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
 `reference/menu-sdk-identical.tsv` records 58 recovered SDK entry names across

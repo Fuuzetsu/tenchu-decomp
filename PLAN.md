@@ -10,15 +10,15 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-20).** Its twenty-one combined C
-  modules and shared helpers recover 216 functions / 79,896 bytes:
+- **MENU.EXE decompilation is active (2026-10-21).** Its twenty-one combined C
+  modules and shared helpers recover 217 functions / 80,696 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
   archives, CD-file access, debug display, card-screen prompts, fonts/telop,
   score calculation, cheat-command recognition, movie streaming, and the
   CD/host executable loaders, subtitle playback, startup and manual card loading, and
-  mission-image grid drawing/cleanup, the title mesh and input loop,
+  mission-image grid setup/drawing/cleanup, the title mesh and input loop,
   title resource loading, character selection, the options controller,
   options resource loading and animated list, controller configuration,
   volume controls, sound test, records, number drawing, and mission selection.
@@ -33,8 +33,9 @@ byte-identical `main.exe`.
   through compiler strength reduction.
   MAIN's subtitle file loader is guarded for argument scheduling
   (`NON_MATCHING=MAIN`); its command processor, playback, subtitle drawing,
-  and startup input loop are exact. `SetupMenuImageGrid` has a guarded
-  792-byte draft against the 800-byte original. The movie player's untouched
+  and startup input loop are exact. `SetupMenuImageGrid` now matches all
+  800 bytes with short texture coordinates and separate U shift/mask steps.
+  The movie player's untouched
   64-byte stack region is explicitly recorded as an unknown unused local.
   TITLE, TITLEMESH, and CHARACTER are entirely exact C. The seal renderer
   computes its per-seal degree offset before the animated rotation, then
@@ -58,9 +59,9 @@ byte-identical `main.exe`.
   without assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
-  Its reviewed game/SDK split puts 216 of 219 identified game/engine routines
-  in exact C (79,896 / 81,252 bytes). Three readable C drafts remain guarded:
-  ComPad, LoadMovieSubtitles, and SetupMenuImageGrid.
+  Its reviewed game/SDK split puts 217 of 219 identified game/engine routines
+  in exact C (80,696 / 81,252 bytes). Two readable C drafts remain guarded:
+  ComPad and LoadMovieSubtitles.
   SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
   Fifty-eight previously unnamed SDK entries now use MAIN's names, verified
@@ -83,11 +84,10 @@ byte-identical `main.exe`.
   belong to SDK data, and sixteen game-side zero bytes retain unknown original
   declarations. All six executables remain byte-identical.
   Classification does not imply complete C ownership or SDK function discovery.
-  Remaining work includes the three guarded drafts and refinement of the
+  Remaining work includes the two guarded drafts and refinement of the
   inherited SDK inventory. The 2026-10-21
   [image-grid investigation](docs/matching-archive.md#menu-setupmenuimagegrid--2026-10-21)
-  reproduces its 800-byte size and frame in a diagnostic with 99 differing
-  bytes; the cleaner guarded draft is unchanged pending an exact match.
+  records the exact grid solution and the compiler diagnostics that preceded it.
   Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.

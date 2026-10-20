@@ -6,12 +6,6 @@
 
 extern u_long *MissionImageArchive;
 
-/* Draft: the compiler hoists the texture-U mask out of the tile loop,
- * while retail keeps that calculation inside. Scalar lifetimes and the
- * packet-copy schedule also differ: this C emits 792 bytes against 800. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/SetupMenuImageGrid", SetupMenuImageGrid);
-#else
 void SetupMenuImageGrid(MenuImageGrid *grid, short image_index)
 {
     short mode;
@@ -28,7 +22,7 @@ void SetupMenuImageGrid(MenuImageGrid *grid, short image_index)
     short height;
     short tx;
     short ty;
-    int u;
+    short u;
 
     columns = grid->columns;
     rows = grid->rows;
@@ -49,17 +43,17 @@ void SetupMenuImageGrid(MenuImageGrid *grid, short image_index)
             setPolyFT4(polygon);
             setRGB0(polygon, 128, 128, 128);
             setXYWH(polygon, sx, sy, width, height);
-            setClut(polygon, image->cx, image->cy);
             tx = image->px + ((width * x) >> (2 - mode));
             ty = image->py + height * y;
-            u = (tx << (2 - mode)) & ((1 << (8 - mode)) - 1);
+            setClut(polygon, image->cx, image->cy);
             setTPage(polygon, mode, 0, tx, ty);
+            u = tx << (2 - mode);
+            u &= (1 << (8 - mode)) - 1;
             setUV4(polygon, u, ty, u + width - 1, ty,
                    u, ty + height - 1, u + width - 1, ty + height - 1);
-            grid->polygons[x + y * columns] = *polygon;
+            grid->polygons[y * columns + x] = *polygon;
             sx += width;
         }
         sy += height;
     }
 }
-#endif

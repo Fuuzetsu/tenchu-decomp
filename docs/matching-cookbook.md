@@ -2734,19 +2734,21 @@ have matched SetBleedsDir unattended.
   produces the same running row coordinate. Keeping `2` inside the loop
   permits its reuse for the target's delay-slot variable shift. Check the
   pre-strength-reduction expression before inventing loop-control changes.
-- **Check whether a value is classified as invariant before changing the
-  cost threshold.** MENU's still-unmatched `SetupMenuImageGrid` provides a
-  diagnostic: `u = 1; u = (tx << (2 - mode)) & ((u << (8 - mode)) - 1);`
-  keeps the mask inside the tile loop even though its real instruction count
-  stays at 107. The twice-assigned user variable prevents the original
-  constant/shift group from being classified as invariant. This recovers the
-  800-byte size and 104-byte frame, but the seed also remains live across
-  other calculations and changes register allocation. It is not an exact
-  match or a source recommendation. Conversely, widening three image
-  coordinates to named `int` locals raises the count to 113 and rejects the
-  original mask's hoist, but changes signed loads and allocation. A correct
-  hoist decision alone does not justify promoting a draft; see the
-  [grid investigation](matching-archive.md#menu-setupmenuimagegrid--2026-10-21).
+- **Preserve arithmetic stages and test their order together.** MENU's
+  `SetupMenuImageGrid` matches with `short u; u = tx << (2 - mode);`
+  followed by `u &= (1 << (8 - mode)) - 1;`, after calculating both texture
+  coordinates and setting the CLUT/page. With that order, the mask stays in
+  the cell loop, the 104-byte frame and register allocation match, and the
+  short intermediate restores the final UV-add operand order. Moving only
+  the declarations or only splitting the arithmetic did not match. The
+  array index is `y * columns + x`.
+  An earlier diagnostic seeded `u = 1` before using it in the mask: this
+  changed invariant classification without changing the 107-instruction
+  loop count, but tied the seed to the output register and left 99 differing
+  bytes. Forcing the original mask's hoist gate to fail in a temporary
+  compiler session also failed to reproduce allocation. A correct hoist
+  decision alone is insufficient; return to the source's real value stages.
+  See the [grid investigation](matching-archive.md#menu-setupmenuimagegrid--2026-10-21).
 - **Guard operand order decides whether a short param's widening hoists**
   (`if (i >= n)` keeps it in-loop with the no-`sra` compare; which operand's
   `sll` comes first in the target reads the source order off, SetSmoke).
