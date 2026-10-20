@@ -40,10 +40,6 @@ void run_exec_file(u8 *name, u32 stack, u32 size)
     Exec(exec, 0, NULL);
 }
 
-/* Draft: the prefix adjustment and record-address load are interchanged. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/EXECFILE", set_boot_exec_);
-#else
 void set_boot_exec_(u8 *file, u32 stack, u32 size)
 {
     int i;
@@ -54,21 +50,12 @@ void set_boot_exec_(u8 *file, u32 stack, u32 size)
     rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
     rec->magic = magic;
     file += BOOT_EXEC_CDROM_PREFIX_SIZE;
-    i = 0;
-    if (*file != 0)
-    {
-        do
-        {
-            rec->name[i] = *file;
-            file++;
-            i++;
-        } while (*file != 0);
-    }
+    for (i = 0; file[i] != 0; i++)
+        rec->name[i] = file[i];
     rec->name[i] = 0;
     rec->s_addr = stack;
     rec->s_size = size;
 }
-#endif
 
 EXEC *LoadExecFromHost(char *name)
 {

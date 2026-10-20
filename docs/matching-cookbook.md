@@ -782,6 +782,9 @@ decides notes, hoisting, rotation, and delay-slot fills:**
   its three-quad loop. A manual pointer walk had the correct 996-byte length
   but scheduled the priority argument later (19 differing bytes). The indexed
   assignment reproduces the same pointer increment and matches exactly.
+  The boot handoff `set_boot_exec_` is another example: after skipping the
+  six-character CD prefix, `for (i = 0; file[i]; i++) name[i] = file[i]`
+  produces retail's source-pointer walk and fixes the final eight bytes.
   Conversely, `UpdateMissionSelection` needs a row pointer to its layout
   grades, with `ranks++` after publishing each visible sprite; indexing the
   whole matrix in that loop changes address formation and adds four bytes.

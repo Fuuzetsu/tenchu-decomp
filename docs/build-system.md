@@ -274,8 +274,8 @@ message box, ACTION the scalar Hermite evaluator, FRONTEND the fade/skip and
 opening-movie loops, and MAIN the persistent-state defaults and screen dispatch.
 OPMOVIE recovers all ten streaming helpers, including the RGB24 CD-interrupt
 callback, slice buffering, VLC decode, and timeouts. EXECFILE recovers the CD
-launcher and host loader; its boot-handoff draft retains an assembly fallback
-for an eight-byte instruction-order difference (`NON_MATCHING=EXECFILE`).
+launcher, host loader, and boot handoff in exact C. The handoff uses an indexed
+filename copy, which the compiler turns into a pointer walk.
 MAIN also owns the movie command interpreter, subtitle playback/drawing, and
 startup card input loop. Its subtitle file loader is guarded
 (`NON_MATCHING=MAIN`). IMAGEGRID draws and disposes the mission menu's tiled

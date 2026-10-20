@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **MENU.EXE decompilation is active (2026-10-20).** Its twenty-one combined C
-  modules and shared helpers recover 212 functions / 73,676 bytes:
+  modules and shared helpers recover 213 functions / 73,764 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -28,9 +28,9 @@ byte-identical `main.exe`.
   persistent state. `ComPad` remains a guarded 420-byte C draft: its digital
   button path has a compiler copy/branch mismatch; the other eleven PADCMD
   routines are exact. Compile that draft with `NON_MATCHING=PADCMD`.
-  All ten OPMOVIE streaming routines are exact C. EXECFILE's boot handoff
-  helper remains guarded for an eight-byte instruction-order difference;
-  compile its draft with `NON_MATCHING=EXECFILE`.
+  All ten OPMOVIE streaming routines and all three EXECFILE routines are exact
+  C. The boot handoff's indexed filename copy reproduces its pointer walk
+  through compiler strength reduction.
   MAIN's subtitle file loader is guarded for argument scheduling
   (`NON_MATCHING=MAIN`); its command processor, playback, subtitle drawing,
   and startup input loop are exact. `SetupMenuImageGrid` has a guarded
