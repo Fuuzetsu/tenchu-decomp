@@ -10,8 +10,9 @@
 extern u8 Anakon;
 extern u8 align[6];
 
-/* The draft has the correct size; the digital X-axis path still differs in
- * copy propagation and branch scheduling. The other routines below match. */
+/* Draft: 420 bytes with one instruction differing. The first button read
+ * becomes a zero-extension where retail retains a plain register copy.
+ * The other routines below match. */
 #ifndef NON_MATCHING
 INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/PADCMD", ComPad);
 #else
@@ -49,10 +50,10 @@ void ComPad(int port, u8 *rxbuf)
     lo = rxbuf[PAD_REPORT_BUTTON_LOW];
     pad->y = 0;
     pad->x = 0;
+    pad->button = ~(lo | (hi << 8));
     {
-        int buttons;
+        int buttons = pad->button;
 
-        pad->button = buttons = ~(lo | (hi << 8));
         /* Digital pads synthesize a stick deflection of 45. */
         if (buttons & PADLright)
             pad->x = PAD_DIGITAL_AXIS_MAGNITUDE;

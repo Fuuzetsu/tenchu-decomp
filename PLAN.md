@@ -25,8 +25,8 @@ byte-identical `main.exe`.
   Four unchanged engine modules share MAIN's readable implementations.
   Menu-specific C preserves the SDK model renderer, scalar spline evaluator,
   12-byte pad records, two playback pitches, fade/skip loops, and default
-  persistent state. `ComPad` remains a guarded 420-byte C draft: its digital
-  button path has a compiler copy/branch mismatch; the other eleven PADCMD
+  persistent state. `ComPad` remains a guarded 420-byte C draft: one button-read
+  zero-extension differs from retail's register copy; the other eleven PADCMD
   routines are exact. Compile that draft with `NON_MATCHING=PADCMD`.
   All ten OPMOVIE streaming routines and all three EXECFILE routines are exact
   C. The boot handoff's indexed filename copy reproduces its pointer walk

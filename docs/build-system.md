@@ -320,7 +320,10 @@ jump tables in the leading text region via `.rodata` entries with
 card help calls MENU's nonspatial `Sound` entry point.
 PADCMD explicitly models MENU's earlier 12-byte controller record instead of
 MAIN's 14-byte record. Eleven PADCMD routines match; `ComPad` remains guarded
-and is excluded from C coverage. `NON_MATCHING=PADCMD ./Build
+and is excluded from C coverage. Its 420-byte C draft differs in one instruction
+(four bytes): a button-field read becomes `andi v1,v0,0xffff` where retail has
+`move v1,v0`. Its subsequent axis tests use only the low sixteen bits.
+`NON_MATCHING=PADCMD ./Build
 .shake/build/tenchu/menu.exe` compiles that draft for comparison.
 `config/translation-units.menu.exe.json` records the combined source owners.
 Both `tools/progress.py --target menu.exe` and the objdiff report use that
