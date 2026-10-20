@@ -267,25 +267,26 @@ void RunStartupCardCheck(void)
     } while (pressed == 0);
 }
 
-/* Draft: argument promotion and address loads are scheduled differently. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/MAIN", LoadMovieSubtitles);
-#else
 void LoadMovieSubtitles(short stage)
 {
     char filename[64];
     int stage_number;
 
     if (MovieSubtitleData)
+    {
         vfree(MovieSubtitleData);
-    stage_number = stage;
+        stage_number = stage;
+    }
+    else
+    {
+        stage_number = stage;
+    }
     sprintf(filename, fmt_movie_subtitles,
             MovieSubtitleDirectories[CHOSEN_LANGUAGE], stage_number, 'R');
     MovieSubtitleData = FileRead(filename);
     MovieCommandCursor = (MovieCommand *)MovieSubtitleData;
     MovieSubtitleText[0] = 0;
 }
-#endif
 
 short UpdateMovieSubtitles(int frame, SoundEffect *voices)
 {

@@ -278,8 +278,10 @@ callback, slice buffering, VLC decode, and timeouts. EXECFILE recovers the CD
 launcher, host loader, and boot handoff in exact C. The handoff uses an indexed
 filename copy, which the compiler turns into a pointer walk.
 MAIN also owns the movie command interpreter, subtitle playback/drawing, and
-startup card input loop. Its subtitle file loader is guarded
-(`NON_MATCHING=MAIN`). IMAGEGRID draws and disposes the mission menu's tiled
+startup card input loop. Its subtitle file loader is also exact C: each
+first-load/replacement path promotes the stage number before the shared
+formatting and read. The compiler merges the promotions after register
+allocation. IMAGEGRID draws and disposes the mission menu's tiled
 image packets; the separate `SetupMenuImageGrid` constructor is also exact C.
 It calculates both texture coordinates before setting the CLUT/page, then
 shifts and masks a short U coordinate in separate statements.
@@ -342,9 +344,9 @@ span continues to `0x800503e4`; its only direct call back into the game/engine
 span is the CRT call to `main` at `0x80027964`.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
-The identified game/engine inventory has 219 routines / 81,252 bytes; 218
-routines / 81,116 bytes are exact C. Only the 136-byte LoadMovieSubtitles
-draft remains guarded.
+All 219 identified game/engine routines / 81,252 bytes are exact C, with no
+remaining game assembly fallbacks. The full 307,200-byte MENU image matches
+retail (SHA-256 `5de759508d87fa3bd3122329eaaf00467ff5f4d964a1673699309f3b6983c5ab`).
 The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
 `reference/menu-sdk-identical.tsv` records 58 recovered SDK entry names across

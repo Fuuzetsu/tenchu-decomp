@@ -1605,6 +1605,43 @@ helpers with Rikimaru/Ayame character selection likewise leave the known
 alternate pointer spellings of the string add a load instead. The closest
 diagnostic and the committed guarded draft are unchanged.
 
+### Subtitle resolution
+
+`LoadMovieSubtitles` now matches all 136 bytes with the ordinary signed-short
+parameter, `int stage_number`, and 64-byte filename buffer. The existing-data
+branch owns the promotion on each path:
+
+```c
+if (MovieSubtitleData)
+{
+    vfree(MovieSubtitleData);
+    stage_number = stage;
+}
+else
+{
+    stage_number = stage;
+}
+sprintf(filename, fmt_movie_subtitles,
+        MovieSubtitleDirectories[CHOSEN_LANGUAGE], stage_number, 'R');
+```
+
+The condition is the original buffer-release check. No extra predicate,
+explicit shift, carrier overwrite, helper, or compiler option is needed.
+The compiler's combine dump retains both promotion definitions in the
+predecessor blocks and a plain copy into the fourth argument afterward.
+Allocation chooses `$v0` for the shift intermediate and `$a3` for the promoted
+stage; `jump2` then merges the two shift pairs. This preserves both the early
+promotion and the exact filename/character/address-load order. Duplicating
+the formatting calls as well instead leaves 26 differing bytes.
+
+The complete `MAIN.C` translation unit and all 307,200 bytes of MENU match
+retail. The assembly fallback is removed. `./Build -j8 check-all` passes
+all six images, the 29 focused inventory/source-unit/shared-symbol tests
+pass, and the leading-data inventory has no unclassified bytes.
+MENU is now 219 / 219 identified game/engine routines and 81,252 / 81,252
+bytes in exact C. The SDK/CRT assembly remains a separately classified
+library inventory.
+
 ## MENU/MAIN LoadTIMpack — 2026-10-21
 
 The menu readability review found an inherited empty `do { } while (0)`

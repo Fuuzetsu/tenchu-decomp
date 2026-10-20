@@ -10,8 +10,8 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **MENU.EXE decompilation is active (2026-10-21).** Its twenty-one combined C
-  modules and shared helpers recover 218 functions / 81,116 bytes:
+- **MENU.EXE game/engine decompilation is complete (2026-10-21).** Its twenty-one combined C
+  modules and shared helpers recover all 219 functions / 81,252 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -40,9 +40,11 @@ byte-identical `main.exe`.
   All ten OPMOVIE streaming routines and all three EXECFILE routines are exact
   C. The boot handoff's indexed filename copy reproduces its pointer walk
   through compiler strength reduction.
-  MAIN's subtitle file loader is guarded for argument scheduling
-  (`NON_MATCHING=MAIN`); its command processor, playback, subtitle drawing,
-  and startup input loop are exact. `SetupMenuImageGrid` now matches all
+  MENU's MAIN module is entirely exact C, including its subtitle file loader,
+  command processor, playback, subtitle drawing, and startup input loop.
+  The loader promotes the stage number separately in its first-load and
+  replacement paths; the compiler merges those assignments after allocation,
+  preserving the original argument schedule. `SetupMenuImageGrid` matches all
   800 bytes with short texture coordinates and separate U shift/mask steps.
   The movie player's untouched
   64-byte stack region is explicitly recorded as an unknown unused local.
@@ -68,9 +70,10 @@ byte-identical `main.exe`.
   without assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
-  Its reviewed game/SDK split puts 218 of 219 identified game/engine routines
-  in exact C (81,116 / 81,252 bytes). Only the 136-byte LoadMovieSubtitles
-  draft remains guarded.
+  Its reviewed game/SDK split puts all 219 identified game/engine routines
+  in exact C (81,252 / 81,252 bytes), with no remaining game assembly fallbacks.
+  All six image checks and the 29 focused inventory/source-unit/shared-symbol
+  tests pass.
   SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
   Fifty-eight previously unnamed SDK entries now use MAIN's names, verified
@@ -93,8 +96,8 @@ byte-identical `main.exe`.
   belong to SDK data, and sixteen game-side zero bytes retain unknown original
   declarations. All six executables remain byte-identical.
   Classification does not imply complete C ownership or SDK function discovery.
-  Remaining work includes the subtitle-loader draft and refinement of the
-  inherited SDK inventory. The 2026-10-21
+  Refinement of the inherited SDK inventory remains separate library work.
+  The 2026-10-21
   [image-grid investigation](docs/matching-archive.md#menu-setupmenuimagegrid--2026-10-21)
   records the exact grid solution and the compiler diagnostics that preceded it.
   Shared-code

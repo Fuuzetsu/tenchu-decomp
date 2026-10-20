@@ -540,6 +540,17 @@ negated. Everything else here is corollaries:
 
 ### 3.2 Guards, return islands, shared tails
 
+- **Promotions in real branch arms can merge later than a factored promotion.**
+  `LoadMovieSubtitles(short stage)` assigns `stage_number = stage` to an
+  `int` local on both paths of its existing-data check, after `vfree` on the
+  replacement path. Both arms use the same function-scope local.
+  Combine retains the two definitions, register allocation places the result
+  in `$a3`, and `jump2` merges the shift pairs. All 136 bytes match, including
+  the early `sll v0,s0,16; sra a3,v0,16` before formatting arguments.
+  Factoring the promotion after the `if` leaves 28 differing bytes because
+  combine moves the right shift into the final argument assignment. The
+  original condition still controls a real release operation; do not invent
+  identical-arm predicates or explicit shift-carrier reuse to force this.
 - **A switch's shared return can resolve a tiny register-only residual.**
   `UpdateControlOptions` matched all 1,900 bytes with `break` in the
   initialization, cleanup, and update cases followed by one `return 0`.
