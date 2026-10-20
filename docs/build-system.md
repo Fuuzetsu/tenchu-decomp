@@ -293,11 +293,13 @@ CHARACTER routines match. Its STAGE9.AMD registrations reuse gameplay motion
 IDs for different clips, so those IDs have screen-specific names.
 OPTIONS recovers the screen controller, shared image setup, animated menu
 list, controller configuration, volume controls, sound test, records, and number
-renderers. Its shared choice handler remains assembly-backed with a guarded
-C draft (`NON_MATCHING=OPTIONS`, 3,408 versus 3,416 bytes). That draft recovers
-the difficulty/audio/rumble/autosave/language/card dispatch, including the
-extra-language unlock in persistent GameRetry bit 5. Its two jump tables remain
-in the original textbin until the C handler matches.
+renderers. All eleven functions are exact C. The 3,416-byte shared choice
+handler covers the difficulty/audio/rumble/autosave/language/card dispatch, including the
+extra-language unlock in persistent GameRetry bit 5. Its two C-generated switch
+tables occupy `0x80012180..0x800121cc`, including their alignment. The label
+layout uses a centered four-row formula; the checkmark alignment helper is
+shared by animation and selection changes, and each drawing pass sets its
+blend attributes before its colors.
 MENU_J.ARC supplies the image identities; the controller action labels use a
 four-language coordinate table with an explicit Japanese selection.
 CARDMENU recovers startup card checks and manual loading, including its two
@@ -338,10 +340,10 @@ span continues to `0x800503e4`; its only direct call back into the game/engine
 span is the CRT call to `main` at `0x80027964`.
 `tools/target_inventory.py` records this boundary, and `tools/progress.py`
 reports game/engine and SDK/CRT buckets alongside its unchanged total fields.
-The identified game/engine inventory has 219 routines / 81,252 bytes; 215
-routines / 76,480 bytes are exact C. The four guarded drafts are ComPad,
-UpdateChoiceOptions, LoadMovieSubtitles,
-and SetupMenuImageGrid. The remaining 641 scaffold rows / 166,848 bytes belong
+The identified game/engine inventory has 219 routines / 81,252 bytes; 216
+routines / 79,896 bytes are exact C. The three guarded drafts are ComPad,
+LoadMovieSubtitles, and SetupMenuImageGrid.
+The remaining 641 scaffold rows / 166,848 bytes belong
 to the SDK/CRT span; those coarse rows are not a precise library function count.
 `reference/menu-sdk-identical.tsv` records 58 recovered SDK entry names across
 1,068 bytes. Each complete MENU span equals the named MAIN span, with only zero
@@ -368,7 +370,7 @@ an explicitly named byte array, with its original purpose left unknown.
 All 23 table pointers use ordinary `R_MIPS_32` relocations. The source preserves
 packed BCD times and the Japanese channel-`0xff` rows. The complete MENU image
 still matches retail.
-Another 1,152 bytes come from C-owned switch-table sections and their alignment.
+Another 1,228 bytes come from C-owned switch-table sections and their alignment.
 The 110 other game strings now have C array definitions in their consuming
 modules, accounting for another 2,976 bytes with alignment. The Shift-JIS save
 title retains its encoded bytes with a readable Japanese comment. Localized
@@ -378,9 +380,9 @@ declarations are arrays. The memory-disk identifier includes its terminating
 NUL while the handshake copies only `TENCHU_PC_MEMORY_HANDSHAKE_SIZE` bytes.
 All six executable byte checks pass with these shared declaration corrections.
 
-The remaining raw textbin spans total 3,836 bytes: SDK data occupies
-`0x80012c20..0x80013ac0` (3,744 bytes), while the game portion retains the
-guarded choice handler's two switch tables (72 bytes) and 20 zero bytes.
+The remaining raw textbin spans total 3,760 bytes: SDK data occupies
+`0x80012c20..0x80013ac0` (3,744 bytes), while the game portion retains sixteen
+zero bytes outside the C-owned sections.
 The original declarations behind the extra zero fill are still unknown.
 Regenerate the inventory with `--write` only after reviewing the classification.
 The focused tests include corrupted table references,

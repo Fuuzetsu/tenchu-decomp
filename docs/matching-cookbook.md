@@ -2574,6 +2574,15 @@ LUID, barriers). The levers:
   interleave differs (nullcheck's byte-identical LHS-first proof) — score both
   orders, it costs one build. In a LOAD-FREE block sched cannot reorder at all
   — a misplaced insn there is pure source order.
+- **Check source order before caching a repeatedly loaded sprite pointer.**
+  MENU's `UpdateChoiceOptions` sets each checkmark blend attribute before its
+  colors. The scheduler puts some color stores first in the final assembly;
+  transcribing that machine order into C changes pointer reloads. Setting the
+  attributes first reproduces both drawing passes without extra pointer locals.
+  Its shared `AlignChoiceCheckmark(short *checkmark_y)` helper also matters:
+  a write through the coordinate pointer preserves the following slide-state
+  read after the store, while direct member assignment lets that read move
+  earlier. The helper serves both animation and selection updates.
 - **Address-taken locals' loads never schedule above ANY pointer store** —
   reorder the STATEMENTS (HangCheck's vy-last commit). An independent load CAN
   hoist above textually-earlier unrelated stores — that's the scheduler, don't
@@ -2716,6 +2725,15 @@ loop BIGGER by inlining a precomputed invariant at its use sites, asm
 unchanged). **TOOL TICKET (invariant-inline autorule)**: the lane says it would
 have matched SetBleedsDir unattended.
 
+- **Factoring a layout expression can cross the hoist threshold without
+  changing the final arithmetic.** In MENU's `UpdateChoiceOptions`,
+  `(i * 2 - 3) * 10` describes four centered rows. Unlike `i * 20 - 30`, it
+  leaves 59 rather than 58 real instructions at the loop pass. The constant
+  `2` has a one-instruction lifetime and savings of one, so threshold 58
+  accepts the latter loop and rejects the former. Strength reduction still
+  produces the same running row coordinate. Keeping `2` inside the loop
+  permits its reuse for the target's delay-slot variable shift. Check the
+  pre-strength-reduction expression before inventing loop-control changes.
 - **Guard operand order decides whether a short param's widening hoists**
   (`if (i >= n)` keeps it in-loop with the no-`sra` compare; which operand's
   `sll` comes first in the target reads the source order off, SetSmoke).

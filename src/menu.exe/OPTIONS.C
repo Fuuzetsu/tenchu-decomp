@@ -471,11 +471,12 @@ short UpdateControlOptions(short mode)
     return 0;
 }
 
-/* Draft: the screen logic is recovered; label layout and checkmark drawing
- * still have compiler scheduling differences (3,408 versus 3,416 bytes). */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/menu.exe/asm/nonmatchings/OPTIONS", UpdateChoiceOptions);
-#else
+static inline void AlignChoiceCheckmark(short *checkmark_y)
+{
+    *checkmark_y =
+        ChoiceOptionLabels[ChoiceOptionFirst + ChoiceOptionSelection]->sprite.y;
+}
+
 short UpdateChoiceOptions(short mode)
 {
     GsIMAGE image;
@@ -620,7 +621,7 @@ short UpdateChoiceOptions(short mode)
             if (ChoiceOptionCount == 2)
                 ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = i != 0 ? 20 : -20;
             else if (ChoiceOptionCount == 4)
-                ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = i * 20 - 30;
+                ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = (i * 2 - 3) * 10;
             else
                 ChoiceOptionLabels[ChoiceOptionFirst + i]->clip.vy = i * 28 - 28;
         }
@@ -662,8 +663,7 @@ short UpdateChoiceOptions(short mode)
                     ChoiceOptionLabels[ChoiceOptionFirst + i]->sprite.y = y - ChoiceOptionSlide;
                 }
             }
-            OptionsCheckmark->sprite.y =
-                ChoiceOptionLabels[ChoiceOptionFirst + ChoiceOptionSelection]->sprite.y;
+            AlignChoiceCheckmark(&OptionsCheckmark->sprite.y);
         }
         if (ChoiceOptionSlide == 0)
         {
@@ -689,16 +689,16 @@ short UpdateChoiceOptions(short mode)
         GsSortSprite(&OptionsSmallPanel->sprite, OTablePt, 9);
         if (ChoiceOptionScreen != OPTIONS_MEMORY_CARD)
         {
-            OptionsCheckmark->sprite.r = OptionsCheckmark->sprite.g =
-                OptionsCheckmark->sprite.b = 255;
             OptionsCheckmark->sprite.attribute =
                 (OptionsCheckmark->sprite.attribute & ~GS_ATTR_SEMITRANS_MASK) |
                 GS_ATTR_SEMITRANS_SUBTRACT;
+            OptionsCheckmark->sprite.r = OptionsCheckmark->sprite.g =
+                OptionsCheckmark->sprite.b = 255;
             GsSortSprite(&OptionsCheckmark->sprite, OTablePt, 8);
-            OptionsCheckmark->sprite.r = 143;
             OptionsCheckmark->sprite.attribute =
                 (OptionsCheckmark->sprite.attribute & ~GS_ATTR_SEMITRANS_MASK) |
                 GS_ATTR_SEMITRANS_ADD;
+            OptionsCheckmark->sprite.r = 143;
             OptionsCheckmark->sprite.g = 8;
             OptionsCheckmark->sprite.b = 10;
             GsSortSprite(&OptionsCheckmark->sprite, OTablePt, 7);
@@ -719,7 +719,7 @@ short UpdateChoiceOptions(short mode)
             Sound(0, 4);
             ChoiceOptionSlide = -250;
             OptionsNextScreen = OPTIONS_MAIN;
-            return 0;
+            break;
         }
         if (OptionsPreviousButtons == 0 && ChoiceOptionSlide == 0)
         {
@@ -736,8 +736,7 @@ short UpdateChoiceOptions(short mode)
                 if (i != ChoiceOptionSelection)
                 {
                     Sound(0, 3);
-                    OptionsCheckmark->sprite.y =
-                        ChoiceOptionLabels[ChoiceOptionFirst + ChoiceOptionSelection]->sprite.y;
+                    AlignChoiceCheckmark(&OptionsCheckmark->sprite.y);
                 }
             }
             else if (OptionsButtons & (PADRright | PADRdown))
@@ -783,7 +782,6 @@ short UpdateChoiceOptions(short mode)
     }
     return 0;
 }
-#endif
 
 short UpdateVolumeOptions(short mode)
 {

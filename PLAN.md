@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **MENU.EXE decompilation is active (2026-10-20).** Its twenty-one combined C
-  modules and shared helpers recover 215 functions / 76,480 bytes:
+  modules and shared helpers recover 216 functions / 79,896 bytes:
   allocator, graphics, file I/O, images,
   CD audio, sound effects, motion/splines, card-file I/O, most controller
   handling, screen transitions, opening-movie playback, startup/dispatch,
@@ -41,10 +41,10 @@ byte-identical `main.exe`.
   combines them for the sprite's fixed-point rotation. The title resource names
   come from inspecting TITLE.ARC, and character-selection motion IDs are
   named for their own STAGE9.AMD registration tables.
-  OPTIONS has ten exact routines. Its shared choice handler has a guarded
-  3,408-byte draft against the 3,416-byte original (`NON_MATCHING=OPTIONS`);
-  label layout and checkmark drawing still differ. Its image names come from
-  inspecting MENU_J.ARC, and the controller-label tables retain all four
+  All eleven OPTIONS routines are exact C. The shared choice handler and its
+  two switch tables match with centered label positions, a shared checkmark
+  alignment helper, and blend attributes set before each tint. Its image names
+  come from inspecting MENU_J.ARC, and the controller-label tables retain all four
   language layouts. The records screen retains the original signed-short
   time display and training-layout handling. The choice screen identifies
   persistent GameRetry bit 5 as the French/Italian unlock.
@@ -58,9 +58,9 @@ byte-identical `main.exe`.
   without assigning it a guessed purpose. Image names were checked against SELSTG_J.ARC.
   `./Build check-menu.exe` gates the full menu image;
   `tools/progress.py --target menu.exe` reports current source coverage.
-  Its reviewed game/SDK split puts 215 of 219 identified game/engine routines
-  in exact C (76,480 / 81,252 bytes). Four readable C drafts remain guarded:
-  ComPad, UpdateChoiceOptions, LoadMovieSubtitles, and SetupMenuImageGrid.
+  Its reviewed game/SDK split puts 216 of 219 identified game/engine routines
+  in exact C (79,896 / 81,252 bytes). Three readable C drafts remain guarded:
+  ComPad, LoadMovieSubtitles, and SetupMenuImageGrid.
   SDK/CRT begins with Exec at
   `0x80027824`; the remaining 641 scaffold rows are library code.
   Fifty-eight previously unnamed SDK entries now use MAIN's names, verified
@@ -79,11 +79,11 @@ byte-identical `main.exe`.
   development paths, diagnostics, localized archive names, and Shift-JIS save
   title. The shared font declarations now identify arrays; the memory-disk
   handshake explicitly copies sixteen bytes from its terminated identifier.
-  Of the leading region, 3,836 bytes still use raw textbin storage: 3,744 bytes
-  belong to SDK data, and 92 bytes hold the guarded choice handler's two switch
-  tables plus zero fill. All six executables remain byte-identical.
+  Of the leading region, 3,760 bytes still use raw textbin storage: 3,744 bytes
+  belong to SDK data, and sixteen game-side zero bytes retain unknown original
+  declarations. All six executables remain byte-identical.
   Classification does not imply complete C ownership or SDK function discovery.
-  Remaining work includes the four guarded drafts and refinement of the
+  Remaining work includes the three guarded drafts and refinement of the
   inherited SDK inventory. Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.
