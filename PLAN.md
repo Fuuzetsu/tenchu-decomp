@@ -84,7 +84,11 @@ byte-identical `main.exe`.
   declarations. All six executables remain byte-identical.
   Classification does not imply complete C ownership or SDK function discovery.
   Remaining work includes the three guarded drafts and refinement of the
-  inherited SDK inventory. Shared-code
+  inherited SDK inventory. The 2026-10-21
+  [image-grid investigation](docs/matching-archive.md#menu-setupmenuimagegrid--2026-10-21)
+  reproduces its 800-byte size and frame in a diagnostic with 99 differing
+  bytes; the cleaner guarded draft is unchanged pending an exact match.
+  Shared-code
   symbol recovery is documented in `docs/build-system.md`; its strict
   `tools/shared_symbols.py` check is stronger than normalized name discovery.
 - **Round-trip byte-matches.** `./Build clean && ./Build check` reassembles a

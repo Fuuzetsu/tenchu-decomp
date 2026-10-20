@@ -2734,6 +2734,19 @@ have matched SetBleedsDir unattended.
   produces the same running row coordinate. Keeping `2` inside the loop
   permits its reuse for the target's delay-slot variable shift. Check the
   pre-strength-reduction expression before inventing loop-control changes.
+- **Check whether a value is classified as invariant before changing the
+  cost threshold.** MENU's still-unmatched `SetupMenuImageGrid` provides a
+  diagnostic: `u = 1; u = (tx << (2 - mode)) & ((u << (8 - mode)) - 1);`
+  keeps the mask inside the tile loop even though its real instruction count
+  stays at 107. The twice-assigned user variable prevents the original
+  constant/shift group from being classified as invariant. This recovers the
+  800-byte size and 104-byte frame, but the seed also remains live across
+  other calculations and changes register allocation. It is not an exact
+  match or a source recommendation. Conversely, widening three image
+  coordinates to named `int` locals raises the count to 113 and rejects the
+  original mask's hoist, but changes signed loads and allocation. A correct
+  hoist decision alone does not justify promoting a draft; see the
+  [grid investigation](matching-archive.md#menu-setupmenuimagegrid--2026-10-21).
 - **Guard operand order decides whether a short param's widening hoists**
   (`if (i >= n)` keeps it in-loop with the no-`sra` compare; which operand's
   `sll` comes first in the target reads the source order off, SetSmoke).

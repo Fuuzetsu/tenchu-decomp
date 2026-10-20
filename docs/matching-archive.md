@@ -1305,3 +1305,65 @@ do-while spellings, x initialization placement, clone-result temporaries,
 signed/unsigned x, and explicit row pointers did not match. A bounded 60-second
 permuter run moved LoadTIM into the clone loop and inserted an empty statement;
 that candidate was rejected for changing behavior and adding a fence.
+
+## MENU SetupMenuImageGrid — 2026-10-21
+
+Still guarded. The committed source emits 792 bytes against the 800-byte
+retail span at `0x80024e8c`, with 433 raw differing bytes when linked at the
+retail address. No new game routine was promoted in this investigation.
+
+The inner loop has 107 real instructions at the loop pass. At the
+`1 << (8 - mode)` group, threshold 28, savings two, and lifetime two make
+the gate `28 * 2 * 2 >= 107` true. The compiler hoists the mask. Retail
+keeps its `li 1; sllv; addiu -1` inside the loop. The actual PsyQ 4.6
+`LIBGPU.H` macros and `LIBGS.H`'s signed `GsIMAGE` coordinate fields agree
+with the clean shims.
+
+A bounded source search, with empty blocks, identical-arm branches, dummy
+operations, external type changes, and function type changes disabled,
+found a second mechanism: seed `u` with one before assigning the masked
+coordinate to it. That leaves the loop at 107 real instructions but gives
+the user variable two assignments, so the original invariant mask group
+is no longer moved. By itself this produces 800 bytes / 131 differing bytes
+and the correct 104-byte frame.
+
+The closest diagnostic also moves the `tx` calculation before `setClut`
+and sets the texture page before calculating `u`. Replace only the five
+corresponding statements in the committed draft with this fragment:
+
+```c
+tx = image->px + ((width * x) >> (2 - mode));
+setClut(polygon, image->cx, image->cy);
+ty = image->py + height * y;
+setTPage(polygon, mode, 0, tx, ty);
+u = 1;
+u = (tx << (2 - mode)) & ((u << (8 - mode)) - 1);
+```
+
+Recompiling this isolated function with the normal cc1-281 profile and
+linking it at its retail address gives **800 bytes / 99 differing bytes**.
+Its setup, preheader stack slots, loop control, polygon-copy loop, and
+epilogue match. The remaining differences are in the texture/index
+calculation: the seed is kept in `a3` early in the cell, whereas retail
+materializes one in `v0` beside the mask shift; the normalized column and
+finished U coordinate consequently use different registers. The excerpt
+is a diagnostic, not an adopted implementation. The original guarded
+draft remains in the tree.
+
+Named `int` loads of `image->px`, `image->py`, and `image->cy` provide a
+separate check of the threshold hypothesis: they raise the loop count to
+113 and reject the mask hoist, but leave signed loads and different
+allocation, producing 780 or 792 bytes depending on load placement.
+Unsigned-coordinate casts fold away the added widening before the loop
+pass and do not supply the same experiment. A named row/index together
+with a page-bit count also keeps the mask inside, but does not reproduce
+the target's allocation. Correct mask placement and even the correct
+total size are insufficient match criteria.
+
+Other measured alternatives included separate mask accumulators,
+complemented unsigned masks, typed UV corners, UV field readbacks, packet
+and texture helpers, guarded do-while loops, and equivalent loop bounds.
+None matched. The controller predicate/cast variants still leave
+`ComPad`'s single differing instruction; filename-formatting helpers do
+not resolve `LoadMovieSubtitles`' argument schedule. Coverage remains
+216 of 219 game routines.
