@@ -226,16 +226,16 @@ contracts.
 
 ## The other five executables
 
-Tenchu ships six PS-EXEs, and the build reconstructs all of them. MAIN's game
-code is recovered; MENU decompilation is active. The other four retain their
-assembly or whole-image scaffolds:
+Tenchu ships six PS-EXEs, and the build reconstructs all of them. MAIN, MENU,
+and ENDING game/engine code is recovered. TRIAL and the boot/loader programs
+retain assembly or whole-image scaffolds:
 
 | exe | size | text vram | `$gp` | what it is |
 |---|---|---|---|---|
-| `main.exe` | 555008 | `0x80011000` | `0x80097698` | the game — the one we match |
+| `main.exe` | 555008 | `0x80011000` | `0x80097698` | main gameplay |
 | `trial.exe` | 555008 | `0x80011000` | `0x800970b0` | a *different build* of the game (training) |
 | `menu.exe` | 307200 | `0x80011000` | `0x8005b48c` | title / options / save |
-| `ending.exe` | 264192 | `0x80011000` | `0x800507d4` | ending FMV sequencer |
+| `ending.exe` | 264192 | `0x80011000` | `0x800507d4` | ending movies / results / save |
 | `slps_019.01` | 247808 | `0x80011000` | `0x8004ccc0` | the boot stub named in `SYSTEM.CNF` |
 | `run.exe` | 47104 | `0x80110000` | `0x8011af20` | loader — note the different vram |
 
@@ -392,13 +392,27 @@ Regenerate the inventory with `--write` only after reviewing the classification.
 The focused tests include corrupted table references,
 targets, sentinels, padding, and a valid-but-changed cue.
 
+ENDING also has complete game/engine coverage: 175 functions / 42,760 bytes
+in fifteen combined modules and shared helpers. Its SDK/CRT boundary is
+`0x8001dfc8`, after `AdtSelect`; the next three BIOS thunks equal MENU's Exec,
+Krom2RawAdd, and ChangeClearPAD. The only SDK direct transfer back into game
+code is CRT's call to `main` at `0x8001e108`. The full 264,192-byte image is
+byte-identical. Its leading-data audit runs with
+`tools/menu_data_inventory.py --target ending.exe --check`; 6,120 of 10,432
+leading bytes are C-owned, and the remaining 4,312 are SDK data plus eight
+unexplained zero bytes. [ENDING recovery](ending-exe.md) records its source
+variants, boundary evidence, data inventory, and validation commands.
+
 For additional shared modules, `python3 tools/shared_symbols.py FILEIO --at
-0x80015f74` demonstrates the address-recovery check. It requires a matching
-MAIN build and permits differences only in actual object relocation operands;
+0x80015f74` demonstrates the address-recovery check. Use
+`python3 tools/shared_symbols.py FILEIO --source menu.exe --target ending.exe --at 0x80015d74`
+to transfer the complete FILEIO module from MENU into ENDING instead.
+The tool requires a matching source build
+(MAIN by default) and permits differences only in actual object relocation operands;
 it does not mask arbitrary immediates as the discovery matcher does. Use
 `--function` for one member and `--size` to stop before a changed suffix.
 Its printed symbols are proposals, not a match verdict: compile the recovered
-C for the destination and run `./Build check-menu.exe`. Confirm object layouts
+C for the destination and run `./Build check-<target>`. Confirm object layouts
 as well: one relocated field access cannot distinguish a moved object from a
 changed member offset. MENU's pad record needs its own type and array symbol;
 transferring MAIN's `PadPort` from just the analog-flag accessor would infer a

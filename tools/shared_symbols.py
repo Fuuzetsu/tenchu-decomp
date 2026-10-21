@@ -2,13 +2,14 @@
 """Recover sibling-executable symbols from verified shared C instructions.
 
 Unlike xexe's broad discovery fingerprint, this comparison permits differences
-only in operands which the compiled MAIN object actually relocates. Constants,
+only in operands which the compiled source object actually relocates. Constants,
 registers, branches, and instruction order must agree. Output is a proposal;
 adoption still requires recompiling the C and checking the complete target.
 
     tools/shared_symbols.py FILEIO --target menu.exe --at 0x80015f74
     tools/shared_symbols.py ACTION --function UpdateMotion --at 0x80020564
     tools/shared_symbols.py VALLOC --at 0x80013ac0 --size 0x920
+    tools/shared_symbols.py FILEIO --source menu.exe --target ending.exe --at 0x80015d74
 """
 import argparse
 from collections import defaultdict
@@ -113,7 +114,9 @@ def image_span(image, address, size):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("unit", help="MAIN.EXE translation-unit stem")
+    parser.add_argument("unit", help="source translation-unit stem")
+    parser.add_argument("--source", default="main.exe",
+                        choices=("main.exe", "menu.exe", "ending.exe", "trial.exe"))
     parser.add_argument("--target", default="menu.exe",
                         choices=("menu.exe", "ending.exe", "trial.exe"))
     parser.add_argument("--at", required=True, type=lambda v: int(v, 0))
@@ -121,11 +124,11 @@ def main():
     parser.add_argument("--size", type=lambda v: int(v, 0),
                         help="limit the span, e.g. before an altered suffix")
     args = parser.parse_args()
-    original = (ROOT / "disks/tenchu/main.exe").read_bytes()
-    if (ROOT / ".shake/build/tenchu/main.exe").read_bytes() != original:
-        raise ValueError("rebuild MAIN.EXE with ./Build check before transferring")
-    obj = ElfObject(ROOT / f".shake/build/main.exe/{args.unit}.c.o")
-    symbols = load_symbols(ROOT / "config/symbols.main.exe.txt")
+    original = (ROOT / f"disks/tenchu/{args.source}").read_bytes()
+    if (ROOT / f".shake/build/tenchu/{args.source}").read_bytes() != original:
+        raise ValueError(f"rebuild {args.source} with ./Build check-{args.source} before transferring")
+    obj = ElfObject(ROOT / f".shake/build/{args.source}/{args.unit}.c.o")
+    symbols = load_symbols(ROOT / f"config/symbols.{args.source}.txt")
     functions = [
         s for s in obj.symbols if s.size and
         obj.sections[s.section_index].name == ".text"
@@ -157,7 +160,7 @@ def main():
     proposals = infer_symbols(
         image_span(original, symbols[first.name], size),
         image_span(target, args.at, size), relocations, symbols,
-        gp("main.exe"), gp(args.target)
+        gp(args.source), gp(args.target)
     )
     for function in functions:
         if start <= function.value and function.value + function.size <= start + size:

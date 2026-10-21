@@ -10,6 +10,20 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
+- **ENDING.EXE game/engine decompilation is complete (2026-10-21).** All
+  175 functions / 42,760 bytes compile from readable, exact C in fifteen
+  combined modules and shared helpers. This includes the character epilogues,
+  credits, subtitle interpreter, results display, save flow, and ENDING's
+  controller/audio/movie variants. The full 264,192-byte executable matches
+  retail. All six executable checks and 37 focused tests pass.
+  The reviewed SDK boundary is `0x8001dfc8`, immediately after `AdtSelect`;
+  its 643 SDK/CRT scaffold rows remain assembly. The leading 10,432 bytes are
+  completely inventoried, with 6,120 owned by C and 4,312 preserved as raw
+  data (4,304 SDK bytes and eight unexplained game-side zero bytes).
+  `tools/shared_symbols.py --source menu.exe` supports strict reuse from MENU;
+  `tools/menu_data_inventory.py --target ending.exe --check` verifies the data
+  report. See [ENDING recovery](docs/ending-exe.md) for boundary evidence,
+  behavior differences, source ownership, and reproducible checks.
 - **MENU.EXE game/engine decompilation is complete (2026-10-21).** Its twenty-one combined C
   modules and shared helpers recover all 219 functions / 81,252 bytes:
   allocator, graphics, file I/O, images,
@@ -1638,10 +1652,11 @@ Detailed dev docs live in [`docs/`](docs/). Ranked next steps:
    loop, one STR decode, and XA setup/callback have passed. EOF, physical audio,
    broader gameplay, save/load, and later executable transitions remain release
    gates; see `docs/building-an-iso.md`.
-2. **Recover/decompile the other executables.** `MENU.EXE`, `ENDING.EXE`, and
-   `TRIAL.EXE` are the next genuine source-recovery frontier. Generalize the
-   name-recovery tools' hard-coded `main.exe` target before bulk use; the
-   PSX.SYM and cross-executable leads are recorded above.
+2. **Recover/decompile the remaining executables when requested.** MAIN, MENU,
+   and ENDING game code is complete. `TRIAL.EXE` and the boot/loader programs
+   retain source-recovery work. Strict shared-symbol recovery now accepts
+   a source target; broader name-discovery tools may still assume MAIN.
+   The PSX.SYM and cross-executable leads are recorded above.
 3. **Treat PSY-Q provenance as optional SDK work, not a game-code queue.** Keep
    canonical relocatable assembly in the hermetic lane. Identify/link original
    `.OBJ`/`.LIB` members only when exact provenance or editability justifies the

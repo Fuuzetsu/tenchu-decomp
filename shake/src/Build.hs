@@ -447,10 +447,16 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     targetSyms
       | takeFileName (takeDirectory src) == "menu.exe" &&
         takeBaseName src == "ACTION" = ["SplineH00", "SplineH01", "SplineH10", "SplineH11"]
-      | takeFileName (takeDirectory src) == "menu.exe" &&
+      | takeFileName (takeDirectory src) `elem` ["menu.exe", "ending.exe"] &&
         takeBaseName src == "AUDIO" = ["highVoice"]
       | takeFileName (takeDirectory src) == "menu.exe" &&
         takeBaseName src == "MAIN" = ["MovieSubtitleData", "MovieCommandCursor"]
+      | takeFileName (takeDirectory src) == "ending.exe" &&
+        takeBaseName src == "FRONTEND" = ["EndingWideMode", "EndingFadeSprite", "EndingDrawCallback"]
+      | takeFileName (takeDirectory src) == "ending.exe" &&
+        takeBaseName src == "SUBTITLE" = ["EndingSubtitleData", "EndingCommandCursor", "EndingSubtitleVoices"]
+      | takeFileName (takeDirectory src) == "ending.exe" &&
+        takeBaseName src `elem` ["MAIN", "RESULTS"] = ["EndingVoices", "EndingButtons", "EndingPreviousButtons"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

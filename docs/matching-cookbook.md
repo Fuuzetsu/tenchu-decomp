@@ -2601,6 +2601,11 @@ LUID, barriers). The levers:
   `phase = -2` after starting the confirmation motion. Preserve the natural
   state transition, then inspect scheduling; final instruction order alone
   does not prove which side of a call an independent local assignment used.
+  ENDING's `SaveEndingResults` gives a register-choice example: initializing
+  `pressed = 0` after `GetRealPad(0)` matches even though its final clear lands
+  before the call. Initializing it before the poll lets CSE use that saved
+  zero-valued register for the argument instead of `$zero`, leaving a one-byte
+  difference. See [ENDING recovery](ending-exe.md#matching-lessons).
 - **Statement order IS the sched lever inside a block** — sched breaks
   same-priority ties by UID order, which follows source scan order: capture the
   must-come-first value as an explicit statement (SetCommand); two independent

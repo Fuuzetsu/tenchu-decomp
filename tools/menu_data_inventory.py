@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Audit MENU's leading data, including the raw textbin and owned switch tables.
+"""Audit MENU/ENDING leading data, including textbin and owned switch tables.
 
 The report describes bytes, not C coverage. Run --check to verify the committed
 inventory, or --write after reviewing changes. No generated assembly is needed.
@@ -43,6 +43,36 @@ SWITCH_TABLES = [
     (0x80013AA0, 0x80013AB4, 0x8004D990, "PadInfoAct"),
 ]
 
+ENDING_SWITCH_TABLES = [
+    (0x800120C0, 0x800121BC, 0x8001A7C0, "update_card_screen_"),
+    (0x800121C0, 0x80012334, 0x8001ABBC, "update_card_message_"),
+    (0x800129D0, 0x800129E4, 0x8001EF1C, "FUN_8001ecd8"),
+    (0x80012D70, 0x80012DFC, 0x80024C2C, "Gssub_make_matrix"),
+    (0x80012E20, 0x80012E98, 0x80025908, "GsLinkObject4"),
+    (0x80012EC0, 0x80012F38, 0x80025BF8, "GsSortObject4"),
+    (0x80012F40, 0x80012F58, 0x800294E4, "SSTICK_OBJ_4C"),
+    (0x80012FB0, 0x80012FD0, 0x8002E6B8, "SpuSetCommonAttr"),
+    (0x80012FD0, 0x80012FF0, 0x8002E778, "SpuSetCommonAttr"),
+    (0x80012FF0, 0x8001300C, 0x8002EB1C, "SpuSetVoiceAttr"),
+    (0x80013010, 0x8001302C, 0x8002EBFC, "SpuSetVoiceAttr"),
+    (0x80013060, 0x80013244, 0x8002F66C, "prnt"),
+    (0x80013278, 0x8001332C, 0x800301E0, "sprintf"),
+    (0x80013408, 0x8001348C, 0x8003E04C, "FntPrint"),
+    (0x80013728, 0x800137A8, 0x800422C0, "FUN_80042298"),
+    (0x800138A0, 0x800138B4, 0x80044E84, "PadInfoAct"),
+]
+
+# The two executables share the complete IMAGES music/voice data at the same
+# addresses. Their switch tables, save titles, and end of leading data differ.
+LAYOUTS = {
+    "menu.exe": (END, SWITCH_TABLES, 0x8001220C),
+    "ending.exe": (0x800138C0, ENDING_SWITCH_TABLES, 0x80012008),
+}
+
+
+def report_path(target):
+    return ROOT / f"reference/{target.removesuffix('.exe')}-leading-data.tsv"
+
 # Six-byte TVoiceTable rows, including the final id=0xff sentinel.
 VOICE_TABLES = [
     (0x80011618, 80, "English/CommonVoiceTable"),
@@ -57,13 +87,14 @@ def require(condition, message):
         raise ValueError(message)
 
 
-def audit(image):
+def audit(image, target="menu.exe"):
+    end, switch_tables, title_start = LAYOUTS[target]
     require(image[:8] == b"PS-X EXE", "not a PS-X EXE")
     require(struct.unpack_from("<I", image, 0x18)[0] == START,
-            "unexpected MENU load address")
-    require(len(image) >= END - FILE_BIAS, "truncated leading data")
+            f"unexpected {target} load address")
+    require(len(image) >= end - FILE_BIAS, "truncated leading data")
     functions = []
-    for line in (ROOT / "config/functions.menu.exe.tsv").read_text().splitlines():
+    for line in (ROOT / f"config/functions.{target}.tsv").read_text().splitlines():
         if not line or line.startswith("#"):
             continue
         address, size, name = line.split("\t")
@@ -72,10 +103,10 @@ def audit(image):
         int(address, 16): name
         for name, address in re.findall(
             r"^(\w+) = (0x[0-9a-fA-F]+);",
-            (ROOT / "config/symbols.menu.exe.txt").read_text(), re.M
+            (ROOT / f"config/symbols.{target}.txt").read_text(), re.M
         )
     }
-    data = image[START - FILE_BIAS:END - FILE_BIAS]
+    data = image[START - FILE_BIAS:end - FILE_BIAS]
     covered = bytearray(len(data))
     rows = []
 
@@ -83,7 +114,7 @@ def audit(image):
         return image[a - FILE_BIAS:z - FILE_BIAS]
 
     def add(a, z, kind, label, detail=""):
-        require(START <= a < z <= END, f"invalid data span {a:#x}..{z:#x}")
+        require(START <= a < z <= end, f"invalid data span {a:#x}..{z:#x}")
         require(not any(covered[a - START:z - START]),
                 f"overlapping data span at {a:#x}")
         covered[a - START:z - START] = b"\1" * (z - a)
@@ -93,7 +124,7 @@ def audit(image):
         return next((row for row in functions
                      if row[0] <= address < row[0] + row[1]), None)
 
-    for a, z, ref, name in SWITCH_TABLES:
+    for a, z, ref, name in switch_tables:
         # Check the address construction at the consumer, not just plausible
         # pointer values in the table. LUI is followed by ADDIU or indexed LW.
         insns = struct.unpack("<5I", span(ref, ref + 20))
@@ -144,14 +175,14 @@ def audit(image):
     add(0x80011E3C, 0x80011E4C, "data-pointers", "EventVoiceTables",
         "English, French, Italian, Japanese")
 
-    title = span(0x8001220C, 0x80012221)
+    title = span(title_start, title_start + 21)
     require(title[-1] == 0 and b"\0" not in title[:-1], "invalid save title")
-    add(0x8001220C, 0x80012221, "shift-jis-string", "str_sjis_title",
+    add(title_start, title_start + 21, "shift-jis-string", "str_sjis_title",
         json.dumps(title[:-1].decode("shift_jis"), ensure_ascii=False))
 
     # Retail literals begin at four-byte boundaries. Keep the terminating NUL
     # with each string, and account for following zero bytes separately.
-    for a in range(START, END, 4):
+    for a in range(START, end, 4):
         p = a - START
         if covered[p] or not data[p]:
             continue
@@ -177,15 +208,17 @@ def audit(image):
         add(START + p, START + z, "zero-fill", "", "purpose unspecified")
         p = z
     rows.sort()
-    require(sum(z - a for a, z, *_ in rows) == END - START,
+    require(sum(z - a for a, z, *_ in rows) == end - START,
             "incomplete leading-data coverage")
     return rows
 
 
-def render(rows, image):
-    digest = hashlib.sha256(image[START - FILE_BIAS:END - FILE_BIAS]).hexdigest()
+def render(rows, image, target="menu.exe"):
+    end = LAYOUTS[target][0]
+    name = target.removesuffix('.exe').upper()
+    digest = hashlib.sha256(image[START - FILE_BIAS:end - FILE_BIAS]).hexdigest()
     lines = [
-        "# MENU leading-data inventory; generated by tools/menu_data_inventory.py.",
+        f"# {name} leading-data inventory; generated by tools/menu_data_inventory.py.",
         "# Half-open address spans. Classification is not a C-ownership claim.",
         f"# Leading-data SHA-256: {digest}",
         "# start\tend\tbytes\tkind\tlabel\tdetail",
@@ -200,23 +233,26 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--write", action="store_true")
     mode.add_argument("--check", action="store_true")
-    parser.add_argument("--image", type=Path, default=ROOT / "disks/tenchu/menu.exe")
+    parser.add_argument("--target", choices=tuple(LAYOUTS), default="menu.exe")
+    parser.add_argument("--image", type=Path)
     args = parser.parse_args()
     try:
-        image = args.image.read_bytes()
-        rows = audit(image)
-        report = render(rows, image)
+        image = (args.image or ROOT / f"disks/tenchu/{args.target}").read_bytes()
+        rows = audit(image, args.target)
+        report = render(rows, image, args.target)
+        path = report_path(args.target)
         if args.write:
-            REPORT.write_text(report)
+            path.write_text(report)
         else:
-            require(REPORT.read_text() == report,
+            require(path.read_text() == report,
                     "leading-data inventory differs; review before --write")
     except (ValueError, OSError, struct.error, UnicodeError) as error:
         parser.exit(1, f"menu_data_inventory: {error}\n")
     counts = Counter()
     for a, z, kind, *_ in rows:
         counts[kind] += z - a
-    print(f"MENU leading data: {sum(counts.values()):,} bytes, no unclassified bytes")
+    print(f"{args.target.upper()} leading data: {sum(counts.values()):,} bytes, "
+          "no unclassified bytes")
     for kind, size in sorted(counts.items()):
         print(f"  {kind}: {size:,}")
 

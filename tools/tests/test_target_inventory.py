@@ -74,19 +74,32 @@ class TargetInventoryTests(unittest.TestCase):
             self.assertEqual(matched, {0x80011000})
             self.assertEqual(sources[0x80011000], str(source / "MODULE.C"))
 
-    def test_live_menu_modules_have_contiguous_members(self):
+    def test_live_sibling_modules_have_contiguous_members(self):
         from tools import source_units as su
 
-        functions, _, _ = load_target_units("menu.exe", su.ROOT)
-        by_name = {n: (a, s) for a, s, n in functions}
-        units = su.load_units(su.ROOT / "config/translation-units.menu.exe.json")
-        for unit in units:
-            self.assertTrue((su.ROOT / "src/menu.exe" / unit.source).is_file())
-            for left, right in zip(unit.functions, unit.functions[1:]):
-                self.assertEqual(
-                    sum(by_name[left]), by_name[right][0],
-                    f"{unit.source}: gap between {left} and {right}",
-                )
+        for target in ("menu.exe", "ending.exe"):
+            with self.subTest(target=target):
+                functions, _, _ = load_target_units(target, su.ROOT)
+                by_name = {n: (a, s) for a, s, n in functions}
+                units = su.load_units(su.ROOT / f"config/translation-units.{target}.json")
+                for unit in units:
+                    self.assertTrue((su.ROOT / "src" / target / unit.source).is_file())
+                    for left, right in zip(unit.functions, unit.functions[1:]):
+                        self.assertEqual(
+                            sum(by_name[left]), by_name[right][0],
+                            f"{unit.source}: gap between {left} and {right}",
+                        )
+
+    def test_ending_game_span_stops_before_bios_and_crt(self):
+        from tools import source_units as su
+
+        functions, matched, _ = load_target_units("ending.exe", su.ROOT)
+        boundary = SDK_STARTS["ending.exe"]
+        adt = next((a, s) for a, s, n in functions if n == "AdtSelect")
+        self.assertEqual(sum(adt), boundary)
+        buckets = code_buckets("ending.exe", functions, matched)
+        self.assertEqual(buckets["game"]["bytes"], boundary - 0x800138C0)
+        self.assertEqual(buckets["sdk"]["fns_matched"], 0)
 
 
 if __name__ == "__main__":
