@@ -487,6 +487,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
     -- in the image can change.
+    extra "EDITORUTIL" = ["--expand-div"]
     extra "CONFLICT" = ["--expand-div"]
     extra "ACTION" = ["--expand-div"]
     extra "OPMOVIE" = ["--expand-div"]

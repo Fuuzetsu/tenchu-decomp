@@ -1028,6 +1028,15 @@
         "DisposeTrialOptionGraphics",
         "LoadTrialOptionGraphics"
       ]
+    },
+    {
+      "source": "EDITORUTIL.C",
+      "functions": [
+        "InitNewTrialMission",
+        "FillTrialMissionMap",
+        "ClassifyTrialTerrainSupport",
+        "LoadTrialSpriteStrip"
+      ]
     }
   ]
 }

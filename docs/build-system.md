@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 491 matching C functions /
-219,920 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 495 matching C functions /
+220,972 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -715,6 +715,40 @@ while editing an existing mission. Disposal frees and clears every allocation.
 Thirty-two unused stack bytes precede the pointer table; their original type
 cannot be recovered from accesses and is left explicitly unidentified.
 
+New-mission setup and editor helpers add four exact C functions / 1,052 bytes.
+`InitNewTrialMission` clears the serialized mission, fills its initial map,
+marks all ten records empty, and installs the required objective actors.
+`SetupTrialObjectivePlacements` reserves the player plus one objective actor,
+or the lord and princess for the protection objective. Resetting also clears
+all patrols and positions these actors near the grid center; refreshing without
+a reset preserves their coordinates. The terrain-support classifier and
+vertical sprite-strip loader are also exact C.
+
+The mission's 0x800-byte map is a 32×32 grid with two one-byte tile layers per
+cell; 0xff means empty. Its 0x1450-byte placement area contains ten 0x208-byte
+records: character kind, grid x/z, last patrol-point index, and 64 eight-byte
+patrol points. Each point stores grid x/z, facing, and wait. Mission setup
+converts these to engine TracePoints: x = grid x × 2000 + 1000, z = grid z ×
+−2000 − 1000; waiting points encode facing + 1 in the low byte and wait + 1
+seconds in the high byte. Zero wait means pass through. The already recovered
+TRIAL `ControlTraceLine` confirms the direction and time interpretation.
+The map's tile encoding beyond the two layers remains under review.
+
+The twelve default tile IDs are C-owned (24 bytes). The map-fill draft itself
+is 136 bytes against the original 140: cc1 combines its row sign extension
+and scale, changing the address register. It remains an explicit assembly
+fallback and is not counted as matching C. Trials with array/struct cell views,
+flat indexing, pointer locals, alternate loop/increment forms, and ordinary
+`register` hints did not recover this pattern; the clean draft retains the
+mission pointer and two signed-short grid coordinates.
+
+The old 704-byte row at 0x8005a708 actually covered three return-terminated
+functions: map fill (140 bytes), terrain classification at 0x8005a794 (132),
+and sprite-strip loading at 0x8005a818 (432). Their split increases the reviewed
+game/editor inventory to 580 rows while preserving its byte total. Splat had
+already emitted three separate assembly bodies; the initial Ghidra export
+omitted the latter two entries.
+
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button
 snapshot, and return rising edges), but its C candidate still differs in the
@@ -726,7 +760,7 @@ The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current inventory therefore contains 578 game/editor rows (307,784 bytes)
+The current inventory therefore contains 580 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 

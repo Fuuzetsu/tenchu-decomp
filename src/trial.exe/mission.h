@@ -1,8 +1,8 @@
 #ifndef TENCHU_TRIAL_MISSION_H
 #define TENCHU_TRIAL_MISSION_H
 
-/* Card I/O fixes these serialized boundaries. The map and placement records
- * still need their individual fields recovered from the editor's consumers. */
+/* Card I/O fixes these serialized boundaries; editor and mission setup
+ * consumers identify the grid, placed characters, and patrol records. */
 enum
 {
     TRIAL_MISSION_METADATA_SIZE = 0x48,
@@ -11,6 +11,12 @@ enum
     TRIAL_MISSION_LAYOUT_SIZE = 0x1450,
     TRIAL_MISSION_SIZE = 0x1d3c,
     TRIAL_MISSION_RECORD_COUNT = 10,
+    TRIAL_MAP_WIDTH = 32,
+    TRIAL_MAP_HEIGHT = 32,
+    TRIAL_PLACEMENT_COUNT = 10,
+    TRIAL_PATROL_CAPACITY = 64,
+    TRIAL_EMPTY_TILE = 0xff,
+    TRIAL_HERB_OBJECT = 0xaa,
     TRIAL_MISSION_CHECKSUM_MASK = 0x07ffffff,
     TRIAL_MISSION_PRESERVED_CHECKSUM_BIT = 0x08000000
 };
@@ -55,14 +61,40 @@ struct TrialMissionHeader
     TrialMissionRecord records[TRIAL_MISSION_RECORD_COUNT]; /* 0x4c */
 }; /* 0xec */
 
+/* Two independently editable tile layers occupy each grid cell. 0xff is
+ * empty. Tile encoding beyond the layer index is still being reviewed. */
+typedef u8 TrialMapCell[2];
+
+/* Mission setup expands these grid points into 12-byte engine TracePoints.
+ * Facing is stored as a zero-based cardinal direction. Wait zero means
+ * pass through; positive values request wait + 1 seconds at the waypoint. */
+typedef struct TrialPatrolPoint
+{
+    s16 x, z;
+    s16 facing, wait;
+} TrialPatrolPoint;
+
+typedef struct TrialPlacement
+{
+    s16 kind;             /* -1 = unused; 0 = selected player */
+    s16 x, z;            /* grid coordinates, each cell spans 2000 world units */
+    s16 route_last;      /* last point index; zero means stationary */
+    TrialPatrolPoint route[TRIAL_PATROL_CAPACITY];
+} TrialPlacement; /* 0x208 */
+
 typedef struct TrialMissionData TrialMissionData;
 struct TrialMissionData
 {
     TrialMissionHeader header;
-    u8 map_data[TRIAL_MISSION_MAP_SIZE];       /* 0x00ec */
-    u8 layout_data[TRIAL_MISSION_LAYOUT_SIZE]; /* 0x08ec */
+    TrialMapCell map[TRIAL_MAP_HEIGHT][TRIAL_MAP_WIDTH]; /* 0x00ec */
+    TrialPlacement placements[TRIAL_PLACEMENT_COUNT];  /* 0x08ec */
 }; /* 0x1d3c */
 
 extern TrialMissionData TrialMission;
+extern u16 TrialDefaultTiles[12];
+void InitNewTrialMission(void);
+void FillTrialMissionMap(void);
+int SetupTrialObjectivePlacements(short reset_positions);
+short ClassifyTrialTerrainSupport(short kind);
 
 #endif

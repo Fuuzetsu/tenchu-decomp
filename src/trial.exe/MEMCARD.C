@@ -157,7 +157,7 @@ u32 CalculateTrialMissionChecksum(void)
         metadata_sum += *cursor++;
     }
     size = TRIAL_MISSION_MAP_SIZE;
-    cursor = TrialMission.map_data;
+    cursor = (u8 *)TrialMission.map;
     for (i = 0; i < size; i++)
     {
         map_sum += *cursor++;

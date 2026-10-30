@@ -71,6 +71,8 @@ segments:
       - { start: 0x2cc0, type: .rodata, name: TELOP, linker_section_order: .text }
       - { start: 0x2cd8, type: .rodata, name: decode_tmd_fast_, linker_section_order: .text }
       - [0x2d4c, textbin]
+      - { start: 0x3614, type: .rodata, name: SetupTrialObjectivePlacements, linker_section_order: .text }
+      - [0x3628, textbin]
       - [0x5140, c, RunMissionEditor]
       - [0x5404, c, ShowTrialMainMenu]
       - [0x5640, c, SelectTrialMission]
@@ -161,7 +163,7 @@ segments:
       - [0x42af8, c, FUN_800532f8]
       - [0x42d70, c, FUN_80053570]
       - [0x43aec, c, FUN_800542ec]
-      - [0x43bd4, c, FUN_800543d4]
+      - [0x43bd4, c, SetupTrialObjectivePlacements]
       - [0x43d64, c, FUN_80054564]
       - [0x43fa8, c, FUN_800547a8]
       - [0x44250, c, FUN_80054a50]
@@ -179,8 +181,7 @@ segments:
       - [0x4846c, c, FUN_80058c6c]
       - [0x499a8, c, FUN_8005a1a8]
       - [0x49b74, c, FUN_8005a374]
-      - [0x49eb0, c, FUN_8005a6b0]
-      - [0x49f08, c, FUN_8005a708]
+      - [0x49eb0, c, EDITORUTIL]
       - [0x4a1c8, c, FUN_8005a9c8]
       - [0x4a1f4, c, FUN_8005a9f4]
       - [0x4a290, c, FUN_8005aa90]
@@ -889,6 +890,8 @@ segments:
       - [0x7aa10, data]
       - [0x7ab00, .data, EFFECT]
       - [0x7ab10, data]
+      - [0x7de34, .data, EDITORUTIL]
+      - [0x7de4c, data]
       - { start: 0x868d0, type: .sdata, name: PREVIEW, linker_section_order: .data }
       - { start: 0x868dc, type: .sdata, name: CHARACTER, linker_section_order: .data }
       - [0x868e0, data]

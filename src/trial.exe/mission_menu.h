@@ -111,6 +111,9 @@ extern Sprite3D *TrialOptionHelp;
 extern Sprite3D *TrialOptionThemePreview;
 extern s16 TrialPresetId;
 
+void LoadTrialSpriteStrip(ArcFile *archive, GsSPRITE *sprites,
+                          short image_index, short frame_count);
+
 void DrawTrialMissionList(TrialMissionPreview *previews, short selected,
                           u32 reveal_frames, int priority);
 void DisposeTrialMissionListGraphics(void);
