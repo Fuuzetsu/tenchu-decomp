@@ -3382,6 +3382,22 @@ and needs only the one useful label pointer. Navigation similarly reads the
 current selection once into an int before choosing the increment and applying
 signed modulo; duplicating the global read in the two arms changes the loop.
 
+### TRIAL patrol editing: working shorts and scan fallback
+
+`EditTrialPatrols` reuses one short working value for terrain height, wait digits,
+and the placement-cycle increment. Keeping separate locals removes the original
+wait-index copy and changes its register. Its editing flag is also a signed
+short: an unsigned short removes the promotion copies from truth tests even
+though both forms load the spilled value with `lhu`.
+
+The placement-cycle scan initializes its index in the non-null placement arm,
+with `else i = 0` as the no-selection fallback. An unconditional `i = 0` before
+the condition leaves one extra speculative shift in a branch delay slot.
+The fallback belongs to the absent-placement arm; retaining that ordinary control
+flow recovers the complete 5,436-byte routine. The waiting-endpoint copy preserves
+the point's two-byte alignment and derives its byte offset from `sizeof` and the
+real route symbol, without address aliases.
+
 ### TRIAL mission setup: packed policies and patrol counts
 
 `SetupTrialMission` assembles the four AI nibbles in an unsigned short.

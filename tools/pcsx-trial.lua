@@ -11,7 +11,7 @@ local addr, word = {}, {}
 for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD',
                      'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE', 'TEXT', 'TEXT_INPUT',
                      'RUN_MISSION', 'ACTIVATE', 'TIMER', 'NOTICE', 'PREVIEW', 'DRAW_CHUNKS',
-                     'CHARACTERS'}) do
+                     'CHARACTERS', 'PATROLS'}) do
     addr[key] = num(key)
     word[key] = num(key .. '_WORD')
 end
@@ -50,6 +50,7 @@ local textEntry = num('TEXT_ENTRY') ~= 0
 local playtest, missionEnd = num('PLAYTEST') ~= 0, num('RUN_MISSION_END')
 local preview, previewEnd = num('PREVIEW_ENABLED') ~= 0, num('PREVIEW_END')
 local characters, charactersEnd = num('CHARACTERS_ENABLED') ~= 0, num('CHARACTERS_END')
+local patrols, patrolsEnd = num('PATROLS_ENABLED') ~= 0, num('PATROLS_END')
 local view, viewAngle = num('VIEW'), num('VIEW_ANGLE')
 local function fail(reason)
     if p.done then return end
@@ -120,9 +121,18 @@ hook('CARD', function()
 end)
 hook('EDITOR', function() screen('editor-loading') end)
 hook('MAP', function()
+    if patrols and p.patrolsPassed and
+        ffi.string(ptr(mission + 0x8ec + 2 * 0x208), 0x208) ~= p.patrolExpected then
+        fail('patrol route did not survive editor/playtest/save return')
+        return
+    end
     if characters and p.charactersPassed and not p.charactersReturned then
         p.charactersReturned = true
         print('TENCHU_TRIAL characters returned-to-terrain=verified')
+    end
+    if patrols and p.patrolsPassed and not p.patrolsReturned then
+        p.patrolsReturned = true
+        print('TENCHU_TRIAL patrols returned-to-terrain=verified')
     end
     p.entryPolls = 0
     screen('map')
@@ -134,6 +144,12 @@ hook('CHARACTERS', function()
     -- Theme zero uses StageAppearance[1]; its third entry is the named boss.
     p.bossKind = s16(u32(num('ROSTER') + 4) + 4)
     screen('characters')
+end)
+hook('PATROLS', function()
+    if not patrols then return end
+    p.patrolsEntered = true
+    p.patrolPolls = 0
+    screen('patrols')
 end)
 hook('PREVIEW', function()
     if not preview then return end
@@ -148,11 +164,15 @@ hook('DRAW_CHUNKS', function()
     if p.screen == 'preview' then p.chunkDraws = p.chunkDraws + 1 end
 end)
 hook('COMMANDS', function()
-    if not (save or playtest or characters) or p.screen == 'commands' then return end
+    if not (save or playtest or characters or patrols) or p.screen == 'commands' then return end
     if bit.band(tonumber(PCSX.getRegisters().GPR.n.a0), 0xffff) ~= 0 then
         if characters and not p.charactersEntered then
             p.commandTarget = 2
         elseif characters and p.charactersPassed and not p.charactersReturned then
+            p.commandTarget = 1
+        elseif patrols and not p.patrolsEntered then
+            p.commandTarget = 3
+        elseif patrols and p.patrolsPassed and not p.patrolsReturned then
             p.commandTarget = 1
         else
             p.commandTarget = playtest and not p.playtestEntered and 4 or 5
@@ -217,6 +237,9 @@ hook('REALPAD', function()
     elseif p.screen == 'characters' and ra >= addr.CHARACTERS and ra < charactersEnd then
         p.characterPolls = p.characterPolls + 1
         if p.characterPolls >= 2 then ready() end
+    elseif p.screen == 'patrols' and ra >= addr.PATROLS and ra < patrolsEnd then
+        p.patrolPolls = p.patrolPolls + 1
+        if p.patrolPolls >= 2 then ready() end
     end
 end)
 p.pause = PCSX.Events.createEventListener('ExecutionFlow::Pause', function(event)
@@ -464,8 +487,91 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 print(string.format(
                     'TENCHU_TRIAL characters objective-protection/boss-place/move/delete=verified polls=%d kind=%02x',
                     p.characterPolls, p.bossKind))
+                pad.setOverride(patrols and buttons.CIRCLE or buttons.SELECT)
+            elseif t == 293 then
+                pad.clearOverride(buttons.CIRCLE)
+                pad.clearOverride(buttons.SELECT)
+            elseif patrols and t == 320 then
+                if s16(boss) ~= p.bossKind or s16(boss + 2) ~= 17 or s16(boss + 4) ~= 16 then
+                    fail('patrol actor setup assertion')
+                    return
+                end
                 pad.setOverride(buttons.SELECT)
-            elseif t == 293 then pad.clearOverride(buttons.SELECT) end
+            elseif patrols and t == 328 then pad.clearOverride(buttons.SELECT) end
+        elseif p.screen == 'patrols' then
+            local actor = mission + 0x8ec + 2 * 0x208
+            -- Screens restore the viewport center, not the last cursor cell.
+            -- The boss is one cell to the right of the initial center.
+            if t == 10 then pad.setOverride(buttons.RIGHT)
+            elseif t == 18 then pad.clearOverride(buttons.RIGHT) end
+            t = t - 25
+            local function route(last, points)
+                if s16(actor) ~= p.bossKind or s16(actor + 2) ~= 17 or
+                    s16(actor + 4) ~= 16 or s16(actor + 6) ~= last then
+                    fail('patrol placement/last-point assertion at tick ' .. t)
+                    return false
+                end
+                for i, point in ipairs(points) do
+                    for field, expected in ipairs(point) do
+                        if s16(actor + 8 + (i - 1) * 8 + (field - 1) * 2) ~= expected then
+                            fail('patrol point assertion at tick ' .. t .. ' point ' .. (i - 1))
+                            return false
+                        end
+                    end
+                end
+                return true
+            end
+            if t == 10 or t == 85 or t == 110 or t == 235 or t == 335 then
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 18 or t == 93 or t == 118 or t == 243 or t == 343 then
+                pad.clearOverride(buttons.CIRCLE)
+            elseif t == 35 or t == 360 then
+                if not route(0, {{17, 16, 0, 0}}) then return end
+                pad.setOverride(buttons.RIGHT)
+            elseif t == 43 or t == 68 or t == 368 or t == 393 then
+                pad.clearOverride(buttons.RIGHT)
+            elseif t == 60 or t == 385 then
+                if not route(0, {{17, 16, 1, 0}}) then return end
+                pad.setOverride(buttons.RIGHT)
+            elseif t == 135 then
+                if not route(2, {{17, 16, 1, 0}, {18, 16, 1, 2}, {18, 16, 1, 0}}) then return end
+                pad.setOverride(buttons.DOWN)
+            elseif t == 143 or t == 168 then pad.clearOverride(buttons.DOWN)
+            elseif t == 160 then
+                if not route(2, {{17, 16, 1, 0}, {18, 16, 1, 2}, {18, 16, 2, 0}}) then return end
+                pad.setOverride(buttons.DOWN)
+            elseif t == 185 then
+                if not route(3, {{17, 16, 1, 0}, {18, 16, 1, 2}, {18, 16, 2, 0}, {18, 17, 2, 0}}) then return end
+                pad.setOverride(buttons.CROSS)
+            elseif t == 193 or t == 318 then pad.clearOverride(buttons.CROSS)
+            elseif t == 210 then
+                if not route(2, {{17, 16, 1, 0}, {18, 16, 1, 2}, {18, 16, 2, 0}}) then return end
+                pad.setOverride(buttons.START)
+            elseif t == 218 or t == 268 or t == 418 then pad.clearOverride(buttons.START)
+            elseif t == 230 or t == 285 then
+                if not route(1, {{17, 16, 1, 0}, {18, 16, 1, 2}}) then return end
+            elseif t == 260 then
+                if not route(2, {{17, 16, 1, 0}, {18, 16, 1, 2}, {18, 16, 1, 0}}) then return end
+                pad.setOverride(buttons.START)
+            elseif t == 310 then pad.setOverride(buttons.CROSS)
+            elseif t == 330 then
+                if not route(0, {}) then return end
+            elseif t == 410 then
+                if not route(1, {{17, 16, 1, 0}, {18, 16, 1, 0}}) then return end
+                pad.setOverride(buttons.START)
+            elseif t == 435 then
+                if not route(1, {{17, 16, 1, 0}, {18, 16, 1, 0}}) then return end
+                if p.patrolPolls < 200 then
+                    fail('patrol input polling assertion')
+                    return
+                end
+                p.patrolsPassed = true
+                p.patrolExpected = ffi.string(ptr(actor), 0x208)
+                print(string.format(
+                    'TENCHU_TRIAL patrols facing/steps/waits/undo/finish/resume/clear=verified polls=%d',
+                    p.patrolPolls))
+                pad.setOverride(buttons.SELECT)
+            elseif t == 443 then pad.clearOverride(buttons.SELECT) end
         elseif p.screen == 'mission' then
             if t == 160 then
                 p.playtestExitRequested = true
@@ -557,7 +663,8 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 end
                 if preview and not p.previewPassed then
                     if t == 100 then pad.setOverride(buttons.L1) end
-                elseif save or playtest or (characters and not p.charactersReturned) then
+                elseif save or playtest or (characters and not p.charactersReturned)
+                    or (patrols and not p.patrolsReturned) then
                     if t == 100 then pad.setOverride(buttons.SELECT)
                     elseif t == 108 then pad.clearOverride(buttons.SELECT) end
                 else

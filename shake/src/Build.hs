@@ -504,7 +504,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "PreviewTrialTerrain" = ["TrialEditorViewAngle"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
-        takeBaseName src == "EditTrialTerrain" =
+        takeBaseName src `elem` ["EditTrialTerrain", "EditTrialPatrols"] =
           ["TrialEditorCenterX", "TrialEditorCenterZ"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "EditTrialCharacters" =

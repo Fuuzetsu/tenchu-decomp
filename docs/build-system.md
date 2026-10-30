@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 561 matching C functions /
-285,376 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 562 matching C functions /
+290,812 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -1087,10 +1087,30 @@ The full preview/text/character/playtest/save scenario passes with this controll
 compiled from C: it returns at VSync 3,928 after 186 terrain polls and verifies
 the complete 7,484-byte saved mission payload.
 
-The 561-function checkpoint passes all six executable hashes and all 40 focused
+`EditTrialPatrols` recovers the complete 5,436-byte patrol editor. It previews
+closed routes continuously and open routes in both directions, renders connecting
+lines and wait digits, and cycles between placed actors. Direction presses first
+turn the editable endpoint, then extend the route if the next cell is supported.
+Circle appends/increases a wait, Cross undoes a point or clears the selected route,
+and Start finishes editing. Resuming a route that ends in a wait copies that point
+into a fresh non-waiting endpoint. The original 64-slot boundary behavior remains,
+including the final reserved endpoint. Player/herb placements reject route editing.
+The `--patrols` probe includes character setup, recreates the boss after checking
+its deletion, and uses ordinary controller input to verify facing before movement,
+two-step waits, undo, finish/resume of a waiting endpoint, and route clearing.
+The full `--preview --text-entry --patrols --playtest --save` scenario passes:
+231 patrol polls, 83 mission polls, four activation calls, and 82 timer/notice
+updates. It returns at VSync 4,816 after 239 terrain polls and verifies all
+7,484 saved bytes. A second `--patrols --playtest --save` run checks the
+complete 520-byte actor/route record on every return to terrain editing and
+passes at VSync 3,976. These checks cover a short route on the default flat map;
+obstacle rejection, closed-route animation, and the 64-slot limit still need
+separate runtime scenarios.
+
+The 562-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 561/1,216 exact TRIAL rows and 285,376/466,728 TRIAL code
-bytes. Across all targets it records 1,493 complete functions and 706,564
+3,449 units, including 562/1,216 exact TRIAL rows and 290,812/466,728 TRIAL code
+bytes. Across all targets it records 1,494 complete functions and 712,000
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1105,8 +1125,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 579/586 rows and 291,748/307,784 bytes; seven compiled game
-routines / 16,036 bytes remain. The assembly classification adds no decomp.dev
+game completion is 580/586 rows and 297,184/307,784 bytes; six compiled game
+routines / 10,600 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

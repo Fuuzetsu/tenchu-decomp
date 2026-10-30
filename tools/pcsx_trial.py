@@ -16,6 +16,8 @@ With --preview, hold L1 in the terrain editor, turn and tilt the view, and
 verify terrain rendering and the saved viewing angle after releasing L1.
 With --characters, protect the player from deletion, add/move/delete a named
 boss through the portrait palette, and return to terrain editing.
+With --patrols, also place that boss again, edit its route, add a wait, undo a
+step, finish/resume the route, clear it, and preserve a new route through saving.
 """
 
 from __future__ import annotations
@@ -57,6 +59,7 @@ PROBE_SYMBOLS = {
     "PREVIEW": "PreviewTrialTerrain",
     "DRAW_CHUNKS": "DrawTrialTerrainChunks",
     "CHARACTERS": "EditTrialCharacters",
+    "PATROLS": "EditTrialPatrols",
 }
 
 
@@ -105,6 +108,8 @@ def run() -> int:
                         help="exercise L1 terrain preview, rotation, height, and return")
     parser.add_argument("--characters", action="store_true",
                         help="verify objective protection and boss placement/movement/deletion")
+    parser.add_argument("--patrols", action="store_true",
+                        help="include character setup and verify patrol facing, steps, waits, undo, and resume")
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
@@ -142,6 +147,9 @@ def run() -> int:
         environment["TENCHU_TRIAL_CHARACTERS_END"] = str(
             metadata.symbol("EditTrialCharacters") + sizes["EditTrialCharacters"]
         )
+        environment["TENCHU_TRIAL_PATROLS_END"] = str(
+            metadata.symbol("EditTrialPatrols") + sizes["EditTrialPatrols"]
+        )
         # The map cursor is the first sprite in the editor's cursor pair.
         environment["TENCHU_TRIAL_CURSOR"] = str(metadata.symbol("TrialEditorCursors"))
         environment["TENCHU_TRIAL_ROSTER"] = str(metadata.symbol("StageAppearance"))
@@ -150,7 +158,8 @@ def run() -> int:
         environment["TENCHU_TRIAL_TEXT_ENTRY"] = "1" if args.text_entry else "0"
         environment["TENCHU_TRIAL_PLAYTEST"] = "1" if args.playtest else "0"
         environment["TENCHU_TRIAL_PREVIEW_ENABLED"] = "1" if args.preview else "0"
-        environment["TENCHU_TRIAL_CHARACTERS_ENABLED"] = "1" if args.characters else "0"
+        environment["TENCHU_TRIAL_CHARACTERS_ENABLED"] = "1" if args.characters or args.patrols else "0"
+        environment["TENCHU_TRIAL_PATROLS_ENABLED"] = "1" if args.patrols else "0"
         environment["TENCHU_TRIAL_VIEW"] = str(metadata.symbol("ViewInfo"))
         environment["TENCHU_TRIAL_VIEW_ANGLE"] = str(metadata.symbol("TrialEditorViewAngle"))
         for key, symbol in {"KEYBOARD_CURSOR": "TrialKeyboardCursor",
