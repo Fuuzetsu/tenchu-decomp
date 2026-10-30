@@ -17,6 +17,32 @@ SDK_STARTS = {
 }
 
 
+def handwritten_bucket(target, functions, matched, root=Path(".")):
+    """Account for reviewed assembly separately from C, without double credit."""
+    root = Path(root)
+    manifest = root / f"config/handwritten-asm.{target}.txt"
+    if not manifest.exists():
+        return {"fns": 0, "bytes": 0, "names": []}
+    names = [name for line in manifest.read_text().splitlines()
+             if (name := line.split("#", 1)[0].strip())]
+    approved = {line.split("#", 1)[0].strip()
+                for line in (root / "config/handwritten-asm.txt").read_text().splitlines()}
+    if len(names) != len(set(names)) or not set(names) <= approved:
+        raise ValueError(f"{target}: duplicate or unapproved handwritten names")
+    rows = {name: (address, size) for address, size, name in functions}
+    size = 0
+    for name in names:
+        if name not in rows:
+            raise ValueError(f"{target}: handwritten name absent from inventory: {name}")
+        address, length = rows[name]
+        if address in matched:
+            raise ValueError(f"{target}: {name} is already counted as C")
+        if address + length > SDK_STARTS[target]:
+            raise ValueError(f"{target}: {name} is outside the reviewed game span")
+        size += length
+    return {"fns": len(names), "bytes": size, "names": sorted(names)}
+
+
 def code_buckets(target, functions, matched):
     """Split reviewed targets without changing their whole-image totals."""
     if target not in SDK_STARTS:

@@ -907,11 +907,25 @@ pad polls. Playtest, the other three text modes, overwriting/deleting saves,
 formatting, preset-record saves, and the full disc-to-TRIAL handoff remain
 outside this probe's coverage.
 
-The 524-function checkpoint passes all six executable hashes and all 38 focused
+The 524-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
 3,449 units, including 524/1,216 exact TRIAL rows and 244,596/466,728 TRIAL code
 bytes. Those report denominators include SDK assembly; the game/editor-only
 denominators remain 586 rows and 307,784 bytes. No remote report was published.
+
+TRIAL also contains all 18 of MAIN's already-approved handwritten originals:
+`eval_spline_gte_`, `DrawTMD`, and the sixteen primitive handlers. The spline
+helper and handlers are byte-identical; the dispatcher's nine changed words
+are exclusively operands covered by MAIN's actual object relocations.
+`tools/check_trial_handwritten.py` checks every instruction, inferred symbols,
+internal jump destinations, and the order of all sixteen dispatch pointers.
+Run it after `./Build check-all`; its committed evidence is
+`reference/trial-handwritten-asm.tsv`. The target manifest
+`config/handwritten-asm.trial.exe.txt` applies the existing classification to
+these verified copies, without adding exceptions. `tools/progress.py --target
+trial.exe` reports their 6,372 bytes separately from recovered C. Combined
+game completion is 542/586 rows and 250,968/307,784 bytes; 44 compiled game
+routines / 56,816 bytes remain. The decomp.dev C counts are unchanged.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

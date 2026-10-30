@@ -3,10 +3,50 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from tools.target_inventory import SDK_STARTS, code_buckets, load_target_units, textbin_bytes
+from tools.target_inventory import (
+    SDK_STARTS, code_buckets, handwritten_bucket, load_target_units, textbin_bytes,
+)
 
 
 class TargetInventoryTests(unittest.TestCase):
+    def test_handwritten_accounting_rejects_inflated_claims(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            (root / "config").mkdir()
+            (root / "config/handwritten-asm.txt").write_text("Handler\n")
+            manifest = root / "config/handwritten-asm.trial.exe.txt"
+            rows = [(0x80015940, 16, "Handler")]
+            self.assertEqual(handwritten_bucket("trial.exe", rows, set(), root)["fns"], 0)
+            manifest.write_text("Handler\n")
+            self.assertEqual(handwritten_bucket("trial.exe", rows, set(), root), {
+                "fns": 1, "bytes": 16, "names": ["Handler"],
+            })
+            for functions, matched, pattern in (
+                (rows, {0x80015940}, "already counted as C"),
+                ([], set(), "absent from inventory"),
+                ([(SDK_STARTS["trial.exe"], 16, "Handler")], set(), "outside"),
+            ):
+                with self.subTest(pattern=pattern), self.assertRaisesRegex(ValueError, pattern):
+                    handwritten_bucket("trial.exe", functions, matched, root)
+            for text in ("Handler\nHandler\n", "NewClaim\n"):
+                manifest.write_text(text)
+                with self.subTest(manifest=text), self.assertRaisesRegex(ValueError, "unapproved"):
+                    handwritten_bucket("trial.exe", rows, set(), root)
+
+    def test_trial_handwritten_manifest_agrees_with_reviewed_reference(self):
+        from tools import source_units as su
+
+        functions, matched, _ = load_target_units("trial.exe", su.ROOT)
+        bucket = handwritten_bucket("trial.exe", functions, matched, su.ROOT)
+        reference = (su.ROOT / "reference/trial-handwritten-asm.tsv").read_text()
+        rows = [line.split("\t") for line in reference.splitlines()
+                if line and not line.startswith("#")]
+        self.assertEqual(bucket["names"], sorted(row[0] for row in rows))
+        self.assertEqual(bucket["bytes"], sum(int(row[3]) for row in rows))
+        inventory = {name: (address, size) for address, size, name in functions}
+        for name, _, address, size, _ in rows:
+            self.assertEqual(inventory[name], (int(address, 16), int(size)))
+
     def test_sdk_boundary_preserves_unmatched_functions_in_each_bucket(self):
         boundary = SDK_STARTS["menu.exe"]
         functions = [

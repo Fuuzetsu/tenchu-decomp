@@ -20,7 +20,7 @@ import argparse, json, os, re
 
 import function_inventory as FI
 import source_units as SU
-from target_inventory import code_buckets, load_target_units, textbin_bytes
+from target_inventory import code_buckets, handwritten_bucket, load_target_units, textbin_bytes
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -167,6 +167,13 @@ def report_target(target, as_json):
     )
     buckets = code_buckets(target, functions, matched)
     result.update(buckets)
+    handwritten = handwritten_bucket(target, functions, matched)
+    if handwritten["fns"]:
+        result["handwritten"] = handwritten
+        result["game_done"] = {
+            "fns": buckets["game"]["fns_matched"] + handwritten["fns"],
+            "bytes": buckets["game"]["bytes_matched"] + handwritten["bytes"],
+        }
     if as_json:
         print(json.dumps(result, indent=2))
         return
@@ -176,6 +183,11 @@ def report_target(target, as_json):
         print(f"  {'Game/engine' if name == 'game' else 'SDK/CRT'}: "
               f"{bucket['fns_matched']}/{bucket['fns']} functions; "
               f"{bucket['bytes_matched']}/{bucket['bytes']} bytes from C")
+    if handwritten["fns"]:
+        print(f"  Canonical assembly: {handwritten['fns']} functions / "
+              f"{handwritten['bytes']} bytes; no C credit")
+        print(f"  Game done (C+asm): {result['game_done']['fns']}/{buckets['game']['fns']} "
+              f"functions; {result['game_done']['bytes']}/{buckets['game']['bytes']} bytes")
     print(f"Raw textbin outside that inventory: "
           f"{result['uncarved_textbin_bytes']} bytes")
     print("matched:", ", ".join(result["matched_names"]))

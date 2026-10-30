@@ -1,0 +1,21 @@
+# Copies of MAIN's already-approved handwritten originals, not new exceptions.
+# Full-span evidence: reference/trial-handwritten-asm.tsv.
+# Verify with tools/check_trial_handwritten.py after ./Build check-all.
+DrawTMD
+drawF3
+drawG3
+drawzF3
+drawF4
+drawFT3
+drawzG3
+drawG4
+drawGT3
+drawzFT3
+drawzF4
+drawFT4
+drawzGT3
+drawzG4
+drawGT4
+drawzFT4
+drawzGT4
+eval_spline_gte_

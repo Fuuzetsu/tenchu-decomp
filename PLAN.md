@@ -30,7 +30,10 @@ byte-identical `main.exe`.
   title through that save flow.
   The reviewed game/editor inventory is
   586 rows / 307,784 bytes; SDK/CRT begins
-  at `0x80060b94` and remains assembly. Graphics preserves TRIAL's larger
+  at `0x80060b94` and remains assembly. A full-span relocation check proves
+  that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
+  handwritten originals. These count separately from C: game completion is
+  542/586 rows and 250,968/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue

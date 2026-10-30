@@ -1,0 +1,20 @@
+# Verified by tools/check_trial_handwritten.py; no C-completion credit.
+# name	main_address	trial_address	bytes	relocated_words_changed
+eval_spline_gte_	0x8001c730	0x8002029c	220	0
+DrawTMD	0x8005d02c	0x8005d9ec	168	9
+drawF3	0x8005d0d4	0x8005da94	296	0
+drawFT3	0x8005d1fc	0x8005dbbc	344	0
+drawF4	0x8005d354	0x8005dd14	328	0
+drawFT4	0x8005d49c	0x8005de5c	392	0
+drawG3	0x8005d624	0x8005dfe4	320	0
+drawGT3	0x8005d764	0x8005e124	368	0
+drawG4	0x8005d8d4	0x8005e294	364	0
+drawGT4	0x8005da40	0x8005e400	428	0
+drawzF3	0x8005dbec	0x8005e5ac	324	0
+drawzFT3	0x8005dd30	0x8005e6f0	372	0
+drawzF4	0x8005dea4	0x8005e864	376	0
+drawzFT4	0x8005e01c	0x8005e9dc	440	0
+drawzG3	0x8005e1d4	0x8005eb94	348	0
+drawzGT3	0x8005e330	0x8005ecf0	396	0
+drawzG4	0x8005e4bc	0x8005ee7c	412	0
+drawzGT4	0x8005e658	0x8005f018	476	0

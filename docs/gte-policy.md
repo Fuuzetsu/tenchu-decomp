@@ -163,6 +163,15 @@ encode assembly as C. The semantic C reference remains in
 `src/main.exe/eval_spline_gte_.c`; `config/handwritten-asm.txt` makes the original
 assembly authoritative.
 
+TRIAL's copies of this helper and all seventeen draw-family routines inherit
+the same classification. `tools/check_trial_handwritten.py` verifies their
+complete spans against MAIN using actual object relocations and also checks
+the sixteen-entry primitive dispatch table. Seventeen routines are
+byte-identical; only nine relocated instruction operands in `DrawTMD` differ.
+The evidence is recorded in `reference/trial-handwritten-asm.tsv`, with the
+target manifest in `config/handwritten-asm.trial.exe.txt`. These 18 routines /
+6,372 bytes receive assembly-completion credit, never recovered-C credit.
+
 ## Candidate for the handwritten class: PClseek (flagged, NOT yet added)
 
 `PClseek` (0x80060224, SDK region) is almost certainly handwritten assembly, on
