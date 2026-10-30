@@ -923,8 +923,11 @@ segments:
       - [0x7ab10, data]
       - [0x7cdc4, .data, ShowTrialResultPage]
       - [0x7cdd4, data]
+      - [0x7cf20, .data, BuildTrialTerrainModel]
+      - [0x7dde0, data]
       - [0x7ddf0, .data, GetTrialTerrainHeight]
-      - [0x7de04, data]
+      - [0x7de04, .data, DrawTrialEditorTile]
+      - [0x7de2c, data]
       - [0x7de34, .data, EDITORUTIL]
       - [0x7e014, .data, PrepareTrialTileLabel]
       - [0x7e058, .data, DrawTrialEditorTerrain]
@@ -952,6 +955,7 @@ segments:
       - [0x86ddc, data]
       - { start: 0x86df8, type: .sdata, name: UpdateTrialNewRecordPage, linker_section_order: .data }
       - [0x86e00, data]
+      - { start: 0x86e9c, type: .sdata, name: DrawTrialEditorTile, linker_section_order: .data }
       - { start: 0x86ea4, type: .sdata, name: EDITORUTIL, linker_section_order: .data }
       - [0x86f1c, data]
       - { start: 0x86f34, type: .sdata, name: EditTrialMission, linker_section_order: .data }

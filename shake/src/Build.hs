@@ -555,6 +555,12 @@ maspsxGpExterns src = extra (takeBaseName src) <>
         takeBaseName src == "FindOrAddTrialTerrainVertex" =
           ["TrialTerrainVertices", "TrialTerrainVertexCount", "TrialTerrainScale"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "DrawTrialEditorTile" =
+          ["TrialEditorTileModel", "TrialTileDefinitions", "TrialThemeOrnaments",
+           "TrialTerrainScale", "TrialTerrainHeightSkew", "TrialTerrainBrightness",
+           "TrialTileCachedScale", "TrialTileCachedSkew", "TrialTileCachedBrightness",
+           "TrialTileCachedGround"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "SetupTrialTerrainPrimitive" =
           ["TrialTileTextures", "TrialTerrainBrightness"]
       | takeFileName (takeDirectory src) == "trial.exe" &&

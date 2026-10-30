@@ -3449,3 +3449,22 @@ fixed-point scale, `(rcos(angle) * 160) >> 12`: the compiler reduces it to a
 multiply by five and a logical shift by seven before the halfword store.
 Writing the algebraically reduced expression directly emits an arithmetic
 shift instead. The Y coordinate retains its separate 80-pixel scale.
+
+### TRIAL tile cache: signed vertex temporaries and reused short values
+
+`DrawTrialEditorTile` keeps each loaded byte vertex index in a **short** and
+writes `vertex - vertex % 4 + (vertex % 4 + rotation) % 4` through a captured
+`short *indices = (short *)&primitive->v0`. Keeping the index as `u8` lets cc1
+reduce the first remainder to a mask; an `int` loses the promotion copy before
+the signed remainder sequence. Capturing the destination array before the
+four-corner loop also preserves the hoisted base address. Computing a separate
+remainder before the assignment moves that address calculation past the first
+remainder. The short index and complete assignment reproduce all instructions.
+
+The ornament-height temporary is the same short later used as the loop index;
+a fresh short causes separate signed/unsigned height loads. The terrain-kind
+index similarly becomes the darker side-face brightness after selecting its
+face table. Splitting those roles into a short kind and byte shade leaves a
+saved-register swap throughout the otherwise exact function. Reusing the short
+restores the full 1,336-byte match. Keep the previous cached height skew for
+ornaments: the original only refreshes that cache afterward for ground geometry.
