@@ -13,7 +13,7 @@ short ShowTrialMainMenu(void)
     u_long previous_buttons = 0;
     u_long pressed;
 
-    SetTrialDisplaySize(320, 480);
+    ClearTrialDisplay(320, 480);
     InitTrialMenuGraphics();
     LoadTrialMenuGraphics();
     TrialUserMission = 1;

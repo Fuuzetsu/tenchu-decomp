@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 454 matching C functions /
-206,688 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 464 matching C functions /
+209,984 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -612,12 +612,34 @@ star glyph. `SetupTrialColoredTelop` selects one of six foreground/outline
 pairs from a per-call, 24-byte palette copy. The palette is C-owned, and the
 original white-text and colored-text loops both rebuild exactly.
 
+The editor's panel, sprite, and results helpers add ten C functions / 3,296
+bytes. `TrialImagePanel` gives the 48-byte tiled-image descriptor named fields
+for its allocated grid, visible grid, screen position, cell size, and TIM
+image. Loading, drawing, and releasing the panel now rebuild from C. Shared
+inline sprite-frame and decimal-number helpers also reproduce the original
+number and time rendering, including `--:--` for an unset time.
+
+The leaderboard holds ten completion times in 30 Hz ticks, ordered from
+fastest to slowest; `-1` marks an empty record. Equal times are inserted ahead
+of the older entry. Insertion copies the four-byte time and ten-byte name
+separately, leaving the two trailing alignment bytes unchanged. The name is
+represented by a ten-byte, word-aligned aggregate, and the final empty-name
+write still clears exactly ten bytes. `ClearTrialDisplay` replaces the earlier
+inaccurate `SetTrialDisplaySize` name: the routine clears a VRAM rectangle and
+resets the 3D transform state; it does not select a display resolution.
+
+`ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
+Its behavior is understood (poll unless inhibited, update the held-button
+snapshot, and return rising edges), but its C candidate still differs in the
+initial register copy. This is an outstanding matching task, not canonical
+handwritten assembly.
+
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current inventory therefore contains 577 game/editor rows (307,784 bytes)
+The current inventory therefore contains 578 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 

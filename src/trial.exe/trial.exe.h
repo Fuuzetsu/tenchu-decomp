@@ -43,7 +43,7 @@ void InitTrialMenuGraphics(void);
 void DisposeTrialMenuGraphics(void);
 void LoadTrialMenuGraphics(void);
 void LoadTrialArchiveImage(ArcFile *archive, int index);
-void SetTrialDisplaySize(short width, short height);
+void ClearTrialDisplay(short width, short height);
 u_long ReadTrialMenuPad(short port, u_long *previous_buttons, short inhibit);
 
 /* These values are returned by the editor's four-entry main menu. */
@@ -55,6 +55,30 @@ enum trial_menu_mode
     TRIAL_MENU_CREATE = 20,
     TRIAL_MENU_EDIT = 30
 };
+
+/* The mission-list backdrop is a rectangular array of textured quads. */
+typedef struct TrialImagePanel TrialImagePanel;
+struct TrialImagePanel
+{
+    POLY_FT4 *tiles;     /* 0x00: row-major, columns * rows */
+    s16 x, y;           /* 0x04: top-left screen position */
+    s16 tile_width;     /* 0x08 */
+    s16 tile_height;    /* 0x0a */
+    u16 columns, rows;  /* 0x0c: allocated grid */
+    u16 draw_columns;   /* 0x10: visible part of each row */
+    u16 draw_rows;      /* 0x12 */
+    GsIMAGE image;      /* 0x14 */
+}; /* 0x30 */
+
+void InitTrialImagePanel(TrialImagePanel *panel);
+void SetupTrialImagePanel(TrialImagePanel *panel, ArcFile *archive, short index);
+void DrawTrialTime(GsSPRITE *sprite, s32 ticks, s32 x, s32 y);
+s32 InsertTrialRecord(s32 ticks);
+void DrawTrialImagePanel(TrialImagePanel *panel, u16 depth);
+void DisposeTrialImagePanel(TrialImagePanel *panel);
+void DrawTrialNumber(GsSPRITE *sprite, s16 value, s16 x, s16 y);
+GsSPRITE *CreateTrialSprite(ArcFile *archive, int index);
+void ReturnFromTrialToMenu(void);
 
 void ClearTrialPages(void);
 void SetupTrialSprite(GsSPRITE *sprite, u_long *data, int x, int y,

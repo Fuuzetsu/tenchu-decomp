@@ -15,13 +15,20 @@ enum
     TRIAL_MISSION_PRESERVED_CHECKSUM_BIT = 0x08000000
 };
 
+/* Ten name bytes occupy a word-aligned field; the two following record
+ * padding bytes are deliberately left untouched by leaderboard insertion. */
+typedef struct TrialRecordName
+{
+    char text[10];
+} TrialRecordName __attribute__((aligned(4)));
+
 typedef struct TrialMissionRecord TrialMissionRecord;
 struct TrialMissionRecord
 {
-    s32 value;
-    char name[10];
-    u8 padding[2];
-}; /* 0x10; insertion at 0x8004aa74 preserves ascending values. */
+    s32 time;              /* completion time in 30 Hz ticks; -1 is empty */
+    TrialRecordName name;
+    /* Two alignment bytes are not copied when records are shifted. */
+}; /* 0x10; lower times rank first. */
 
 typedef struct TrialMissionHeader TrialMissionHeader;
 struct TrialMissionHeader

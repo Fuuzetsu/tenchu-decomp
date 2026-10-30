@@ -342,9 +342,15 @@
     {
       "source": "FRONTEND.C",
       "functions": [
+        "InitTrialImagePanel",
+        "DrawTrialImagePanel",
+        "DisposeTrialImagePanel",
         "ClearTrialPages",
         "SetupTrialSprite",
-        "DrawTrialSpriteFrame"
+        "DrawTrialSpriteFrame",
+        "DrawTrialNumber",
+        "CreateTrialSprite",
+        "ReturnFromTrialToMenu"
       ]
     },
     {
@@ -965,6 +971,14 @@
       "functions": [
         "SetupTelop",
         "SetupTrialColoredTelop"
+      ]
+    },
+    {
+      "source": "RESULTDRAW.C",
+      "functions": [
+        "SetupTrialImagePanel",
+        "DrawTrialTime",
+        "InsertTrialRecord"
       ]
     }
   ]

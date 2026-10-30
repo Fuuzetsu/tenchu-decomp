@@ -1555,6 +1555,15 @@ bytes.
   disproves field-typed renderings); a small table copy is ONE struct assignment
   (load_layout), through a NAMED source pointer when the target materialises the
   member address (InitEffect).
+- **A short payload can be aligned more strictly than its size.** TRIAL's
+  leaderboard record is 16 bytes, but insertion copies its time and ten-byte
+  name separately and preserves two trailing padding bytes. A ten-byte name
+  struct with an `aligned(4)` typedef retains the payload size while expressing
+  its proven word alignment; assigning that member emits two word copies and
+  one halfword copy. Giving the name an explicit two-byte padding field would
+  wrongly copy twelve bytes. A raw `__builtin_memcpy` through a character
+  pointer instead loses the alignment and introduces unaligned loads/stores.
+  See `src/trial.exe/mission.h` and `RESULTDRAW.C`.
 - **Truncated per-TU structs break under array-INDEXING** (stride =
   `i * sizeof(T)`) — reuse the proven full-size element (publish_ground_point_).
 - **Grouped stores through the same base expression a later copy reads** keep
