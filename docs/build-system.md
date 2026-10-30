@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 223 matching C functions /
-74,560 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 259 matching C functions /
+94,696 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -515,12 +515,26 @@ the player's posture profile only when that player is the target. HUMAN's
 The inverted non-player target null check at `0x8002b9c4` is preserved and
 documented: this is an observed original defect, not a reconstruction fix.
 
+THINK adds 36 functions / 20,136 bytes, with its 304-byte dispatch/name tables
+and 52-byte small-data state owned by C. Dispatch-table entries identify the
+changed routines, including the enlarged `Think1trace` escort handler and
+the 36-byte `Think3callaid` wrapper that simply calls `Think3escape`. The
+princess waits when the player is out of range, calls periodically, and stops
+at the destination; the lord also stops when he reaches her. The alarm handler
+approaches and circles without spawning reinforcements. Alert duration uses
+`EngageLevel`, both controllers share the remapping and hazardous-terrain
+restrictions, and non-player targets can be replaced by a visible player.
+These preserve TRIAL's behavior, including retaining the first visibility
+probe's distance and angle after the target switch. Four temporary `D_`
+aliases remain for unrecovered assembly consumers of the C-owned AI globals;
+the named globals themselves are section-owned ELF symbols.
+
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current scaffold therefore contains 537 game/editor rows (307,784 bytes)
+The current inventory therefore contains 543 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 
