@@ -34,6 +34,14 @@ extern char TrialCardMissionPrefix[];
 extern char TrialCardMissionPattern[];
 extern char fmt_trial_card_path[];
 extern char fmt_trial_card_pattern[];
+extern s16 TrialCardSaveState;
+extern s16 TrialCardSavePage;
+extern s16 TrialCardSaveRetry;
+extern u32 TrialCardPendingChecksum;
+extern u32 TrialCardPreviousChecksum;
+extern s16 TrialCardOverwriteGame;
+extern char TrialCardGamePath[];
+extern char TrialCardGameFilename[];
 
 /* Additional pages in the shared CARD_J.TXT used only by the editor. */
 enum trial_card_page
@@ -41,6 +49,10 @@ enum trial_card_page
     TRIAL_CARD_PAGE_NO_CARD = 1,
     TRIAL_CARD_PAGE_READING = 6,
     TRIAL_CARD_PAGE_READ_FAILED = 13,
+    TRIAL_CARD_PAGE_SAVE_NEW_PROMPT = 28,
+    TRIAL_CARD_PAGE_SAVE_PROMPT = 29,
+    TRIAL_CARD_PAGE_OVERWRITE_PROMPT = 30,
+    TRIAL_CARD_PAGE_RETRY_SAVE = 32,
     TRIAL_CARD_PAGE_DELETE_PROMPT = 33,
     TRIAL_CARD_PAGE_CONFIRM_DELETE,
     TRIAL_CARD_PAGE_DELETING,
@@ -48,7 +60,8 @@ enum trial_card_page
     TRIAL_CARD_PAGE_DELETE_FAILED,
     TRIAL_CARD_PAGE_NO_CARD_CANNOT_EDIT = 38,
     TRIAL_CARD_PAGE_UNFORMATTED_CANNOT_EDIT = 40,
-    TRIAL_CARD_PAGE_INVALID_MISSION = 42
+    TRIAL_CARD_PAGE_INVALID_MISSION = 42,
+    TRIAL_CARD_PAGE_FILE_NOT_FOUND = 43
 };
 
 void PrepareTrialCardIcon(TCardHeader *header, s16 operation);

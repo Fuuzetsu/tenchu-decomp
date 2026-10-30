@@ -3315,3 +3315,13 @@ address-add operands. Also place the header-complete case before the full-load
 cases: this determines which assignment to the common completion state cc1
 shares with checksum verification. Length alone does not expose that ordering
 difference; compare the linked control flow.
+
+`UpdateTrialEditorCommands` obtains its current label pointer as the first
+statement inside the visible-row condition, then computes the row's y position.
+cc1 hoists the array base and keeps index-first address addition. Putting the
+pointer assignment after the background's y store leaves the base inside the
+loop; introducing a separate cached array pointer hoists it but reverses the
+add operands. Moving the actual element lookup earlier matches all 856 bytes
+and needs only the one useful label pointer. Navigation similarly reads the
+current selection once into an int before choosing the increment and applying
+signed modulo; duplicating the global read in the two arms changes the loop.

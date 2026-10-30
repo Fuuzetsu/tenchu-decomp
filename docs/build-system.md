@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 512 matching C functions /
-231,232 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 515 matching C functions /
+235,276 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -805,10 +805,28 @@ The resource paths and switch tables own another 768 bytes of data.
 `SaveTrialEditorMission` adds 828 exact bytes and owns its two Japanese prompts
 and switch table (68 bytes). It validates and copies the working map back into
 the serialized mission, updates the modification checksum, and offers saving
-before asking whether to leave without saving. The underlying write state
-machine remains assembly. `UpdateTrialRecordSave` has a readable guarded draft,
-but is not counted as exact C: the typed time store removes the original's
+before asking whether to leave without saving. `UpdateTrialRecordSave` has a
+readable guarded draft, but is not counted as exact C: the typed time store removes the original's
 preset-ID reload, while a scalar store changes fixed-address materialization.
+
+`UpdateTrialCardSave` adds 2,320 exact bytes and owns 492 bytes of switch tables.
+It handles new saves, replacement, checksum-name collisions, retries, optional
+formatting, and cancellation. Preset records share the extended TENCHU game
+save; user missions use separate Mxxxxxxx files. Replacing a modified mission
+clears its previous leaderboard, while a record-only update preserves it.
+The replacement path deletes the old mission before creating the new file;
+this original behavior is retained, including its error handling.
+
+`UpdateTrialEditorCommands` adds 856 bytes. Its eight commands omit the current
+editing screen, except that Playtest remains selectable; Cross or Resume
+returns without changing modes. It draws the selected label with an offset
+additive pass followed by the common subtractive pass. `LoadTrialEditorTheme`
+adds 868 bytes and owns 76 bytes of resource paths. Each 24-byte LND tile
+definition has flags, an unidentified halfword, and a union containing ten
+face-texture indices or a 20-byte ornament basename. The loader replaces that
+basename with the loaded ornament index. THEME0.LND confirms the layout,
+including WANA_D and DHIKARI model names. Its separate eight-byte texture
+records contain page, palette, and UV values.
 
 The shared score calculation and TRIAL's unclamped score snapshot add two
 exact functions / 440 bytes. `DisposeTrialTerrainModel` adds 92 bytes: generated
@@ -830,12 +848,16 @@ The bounded [editor runtime check](building-an-iso.md#trial-editor-runtime-check
 passed on the exact image: Create → default mission settings → temporary-card
 check → terrain editor, then 90 frames with 46 editor pad polls and cursor x
 positions 0 → 25 → 0. It checks the initial theme and player placement without
-patching game memory. Saving, playtest, keyboard input, and the full disc-to-TRIAL
-handoff remain outside this probe's coverage.
+patching game memory. The optional save scenario also opens the command menu,
+creates a user-mission file on a disposable card, and returns to terrain
+editing. It verifies the directory checksum and all 7,484 payload bytes against
+game memory; the observed file is `BISLPS-01901M0544180`. Playtest, keyboard input,
+overwriting/deleting saves, formatting, preset-record saves, and the full
+disc-to-TRIAL handoff remain outside this probe's coverage.
 
-The 512-function checkpoint passes all six executable hashes and all 38 focused
+The 515-function checkpoint passes all six executable hashes and all 38 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 512/1,216 exact TRIAL rows and 231,232/466,728 TRIAL code
+3,449 units, including 515/1,216 exact TRIAL rows and 235,276/466,728 TRIAL code
 bytes. Those report denominators include SDK assembly; the game/editor-only
 denominators remain 586 rows and 307,784 bytes. No remote report was published.
 

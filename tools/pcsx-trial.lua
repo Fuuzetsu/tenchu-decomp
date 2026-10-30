@@ -8,7 +8,8 @@ local function num(key)
     return assert(tonumber(os.getenv('TENCHU_TRIAL_' .. key)), key)
 end
 local addr, word = {}, {}
-for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD'}) do
+for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD',
+                     'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE'}) do
     addr[key] = num(key)
     word[key] = num(key .. '_WORD')
 end
@@ -23,7 +24,7 @@ local function s16(address)
 end
 local pad = PCSX.SIO0.slots[1].pads[1]
 local buttons = PCSX.CONSTS.PAD.BUTTON
-local used = {buttons.DOWN, buttons.CIRCLE, buttons.START, buttons.RIGHT, buttons.LEFT}
+local used = {buttons.DOWN, buttons.CIRCLE, buttons.START, buttons.RIGHT, buttons.LEFT, buttons.SELECT}
 local function release()
     for _, button in ipairs(used) do pad.clearOverride(button) end
 end
@@ -41,6 +42,7 @@ TenchuTrialProbe = {
 }
 local p = TenchuTrialProbe
 local mapEnd, cursor, mission = num('MAP_END'), num('CURSOR'), num('MISSION')
+local save, saveState = num('SAVE') ~= 0, num('SAVE_STATE')
 local function fail(reason)
     if p.done then return end
     p.done = true
@@ -82,7 +84,26 @@ hook('CARD', function()
     if p.screen ~= 'card' then screen('card') end
 end)
 hook('EDITOR', function() screen('editor-loading') end)
-hook('MAP', function() screen('map') end)
+hook('MAP', function()
+    p.entryPolls = 0
+    screen('map')
+end)
+hook('COMMANDS', function()
+    if not save or p.screen == 'commands' then return end
+    if bit.band(tonumber(PCSX.getRegisters().GPR.n.a0), 0xffff) ~= 0 then
+        screen('commands')
+        ready()
+    end
+end)
+hook('EDITOR_SAVE', function()
+    if save then screen('save-fade') end
+end)
+hook('CARD_SAVE', function()
+    if save and p.screen ~= 'save' then
+        screen('save')
+        ready()
+    end
+end)
 hook('READPAD', function()
     if p.screen == 'menu' or p.screen == 'settings' then ready() end
 end)
@@ -90,7 +111,8 @@ hook('REALPAD', function()
     local ra = tonumber(PCSX.getRegisters().GPR.n.ra)
     if p.screen == 'map' and ra >= addr.MAP and ra < mapEnd then
         p.mapPolls = p.mapPolls + 1
-        if p.mapPolls >= 2 then ready() end
+        p.entryPolls = p.entryPolls + 1
+        if p.entryPolls >= 2 then ready() end
     end
 end)
 p.pause = PCSX.Events.createEventListener('ExecutionFlow::Pause', function(event)
@@ -119,7 +141,47 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
         elseif p.screen == 'settings' then
             if t == 15 then pad.setOverride(buttons.START)
             elseif t == 23 then pad.clearOverride(buttons.START) end
+        elseif p.screen == 'commands' then
+            if t == 10 or t == 35 or t == 60 then pad.setOverride(buttons.DOWN)
+            elseif t == 18 or t == 43 or t == 68 then pad.clearOverride(buttons.DOWN)
+            elseif t == 90 then
+                if s16(num('COMMAND_SELECTION')) ~= 5 then
+                    fail('Save command was not selected')
+                    return
+                end
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 98 then pad.clearOverride(buttons.CIRCLE) end
+        elseif p.screen == 'save' then
+            local state = s16(saveState)
+            if state ~= p.saveState then
+                release()
+                p.saveState = state
+                p.promptTicks = 0
+                print('TENCHU_TRIAL save-state=' .. state)
+            end
+            if state == 10 or state == 70 then
+                if state == 70 then p.saved = true end
+                p.promptTicks = p.promptTicks + 1
+                if p.promptTicks == 30 then pad.setOverride(buttons.CIRCLE)
+                elseif p.promptTicks == 38 then pad.clearOverride(buttons.CIRCLE) end
+            elseif state >= 20 and state ~= 71 and state ~= 99 then
+                fail('unexpected save/error prompt ' .. state)
+            end
         elseif p.screen == 'map' then
+            if save and p.saved then
+                if t >= 15 then
+                    local file = assert(io.open(os.getenv('TENCHU_TRIAL_SNAPSHOT'), 'wb'))
+                    file:write(ffi.string(ptr(mission), 0x1d3c))
+                    file:close()
+                    p.done = true
+                    release()
+                    print(string.format(
+                        'TENCHU_TRIAL PASS create/settings/card/editor/save returned-to-map polls=%d vsyncs=%d',
+                        p.mapPolls, p.vsyncs))
+                    PCSX.quit(0)
+                end
+                return
+            end
             local x = s16(cursor + 4) -- GsSPRITE.x
             if t == 1 and x ~= 0 then
                 fail('initial cursor assertion')
@@ -142,12 +204,17 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                     fail('new mission placement assertion')
                     return
                 end
-                p.done = true
-                release()
-                print(string.format(
-                    'TENCHU_TRIAL PASS create/settings/card/editor cursor=0->25->0 polls=%d frames=%d vsyncs=%d',
-                    p.mapPolls, t, p.vsyncs))
-                PCSX.quit(0)
+                if save then
+                    if t == 100 then pad.setOverride(buttons.SELECT)
+                    elseif t == 108 then pad.clearOverride(buttons.SELECT) end
+                else
+                    p.done = true
+                    release()
+                    print(string.format(
+                        'TENCHU_TRIAL PASS create/settings/card/editor cursor=0->25->0 polls=%d frames=%d vsyncs=%d',
+                        p.mapPolls, t, p.vsyncs))
+                    PCSX.quit(0)
+                end
             end
         end
     end)

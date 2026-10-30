@@ -514,6 +514,19 @@ maspsxGpExterns src = extra (takeBaseName src) <>
           ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "DisposeTrialTerrainModel" = ["TrialTerrainOrnamentCount"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialCardSave" =
+          ["TrialCardSaveState", "TrialCardSavePage", "TrialCardSaveRetry",
+           "TrialCardPendingChecksum", "TrialCardPreviousChecksum",
+           "TrialCardOverwriteGame", "McardStateFlag"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialEditorCommands" =
+          ["TrialEditorMode", "TrialEditorCommandSelection", "TrialEditorCommandButtons",
+           "TrialEditorPreviousCommandButtons"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "LoadTrialEditorTheme" =
+          ["TrialTileDefinitions", "TrialTileDefinitionCount", "TrialTileTextures",
+           "TrialThemeOrnaments", "TrialTerrainOrnamentCount"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

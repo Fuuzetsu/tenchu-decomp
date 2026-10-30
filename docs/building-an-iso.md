@@ -174,6 +174,7 @@ and left. Run it after the exact-image gate:
 ```sh
 nix develop --command ./Build check-trial.exe
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux
+nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --save
 ```
 
 The wrapper accepts `--exe`, `--elf`, `--cue`, `--bios`, and `--timeout`; its
@@ -192,8 +193,19 @@ exceptions, unexpected pauses, callback failures, and timeouts.
 Verified 2026-10-30: Create → settings → card check → terrain editing, followed
 by 90 frames and 46 input polls. Cursor sprite x moved 0 → 25 → 0; the mission
 retained theme 0 and the player at grid (16, 18). No game-memory patch or menu
-bypass is used. This bounded check does not cover saving, playtest, keyboard
-input, or the complete boot/menu-to-TRIAL handoff.
+bypass is used. The default run stops at this cursor check. Playtest, keyboard
+input, and the complete boot/menu-to-TRIAL handoff remain untested by either
+scenario.
+
+The optional `--save` scenario continues after the cursor check: Select opens
+the command menu, three Down presses choose Save, and Circle confirms saving
+to the temporary card. It requires the successful-write page and return to
+terrain editing. After the emulator exits, Python validates the card directory
+entry, its checksum, the file's icon header, and all 7,484 serialized mission
+bytes against a read-only snapshot of game memory. The verified new file was
+`BISLPS-01901M0544180`; the probe returned to the map with 62 pad polls at VSync
+1,758. This covers creating a user-mission save, but not overwriting, deleting,
+formatting a card, or saving preset records. Only disposable cards are written.
 
 ## What you get
 
