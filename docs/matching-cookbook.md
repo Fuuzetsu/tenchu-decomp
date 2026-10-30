@@ -3299,3 +3299,19 @@ keeps the size but emits a late `la` through a different register. The local
 initializer recovers all 716 bytes without an address alias or forced register.
 The working map's ordinary `__builtin_memcpy` also retains both aligned and
 unaligned paths; Ghidra's export had discarded the latter as unreachable.
+
+### TRIAL card and fade controllers: preserve the final branch's value
+
+`SaveTrialEditorMission` tests `(brightness += 8) >= 128`. In the completed
+arm it sets the short brightness to 128 and calls the fade helper with the
+constant 128; the continuing arm passes brightness. cc1 merges the call sites
+and reuses the promoted value from the comparison. Moving one shared call
+after the clamp adds two conversion instructions. Both branches describe the
+real fade endpoints; no synthetic condition or register constraint is needed.
+
+In `UpdateTrialCardLoad`, keep header accesses directly indexed through the
+directory cursor. A temporary pointer to the selected header reverses the
+address-add operands. Also place the header-complete case before the full-load
+cases: this determines which assignment to the common completion state cc1
+shares with checksum verification. Length alone does not expose that ordering
+difference; compare the linked control flow.

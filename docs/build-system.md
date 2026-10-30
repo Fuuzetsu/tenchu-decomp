@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 504 matching C functions /
-226,332 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 512 matching C functions /
+231,232 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -791,12 +791,53 @@ character ID, prepares the font glyphs, and returns the label, falling back to
 the final “other” entry. The two town-girl entries share their string. The raw
 table alias remains for unrecovered assembly consumers.
 
+Card-screen setup, card checks, mission loading, and two-step deletion now
+compile from exact C (four functions / 3,540 bytes). The setup preserves and
+restores its borrowed VRAM rectangle and owns the mission-icon archive.
+Creating a mission may proceed after acknowledging that saving is unavailable;
+browsing existing missions uses separate warnings. Header browsing reads the
+directory backwards, while a full mission load validates its checksum and
+normalizes its theme and objective flags. The original missing-card fallthrough
+in the load check is preserved: it changes that condition to the generic
+read-failure page. Prompt meanings were checked against the disc's CARD_J.TXT.
+The resource paths and switch tables own another 768 bytes of data.
+
+`SaveTrialEditorMission` adds 828 exact bytes and owns its two Japanese prompts
+and switch table (68 bytes). It validates and copies the working map back into
+the serialized mission, updates the modification checksum, and offers saving
+before asking whether to leave without saving. The underlying write state
+machine remains assembly. `UpdateTrialRecordSave` has a readable guarded draft,
+but is not counted as exact C: the typed time store removes the original's
+preset-ID reload, while a scalar store changes fixed-address materialization.
+
+The shared score calculation and TRIAL's unclamped score snapshot add two
+exact functions / 440 bytes. `DisposeTrialTerrainModel` adds 92 bytes: generated
+terrain owns its vertex array, primitive array, and TMD header separately.
+The terrain ornament count is reset when these models are disposed.
+
+Six more hidden function boundaries are now explicit. The old `calculate_score`
+row also contained the score snapshot at 0x80047a84. The 0x80049448 results row
+contained four further functions at 0x800496e4, 0x80049b40, 0x80049ebc, and
+0x8004a120. The terrain builder at 0x80053570 also contained cleanup at
+0x80054290. These splits increase the inventory from 580 to 586 game/editor
+rows without changing its byte total. Splat already emitted separate bodies,
+but does not overwrite an existing generated C stub when adding boundaries.
+Remove only the affected stale files under `.shake/gen/trial.exe/src/` before
+rebuilding; otherwise their old multi-function includes duplicate the newly
+separated bodies. A fresh generated tree needs no cleanup.
+
 The bounded [editor runtime check](building-an-iso.md#trial-editor-runtime-check)
 passed on the exact image: Create → default mission settings → temporary-card
 check → terrain editor, then 90 frames with 46 editor pad polls and cursor x
 positions 0 → 25 → 0. It checks the initial theme and player placement without
 patching game memory. Saving, playtest, keyboard input, and the full disc-to-TRIAL
 handoff remain outside this probe's coverage.
+
+The 512-function checkpoint passes all six executable hashes and all 38 focused
+source/inventory tests. The local decomp.dev report has been regenerated with
+3,449 units, including 512/1,216 exact TRIAL rows and 231,232/466,728 TRIAL code
+bytes. Those report denominators include SDK assembly; the game/editor-only
+denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button
@@ -809,7 +850,7 @@ The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current inventory therefore contains 580 game/editor rows (307,784 bytes)
+The current inventory therefore contains 586 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 

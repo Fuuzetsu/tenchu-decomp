@@ -3,7 +3,7 @@
 #include <psxsdk/libgpu.h>
 
 /* Check the card before browsing missions for editing. The shared card
- * state machine draws any insertion, formatting, or error prompts. */
+ * state machine draws any missing-card, format-status, or error prompts. */
 short PrepareTrialMemoryCard(void)
 {
     u_long previous_buttons;

@@ -19,6 +19,37 @@ enum
 extern ArcFile *TrialCardIconArchive;
 extern card_result TrialCardStatus;
 extern DIRENTRY TrialCardDirectory[TRIAL_CARD_DIRECTORY_CAPACITY];
+extern s16 TrialCardCheckState;
+extern s16 TrialCardCheckPage;
+extern s16 TrialCardCheckRetry;
+extern s16 TrialCardDeleteState;
+extern s16 TrialCardDeletePage;
+extern s16 TrialCardDeleteWait;
+extern char fmt_trial_card_mission_name[];
+extern s16 TrialCardLoadState;
+extern s16 TrialCardLoadPage;
+extern s16 TrialCardLoadRetry;
+extern s32 TrialCardDirectoryCursor;
+extern char TrialCardMissionPrefix[];
+extern char TrialCardMissionPattern[];
+extern char fmt_trial_card_path[];
+extern char fmt_trial_card_pattern[];
+
+/* Additional pages in the shared CARD_J.TXT used only by the editor. */
+enum trial_card_page
+{
+    TRIAL_CARD_PAGE_NO_CARD = 1,
+    TRIAL_CARD_PAGE_READING = 6,
+    TRIAL_CARD_PAGE_READ_FAILED = 13,
+    TRIAL_CARD_PAGE_DELETE_PROMPT = 33,
+    TRIAL_CARD_PAGE_CONFIRM_DELETE,
+    TRIAL_CARD_PAGE_DELETING,
+    TRIAL_CARD_PAGE_DELETED,
+    TRIAL_CARD_PAGE_DELETE_FAILED,
+    TRIAL_CARD_PAGE_NO_CARD_CANNOT_EDIT = 38,
+    TRIAL_CARD_PAGE_UNFORMATTED_CANNOT_EDIT = 40,
+    TRIAL_CARD_PAGE_INVALID_MISSION = 42
+};
 
 void PrepareTrialCardIcon(TCardHeader *header, s16 operation);
 u32 CalculateTrialMissionChecksum(void);

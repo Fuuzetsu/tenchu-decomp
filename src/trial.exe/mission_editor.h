@@ -22,9 +22,13 @@ extern s16 TrialEditorCenterX, TrialEditorCenterZ;
 extern s32 TrialEditorViewAngle;
 extern s16 TrialEditorMode;
 extern u32 TrialEditorChecksum;
+extern s16 TrialEditorModified;
+extern s16 TrialTerrainOrnamentCount;
+extern GsSPRITE TrialEditorConfirmButtons;
 extern TrialMapCell TrialEditorMap[TRIAL_MAP_HEIGHT][TRIAL_MAP_WIDTH];
 
 void LoadTrialEditorTheme(short theme);
+void DisposeTrialTerrainModel(ModelType *model);
 void DrawTrialEditorTile(u8 *cell, short *edge_heights);
 void ValidateTrialEditorMap(void);
 void LoadTrialEditorGraphics(void);

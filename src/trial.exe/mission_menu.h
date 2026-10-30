@@ -141,6 +141,7 @@ extern Sprite3D *TrialOptionHeading;
 extern Sprite3D *TrialOptionHelp;
 extern Sprite3D *TrialOptionThemePreview;
 extern s16 TrialPresetId;
+extern u_long TrialResultsButtons;
 
 void LoadTrialSpriteStrip(ArcFile *archive, GsSPRITE *sprites,
                           short image_index, short frame_count);
@@ -176,6 +177,10 @@ short EditTrialMissionSettings(short editing, TrialMissionHeader *header);
 void ShowTrialTextEntry(short mode);
 void EditTrialTextField(short mode, char *text, int size);
 short UpdateTrialCardCheck(u_long pressed, short existing_mission);
+short UpdateTrialCardDelete(u_long pressed, const TrialMissionHeader *header);
+short UpdateTrialCardLoad(u_long pressed, TrialMissionHeader *headers, short whole_mission);
+short UpdateTrialCardSave(u_long pressed, short records_only);
+short UpdateTrialRecordSave(short active);
 short AskRetryTrialPassword(void);
 void DrawTrialOptionArrows(short row, short value, short first_row_maximum);
 short GetTrialUnlockedThemes(short themes[TRIAL_THEME_COUNT]);

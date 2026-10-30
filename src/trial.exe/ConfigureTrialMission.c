@@ -15,7 +15,7 @@ enum trial_settings_step
     TRIAL_SETTINGS_WAIT_CARD = 40
 };
 
-/* New missions need a writable card before proceeding to the map editor.
+/* New missions check the card and warn if saving will be unavailable.
  * Existing missions retain their edited header when leaving this screen. */
 short ConfigureTrialMission(short editing)
 {

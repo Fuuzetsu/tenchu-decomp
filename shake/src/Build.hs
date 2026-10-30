@@ -489,9 +489,31 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "AskRetryTrialPassword" = ["TrialImageArchive"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
-        takeBaseName src == "EditTrialMission" =
+        takeBaseName src `elem` ["EditTrialMission", "SaveTrialEditorMission"] =
           ["TrialEditorBackground", "TrialEditorCenterX", "TrialEditorCenterZ",
-           "TrialEditorViewAngle", "TrialEditorMode", "TrialEditorChecksum"]
+           "TrialEditorViewAngle", "TrialEditorMode", "TrialEditorChecksum",
+           "TrialEditorModified"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "setup_card_screen_" = ["TrialCardStatus"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialCardCheck" =
+          ["TrialCardCheckState", "TrialCardCheckPage", "TrialCardCheckRetry",
+           "TrialCardStatus", "McardStateFlag"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialCardDelete" =
+          ["TrialCardDeleteState", "TrialCardDeletePage", "TrialCardDeleteWait"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialCardLoad" =
+          ["TrialCardLoadState", "TrialCardLoadPage", "TrialCardLoadRetry",
+           "TrialCardDirectoryCursor", "TrialCardStatus"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialRecordSave" =
+          ["TrialResultsButtons", "TrialPresetId", "TrialUserMission"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "SCORE" =
+          ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "DisposeTrialTerrainModel" = ["TrialTerrainOrnamentCount"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
