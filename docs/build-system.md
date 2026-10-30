@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 563 matching C functions /
-291,852 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 564 matching C functions /
+293,492 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -868,12 +868,14 @@ one definition in `text_glyphs.h`. The SDK bounded concatenation routine at
 0x80076d84 is now named `strncat`, based on its byte-copy/count/termination
 behavior; it remains assembly.
 
-`InitTrialTextEntry` has a readable guarded draft and owns 344 bytes of exact
-C data: archive path, 45 kanji/symbol range definitions, four offset-table
-pointers, and four category-bound pairs. The draft compiles to 1,632 rather
-than 1,640 bytes. Its range-loop spill choice, page-table registers, and final
-field-store schedule remain unmatched. It defaults to the original assembly
-and is excluded from the C count.
+`InitTrialTextEntry` now compiles to all 1,640 exact bytes and owns 344 bytes
+of C data: archive path, 45 kanji/symbol range definitions, four offset-table
+pointers, and four category-bound pairs. It allocates both text cursors, applies
+the mode-specific character limit, imports existing Shift-JIS text, scans BIOS
+glyph holes to build five-row columns, and links the kanji navigation ranges.
+The final punctuation range is separate from that list. Ordinary adjacent
+scopes let the range-definition copy and page initializer tables share stack
+space; the function no longer needs a separate inline setup helper.
 
 `PopulateTrialKeyboard` now compiles to all 1,040 exact bytes. The four fixed
 pages expand byte offsets into Shift-JIS codes; symbol and kanji pages walk
@@ -881,6 +883,11 @@ the BIOS font ranges, skipping missing glyphs and filling exhausted columns
 with spaces. Texture columns run right to left, while the cursor buffer is
 row-major. A separate cached glyph-range pointer preserves the original
 kanji preheader and register allocation without changing the loop behavior.
+The `--text-entry --save` emulator scenario passes with both routines compiled
+from C: Latin insertion, deletion, kanji paging/insertion, index restoration,
+and Shift-JIS export are verified. It returns to terrain editing at VSync 2,388
+and verifies all 7,484 bytes of card file `BISLPS-01901M015f980`. Other text
+modes and all BIOS font ranges have not been separately exercised.
 
 Six more hidden function boundaries are now explicit. The old `calculate_score`
 row also contained the score snapshot at 0x80047a84. The 0x80049448 results row
@@ -1111,10 +1118,10 @@ passes at VSync 3,976. These checks cover a short route on the default flat map;
 obstacle rejection, closed-route animation, and the 64-slot limit still need
 separate runtime scenarios.
 
-The 563-function checkpoint passes all six executable hashes and all 40 focused
+The 564-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 563/1,216 exact TRIAL rows and 291,852/466,728 TRIAL code
-bytes. Across all targets it records 1,495 complete functions and 713,040
+3,449 units, including 564/1,216 exact TRIAL rows and 293,492/466,728 TRIAL code
+bytes. Across all targets it records 1,496 complete functions and 714,680
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1129,8 +1136,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 581/586 rows and 298,224/307,784 bytes; five compiled game
-routines / 9,560 bytes remain. The assembly classification adds no decomp.dev
+game completion is 582/586 rows and 299,864/307,784 bytes; four compiled game
+routines / 7,920 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

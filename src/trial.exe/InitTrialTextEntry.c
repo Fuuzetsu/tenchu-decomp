@@ -54,12 +54,9 @@ const TrialTextCategoryBounds TrialTextBounds = {{
     {0x824f, 2}, {0x8340, 6}, {0x829f, 6}, {0x829f, 0}
 }};
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/trial.exe/asm/nonmatchings/InitTrialTextEntry", InitTrialTextEntry);
-#else
-/* The readable draft compiles to 1,632 bytes; the original uses 1,640. The remaining
- * differences concern the range-loop spill and page-table register allocation. */
-static inline void InitTrialTextResources(short mode)
+/* Create the text-entry resources and page descriptors. BIOS font ranges
+ * contain holes, so cache the first available glyph in each five-row column. */
+void InitTrialTextEntry(short mode)
 {
     int i, column, row;
     u16 code;
@@ -119,9 +116,9 @@ static inline void InitTrialTextResources(short mode)
             TrialKanjiRanges[i].column_count = definitions.ranges[i].columns;
             code = TrialKanjiRanges[i].first_code = definitions.ranges[i].first;
             TrialKanjiRanges[i].last_code = definitions.ranges[i].last;
-            starts = valloc(TrialKanjiRanges[i].column_count * sizeof(*starts));
-            TrialKanjiRanges[i].column_starts = starts;
-            for (; column < TrialKanjiRanges[i].column_count; column++, starts++)
+            starts = TrialKanjiRanges[i].column_starts =
+                valloc(TrialKanjiRanges[i].column_count * sizeof(*starts));
+            for (; column < TrialKanjiRanges[i].column_count; column++)
             {
                 for (row = 0; row < 5; row++)
                 {
@@ -136,6 +133,7 @@ static inline void InitTrialTextResources(short mode)
                         *starts = TRIAL_SJIS_SPACE;
                     code++;
                 }
+                starts++;
             }
             if (i != 44)
             {
@@ -157,13 +155,6 @@ static inline void InitTrialTextResources(short mode)
             }
         }
     }
-}
-
-void InitTrialTextEntry(short mode)
-{
-    int i;
-
-    InitTrialTextResources(mode);
     i = 0;
     {
         TrialTextOffsetTables offsets = TrialTextOffsets;
@@ -183,19 +174,17 @@ void InitTrialTextEntry(short mode)
         }
     }
     memset(&TrialTextPages[TRIAL_TEXT_KANJI], 0, sizeof(TrialTextPages[TRIAL_TEXT_KANJI]));
+    TrialTextPages[TRIAL_TEXT_KANJI].range = &TrialKanjiRanges[0];
     TrialTextPages[TRIAL_TEXT_KANJI].first_column_code = 0x889f;
     TrialTextPages[TRIAL_TEXT_KANJI].last_column_code = 0x9860;
-    TrialTextPages[TRIAL_TEXT_KANJI].range = &TrialKanjiRanges[0];
     TrialTextPages[TRIAL_TEXT_KANJI].column_index = 0;
-    TrialTextPages[TRIAL_TEXT_SYMBOLS].first_column_code = 0x8141;
-    TrialTextPages[TRIAL_TEXT_SYMBOLS].last_column_code = 0x8197;
     TrialTextPages[TRIAL_TEXT_SYMBOLS].range = &TrialKanjiRanges[44];
     TrialTextPages[TRIAL_TEXT_SYMBOLS].column_index = 0;
+    TrialTextPages[TRIAL_TEXT_SYMBOLS].first_column_code = 0x8141;
+    TrialTextPages[TRIAL_TEXT_SYMBOLS].last_column_code = 0x8197;
     TrialKanjiIndexSelection.active = 0;
     TrialTextPages[TRIAL_TEXT_KANJI].code_base = TrialTextPages[TRIAL_TEXT_KANJI].first_visible_code =
         TrialTextPages[TRIAL_TEXT_KANJI].range->first_code;
     TrialTextPages[TRIAL_TEXT_SYMBOLS].code_base = TrialTextPages[TRIAL_TEXT_SYMBOLS].first_visible_code =
         TrialTextPages[TRIAL_TEXT_SYMBOLS].range->first_code;
 }
-
-#endif

@@ -3598,3 +3598,15 @@ choices in the preheader, matching all 1,040 bytes. Both pointers reference
 the same range throughout the loop; no extra reload or behavior change is
 needed. A bounded permuter found this ordinary pointer copy after direct
 page indexing and statement reordering failed.
+
+**A chained allocation can change which loop invariant is spilled.**
+In `InitTrialTextEntry`, assigning the newly allocated column-start table to
+its owning range and then to the scan pointer in one expression restores the
+original choice: spill the outer definition offset, keep the inner range base
+in a saved register. Separate assignments instead spill that base around
+every BIOS glyph lookup. Advancing the scan pointer in the loop body while
+keeping the column increment in the `for` header restores the original load
+delay schedule. The two changes together recover the range loop; initializing
+each final page's range before its bounds, and the symbol column before its
+bounds, completes the 1,640-byte match. Adjacent aggregate scopes already
+reuse the stack correctly, so an inline setup helper is unnecessary.
