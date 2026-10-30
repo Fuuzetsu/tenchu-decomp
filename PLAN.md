@@ -11,13 +11,15 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-30).**
-  500 functions / 225,140 bytes now compile as exact C, including startup,
+  504 functions / 226,332 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
   Mission-preview resources, formatting, preset records, character portraits,
   option arrows, mission-list loading/rendering, character selection, and mission
-  confirmation, mission settings, and password verification are also C.
+  confirmation, mission settings, password verification, and the central map
+  editor controller are also C. A repeatable PCSX-Redux check enters terrain
+  editing through Create/settings/card check and verifies cursor movement.
   The reviewed game/editor inventory is
   580 rows / 307,784 bytes; SDK/CRT begins
   at `0x80060b94` and remains assembly. Graphics preserves TRIAL's larger

@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 500 matching C functions /
-225,140 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 504 matching C functions /
+226,332 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -774,6 +774,29 @@ and sprite-strip loading at 0x8005a818 (432). Their split increases the reviewed
 game/editor inventory to 580 rows while preserving its byte total. Splat had
 already emitted three separate assembly bodies; the initial Ghidra export
 omitted the latter two entries.
+
+The central `EditTrialMission` controller is now exact C (716 bytes), with
+named modes for settings, terrain, characters, patrols, playtest, save, and
+save/exit. It snapshots the checksum, copies the serialized map into a working
+grid, and returns from settings/save/playtest to the previous editing screen.
+The shared viewport center and the 3D preview's view angle have separate names;
+they are not the live terrain cursor. Its switch table and initial clear
+rectangle are C-owned (36 bytes). `PrepareTrialMemoryCard` (276 bytes) drives
+the card check before browsing existing stages. `PlaytestTrialMission` (44)
+sets up the unsaved mission and launches it as Rikimaru.
+
+`PrepareTrialCharacterLabel` (156 bytes) owns the editor's 57-entry character
+table and its Japanese strings (1,096 bytes). It searches by the shared engine
+character ID, prepares the font glyphs, and returns the label, falling back to
+the final “other” entry. The two town-girl entries share their string. The raw
+table alias remains for unrecovered assembly consumers.
+
+The bounded [editor runtime check](building-an-iso.md#trial-editor-runtime-check)
+passed on the exact image: Create → default mission settings → temporary-card
+check → terrain editor, then 90 frames with 46 editor pad polls and cursor x
+positions 0 → 25 → 0. It checks the initial theme and player placement without
+patching game memory. Saving, playtest, keyboard input, and the full disc-to-TRIAL
+handoff remain outside this probe's coverage.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

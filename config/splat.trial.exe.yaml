@@ -73,8 +73,12 @@ segments:
       - { start: 0x2cc0, type: .rodata, name: TELOP, linker_section_order: .text }
       - { start: 0x2cd8, type: .rodata, name: decode_tmd_fast_, linker_section_order: .text }
       - [0x2d4c, textbin]
+      - { start: 0x32c4, type: .rodata, name: EDITORUTIL, linker_section_order: .text }
+      - [0x34cc, textbin]
       - { start: 0x3614, type: .rodata, name: SetupTrialObjectivePlacements, linker_section_order: .text }
       - [0x3628, textbin]
+      - { start: 0x362c, type: .rodata, name: EditTrialMission, linker_section_order: .text }
+      - [0x3648, textbin]
       - [0x5140, c, RunMissionEditor]
       - [0x5404, c, ShowTrialMainMenu]
       - [0x5640, c, SelectTrialMission]
@@ -155,8 +159,8 @@ segments:
       - [0x3f6d0, c, FUN_8004fed0]
       - [0x3ffe0, c, FUN_800507e0]
       - [0x403cc, c, draw_card_help_]
-      - [0x407d8, c, FUN_80050fd8]
-      - [0x40b3c, c, FUN_8005133c]
+      - [0x407d8, c, LoadTrialEditorTheme]
+      - [0x40b3c, c, DrawTrialEditorTile]
       - [0x41074, c, FUN_80051874]
       - [0x42054, c, FUN_80052854]
       - [0x421a4, c, FUN_800529a4]
@@ -168,24 +172,22 @@ segments:
       - [0x43bd4, c, SetupTrialObjectivePlacements]
       - [0x43d64, c, FUN_80054564]
       - [0x43fa8, c, FUN_800547a8]
-      - [0x44250, c, FUN_80054a50]
+      - [0x44250, c, ValidateTrialEditorMap]
       - [0x444f4, c, EditTrialMission]
-      - [0x447c0, c, FUN_80054fc0]
-      - [0x45438, c, FUN_80055c38]
-      - [0x45790, c, FUN_80055f90]
+      - [0x447c0, c, LoadTrialEditorGraphics]
+      - [0x45438, c, UpdateTrialEditorCommands]
+      - [0x45790, c, EditTrialTerrain]
       - [0x46804, c, FUN_80057004]
       - [0x46b4c, c, FUN_8005734c]
       - [0x46cec, c, FUN_800574ec]
       - [0x47044, c, FUN_80057844]
-      - [0x472cc, c, FUN_80057acc]
+      - [0x472cc, c, EditTrialCharacters]
       - [0x47f80, c, FUN_80058780]
       - [0x481a8, c, FUN_800589a8]
-      - [0x4846c, c, FUN_80058c6c]
+      - [0x4846c, c, EditTrialPatrols]
       - [0x499a8, c, FUN_8005a1a8]
-      - [0x49b74, c, FUN_8005a374]
+      - [0x49b74, c, SaveTrialEditorMission]
       - [0x49eb0, c, EDITORUTIL]
-      - [0x4a1c8, c, FUN_8005a9c8]
-      - [0x4a1f4, c, FUN_8005a9f4]
       - [0x4a290, c, ShowTrialTextEntry]
       - [0x4a73c, c, FUN_8005af3c]
       - [0x4ada4, c, FUN_8005b5a4]
@@ -893,7 +895,7 @@ segments:
       - [0x7ab00, .data, EFFECT]
       - [0x7ab10, data]
       - [0x7de34, .data, EDITORUTIL]
-      - [0x7de4c, data]
+      - [0x7e014, data]
       - { start: 0x868d0, type: .sdata, name: PREVIEW, linker_section_order: .data }
       - { start: 0x868dc, type: .sdata, name: CHARACTER, linker_section_order: .data }
       - [0x868e0, data]
@@ -911,4 +913,8 @@ segments:
       - [0x86d48, data]
       - { start: 0x86d54, type: .sdata, name: MISC, linker_section_order: .data }
       - [0x86d64, data]
+      - { start: 0x86ea4, type: .sdata, name: EDITORUTIL, linker_section_order: .data }
+      - [0x86f1c, data]
+      - { start: 0x86f34, type: .sdata, name: EditTrialMission, linker_section_order: .data }
+      - [0x86f3c, data]
   - [0x87800]

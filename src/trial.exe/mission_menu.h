@@ -144,6 +144,8 @@ extern s16 TrialPresetId;
 
 void LoadTrialSpriteStrip(ArcFile *archive, GsSPRITE *sprites,
                           short image_index, short frame_count);
+void PlaytestTrialMission(void);
+char *PrepareTrialCharacterLabel(short kind);
 
 void DrawTrialMissionList(TrialMissionPreview *previews, short selected,
                           u32 reveal_frames, int priority);

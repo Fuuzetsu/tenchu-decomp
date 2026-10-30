@@ -1035,7 +1035,9 @@
         "InitNewTrialMission",
         "FillTrialMissionMap",
         "ClassifyTrialTerrainSupport",
-        "LoadTrialSpriteStrip"
+        "LoadTrialSpriteStrip",
+        "PlaytestTrialMission",
+        "PrepareTrialCharacterLabel"
       ]
     }
   ]

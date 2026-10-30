@@ -3287,3 +3287,15 @@ unlocked-theme list, then mark the code used. cc1 schedules that last store
 before the call, matching the original instruction order. Marking it before
 the call in C moves the store ahead of the progress-word load. This ordinary
 ordering matches all 2,520 bytes without an alternate persistent-RAM alias.
+
+### TRIAL editor: local rectangle initialization
+
+`EditTrialMission` matches with the ordinary local initializer
+`RECT clear_area = {0, 0, 320, 480}`. cc1 emits the eight-byte template in
+small data, hoists its high-address load, and copies it with unaligned word
+pairs because RECT only guarantees halfword alignment. Replacing that local
+initializer with a separately declared `static const RECT` and assignment
+keeps the size but emits a late `la` through a different register. The local
+initializer recovers all 716 bytes without an address alias or forced register.
+The working map's ordinary `__builtin_memcpy` also retains both aligned and
+unaligned paths; Ghidra's export had discarded the latter as unreachable.

@@ -164,6 +164,37 @@ There was no CPU exception. The run stopped at those checkpoints rather than
 EOF, so it does not prove complete playback, physical audio output, or broad
 gameplay.
 
+## TRIAL editor runtime check
+
+`tools/pcsx_trial.py` boots the built TRIAL executable directly with the
+original Gaisen disc available for assets. It chooses Create, accepts the
+default settings, passes the card check, and moves the terrain cursor right
+and left. Run it after the exact-image gate:
+
+```sh
+nix develop --command ./Build check-trial.exe
+nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux
+```
+
+The wrapper accepts `--exe`, `--elf`, `--cue`, `--bios`, and `--timeout`; its
+defaults select `.shake/build/tenchu/trial.exe` and the corresponding ELF.
+Disc and emulator discovery use the existing smoke tool's conventions.
+The emulator must have its shared-library runtime available; `--pcsx` may
+point to a local wrapper that supplies that environment.
+
+The probe uses ordinary controller overrides. Function addresses come from
+the selected ELF and each execution breakpoint checks the selected EXE's
+instruction word. The terrain function's inventory span restricts which
+`GetRealPad` calls count as editor input. The EXE snapshot, emulator settings,
+and formatted memory cards live in a temporary directory. It rejects CPU
+exceptions, unexpected pauses, callback failures, and timeouts.
+
+Verified 2026-10-30: Create → settings → card check → terrain editing, followed
+by 90 frames and 46 input polls. Cursor sprite x moved 0 → 25 → 0; the mission
+retained theme 0 and the player at grid (16, 18). No game-memory patch or menu
+bypass is used. This bounded check does not cover saving, playtest, keyboard
+input, or the complete boot/menu-to-TRIAL handoff.
+
 ## What you get
 
 - **`./Build iso`** points the disc's `TENCHU/MAIN.EXE` at the matching build and
