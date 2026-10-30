@@ -457,6 +457,9 @@ maspsxGpExterns src = extra (takeBaseName src) <>
         takeBaseName src == "SUBTITLE" = ["EndingSubtitleData", "EndingCommandCursor", "EndingSubtitleVoices"]
       | takeFileName (takeDirectory src) == "ending.exe" &&
         takeBaseName src `elem` ["MAIN", "RESULTS"] = ["EndingVoices", "EndingButtons", "EndingPreviousButtons"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src `elem` ["RunMissionEditor", "ShowTrialMainMenu", "MENUGRAPHICS"] =
+          ["TrialPreviousLanguage", "TrialImageArchive", "TrialMenuCursor", "TrialMenuBackground"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

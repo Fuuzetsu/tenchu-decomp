@@ -675,7 +675,7 @@ BackGround *load_background_(u_long *tim)
     return bg;
 }
 
-void load_archive_sprite_(ArcFile *archive, int idx)
+Sprite3D *load_archive_sprite_(ArcFile *archive, int idx)
 {
     GsIMAGE img;
     u_long *adr;
@@ -683,7 +683,7 @@ void load_archive_sprite_(ArcFile *archive, int idx)
     adr = get_tim_from_archive(archive, idx);
     GetTIMInfo(adr, &img);
     LoadTIM(adr);
-    SetupSprite(0, &img);
+    return SetupSprite(0, &img);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

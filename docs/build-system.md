@@ -467,15 +467,19 @@ and `exeRules` is applied over `targets`. Two things that are easy to get wrong:
 `$gp` differs — it is a separately-linked build. Do not assume a `main.exe`
 address means anything there. It is the **Mission Editor**: it loads
 `preset\preset%d.msn` (the 16 preset missions, all present in `data.vol`) and
-`theme%d.lnd`/`theme%d.tpd`, and saves user-built missions to memory-card slots
-`mem01.arc`…`mem12.arc` under `BISLPS-01901TENCHU`. Internally the mode is called
+`theme%d.lnd`/`theme%d.tpd`. Its save logic distinguishes preset records in
+`BISLPS-01901TENCHU` from user missions in `BISLPS-01901M%07x` files. The older
+`mem01.arc`…`mem12.arc` strings alone did not establish the user-mission save
+format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30). The first ten modules contain
-133 matching C functions / 42,936 bytes: VALLOC, 3DCTRL, AUDIO, CONFLICT,
-PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO. All except 3DCTRL include
-MAIN's implementation. Shared code was compared using actual object
+TRIAL recovery is in progress (2026-10-30): 196 matching C functions /
+60,948 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
+MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
+mode controller, main menu, menu graphics and sprite helpers, and 41 shared
+archive/CD/font/render/debug functions. Shared code was compared using actual object
 relocations, then rebuilt and checked against the complete original image.
 `shared_symbols.py` also reads the verified source ELF for C-owned globals
 that no longer need fixed-address aliases; ambiguous private names are omitted.
@@ -484,14 +488,27 @@ TRIAL's 3DCTRL uses 74 KiB packet pages instead of MAIN's 64 KiB, calls
 `jt_init4` during graphics initialization, and waits for the GPU after each
 TIM-pack image instead of once after the pack. These source differences
 reproduce all 7,424 bytes. CAMERA's 176-byte switch-table section and MISC's
-32-byte switch table and 16-byte constant section also come from C.
+32-byte switch table and 16-byte constant section also come from C, as does
+the editor controller's 20-byte switch table.
+
+FILEIO supports CD and development-PC reads without MAIN's memory-disk path.
+Its access callback is empty; the loading splash and path wrapper inline the
+read operation. All twelve functions (2,300 bytes) match. `RunMissionEditor`
+selects play/create/edit paths, temporarily forces Japanese, and releases the
+menu archive while gameplay or map editing owns the heap. `ShowTrialMainMenu`
+recovers its four choices, input, cursor movement, and fades. Names for new
+editor routines are inferred from these call paths and are not demo symbols.
+`LoadTrialMenuGraphics` retains an unused 32-byte stack local; its `GsIMAGE`
+type is an inference, while the reserved size is directly observable.
+TRIAL's use of `load_archive_sprite_` also proves its sprite-pointer return;
+correcting the shared C prototype preserves all existing executable bytes.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current scaffold therefore contains 527 game/editor rows (307,784 bytes)
+The current scaffold therefore contains 537 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 

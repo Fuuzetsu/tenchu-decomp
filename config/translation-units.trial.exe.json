@@ -338,6 +338,40 @@
         "LoadTIMpack",
         "GetTIMpackInfo"
       ]
+    },
+    {
+      "source": "FRONTEND.C",
+      "functions": [
+        "ClearTrialPages",
+        "SetupTrialSprite",
+        "DrawTrialSpriteFrame"
+      ]
+    },
+    {
+      "source": "FILEIO.C",
+      "functions": [
+        "stop_access_meter_",
+        "draw_loading_splash_",
+        "InitFileSystem",
+        "FileRead",
+        "PathFileRead",
+        "FileWrite",
+        "LoadExecEx",
+        "InitAccessInfo",
+        "LoadFromDEVPC",
+        "LoadFromCDROM",
+        "cbAccess",
+        "PrepareAccess"
+      ]
+    },
+    {
+      "source": "MENUGRAPHICS.C",
+      "functions": [
+        "InitTrialMenuGraphics",
+        "DisposeTrialMenuGraphics",
+        "LoadTrialMenuGraphics",
+        "LoadTrialArchiveImage"
+      ]
     }
   ]
 }
