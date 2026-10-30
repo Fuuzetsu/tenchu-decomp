@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 558 matching C functions /
-274,948 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 559 matching C functions /
+277,540 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -1053,10 +1053,18 @@ The final editor return is at VSync 3,928 with 186 terrain polls. This still
 uses the default flat mission; ordinary-enemy duplication, nonflat terrain,
 populated ornaments, and special traps need separate scenarios.
 
-The 558-function checkpoint passes all six executable hashes and all 40 focused
+`SelectTrialMission` now recovers the complete 2,592-byte mission browser and
+its 35-entry switch table. Named states cover the five-row scrolling list,
+preset unlocks, card-directory refresh, loading, deletion, and fade transitions.
+The edit flow restricts the list to saved missions. The normal play flow keeps
+the available CD presets when the card directory cannot be read. The existing
+runtime scenario does not yet exercise browsing, loading, or deletion from
+this screen.
+
+The 559-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 558/1,216 exact TRIAL rows and 274,948/466,728 TRIAL code
-bytes. Across all targets it records 1,490 complete functions and 696,136
+3,449 units, including 559/1,216 exact TRIAL rows and 277,540/466,728 TRIAL code
+bytes. Across all targets it records 1,491 complete functions and 698,728
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1071,8 +1079,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 576/586 rows and 281,320/307,784 bytes; 10 compiled game
-routines / 26,464 bytes remain. The assembly classification adds no decomp.dev
+game completion is 577/586 rows and 283,912/307,784 bytes; nine compiled game
+routines / 23,872 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

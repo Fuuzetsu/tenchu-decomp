@@ -52,6 +52,8 @@ segments:
       - [0xc88, textbin]
       - { start: 0xc8c, type: .rodata, name: RunMissionEditor, linker_section_order: .text }
       - [0xca0, textbin]
+      - { start: 0xca4, type: .rodata, name: SelectTrialMission, linker_section_order: .text }
+      - [0xd30, textbin]
       - { start: 0xd34, type: .rodata, name: ConfirmTrialMission, linker_section_order: .text }
       - { start: 0xd64, type: .rodata, name: GetTrialMissionNarrationCue, linker_section_order: .text }
       - [0xd78, textbin]

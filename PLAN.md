@@ -11,13 +11,13 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  558 functions / 274,948 bytes now compile as exact C, including startup,
+  559 functions / 277,540 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
   Mission-preview resources, formatting, preset records, character portraits,
-  option arrows, mission-list loading/rendering, character selection, and mission
-  confirmation, mission settings, password verification, and the central map
+  option arrows, mission-list browsing/loading/deletion/rendering, character
+  selection and mission confirmation, mission settings, password verification, and the central map
   editor controller, card check/load/save/delete screens, save/exit prompts,
   command menu, theme loader, score calculation, generated-terrain cleanup,
   screen fade, and text-entry loop, graphics loading, input controller, cleanup,
@@ -44,11 +44,11 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  576/586 rows and 281,320/307,784 bytes. Graphics preserves TRIAL's larger
+  577/586 rows and 283,912/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with the 10 remaining compiled routines (26,464 bytes): the collision-map
+  with the nine remaining compiled routines (23,872 bytes): the collision-map
   builder, terrain/patrol editing, mission setup/execution, and the remaining
   text/record/pad drafts. Full-image equality
   and readable source remain required; this is not a completion claim.

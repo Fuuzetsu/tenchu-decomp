@@ -3333,6 +3333,16 @@ unaligned paths; Ghidra's export had discarded the latter as unreachable.
 
 ### TRIAL card and fade controllers: preserve the final branch's value
 
+`SelectTrialMission` assigns the fallback preview pointer and count with two
+conditional expressions: `window = saved_only ? NULL : previews;` and
+`total = saved_only ? 0 : preset_count;`. This retains the original repeated
+test of `saved_only`. A zero assignment followed by two `if (!saved_only)`
+blocks merges away one of the tests. Its title position is computed as
+`title_x = -4 * strlen(title)` in one expression: assigning the length to the
+short first adds a sign extension before scaling. Together with the original
+branch orientation for scrolling, these ordinary expressions match all
+2,592 bytes and the complete switch table.
+
 `SaveTrialEditorMission` tests `(brightness += 8) >= 128`. In the completed
 arm it sets the short brightness to 128 and calls the fade helper with the
 constant 128; the continuing arm passes brightness. cc1 merges the call sites
