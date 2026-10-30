@@ -69,7 +69,13 @@ extern Sprite3D *TrialConfirmationSprites[TRIAL_CONFIRM_SPRITES];
 extern Sprite3D *TrialOptionArrows[2];
 extern s16 TrialOptionLimits[TRIAL_OPTION_COUNT];
 extern TrialOptionArrowPair TrialOptionArrowPositions[TRIAL_OPTION_COUNT];
+extern s16 TrialPresetId;
 
+void DrawTrialMissionList(TrialMissionPreview *previews, short selected,
+                          u32 reveal_frames, int priority);
+void DisposeTrialMissionListGraphics(void);
+void LoadTrialMissionListGraphics(short editing);
+void LoadTrialPresetMission(TrialMissionPreview *preview);
 void FormatTrialMissionPreview(TrialMissionHeader *header, TrialMissionPreview *preview);
 short LoadTrialPresetPreviews(short card_slot, TrialMissionHeader *headers,
                               TrialMissionPreview *previews);

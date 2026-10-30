@@ -466,6 +466,11 @@ maspsxGpExterns src = extra (takeBaseName src) <>
            "TrialListArrows", "TrialCharacterBackground", "TrialCharacterPortraits",
            "TrialImageArchive", "TrialConfirmationBackground", "TrialOptionArrows",
            "TrialOptionLimits"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "MENULIST" =
+          ["TrialMissionListPanel", "TrialMissionDetailsFrame", "TrialThemePreviewSprite",
+           "TrialListArrows", "TrialListHelp", "TrialListTitle", "TrialListHighlight",
+           "TrialPreviewArchive", "TrialImageArchive"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

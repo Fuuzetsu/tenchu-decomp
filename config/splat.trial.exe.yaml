@@ -43,8 +43,10 @@ segments:
     subalign: 4
     subsegments:
       - [0x800, textbin]
+      - { start: 0x854, type: .rodata, name: MENULIST, linker_section_order: .text }
       - { start: 0x8a4, type: .rodata, name: PREVIEW, linker_section_order: .text }
-      - [0xad4, textbin]
+      - { start: 0xad4, type: .rodata, name: DrawTrialMissionList, linker_section_order: .text }
+      - [0xb28, textbin]
       - { start: 0xc8c, type: .rodata, name: RunMissionEditor, linker_section_order: .text }
       - [0xca0, textbin]
       - { start: 0xfb4, type: .rodata, name: MOTION, linker_section_order: .text }
@@ -66,11 +68,9 @@ segments:
       - [0x5140, c, RunMissionEditor]
       - [0x5404, c, ShowTrialMainMenu]
       - [0x5640, c, SelectTrialMission]
-      - [0x6060, c, FUN_80016860]
-      - [0x6178, c, FUN_80016978]
-      - [0x6344, c, FUN_80016b44]
+      - [0x6060, c, MENULIST]
       - [0x6498, c, PREVIEW]
-      - [0x6ac4, c, FUN_800172c4]
+      - [0x6ac4, c, DrawTrialMissionList]
       - [0x6ec0, c, ChooseTrialCharacter]
       - [0x70e8, c, FUN_800178e8]
       - [0x73d4, c, ConfirmTrialMission]

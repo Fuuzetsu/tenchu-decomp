@@ -1345,6 +1345,13 @@ judgment:
   tile_sprite_); when an `lbu` field feeds a multiply, a full-width named temp
   schedules the load early without the `andi` a u8 temp inserts
   (ProcItemNemuri).
+- **An induction value may be an indexed expression, not an explicit
+  counter.** TRIAL's five-row mission-list renderer matched in size but moved
+  the `li` for the first record y coordinate ahead of two other loop constants
+  when written as `y = 32; ... y += 20`. Using `32 + i * 20` directly in the
+  two draw calls lets cc1 strength-reduce and hoist it in the original order;
+  all 1,020 bytes match. Preserve the arithmetic meaning before introducing
+  a walking variable just because the disassembler shows one register.
 - **Keep packet cursor units faithful to the SDK typedef.** PsyQ `PACKET`
   is an unsigned byte, not a GPU word. TRIAL's `SortTrialSpritePrimitive`
   matches 480 bytes with one `PACKET *` cursor, aggregate SPRT copy, and

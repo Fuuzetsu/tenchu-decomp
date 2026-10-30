@@ -17,6 +17,7 @@ enum
 };
 
 extern ArcFile *TrialCardIconArchive;
+extern card_result TrialCardStatus;
 extern DIRENTRY TrialCardDirectory[TRIAL_CARD_DIRECTORY_CAPACITY];
 
 void PrepareTrialCardIcon(TCardHeader *header, s16 operation);

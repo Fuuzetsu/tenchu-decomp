@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 480 matching C functions /
-213,104 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 484 matching C functions /
+215,204 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -664,6 +664,21 @@ format-string aliases remain for the unrecovered confirmation screen.
 it into LIBGS's byte-oriented packet buffer, and prepends its texture-page
 command at the same depth. The canonical LIBGPU tag/sprite/page macros now
 express those operations in C.
+
+Mission-list graphics setup/disposal, preset-file loading, and list text add
+four functions / 2,100 bytes and 164 C-owned bytes of strings and pointers.
+The loader maps TRIAL.ARC images 3..10 into the detail frame, three origin
+icons, arrows, help, title, and highlight. It selects the play/edit title frame
+and crops the delete hint from play mode. Forty unused stack bytes precede
+its eight-pointer table; the source represents this as a sprite workspace,
+whose type is inferred from the reservation rather than an accessed field.
+
+`LoadTrialPresetMission` copies the 7,484-byte preset file, restores all ten
+saved times and names, records the preset ID, and selects preset-save mode.
+The two padding bytes in each record retain the preset file's contents.
+The list renderer reveals five rows at two-frame intervals, colors the
+selection yellow, and draws its author and top three records. Missing-card,
+unformatted-card, and empty-list messages have separately centered positions.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button
