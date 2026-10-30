@@ -7,9 +7,9 @@ Require the observed cursor positions, sustained editor input polling, and
 the expected initial player placement. Cards and the executable snapshot live
 in a temporary directory. With --save, save the new mission through the editor
 and compare its on-card payload with game memory. With --text-entry, switch
-keyboard categories, enter a title character, and verify its Shift-JIS export.
-This does not cover disc
-handoff, overwriting/deleting a mission, or playtest.
+keyboard categories, insert/delete Latin text, scroll a kanji range, select a
+kanji, and verify the index return and Shift-JIS export. This does not cover
+disc handoff, overwriting/deleting a mission, or playtest.
 """
 
 from __future__ import annotations
@@ -120,7 +120,9 @@ def run() -> int:
         environment["TENCHU_TRIAL_SAVE"] = "1" if args.save else "0"
         environment["TENCHU_TRIAL_TEXT_ENTRY"] = "1" if args.text_entry else "0"
         for key, symbol in {"KEYBOARD_CURSOR": "TrialKeyboardCursor",
-                            "TEXT_CURSOR": "TrialEditedTextCursor"}.items():
+                            "TEXT_CURSOR": "TrialEditedTextCursor",
+                            "KANJI_SELECTION": "TrialKanjiIndexSelection",
+                            "TEXT_PAGES": "TrialTextPages"}.items():
             environment[f"TENCHU_TRIAL_{key}"] = str(metadata.symbol(symbol))
         environment["TENCHU_TRIAL_SAVE_STATE"] = str(metadata.symbol("TrialCardSaveState"))
         environment["TENCHU_TRIAL_COMMAND_SELECTION"] = str(metadata.symbol("TrialEditorCommandSelection"))

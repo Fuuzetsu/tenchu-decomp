@@ -524,7 +524,7 @@
 0x8005af3c	1640	InitTrialTextEntry
 0x8005b5a4	572	DisposeTrialTextEntry
 0x8005b7e0	1588	LoadTrialTextGraphics
-0x8005be14	1040	FUN_8005be14
+0x8005be14	1040	PopulateTrialKeyboard
 0x8005c224	508	UploadTrialGlyph
 0x8005c420	4380	UpdateTrialTextEntry
 0x8005d53c	500	DrawTrialScreenFade
@@ -870,7 +870,7 @@
 0x80076c84	112	strcmp
 0x80076cf4	80	strcpy
 0x80076d44	64	strlen
-0x80076d84	128	FUN_80076d84
+0x80076d84	128	strncat
 0x80076e04	128	strncmp
 0x80076e84	112	strncpy
 0x80076ef4	64	printf

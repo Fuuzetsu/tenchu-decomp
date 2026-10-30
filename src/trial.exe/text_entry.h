@@ -34,12 +34,27 @@ typedef struct TrialGlyphPage
     s16 unknown0a;
     const u8 *offsets;
     const u8 *visible_offsets;
-    u8 *unknown14;
+    const u8 *range_indices;
     TrialKanjiRange *range;
 } TrialGlyphPage; /* 0x1c */
 
+typedef struct TrialSavedKanjiIndex
+{
+    s16 cursor_x, cursor_y;
+    s16 category, column, row;
+    s16 active;
+} TrialSavedKanjiIndex;
+
 enum
 {
+    TRIAL_TEXT_LATIN = 0,
+    TRIAL_TEXT_KATAKANA,
+    TRIAL_TEXT_HIRAGANA,
+    TRIAL_TEXT_KANJI_INDEX,
+    TRIAL_TEXT_SYMBOLS,
+    TRIAL_TEXT_KANJI,
+    TRIAL_TEXT_CATEGORY_COUNT,
+
     TRIAL_SJIS_SPACE = 0x8140,
     TRIAL_GLYPH_INK = 0x0421,
     TRIAL_GLYPH_EDGE = 0x4210
@@ -49,6 +64,7 @@ extern TrialTextCursor *TrialKeyboardCursor;
 extern TrialTextCursor *TrialEditedTextCursor;
 extern u16 *TrialBlankGlyph;
 extern TrialGlyphPage TrialKanjiPage;
+extern TrialGlyphPage TrialTextPages[TRIAL_TEXT_CATEGORY_COUNT];
 extern TrialKanjiRange TrialKanjiRanges[45];
 extern BackGround *TrialTextBackground;
 extern Sprite3D *TrialTextPanels;
@@ -60,6 +76,8 @@ extern Sprite3D *TrialTextShoulderButtons[4];
 extern POLY_FT4 *TrialKeyboardQuad, *TrialEditedTextQuad;
 extern ArcFile *TrialTextArchive;
 extern u_long TrialTextButtons;
+extern RECT TrialKeyboardArea, TrialEditedTextArea;
+extern TrialSavedKanjiIndex TrialKanjiIndexSelection;
 
 short UploadTrialGlyph(u16 code, RECT *area);
 void LoadTrialGlyphGrid(u16 first_code, RECT *area, short columns, short rows);
@@ -68,6 +86,7 @@ void HighlightTrialTextCategory(short old_index, short new_index);
 void DisposeTrialTextEntry(void);
 void InitTrialTextEntry(short mode);
 void LoadTrialTextGraphics(short mode);
+void PopulateTrialKeyboard(RECT *area, short columns, short rows);
 short UpdateTrialTextEntry(void);
 
 #endif

@@ -89,7 +89,8 @@ segments:
       - { start: 0x3614, type: .rodata, name: SetupTrialObjectivePlacements, linker_section_order: .text }
       - [0x3628, textbin]
       - { start: 0x362c, type: .rodata, name: EditTrialMission, linker_section_order: .text }
-      - [0x3648, textbin]
+      - { start: 0x3648, type: .rodata, name: InitTrialTextEntry, linker_section_order: .text }
+      - { start: 0x37a0, type: .rodata, name: LoadTrialTextGraphics, linker_section_order: .text }
       - { start: 0x37b0, type: .rodata, name: DrawTrialScreenFade, linker_section_order: .text }
       - [0x37d8, textbin]
       - [0x5140, c, RunMissionEditor]
@@ -210,7 +211,7 @@ segments:
       - [0x4a73c, c, InitTrialTextEntry]
       - [0x4ada4, c, DisposeTrialTextEntry]
       - [0x4afe0, c, LoadTrialTextGraphics]
-      - [0x4b614, c, FUN_8005be14]
+      - [0x4b614, c, PopulateTrialKeyboard]
       - [0x4ba24, c, UploadTrialGlyph]
       - [0x4bc20, c, UpdateTrialTextEntry]
       - [0x4cd3c, c, DrawTrialScreenFade]
@@ -558,7 +559,7 @@ segments:
       - [0x66484, c, strcmp]
       - [0x664f4, c, strcpy]
       - [0x66544, c, strlen]
-      - [0x66584, c, FUN_80076d84]
+      - [0x66584, c, strncat]
       - [0x66604, c, strncmp]
       - [0x66684, c, strncpy]
       - [0x666f4, c, printf]
@@ -937,4 +938,6 @@ segments:
       - [0x86f1c, data]
       - { start: 0x86f34, type: .sdata, name: EditTrialMission, linker_section_order: .data }
       - [0x86f3c, data]
+      - { start: 0x86fd4, type: .sdata, name: LoadTrialTextGraphics, linker_section_order: .data }
+      - [0x86fdc, data]
   - [0x87800]

@@ -209,13 +209,17 @@ formatting a card, or saving preset records. Only disposable cards are written.
 
 The optional `--text-entry` scenario opens the title keyboard from settings.
 R2 and L2 switch Latin → Katakana → Latin; Circle enters full-width A (Shift-JIS
-0x8260), and Start returns to settings. The probe checks the selected category,
-inserted code, advanced cursor, exported title in the settings header, and the
-title copied into the mission. It accounts for trailing-space trimming and
-the settings wrapper clearing the shared text buffer. Combined with `--save`,
-this passed at VSync 2,008 with 62 terrain pad polls and verified file
-`BISLPS-01901M00f1980`. Kanji paging, deletion, and every text-input mode have
-not been exercised by this bounded scenario.
+0x8260). Cross deletes it; the probe checks the shifted buffer and cursor,
+then reinserts A. R2 selects the kanji index, Left selects its second column,
+and Circle enters that range. Holding Left reaches beyond its thirteen-column
+window. Circle inserts kanji 0x8a52 and returns to the saved index position.
+Start returns to settings. Assertions cover both inserted codes, deletion,
+page scrolling, index restoration, the exported title in settings, and the
+title copied into the mission. They account for trailing-space trimming and
+the settings wrapper clearing its shared scratch buffer. Combined with `--save`,
+this passed at VSync 2,388 with 62 terrain pad polls and verified file
+`BISLPS-01901M015f980`. Password, author, and record-name modes remain outside
+this bounded scenario.
 
 ## What you get
 

@@ -25,7 +25,7 @@ end
 local pad = PCSX.SIO0.slots[1].pads[1]
 local buttons = PCSX.CONSTS.PAD.BUTTON
 local used = {buttons.DOWN, buttons.CIRCLE, buttons.START, buttons.RIGHT, buttons.LEFT,
-              buttons.SELECT, buttons.L2, buttons.R2}
+              buttons.SELECT, buttons.L2, buttons.R2, buttons.CROSS}
 local function release()
     for _, button in ipairs(used) do pad.clearOverride(button) end
 end
@@ -91,8 +91,9 @@ hook('SETTINGS', function()
             return
         end
         p.textPassed = true
-        print(string.format('TENCHU_TRIAL text-entry category=0->1->0 code=%04x export=verified',
-                            p.textCode))
+        print(string.format(
+            'TENCHU_TRIAL text-entry latin=%04x kanji=%04x deletion/paging/index-return/export=verified',
+            p.textCode, p.kanjiCode))
     end
     screen('settings')
 end)
@@ -200,6 +201,84 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                     fail('text-entry insertion assertion')
                     return
                 end
+                p.beforeDelete = {}
+                for i = 1, 15 do
+                    p.beforeDelete[i] = bit.band(s16(characters + (i - 1) * 2), 0xffff)
+                end
+                pad.setOverride(buttons.CROSS)
+            elseif t == 108 then pad.clearOverride(buttons.CROSS)
+            elseif t == 130 then
+                local characters = u32(edited + 8)
+                if s16(edited) ~= 0 then
+                    fail('text-entry deletion cursor assertion')
+                    return
+                end
+                for i = 1, 15 do
+                    local expected = i < 15 and p.beforeDelete[i + 1] or 0x8140
+                    if bit.band(s16(characters + (i - 1) * 2), 0xffff) ~= expected then
+                        fail('text-entry deletion shift assertion')
+                        return
+                    end
+                end
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 138 then pad.clearOverride(buttons.CIRCLE)
+            elseif t == 160 then
+                if s16(edited) ~= 1 or bit.band(s16(u32(edited + 8)), 0xffff) ~= p.textCode then
+                    fail('text-entry reinsertion assertion')
+                    return
+                end
+                pad.setOverride(buttons.R2)
+            elseif t == 168 or t == 193 or t == 218 then pad.clearOverride(buttons.R2)
+            elseif t == 185 or t == 210 then pad.setOverride(buttons.R2)
+            elseif t == 240 then
+                if s16(keyboard + 4) ~= 3 then
+                    fail('text-entry kanji-index category assertion')
+                    return
+                end
+                -- The second index column begins range 5, which has enough
+                -- columns to exercise scrolling beyond the 13-column window.
+                pad.setOverride(buttons.LEFT)
+            elseif t == 248 then pad.clearOverride(buttons.LEFT)
+            elseif t == 270 then
+                if s16(keyboard) ~= 1 or s16(keyboard + 2) ~= 0 then
+                    fail('text-entry kanji-index position assertion')
+                    return
+                end
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 278 then pad.clearOverride(buttons.CIRCLE)
+            elseif t == 300 then
+                if s16(keyboard + 4) ~= 5 or s16(num('KANJI_SELECTION') + 10) ~= 1 then
+                    fail('text-entry kanji range assertion')
+                    return
+                end
+            elseif t == 310 then pad.setOverride(buttons.LEFT)
+            elseif t == 390 then pad.clearOverride(buttons.LEFT)
+            elseif t == 420 then
+                if s16(num('TEXT_PAGES') + 5 * 28 + 8) <= 0 then
+                    fail('text-entry kanji paging assertion')
+                    return
+                end
+                p.kanjiCode = bit.band(s16(u32(keyboard + 12)), 0xffff)
+                if p.kanjiCode == 0 or p.kanjiCode == 0x8140 then
+                    fail('text-entry selected a blank kanji')
+                    return
+                end
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 428 then pad.clearOverride(buttons.CIRCLE)
+            elseif t == 450 then
+                local characters = u32(edited + 8)
+                if s16(keyboard + 4) ~= 3 or s16(keyboard) ~= 1 or s16(keyboard + 2) ~= 0
+                    or s16(num('KANJI_SELECTION') + 10) ~= 0 then
+                    fail('text-entry kanji index-return assertion')
+                    return
+                end
+                if s16(edited) ~= 2 or bit.band(s16(characters), 0xffff) ~= p.textCode
+                    or bit.band(s16(characters + 2), 0xffff) ~= p.kanjiCode then
+                    fail('text-entry kanji insertion assertion')
+                    return
+                end
+            elseif t == 480 then
+                local characters = u32(edited + 8)
                 local codes, last = {}, 0
                 for i = 1, 15 do
                     codes[i] = bit.band(s16(characters + (i - 1) * 2), 0xffff)
@@ -212,7 +291,7 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 end
                 p.textExpected = table.concat(bytes)
                 pad.setOverride(buttons.START)
-            elseif t == 108 then pad.clearOverride(buttons.START) end
+            elseif t == 488 then pad.clearOverride(buttons.START) end
         elseif p.screen == 'commands' then
             if t == 10 or t == 35 or t == 60 then pad.setOverride(buttons.DOWN)
             elseif t == 18 or t == 43 or t == 68 then pad.clearOverride(buttons.DOWN)

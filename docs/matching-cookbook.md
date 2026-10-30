@@ -2642,6 +2642,23 @@ LUID, barriers). The levers:
   before the call. Initializing it before the poll lets CSE use that saved
   zero-valued register for the argument instead of `$zero`, leaving a one-byte
   difference. See [ENDING recovery](ending-exe.md#matching-lessons).
+- **Keep a narrow mutable field distinct from its arithmetic snapshot.**
+  TRIAL's `UpdateTrialTextEntry` reads the unsigned category field for page
+  lookup and comparisons, and keeps an `int` snapshot for the category +/− 1
+  arithmetic. Replacing those field reads with an unsigned local removed a
+  four-byte copy; making the snapshot `u16` instead added two masks. The
+  signed snapshot with direct field comparisons matches all 4,380 bytes.
+  Its three constant-sized glyph uploads also match by inlining the same
+  `LoadTrialGlyphGrid` body used by the callable 396-byte renderer, including
+  the original one-iteration loops and rectangle copies.
+- **Independent derived sprite coordinates can determine loop-register order.**
+  `LoadTrialTextGraphics` matches all 1,588 bytes with the category label's
+  texture `v += i * 12` before screen `x = -106 + i * 54`. The opposite source
+  order swaps the two strength-reduced loop registers. Scoped `Sprite3D *`
+  bases preserve the attribute accesses while a `GsSPRITE *` addresses the
+  common sprite fields. Its eight-byte rectangle is an automatic aggregate
+  initializer in `.sdata`; an extern-rectangle copy uses a different LUI
+  carrier even though the copied values and frame agree.
 - **Statement order IS the sched lever inside a block** — sched breaks
   same-priority ties by UID order, which follows source scan order: capture the
   must-come-first value as an explicit statement (SetCommand); two independent

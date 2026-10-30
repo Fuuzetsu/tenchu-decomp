@@ -530,7 +530,8 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "DrawTrialScreenFade" = ["TrialFadeSprite"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
-        takeBaseName src == "LoadTrialGlyphGrid" = ["TrialKeyboardCursor"]
+        takeBaseName src `elem` ["LoadTrialGlyphGrid", "PopulateTrialKeyboard"] =
+          ["TrialKeyboardCursor"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "UploadTrialGlyph" = ["TrialBlankGlyph"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
@@ -538,6 +539,17 @@ maspsxGpExterns src = extra (takeBaseName src) <>
           ["TrialTextBackground", "TrialTextPanels", "TrialTextHeading",
            "TrialKeyboardCursor", "TrialEditedTextCursor", "TrialKeyboardQuad",
            "TrialEditedTextQuad", "TrialTextArchive", "TrialTextButtons"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialTextEntry" =
+          ["TrialTextButtons", "TrialTextNewButtons", "TrialTextRepeatedButtons",
+           "TrialTextRepeatTicks", "TrialTextCursorVisible", "TrialKeyboardCursor",
+           "TrialEditedTextCursor", "TrialTextScrollArrows"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src `elem` ["InitTrialTextEntry", "LoadTrialTextGraphics"] =
+          ["TrialTextBackground", "TrialTextPanels", "TrialTextHeading",
+           "TrialKeyboardCursor", "TrialEditedTextCursor", "TrialKeyboardQuad",
+           "TrialEditedTextQuad", "TrialTextArchive", "TrialTextScrollArrows",
+           "TrialBlankGlyph", "TrialKeyboardArea"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

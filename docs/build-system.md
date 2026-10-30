@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 522 matching C functions /
-238,628 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 524 matching C functions /
+244,596 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -852,8 +852,31 @@ remain assembly. The rasterizer expands fifteen rows of BIOS bits to a
 and distinguishes a missing glyph from an intentional space. The text loop
 exports the edited u16 codes to Shift-JIS bytes while trimming trailing
 spaces. The settings wrapper copies that output to the header and clears the
-shared text buffer before reopening the form. Input/resource initialization,
-the full keyboard controller, and page rendering remain assembly.
+shared text buffer before reopening the form.
+
+`LoadTrialTextGraphics` and `UpdateTrialTextEntry` add another 5,968 exact
+bytes. The loader owns the 16-byte shoulder-hint positions and eight-byte
+edited-text VRAM rectangle. Its eleven sprite destinations include the two
+heap-owned cursors; the local destination-array initializer's temporary shares
+stack space with the later hint positions. The input controller retains the
+original direction-repeat rules, category changes, kanji-range navigation,
+insertion/deletion, text-cursor movement, and blink timing. Right permits
+other held buttons during repeat; the other directions require their button
+alone. The page pointer is a frame-entry snapshot, including a category-change
+frame. Its three inlined glyph-grid uploads and the callable renderer share
+one definition in `text_glyphs.h`. The SDK bounded concatenation routine at
+0x80076d84 is now named `strncat`, based on its byte-copy/count/termination
+behavior; it remains assembly.
+
+`InitTrialTextEntry` has a readable guarded draft and owns 344 bytes of exact
+C data: archive path, 45 kanji/symbol range definitions, four offset-table
+pointers, and four category-bound pairs. The draft compiles to 1,632 rather
+than 1,640 bytes. Its range-loop spill choice, page-table registers, and final
+field-store schedule remain unmatched. `PopulateTrialKeyboard` also has a
+guarded draft: 1,044 versus 1,040 bytes, with residual scheduling/register
+choices in its kanji-loop setup. Its fixed-page path and both loop bodies
+match structurally. Both default to the original assembly and are excluded
+from the C count; neither is canonical handwritten assembly.
 
 Six more hidden function boundaries are now explicit. The old `calculate_score`
 row also contained the score snapshot at 0x80047a84. The 0x80049448 results row
@@ -874,16 +897,19 @@ patching game memory. The optional save scenario also opens the command menu,
 creates a user-mission file on a disposable card, and returns to terrain
 editing. It verifies the directory checksum and all 7,484 payload bytes against
 game memory; the observed file is `BISLPS-01901M0544180`. The text-entry scenario
-switches Latin → Katakana → Latin, inserts full-width A (0x8260), and checks
-the exported title in both settings and the mission header. Combined with
-saving, it verifies `BISLPS-01901M00f1980` and returns to the editor at VSync
-2,008. Playtest, Kanji paging, text deletion, overwriting/deleting saves,
-formatting, preset-record saves, and the full
-disc-to-TRIAL handoff remain outside this probe's coverage.
+switches Latin → Katakana → Latin, inserts full-width A (0x8260), deletes it,
+checks the shifted buffer, and reinserts it. It then opens the second kanji-index
+column, holds Left to scroll beyond the thirteen visible columns, inserts
+kanji 0x8a52, and verifies the restored index position and exported title in
+both settings and the mission header. Combined with saving, it verifies
+`BISLPS-01901M015f980` and returns to the editor at VSync 2,388 with 62 terrain
+pad polls. Playtest, the other three text modes, overwriting/deleting saves,
+formatting, preset-record saves, and the full disc-to-TRIAL handoff remain
+outside this probe's coverage.
 
-The 522-function checkpoint passes all six executable hashes and all 38 focused
+The 524-function checkpoint passes all six executable hashes and all 38 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 522/1,216 exact TRIAL rows and 238,628/466,728 TRIAL code
+3,449 units, including 524/1,216 exact TRIAL rows and 244,596/466,728 TRIAL code
 bytes. Those report denominators include SDK assembly; the game/editor-only
 denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
