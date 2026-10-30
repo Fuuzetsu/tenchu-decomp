@@ -17,6 +17,15 @@ enum trial_editor_mode
     TRIAL_EDITOR_COMMAND_COUNT
 };
 
+enum trial_editor_sound
+{
+    TRIAL_EDITOR_SOUND_COMMANDS = 2,
+    TRIAL_EDITOR_SOUND_SELECT = 11,
+    TRIAL_EDITOR_SOUND_REMOVE = 12,
+    TRIAL_EDITOR_SOUND_PLACE = 13,
+    TRIAL_EDITOR_SOUND_MOVE = 18
+};
+
 /* Each .LND entry is 24 bytes. Terrain uses ten face-texture indices;
  * ornament entries contain a TMD basename, replaced by an index after load. */
 typedef struct TrialTileDefinition

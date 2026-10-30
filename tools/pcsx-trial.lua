@@ -10,7 +10,8 @@ end
 local addr, word = {}, {}
 for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD',
                      'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE', 'TEXT', 'TEXT_INPUT',
-                     'RUN_MISSION', 'ACTIVATE', 'TIMER', 'NOTICE', 'PREVIEW', 'DRAW_CHUNKS'}) do
+                     'RUN_MISSION', 'ACTIVATE', 'TIMER', 'NOTICE', 'PREVIEW', 'DRAW_CHUNKS',
+                     'CHARACTERS'}) do
     addr[key] = num(key)
     word[key] = num(key .. '_WORD')
 end
@@ -48,6 +49,7 @@ local save, saveState = num('SAVE') ~= 0, num('SAVE_STATE')
 local textEntry = num('TEXT_ENTRY') ~= 0
 local playtest, missionEnd = num('PLAYTEST') ~= 0, num('RUN_MISSION_END')
 local preview, previewEnd = num('PREVIEW_ENABLED') ~= 0, num('PREVIEW_END')
+local characters, charactersEnd = num('CHARACTERS_ENABLED') ~= 0, num('CHARACTERS_END')
 local view, viewAngle = num('VIEW'), num('VIEW_ANGLE')
 local function fail(reason)
     if p.done then return end
@@ -118,8 +120,20 @@ hook('CARD', function()
 end)
 hook('EDITOR', function() screen('editor-loading') end)
 hook('MAP', function()
+    if characters and p.charactersPassed and not p.charactersReturned then
+        p.charactersReturned = true
+        print('TENCHU_TRIAL characters returned-to-terrain=verified')
+    end
     p.entryPolls = 0
     screen('map')
+end)
+hook('CHARACTERS', function()
+    if not characters then return end
+    p.charactersEntered = true
+    p.characterPolls = 0
+    -- Theme zero uses StageAppearance[1]; its third entry is the named boss.
+    p.bossKind = s16(u32(num('ROSTER') + 4) + 4)
+    screen('characters')
 end)
 hook('PREVIEW', function()
     if not preview then return end
@@ -134,8 +148,15 @@ hook('DRAW_CHUNKS', function()
     if p.screen == 'preview' then p.chunkDraws = p.chunkDraws + 1 end
 end)
 hook('COMMANDS', function()
-    if not (save or playtest) or p.screen == 'commands' then return end
+    if not (save or playtest or characters) or p.screen == 'commands' then return end
     if bit.band(tonumber(PCSX.getRegisters().GPR.n.a0), 0xffff) ~= 0 then
+        if characters and not p.charactersEntered then
+            p.commandTarget = 2
+        elseif characters and p.charactersPassed and not p.charactersReturned then
+            p.commandTarget = 1
+        else
+            p.commandTarget = playtest and not p.playtestEntered and 4 or 5
+        end
         screen('commands')
         ready()
     end
@@ -193,6 +214,9 @@ hook('REALPAD', function()
     elseif p.screen == 'preview' and ra >= addr.PREVIEW and ra < previewEnd then
         p.previewPolls = p.previewPolls + 1
         if p.previewPolls >= 2 then ready() end
+    elseif p.screen == 'characters' and ra >= addr.CHARACTERS and ra < charactersEnd then
+        p.characterPolls = p.characterPolls + 1
+        if p.characterPolls >= 2 then ready() end
     end
 end)
 p.pause = PCSX.Events.createEventListener('ExecutionFlow::Pause', function(event)
@@ -365,9 +389,15 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 pad.clearOverride(buttons.L1)
             end
         elseif p.screen == 'commands' then
-            local command = playtest and not p.playtestEntered and 4 or 5
-            if t == 10 or t == 35 or (t == 60 and command == 5) then pad.setOverride(buttons.DOWN)
-            elseif t == 18 or t == 43 or t == 68 then pad.clearOverride(buttons.DOWN)
+            local command = p.commandTarget
+            if t == 10 or t == 35 or t == 60 then
+                local selection = s16(num('COMMAND_SELECTION'))
+                if selection ~= command then
+                    pad.setOverride(selection < command and buttons.DOWN or buttons.UP)
+                end
+            elseif t == 18 or t == 43 or t == 68 then
+                pad.clearOverride(buttons.DOWN)
+                pad.clearOverride(buttons.UP)
             elseif t == 90 then
                 if s16(num('COMMAND_SELECTION')) ~= command then
                     fail('expected editor command ' .. command .. ' was not selected')
@@ -375,6 +405,67 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 end
                 pad.setOverride(buttons.CIRCLE)
             elseif t == 98 then pad.clearOverride(buttons.CIRCLE) end
+        elseif p.screen == 'characters' then
+            local player = mission + 0x8ec
+            local boss = player + 2 * 0x208
+            if t == 10 or t == 35 then pad.setOverride(buttons.DOWN)
+            elseif t == 18 or t == 43 then pad.clearOverride(buttons.DOWN)
+            elseif t == 60 then
+                if s16(cursor + 4) ~= 0 or s16(cursor + 6) ~= 50 then
+                    fail('character cursor/player-cell assertion')
+                    return
+                end
+                pad.setOverride(buttons.CROSS)
+            elseif t == 68 or t == 268 then pad.clearOverride(buttons.CROSS)
+            elseif t == 85 then
+                if s16(player) ~= 0 or s16(player + 2) ~= 16 or s16(player + 4) ~= 18 then
+                    fail('character objective deletion protection assertion')
+                    return
+                end
+                pad.setOverride(buttons.UP)
+            elseif t == 93 or t == 118 then pad.clearOverride(buttons.UP)
+            elseif t == 110 then pad.setOverride(buttons.UP)
+            elseif t == 135 or t == 160 then pad.setOverride(buttons.R2)
+            elseif t == 143 or t == 168 then pad.clearOverride(buttons.R2)
+            elseif t == 185 then
+                if s16(cursor + 4) ~= 0 or s16(cursor + 6) ~= 0 or
+                    s16(cursor + 0x24 + 4) ~= 82 or bit.band(p.bossKind, 0xf0) ~= 0x80 then
+                    fail('character palette/boss selection assertion')
+                    return
+                end
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 193 or t == 243 then pad.clearOverride(buttons.CIRCLE)
+            elseif t == 210 then
+                if s16(boss) ~= p.bossKind or s16(boss + 2) ~= 16 or
+                    s16(boss + 4) ~= 16 or s16(boss + 6) ~= 0 then
+                    fail('character boss placement assertion')
+                    return
+                end
+                pad.setOverride(buttons.RIGHT)
+            elseif t == 218 then pad.clearOverride(buttons.RIGHT)
+            elseif t == 235 then pad.setOverride(buttons.CIRCLE)
+            elseif t == 260 then
+                local count = 0
+                for i = 0, 9 do
+                    if s16(player + i * 0x208) == p.bossKind then count = count + 1 end
+                end
+                if count ~= 1 or s16(boss + 2) ~= 17 or s16(boss + 4) ~= 16 then
+                    fail('character unique boss movement assertion')
+                    return
+                end
+                pad.setOverride(buttons.CROSS)
+            elseif t == 285 then
+                if s16(boss) ~= -1 or p.characterPolls < 100 or
+                    s16(player) ~= 0 or s16(player + 2) ~= 16 or s16(player + 4) ~= 18 then
+                    fail('character boss deletion/player preservation assertion')
+                    return
+                end
+                p.charactersPassed = true
+                print(string.format(
+                    'TENCHU_TRIAL characters objective-protection/boss-place/move/delete=verified polls=%d kind=%02x',
+                    p.characterPolls, p.bossKind))
+                pad.setOverride(buttons.SELECT)
+            elseif t == 293 then pad.clearOverride(buttons.SELECT) end
         elseif p.screen == 'mission' then
             if t == 160 then
                 p.playtestExitRequested = true
@@ -466,7 +557,7 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 end
                 if preview and not p.previewPassed then
                     if t == 100 then pad.setOverride(buttons.L1) end
-                elseif save or playtest then
+                elseif save or playtest or (characters and not p.charactersReturned) then
                     if t == 100 then pad.setOverride(buttons.SELECT)
                     elseif t == 108 then pad.clearOverride(buttons.SELECT) end
                 else

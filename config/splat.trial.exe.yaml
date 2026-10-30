@@ -926,7 +926,7 @@ segments:
       - [0x7cf20, .data, BuildTrialTerrainModel]
       - [0x7ddf0, .data, GetTrialTerrainHeight]
       - [0x7de04, .data, DrawTrialEditorTile]
-      - [0x7de2c, data]
+      - [0x7de2c, .data, BuildTrialCollisionMap]
       - [0x7de34, .data, EDITORUTIL]
       - [0x7e014, .data, PrepareTrialTileLabel]
       - [0x7e058, .data, DrawTrialEditorTerrain]

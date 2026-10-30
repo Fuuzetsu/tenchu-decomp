@@ -1719,3 +1719,33 @@ bytes; the cursor advance fixes the complete instruction order naturally.
 Both linked function comparisons and `./Build -j8 check-all check-relink`
 pass. All six images remain exact, and the normal allocator rewrite and
 complete `+0x10004` growth proof still pass.
+
+## TRIAL collision builder — 2026-10-31
+
+`BuildTrialCollisionMap` has a guarded 3,348-byte draft; retail is 3,360 bytes.
+The default build retains the original assembly. Its eight-byte cardinal edge
+mask table is now C-owned. The draft names the 1,088-node workspace, eleven
+level headers, thin-ornament coverage, disguised surfaces, ramp axes, and the
+two rectangle-merging passes. It preserves the unusual merge scan: a consumed
+candidate ends the base node's scan on the following iteration. Packed levels
+are -8 through 0 and +30; the last header is the zero terminator.
+
+The best draft has the correct 0x4450-byte frame. Before packing, instructions
+match structurally except for a t6/t7 interchange. Packing keeps the collision
+buffer base across `memset` and hoists the node-array base; retail rematerializes
+those addresses in the loops. RTL confirms that both address pairs are hoisted
+by loop optimization. The scan and bounds loops have 60 and 50 real instructions,
+respectively, so their hoist thresholds are not close. Allocation/rematerialization
+remains the next question, rather than suppressing optimization with fences.
+
+Byte/word/integer offset spellings of the final node pointer, an equivalent
+`do` loop for levels, and a local source-node pointer leave the same residual.
+Separating the ornament height from the axis variable changes allocation more
+broadly. A packed-node builtin copy gives a larger frame and is worse. One
+bounded permuter run produced no acceptable improvement; the better scores
+changed actual stores or failed to advance the level pointer. None were adopted.
+
+The isolated search initially failed before testing candidates because its
+parser misread `index * sizeof(AreaNodeType) + sizeof(levels)` as a non-scalar
+cast. Parenthesizing the multiplication fixes the generated input. A failed
+baseline is not evidence that a search found no match.

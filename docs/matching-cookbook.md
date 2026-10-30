@@ -3340,6 +3340,21 @@ and reuses the promoted value from the comparison. Moving one shared call
 after the clamp adds two conversion instructions. Both branches describe the
 real fade endpoints; no synthetic condition or register constraint is needed.
 
+`EditTrialCharacters` selects the clamped value directly in the fade call:
+`fade <= 0 ? (fade_direction = 0, fade = 0) : fade`, and similarly at 128.
+This keeps the promoted comparison value in the argument register and merges
+both directions onto one call. Clamping the spilled local before a shared
+call reloads it; four branch-local calls instead duplicate argument setup.
+The conditional expression describes the actual endpoint and phase change.
+
+The same screen advances its optional-roster index with
+`i = 2; roster_start = objective < 3 && objective != 0 ? ++i : i;`.
+The signed-short increment result retains the copy into the stable start
+index and its later promotion. Assigning literal 3 or 2 to both indices
+removes that promotion; assigning a ternary to `i` before copying it removes
+the copy. Either alternative is four bytes short. The increment expresses
+skipping the boss entry already reserved by those two mission objectives.
+
 In `UpdateTrialCardLoad`, keep header accesses directly indexed through the
 directory cursor. A temporary pointer to the selected header reverses the
 address-add operands. Also place the header-complete case before the full-load

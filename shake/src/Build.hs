@@ -496,6 +496,9 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "PreviewTrialTerrain" = ["TrialEditorViewAngle"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "EditTrialCharacters" =
+          ["TrialEditorCenterX", "TrialEditorCenterZ"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "setup_card_screen_" = ["TrialCardStatus"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "UpdateTrialCardCheck" =
@@ -557,7 +560,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "LoadTrialEditorGraphics" = ["TrialEditorBackground"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
-        takeBaseName src == "GetTrialTerrainHeight" = ["TrialTileDefinitions"]
+        takeBaseName src `elem` ["GetTrialTerrainHeight", "BuildTrialCollisionMap"] = ["TrialTileDefinitions"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "FindOrAddTrialTerrainVertex" =
           ["TrialTerrainVertices", "TrialTerrainVertexCount", "TrialTerrainScale"]

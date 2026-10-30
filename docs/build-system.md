@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 557 matching C functions /
-271,696 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 558 matching C functions /
+274,948 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -1016,6 +1016,22 @@ recreates the dragon background, confirm buttons, and character atlas after
 playtesting. Compass coordinates retain the original signed remainders and
 inclusive final texels. Display masking and image-upload ordering are exact.
 
+`EditTrialCharacters` adds 3,252 exact C bytes. It builds the objective/theme
+portrait palette, preserves the viewport and held-direction repeat behavior,
+rejects occupied/ornament/unsupported cells, and protects required placements
+from deletion. Selecting an existing named boss moves that instance; ordinary
+characters can occupy multiple slots. Placement resets the patrol length, and
+Select/L1 retain the command-menu and preview transitions. The screen shares
+the recovered terrain-support classifier and named editor sprites.
+
+`BuildTrialCollisionMap` now has a readable guarded draft covering tile and
+ornament surfaces, two rectangle-merging passes, and height-indexed packing.
+Its four thin-ornament edge masks (eight bytes) are C-owned. The default build
+still uses its assembly fallback: the draft is 3,348 bytes against 3,360, with
+constant-address hoisting and register allocation unresolved in the packing
+pass. It receives no C-function credit; see the collision investigation in
+[the matching archive](matching-archive.md#trial-collision-builder--2026-10-31).
+
 Taking ownership of the face tables also requires retaining the pre-existing
 `D_8008E120` SDK symbol explicitly. `rcos` uses it as the sine-table base minus
 0x1800, adding a third-quadrant angle offset before loading. It happens to fall
@@ -1023,18 +1039,24 @@ inside the editor face table; it does not name a terrain field. Previously the
 raw data carve emitted that label automatically. The SDK instructions and
 address remain unchanged.
 
-The extended `--preview --text-entry --playtest --save` runtime check passes:
-43 preview input polls, 42 chunk draws, changed viewing direction and height,
-a fixed eye position, and saved angle 322 after releasing L1. It then repeats
-the playtest/return flow (83 mission polls, four activation calls, 82 timer/notice
-updates) and verifies the same 7,484-byte saved mission. The final editor return
-is at VSync 3,276 with 133 terrain polls. This still uses the default mission;
-nonflat terrain, populated ornaments, and special traps need separate scenarios.
+The extended `--preview --text-entry --characters --playtest --save` runtime
+check passes. Run it with `nix develop --command python3 tools/pcsx_trial.py`
+and those options (plus `--pcsx` when needed). It observes 43 preview input
+polls, 42 chunk draws, changed viewing direction and height, a fixed eye
+position, and saved angle 322 after releasing L1. The new character scenario
+uses ordinary input to reject deletion of the player, choose the theme's boss
+TAZ (`0x8c`), place it, move its sole instance, delete it, and return to terrain
+editing. It observes 144 character input polls. The subsequent playtest/return
+flow observes 83 mission polls, four activation calls, and 82 timer/notice
+updates; saving verifies all 7,484 mission bytes against the temporary card.
+The final editor return is at VSync 3,928 with 186 terrain polls. This still
+uses the default flat mission; ordinary-enemy duplication, nonflat terrain,
+populated ornaments, and special traps need separate scenarios.
 
-The 557-function checkpoint passes all six executable hashes and all 40 focused
+The 558-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 557/1,216 exact TRIAL rows and 271,696/466,728 TRIAL code
-bytes. Across all targets it records 1,489 complete functions and 692,884
+3,449 units, including 558/1,216 exact TRIAL rows and 274,948/466,728 TRIAL code
+bytes. Across all targets it records 1,490 complete functions and 696,136
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1049,8 +1071,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 575/586 rows and 278,068/307,784 bytes; 11 compiled game
-routines / 29,716 bytes remain. The assembly classification adds no decomp.dev
+game completion is 576/586 rows and 281,320/307,784 bytes; 10 compiled game
+routines / 26,464 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
