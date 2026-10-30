@@ -11,11 +11,11 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-30).**
-  283 functions / 101,368 bytes now compile as exact C, including startup,
+  327 functions / 146,308 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
-  humanoid, AI, HUD, pause, and card-I/O variants. The reviewed game/editor inventory is
-  543 rows / 307,784 bytes; SDK/CRT begins
+  humanoid, AI, HUD, pause, card-I/O, and character-action variants. The reviewed game/editor inventory is
+  552 rows / 307,784 bytes; SDK/CRT begins
   at `0x80060b94` and remains assembly. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,

@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 283 matching C functions /
-101,368 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 327 matching C functions /
+146,308 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -525,7 +525,7 @@ approaches and circles without spawning reinforcements. Alert duration uses
 `EngageLevel`, both controllers share the remapping and hazardous-terrain
 restrictions, and non-player targets can be replaced by a visible player.
 These preserve TRIAL's behavior, including retaining the first visibility
-probe's distance and angle after the target switch. Three temporary `D_`
+probe's distance and angle after the target switch. Two temporary `D_`
 aliases remain for unrecovered assembly consumers of the C-owned AI globals;
 the named globals themselves are section-owned ELF symbols.
 
@@ -555,12 +555,30 @@ and preserves bit 27 of the stored checksum. The ten 16-byte score records
 are excluded. The directory wrapper uses the PSX.SYM-proven 40-byte BIOS
 `DIRENTRY` layout and returns a count or a negative card error.
 
+MOTION adds 44 functions / 44,940 bytes, including swimming, climbing,
+movement, attacks, damage, and death. Its 88-byte action/damage tables,
+1,048-byte switch-table section, and eight-byte gore-position constant are
+C-owned. TRIAL restores hidden body parts when leaving swimming instead of
+checking MAIN's cutscene actor list. The grapple handler cancels its item
+when the actor dies, and the diving attack switches a dead actor to falling,
+clears hitboxes/afterimages, and halves horizontal velocity. Diving also
+avoids changing the camera over lethal terrain.
+
+Damage handling includes princess-specific friendly-kill scoring, revised
+enemy evasion and damage rules, and boss alert-state scoring. The two combat
+flag tests preserve the original aligned word read over the attribute/turn
+pair while masking only attribute bits. Civilian draw transitions clear
+attributes except phase, then restore the patrol flag when a route exists.
+The attack recoil path clears command-history state on easy difficulty.
+All behavior is reconstructed from the TRIAL instructions, without assuming
+MAIN's version applies merely because the surrounding functions match.
+
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current inventory therefore contains 543 game/editor rows (307,784 bytes)
+The current inventory therefore contains 552 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 
