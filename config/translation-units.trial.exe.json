@@ -959,6 +959,13 @@
         "ReqItemUse",
         "TurnAroundAllItems"
       ]
+    },
+    {
+      "source": "TELOP.C",
+      "functions": [
+        "SetupTelop",
+        "SetupTrialColoredTelop"
+      ]
     }
   ]
 }

@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 440 matching C functions /
-197,420 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 454 matching C functions /
+206,688 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -600,6 +600,17 @@ and assigned callback both identify `ReqItemKusuri`. Several MAIN request
 wrappers have identical relocated instruction shapes, so a matching shape
 alone cannot distinguish them. The medicine callback and complete TRIAL
 rebuild establish this identity.
+
+The polygon decoder and six fast/adaptive triangle/quad renderers now share
+MAIN's exact C implementations. Their callback-table placements distinguish
+the otherwise ambiguous renderer bodies; the decoder's 116-byte dispatch
+table is C-owned. The remaining three CD-handle helpers also share MAIN's C.
+
+TELOP adds two rasterizers / 2,120 bytes. Both use the BIOS Japanese glyph
+lookup directly; TRIAL has neither MAIN's ASCII-path guard nor its custom
+star glyph. `SetupTrialColoredTelop` selects one of six foreground/outline
+pairs from a per-call, 24-byte palette copy. The palette is C-owned, and the
+original white-text and colored-text loops both rebuild exactly.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
