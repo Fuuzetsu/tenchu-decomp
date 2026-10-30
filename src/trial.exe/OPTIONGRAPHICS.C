@@ -2,6 +2,29 @@
 #include "mission_menu.h"
 #include "../main.exe/images.h"
 
+/* The twelve theme names also supply a title when the player leaves it blank. */
+static const char ThemeDojo[] = "\223\271\217\352"; /* 道場 */
+static const char ThemeMerchantHouse[] = "\217\244\220l\211\256\225~"; /* 商人屋敷 */
+static const char ThemeCastleTown[] = "\217\351\211\272\222\254"; /* 城下町 */
+static const char ThemeCave[] = "\223\264\214A"; /* 洞窟 */
+static const char ThemeMountainPass[] = "\223\273"; /* 峠 */
+static const char ThemeSamuraiHouse[] = "\225\220\211\306\211\256\225~"; /* 武家屋敷 */
+static const char ThemeTemple[] = "\216\233\211@"; /* 寺院 */
+static const char ThemeHarbor[] = "\215`"; /* 港 */
+static const char ThemeMountainRoad[] = "\216R\223\271"; /* 山道 */
+static const char ThemeCastle[] = "\217\351"; /* 城 */
+static const char ThemeDarkCastle[] = "\210\305\217\351"; /* 闇城 */
+static const char ThemeFuture[] = "\202`\201D\202c\201D\202Q\202O\202R\202O"; /* Ａ．Ｄ．２０３０ */
+
+const TrialThemeNames TrialDefaultThemeNames = {{
+    ThemeDojo, ThemeMerchantHouse, ThemeCastleTown, ThemeCave,
+    ThemeMountainPass, ThemeSamuraiHouse, ThemeTemple, ThemeHarbor,
+    ThemeMountainRoad, ThemeCastle, ThemeDarkCastle, ThemeFuture
+}};
+
+const char path_trial_settings[] = "K:\\WORK\\CDIMAGE\\TRIAL\\IMAGE\\NINSET.ARC";
+const char fmt_trial_default_title[] = "\214\325\202\314\212\252\224C\226\261\201@%s"; /* 虎の巻任務　%s */
+
 void DisposeTrialOptionGraphics(void)
 {
     int i;

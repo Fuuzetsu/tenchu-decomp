@@ -30,9 +30,32 @@ enum trial_confirmation_sprite
 
 enum trial_menu_sound
 {
+    TRIAL_SOUND_CURSOR = 3,
     TRIAL_SOUND_ACCEPT = 4,
     TRIAL_SOUND_CANCEL = 5,
-    TRIAL_SOUND_CHARACTER = 6
+    TRIAL_SOUND_CHARACTER = 6,
+    TRIAL_SOUND_UNLOCK = 7,
+    TRIAL_SOUND_OPTION = 11,
+    TRIAL_SOUND_ERROR = 37
+};
+
+enum trial_text_mode
+{
+    TRIAL_TEXT_TITLE,
+    TRIAL_TEXT_PASSWORD,
+    TRIAL_TEXT_AUTHOR
+};
+
+enum trial_setting_field
+{
+    TRIAL_FIELD_TITLE = 1,
+    TRIAL_FIELD_AUTHOR,
+    TRIAL_FIELD_PASSWORD,
+    TRIAL_FIELD_THEME,
+    TRIAL_FIELD_OBJECTIVE,
+    TRIAL_FIELD_STEALTH,
+    TRIAL_SETTINGS_CONTINUE = 10,
+    TRIAL_SETTINGS_LEAVE = 11
 };
 
 typedef struct TrialMissionPreview
@@ -70,6 +93,14 @@ typedef struct TrialPersistentState
     (*(TrialRecordName *)((u8 *)&TRIAL_PERSISTENT_STATE->preset_records[0][0].name + \
         (preset) * sizeof(TRIAL_PERSISTENT_STATE->preset_records[0]) + \
         (rank) * sizeof(TrialMissionRecord)))
+
+typedef struct TrialThemeNames
+{
+    const char *text[TRIAL_THEME_COUNT];
+} TrialThemeNames;
+extern const TrialThemeNames TrialDefaultThemeNames;
+extern const char path_trial_settings[];
+extern const char fmt_trial_default_title[];
 
 /* Labels shared by mission previews and the confirmation screen. */
 typedef struct TrialObjectiveLabels
@@ -139,6 +170,11 @@ void ResetTrialConfirmationGraphics(void);
 void DisposeTrialConfirmationGraphics(void);
 void DisposeTrialOptionGraphics(void);
 void LoadTrialOptionGraphics(short editing);
+short EditTrialMissionSettings(short editing, TrialMissionHeader *header);
+void ShowTrialTextEntry(short mode);
+void EditTrialTextField(short mode, char *text, int size);
+short UpdateTrialCardCheck(u_long pressed, short existing_mission);
+short AskRetryTrialPassword(void);
 void DrawTrialOptionArrows(short row, short value, short first_row_maximum);
 short GetTrialUnlockedThemes(short themes[TRIAL_THEME_COUNT]);
 

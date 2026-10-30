@@ -47,14 +47,16 @@ segments:
       - { start: 0x8a4, type: .rodata, name: PREVIEW, linker_section_order: .text }
       - { start: 0xad4, type: .rodata, name: DrawTrialMissionList, linker_section_order: .text }
       - { start: 0xb28, type: .rodata, name: LoadTrialConfirmationGraphics, linker_section_order: .text }
-      - [0xbbc, textbin]
-      - { start: 0xc50, type: .rodata, name: OPTIONGRAPHICS, linker_section_order: .text }
-      - [0xc6c, textbin]
+      - { start: 0xbbc, type: .rodata, name: OPTIONGRAPHICS, linker_section_order: .text }
+      - { start: 0xc6c, type: .rodata, name: EditTrialMissionSettings, linker_section_order: .text }
+      - [0xc88, textbin]
       - { start: 0xc8c, type: .rodata, name: RunMissionEditor, linker_section_order: .text }
       - [0xca0, textbin]
       - { start: 0xd34, type: .rodata, name: ConfirmTrialMission, linker_section_order: .text }
       - { start: 0xd64, type: .rodata, name: GetTrialMissionNarrationCue, linker_section_order: .text }
       - [0xd78, textbin]
+      - { start: 0xd7c, type: .rodata, name: ConfigureTrialMission, linker_section_order: .text }
+      - [0xdd0, textbin]
       - { start: 0xfb4, type: .rodata, name: MOTION, linker_section_order: .text }
       - [0x13cc, textbin]
       - { start: 0x153c, type: .rodata, name: APPEAR, linker_section_order: .text }
@@ -85,9 +87,9 @@ segments:
       - [0x7bd4, c, GetTrialMissionNarrationCue]
       - [0x7ccc, c, ConfigureTrialMission]
       - [0x8060, c, OPTIONGRAPHICS]
-      - [0x84c0, c, FUN_80018cc0]
+      - [0x84c0, c, EditTrialMissionSettings]
       - [0x8e98, c, VerifyTrialMissionPassword]
-      - [0x8fb4, c, FUN_800197b4]
+      - [0x8fb4, c, AskRetryTrialPassword]
       - [0x9114, c, PrepareTrialMemoryCard]
       - [0x9228, c, main]
       - [0x9304, c, MENUGRAPHICS]
@@ -148,7 +150,7 @@ segments:
       - [0x3e538, c, fast_tnf3_]
       - [0x3e910, c, fast_tng3_]
       - [0x3ece8, c, FUN_8004f4e8]
-      - [0x3eeb4, c, FUN_8004f6b4]
+      - [0x3eeb4, c, UpdateTrialCardCheck]
       - [0x3f154, c, FUN_8004f954]
       - [0x3f6d0, c, FUN_8004fed0]
       - [0x3ffe0, c, FUN_800507e0]
@@ -184,7 +186,7 @@ segments:
       - [0x49eb0, c, EDITORUTIL]
       - [0x4a1c8, c, FUN_8005a9c8]
       - [0x4a1f4, c, FUN_8005a9f4]
-      - [0x4a290, c, FUN_8005aa90]
+      - [0x4a290, c, ShowTrialTextEntry]
       - [0x4a73c, c, FUN_8005af3c]
       - [0x4ada4, c, FUN_8005b5a4]
       - [0x4afe0, c, FUN_8005b7e0]
@@ -192,7 +194,7 @@ segments:
       - [0x4ba24, c, FUN_8005c224]
       - [0x4bc20, c, FUN_8005c420]
       - [0x4cd3c, c, DrawTrialScreenFade]
-      - [0x4cf30, c, FUN_8005d730]
+      - [0x4cf30, c, EditTrialTextField]
       - [0x4cf90, c, FUN_8005d790]
       - [0x4d11c, c, FUN_8005d91c]
       - [0x4d17c, c, FUN_8005d97c]
@@ -895,6 +897,8 @@ segments:
       - { start: 0x868d0, type: .sdata, name: PREVIEW, linker_section_order: .data }
       - { start: 0x868dc, type: .sdata, name: CHARACTER, linker_section_order: .data }
       - [0x868e0, data]
+      - { start: 0x86914, type: .sdata, name: OPTIONGRAPHICS, linker_section_order: .data }
+      - { start: 0x86950, type: .sdata, name: EditTrialMissionSettings, linker_section_order: .data }
       - { start: 0x86954, type: .sdata, name: MENURESOURCES, linker_section_order: .data }
       - [0x8695c, data]
       - { start: 0x869d4, type: .sdata, name: MOTION, linker_section_order: .data }

@@ -55,8 +55,7 @@ struct TrialMissionHeader
     u16 flags;              /* 0x04: objective in bits 0..2; stealth in bit 3 */
     s16 theme;              /* 0x06: shared stage assets and card icon */
     char title[32];         /* 0x08 */
-    char author[16];        /* 0x28 */
-    u16 unknown_setting;    /* 0x38: meaning still under review */
+    char author[18];        /* 0x28: text-entry copy includes all eighteen bytes */
     char password[18];      /* 0x3a */
     TrialMissionRecord records[TRIAL_MISSION_RECORD_COUNT]; /* 0x4c */
 }; /* 0xec */

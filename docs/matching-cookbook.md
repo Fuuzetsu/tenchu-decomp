@@ -3259,3 +3259,31 @@ with `>>= 1`, then computing its midpoint with another `>> 1`, avoids the
 extra narrowing mask emitted for `/= 2`. A 32-bit temporary also removes the
 mask but changes the load/result register tie. The shift form matches the
 original 816 bytes and directly expresses selecting one half of an atlas strip.
+
+### TRIAL settings: combined byte checks and scalar modes
+
+`VerifyTrialMissionPassword` checks `password[0] == 0 && password[1] == 0`.
+cc1 combines these adjacent byte comparisons into a word load at header offset
+0x38 followed by an upper-half mask, even though the password starts at 0x3a.
+A cast to `u16 *` instead emits `lhu` and changes address materialization.
+Recover the ordinary byte conditions before inventing a word-view overlay.
+The phase is a short: its bounded values remove sign extensions, but the
+HI-to-SI copy remains. An int phase removes that copy and is four bytes short.
+The complete 284-byte routine matches with the two byte checks and short phase.
+
+`EditTrialMissionSettings` keeps the selected stealth mask in a short, then
+normalizes it with `stealth = stealth != 0`. Testing the header bit directly
+produces a shift-and-mask; the separate short assignment gives the original
+AND and unsigned nonzero test. Its change flag is also short: using int removes
+eight bytes in each left/right handler by eliminating conversion copies.
+`(int)strlen(password) / 2` retains the original signed division adjustment.
+Multiplying a short theme ID by 16 preserves its halfword load; spelling the
+operation as a left shift lets this compiler narrow that load to one byte.
+
+The form initializes its previous-button word before explicitly copying its
+seven sprite references. A static const table plus `__builtin_memcpy` preserves
+this stack-copy order. For the cheat handler, set the progress bit, rebuild the
+unlocked-theme list, then mark the code used. cc1 schedules that last store
+before the call, matching the original instruction order. Marking it before
+the call in C moves the store ahead of the progress-word load. This ordinary
+ordering matches all 2,520 bytes without an alternate persistent-RAM alias.

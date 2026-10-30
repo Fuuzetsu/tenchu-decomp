@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 495 matching C functions /
-220,972 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 500 matching C functions /
+225,140 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -545,8 +545,10 @@ while overwrite mode writes the existing file. The shared 0x200-byte card
 header precedes the mission payload. `LoadTrialCard` copies a 0x1d3c-byte
 (7,484-byte) mission from a complete card block, or reads just the 0xec-byte
 (236-byte) mission header for browsing. `mission.h` records the observed
-title, author, password, theme, and ten score records. Its map/layout regions
-and one header setting still await detailed field recovery.
+title, author, password, theme, and ten score records. Subsequent editor recovery
+identifies its map and placement records below. Text-entry copy lengths prove
+the author is eighteen bytes; the earlier sixteen-byte author plus an unknown
+two-byte setting was an incorrect field split.
 
 The checksum sums 0x48 metadata bytes beginning after the checksum word,
 0x800 map bytes, and 0x1450 layout bytes. It combines their sums as
@@ -643,8 +645,9 @@ The word at offset `0x10` remains unidentified. Persistent progress bits
 unlock themes 1..11; theme zero is always available, and the returned count
 excludes it. The detail frame moves in 50-pixel steps and clamps only the
 frame's x position; its preview sprite retains the original unclamped step.
-Two temporary `D_` aliases at `0x80087874` and `0x80087880` remain for
-unrecovered assembly consumers of the C-owned origin/confirmation arrays.
+A temporary `D_` alias at `0x80087874` remains for an unrecovered data-table
+consumer of the C-owned origin array; confirmation recovery removes the
+former alias at `0x80087880`.
 
 PREVIEW adds three functions / 1,580 bytes and owns 572 bytes of format
 strings, preset titles/authors, and the title-pointer table. It displays three
@@ -714,6 +717,29 @@ selects the current theme preview in edit mode, and hides the next-step hint
 while editing an existing mission. Disposal frees and clears every allocation.
 Thirty-two unused stack bytes precede the pointer table; their original type
 cannot be recovered from accesses and is left explicitly unidentified.
+
+The settings controller, form, text-field wrapper, password verification, and
+retry dialog add five functions / 4,168 bytes. The form preserves title,
+eighteen-byte author/password fields, theme, objective, and stealth choices.
+Themes can change only for new missions. Start requests a card-space check
+before entering the map editor; leaving an existing mission's settings retains
+its edits. Changing the objective resets required placements. An empty title
+becomes `虎の巻任務　<theme>` using twelve named theme strings.
+
+OPTIONGRAPHICS now also owns those names, their pointer table, settings archive
+path, and default-title format (208 bytes). The form owns its 28-byte sprite
+table and four-byte password-mask string, and the controller owns its 84-byte
+switch table. All these pointers are ordinary C relocations. Password checking
+tests the first two Shift-JIS bytes, opens the keyboard when needed, compares
+the result, and clears the entry buffer. Circle retries a wrong password;
+Start abandons entry.
+
+The form recognizes a code that sets the English-finale progress bit, unlocking
+the A.D. 2030 theme. Square-held input suppresses ordinary navigation while
+code recognition remains active. The original also evaluates `values[row - 4]`
+for text rows 1..3 before its arrow helper ignores that argument; this existing
+out-of-range read is retained and explicitly documented rather than silently
+changing the exact reconstruction.
 
 New-mission setup and editor helpers add four exact C functions / 1,052 bytes.
 `InitNewTrialMission` clears the serialized mission, fills its initial map,
