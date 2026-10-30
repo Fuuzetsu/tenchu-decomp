@@ -76,6 +76,7 @@ void DrawTrialMissionList(TrialMissionPreview *previews, short selected,
 void DisposeTrialMissionListGraphics(void);
 void LoadTrialMissionListGraphics(short editing);
 void LoadTrialPresetMission(TrialMissionPreview *preview);
+int UpdateTrialCharacterSelection(u_long pressed, short *character);
 void FormatTrialMissionPreview(TrialMissionHeader *header, TrialMissionPreview *preview);
 short LoadTrialPresetPreviews(short card_slot, TrialMissionHeader *headers,
                               TrialMissionPreview *previews);

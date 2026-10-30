@@ -71,8 +71,7 @@ segments:
       - [0x6060, c, MENULIST]
       - [0x6498, c, PREVIEW]
       - [0x6ac4, c, DrawTrialMissionList]
-      - [0x6ec0, c, ChooseTrialCharacter]
-      - [0x70e8, c, FUN_800178e8]
+      - [0x6ec0, c, CHARACTER]
       - [0x73d4, c, ConfirmTrialMission]
       - [0x7a24, c, FUN_80018224]
       - [0x7bd4, c, FUN_800183d4]
@@ -886,7 +885,8 @@ segments:
       - [0x7ab00, .data, EFFECT]
       - [0x7ab10, data]
       - { start: 0x868d0, type: .sdata, name: PREVIEW, linker_section_order: .data }
-      - [0x868dc, data]
+      - { start: 0x868dc, type: .sdata, name: CHARACTER, linker_section_order: .data }
+      - [0x868e0, data]
       - { start: 0x86954, type: .sdata, name: MENURESOURCES, linker_section_order: .data }
       - [0x8695c, data]
       - { start: 0x869d4, type: .sdata, name: MOTION, linker_section_order: .data }

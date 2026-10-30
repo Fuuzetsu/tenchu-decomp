@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 484 matching C functions /
-215,204 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 486 matching C functions /
+216,504 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -679,6 +679,14 @@ The two padding bytes in each record retain the preset file's contents.
 The list renderer reveals five rows at two-frame intervals, colors the
 selection yellow, and draws its author and top three records. Missing-card,
 unformatted-card, and empty-list messages have separately centered positions.
+
+CHARACTER adds two functions / 1,300 bytes and four C-owned bytes of
+animation state. Character selection loads the two portraits, plays cue 15,
+handles confirmation/cancellation and fades, then writes the selected character
+to the persistent handoff. A selection change takes four updates: the incoming
+portrait moves from x = ±600 and z = 1100 to the center at z = 300, brightening
+by 16 each step, while the other portrait dims and recedes. Polling is inhibited
+throughout this transition, preserving the original input behavior.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

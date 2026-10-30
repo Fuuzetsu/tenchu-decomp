@@ -10,7 +10,7 @@
 0x800170e4	480	SortTrialSpritePrimitive
 0x800172c4	1020	DrawTrialMissionList
 0x800176c0	552	ChooseTrialCharacter
-0x800178e8	748	FUN_800178e8
+0x800178e8	748	UpdateTrialCharacterSelection
 0x80017bd4	1616	ConfirmTrialMission
 0x80018224	432	FUN_80018224
 0x800183d4	248	FUN_800183d4
