@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 559 matching C functions /
-277,540 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 560 matching C functions /
+281,164 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -586,7 +586,7 @@ The reset loop's callback comparison identifies the final empty function as
 `UpdateTexScroll`. EFFECT owns 16 bytes of image IDs, 32 bytes of small
 constants, and a twelve-byte image-ID array in the leading data region.
 
-ITEM adds 51 entries / 23,872 bytes, with a C-owned 100-byte dispatch table
+ITEM adds 51 entries / 20,248 bytes, with a C-owned 100-byte dispatch table
 and 32 bytes of state/constants. Its shared active handlers cover projectiles,
 medicine, grappling, caltrops, and dropped items. `MoveKorogari` adds a terrain
 probe 500 units above the item and uses its `FieldAttrib` result for the water
@@ -1061,10 +1061,22 @@ the available CD presets when the card directory cannot be read. The existing
 runtime scenario does not yet exercise browsing, loading, or deletion from
 this screen.
 
-The 559-function checkpoint passes all six executable hashes and all 40 focused
+`SetupTrialMission` recovers all 3,624 bytes and owns its eight resource strings
+(284 bytes). It loads the selected theme and map, constructs the timer, event
+notices, failure banner and enemy candles, and places actors at grid-cell centers.
+Named AI policies retain controller-two takeover for bosses and the princess,
+randomized combat reactions, escort targeting, and the non-colliding herb.
+Patrols expand into world-space trace points; open paths append their interior
+points in reverse order. Setup also initializes mission statistics, camera,
+starting items, and traps. Mode zero reuses the live editor map for playtesting;
+a negative mode unloads the appearance and theme resources.
+The full preview/text/character/playtest/save scenario passes again with this
+setup routine compiled from C, including the complete on-card payload check.
+
+The 560-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 559/1,216 exact TRIAL rows and 277,540/466,728 TRIAL code
-bytes. Across all targets it records 1,491 complete functions and 698,728
+3,449 units, including 560/1,216 exact TRIAL rows and 281,164/466,728 TRIAL code
+bytes. Across all targets it records 1,492 complete functions and 702,352
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1079,8 +1091,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 577/586 rows and 283,912/307,784 bytes; nine compiled game
-routines / 23,872 bytes remain. The assembly classification adds no decomp.dev
+game completion is 578/586 rows and 287,536/307,784 bytes; eight compiled game
+routines / 20,248 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

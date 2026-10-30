@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  559 functions / 277,540 bytes now compile as exact C, including startup,
+  560 functions / 281,164 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -21,7 +21,7 @@ byte-identical `main.exe`.
   editor controller, card check/load/save/delete screens, save/exit prompts,
   command menu, theme loader, score calculation, generated-terrain cleanup,
   screen fade, and text-entry loop, graphics loading, input controller, cleanup,
-  glyph rasterizer, navigation helpers, mission actor activation, timer/event
+  glyph rasterizer, navigation helpers, mission setup and actor activation, timer/event
   notices, enemy candles, failure banner, and results/new-record screens
   are also C. Terrain height/vertex/texture helpers, chunk lifetime, ornament
   rendering, tile captions, map initialization, and placement/patrol validation
@@ -44,12 +44,12 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  577/586 rows and 283,912/307,784 bytes. Graphics preserves TRIAL's larger
+  578/586 rows and 287,536/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with the nine remaining compiled routines (23,872 bytes): the collision-map
-  builder, terrain/patrol editing, mission setup/execution, and the remaining
+  with the eight remaining compiled routines (20,248 bytes): the collision-map
+  builder, terrain/patrol editing, mission execution, and the remaining
   text/record/pad drafts. Full-image equality
   and readable source remain required; this is not a completion claim.
   See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).

@@ -69,7 +69,8 @@ segments:
       - { start: 0x1ad0, type: .rodata, name: ITEM, linker_section_order: .text }
       - [0x1b34, textbin]
       - { start: 0x1c24, type: .rodata, name: MISC, linker_section_order: .text }
-      - [0x1c44, textbin]
+      - { start: 0x1c44, type: .rodata, name: SetupTrialMission, linker_section_order: .text }
+      - [0x1d60, textbin]
       - { start: 0x1d94, type: .rodata, name: DrawTrialMissionTimer, linker_section_order: .text }
       - [0x1da8, textbin]
       - { start: 0x2a90, type: .rodata, name: UpdateTrialSuccessPage, linker_section_order: .text }

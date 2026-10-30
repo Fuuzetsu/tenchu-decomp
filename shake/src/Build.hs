@@ -476,6 +476,10 @@ maspsxGpExterns src = extra (takeBaseName src) <>
           ["TrialMissionListPanel", "TrialThemePreviewSprite", "TrialListHelp",
            "TrialListTitle", "TrialListHighlight"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "SetupTrialMission" =
+          ["StagePlayer", "StageBosses", "StageEnemies", "StageCitizens",
+           "Criticals", "Findenemies", "Murders", "FriendHits"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "CHARACTER" =
           ["TrialCharacterBackground", "TrialCharacterPortraits"]
       | takeFileName (takeDirectory src) == "trial.exe" &&

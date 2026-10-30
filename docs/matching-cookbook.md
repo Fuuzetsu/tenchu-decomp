@@ -3382,6 +3382,24 @@ and needs only the one useful label pointer. Navigation similarly reads the
 current selection once into an int before choosing the increment and applying
 signed modulo; duplicating the global read in the two arms changes the loop.
 
+### TRIAL mission setup: packed policies and patrol counts
+
+`SetupTrialMission` assembles the four AI nibbles in an unsigned short.
+Combine the deterministic choices in one expression, then apply random policy
+bits with ordinary `if (rand() & 1)` branches. Sequential assignments to the
+same full-width local prevent delay-slot speculation because each OR would
+overwrite its own input. A compound assignment whose right side calls `rand`
+instead promotes the old halfword before the call, adding an `andi` in the
+delay slot. The combined expression plus branch-local ORs retains the original
+registers and empty delay slots without forcing registers.
+
+The short patrol index first holds the expanded route count, then walks the
+allocated trace. `j += (short)(route_last - 1)` retains the original addition
+to `route_last + 1`; omitting the narrow intermediate folds the open-path count
+into twice the last index. Assigning the patrol pointer inside the nonzero
+route condition also preserves the original index-first address addition.
+These source forms recover the complete 3,624-byte routine.
+
 
 ### TRIAL terrain: narrow offsets, wrapping scans, and field lookup timing
 
