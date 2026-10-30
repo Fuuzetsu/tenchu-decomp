@@ -85,12 +85,7 @@ void InitNewTrialMission(void)
     SetupTrialObjectivePlacements(1);
 }
 
-/* The readable draft is four bytes short: row-index normalization differs
- * from the original. Keep the original function until this compiler pattern
- * is recovered; it is deliberately excluded from the matching-C count. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/trial.exe/asm/nonmatchings/EDITORUTIL", FillTrialMissionMap);
-#else
+/* Fill the ground layer with the theme default and clear ornaments. */
 void FillTrialMissionMap(void)
 {
     short x = 0;
@@ -102,35 +97,12 @@ void FillTrialMissionMap(void)
     {
         mission->map[z][x][0] = tile;
         mission->map[z][x][1] = TRIAL_EMPTY_TILE;
-        if (++x >= TRIAL_MAP_WIDTH)
-        {
-            x = 0;
-            z++;
-        }
+        z += ++x >= TRIAL_MAP_WIDTH ? (x = 0, 1) : 0;
     } while (z < TRIAL_MAP_HEIGHT);
 }
 
-#endif
-
-/* The placement validator uses this terrain-kind classification: the five
- * regular support classes return 1, class 0xa0 returns 0, and others -1.
- * The same switch is inlined in the live placement-validation path. */
-short ClassifyTrialTerrainSupport(short kind)
-{
-    switch (kind)
-    {
-    case 0x10:
-    case 0x20:
-    case 0x30:
-    case 0x40:
-    case 0x50:
-        return 1;
-    case 0xa0:
-        return 0;
-    default:
-        return -1;
-    }
-}
+#define TRIAL_DEFINE_TERRAIN_SUPPORT
+#include "terrain_support.h"
 
 /* Upload one TIM and expose its vertical frames as ordinary LIBGS sprites.
  * With zero frames, only the full-image sprite at index zero is initialized. */

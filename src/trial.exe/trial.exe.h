@@ -4,6 +4,10 @@
 
 #include "../main.exe/main.exe.h"
 
+/* TRIAL reserves 74 KiB per graphics packet page. */
+enum { TRIAL_PACKET_PAGE_SIZE = 0x12800 };
+extern u8 Packet[][TRIAL_PACKET_PAGE_SIZE];
+
 #define TRIAL_STATE ((TLinkInfo *)TENCHU_PERSISTENT_STATE_ADDRESS)
 
 /* Values below 100 select TRIAL<n><R/A>.VAB; larger values select the

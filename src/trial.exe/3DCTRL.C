@@ -21,9 +21,6 @@
 
 extern GsOT_TAG ZSortTable[N_DRAW_PAGES][N_OT_TAGS];
 extern s32 SlightPoint;
-/* The editor reserves 74 KiB per packet page. */
-enum { TRIAL_PACKET_PAGE_SIZE = 0x12800 };
-extern u8 Packet[][TRIAL_PACKET_PAGE_SIZE];
 extern u32 PacketUsed;
 extern s32 time;
 extern VECTOR vector;

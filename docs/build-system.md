@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 534 matching C functions /
-250,708 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 544 matching C functions /
+255,592 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -934,11 +934,37 @@ dispatch table, statistic-pointer initializer, strings, and paths add 276
 C-owned bytes. The guarded `UpdateTrialRecordSave` draft still needs matching;
 recovering its callers does not make that final callback C-complete.
 
-The 534-function checkpoint passes all six executable hashes and all 40 focused
+Ten terrain/editor routines add another 4,884 exact C bytes. The recovered
+code initializes the two map layers, looks up terrain heights, deduplicates
+vertices and assigns their shading, builds textured full/half-height quads,
+creates/disposes sixty-four 4x4 terrain chunks, and draws nearby ornaments
+with packet-buffer headroom. `terrain_model.h` shares the callable and inlined
+terrain disposer; `terrain_support.h` does the same for the support classifier.
+`ValidateTrialEditorMap` rejects theme-incompatible tiles, permits disguised
+ornaments over holes, and repairs occupied cells. `ValidateTrialPlacements`
+clears ornaments under characters, supplies supported ground, and truncates
+patrols at the first blocked walking step. `IsTrialPatrolStepBlocked` handles
+both ramp heights and their cardinal orientations in both directions.
+
+`PrepareTrialTileLabel` owns the seventeen-entry caption table and its Japanese
+strings. These confirm ground, 1–4 m ledges, 1/2 m ramps, wall, hole, pond,
+thick/thin objects, trigger, shooter/disguise, and lighting flags. The ten-entry
+height table plus caption pointers/strings add 240 C-owned data bytes. The
+previously guarded `FillTrialMissionMap` is now ordinary exact C; the other
+text-entry and record-save drafts retain their assembly fallbacks.
+
+The combined text-entry/playtest/save probe passes again at this checkpoint:
+83 mission polls, four activation calls, 82 timer/notice updates, and all 7,484
+saved payload bytes verified before returning at VSync 3,066. This remains a
+default-map scenario; rotated ramps, a populated ornament list, patrol
+truncation, and special terrain/trap branches are not individually exercised.
+
+The 544-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 534/1,216 exact TRIAL rows and 250,708/466,728 TRIAL code
-bytes. Those report denominators include SDK assembly; the game/editor-only
-denominators remain 586 rows and 307,784 bytes. No remote report was published.
+3,449 units, including 544/1,216 exact TRIAL rows and 255,592/466,728 TRIAL code
+bytes. Across all targets it records 1,476 complete functions and 676,780
+complete code bytes out of 1,231,032. Those report denominators include SDK
+assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
 TRIAL also contains all 18 of MAIN's already-approved handwritten originals:
 `eval_spline_gte_`, `DrawTMD`, and the sixteen primitive handlers. The spline
@@ -951,8 +977,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 552/586 rows and 257,080/307,784 bytes; 34 compiled game
-routines / 50,704 bytes remain. The assembly classification adds no decomp.dev
+game completion is 562/586 rows and 261,964/307,784 bytes; 24 compiled game
+routines / 45,820 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

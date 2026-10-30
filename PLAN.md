@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-30).**
-  534 functions / 250,708 bytes now compile as exact C, including startup,
+  544 functions / 255,592 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -23,7 +23,9 @@ byte-identical `main.exe`.
   screen fade, and text-entry loop, graphics loading, input controller, cleanup,
   glyph rasterizer, navigation helpers, mission actor activation, timer/event
   notices, enemy candles, failure banner, and results/new-record screens
-  are also C. A repeatable PCSX-Redux check enters terrain editing through
+  are also C. Terrain height/vertex/texture helpers, chunk lifetime, ornament
+  rendering, tile captions, map initialization, and placement/patrol validation
+  now compile exactly too. A repeatable PCSX-Redux check enters terrain editing through
   Create/settings/card check and verifies
   cursor movement. Its save scenario also verifies the complete on-card mission
   payload after returning to the editor. The keyboard scenario verifies category
@@ -35,12 +37,13 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  552/586 rows and 257,080/307,784 bytes. Graphics preserves TRIAL's larger
+  562/586 rows and 261,964/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with engine variants and the remaining editor UI,
-  mission serialization, placement, and playtest flow. Full-image equality
+  with the 24 remaining compiled routines (45,820 bytes): terrain/collision
+  builders, editor UI, mission setup/execution, traps, and the remaining
+  text/record/pad drafts. Full-image equality
   and readable source remain required; this is not a completion claim.
   See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).
 - **ENDING.EXE game/engine decompilation is complete (2026-10-21).** All

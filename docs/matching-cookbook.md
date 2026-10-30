@@ -3356,3 +3356,34 @@ add operands. Moving the actual element lookup earlier matches all 856 bytes
 and needs only the one useful label pointer. Navigation similarly reads the
 current selection once into an int before choosing the increment and applying
 signed modulo; duplicating the global read in the two arms changes the loop.
+
+
+### TRIAL terrain: narrow offsets, wrapping scans, and field lookup timing
+
+`SetupTrialTerrainPrimitive` adjusts its byte texture coordinate with
+`v += half == 1 ? 0 : 32`. The branch still needs the promoted old byte on its
+zero-add path. An `if (half != 1) v += 32` or a conditional whole-value
+assignment loses that promotion and is four bytes short. The compound offset
+matches the entire 232-byte constructor.
+
+The same pattern applies to the short row counters in `UpdateTrialTerrainChunks`
+and `FillTrialMissionMap`: `z += ++x >= width ? (x = 0, 1) : 0` advances a
+row-major scan with carry. An equivalent `if` that resets x and increments z
+omits narrowing on the no-carry path. Restoring the compound carry matches both
+chunk loops (684 bytes total) and the previously four-byte-short map fill
+(140 bytes). The chunk table is indexed as `z * 8 + x`; a two-dimensional
+pointer array gives separate scaled row/column offsets instead.
+
+`FindOrAddTrialTerrainVertex` scales the selected height as
+`(y != -6 ? y : -8) * TrialTerrainScale`. Writing the multiplication separately
+in each conditional arm changes promotion and hoisting. Narrow the random
+brightness sum to a short before subtracting the height contribution; otherwise
+cc1 moves the +80 into the subtracted expression. These ordinary integer
+expressions recover all 508 bytes, including the guarded variable divide.
+
+`PrepareTrialTileLabel` computes and keeps its kind index inside the first
+caption-table subscript. Computing it in a separate statement preserves length
+but schedules the buffer/table address loads differently around the prologue.
+The integrated lookup matches 416 bytes. Its static pointer initializer emits
+the seventeen Shift-JIS literals in reverse order within each size-selected
+section, matching the original `.rodata` and `.sdata` spans.
