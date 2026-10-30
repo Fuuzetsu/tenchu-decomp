@@ -4,17 +4,12 @@
 
 extern const u16 TrialSpecialGlyphCodes[];
 
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/trial.exe/asm/nonmatchings/PopulateTrialKeyboard", PopulateTrialKeyboard);
-#else
-/* The 1,044-byte draft still differs from the 1,040-byte original in its
- * kanji-loop setup. The fixed-page path and the loop bodies are recovered. */
-
 /* The four fixed pages use byte offsets; symbols and kanji use the BIOS
  * font ranges. Texture columns run right to left, while the cursor buffer
  * stores a conventional row-major grid. */
 void PopulateTrialKeyboard(RECT *area, short columns, short rows)
 {
+    TrialKanjiRange *glyph_range;
     RECT rect = *area;
     int x, y, column;
     u16 category, code;
@@ -68,15 +63,16 @@ void PopulateTrialKeyboard(RECT *area, short columns, short rows)
         range = page->range;
         column = page->column_index;
         starts = range->column_starts;
+        glyph_range = range;
         for (x = 0; x < columns; x++)
         {
-            if (column < range->column_count)
+            if (column < glyph_range->column_count)
                 code = starts[column];
             else
                 code = TRIAL_SJIS_SPACE;
             for (y = 0; y < rows; y++)
             {
-                if (code > range->last_code || code == TRIAL_SJIS_SPACE)
+                if (code > glyph_range->last_code || code == TRIAL_SJIS_SPACE)
                 {
                     UploadTrialGlyph(TRIAL_SJIS_SPACE, &rect);
                     if (columns != 1)
@@ -99,5 +95,3 @@ void PopulateTrialKeyboard(RECT *area, short columns, short rows)
         break;
     }
 }
-
-#endif

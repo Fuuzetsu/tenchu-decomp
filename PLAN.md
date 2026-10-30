@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  562 functions / 290,812 bytes now compile as exact C, including startup,
+  563 functions / 291,852 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -21,8 +21,8 @@ byte-identical `main.exe`.
   editor controller, card check/load/save/delete screens, save/exit prompts,
   command menu, theme loader, score calculation, generated-terrain cleanup,
   screen fade, and text-entry loop, graphics loading, input controller, cleanup,
-  glyph rasterizer, navigation helpers, mission setup and actor activation, timer/event
-  notices, enemy candles, failure banner, and results/new-record screens
+  glyph rasterizer, keyboard grid population, navigation helpers, mission setup
+  and actor activation, timer/event notices, enemy candles, failure banner, and results/new-record screens
   are also C. Terrain height/vertex/texture helpers, chunk lifetime, ornament
   rendering, tile captions, map initialization, and placement/patrol validation
   now compile exactly too. Trigger/arrow traps, collapsing floors, patrol captions,
@@ -46,11 +46,11 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  580/586 rows and 297,184/307,784 bytes. Graphics preserves TRIAL's larger
+  581/586 rows and 298,224/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with the six remaining compiled routines (10,600 bytes): the collision-map
+  with the five remaining compiled routines (9,560 bytes): the collision-map
   builder, mission execution, and the remaining
   text/record/pad drafts. Full-image equality
   and readable source remain required; this is not a completion claim.

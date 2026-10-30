@@ -3589,3 +3589,12 @@ changes address formation. For the compass quad, assign `u0`/`v0`, derive
 corners. Inventing separate U/V temporaries changes promotions, register
 allocation, and scheduling. Ordinary field reuse, as in the matched character
 thumbnail renderer, matches every instruction without extra temporaries.
+
+**Cache the descriptor used by a nested glyph walk separately from page setup.**
+In `PopulateTrialKeyboard`, setup reads the page range, starting column, and
+column-start table before rendering. Keeping a separate `glyph_range` local
+for the column-count and last-code checks changes cc1's spill and scheduling
+choices in the preheader, matching all 1,040 bytes. Both pointers reference
+the same range throughout the loop; no extra reload or behavior change is
+needed. A bounded permuter found this ordinary pointer copy after direct
+page indexing and statement reordering failed.
