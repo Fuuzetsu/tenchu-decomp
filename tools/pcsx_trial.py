@@ -9,7 +9,9 @@ in a temporary directory. With --save, save the new mission through the editor
 and compare its on-card payload with game memory. With --text-entry, switch
 keyboard categories, insert/delete Latin text, scroll a kanji range, select a
 kanji, and verify the index return and Shift-JIS export. This does not cover
-disc handoff, overwriting/deleting a mission, or playtest.
+disc handoff or overwriting/deleting a mission. With --playtest, enter the
+mission through the command menu, observe actor/HUD updates, and return to
+terrain editing with the normal Select+Start shortcut before optional saving.
 """
 
 from __future__ import annotations
@@ -44,6 +46,10 @@ PROBE_SYMBOLS = {
     "CARD_SAVE": "UpdateTrialCardSave",
     "TEXT": "ShowTrialTextEntry",
     "TEXT_INPUT": "UpdateTrialTextEntry",
+    "RUN_MISSION": "RunTrialMission",
+    "ACTIVATE": "ActivateTrialHumans",
+    "TIMER": "DrawTrialMissionTimer",
+    "NOTICE": "UpdateTrialTimeNotice",
 }
 
 
@@ -86,6 +92,8 @@ def run() -> int:
                         help="save through the editor and verify the temporary card file")
     parser.add_argument("--text-entry", action="store_true",
                         help="edit the title through the Japanese keyboard before creating the map")
+    parser.add_argument("--playtest", action="store_true",
+                        help="playtest the new mission and return through Select+Start before optional saving")
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
@@ -114,11 +122,15 @@ def run() -> int:
         environment["TENCHU_TRIAL_MAP_END"] = str(
             metadata.symbol("EditTrialTerrain") + sizes["EditTrialTerrain"]
         )
+        environment["TENCHU_TRIAL_RUN_MISSION_END"] = str(
+            metadata.symbol("RunTrialMission") + sizes["RunTrialMission"]
+        )
         # This sprite is still owned by the unrecovered terrain graphics code.
         environment["TENCHU_TRIAL_CURSOR"] = str(metadata.symbol("D_800CC6E8"))
         environment["TENCHU_TRIAL_MISSION"] = str(metadata.symbol("TrialMission"))
         environment["TENCHU_TRIAL_SAVE"] = "1" if args.save else "0"
         environment["TENCHU_TRIAL_TEXT_ENTRY"] = "1" if args.text_entry else "0"
+        environment["TENCHU_TRIAL_PLAYTEST"] = "1" if args.playtest else "0"
         for key, symbol in {"KEYBOARD_CURSOR": "TrialKeyboardCursor",
                             "TEXT_CURSOR": "TrialEditedTextCursor",
                             "KANJI_SELECTION": "TrialKanjiIndexSelection",

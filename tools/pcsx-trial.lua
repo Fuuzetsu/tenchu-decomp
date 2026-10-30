@@ -9,7 +9,8 @@ local function num(key)
 end
 local addr, word = {}, {}
 for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD',
-                     'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE', 'TEXT', 'TEXT_INPUT'}) do
+                     'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE', 'TEXT', 'TEXT_INPUT',
+                     'RUN_MISSION', 'ACTIVATE', 'TIMER', 'NOTICE'}) do
     addr[key] = num(key)
     word[key] = num(key .. '_WORD')
 end
@@ -45,6 +46,7 @@ local p = TenchuTrialProbe
 local mapEnd, cursor, mission = num('MAP_END'), num('CURSOR'), num('MISSION')
 local save, saveState = num('SAVE') ~= 0, num('SAVE_STATE')
 local textEntry = num('TEXT_ENTRY') ~= 0
+local playtest, missionEnd = num('PLAYTEST') ~= 0, num('RUN_MISSION_END')
 local function fail(reason)
     if p.done then return end
     p.done = true
@@ -118,10 +120,27 @@ hook('MAP', function()
     screen('map')
 end)
 hook('COMMANDS', function()
-    if not save or p.screen == 'commands' then return end
+    if not (save or playtest) or p.screen == 'commands' then return end
     if bit.band(tonumber(PCSX.getRegisters().GPR.n.a0), 0xffff) ~= 0 then
         screen('commands')
         ready()
+    end
+end)
+hook('RUN_MISSION', function()
+    if not playtest then return end
+    p.playtestEntered = true
+    p.missionPolls, p.activationChecks, p.timerDraws, p.noticeDraws = 0, 0, 0, 0
+    screen('mission')
+end)
+hook('ACTIVATE', function()
+    if p.screen == 'mission' then p.activationChecks = p.activationChecks + 1 end
+end)
+hook('TIMER', function()
+    if p.screen == 'mission' then p.timerDraws = p.timerDraws + 1 end
+end)
+hook('NOTICE', function()
+    if p.screen == 'mission' and bit.band(tonumber(PCSX.getRegisters().GPR.n.a0), 0xffff) == 0xffff then
+        p.noticeDraws = p.noticeDraws + 1
     end
 end)
 hook('EDITOR_SAVE', function()
@@ -142,6 +161,9 @@ hook('REALPAD', function()
         p.mapPolls = p.mapPolls + 1
         p.entryPolls = p.entryPolls + 1
         if p.entryPolls >= 2 then ready() end
+    elseif p.screen == 'mission' and ra >= addr.RUN_MISSION and ra < missionEnd then
+        p.missionPolls = p.missionPolls + 1
+        if p.missionPolls >= 2 then ready() end
     end
 end)
 p.pause = PCSX.Events.createEventListener('ExecutionFlow::Pause', function(event)
@@ -293,15 +315,22 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 pad.setOverride(buttons.START)
             elseif t == 488 then pad.clearOverride(buttons.START) end
         elseif p.screen == 'commands' then
-            if t == 10 or t == 35 or t == 60 then pad.setOverride(buttons.DOWN)
+            local command = playtest and not p.playtestEntered and 4 or 5
+            if t == 10 or t == 35 or (t == 60 and command == 5) then pad.setOverride(buttons.DOWN)
             elseif t == 18 or t == 43 or t == 68 then pad.clearOverride(buttons.DOWN)
             elseif t == 90 then
-                if s16(num('COMMAND_SELECTION')) ~= 5 then
-                    fail('Save command was not selected')
+                if s16(num('COMMAND_SELECTION')) ~= command then
+                    fail('expected editor command ' .. command .. ' was not selected')
                     return
                 end
                 pad.setOverride(buttons.CIRCLE)
             elseif t == 98 then pad.clearOverride(buttons.CIRCLE) end
+        elseif p.screen == 'mission' then
+            if t == 160 then
+                p.playtestExitRequested = true
+                pad.setOverride(buttons.SELECT)
+                pad.setOverride(buttons.START)
+            elseif t == 172 then release() end
         elseif p.screen == 'save' then
             local state = s16(saveState)
             if state ~= p.saveState then
@@ -333,6 +362,31 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 end
                 return
             end
+            if playtest and p.playtestEntered then
+                if t >= 15 and not p.playtestPassed then
+                    if not p.playtestExitRequested or p.missionPolls < 30 or
+                        p.activationChecks < 2 or p.timerDraws < 20 or p.noticeDraws < 20 then
+                        fail('playtest actor/HUD/input/return assertion')
+                        return
+                    end
+                    p.playtestPassed = true
+                    print(string.format(
+                        'TENCHU_TRIAL playtest returned-to-map polls=%d activation=%d timer=%d notices=%d',
+                        p.missionPolls, p.activationChecks, p.timerDraws, p.noticeDraws))
+                end
+                if p.playtestPassed then
+                    if save then
+                        if t == 30 then pad.setOverride(buttons.SELECT)
+                        elseif t == 38 then pad.clearOverride(buttons.SELECT) end
+                    else
+                        p.done = true
+                        release()
+                        print('TENCHU_TRIAL PASS create/settings/card/editor/playtest returned-to-map vsyncs=' .. p.vsyncs)
+                        PCSX.quit(0)
+                    end
+                end
+                return
+            end
             local x = s16(cursor + 4) -- GsSPRITE.x
             if t == 1 and x ~= 0 then
                 fail('initial cursor assertion')
@@ -360,7 +414,7 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                     fail('new mission placement assertion')
                     return
                 end
-                if save then
+                if save or playtest then
                     if t == 100 then pad.setOverride(buttons.SELECT)
                     elseif t == 108 then pad.clearOverride(buttons.SELECT) end
                 else

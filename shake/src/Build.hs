@@ -510,6 +510,20 @@ maspsxGpExterns src = extra (takeBaseName src) <>
         takeBaseName src == "UpdateTrialRecordSave" =
           ["TrialResultsButtons", "TrialPresetId", "TrialUserMission"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "ShowTrialResults" = ["TrialRecordRank", "TrialResultTime"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "ShowTrialResultPage" = ["TrialResultsButtons"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialNewRecordPage" =
+          ["TrialResultsButtons", "TrialResultsNewButtons", "TrialRecordRank", "TrialResultTime",
+           "TrialNewRecordArchive", "TrialNewRecordBackground", "TrialNewRecordDigits"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src `elem` ["UpdateTrialSuccessPage", "UpdateTrialFailurePage"] =
+          ["TrialResultsButtons", "TrialResultsNewButtons", "TrialRecordRank", "TrialResultTime",
+           "TrialSuccessPanel", "TrialSuccessDigits", "TrialSuccessArchive", "TrialSuccessTextFrames",
+           "TrialFailurePanel", "TrialFailureDigits", "TrialFailureArchive", "TrialFailureTextFrames",
+           "TrialSuccessTitleX", "TrialFailureTitleX"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "SCORE" =
           ["StageBosses", "StageEnemies", "Findenemies", "Murders", "Criticals", "FriendHits"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
@@ -529,6 +543,12 @@ maspsxGpExterns src = extra (takeBaseName src) <>
            "TrialThemeOrnaments", "TrialTerrainOrnamentCount"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "DrawTrialScreenFade" = ["TrialFadeSprite"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialTimeNotice" = ["TrialTimeNoticeIndex", "TrialTimeNoticeTicks"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "DrawTrialEnemyCandles" = ["TrialRemainingEnemies"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "ActivateTrialHumans" = ["StagePlayer"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src `elem` ["LoadTrialGlyphGrid", "PopulateTrialKeyboard"] =
           ["TrialKeyboardCursor"]

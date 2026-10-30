@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 524 matching C functions /
-244,596 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 534 matching C functions /
+250,708 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -903,13 +903,40 @@ column, holds Left to scroll beyond the thirteen visible columns, inserts
 kanji 0x8a52, and verifies the restored index position and exported title in
 both settings and the mission header. Combined with saving, it verifies
 `BISLPS-01901M015f980` and returns to the editor at VSync 2,388 with 62 terrain
-pad polls. Playtest, the other three text modes, overwriting/deleting saves,
+pad polls. The extended `--text-entry --playtest --save` run also enters the
+mission through the command menu, observes 83 mission pad polls, four actor
+activation calls, and 82 timer/notice updates, then returns through the normal
+Select+Start shortcut. Its subsequent save verifies the same file and payload,
+returning at VSync 3,066 with 80 terrain pad polls. This covers playtest entry,
+sustained execution, and return on the default map; it does not exercise every
+actor-activation branch or the results screens. The other three text modes, overwriting/deleting saves,
 formatting, preset-record saves, and the full disc-to-TRIAL handoff remain
 outside this probe's coverage.
 
-The 524-function checkpoint passes all six executable hashes and all 40 focused
+Ten mission/HUD/results routines add 6,112 exact C bytes. `ActivateTrialHumans`
+uses its own distance bands (16,000 and 20,000 world units), three-actor
+activation budget, and projected visibility for the eliminate-enemies
+objective; it is not MAIN's activation policy. `DrawTrialMissionTimer`
+suppresses the leading zero and blinks at 59:59. Four animated notices report
+the clock adjustments for stealth kills, ordinary kills, detection, and
+civilian deaths. The eliminate-enemies HUD draws flickering candles and
+refreshes the survivor count every ten clock ticks. The failure banner fades
+to brightness 128, then blinks.
+
+The results controller quantizes time to seconds, inserts qualifying records,
+offers record-name entry, shows the success/failure page, and optionally saves.
+The success page shows ten records and pulses the new entry; failure shows
+five. Empty names receive the selected protagonist's Japanese name. The
+new-record page uses the protagonist-specific background and retains its
+different number positions. `ClearTrialDisplay` and its two inlined copies
+in `ShowTrialResultPage` share `display.h`. The timer switch table, result-page
+dispatch table, statistic-pointer initializer, strings, and paths add 276
+C-owned bytes. The guarded `UpdateTrialRecordSave` draft still needs matching;
+recovering its callers does not make that final callback C-complete.
+
+The 534-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 524/1,216 exact TRIAL rows and 244,596/466,728 TRIAL code
+3,449 units, including 534/1,216 exact TRIAL rows and 250,708/466,728 TRIAL code
 bytes. Those report denominators include SDK assembly; the game/editor-only
 denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -924,8 +951,9 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 542/586 rows and 250,968/307,784 bytes; 44 compiled game
-routines / 56,816 bytes remain. The decomp.dev C counts are unchanged.
+game completion is 552/586 rows and 257,080/307,784 bytes; 34 compiled game
+routines / 50,704 bytes remain. The assembly classification adds no decomp.dev
+C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

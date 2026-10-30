@@ -176,6 +176,7 @@ nix develop --command ./Build check-trial.exe
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --save
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --text-entry --save
+nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --text-entry --playtest --save
 ```
 
 The wrapper accepts `--exe`, `--elf`, `--cue`, `--bios`, and `--timeout`; its
@@ -194,8 +195,8 @@ exceptions, unexpected pauses, callback failures, and timeouts.
 Verified 2026-10-30: Create → settings → card check → terrain editing, followed
 by 90 frames and 46 input polls. Cursor sprite x moved 0 → 25 → 0; the mission
 retained theme 0 and the player at grid (16, 18). No game-memory patch or menu
-bypass is used. The default run stops at this cursor check. Playtest and the
-complete boot/menu-to-TRIAL handoff remain untested by these scenarios.
+bypass is used. The default run stops at this cursor check. The complete
+boot/menu-to-TRIAL handoff remains untested by these scenarios.
 
 The optional `--save` scenario continues after the cursor check: Select opens
 the command menu, three Down presses choose Save, and Circle confirms saving
@@ -220,6 +221,17 @@ the settings wrapper clearing its shared scratch buffer. Combined with `--save`,
 this passed at VSync 2,388 with 62 terrain pad polls and verified file
 `BISLPS-01901M015f980`. Password, author, and record-name modes remain outside
 this bounded scenario.
+
+The optional `--playtest` scenario opens the command menu, selects Playtest,
+and waits for sustained mission input, actor activation, and timer/notice
+updates. Select+Start exits through the game's own shortcut; the probe requires
+terrain input polling to resume. It can run before `--save`. The combined
+`--text-entry --playtest --save` run passed with 83 mission pad polls, four
+activation calls, and 82 timer/notice updates, then verified the same 7,484-byte
+save and returned at VSync 3,066 with 80 terrain polls. The default mission
+contains the player and objective character; this establishes playtest loading,
+scheduled updates, and teardown, not every distance/visibility branch or the
+success/failure results flow.
 
 ## What you get
 

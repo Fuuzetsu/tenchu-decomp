@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-30).**
-  524 functions / 244,596 bytes now compile as exact C, including startup,
+  534 functions / 250,708 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -21,19 +21,21 @@ byte-identical `main.exe`.
   editor controller, card check/load/save/delete screens, save/exit prompts,
   command menu, theme loader, score calculation, generated-terrain cleanup,
   screen fade, and text-entry loop, graphics loading, input controller, cleanup,
-  glyph rasterizer, and navigation helpers
+  glyph rasterizer, navigation helpers, mission actor activation, timer/event
+  notices, enemy candles, failure banner, and results/new-record screens
   are also C. A repeatable PCSX-Redux check enters terrain editing through
   Create/settings/card check and verifies
   cursor movement. Its save scenario also verifies the complete on-card mission
   payload after returning to the editor. The keyboard scenario verifies category
   changes, deletion, kanji paging/insertion, index restoration, and the exported
-  title through that save flow.
+  title through that save flow. The playtest scenario enters the mission,
+  observes actor/HUD updates, returns via Select+Start, and saves afterward.
   The reviewed game/editor inventory is
   586 rows / 307,784 bytes; SDK/CRT begins
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  542/586 rows and 250,968/307,784 bytes. Graphics preserves TRIAL's larger
+  552/586 rows and 257,080/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue

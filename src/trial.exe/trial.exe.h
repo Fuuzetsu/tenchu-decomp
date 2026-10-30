@@ -24,6 +24,7 @@ short VerifyTrialMissionPassword(void);
 short PrepareTrialMemoryCard(void);
 short RunTrialMission(short character);
 void SetupTrialMission(short character, short mode);
+void ActivateTrialHumans(short initial);
 short ShowTrialResults(short failed);
 void EditTrialMission(void);
 void DrawTrialScreenFade(short brightness, short width, short height, short release);

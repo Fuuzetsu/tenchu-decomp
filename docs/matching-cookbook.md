@@ -2659,6 +2659,14 @@ LUID, barriers). The levers:
   common sprite fields. Its eight-byte rectangle is an automatic aggregate
   initializer in `.sdata`; an extern-rectangle copy uses a different LUI
   carrier even though the copied values and frame agree.
+- **An inlined sibling can explain an otherwise isolated prologue schedule.**
+  `ShowTrialResultPage` had the correct 668-byte length and behavior when its
+  two display clears were written out, but argument setup moved ahead of the
+  saved-register stores. Sharing the existing `ClearTrialDisplay` body through
+  `display.h` reproduces both inline sites and keeps the callable form exact.
+  The result-page callbacks also place their `short result = 0` before their
+  automatic pointer-table initializer; reversing those initializations changes
+  one adjacent prologue save/LUI pair even when every body instruction agrees.
 - **Statement order IS the sched lever inside a block** — sched breaks
   same-priority ties by UID order, which follows source scan order: capture the
   must-come-first value as an explicit statement (SetCommand); two independent

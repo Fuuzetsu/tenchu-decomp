@@ -68,6 +68,12 @@ segments:
       - [0x1b34, textbin]
       - { start: 0x1c24, type: .rodata, name: MISC, linker_section_order: .text }
       - [0x1c44, textbin]
+      - { start: 0x1d94, type: .rodata, name: DrawTrialMissionTimer, linker_section_order: .text }
+      - [0x1da8, textbin]
+      - { start: 0x2a90, type: .rodata, name: UpdateTrialSuccessPage, linker_section_order: .text }
+      - { start: 0x2ad4, type: .rodata, name: UpdateTrialFailurePage, linker_section_order: .text }
+      - { start: 0x2afc, type: .rodata, name: UpdateTrialNewRecordPage, linker_section_order: .text }
+      - [0x2b64, textbin]
       - { start: 0x2c20, type: .rodata, name: MEMCARD, linker_section_order: .text }
       - [0x2c54, textbin]
       - { start: 0x2cc0, type: .rodata, name: TELOP, linker_section_order: .text }
@@ -131,24 +137,24 @@ segments:
       - [0x329cc, c, MISC]
       - [0x34154, c, SetupTrialMission]
       - [0x34f7c, c, RunTrialMission]
-      - [0x35fbc, c, FUN_800467bc]
-      - [0x3631c, c, FUN_80046b1c]
-      - [0x36538, c, FUN_80046d38]
-      - [0x366a4, c, FUN_80046ea4]
+      - [0x35fbc, c, ActivateTrialHumans]
+      - [0x3631c, c, DrawTrialMissionTimer]
+      - [0x36538, c, UpdateTrialTimeNotice]
+      - [0x366a4, c, DrawTrialEnemyCandles]
       - [0x36858, c, FUN_80047058]
       - [0x369d0, c, FUN_800471d0]
       - [0x36eb0, c, FUN_800476b0]
       - [0x37124, c, SCORE]
-      - [0x372dc, c, FUN_80047adc]
+      - [0x372dc, c, DrawTrialFailureBanner]
       - [0x3736c, c, IMAGES]
       - [0x38148, c, OPAUDIO]
       - [0x38604, c, SEMNG]
       - [0x3894c, c, check_cheat_command_]
       - [0x38a6c, c, ShowTrialResults]
-      - [0x38c48, c, FUN_80049448]
-      - [0x38ee4, c, FUN_800496e4]
-      - [0x39340, c, FUN_80049b40]
-      - [0x396bc, c, FUN_80049ebc]
+      - [0x38c48, c, ShowTrialResultPage]
+      - [0x38ee4, c, UpdateTrialSuccessPage]
+      - [0x39340, c, UpdateTrialFailurePage]
+      - [0x396bc, c, UpdateTrialNewRecordPage]
       - [0x39920, c, UpdateTrialRecordSave]
       - [0x39a5c, c, RESULTDRAW]
       - [0x3a358, c, ClearTrialDisplay]
@@ -913,6 +919,8 @@ segments:
       - [0x7aa10, data]
       - [0x7ab00, .data, EFFECT]
       - [0x7ab10, data]
+      - [0x7cdc4, .data, ShowTrialResultPage]
+      - [0x7cdd4, data]
       - [0x7de34, .data, EDITORUTIL]
       - [0x7e014, data]
       - [0x7e090, .data, SaveTrialEditorMission]
@@ -934,6 +942,10 @@ segments:
       - [0x86d48, data]
       - { start: 0x86d54, type: .sdata, name: MISC, linker_section_order: .data }
       - [0x86d64, data]
+      - { start: 0x86dc8, type: .sdata, name: UpdateTrialSuccessPage, linker_section_order: .data }
+      - [0x86ddc, data]
+      - { start: 0x86df8, type: .sdata, name: UpdateTrialNewRecordPage, linker_section_order: .data }
+      - [0x86e00, data]
       - { start: 0x86ea4, type: .sdata, name: EDITORUTIL, linker_section_order: .data }
       - [0x86f1c, data]
       - { start: 0x86f34, type: .sdata, name: EditTrialMission, linker_section_order: .data }
