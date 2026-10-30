@@ -1749,3 +1749,32 @@ The isolated search initially failed before testing candidates because its
 parser misread `index * sizeof(AreaNodeType) + sizeof(levels)` as a non-scalar
 cast. Parenthesizing the multiplication fixes the generated input. A failed
 baseline is not evidence that a search found no match.
+
+### TRIAL collision/save/input follow-up — 2026-10-31
+
+The collision builder remains at 3,348 versus 3,360 bytes. Clearing through
+`levels` leaves the same residual; clearing through the level pointer produces
+3,344 bytes. Moving packing to a real inline helper changes the frame by eight
+bytes and regresses earlier allocation. Raw byte/word views and an inline node
+accessor remove the early t6/t7 interchange, but still hoist the output base
+across `memset` and through the final loops; their node accesses also lose the
+original 176-byte field displacement. Grouped signed/unsigned offset forms
+and combining these views with `for`/`while`/`do` forms for the packing loops
+do not solve the remaining address handling. The simpler typed draft remains.
+
+`UpdateTrialRecordSave` still has the 296-byte typed draft against 316 bytes.
+A scalar time-store cast or inline scalar writer restores the preset-id reload
+but produces the known 320-byte form with the full time base hoisted. Typed
+four-byte builtin copies, staged byte pointers, and pointer-offset stores give
+300 bytes and do not reproduce the required aliasing/scheduling. Word/row
+views produce 316, 320, or 324 bytes with broader arithmetic differences; equal
+length alone is not a match. No volatile reload or encoding alias was adopted.
+
+`ReadTrialMenuPad` now preserves its 84-byte readable candidate behind the
+normal `NON_MATCHING` guard. The full linked comparison confirms exactly four
+differing bytes: retail loads the previous snapshot into s0 then copies it to
+v1; the candidate loads v1 then copies to s0. Equivalent signed/unsigned mask
+and inhibit types, declaration order, reads through the updated pointer, and
+small polling/rising-edge helpers leave the residual. A two-field snapshot
+aggregate adds stack traffic (96 bytes). The plain scalar version is retained;
+all three routines remain excluded from exact C progress.

@@ -1155,11 +1155,11 @@ game completion is 583/586 rows and 304,024/307,784 bytes; three compiled game
 routines / 3,760 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
-`ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
-Its behavior is understood (poll unless inhibited, update the held-button
-snapshot, and return rising edges), but its C candidate still differs in the
-initial register copy. This is an outstanding matching task, not canonical
-handwritten assembly.
+`ReadTrialMenuPad` now has a readable guarded C draft: poll unless inhibited,
+update the held-button snapshot, and return rising edges. Both the draft and
+original are 84 bytes; four bytes differ in the initial load/copy register
+pair. The default build retains the original assembly, and the routine remains
+excluded from the C count. It is not canonical handwritten assembly.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
