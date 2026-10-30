@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 327 matching C functions /
-146,308 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 389 matching C functions /
+173,548 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -573,12 +573,23 @@ The attack recoil path clears command-history state on easy difficulty.
 All behavior is reconstructed from the TRIAL instructions, without assuming
 MAIN's version applies merely because the surrounding functions match.
 
+EFFECT adds 62 functions / 27,240 bytes. TRIAL uses 100 slots of the same
+76-byte effect record, compared with MAIN's 200 slots; the allocator, emitters,
+update, and reset loops all preserve that capacity. The shared blood, smoke,
+splash, impact, gore, shadow, afterimage, wire, and projection implementations
+match after relocation and the pool-size change. The snow, explosion, spark,
+lightning, queued-fade, and texture-scroll APIs are original eight-byte empty
+functions, not reconstruction placeholders. `FadeOutDirect` remains active.
+The reset loop's callback comparison identifies the final empty function as
+`UpdateTexScroll`. EFFECT owns 16 bytes of image IDs, 32 bytes of small
+constants, and a twelve-byte image-ID array in the leading data region.
+
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current inventory therefore contains 552 game/editor rows (307,784 bytes)
+The current inventory therefore contains 561 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 
