@@ -602,6 +602,27 @@
         "ResetInfoview",
         "DoInfoViewProc"
       ]
+    },
+    {
+      "source": "MEMCARD.C",
+      "functions": [
+        "PrepareTrialCardIcon",
+        "SaveCard",
+        "CalculateTrialMissionChecksum",
+        "CheckTrialCard",
+        "ChkCard",
+        "check_card_file_",
+        "GetTrialCardDirectory",
+        "DeleteCard",
+        "FormatCard",
+        "LoadTrialCard"
+      ],
+      "debug_symbol_order": [
+        "ChkCard",
+        "DeleteCard",
+        "FormatCard",
+        "SaveCard"
+      ]
     }
   ]
 }

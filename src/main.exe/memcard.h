@@ -2,6 +2,7 @@
 #define MEMCARD_H
 
 #include "tim.h"
+#include <psxsdk/libapi.h>
 
 /* MEMCARD.C's one-card-block size, recovered from PSX.SYM. */
 enum
@@ -202,6 +203,9 @@ extern enum card_result MemCardOpen(enum memcard_channel channel, char *path,
                                     enum memcard_open_mode mode);
 extern void MemCardClose(void);
 extern enum card_result MemCardExist(enum memcard_channel channel);
+extern enum card_result MemCardGetDirentry(enum memcard_channel channel,
+                                           char *pattern, DIRENTRY *entries,
+                                           s32 *count, s32 offset, s32 limit);
 extern enum card_result MemCardCreateFile(enum memcard_channel channel,
                                           char *name, s32 blocks);
 extern enum card_result MemCardDeleteFile(enum memcard_channel channel,

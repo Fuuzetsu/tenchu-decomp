@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 273 matching C functions /
-99,008 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 283 matching C functions /
+101,368 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -525,7 +525,7 @@ approaches and circles without spawning reinforcements. Alert duration uses
 `EngageLevel`, both controllers share the remapping and hazardous-terrain
 restrictions, and non-player targets can be replaced by a visible player.
 These preserve TRIAL's behavior, including retaining the first visibility
-probe's distance and angle after the target switch. Four temporary `D_`
+probe's distance and angle after the target switch. Three temporary `D_`
 aliases remain for unrecovered assembly consumers of the C-owned AI globals;
 the named globals themselves are section-owned ELF symbols.
 
@@ -537,6 +537,23 @@ sequence is followed by zero; this original mismatch is preserved. The
 40-byte `ResetInfoview` only clears life bars, retaining the unused shared
 stage argument. A misleading scaffold label at `0x8004afd4` was removed;
 that address loads a sprite and is not the HUD reset.
+
+MEMCARD adds ten functions / 2,360 bytes and a C-owned 52-byte icon-path table.
+`mem01.arc` through `mem12.arc` are theme-specific three-frame card icons;
+preset scores use `icon.arc`. New-file saves require successful creation,
+while overwrite mode writes the existing file. The shared 0x200-byte card
+header precedes the mission payload. `LoadTrialCard` copies a 0x1d3c-byte
+(7,484-byte) mission from a complete card block, or reads just the 0xec-byte
+(236-byte) mission header for browsing. `mission.h` records the observed
+title, author, password, theme, and ten score records. Its map/layout regions
+and one header setting still await detailed field recovery.
+
+The checksum sums 0x48 metadata bytes beginning after the checksum word,
+0x800 map bytes, and 0x1450 layout bytes. It combines their sums as
+`(metadata * 2048 + layout * 64 + map) & 0x07ffffff`, substitutes one for zero,
+and preserves bit 27 of the stored checksum. The ten 16-byte score records
+are excluded. The directory wrapper uses the PSX.SYM-proven 40-byte BIOS
+`DIRENTRY` layout and returns a count or a negative card error.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following

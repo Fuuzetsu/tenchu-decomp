@@ -23,6 +23,18 @@ struct EXEC
     u_long base;
 };
 
+/* PSX.SYM retains this complete BIOS directory-entry layout (40 bytes). */
+typedef struct DIRENTRY DIRENTRY;
+struct DIRENTRY
+{
+    u_char name[20];
+    long attr;
+    long size;
+    DIRENTRY *next;
+    long head;
+    u_char system[4];
+};
+
 long Exec(EXEC *exec, long argc, char **argv);
 long InitPAD(char *buffer0, long length0, char *buffer1, long length1);
 int EnterCriticalSection(void);
