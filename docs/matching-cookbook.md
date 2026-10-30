@@ -3417,6 +3417,18 @@ chunk loops (684 bytes total) and the previously four-byte-short map fill
 (140 bytes). The chunk table is indexed as `z * 8 + x`; a two-dimensional
 pointer array gives separate scaled row/column offsets instead.
 
+`EditTrialTerrain` uses the same compound carry in both ornament-count scans.
+Separate reset/increment statements remove four bytes per copy and change the
+row register. Before rotating the brush, promote the stored short rotation once
+into an int, then select `(turns + 1) % 4` or `(turns + 3) % 4`. Reading the
+spilled short independently in both arms duplicates its load and conversion.
+Its removal choices are one bit mask (ornament, ground, default replacement,
+changed), not the separate booleans suggested by Ghidra. Reusing the short
+working counters across palette, scans, and edits retains the original register
+allocation; separate named flag/rotation locals leave a same-length register
+mismatch. The named mask constants keep each edit operation explicit.
+
+
 `FindOrAddTrialTerrainVertex` scales the selected height as
 `(y != -6 ? y : -8) * TrialTerrainScale`. Writing the multiplication separately
 in each conditional arm changes promotion and hoisting. Narrow the random
