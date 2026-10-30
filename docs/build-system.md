@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 389 matching C functions /
-173,548 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 440 matching C functions /
+197,420 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -584,12 +584,29 @@ The reset loop's callback comparison identifies the final empty function as
 `UpdateTexScroll`. EFFECT owns 16 bytes of image IDs, 32 bytes of small
 constants, and a twelve-byte image-ID array in the leading data region.
 
+ITEM adds 51 entries / 23,872 bytes, with a C-owned 100-byte dispatch table
+and 32 bytes of state/constants. Its shared active handlers cover projectiles,
+medicine, grappling, caltrops, and dropped items. `MoveKorogari` adds a terrain
+probe 500 units above the item and uses its `FieldAttrib` result for the water
+test. The dispatcher still consumes inventory and computes throw coordinates
+for disabled item requests before discarding them. Four empty APIs are named
+from observed callers or callback assignment: `ReqItemFire`, `ReqItemSmoke`,
+`ReqItemDokudango`, and `ProcItemTeleport`. Fifteen other unreferenced empty
+entries retain neutral `UnusedTrialItemEntry` names; identical return/no-op
+instructions cannot establish their original API names or parameter types.
+
+The old `ReqItemManebue` label at `0x8003ea00` was wrong: the item-type switch
+and assigned callback both identify `ReqItemKusuri`. Several MAIN request
+wrappers have identical relocated instruction shapes, so a matching shape
+alone cannot distinguish them. The medicine callback and complete TRIAL
+rebuild establish this identity.
+
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
 PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
 targets over `0x80060b94..0x80087874` finds only one transfer back into game
 code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
-The current inventory therefore contains 561 game/editor rows (307,784 bytes)
+The current inventory therefore contains 577 game/editor rows (307,784 bytes)
 and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
 that every function boundary has been independently recovered.
 
