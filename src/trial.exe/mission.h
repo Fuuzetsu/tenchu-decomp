@@ -15,6 +15,18 @@ enum
     TRIAL_MISSION_PRESERVED_CHECKSUM_BIT = 0x08000000
 };
 
+/* The low three bits choose the objective; bit 3 forbids being spotted. */
+enum
+{
+    TRIAL_REACH_LORD = 0,
+    TRIAL_ASSASSINATE = 1,
+    TRIAL_ELIMINATE_ENEMIES = 2,
+    TRIAL_PROTECT_PRINCESS = 3,
+    TRIAL_FIND_HERB = 4,
+    TRIAL_OBJECTIVE_MASK = 7,
+    TRIAL_REQUIRE_STEALTH = 8
+};
+
 /* Ten name bytes occupy a word-aligned field; the two following record
  * padding bytes are deliberately left untouched by leaderboard insertion. */
 typedef struct TrialRecordName
@@ -34,7 +46,7 @@ typedef struct TrialMissionHeader TrialMissionHeader;
 struct TrialMissionHeader
 {
     u32 checksum;           /* 0x00 */
-    u16 flags;              /* 0x04: mission kind in bits 0..2 */
+    u16 flags;              /* 0x04: objective in bits 0..2; stealth in bit 3 */
     s16 theme;              /* 0x06: shared stage assets and card icon */
     char title[32];         /* 0x08 */
     char author[16];        /* 0x28 */

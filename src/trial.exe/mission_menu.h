@@ -9,11 +9,30 @@ enum
     TRIAL_PRESET_COUNT = 16,
     TRIAL_THEME_COUNT = 12,
     TRIAL_PREVIEW_RECORDS = 3,
-    TRIAL_CONFIRM_SPRITES = 8,
     TRIAL_OPTION_FIRST_ROW = 4,
     TRIAL_OPTION_COUNT = 3,
     TRIAL_PANEL_HIDE = 0,
     TRIAL_PANEL_SHOW = 1
+};
+
+enum trial_confirmation_sprite
+{
+    TRIAL_CONFIRM_HEADING,
+    TRIAL_CONFIRM_FIELD_BARS,
+    TRIAL_CONFIRM_HIGHLIGHT,
+    TRIAL_CONFIRM_FIELD_LABELS,
+    TRIAL_CONFIRM_RECORD_HEADING,
+    TRIAL_CONFIRM_RANKS,
+    TRIAL_CONFIRM_CONTROLS,
+    TRIAL_CONFIRM_STEALTH_LABEL,
+    TRIAL_CONFIRM_SPRITES
+};
+
+enum trial_menu_sound
+{
+    TRIAL_SOUND_ACCEPT = 4,
+    TRIAL_SOUND_CANCEL = 5,
+    TRIAL_SOUND_CHARACTER = 6
 };
 
 typedef struct TrialMissionPreview
@@ -51,6 +70,17 @@ typedef struct TrialPersistentState
     (*(TrialRecordName *)((u8 *)&TRIAL_PERSISTENT_STATE->preset_records[0][0].name + \
         (preset) * sizeof(TRIAL_PERSISTENT_STATE->preset_records[0]) + \
         (rank) * sizeof(TrialMissionRecord)))
+
+/* Labels shared by mission previews and the confirmation screen. */
+typedef struct TrialObjectiveLabels
+{
+    const char *text[5];
+} TrialObjectiveLabels;
+extern const TrialObjectiveLabels TrialObjectiveText;
+extern const char TrialEmptyRecordName[];
+extern const char TrialEmptyRecordTime[];
+extern const char TrialRecordTimeFormat[];
+extern const char TrialMaximumRecordTime[];
 
 extern ArcFile *TrialPreviewArchive;
 extern TrialImagePanel *TrialMissionListPanel;
@@ -90,6 +120,8 @@ int SlideTrialMissionDetails(short direction);
 void ResetTrialCharacterGraphics(void);
 void DisposeTrialCharacterGraphics(void);
 void LoadTrialCharacterGraphics(void);
+void LoadTrialConfirmationGraphics(void);
+short GetTrialMissionNarrationCue(void);
 void ResetTrialConfirmationGraphics(void);
 void DisposeTrialConfirmationGraphics(void);
 void DrawTrialOptionArrows(short row, short value, short first_row_maximum);

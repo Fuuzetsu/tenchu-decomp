@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 486 matching C functions /
-216,504 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 489 matching C functions /
+218,800 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -658,8 +658,8 @@ Japanese comments beside their original Shift-JIS bytes.
 sixteen arrays of ten 16-byte records. The combined 0xe70 bytes exactly fill
 the existing persistent-state RAM contract. Preset preview copying transfers
 only the name and time fields, preserving record padding. Its name view derives
-the fixed RAM base and both strides from this layout. Four temporary `D_`
-format-string aliases remain for the unrecovered confirmation screen.
+the fixed RAM base and both strides from this layout. Its four record-format
+strings have named C definitions shared with the confirmation screen.
 `SortTrialSpritePrimitive` builds a normal SPRT packet in scratchpad, copies
 it into LIBGS's byte-oriented packet buffer, and prepends its texture-page
 command at the same depth. The canonical LIBGPU tag/sprite/page macros now
@@ -687,6 +687,24 @@ to the persistent handoff. A selection change takes four updates: the incoming
 portrait moves from x = ±600 and z = 1100 to the center at z = 300, brightening
 by 16 each step, while the other portrait dims and recedes. Polling is inhibited
 throughout this transition, preserving the original input behavior.
+
+Mission confirmation adds three functions / 2,296 bytes and 216 C-owned bytes
+of objective labels, background paths, and switch tables. It displays the
+mission title, author, objective, and three records; plays the appropriate
+TORA.XA narration; accepts or cancels; and loads the stage only on acceptance.
+The resource loader assigns TRIAL.ARC images 14..21 to named screen elements.
+The separate readonly label aggregate preserves the original aligned copy
+without keeping its strings or pointer table in an anonymous binary slice.
+
+Mission-header bits 0..2 select reaching the lord, assassination, eliminating
+all enemies, protecting the princess, or finding the herb. Bit 3 requires
+stealth: the screen pulses the purple `隠密` label, and the mission runner
+fails when the spotted-enemy counter increases. Narration uses objective and
+stealth variants; assassination also uses the theme, while eliminating enemies
+also uses the character. The signed 16-bit cue intermediate and boolean
+stealth increment are retained. The old confirmation-sprite and shared-format
+`D_` aliases are removed; the origin-icon alias is still referenced by an
+unrecovered data table.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

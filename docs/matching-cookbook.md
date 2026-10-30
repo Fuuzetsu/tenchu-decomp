@@ -3231,3 +3231,25 @@ re-check cheaply before honoring them:
   addresses, the mechanism WITH its falsification, what was measured (numbers,
   not adjectives), and the named levers already burned. The next reader should
   be able to refute you in one command.
+
+### TRIAL confirmation: separate timed phases and boolean cue offsets
+
+`ConfirmTrialMission` has two idle phases before narration and seven after
+acceptance/cancellation. Keep these as two case groups with their own increment.
+Grouping every idle phase together produces the same control-flow instructions
+but changes the phase variable's allocation from s6 to s7, swapping it with a
+record-text line counter and a division constant. The two natural groups match
+all 1,616 bytes without register bindings or compiler flags.
+
+`GetTrialMissionNarrationCue` uses a short stealth value and a short cue.
+After selecting the assassination theme's base cue, `cue += stealth ? 1 : 0`
+preserves the original signed narrowing before adding the flag. Directly adding
+`stealth` removes that narrowing; conditionally incrementing the cue creates a
+branch. All three are equivalent for valid flags, but only the boolean offset
+matches the 248-byte original.
+
+The confirmation graphics loader keeps a `Sprite3D *` for the atlas allocation
+while clearing its sprite origins. Using an interior `GsSPRITE *` adds address
+arithmetic; rereading the pointer array between stores adds a reload. Define the
+loop index normally and initialize it in the `for`, after loading the background:
+cc1 hoists its initialization into the original call-setup position.

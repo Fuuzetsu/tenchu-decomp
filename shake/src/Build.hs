@@ -474,6 +474,9 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "CHARACTER" =
           ["TrialCharacterBackground", "TrialCharacterPortraits"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src `elem` ["ConfirmTrialMission", "LoadTrialConfirmationGraphics"] =
+          ["TrialConfirmationBackground", "TrialImageArchive"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

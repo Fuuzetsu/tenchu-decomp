@@ -11,10 +11,7 @@ static s16 CharacterSliding = 0;
 
 enum
 {
-    TRIAL_CHARACTER_MUSIC = 15,
-    TRIAL_SOUND_ACCEPT = 4,
-    TRIAL_SOUND_CANCEL = 5,
-    TRIAL_SOUND_CHARACTER = 6
+    TRIAL_CHARACTER_MUSIC = 15
 };
 
 short ChooseTrialCharacter(void)

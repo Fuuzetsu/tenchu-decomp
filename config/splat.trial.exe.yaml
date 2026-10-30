@@ -46,9 +46,13 @@ segments:
       - { start: 0x854, type: .rodata, name: MENULIST, linker_section_order: .text }
       - { start: 0x8a4, type: .rodata, name: PREVIEW, linker_section_order: .text }
       - { start: 0xad4, type: .rodata, name: DrawTrialMissionList, linker_section_order: .text }
-      - [0xb28, textbin]
+      - { start: 0xb28, type: .rodata, name: LoadTrialConfirmationGraphics, linker_section_order: .text }
+      - [0xbbc, textbin]
       - { start: 0xc8c, type: .rodata, name: RunMissionEditor, linker_section_order: .text }
       - [0xca0, textbin]
+      - { start: 0xd34, type: .rodata, name: ConfirmTrialMission, linker_section_order: .text }
+      - { start: 0xd64, type: .rodata, name: GetTrialMissionNarrationCue, linker_section_order: .text }
+      - [0xd78, textbin]
       - { start: 0xfb4, type: .rodata, name: MOTION, linker_section_order: .text }
       - [0x13cc, textbin]
       - { start: 0x153c, type: .rodata, name: APPEAR, linker_section_order: .text }
@@ -73,8 +77,8 @@ segments:
       - [0x6ac4, c, DrawTrialMissionList]
       - [0x6ec0, c, CHARACTER]
       - [0x73d4, c, ConfirmTrialMission]
-      - [0x7a24, c, FUN_80018224]
-      - [0x7bd4, c, FUN_800183d4]
+      - [0x7a24, c, LoadTrialConfirmationGraphics]
+      - [0x7bd4, c, GetTrialMissionNarrationCue]
       - [0x7ccc, c, ConfigureTrialMission]
       - [0x8060, c, FUN_80018860]
       - [0x8190, c, FUN_80018990]

@@ -2,6 +2,11 @@
 #include "mission_menu.h"
 #include <psxsdk/libgpu.h>
 
+const char TrialEmptyRecordName[] = "\201|\201|\201|\201|";
+const char TrialEmptyRecordTime[] = "\201|\201|\201F\201|\201|";
+const char TrialRecordTimeFormat[] = "%c%c%c%c\201F%c%c%c%c";
+const char TrialMaximumRecordTime[] = "\202T\202X\201F\202T\202X";
+
 /* Display the three fastest records with full-width Shift-JIS digits. */
 void FormatTrialMissionPreview(TrialMissionHeader *header, TrialMissionPreview *preview)
 {
@@ -16,21 +21,21 @@ void FormatTrialMissionPreview(TrialMissionHeader *header, TrialMissionPreview *
     {
         if (header->records[i].time < 0)
         {
-            sprintf(preview->names[i], "\201|\201|\201|\201|");
-            sprintf(preview->times[i], "\201|\201|\201F\201|\201|");
+            sprintf(preview->names[i], TrialEmptyRecordName);
+            sprintf(preview->times[i], TrialEmptyRecordTime);
         }
         else
         {
             __builtin_memcpy(preview->names[i], header->records[i].name.text, 10);
             seconds = header->records[i].time / 30;
             if (seconds / 60 < 60)
-                sprintf(preview->times[i], "%c%c%c%c\201F%c%c%c%c",
+                sprintf(preview->times[i], TrialRecordTimeFormat,
                         0x82, seconds / 600 + 0x4f,
                         0x82, seconds / 60 % 10 + 0x4f,
                         0x82, seconds % 60 / 10 + 0x4f,
                         0x82, seconds % 60 % 10 + 0x4f);
             else
-                sprintf(preview->times[i], "\202T\202X\201F\202T\202X");
+                sprintf(preview->times[i], TrialMaximumRecordTime);
         }
     }
 }
