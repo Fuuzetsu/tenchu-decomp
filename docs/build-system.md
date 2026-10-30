@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 464 matching C functions /
-209,984 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 477 matching C functions /
+211,524 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -627,6 +627,24 @@ represented by a ten-byte, word-aligned aggregate, and the final empty-name
 write still clears exactly ten bytes. `ClearTrialDisplay` replaces the earlier
 inaccurate `SetTrialDisplaySize` name: the routine clears a VRAM rectangle and
 resets the 3D transform state; it does not select a display resolution.
+
+MENURESOURCES adds thirteen functions / 1,540 bytes for preview loading,
+mission-origin icons, list arrows, the sliding details frame, character and
+confirmation graphics, option arrows, and unlocked themes. The original
+`TRIAL.ARC` textures identify the detail frame, card/CD icons, scroll controls,
+and Rikimaru/Ayame portraits. The paired option arrows are one two-element
+array, as confirmed by the cleanup loop. Three origin pointers, eight
+confirmation pointers, three arrow-position pairs, and the option limits
+occupy 76 C-owned data bytes, including two alignment bytes.
+
+`TrialMissionPreview` names the 88-byte display record: preset/card ID,
+availability, theme, title/author pointers, and three name/time strings.
+The word at offset `0x10` remains unidentified. Persistent progress bits
+unlock themes 1..11; theme zero is always available, and the returned count
+excludes it. The detail frame moves in 50-pixel steps and clamps only the
+frame's x position; its preview sprite retains the original unclamped step.
+Two temporary `D_` aliases at `0x80087874` and `0x80087880` remain for
+unrecovered assembly consumers of the C-owned origin/confirmation arrays.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

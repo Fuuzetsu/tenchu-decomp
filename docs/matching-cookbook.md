@@ -1345,6 +1345,14 @@ judgment:
   tile_sprite_); when an `lbu` field feeds a multiply, a full-width named temp
   schedules the load early without the `andi` a u8 temp inserts
   (ProcItemNemuri).
+- **Repeated global-pointer loads can reveal an array, not a volatile
+  object.** TRIAL's option-arrow drawing initially used two separate pointer
+  globals and compiled 24 bytes short because cc1 retained each pointer across
+  coordinate stores. The disposal routine walks two consecutive pointers;
+  declaring the real `Sprite3D *TrialOptionArrows[2]` restores all three loads
+  per arrow and matches 248 bytes with ordinary field assignments. Check
+  allocation/cleanup consumers before adding casts, cached pointers, or
+  volatility to a drawing routine.
 - **A target's "redundant" extra reload = a fresh field dereference in
   source** — cc1 will not refetch what is live in a register, so provable
   equality is not a licence to reuse the variable (vrealloc's `vh.next =

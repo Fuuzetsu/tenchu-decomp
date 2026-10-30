@@ -980,6 +980,24 @@
         "DrawTrialTime",
         "InsertTrialRecord"
       ]
+    },
+    {
+      "source": "MENURESOURCES.C",
+      "functions": [
+        "LoadTrialPreviewImages",
+        "PrepareTrialMissionPreview",
+        "LoadTrialThemePreview",
+        "DrawTrialMissionOrigin",
+        "DrawTrialListArrow",
+        "SlideTrialMissionDetails",
+        "ResetTrialCharacterGraphics",
+        "DisposeTrialCharacterGraphics",
+        "LoadTrialCharacterGraphics",
+        "ResetTrialConfirmationGraphics",
+        "DisposeTrialConfirmationGraphics",
+        "DrawTrialOptionArrows",
+        "GetTrialUnlockedThemes"
+      ]
     }
   ]
 }
