@@ -21,7 +21,7 @@ class TargetInventoryTests(unittest.TestCase):
         self.assertEqual(buckets["sdk"], {
             "fns": 1, "fns_matched": 0, "bytes": 16, "bytes_matched": 0,
         })
-        self.assertEqual(code_buckets("trial.exe", functions, set()), {})
+        self.assertEqual(code_buckets("run.exe", functions, set()), {})
 
     def test_inventory_cannot_straddle_reviewed_sdk_boundary(self):
         boundary = SDK_STARTS["menu.exe"]
@@ -77,7 +77,7 @@ class TargetInventoryTests(unittest.TestCase):
     def test_live_sibling_modules_have_contiguous_members(self):
         from tools import source_units as su
 
-        for target in ("menu.exe", "ending.exe"):
+        for target in ("menu.exe", "ending.exe", "trial.exe"):
             with self.subTest(target=target):
                 functions, _, _ = load_target_units(target, su.ROOT)
                 by_name = {n: (a, s) for a, s, n in functions}

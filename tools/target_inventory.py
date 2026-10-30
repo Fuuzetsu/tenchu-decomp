@@ -8,9 +8,13 @@ except ModuleNotFoundError:
     import source_units as SU
 
 
-# MENU and ENDING's game/engine spans end at AdtSelect; Exec starts SDK/CRT.
+# These game/engine spans end at AdtSelect; Exec starts SDK/CRT.
 # See docs/build-system.md for the binary comparison and call-target audit.
-SDK_STARTS = {"menu.exe": 0x80027824, "ending.exe": 0x8001DFC8}
+SDK_STARTS = {
+    "menu.exe": 0x80027824,
+    "ending.exe": 0x8001DFC8,
+    "trial.exe": 0x80060B94,
+}
 
 
 def code_buckets(target, functions, matched):

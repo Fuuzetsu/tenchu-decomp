@@ -104,6 +104,21 @@ def load_symbols(path):
     }
 
 
+def load_source_symbols(source):
+    """Include globals already owned by C, which need no fixed-address alias."""
+    symbols = load_symbols(ROOT / f"config/symbols.{source}.txt")
+    linked = ElfObject(ROOT / f".shake/build/tenchu/{source}.elf")
+    definitions = defaultdict(set)
+    for symbol in linked.symbols:
+        if symbol.name and symbol.section_index and symbol.name not in symbols:
+            definitions[symbol.name].add(symbol.value)
+    # Different TUs can retain the same private name. Do not choose one merely
+    # because it appeared first in the linked symbol table.
+    symbols.update({name: next(iter(values)) for name, values in definitions.items()
+                    if len(values) == 1})
+    return symbols
+
+
 def image_span(image, address, size):
     base = word(image, 0x18)
     offset = address - base + 0x800
@@ -128,7 +143,7 @@ def main():
     if (ROOT / f".shake/build/tenchu/{args.source}").read_bytes() != original:
         raise ValueError(f"rebuild {args.source} with ./Build check-{args.source} before transferring")
     obj = ElfObject(ROOT / f".shake/build/{args.source}/{args.unit}.c.o")
-    symbols = load_symbols(ROOT / f"config/symbols.{args.source}.txt")
+    symbols = load_source_symbols(args.source)
     functions = [
         s for s in obj.symbols if s.size and
         obj.sections[s.section_index].name == ".text"

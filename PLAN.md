@@ -10,6 +10,16 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
+- **TRIAL.EXE decompilation and humanisation started (2026-10-30).** Ten
+  engine modules now compile as exact C: 133 functions / 42,936 bytes. The
+  reviewed game/editor inventory is 527 rows / 307,784 bytes; SDK/CRT begins
+  at `0x80060b94` and remains assembly. Graphics preserves TRIAL's larger
+  packet buffers, renderer setup, and per-image texture-upload waits. The
+  camera/misc switch tables and constants are C-owned. Continue with shared
+  archive/CD/font/render helpers, engine variants, then the editor UI,
+  mission serialization, placement, and playtest flow. Full-image equality
+  and readable source remain required; this is not a completion claim.
+  See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).
 - **ENDING.EXE game/engine decompilation is complete (2026-10-21).** All
   175 functions / 42,760 bytes compile from readable, exact C in fifteen
   combined modules and shared helpers. This includes the character epilogues,

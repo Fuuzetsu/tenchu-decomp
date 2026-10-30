@@ -1,8 +1,10 @@
 import struct
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from tools.reloc_c_literals import Relocation
-from tools.shared_symbols import infer_symbols
+from tools.reloc_c_literals import Relocation, Symbol
+from tools.shared_symbols import infer_symbols, load_source_symbols
 
 
 def words(*values):
@@ -10,6 +12,19 @@ def words(*values):
 
 
 class SharedSymbolTests(unittest.TestCase):
+    def test_c_owned_globals_require_an_unambiguous_linked_definition(self):
+        linked = SimpleNamespace(symbols=[
+            Symbol("Owned", 0x80098000, 1),
+            Symbol("Private", 0x80098004, 1),
+            Symbol("Private", 0x80098008, 2),
+            Symbol("Undefined", 0, 0),
+        ])
+        with patch("tools.shared_symbols.load_symbols", return_value={"Fixed": 0x80010000}), \
+             patch("tools.shared_symbols.ElfObject", return_value=linked):
+            self.assertEqual(load_source_symbols("main.exe"), {
+                "Fixed": 0x80010000, "Owned": 0x80098000,
+            })
+
     def test_constants_are_not_discarded_like_a_discovery_fingerprint(self):
         with self.assertRaisesRegex(ValueError, "non-relocation"):
             infer_symbols(words(0x24020001), words(0x24020002), [], {}, 0, 0)

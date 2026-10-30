@@ -1,5 +1,7 @@
-/* trial.exe has no decompiled types of its own yet. The build's C rule
- * order-onlys src/<target>/<target>.h, so this must exist. */
+/* TRIAL shares engine types and the persistent handoff with MAIN. */
 #ifndef TRIAL_EXE_H
 #define TRIAL_EXE_H
+
+#include "../main.exe/main.exe.h"
+
 #endif

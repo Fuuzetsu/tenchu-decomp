@@ -1,0 +1,343 @@
+{
+  "schema": 1,
+  "units": [
+    {
+      "source": "CONFLICT.C",
+      "functions": [
+        "LoadAreaMap",
+        "ComputeAreaLevel",
+        "GetAreaMapLevel",
+        "GetAreaMapVector",
+        "GetAreaMapPassage",
+        "InitConflict",
+        "InsertConflict",
+        "DeleteConflict",
+        "ComputeAllConflict",
+        "GetConflictResult",
+        "DisposeAreaMap"
+      ],
+      "debug_symbol_order": [
+        "LoadAreaMap",
+        "DisposeAreaMap",
+        "ComputeAreaLevel",
+        "GetAreaMapLevel",
+        "GetAreaMapVector",
+        "GetAreaMapPassage",
+        "InitConflict",
+        "InsertConflict",
+        "DeleteConflict",
+        "ComputeAllConflict",
+        "GetConflictResult"
+      ]
+    },
+    {
+      "source": "AUDIO.C",
+      "functions": [
+        "PlaySE",
+        "InitSoundEffect",
+        "SetupSE",
+        "DisposeSE"
+      ],
+      "debug_symbol_order": [
+        "InitSoundEffect",
+        "SetupSE",
+        "DisposeSE",
+        "PlaySE",
+        "StopSE"
+      ]
+    },
+    {
+      "source": "ACTION.C",
+      "functions": [
+        "SearchMotion",
+        "UpdateMotion",
+        "HoldMotion",
+        "SweepMotion",
+        "ActiveMotion",
+        "UpdateSplineControl",
+        "GetSpline",
+        "LoadMotion",
+        "SetupMotionRegist",
+        "SetupMotionManager",
+        "DisposeMotionManager",
+        "GetMotionID",
+        "PlayMotion",
+        "SetupSpline"
+      ],
+      "debug_symbol_order": [
+        "LoadMotion",
+        "SearchMotion",
+        "SetupMotionRegist",
+        "SetupMotionManager",
+        "DisposeMotionManager",
+        "GetMotionID",
+        "UpdateMotion",
+        "PlayMotion",
+        "HoldMotion",
+        "SweepMotion",
+        "ActiveMotion",
+        "SetupSpline",
+        "UpdateSplineControl",
+        "GetSpline"
+      ]
+    },
+    {
+      "source": "OPAUDIO.C",
+      "functions": [
+        "cbCheckCD",
+        "CdaPlayXA",
+        "CdaStop",
+        "CdaGetCurrentLength",
+        "CdaReady",
+        "set_cda_volume_",
+        "apply_cda_attr_"
+      ],
+      "debug_symbol_order": [
+        "CdaGetCurrentLength",
+        "CdaReady",
+        "cbCheckCD",
+        "CdaPlayXA",
+        "CdaStop"
+      ]
+    },
+    {
+      "source": "IMAGES.C",
+      "functions": [
+        "InitSprite",
+        "SetupImageToPolyFT4",
+        "SetupImageToPolyGT4",
+        "_PlayMusic",
+        "PlayVoice",
+        "get_tim_from_archive",
+        "GetImage",
+        "GetArcData",
+        "InitializeImage",
+        "load_background_",
+        "load_archive_sprite_",
+        "PlayMusicFormID",
+        "apply_cd_volume_",
+        "exec_process_",
+        "search_id_table_"
+      ],
+      "debug_symbol_order": [
+        "InitializeImage",
+        "GetImage",
+        "GetImageReady",
+        "InitSprite",
+        "SetupImageToPolyFT4",
+        "SetupImageToPolyGT4",
+        "GetArcData",
+        "SetCDVolume",
+        "_PlayMusic",
+        "PlayMusic",
+        "PlayVoice",
+        "PlayMusicFormID",
+        "StopMusic"
+      ]
+    },
+    {
+      "source": "PADCMD.C",
+      "functions": [
+        "ComPad",
+        "PadProc",
+        "GetCommand",
+        "SetCommand",
+        "GetPad",
+        "get_pad_active_",
+        "update_pressed_buttons",
+        "GetRealPad",
+        "save_pad_analog_",
+        "remap_buttons_",
+        "InitPadControl",
+        "PadShock",
+        "PadShockAR",
+        "GetPadXY",
+        "clear_pad_send_",
+        "get_pad_record_"
+      ],
+      "debug_symbol_order": [
+        "InitPadControl",
+        "PadShock",
+        "ComPad",
+        "PadShockAR",
+        "PadProc",
+        "GetRealPad",
+        "GetPadXY",
+        "GetPad",
+        "SetPad",
+        "GetCommand",
+        "SetCommand"
+      ]
+    },
+    {
+      "source": "MISC.C",
+      "functions": [
+        "InitMisc",
+        "proc_misc_bonfire_",
+        "proc_misc_sound_",
+        "ProcMiscDoor",
+        "ProcMiscPitfall",
+        "ProcMiscSnowfall",
+        "AddMisc",
+        "DoMiscProc",
+        "ResetAllMisc",
+        "ProcMiscFire",
+        "proc_misc_puff_",
+        "ProcMiscSprite"
+      ],
+      "definition_order": [
+        "InitMisc",
+        "ProcMiscFire",
+        "proc_misc_bonfire_",
+        "proc_misc_sound_",
+        "proc_misc_puff_",
+        "ProcMiscDoor",
+        "ProcMiscPitfall",
+        "ProcMiscSnowfall",
+        "ProcMiscSprite",
+        "AddMisc",
+        "DoMiscProc",
+        "ResetAllMisc"
+      ],
+      "debug_symbol_order": [
+        "ResetAllMisc",
+        "InitMisc",
+        "ProcMiscFire",
+        "ProcMiscDoor",
+        "ProcMiscPitfall",
+        "ProcMiscSnowfall",
+        "ProcMiscSprite",
+        "AddMisc",
+        "DoMiscProc"
+      ]
+    },
+    {
+      "source": "CAMERA.C",
+      "functions": [
+        "SnapCameraTargetVector",
+        "camera_terrain_pitch_",
+        "MakeDifSub",
+        "AntiWall",
+        "push_from_walls_",
+        "debug_output_edit_camera_settings",
+        "MakeCameraPosition",
+        "CameraType1",
+        "SetCameraMode",
+        "Camera",
+        "CameraDirection",
+        "initialise_default_player_cameras_",
+        "MakeDif"
+      ],
+      "debug_symbol_order": [
+        "SetCameraMode",
+        "QuakeCamera",
+        "SnapCameraTargetVector",
+        "MakeDifSub",
+        "MakeDif",
+        "AntiWall",
+        "MakeCameraPosition",
+        "CameraType1",
+        "Camera",
+        "CameraDirection"
+      ]
+    },
+    {
+      "source": "VALLOC.C",
+      "functions": [
+        "valloc",
+        "vrealloc",
+        "vmemoryGC",
+        "vinit",
+        "vgetmaxsize",
+        "vgetfreesize",
+        "vcalloc",
+        "vfree",
+        "vsize",
+        "SystemOut"
+      ],
+      "debug_symbol_order": [
+        "vinit",
+        "vgetmaxsize",
+        "vgetfreesize",
+        "valloc",
+        "vrealloc",
+        "vcalloc",
+        "vfree",
+        "vsize",
+        "vmemoryGC",
+        "SystemOut"
+      ]
+    },
+    {
+      "source": "3DCTRL.C",
+      "functions": [
+        "InitGraphicsSystem",
+        "EndDrawing",
+        "DrawModel",
+        "LoadModelArchive",
+        "DrawModelArchive",
+        "CreateCloneModelArchive",
+        "SetupSprite",
+        "DrawSprite",
+        "SetupBG",
+        "StartDrawing",
+        "UpdateCoordinate",
+        "UpdateCoordinate2",
+        "GetAbsolutePosition",
+        "DrawClip",
+        "LoadModel",
+        "DisposeModel",
+        "CreateCloneModel",
+        "DisposeModelArchive",
+        "LoadOrnament",
+        "DrawOrnament",
+        "DisposeOrnament",
+        "CreateCloneOrnament",
+        "UpdateOrnament",
+        "DrawBG",
+        "DisposeBG",
+        "LoadTIMAndFree",
+        "LoadTIMpackAndFree",
+        "LoadTIM",
+        "LoadTIMpack",
+        "GetTIMInfo",
+        "GetTIMpackInfo"
+      ],
+      "debug_symbol_order": [
+        "InitGraphicsSystem",
+        "InitLighting",
+        "SetupLighting",
+        "StartDrawing",
+        "EndDrawing",
+        "UpdateCoordinate",
+        "UpdateCoordinate2",
+        "GetAbsolutePosition",
+        "DrawClip",
+        "LoadModel",
+        "DrawModel",
+        "DisposeModel",
+        "CreateCloneModel",
+        "LoadModelArchive",
+        "DrawModelArchive",
+        "DisposeModelArchive",
+        "CreateCloneModelArchive",
+        "LoadOrnament",
+        "DrawOrnament",
+        "DisposeOrnament",
+        "CreateCloneOrnament",
+        "UpdateOrnament",
+        "SetupSprite",
+        "DrawSprite",
+        "DisposeSprite",
+        "SetupBG",
+        "DrawBG",
+        "DisposeBG",
+        "ViewAdjustBG",
+        "LoadTIM",
+        "GetTIMInfo",
+        "LoadTIMpack",
+        "GetTIMpackInfo"
+      ]
+    }
+  ]
+}

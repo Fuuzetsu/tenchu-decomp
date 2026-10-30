@@ -472,6 +472,44 @@ address means anything there. It is the **Mission Editor**: it loads
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
+TRIAL recovery is in progress (2026-10-30). The first ten modules contain
+133 matching C functions / 42,936 bytes: VALLOC, 3DCTRL, AUDIO, CONFLICT,
+PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO. All except 3DCTRL include
+MAIN's implementation. Shared code was compared using actual object
+relocations, then rebuilt and checked against the complete original image.
+`shared_symbols.py` also reads the verified source ELF for C-owned globals
+that no longer need fixed-address aliases; ambiguous private names are omitted.
+
+TRIAL's 3DCTRL uses 74 KiB packet pages instead of MAIN's 64 KiB, calls
+`jt_init4` during graphics initialization, and waits for the GPU after each
+TIM-pack image instead of once after the pack. These source differences
+reproduce all 7,424 bytes. CAMERA's 176-byte switch-table section and MISC's
+32-byte switch table and 16-byte constant section also come from C.
+
+The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
+The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following
+PC-file thunks and CRT establish the library sequence. Scanning direct J/JAL
+targets over `0x80060b94..0x80087874` finds only one transfer back into game
+code: CRT's call at `0x80060cc4` to `main` at `0x80019a28`.
+The current scaffold therefore contains 527 game/editor rows (307,784 bytes)
+and 630 SDK/CRT rows (158,944 bytes). These are inventory rows, not a claim
+that every function boundary has been independently recovered.
+
+An initial scaffold error included twelve zero bytes at
+`0x8005d9d0..0x8005d9dc` in the preceding function. These are the embedded
+renderer globals `DepthPoint`, `SlightPoint`, and `DrawTMDmode`: graphics
+initialization writes each, and rendering reads them. They now have an
+explicit raw-data carve. Adding just the symbol names made splat omit a word
+from the old generated C stub; explicit data ownership fixes the boundary.
+The corrected complete TRIAL image retains SHA-256
+`f236f35ad8d4bed8c70f6cc1e69b62e7dfd27469e6bf1a838aa65932335d7230`.
+
+The read-only Ghidra export must select the exact project folder:
+`tenchu-decompile/Rittai Ninja Katsugeki - Tenchu - Shinobi Gaisen (Japan)/TENCHU`,
+then `-process TRIAL.EXE -readOnly -noanalysis`. A recursive basename search
+also finds Tenchu 2's different TRIAL.EXE and can overwrite the same export.
+The current Gaisen export is under `.shake/trial-recovery/ghidra-gaisen`.
+
 `tools/xexe.py` reports how much of `main.exe` each of the others contains — see
 PLAN.md. The five images live under `disks/`, which is gitignored in its entirety;
 only sizes, `$gp` and sha256s appear in tracked files.
