@@ -480,6 +480,10 @@ maspsxGpExterns src = extra (takeBaseName src) <>
           ["StagePlayer", "StageBosses", "StageEnemies", "StageCitizens",
            "Criticals", "Findenemies", "Murders", "FriendHits"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "RunTrialMission" =
+          ["StagePlayer", "Criticals", "Findenemies", "Murders", "FriendHits",
+           "TrialRemainingEnemies"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "CHARACTER" =
           ["TrialCharacterBackground", "TrialCharacterPortraits"]
       | takeFileName (takeDirectory src) == "trial.exe" &&

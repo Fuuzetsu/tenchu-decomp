@@ -3610,3 +3610,13 @@ delay schedule. The two changes together recover the range loop; initializing
 each final page's range before its bounds, and the symbol column before its
 bounds, completes the 1,640-byte match. Adjacent aggregate scopes already
 reuse the stack correctly, so an inline setup helper is unnecessary.
+
+**Do not equate `while` and `do` merely because the first test folds away.**
+`RunTrialMission` initializes a nonzero phase and stops when it becomes zero.
+Both loop forms generate the same 4,160-byte control-flow body, but the `do`
+form fills one motion-test branch delay slot with a call argument and leaves
+an extra nop at the jump. `while (phase != 0)` lets reorg copy the final phase
+shift into that slot and matches the complete executable. Local condition,
+assignment, helper, and early-continue variations did not change that result.
+Try the ordinary enclosing loop forms before treating such a delay-slot
+residual as below the source level.

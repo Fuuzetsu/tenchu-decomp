@@ -71,6 +71,8 @@ segments:
       - { start: 0x1c24, type: .rodata, name: MISC, linker_section_order: .text }
       - { start: 0x1c44, type: .rodata, name: SetupTrialMission, linker_section_order: .text }
       - [0x1d60, textbin]
+      - { start: 0x1d64, type: .rodata, name: RunTrialMission, linker_section_order: .text }
+      - [0x1d90, textbin]
       - { start: 0x1d94, type: .rodata, name: DrawTrialMissionTimer, linker_section_order: .text }
       - [0x1da8, textbin]
       - { start: 0x2a90, type: .rodata, name: UpdateTrialSuccessPage, linker_section_order: .text }
@@ -924,6 +926,8 @@ segments:
       - [0x7aa10, data]
       - [0x7ab00, .data, EFFECT]
       - [0x7ab10, data]
+      - [0x7cb68, .data, RunTrialMission]
+      - [0x7cb98, data]
       - [0x7cdc4, .data, ShowTrialResultPage]
       - [0x7cdd4, data]
       - [0x7cf20, .data, BuildTrialTerrainModel]
@@ -953,6 +957,8 @@ segments:
       - [0x86d48, data]
       - { start: 0x86d54, type: .sdata, name: MISC, linker_section_order: .data }
       - [0x86d64, data]
+      - { start: 0x86d80, type: .sdata, name: RunTrialMission, linker_section_order: .data }
+      - [0x86d88, data]
       - { start: 0x86dc8, type: .sdata, name: UpdateTrialSuccessPage, linker_section_order: .data }
       - [0x86ddc, data]
       - { start: 0x86df8, type: .sdata, name: UpdateTrialNewRecordPage, linker_section_order: .data }
