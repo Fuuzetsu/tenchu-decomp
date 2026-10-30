@@ -12,6 +12,8 @@ kanji, and verify the index return and Shift-JIS export. This does not cover
 disc handoff or overwriting/deleting a mission. With --playtest, enter the
 mission through the command menu, observe actor/HUD updates, and return to
 terrain editing with the normal Select+Start shortcut before optional saving.
+With --preview, hold L1 in the terrain editor, turn and tilt the view, and
+verify terrain rendering and the saved viewing angle after releasing L1.
 """
 
 from __future__ import annotations
@@ -50,6 +52,8 @@ PROBE_SYMBOLS = {
     "ACTIVATE": "ActivateTrialHumans",
     "TIMER": "DrawTrialMissionTimer",
     "NOTICE": "UpdateTrialTimeNotice",
+    "PREVIEW": "PreviewTrialTerrain",
+    "DRAW_CHUNKS": "DrawTrialTerrainChunks",
 }
 
 
@@ -94,6 +98,8 @@ def run() -> int:
                         help="edit the title through the Japanese keyboard before creating the map")
     parser.add_argument("--playtest", action="store_true",
                         help="playtest the new mission and return through Select+Start before optional saving")
+    parser.add_argument("--preview", action="store_true",
+                        help="exercise L1 terrain preview, rotation, height, and return")
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
@@ -125,12 +131,18 @@ def run() -> int:
         environment["TENCHU_TRIAL_RUN_MISSION_END"] = str(
             metadata.symbol("RunTrialMission") + sizes["RunTrialMission"]
         )
+        environment["TENCHU_TRIAL_PREVIEW_END"] = str(
+            metadata.symbol("PreviewTrialTerrain") + sizes["PreviewTrialTerrain"]
+        )
         # This sprite is still owned by the unrecovered terrain graphics code.
         environment["TENCHU_TRIAL_CURSOR"] = str(metadata.symbol("D_800CC6E8"))
         environment["TENCHU_TRIAL_MISSION"] = str(metadata.symbol("TrialMission"))
         environment["TENCHU_TRIAL_SAVE"] = "1" if args.save else "0"
         environment["TENCHU_TRIAL_TEXT_ENTRY"] = "1" if args.text_entry else "0"
         environment["TENCHU_TRIAL_PLAYTEST"] = "1" if args.playtest else "0"
+        environment["TENCHU_TRIAL_PREVIEW_ENABLED"] = "1" if args.preview else "0"
+        environment["TENCHU_TRIAL_VIEW"] = str(metadata.symbol("ViewInfo"))
+        environment["TENCHU_TRIAL_VIEW_ANGLE"] = str(metadata.symbol("TrialEditorViewAngle"))
         for key, symbol in {"KEYBOARD_CURSOR": "TrialKeyboardCursor",
                             "TEXT_CURSOR": "TrialEditedTextCursor",
                             "KANJI_SELECTION": "TrialKanjiIndexSelection",

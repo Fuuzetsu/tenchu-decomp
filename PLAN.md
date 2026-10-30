@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  550 functions / 259,504 bytes now compile as exact C, including startup,
+  554 functions / 263,104 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -26,23 +26,25 @@ byte-identical `main.exe`.
   are also C. Terrain height/vertex/texture helpers, chunk lifetime, ornament
   rendering, tile captions, map initialization, and placement/patrol validation
   now compile exactly too. Trigger/arrow traps, collapsing floors, patrol captions,
-  the overview frame, and character thumbnails are also exact C. A repeatable PCSX-Redux check enters terrain editing through
-  Create/settings/card check and verifies
+  the overview frame, character thumbnails, terrain/character viewports, chunk
+  rendering, and the interactive L1 preview are also exact C. A repeatable
+  PCSX-Redux check enters terrain editing through Create/settings/card check and verifies
   cursor movement. Its save scenario also verifies the complete on-card mission
   payload after returning to the editor. The keyboard scenario verifies category
   changes, deletion, kanji paging/insertion, index restoration, and the exported
   title through that save flow. The playtest scenario enters the mission,
   observes actor/HUD updates, returns via Select+Start, and saves afterward.
+  The preview scenario verifies rotation, height, chunk rendering, and return.
   The reviewed game/editor inventory is
   586 rows / 307,784 bytes; SDK/CRT begins
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  568/586 rows and 265,876/307,784 bytes. Graphics preserves TRIAL's larger
+  572/586 rows and 269,476/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with the 18 remaining compiled routines (41,908 bytes): terrain/collision
+  with the 14 remaining compiled routines (38,308 bytes): terrain/collision
   builders, editor UI, mission setup/execution, and the remaining
   text/record/pad drafts. Full-image equality
   and readable source remain required; this is not a completion claim.

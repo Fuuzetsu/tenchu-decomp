@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 544 matching C functions /
-255,592 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 554 matching C functions /
+263,104 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -976,10 +976,28 @@ saved payload bytes verified before returning at VSync 3,066. This remains a
 default-map scenario; rotated ramps, a populated ornament list, patrol
 truncation, and special terrain/trap branches are not individually exercised.
 
-The 550-function checkpoint passes all six executable hashes and all 40 focused
+Four viewport/preview routines add 3,600 exact C bytes. The terrain and
+character viewports scan the same 13x8 window, preserve cursor blinking, and
+project character portraits using the terrain scale and height skew. The
+four cardinal edge offsets are now C-owned (16 bytes). `DrawTrialTerrainChunks`
+rejects distant/offscreen chunks, sorts its visible list front to back, selects
+plain versus subdivided decoding, and preserves packet-buffer headroom.
+`PreviewTrialTerrain` holds the view while L1 is pressed, accelerates horizontal
+rotation with Left/Right, adjusts target height with Up/Down, and rotates its
+direction quad. Its temporary `Humanoid` supplies the renderer's camera position.
+
+The extended `--preview --text-entry --playtest --save` runtime check passes:
+43 preview input polls, 42 chunk draws, changed viewing direction and height,
+a fixed eye position, and saved angle 322 after releasing L1. It then repeats
+the playtest/return flow (83 mission polls, four activation calls, 82 timer/notice
+updates) and verifies the same 7,484-byte saved mission. The final editor return
+is at VSync 3,276 with 133 terrain polls. This still uses the default mission;
+nonflat terrain, populated ornaments, and special traps need separate scenarios.
+
+The 554-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 550/1,216 exact TRIAL rows and 259,504/466,728 TRIAL code
-bytes. Across all targets it records 1,482 complete functions and 680,692
+3,449 units, including 554/1,216 exact TRIAL rows and 263,104/466,728 TRIAL code
+bytes. Across all targets it records 1,486 complete functions and 684,292
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -994,8 +1012,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 568/586 rows and 265,876/307,784 bytes; 18 compiled game
-routines / 41,908 bytes remain. The assembly classification adds no decomp.dev
+game completion is 572/586 rows and 269,476/307,784 bytes; 14 compiled game
+routines / 38,308 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

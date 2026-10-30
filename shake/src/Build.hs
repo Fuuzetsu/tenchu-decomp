@@ -494,6 +494,8 @@ maspsxGpExterns src = extra (takeBaseName src) <>
            "TrialEditorViewAngle", "TrialEditorMode", "TrialEditorChecksum",
            "TrialEditorModified"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "PreviewTrialTerrain" = ["TrialEditorViewAngle"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "setup_card_screen_" = ["TrialCardStatus"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "UpdateTrialCardCheck" =

@@ -491,7 +491,7 @@
 0x80052854	336	GetTrialTerrainHeight
 0x800529a4	508	FindOrAddTrialTerrainVertex
 0x80052ba0	684	UpdateTrialTerrainChunks
-0x80052e4c	1196	FUN_80052e4c
+0x80052e4c	1196	DrawTrialTerrainChunks
 0x800532f8	632	DrawTrialTerrainOrnaments
 0x80053570	3360	BuildTrialCollisionMap
 0x80054290	92	DisposeTrialTerrainModel
@@ -504,13 +504,13 @@
 0x80054fc0	3192	LoadTrialEditorGraphics
 0x80055c38	856	UpdateTrialEditorCommands
 0x80055f90	4212	EditTrialTerrain
-0x80057004	840	FUN_80057004
+0x80057004	840	PreviewTrialTerrain
 0x8005734c	416	PrepareTrialTileLabel
-0x800574ec	856	FUN_800574ec
+0x800574ec	856	DrawTrialEditorTerrain
 0x80057844	648	DrawTrialEditorOverviewFrame
 0x80057acc	3252	EditTrialCharacters
 0x80058780	552	DrawTrialCharacterThumbnail
-0x800589a8	708	FUN_800589a8
+0x800589a8	708	DrawTrialEditorCharacters
 0x80058c6c	5436	EditTrialPatrols
 0x8005a1a8	460	PrepareTrialPatrolLabel
 0x8005a374	828	SaveTrialEditorMission

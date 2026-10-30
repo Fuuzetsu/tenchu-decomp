@@ -10,7 +10,7 @@ end
 local addr, word = {}, {}
 for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD',
                      'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE', 'TEXT', 'TEXT_INPUT',
-                     'RUN_MISSION', 'ACTIVATE', 'TIMER', 'NOTICE'}) do
+                     'RUN_MISSION', 'ACTIVATE', 'TIMER', 'NOTICE', 'PREVIEW', 'DRAW_CHUNKS'}) do
     addr[key] = num(key)
     word[key] = num(key .. '_WORD')
 end
@@ -26,7 +26,7 @@ end
 local pad = PCSX.SIO0.slots[1].pads[1]
 local buttons = PCSX.CONSTS.PAD.BUTTON
 local used = {buttons.DOWN, buttons.CIRCLE, buttons.START, buttons.RIGHT, buttons.LEFT,
-              buttons.SELECT, buttons.L2, buttons.R2, buttons.CROSS}
+              buttons.SELECT, buttons.L2, buttons.R2, buttons.CROSS, buttons.L1, buttons.UP}
 local function release()
     for _, button in ipairs(used) do pad.clearOverride(button) end
 end
@@ -47,6 +47,8 @@ local mapEnd, cursor, mission = num('MAP_END'), num('CURSOR'), num('MISSION')
 local save, saveState = num('SAVE') ~= 0, num('SAVE_STATE')
 local textEntry = num('TEXT_ENTRY') ~= 0
 local playtest, missionEnd = num('PLAYTEST') ~= 0, num('RUN_MISSION_END')
+local preview, previewEnd = num('PREVIEW_ENABLED') ~= 0, num('PREVIEW_END')
+local view, viewAngle = num('VIEW'), num('VIEW_ANGLE')
 local function fail(reason)
     if p.done then return end
     p.done = true
@@ -119,6 +121,18 @@ hook('MAP', function()
     p.entryPolls = 0
     screen('map')
 end)
+hook('PREVIEW', function()
+    if not preview then return end
+    p.previewEntered = true
+    p.previewPolls, p.chunkDraws = 0, 0
+    p.angleBeforePreview = u32(viewAngle)
+    screen('preview')
+    -- screen() releases input; keep L1 held across the preview's first poll.
+    pad.setOverride(buttons.L1)
+end)
+hook('DRAW_CHUNKS', function()
+    if p.screen == 'preview' then p.chunkDraws = p.chunkDraws + 1 end
+end)
 hook('COMMANDS', function()
     if not (save or playtest) or p.screen == 'commands' then return end
     if bit.band(tonumber(PCSX.getRegisters().GPR.n.a0), 0xffff) ~= 0 then
@@ -157,6 +171,18 @@ hook('READPAD', function()
 end)
 hook('REALPAD', function()
     local ra = tonumber(PCSX.getRegisters().GPR.n.ra)
+    if p.screen == 'preview' and ra >= addr.MAP and ra < mapEnd then
+        if not p.previewExitRequested or u32(viewAngle) == p.angleBeforePreview then
+            fail('preview return/saved-angle assertion')
+            return
+        end
+        p.previewPassed = true
+        print(string.format(
+            'TENCHU_TRIAL preview rotation/height/return=verified polls=%d chunks=%d angle=%d',
+            p.previewPolls, p.chunkDraws, bit.tobit(u32(viewAngle))))
+        screen('map')
+        p.entryPolls = 0
+    end
     if p.screen == 'map' and ra >= addr.MAP and ra < mapEnd then
         p.mapPolls = p.mapPolls + 1
         p.entryPolls = p.entryPolls + 1
@@ -164,6 +190,9 @@ hook('REALPAD', function()
     elseif p.screen == 'mission' and ra >= addr.RUN_MISSION and ra < missionEnd then
         p.missionPolls = p.missionPolls + 1
         if p.missionPolls >= 2 then ready() end
+    elseif p.screen == 'preview' and ra >= addr.PREVIEW and ra < previewEnd then
+        p.previewPolls = p.previewPolls + 1
+        if p.previewPolls >= 2 then ready() end
     end
 end)
 p.pause = PCSX.Events.createEventListener('ExecutionFlow::Pause', function(event)
@@ -314,6 +343,27 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                 p.textExpected = table.concat(bytes)
                 pad.setOverride(buttons.START)
             elseif t == 488 then pad.clearOverride(buttons.START) end
+        elseif p.screen == 'preview' then
+            if t == 1 then
+                p.previewEye = ffi.string(ptr(view), 12)
+                p.previewLookX = u32(view + 12)
+                p.previewLookY = bit.tobit(u32(view + 16))
+            elseif t == 10 then pad.setOverride(buttons.RIGHT)
+            elseif t == 30 then pad.clearOverride(buttons.RIGHT)
+            elseif t == 35 then pad.setOverride(buttons.UP)
+            elseif t == 50 then pad.clearOverride(buttons.UP)
+            elseif t == 70 then
+                if p.previewPolls < 20 or p.chunkDraws < 20 or
+                    ffi.string(ptr(view), 12) ~= p.previewEye or
+                    u32(view + 12) == p.previewLookX or
+                    bit.tobit(u32(view + 16)) <= p.previewLookY then
+                    fail('preview input/render/rotation/height assertion')
+                    return
+                end
+            elseif t == 80 then
+                p.previewExitRequested = true
+                pad.clearOverride(buttons.L1)
+            end
         elseif p.screen == 'commands' then
             local command = playtest and not p.playtestEntered and 4 or 5
             if t == 10 or t == 35 or (t == 60 and command == 5) then pad.setOverride(buttons.DOWN)
@@ -414,7 +464,9 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
                     fail('new mission placement assertion')
                     return
                 end
-                if save or playtest then
+                if preview and not p.previewPassed then
+                    if t == 100 then pad.setOverride(buttons.L1) end
+                elseif save or playtest then
                     if t == 100 then pad.setOverride(buttons.SELECT)
                     elseif t == 108 then pad.clearOverride(buttons.SELECT) end
                 else

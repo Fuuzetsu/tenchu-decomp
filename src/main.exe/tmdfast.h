@@ -48,6 +48,7 @@ extern u_long DivDepth;
 
 void jt_init4(void);
 void DrawTMD(GsDOBJ2 *object, GsOT *ot, s32 mode);
+void decode_tmd_adiv_(GsDOBJ2 *object, GsOT *ot, u_long shift, void *work);
 
 /* Private libgs renderers installed by jt_init4.  The lit table entries take
  * a normal table before the packet cursor; the unlit entries do not.  PsyQ's

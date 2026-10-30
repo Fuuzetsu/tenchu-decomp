@@ -3425,3 +3425,27 @@ inside the table subscript. A separate assignment delays the table address
 load. The eight-byte declaration of the two-digit text buffer is also necessary:
 an unknown-size array makes cc1 emit an explicit absolute first-byte store,
 which a later `--gp-extern` flag cannot turn into the original GP store.
+
+### TRIAL terrain rendering: append slots and chained view-height assignment
+
+`DrawTrialTerrainChunks` reuses a short `slot` for the appended depth entry
+and for the selected minimum during sorting. Keep `slot = count++;` followed
+by `visible[slot].depth = depth`. An unnamed `visible[count++].depth` index
+preserves all instructions but rotates three registers throughout the sort.
+The projected depth is also the sort's minimum-depth variable, and the two
+camera coordinates become the swap temporaries. Fresh variables at either
+site change allocation or narrow-value promotion. A bounded permuter search
+identified the append-slot reuse; porting only that meaningful change into
+the ordinary source gives the full 1,196-byte match without its other dead
+statement or loop-fence candidates.
+
+`PreviewTrialTerrain` assigns the converted short eye height through the
+chain `ViewInfo.vpy = base_height = expression`. Separate assignments give
+the same 840-byte length but change the lifetime of the global view address,
+rotating saved registers across the function. An explicit camera-position
+pointer recovers the access schedule but retains the wrong allocation. The
+chained assignment restores both. Preserve the direction quad's original
+fixed-point scale, `(rcos(angle) * 160) >> 12`: the compiler reduces it to a
+multiply by five and a logical shift by seven before the halfword store.
+Writing the algebraically reduced expression directly emits an arithmetic
+shift instead. The Y coordinate retains its separate 80-pixel scale.

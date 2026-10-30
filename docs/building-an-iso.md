@@ -177,6 +177,7 @@ nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --save
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --text-entry --save
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --text-entry --playtest --save
+nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --preview --text-entry --playtest --save
 ```
 
 The wrapper accepts `--exe`, `--elf`, `--cue`, `--bios`, and `--timeout`; its
@@ -232,6 +233,17 @@ save and returned at VSync 3,066 with 80 terrain polls. The default mission
 contains the player and objective character; this establishes playtest loading,
 scheduled updates, and teardown, not every distance/visibility branch or the
 success/failure results flow.
+
+The optional `--preview` scenario holds L1 after checking the terrain cursor.
+Right changes the viewing direction and Up raises the target height; assertions
+require the eye position to stay fixed, sustained preview input and chunk draws,
+and a changed saved angle after L1 is released and terrain polling resumes.
+It uses the preview function's inventory span to identify its input calls.
+Verified 2026-10-31 with `--preview --text-entry --playtest --save`: 43 preview
+polls, 42 chunk draws, saved angle 322, then the same playtest and complete save
+checks. The run returns to terrain editing at VSync 3,276 with 133 terrain polls.
+These checks use the default map and do not establish coverage of every terrain
+kind, ornament, trap, or clipping/packet-exhaustion branch.
 
 ## What you get
 

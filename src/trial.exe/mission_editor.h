@@ -96,6 +96,8 @@ extern s16 TrialEditorModified;
 extern s16 TrialTerrainOrnamentCount;
 extern s16 TrialTerrainBrightness;
 extern s16 TrialTerrainScale;
+extern s16 TrialTerrainHeightSkew;
+extern ModelType *TrialEditorTileModel;
 extern s16 TrialTerrainVertexCount;
 extern SVECTOR *TrialTerrainVertices;
 extern s16 TrialTerrainHeights[10];
@@ -105,6 +107,7 @@ extern GsSPRITE TrialEditorCommandLabels[TRIAL_EDITOR_COMMAND_COUNT];
 extern GsSPRITE TrialEditorCommandBackground;
 extern GsSPRITE TrialEditorResumeHint;
 extern GsSPRITE TrialEditorConfirmButtons;
+extern POLY_FT4 TrialPreviewDirectionQuad;
 extern TrialMapCell TrialEditorMap[TRIAL_MAP_HEIGHT][TRIAL_MAP_WIDTH];
 
 extern char TrialTileLabelText[];
@@ -116,13 +119,19 @@ void DrawTrialEditorOverviewFrame(short cursor_x, short cursor_z,
                                  short center_x, short center_z);
 void DrawTrialCharacterThumbnail(short kind, short x, short y,
                                  int depth, short scale);
+void DrawTrialEditorTerrain(short cursor_x, short cursor_z,
+                            short center_x, short center_z);
+void DrawTrialEditorCharacters(short cursor_x, short cursor_z,
+                               short center_x, short center_z);
 
 void LoadTrialEditorTheme(short theme);
 void DisposeTrialTerrainModel(ModelType *model);
 ModelType *BuildTrialTerrainModel(short x, short z, short size);
 AreaMapType *BuildTrialCollisionMap(void);
 void UpdateTrialTerrainChunks(short mode);
+void DrawTrialTerrainChunks(int mission);
 void DrawTrialTerrainOrnaments(void);
+void PreviewTrialTerrain(short x, short z);
 int GetTrialTerrainHeight(short x, short z, short layers);
 int FindOrAddTrialTerrainVertex(short x, short y, short z);
 int SetupTrialTerrainPrimitive(TMD_P_TNG4 *primitive, short texture, short half);
