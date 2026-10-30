@@ -9,7 +9,7 @@ local function num(key)
 end
 local addr, word = {}, {}
 for _, key in ipairs({'MAIN', 'MENU', 'SETTINGS', 'CARD', 'EDITOR', 'MAP', 'READPAD', 'REALPAD',
-                     'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE'}) do
+                     'COMMANDS', 'EDITOR_SAVE', 'CARD_SAVE', 'TEXT', 'TEXT_INPUT'}) do
     addr[key] = num(key)
     word[key] = num(key .. '_WORD')
 end
@@ -24,7 +24,8 @@ local function s16(address)
 end
 local pad = PCSX.SIO0.slots[1].pads[1]
 local buttons = PCSX.CONSTS.PAD.BUTTON
-local used = {buttons.DOWN, buttons.CIRCLE, buttons.START, buttons.RIGHT, buttons.LEFT, buttons.SELECT}
+local used = {buttons.DOWN, buttons.CIRCLE, buttons.START, buttons.RIGHT, buttons.LEFT,
+              buttons.SELECT, buttons.L2, buttons.R2}
 local function release()
     for _, button in ipairs(used) do pad.clearOverride(button) end
 end
@@ -43,6 +44,7 @@ TenchuTrialProbe = {
 local p = TenchuTrialProbe
 local mapEnd, cursor, mission = num('MAP_END'), num('CURSOR'), num('MISSION')
 local save, saveState = num('SAVE') ~= 0, num('SAVE_STATE')
+local textEntry = num('TEXT_ENTRY') ~= 0
 local function fail(reason)
     if p.done then return end
     p.done = true
@@ -79,7 +81,33 @@ local function hook(key, fn)
 end
 hook('MAIN', function() p.main = true end)
 hook('MENU', function() screen('menu') end)
-hook('SETTINGS', function() screen('settings') end)
+hook('SETTINGS', function()
+    if textEntry and p.textEntered then
+        -- EditTrialTextField copies the output to this header and clears its
+        -- shared scratch buffer before the settings form is called again.
+        local header = tonumber(PCSX.getRegisters().GPR.n.a1)
+        if not p.textExpected or ffi.string(ptr(header + 8), 30) ~= p.textExpected then
+            fail('text-entry Shift-JIS export assertion')
+            return
+        end
+        p.textPassed = true
+        print(string.format('TENCHU_TRIAL text-entry category=0->1->0 code=%04x export=verified',
+                            p.textCode))
+    end
+    screen('settings')
+end)
+hook('TEXT', function()
+    if textEntry then
+        p.textEntered = true
+        screen('text-loading')
+    end
+end)
+hook('TEXT_INPUT', function()
+    if textEntry and p.screen == 'text-loading' then
+        screen('text')
+        ready()
+    end
+end)
 hook('CARD', function()
     if p.screen ~= 'card' then screen('card') end
 end)
@@ -139,8 +167,52 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
             elseif t == 25 then pad.setOverride(buttons.CIRCLE)
             elseif t == 33 then pad.clearOverride(buttons.CIRCLE) end
         elseif p.screen == 'settings' then
-            if t == 15 then pad.setOverride(buttons.START)
-            elseif t == 23 then pad.clearOverride(buttons.START) end
+            local button = textEntry and not p.textEntered and buttons.CIRCLE or buttons.START
+            if t == 15 then pad.setOverride(button)
+            elseif t == 23 then pad.clearOverride(button) end
+        elseif p.screen == 'text' then
+            local keyboard = u32(num('KEYBOARD_CURSOR'))
+            local edited = u32(num('TEXT_CURSOR'))
+            if t == 15 then pad.setOverride(buttons.R2)
+            elseif t == 23 then pad.clearOverride(buttons.R2)
+            elseif t == 35 then
+                if s16(keyboard + 4) ~= 1 then
+                    fail('text-entry next-category assertion')
+                    return
+                end
+            elseif t == 45 then pad.setOverride(buttons.L2)
+            elseif t == 53 then pad.clearOverride(buttons.L2)
+            elseif t == 65 then
+                if s16(keyboard + 4) ~= 0 then
+                    fail('text-entry previous-category assertion')
+                    return
+                end
+                p.textCode = bit.band(s16(u32(keyboard + 12)), 0xffff)
+                if p.textCode == 0 or p.textCode == 0x8140 then
+                    fail('text-entry selected a blank key')
+                    return
+                end
+                pad.setOverride(buttons.CIRCLE)
+            elseif t == 73 then pad.clearOverride(buttons.CIRCLE)
+            elseif t == 100 then
+                local characters = u32(edited + 8)
+                if s16(edited) ~= 1 or bit.band(s16(characters), 0xffff) ~= p.textCode then
+                    fail('text-entry insertion assertion')
+                    return
+                end
+                local codes, last = {}, 0
+                for i = 1, 15 do
+                    codes[i] = bit.band(s16(characters + (i - 1) * 2), 0xffff)
+                    if codes[i] ~= 0 and codes[i] ~= 0x8140 then last = i end
+                end
+                local bytes = {}
+                for i = 1, 15 do
+                    local code = i <= last and codes[i] or 0
+                    bytes[i] = string.char(bit.rshift(code, 8), bit.band(code, 0xff))
+                end
+                p.textExpected = table.concat(bytes)
+                pad.setOverride(buttons.START)
+            elseif t == 108 then pad.clearOverride(buttons.START) end
         elseif p.screen == 'commands' then
             if t == 10 or t == 35 or t == 60 then pad.setOverride(buttons.DOWN)
             elseif t == 18 or t == 43 or t == 68 then pad.clearOverride(buttons.DOWN)
@@ -194,6 +266,11 @@ p.vsync = PCSX.Events.createEventListener('GPU::Vsync', function()
             elseif t == 45 then pad.setOverride(buttons.LEFT)
             elseif t == 53 then pad.clearOverride(buttons.LEFT) end
             if t >= 90 then
+                if textEntry and (not p.textPassed or
+                    ffi.string(ptr(mission + 8), 30) ~= p.textExpected) then
+                    fail('text-entry mission-title assertion')
+                    return
+                end
                 if not p.moved or not p.returned or p.mapPolls < 12 then
                     fail('cursor/input assertion')
                     return

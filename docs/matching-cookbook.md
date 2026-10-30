@@ -1295,6 +1295,12 @@ judgment:
   artifact). The inverse select-shape: `bnez/nop/move dst,src/L: sh dst` is
   `if (c) next = saved; X = next;` — NEVER a ternary, which duplicates the store
   (update_card_screen_).
+  Constant arms are an exception to the single-store observation: TRIAL's
+  `UploadTrialGlyph` uses `pixels[y][15 - x] = bit ? INK : 0`. It retains a
+  store in each arm, but calculates the indexed destination before testing
+  the bit. Duplicating the lvalue in an `if/else` instead recomputes its address
+  in the arms and produces 512 bytes instead of the exact 508. Inspect the
+  address calculation as well as the stores when matching indexed writes.
 - **Multiplies/divisions**: `%`/`/` by constants are magic-multiply sequences;
   the same magic constant CSEs into one callee-saved register. A negative
   non-power-of-two multiply is spelled as its own strength reduction

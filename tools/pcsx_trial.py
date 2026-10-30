@@ -6,7 +6,9 @@ settings, pass the memory-card check, and move the map cursor right and left.
 Require the observed cursor positions, sustained editor input polling, and
 the expected initial player placement. Cards and the executable snapshot live
 in a temporary directory. With --save, save the new mission through the editor
-and compare its on-card payload with game memory. This does not cover disc
+and compare its on-card payload with game memory. With --text-entry, switch
+keyboard categories, enter a title character, and verify its Shift-JIS export.
+This does not cover disc
 handoff, overwriting/deleting a mission, or playtest.
 """
 
@@ -40,6 +42,8 @@ PROBE_SYMBOLS = {
     "COMMANDS": "UpdateTrialEditorCommands",
     "EDITOR_SAVE": "SaveTrialEditorMission",
     "CARD_SAVE": "UpdateTrialCardSave",
+    "TEXT": "ShowTrialTextEntry",
+    "TEXT_INPUT": "UpdateTrialTextEntry",
 }
 
 
@@ -80,6 +84,8 @@ def run() -> int:
     parser.add_argument("--timeout", type=float, default=150)
     parser.add_argument("--save", action="store_true",
                         help="save through the editor and verify the temporary card file")
+    parser.add_argument("--text-entry", action="store_true",
+                        help="edit the title through the Japanese keyboard before creating the map")
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error("--timeout must be positive")
@@ -112,6 +118,10 @@ def run() -> int:
         environment["TENCHU_TRIAL_CURSOR"] = str(metadata.symbol("D_800CC6E8"))
         environment["TENCHU_TRIAL_MISSION"] = str(metadata.symbol("TrialMission"))
         environment["TENCHU_TRIAL_SAVE"] = "1" if args.save else "0"
+        environment["TENCHU_TRIAL_TEXT_ENTRY"] = "1" if args.text_entry else "0"
+        for key, symbol in {"KEYBOARD_CURSOR": "TrialKeyboardCursor",
+                            "TEXT_CURSOR": "TrialEditedTextCursor"}.items():
+            environment[f"TENCHU_TRIAL_{key}"] = str(metadata.symbol(symbol))
         environment["TENCHU_TRIAL_SAVE_STATE"] = str(metadata.symbol("TrialCardSaveState"))
         environment["TENCHU_TRIAL_COMMAND_SELECTION"] = str(metadata.symbol("TrialEditorCommandSelection"))
         saved_file = None

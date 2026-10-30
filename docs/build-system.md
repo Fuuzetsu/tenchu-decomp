@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 515 matching C functions /
-235,276 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 522 matching C functions /
+238,628 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -833,6 +833,28 @@ exact functions / 440 bytes. `DisposeTrialTerrainModel` adds 92 bytes: generated
 terrain owns its vertex array, primitive array, and TMD header separately.
 The terrain ornament count is reset when these models are disposed.
 
+Seven text/display routines add 3,352 exact bytes: `ShowTrialTextEntry`,
+`DisposeTrialTextEntry`, `DrawTrialScreenFade`, `UploadTrialGlyph`,
+`LoadTrialGlyphGrid`, `SelectTrialKanjiRange`, and `HighlightTrialTextCategory`.
+The fade owns its 40-byte TIM path. INPJP.ARC identifies the wood panels,
+category buttons, cursor box, text underline, shoulder-button hints, category
+labels, heading strip, and scroll arrows. The headings confirm four input
+modes: title, password, author, and record name. Keyboard and edited-text
+cursors share a 24-byte layout. Kanji ranges contain 20-byte records with
+linked neighbors and the first valid glyph of each five-character column.
+The 28-byte page state tracks the visible column and its range.
+
+Glyph uploads use the extended SDK `Krom2RawAdd2` resolver and synchronous
+`LoadImage2`. The old scaffold placed the former name on the preceding
+four-byte padding word; its actual entry is 0x80081634. Both SDK functions
+remain assembly. The rasterizer expands fifteen rows of BIOS bits to a
+16-bit texture, shades empty interior corners between adjacent ink pixels,
+and distinguishes a missing glyph from an intentional space. The text loop
+exports the edited u16 codes to Shift-JIS bytes while trimming trailing
+spaces. The settings wrapper copies that output to the header and clears the
+shared text buffer before reopening the form. Input/resource initialization,
+the full keyboard controller, and page rendering remain assembly.
+
 Six more hidden function boundaries are now explicit. The old `calculate_score`
 row also contained the score snapshot at 0x80047a84. The 0x80049448 results row
 contained four further functions at 0x800496e4, 0x80049b40, 0x80049ebc, and
@@ -851,13 +873,17 @@ positions 0 → 25 → 0. It checks the initial theme and player placement witho
 patching game memory. The optional save scenario also opens the command menu,
 creates a user-mission file on a disposable card, and returns to terrain
 editing. It verifies the directory checksum and all 7,484 payload bytes against
-game memory; the observed file is `BISLPS-01901M0544180`. Playtest, keyboard input,
-overwriting/deleting saves, formatting, preset-record saves, and the full
+game memory; the observed file is `BISLPS-01901M0544180`. The text-entry scenario
+switches Latin → Katakana → Latin, inserts full-width A (0x8260), and checks
+the exported title in both settings and the mission header. Combined with
+saving, it verifies `BISLPS-01901M00f1980` and returns to the editor at VSync
+2,008. Playtest, Kanji paging, text deletion, overwriting/deleting saves,
+formatting, preset-record saves, and the full
 disc-to-TRIAL handoff remain outside this probe's coverage.
 
-The 515-function checkpoint passes all six executable hashes and all 38 focused
+The 522-function checkpoint passes all six executable hashes and all 38 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 515/1,216 exact TRIAL rows and 235,276/466,728 TRIAL code
+3,449 units, including 522/1,216 exact TRIAL rows and 238,628/466,728 TRIAL code
 bytes. Those report denominators include SDK assembly; the game/editor-only
 denominators remain 586 rows and 307,784 bytes. No remote report was published.
 

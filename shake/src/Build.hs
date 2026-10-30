@@ -527,6 +527,17 @@ maspsxGpExterns src = extra (takeBaseName src) <>
         takeBaseName src == "LoadTrialEditorTheme" =
           ["TrialTileDefinitions", "TrialTileDefinitionCount", "TrialTileTextures",
            "TrialThemeOrnaments", "TrialTerrainOrnamentCount"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "DrawTrialScreenFade" = ["TrialFadeSprite"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "LoadTrialGlyphGrid" = ["TrialKeyboardCursor"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UploadTrialGlyph" = ["TrialBlankGlyph"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src `elem` ["DisposeTrialTextEntry", "ShowTrialTextEntry"] =
+          ["TrialTextBackground", "TrialTextPanels", "TrialTextHeading",
+           "TrialKeyboardCursor", "TrialEditedTextCursor", "TrialKeyboardQuad",
+           "TrialEditedTextQuad", "TrialTextArchive", "TrialTextButtons"]
       | otherwise = []
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else

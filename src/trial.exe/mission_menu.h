@@ -43,7 +43,8 @@ enum trial_text_mode
 {
     TRIAL_TEXT_TITLE,
     TRIAL_TEXT_PASSWORD,
-    TRIAL_TEXT_AUTHOR
+    TRIAL_TEXT_AUTHOR,
+    TRIAL_TEXT_RECORD_NAME
 };
 
 enum trial_setting_field

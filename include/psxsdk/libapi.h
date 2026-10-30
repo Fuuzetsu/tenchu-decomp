@@ -40,6 +40,7 @@ long InitPAD(char *buffer0, long length0, char *buffer1, long length1);
 int EnterCriticalSection(void);
 void ExitCriticalSection(void);
 long Krom2RawAdd(u_long code);
+long Krom2RawAdd2(u_short code);
 void ChangeClearPAD(long mode);
 
 void _new_card(void);

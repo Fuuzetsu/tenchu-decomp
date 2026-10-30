@@ -175,6 +175,7 @@ and left. Run it after the exact-image gate:
 nix develop --command ./Build check-trial.exe
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux
 nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --save
+nix develop --command python3 tools/pcsx_trial.py --pcsx /path/to/pcsx-redux --text-entry --save
 ```
 
 The wrapper accepts `--exe`, `--elf`, `--cue`, `--bios`, and `--timeout`; its
@@ -193,9 +194,8 @@ exceptions, unexpected pauses, callback failures, and timeouts.
 Verified 2026-10-30: Create → settings → card check → terrain editing, followed
 by 90 frames and 46 input polls. Cursor sprite x moved 0 → 25 → 0; the mission
 retained theme 0 and the player at grid (16, 18). No game-memory patch or menu
-bypass is used. The default run stops at this cursor check. Playtest, keyboard
-input, and the complete boot/menu-to-TRIAL handoff remain untested by either
-scenario.
+bypass is used. The default run stops at this cursor check. Playtest and the
+complete boot/menu-to-TRIAL handoff remain untested by these scenarios.
 
 The optional `--save` scenario continues after the cursor check: Select opens
 the command menu, three Down presses choose Save, and Circle confirms saving
@@ -206,6 +206,16 @@ bytes against a read-only snapshot of game memory. The verified new file was
 `BISLPS-01901M0544180`; the probe returned to the map with 62 pad polls at VSync
 1,758. This covers creating a user-mission save, but not overwriting, deleting,
 formatting a card, or saving preset records. Only disposable cards are written.
+
+The optional `--text-entry` scenario opens the title keyboard from settings.
+R2 and L2 switch Latin → Katakana → Latin; Circle enters full-width A (Shift-JIS
+0x8260), and Start returns to settings. The probe checks the selected category,
+inserted code, advanced cursor, exported title in the settings header, and the
+title copied into the mission. It accounts for trailing-space trimming and
+the settings wrapper clearing the shared text buffer. Combined with `--save`,
+this passed at VSync 2,008 with 62 terrain pad polls and verified file
+`BISLPS-01901M00f1980`. Kanji paging, deletion, and every text-input mode have
+not been exercised by this bounded scenario.
 
 ## What you get
 
