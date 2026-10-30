@@ -34,6 +34,24 @@ typedef struct TrialOptionArrowPair
     s16 right_x, right_y;
 } TrialOptionArrowPair;
 
+/* The campaign handoff is followed by sixteen sets of ten preset records.
+ * Together they occupy the existing 0xe70-byte persistent-state contract. */
+typedef struct TrialPersistentState
+{
+    TLinkInfo game;
+    TrialMissionRecord preset_records[TRIAL_PRESET_COUNT][TRIAL_MISSION_RECORD_COUNT];
+} TrialPersistentState;
+
+#define TRIAL_PERSISTENT_STATE \
+    ((TrialPersistentState *)TENCHU_PERSISTENT_STATE_ADDRESS)
+
+/* A name occupies ten bytes in each sixteen-byte record. Keep this field's
+ * fixed persistent-RAM base explicit when copying the name independently. */
+#define TRIAL_PRESET_RECORD_NAME(preset, rank) \
+    (*(TrialRecordName *)((u8 *)&TRIAL_PERSISTENT_STATE->preset_records[0][0].name + \
+        (preset) * sizeof(TRIAL_PERSISTENT_STATE->preset_records[0]) + \
+        (rank) * sizeof(TrialMissionRecord)))
+
 extern ArcFile *TrialPreviewArchive;
 extern TrialImagePanel *TrialMissionListPanel;
 extern Sprite3D *TrialMissionDetailsFrame;
@@ -53,6 +71,8 @@ extern s16 TrialOptionLimits[TRIAL_OPTION_COUNT];
 extern TrialOptionArrowPair TrialOptionArrowPositions[TRIAL_OPTION_COUNT];
 
 void FormatTrialMissionPreview(TrialMissionHeader *header, TrialMissionPreview *preview);
+short LoadTrialPresetPreviews(short card_slot, TrialMissionHeader *headers,
+                              TrialMissionPreview *previews);
 void SortTrialSpritePrimitive(GsSPRITE *sprite, short transparent, GsOT *ot, int priority);
 void LoadTrialPreviewImages(void);
 int PrepareTrialMissionPreview(TrialMissionHeader *header, TrialMissionPreview *preview);

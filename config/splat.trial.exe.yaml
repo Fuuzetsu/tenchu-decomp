@@ -43,6 +43,8 @@ segments:
     subalign: 4
     subsegments:
       - [0x800, textbin]
+      - { start: 0x8a4, type: .rodata, name: PREVIEW, linker_section_order: .text }
+      - [0xad4, textbin]
       - { start: 0xc8c, type: .rodata, name: RunMissionEditor, linker_section_order: .text }
       - [0xca0, textbin]
       - { start: 0xfb4, type: .rodata, name: MOTION, linker_section_order: .text }
@@ -67,9 +69,7 @@ segments:
       - [0x6060, c, FUN_80016860]
       - [0x6178, c, FUN_80016978]
       - [0x6344, c, FUN_80016b44]
-      - [0x6498, c, FormatTrialMissionPreview]
-      - [0x66a8, c, FUN_80016ea8]
-      - [0x68e4, c, SortTrialSpritePrimitive]
+      - [0x6498, c, PREVIEW]
       - [0x6ac4, c, FUN_800172c4]
       - [0x6ec0, c, ChooseTrialCharacter]
       - [0x70e8, c, FUN_800178e8]
@@ -885,6 +885,8 @@ segments:
       - [0x7aa10, data]
       - [0x7ab00, .data, EFFECT]
       - [0x7ab10, data]
+      - { start: 0x868d0, type: .sdata, name: PREVIEW, linker_section_order: .data }
+      - [0x868dc, data]
       - { start: 0x86954, type: .sdata, name: MENURESOURCES, linker_section_order: .data }
       - [0x8695c, data]
       - { start: 0x869d4, type: .sdata, name: MOTION, linker_section_order: .data }

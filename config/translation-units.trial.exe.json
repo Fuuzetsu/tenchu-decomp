@@ -998,6 +998,14 @@
         "DrawTrialOptionArrows",
         "GetTrialUnlockedThemes"
       ]
+    },
+    {
+      "source": "PREVIEW.C",
+      "functions": [
+        "FormatTrialMissionPreview",
+        "LoadTrialPresetPreviews",
+        "SortTrialSpritePrimitive"
+      ]
     }
   ]
 }

@@ -1345,6 +1345,12 @@ judgment:
   tile_sprite_); when an `lbu` field feeds a multiply, a full-width named temp
   schedules the load early without the `andi` a u8 temp inserts
   (ProcItemNemuri).
+- **Keep packet cursor units faithful to the SDK typedef.** PsyQ `PACKET`
+  is an unsigned byte, not a GPU word. TRIAL's `SortTrialSpritePrimitive`
+  matches 480 bytes with one `PACKET *` cursor, aggregate SPRT copy, and
+  `sizeof(SPRT)` / `sizeof(DR_TPAGE)` byte advances. Separate typed sprite/page
+  pointers retain the old base and change allocation; a word-count advance
+  on `PACKET *` is a real behavior bug even when instruction counts agree.
 - **Repeated global-pointer loads can reveal an array, not a volatile
   object.** TRIAL's option-arrow drawing initially used two separate pointer
   globals and compiled 24 bytes short because cc1 retained each pointer across

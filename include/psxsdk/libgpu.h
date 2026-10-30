@@ -426,6 +426,10 @@ enum gpu_polygon_command
 #define setlen(p, _len) (((P_TAG *)(p))->len = (u_char)(_len))
 #define setcode(p, _code) (((P_TAG *)(p))->code = (u_char)(_code))
 #define getcode(p) ((u_char)((P_TAG *)(p))->code)
+#define setaddr(p, _addr) (((P_TAG *)(p))->addr = (u_long)(_addr))
+#define getaddr(p) (((P_TAG *)(p))->addr)
+#define addPrim(ot, p) \
+    setaddr((p), getaddr(ot)), setaddr((ot), (p))
 #define setSemiTrans(p, abe)                                                \
     ((abe) ? setcode((p), getcode(p) | GPU_POLYGON_SEMITRANS)              \
            : setcode((p), getcode(p) & ~GPU_POLYGON_SEMITRANS))
@@ -438,6 +442,12 @@ enum gpu_polygon_command
 #define setPolyG4(p)                                                        \
     setlen((p), GPU_PACKET_LENGTH(POLY_G4)),                               \
         setcode((p), GPU_POLY_G4_CODE)
+#define setSprt(p) \
+    setlen((p), GPU_PACKET_LENGTH(SPRT)), setcode((p), 0x64)
+#define setDrawTPage(p, dfe, dtd, tpage) \
+    setlen((p), GPU_PACKET_LENGTH(DR_TPAGE)), \
+        (p)->code[0] = 0xe1000000 | ((dtd) ? 0x0200 : 0) | \
+                       ((dfe) ? 0x0400 : 0) | ((tpage) & 0x9ff)
 
 DISPENV *GetDispEnv(DISPENV *env);
 DISPENV *PutDispEnv(DISPENV *env);

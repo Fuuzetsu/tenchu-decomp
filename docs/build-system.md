@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 477 matching C functions /
-211,524 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 480 matching C functions /
+213,104 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -645,6 +645,25 @@ excludes it. The detail frame moves in 50-pixel steps and clamps only the
 frame's x position; its preview sprite retains the original unclamped step.
 Two temporary `D_` aliases at `0x80087874` and `0x80087880` remain for
 unrecovered assembly consumers of the C-owned origin/confirmation arrays.
+
+PREVIEW adds three functions / 1,580 bytes and owns 572 bytes of format
+strings, preset titles/authors, and the title-pointer table. It displays three
+records with full-width Shift-JIS digits, an unset name/time as dashes, and
+times of an hour or more as `59:59`. The preset-list builder always exposes
+five introductory missions; eleven progress bits select the remaining
+presets and their themes. Preset title/author strings are now readable as
+Japanese comments beside their original Shift-JIS bytes.
+
+`TrialPersistentState` extends the campaign's 0x470-byte `TLinkInfo` with
+sixteen arrays of ten 16-byte records. The combined 0xe70 bytes exactly fill
+the existing persistent-state RAM contract. Preset preview copying transfers
+only the name and time fields, preserving record padding. Its name view derives
+the fixed RAM base and both strides from this layout. Four temporary `D_`
+format-string aliases remain for the unrecovered confirmation screen.
+`SortTrialSpritePrimitive` builds a normal SPRT packet in scratchpad, copies
+it into LIBGS's byte-oriented packet buffer, and prepends its texture-page
+command at the same depth. The canonical LIBGPU tag/sprite/page macros now
+express those operations in C.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button
