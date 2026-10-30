@@ -36,6 +36,8 @@ extern Sprite3D *TrialMenuCursor;
 extern BackGround *TrialMenuBackground;
 /* Zero selects preset scores in TENCHU; one selects a user Mxxxxxxx file. */
 extern short TrialUserMission;
+/* Mission execution enables pause input while the HUD is active. */
+extern s16 InfoViewPauseEnabled;
 
 void InitTrialMenuGraphics(void);
 void DisposeTrialMenuGraphics(void);

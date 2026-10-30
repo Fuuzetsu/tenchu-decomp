@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 259 matching C functions /
-94,696 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 273 matching C functions /
+99,008 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -528,6 +528,15 @@ These preserve TRIAL's behavior, including retaining the first visibility
 probe's distance and angle after the target switch. Four temporary `D_`
 aliases remain for unrecovered assembly consumers of the C-owned AI globals;
 the named globals themselves are section-owned ELF symbols.
+
+INFOVIEW adds fourteen functions / 4,312 bytes. It retains the shared item,
+life-bar, and threat displays, with a mission-controlled pause enable flag.
+Its pause loop has no campaign map or debug-layout menus. The debug-code
+comparison still appends `-1` to the input record while the stored twenty-button
+sequence is followed by zero; this original mismatch is preserved. The
+40-byte `ResetInfoview` only clears life bars, retaining the unused shared
+stage argument. A misleading scaffold label at `0x8004afd4` was removed;
+that address loads a sprite and is not the HUD reset.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following

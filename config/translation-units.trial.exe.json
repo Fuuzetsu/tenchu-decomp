@@ -568,6 +568,40 @@
         "Think4contact",
         "Think4chase"
       ]
+    },
+    {
+      "source": "INFOVIEW.C",
+      "functions": [
+        "ReqLifeBar",
+        "init_lifebar_",
+        "InitializeInfoView",
+        "PutStrain",
+        "PutLifeBar",
+        "PutLifeBarS",
+        "PutItemList",
+        "DrawPause",
+        "PauseProc",
+        "DoInfoViewProc",
+        "ResetInfoview",
+        "PutItemCursor",
+        "PutItemIcon",
+        "PutNumber"
+      ],
+      "debug_symbol_order": [
+        "ReqLifeBar",
+        "InitializeInfoView",
+        "PutNumber",
+        "PutStrain",
+        "PutLifeBar",
+        "PutLifeBarS",
+        "PutItemIcon",
+        "PutItemCursor",
+        "PutItemList",
+        "DrawPause",
+        "PauseProc",
+        "ResetInfoview",
+        "DoInfoViewProc"
+      ]
     }
   ]
 }
