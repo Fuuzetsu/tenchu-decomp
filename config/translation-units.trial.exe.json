@@ -372,6 +372,81 @@
         "LoadTrialMenuGraphics",
         "LoadTrialArchiveImage"
       ]
+    },
+    {
+      "source": "SEMNG.C",
+      "functions": [
+        "SoundEx",
+        "SetupSoundEffect",
+        "Sound"
+      ],
+      "debug_symbol_order": [
+        "SetupSoundEffect",
+        "SoundEx",
+        "Sound"
+      ]
+    },
+    {
+      "source": "APPEAR.C",
+      "functions": [
+        "SetupAppearance",
+        "SetupCharacterParameter",
+        "BreedLife",
+        "GetWeaponData",
+        "SetupWeapon",
+        "GetAttackDBID",
+        "DisposeWeapon",
+        "EquipWeapon"
+      ],
+      "debug_symbol_order": [
+        "SetupAppearance",
+        "SetupCharacterParameter",
+        "BreedLife",
+        "GetAttackDBID",
+        "GetWeaponData",
+        "SetupWeapon",
+        "DisposeWeapon",
+        "EquipWeapon"
+      ]
+    },
+    {
+      "source": "HUMAN.C",
+      "functions": [
+        "CreateHumanoid",
+        "KillHumanoid",
+        "ControlHumanoid",
+        "DefaultActionHumanoid",
+        "SearchTarget",
+        "ControlTraceLine",
+        "ControlAllHumanoid",
+        "draw_visible_characters_",
+        "GetHumanoid",
+        "is_humanoid_on_stage_",
+        "MoveHumanoid",
+        "GetMoveSpeed",
+        "GetDirection",
+        "GetTargetDistance",
+        "GetNearestHumanoid",
+        "SetupTraceLine"
+      ],
+      "debug_symbol_order": [
+        "CreateHumanoid",
+        "KillAllHumanoid",
+        "KillHumanoid",
+        "ControlAllHumanoid",
+        "ControlHumanoid",
+        "DefaultActionHumanoid",
+        "GetHumanoid",
+        "MoveHumanoid",
+        "GetMoveSpeed",
+        "GetDirection",
+        "GetTargetDistance",
+        "GetNearestHumanoid",
+        "SearchTarget",
+        "SetupTraceLine",
+        "RestartTraceLine",
+        "ControlTraceLine"
+      ]
     }
   ]
 }

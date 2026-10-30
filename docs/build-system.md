@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 196 matching C functions /
-60,948 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 223 matching C functions /
+74,560 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -502,6 +502,18 @@ editor routines are inferred from these call paths and are not demo symbols.
 type is an inference, while the reserved size is directly observable.
 TRIAL's use of `load_archive_sprite_` also proves its sprite-pointer return;
 correcting the shared C prototype preserves all existing executable bytes.
+
+APPEAR, SEMNG, and HUMAN add another 27 functions / 13,612 bytes. Appearance
+loads the TRIAL asset tree without the campaign armour substitution and
+initializes boss-type characters with weapons sheathed. Sound banks below
+100 select `TRIAL\\TRIAL<n+1><R/A>.VAB`; values of 100 or more select
+`STAGE<n-100><R/A>.VAB`. Actor deletion frees its patrol points and line, and
+patrol control decodes a facing direction in the low nibble and a signed wait
+duration in the upper byte of each waypoint's `pad` field. SearchTarget applies
+the player's posture profile only when that player is the target. HUMAN's
+24-byte sight-profile table and APPEAR's 328 bytes of switch tables are C-owned.
+The inverted non-player target null check at `0x8002b9c4` is preserved and
+documented: this is an observed original defect, not a reconstruction fix.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following

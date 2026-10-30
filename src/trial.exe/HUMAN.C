@@ -1,0 +1,1246 @@
+#include "common.h"
+#include "trial.exe.h"
+#include "../main.exe/action.h"
+#include "../main.exe/appear.h"
+#include "../main.exe/effect.h"
+#include "../main.exe/humanoid.h"
+#include "../main.exe/item.h"
+#include "../main.exe/model.h"
+#include "../main.exe/sound.h"
+#include "../main.exe/afterimage.h"
+#include "../main.exe/tmdfast.h"
+#include "../main.exe/vmemory.h"
+#include <psxsdk/libgpu.h>
+
+/* Shared actor layout with MAIN; TRIAL adds timed patrol stops, owns the
+ * patrol allocation, and omits campaign-specific Balma and debug paths. */
+
+extern char msg_human_overflow[]; /* HUMAN OVERFLOW */
+extern char msg_no_trace_point[]; /* NO TRACE POINT */
+
+Humanoid *CreateHumanoid(character_kind type, unsigned long *mad)
+{
+    enum
+    {
+        BEAR_COLLISION_Y_OFFSET = -0x1C5,
+        BEAR_COLLISION_Z_OFFSET = 0xC0
+    };
+    Humanoid *human;
+    s16 conflict_id;
+    u16 hh;
+    u16 hh2;
+    u16 ww;
+    s32 half;
+    s32 nhalf;
+    s16 oldHumans;
+
+    if (mad == 0 || Humans >= MAX_HUMANS)
+    {
+        SystemOut(msg_human_overflow);
+    }
+    human = (Humanoid *)vcalloc(sizeof(Humanoid), 0);
+    human->type = type;
+    human->status = STAT_NORMAL;
+    human->attribute = 0;
+    human->model = LoadModelArchive(mad, &World);
+    human->locate = MODEL_POSITION(human->model);
+    human->rotate = &human->model->rotate;
+    human->model->attribute = MODEL_ATTR_CULL_BEHIND | MODEL_ATTR_CULL_SCREEN |
+                              MODEL_ATTR_CULL_FAR;
+    SetupThinkFunction(human, THINK_MIX_NONE);
+    SetupCharacterParameter(type, human);
+    hh = human->height;
+    human->model->clip.vy = -((s16)hh / 2);
+    UpdateMotion(human->motion, MOT_NORMAL);
+    GetAreaMapVector(GlobalAreaMap, &human->map, human->locate, human->width,
+                     AREA_LEVEL_STEP_DOWN);
+    SetupWeapon(human);
+    conflict_id = InsertConflict(human->model->object[MODEL_PART_WAIST]);
+    hh2 = human->height;
+    ConflictObject[conflict_id].size.vy = half = (s16)hh2 / 2;
+    nhalf = -half;
+    ConflictObject[conflict_id].offset.vy =
+        nhalf - human->model->rotate.pad;
+    ww = human->width;
+    ConflictObject[conflict_id].common = human;
+    ConflictObject[conflict_id].size.vx =
+        ConflictObject[conflict_id].size.vz =
+        (s16)ww / 2;
+    if (type == KUMA_0 || type == KUMA_1)
+    {
+        ConflictObject[conflict_id].offset.vy = BEAR_COLLISION_Y_OFFSET;
+        ConflictObject[conflict_id].offset.vz = BEAR_COLLISION_Z_OFFSET;
+    }
+    oldHumans = Humans;
+    Humans++;
+    HumanGroup[oldHumans] = human;
+    return human;
+}
+
+void KillHumanoid(Humanoid *human)
+{
+    short i;
+
+    if (human == 0)
+    {
+        return;
+    }
+
+    DeleteConflict(human->model->object[MODEL_PART_WAIST]);
+    DisposeModelArchive(human->model);
+    DisposeMotionManager(human->motion);
+    DisposeWeapon(human);
+    if (human->trace != 0)
+    {
+        vfree(human->trace->point);
+        vfree(human->trace);
+    }
+    dispose_weapon_data_of_char_(human, ATTACK_CANCEL_ALL);
+    vfree(human);
+    for (i = 0; i < Humans; i++)
+    {
+        if (HumanGroup[i] == human)
+        {
+            break;
+        }
+    }
+    if (i < Humans)
+    {
+        Humans--;
+        HumanGroup[i] = HumanGroup[Humans];
+    }
+}
+
+void ControlHumanoid(Humanoid *human)
+{
+    ModelArchiveType *model;
+    s32 m;
+    MATRIX mat;
+    ModelType *head;
+    s32 direction;
+    s32 magnitude;
+    s32 rotation_pair;
+
+    model = human->model;
+    m = 1;
+    if (model->object[MODEL_PART_WAIST]->id >= 0)
+    {
+        DefaultActionHumanoid(human);
+        StateTransition(human);
+        DrawShadow(human);
+    }
+    else if (human->status == STAT_DEAD)
+    {
+        register_character_death(human);
+        spread_blood_pool_(human);
+    }
+    HumanActionControl(human);
+    if (SkipFrame != 0)
+    {
+        m = 0;
+    }
+    else if (human != StagePlayer)
+    {
+        s32 clip;
+
+        GsGetLs(&model->locate, &mat);
+        GsSetLsMatrix(&mat);
+        clip = DrawClip((ModelType *)model, 0);
+        m = 0;
+        if (clip >= 0)
+        {
+            m = -1;
+        }
+    }
+
+    PlayMotion(human->motion, human->status == STAT_ATTACK ? -1 : m);
+    human->slocate = *human->locate;
+    human->locate->vx += human->vector.vx;
+    human->locate->vz += human->vector.vz;
+    human->locate->vy += human->vector.vy;
+    UpdateCoordinate((ModelType *)model);
+
+    if (m == 0)
+    {
+        return;
+    }
+
+    /* Retail reads only the low halfword here. */
+    DrawModeSave[VISIBLE_ENEMIES_] = DrawTMDmode;
+    VISIBLE_CHARACTERS_ON_STAGE_[VISIBLE_ENEMIES_] = human;
+    VISIBLE_ENEMIES_++;
+    if (ActionHalt != ACTION_HALT_NONE || human->life <= 0)
+    {
+        return;
+    }
+
+    if (human == StagePlayer)
+    {
+        if (human->status == STAT_STICKON)
+        {
+            return;
+        }
+        head = human->model->object[MODEL_PART_HEAD];
+        if (CamState.Mode != CMODE_DIRECTION && CamState.Mode != CMODE_SIGHT)
+        {
+            MotionElementType *rotation;
+
+            if (human->motion->loop != MOTION_LOOP_DISABLED)
+            {
+                return;
+            }
+            rotation =
+                human->motion->motion->rotate[MODEL_PART_HEAD];
+            if (head->rotate.vx == rotation->x &&
+                head->rotate.vy == rotation->y)
+            {
+                return;
+            }
+            head->rotate.vx = rotation->x;
+            head->rotate.vy =
+                human->motion->motion->rotate[MODEL_PART_HEAD]->y;
+            UpdateCoordinate(head);
+            return;
+        }
+        else
+        {
+            rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
+                            human->model->object[MODEL_PART_TORSO]->rotate.vy;
+            {
+                s32 yaw_magnitude;
+
+                direction = CamState.DirectionRY - rotation_pair;
+                yaw_magnitude = direction >= 0 ? direction : -direction;
+                if (yaw_magnitude > 900)
+                {
+                    head->rotate.vy = yaw_magnitude * 900 / direction;
+                }
+                else
+                {
+                    head->rotate.vy = direction;
+                }
+            }
+            {
+                s32 pitch_magnitude;
+
+                direction = CamState.DirectionRX;
+                pitch_magnitude = direction >= 0 ? direction : -direction;
+                if (pitch_magnitude > 500)
+                {
+                    head->rotate.vx = pitch_magnitude * 500 / direction;
+                }
+                else
+                {
+                    head->rotate.vx = direction;
+                }
+            }
+        }
+        UpdateCoordinate(head);
+        return;
+    }
+    /* Preserved TRIAL defect: the retail branch rejects a non-null target.
+     * The following head-tracking code consequently reads through null. */
+    if (human->target != NULL)
+    {
+        return;
+    }
+    if ((human->attribute & ATTR_PHASE) != PHASE_ALERT &&
+        (human->target == &StagePlayer->model->locate ||
+         human->motion->mid == MOT_ACTION))
+    {
+        return;
+    }
+
+    rotation_pair = human->model->object[MODEL_PART_WAIST]->rotate.vy +
+                    human->model->object[MODEL_PART_TORSO]->rotate.vy +
+                    human->rotate->vy;
+    direction = GetDirection(
+        human->target->coord.t[0] - human->locate->vx,
+        human->target->coord.t[2] - human->locate->vz,
+        (s16)rotation_pair);
+    magnitude = direction >= 0 ? direction : -direction;
+    if (magnitude >= 1800)
+    {
+        return;
+    }
+
+    head = human->model->object[MODEL_PART_HEAD];
+    if (magnitude > 900)
+    {
+        head->rotate.vy = magnitude * 900 / direction;
+    }
+    else
+    {
+        head->rotate.vy = direction;
+    }
+
+    direction = (human->target->coord.t[1] - human->locate->vy) / 2;
+    if (direction != 0)
+    {
+        if (direction >= -500)
+        {
+            if (direction <= 100)
+            {
+                head->rotate.vx = direction;
+            }
+            else
+            {
+                head->rotate.vx = 100;
+            }
+        }
+        else
+        {
+            head->rotate.vx = -500;
+        }
+    }
+    UpdateCoordinate(head);
+}
+
+/* Debug builds keep the original loop-shaped logging macro. */
+#ifdef DEBUG
+#define DBG(x) do { FntPrint x; } while (0)
+#else
+#define DBG(x) do { } while (0)
+#endif
+
+short DefaultActionHumanoid(Humanoid *human)
+{
+    enum
+    {
+        FAST_MOVEMENT_PROBE_SPEED = 80,
+        WALL_RECOVERY_PROBE_Y_OFFSET = 500,
+        WALL_RECOVERY_PROBE_RADIUS = 300,
+        WALL_RECOVERY_STEP = 20,
+        WALL_DIRECTION_WRAP_THRESHOLD = 2000,
+        WALL_DIRECTION_LIMIT = 1800,
+        WALL_TURN_STEP = 32,
+        CONFLICT_REACTION_HALF_ANGLE = 1100,
+        CONFLICT_VERTICAL_ESCAPE_SPEED = 10,
+        TRACE_COLLISION_PAUSE = -20
+    };
+    MapVector *map;
+    SVECTOR *vector;
+    VECTOR *locate;
+    VECTOR *slocate;
+    ModelType *object;
+    long i;
+    long xx;
+    long yy;
+    long zz;
+    long ry;
+    long direction;
+
+    i = AREA_LEVEL_STEP_DOWN;
+    map = &human->map;
+    locate = human->locate;
+    vector = &human->vector;
+    object = *human->model->object;
+    human->rotate->vy &= ANGLE_MASK;
+    /* Narrow through u8 before reloading the attribute. */
+    human->attribute = (u8)human->attribute;
+    slocate = &human->slocate;
+
+    if (map->vector == 0)
+    {
+        i = AREA_LEVEL_STEP_DOWN | AREA_LEVEL_REUSE_CACHED;
+    }
+    FieldArea = map->area;
+    FieldIndex = map->index;
+
+    if (human->status == STAT_ATTACK ||
+        (human->status != STAT_SQUAT && map->height == 0 &&
+         (__builtin_abs(vector->vx) > FAST_MOVEMENT_PROBE_SPEED ||
+          __builtin_abs(vector->vz) > FAST_MOVEMENT_PROBE_SPEED)))
+    {
+        VECTOR position;
+
+        position = ConflictObject[(*human->model->object)->id].position;
+        position.vy = locate->vy;
+        GetAreaMapVector(GlobalAreaMap, map, &position, human->width,
+                         (short)i);
+    }
+    else
+    {
+        GetAreaMapVector(GlobalAreaMap, map, locate, human->width, (short)i);
+    }
+
+    /* Demo log text and fields are recovered; retail compiles this away. */
+    if (map->level == LEVEL_NONE)
+    {
+        DBG(("l(ia) h%d v%x ah%x al%x %04x\n", map->height, map->vector,
+             map->angleH, map->angleL, map->attrib));
+    }
+    else
+    {
+        DBG(("l%d h%d v%x ah%x al%x %04x\n", map->level, map->height,
+             map->vector, map->angleH, map->angleL, map->attrib));
+    }
+
+    if (map->attrib & MAP_BUOYANT)
+    {
+        human->attribute |= ATTR_BUOYANT;
+        if (vector->vy < 0)
+        {
+            vector->vy = 0;
+        }
+        map->height = 1;
+    }
+
+    if (map->height > 0 && (human->attribute & ATTR_FLOAT) == 0)
+    {
+        human->attribute |= ATTR_FALL;
+        if (vector->vy < FALL_SPEED_MAX)
+        {
+            vector->vy += GRAVITY_ACCEL;
+        }
+        if (map->attrib & MAP_DEATH)
+        {
+            if (map->height < DEATH_FALL_HEIGHT && human->life != 0)
+            {
+                if (human == StagePlayer)
+                {
+                    Sound(human, SE_FATAL_FALL);
+                    SetCameraMode(CMODE_FALL);
+                }
+                else
+                {
+                    Sound(human, CHAR_VOICE_HURT_HEAVY);
+                }
+                human->life = 0;
+                if (human != StagePlayer)
+                {
+                    ReqLifeBar(human);
+                }
+            }
+        }
+    }
+    else if (vector->vy > 0 || map->level == LEVEL_NONE)
+    {
+        if ((map->attrib & MAP_DEATH) == 0)
+        {
+            human->attribute |= ATTR_NOFLOOR;
+        }
+        if (map->level != LEVEL_NONE)
+        {
+            locate->vy = map->level;
+        }
+        vector->vy = 0;
+    }
+    if ((map->attrib & MAP_DEATH) && map->height == 0 && human->status != STAT_DEAD)
+    {
+        SetNowMotion(human, MOT_DEAD, MOTION_MOVE_APPLY);
+    }
+
+    if (map->angleL != 0 || map->angleH != 0)
+    {
+        u16 attribute;
+
+        attribute = human->attribute;
+        human->attribute = attribute | ATTR_WALLANGLE;
+        if (map->height < STEP_DROP_LIMIT)
+        {
+            human->attribute = attribute | ATTR_WALLANGLE | ATTR_LEDGE;
+            locate->vy = map->level;
+        }
+        else if (map->height < 0)
+        {
+            locate->vy = map->level;
+        }
+    }
+
+    if (map->vector != 0)
+    {
+        human->attribute |= ATTR_WALL;
+        zz = map->level;
+        if (zz == LEVEL_NONE)
+        {
+            MapVector mv;
+            VECTOR position;
+            s32 dx;
+            s32 dz;
+            s32 coefficient_x;
+            s32 coefficient_z;
+
+            position = ConflictObject[(*human->model->object)->id].position;
+            locate->vx = slocate->vx;
+            locate->vz = slocate->vz;
+            locate->vy = slocate->vy;
+            position.vy = locate->vy - WALL_RECOVERY_PROBE_Y_OFFSET;
+            GetAreaMapVector(GlobalAreaMap, &mv, &position,
+                             WALL_RECOVERY_PROBE_RADIUS,
+                             AREA_LEVEL_ALLOW_DEEP);
+
+            coefficient_x = RefrectMove[mv.vector][0];
+            dx = position.vx - locate->vx;
+            locate->vx += coefficient_x * ((dx >= 0) ? dx : -dx);
+
+            coefficient_z = RefrectMove[mv.vector][1];
+            dz = position.vz - locate->vz;
+            locate->vz += coefficient_z * ((dz >= 0) ? dz : -dz);
+
+            if (mv.level != LEVEL_NONE && locate->vy < mv.level)
+            {
+                locate->vy = (vector->vy > 0)
+                                 ? locate->vy + vector->vy
+                                 : locate->vy + WALL_RECOVERY_STEP;
+            }
+            else
+            {
+                vector->vz = 0;
+                vector->vx = 0;
+            }
+        }
+        else
+        {
+            s32 angle_abs;
+            long reflect_dz;
+
+            direction = map->vector;
+            ry = RefrectVector[direction];
+            if (ry == ANGLE_NONE)
+            {
+                if (vector->vx != 0 || vector->vz != 0)
+                {
+                    xx = -vector->vx;
+                    zz = -vector->vz;
+                }
+                else
+                {
+                    i = (short)(human->width >> 2);
+                    xx = RefrectMove[direction][0] * i;
+                    zz = RefrectMove[direction][1] * i;
+                }
+                locate->vx += xx;
+                locate->vz += zz;
+            }
+            else
+            {
+                xx = (rsin(ry) * human->width) >> 14;
+                zz = (rcos(ry) * human->width) >> 14;
+                i = human->rotate->vy - ry;
+                angle_abs = __builtin_abs(i);
+                if (angle_abs >= WALL_DIRECTION_WRAP_THRESHOLD)
+                {
+                    i = (i > 0) ? i - ANGLE_FULL : i + ANGLE_FULL;
+                }
+                angle_abs = __builtin_abs(i);
+                if (angle_abs < WALL_DIRECTION_LIMIT || human != StagePlayer || map->height != 0)
+                {
+                    if (map->angleH == 0 &&
+                        (human->status == STAT_MOVE || human->status == STAT_CHASE))
+                    {
+                        SVECTOR *rotate;
+                        s32 rotate_y;
+
+                        /* Preserve the displacement selected before the
+                         * movement code runs. */
+                        reflect_dz = zz;
+                        rotate = human->rotate;
+                        rotate_y = rotate->vy;
+                        if (i > 0)
+                        {
+                            rotate_y -= WALL_TURN_STEP;
+                        }
+                        else
+                        {
+                            rotate_y += WALL_TURN_STEP;
+                        }
+                        rotate->vy = rotate_y;
+                        MoveHumanoid(human, human->motion->motion->orderspd,
+                                     human->motion->motion->sidespd);
+                    }
+                    else
+                    {
+                        reflect_dz = zz;
+                    }
+                    xx >>= 1;
+                    /* Make the fixed-point displacement even, then take its
+                     * exact half. */
+                    reflect_dz &= ~1;
+                    reflect_dz >>= 1;
+                }
+                else
+                {
+                    reflect_dz = zz;
+                }
+                locate->vx -= xx;
+                /* Turn the outward displacement into the correction to
+                 * apply. */
+                reflect_dz = -reflect_dz;
+                locate->vz += reflect_dz;
+            }
+        }
+    }
+
+    if (object->attribute & MODEL_ATTR_CONFLICT)
+    {
+        while ((i = GetConflictResult(object, CONFLICT_NONE)) >= 0)
+        {
+            if (ConflictObject[i].common == human)
+            {
+                continue;
+            }
+            if (ConflictObject[i].size.pad & CONFLICT_HIT)
+            {
+                if (human->status != STAT_DEAD)
+                {
+                    u16 attribute;
+
+                    attribute = human->attribute;
+                    human->vector.pad = i;
+                    human->attribute = attribute | ATTR_HIT;
+                }
+                continue;
+            }
+            if ((ConflictObject[i].size.pad &
+                 CONFLICT_SOFT) == 0 &&
+                (human->attribute & ATTR_FLOAT) == 0)
+            {
+                s32 top;
+                s32 object_y;
+                s32 size_y;
+                s32 object_id;
+                ConflictObjectType *conflict;
+
+                human->attribute |= ATTR_PUSH;
+                xx = locate->vx;
+                zz = locate->vz;
+
+                locate->vx -= ((ConflictDistance.vx >= 0)
+                                   ? human->width : -human->width) / 8;
+                locate->vz -= ((ConflictDistance.vz >= 0)
+                                   ? human->width : -human->width) / 8;
+
+                /* Retail retains three empty debug sites; their original text is unknown. */
+                conflict = &ConflictObject[i];
+                DBG(("deleted debug print (text lost)\n"));
+                object_id = object->id;
+                DBG(("deleted debug print (text lost)\n"));
+                size_y = conflict->size.vy;
+                yy = conflict->position.vy;
+                DBG(("deleted debug print (text lost)\n"));
+                object_y = ConflictObject[object_id].position.vy;
+                top = yy - size_y;
+                if (object_y < top)
+                {
+                    locate->vx = xx;
+                    locate->vz = zz;
+                    if (conflict->size.pad &
+                        CONFLICT_STAND)
+                    {
+                        vector->vy = 0;
+                        map->level = top;
+                        locate->vy = top;
+                        map->height = 0;
+                        /* Standing on the object: wipe the ground-material bits. */
+                        map->attrib &= ~MAP_MATERIAL_MASK;
+                        human->attribute &= ~(ATTR_PUSH | ATTR_FALL);
+                    }
+                    else
+                    {
+                        vector->vy = CONFLICT_VERTICAL_ESCAPE_SPEED;
+                    }
+                    continue;
+                }
+                if (yy + size_y < object_y &&
+                    (human->status == STAT_NORMAL || human->status == STAT_MOVE ||
+                     human->status == STAT_ENGAGE || human->status == STAT_CHASE))
+                {
+                    s32 direction_abs;
+
+                    zz = GetDirection(ConflictObject[i].position.vx - locate->vx,
+                                      ConflictObject[i].position.vz - locate->vz,
+                                      /* locate->vy — the world Y, not a
+                                       * rotation: retail's own bug (every
+                                       * other caller passes rotate->vy). */
+                                      (s16)human->locate->vy);
+                    direction_abs = zz >= 0 ? zz : -zz;
+                    direction = MOT_DAMAGE_BACK_LIGHT;
+                    if (direction_abs < CONFLICT_REACTION_HALF_ANGLE)
+                    {
+                        direction = MOT_DAMAGE;
+                    }
+                    SetNowMotion(human, direction, MOTION_MOVE_APPLY);
+                    Sound(human, CHAR_VOICE_HURT);
+                }
+
+                {
+                    SVECTOR *rotate;
+                    s32 rotate_y;
+
+                    rotate = human->rotate;
+                    yy = rotate->vy;
+                    if (i & 1)
+                    {
+                        rotate_y = yy + human->turn;
+                    }
+                    else
+                    {
+                        rotate_y = yy - human->turn;
+                    }
+                    rotate->vy = rotate_y;
+                }
+                if (human->vector.vx != 0 || human->vector.vz != 0)
+                {
+                    MoveHumanoid(human, human->motion->motion->orderspd,
+                                 human->motion->motion->sidespd);
+                    if (human->trace != 0 && (human->attribute & ATTR_TRACE))
+                    {
+                        human->trace->count = TRACE_COLLISION_PAUSE;
+                    }
+                }
+            }
+        }
+    }
+    return human->attribute;
+}
+
+typedef struct
+{
+    s32 sight_distance; /* beyond this: SR_UNSEEN */
+    s32 clear_distance; /* within this: SR_SEEN, else SR_GLIMPSE */
+    s32 far_distance;   /* beyond this: SR_GONE (target lost) */
+} SearchSight;
+
+enum sight_profile
+{
+    SIGHT_PROFILE_STANDING,
+    SIGHT_PROFILE_SNEAKING,
+    N_SIGHT_PROFILES
+};
+
+enum
+{
+    SIGHT_CHECK_INTERVAL = 32,
+    SIGHT_VERTICAL_LIMIT = 3000,
+    SIGHT_VERTICAL_NEAR_DISTANCE = 4000,
+    STANDING_SIGHT_HALF_ANGLE = 900,
+    SNEAKING_SIGHT_HALF_ANGLE = 450,
+    SIGHT_RAY_ORIGIN_HEIGHT = 300,
+    STANDING_SIGHT_RAY_LIMIT = 500,
+    SNEAKING_SIGHT_RAY_LIMIT = 300
+};
+
+static SearchSight SightProfiles[N_SIGHT_PROFILES] = {
+    {
+        .sight_distance = 16000,
+        .clear_distance = 10000,
+        .far_distance = 20000
+    },
+    {
+        .sight_distance = 12000,
+        .clear_distance = 7000,
+        .far_distance = 16000
+    }
+};
+
+search_result SearchTarget(Humanoid *human, long *distance, short *degree)
+{
+    VECTOR target_delta;
+    VECTOR position;
+    SVECTOR passage_step;
+    s32 raw_degree;
+    s32 facing;
+    s16 profile;
+    s32 component_limit;
+    s32 absolute_degree;
+    s32 base_y;
+    s32 delta_y;
+    s32 full_height;
+    s32 half_height;
+    s32 adjusted_y;
+    u16 player_height;
+    s16 signed_degree;
+    s16 result_degree;
+    s16 passage_scale;
+
+    position = *human->locate;
+    passage_scale = 1;
+    if (human->target == NULL)
+    {
+        return SR_NONE;
+    }
+
+    target_delta.vx = human->target->coord.t[0] - position.vx;
+    target_delta.vy = human->target->coord.t[1] - position.vy;
+    target_delta.vz = human->target->coord.t[2] - position.vz;
+    *distance = SquareRoot0(target_delta.vx * target_delta.vx +
+                            target_delta.vy * target_delta.vy +
+                            target_delta.vz * target_delta.vz);
+
+    facing = (u16)human->rotate->vy;
+    raw_degree = ratan2(-target_delta.vx, -target_delta.vz) - facing;
+    signed_degree = raw_degree;
+    result_degree = raw_degree;
+    if (signed_degree > ANGLE_HALF)
+    {
+        result_degree = ANGLE_FULL - raw_degree;
+    }
+    else if (signed_degree <= -ANGLE_HALF)
+    {
+        result_degree = raw_degree + ANGLE_FULL;
+    }
+    *degree = result_degree;
+
+    if (((GameClock + human->model->object[MODEL_PART_WAIST]->id) &
+         (SIGHT_CHECK_INTERVAL - 1)) != 0)
+    {
+        return SR_NONE;
+    }
+
+    profile = SIGHT_PROFILE_STANDING;
+    if (human->target == &StagePlayer->model->locate)
+    {
+        profile = (StagePlayer->status == STAT_SQUAT ||
+                   StagePlayer->status == STAT_STICKON)
+                      ? SIGHT_PROFILE_SNEAKING
+                      : SIGHT_PROFILE_STANDING;
+        if (StagePlayer->status == STAT_HANG)
+        {
+            if (target_delta.vy >= 0 ||
+                (target_delta.vy < -SIGHT_VERTICAL_LIMIT &&
+                 *distance < SIGHT_VERTICAL_NEAR_DISTANCE))
+            {
+                return SR_GONE;
+            }
+        }
+    }
+
+    if (__builtin_abs(target_delta.vy) >= SIGHT_VERTICAL_LIMIT)
+    {
+        if (EmergencyNotice == 0 ||
+            *distance < SIGHT_VERTICAL_NEAR_DISTANCE)
+        {
+            return SR_GONE;
+        }
+    }
+
+    if (*distance >= SightProfiles[profile].far_distance)
+    {
+        return SR_GONE;
+    }
+
+    absolute_degree = __builtin_abs(*degree);
+    if (absolute_degree < STANDING_SIGHT_HALF_ANGLE)
+    {
+        if (absolute_degree >= SNEAKING_SIGHT_HALF_ANGLE &&
+            profile != SIGHT_PROFILE_STANDING)
+        {
+            return SR_UNSEEN;
+        }
+        if (*distance >= SightProfiles[profile].sight_distance)
+        {
+            return SR_UNSEEN;
+        }
+
+        component_limit = STANDING_SIGHT_RAY_LIMIT;
+        if (profile != SIGHT_PROFILE_STANDING)
+        {
+            component_limit = SNEAKING_SIGHT_RAY_LIMIT;
+        }
+        delta_y = target_delta.vy - SIGHT_RAY_ORIGIN_HEIGHT;
+        position.vy += SIGHT_RAY_ORIGIN_HEIGHT - human->height;
+        base_y = delta_y + human->height;
+        target_delta.vy = base_y;
+        player_height = StagePlayer->height;
+        full_height = (s16)player_height;
+        if (StagePlayer->status == STAT_SQUAT)
+        {
+            half_height = (s16)player_height / 2;
+            adjusted_y = base_y - half_height;
+        }
+        else
+        {
+            adjusted_y = base_y - full_height;
+        }
+        target_delta.vy = adjusted_y;
+
+        while (component_limit < __builtin_abs(target_delta.vx) ||
+               component_limit < __builtin_abs(target_delta.vy) ||
+               component_limit < __builtin_abs(target_delta.vz))
+        {
+            passage_scale <<= 1;
+            target_delta.vx >>= 1;
+            target_delta.vy >>= 1;
+            target_delta.vz >>= 1;
+        }
+
+        passage_step.vx = target_delta.vx;
+        passage_step.vy = target_delta.vy;
+        passage_step.vz = target_delta.vz;
+        if (GetAreaMapPassage(GlobalAreaMap, &position, &passage_step,
+                              passage_scale) != 0)
+        {
+            return SR_GONE;
+        }
+        return (*distance < SightProfiles[profile].clear_distance)
+                   ? SR_SEEN
+                   : SR_GLIMPSE;
+    }
+    return SR_UNSEEN;
+}
+
+/* Editor patrol points pack a facing direction in the low nibble and a
+ * signed wait duration in the upper byte. Count -1 advances to the next
+ * point; values below -1 count down while the guard turns in place. */
+enum trial_patrol_control
+{
+    TRIAL_PATROL_STEER_DELAY = 30,
+    TRIAL_PATROL_TICKS_PER_SECOND = 30,
+    TRIAL_PATROL_FORWARD_ANGLE = 500,
+    TRIAL_PATROL_LOOK_DISTANCE = 9000,
+    TRIAL_PATROL_FACING_MASK = 15,
+    TRIAL_PATROL_WAIT_SHIFT = 8,
+    TRIAL_PATROL_FACE_POSITIVE_Z = 1,
+    TRIAL_PATROL_FACE_POSITIVE_X = 2,
+    TRIAL_PATROL_FACE_NEGATIVE_Z = 3,
+    TRIAL_PATROL_FACE_NEGATIVE_X = 4,
+    TRIAL_PATROL_ADVANCE = -1,
+    TRIAL_PATROL_BEGIN_WAIT = -2
+};
+
+short ControlTraceLine(Humanoid *human)
+{
+    TraceLine *trace;
+    TracePoint *point;
+    s32 target_dx, target_dz;
+    s32 distance;
+    s16 previous_count;
+    trace_pad input;
+
+    trace = human->trace;
+    input = PADLup;
+    if (trace == NULL)
+        return 0;
+    point = trace->point + trace->index;
+    target_dx = point->x - human->locate->vx;
+    target_dz = point->z - human->locate->vz;
+    distance = SquareRoot0(target_dx * target_dx + target_dz * target_dz);
+    if (distance > point->range)
+    {
+        if ((human->attribute & ATTR_WALL) != 0)
+            trace->count = 0;
+        previous_count = trace->count;
+        trace->count = previous_count + 1;
+        if (previous_count > TRIAL_PATROL_STEER_DELAY)
+        {
+            u16 facing;
+            s32 target_angle;
+            s16 relative_angle;
+            s16 turn_angle;
+            s32 absolute_angle;
+            s32 relative_angle32;
+
+            facing = human->rotate->vy;
+            target_angle = ratan2(-target_dx, -target_dz);
+            relative_angle = target_angle - facing;
+            if (relative_angle > ANGLE_HALF)
+                relative_angle = ANGLE_FULL - relative_angle;
+            else if (relative_angle <= -ANGLE_HALF)
+                relative_angle += ANGLE_FULL;
+            relative_angle32 = relative_angle;
+            turn_angle = relative_angle32;
+            if (human->turn <= relative_angle32)
+                input |= PADLright;
+            else if (relative_angle32 <= -human->turn)
+                input |= PADLleft;
+            absolute_angle = turn_angle;
+            if (absolute_angle < 0)
+                absolute_angle = -absolute_angle;
+            if (absolute_angle > TRIAL_PATROL_FORWARD_ANGLE)
+                input &= (PADLleft | PADLright);
+        }
+    }
+    else
+    {
+        input = 0;
+        if (trace->count < TRIAL_PATROL_ADVANCE)
+        {
+            u16 facing;
+            s32 target_angle;
+            s16 relative_angle;
+            s32 relative_angle32;
+
+            target_dx = point->x;
+            target_dz = point->z;
+            switch (point->pad & TRIAL_PATROL_FACING_MASK)
+            {
+            case TRIAL_PATROL_FACE_POSITIVE_Z:
+                target_dz += TRIAL_PATROL_LOOK_DISTANCE;
+                break;
+            case TRIAL_PATROL_FACE_POSITIVE_X:
+                target_dx += TRIAL_PATROL_LOOK_DISTANCE;
+                break;
+            case TRIAL_PATROL_FACE_NEGATIVE_Z:
+                target_dz -= TRIAL_PATROL_LOOK_DISTANCE;
+                break;
+            case TRIAL_PATROL_FACE_NEGATIVE_X:
+                target_dx -= TRIAL_PATROL_LOOK_DISTANCE;
+                break;
+            }
+            facing = human->rotate->vy;
+            target_angle = ratan2(human->locate->vx - target_dx,
+                                  human->locate->vz - target_dz);
+            relative_angle = target_angle - facing;
+            if (relative_angle > ANGLE_HALF)
+                relative_angle = ANGLE_FULL - relative_angle;
+            else if (relative_angle <= -ANGLE_HALF)
+                relative_angle += ANGLE_FULL;
+            relative_angle32 = relative_angle;
+            if (human->turn <= relative_angle32)
+                input = PADLright;
+            else if (relative_angle32 <= -human->turn)
+                input = PADLleft;
+            if (--trace->count < -(point->pad >> TRIAL_PATROL_WAIT_SHIFT) *
+                                 TRIAL_PATROL_TICKS_PER_SECOND)
+                trace->count = TRIAL_PATROL_ADVANCE;
+        }
+        else
+        {
+            if (trace->count != TRIAL_PATROL_ADVANCE && point->pad != 0)
+                trace->count = TRIAL_PATROL_BEGIN_WAIT;
+            else
+            {
+                trace->count = TRIAL_PATROL_STEER_DELAY;
+                trace->index++;
+                if (trace->point[trace->index].pad == TRACE_POINT_END)
+                    trace->index = 0;
+            }
+        }
+    }
+    return input;
+}
+
+short ControlAllHumanoid(void)
+{
+    Humanoid *human;
+    s16 i;
+    s32 result;
+
+    VISIBLE_ENEMIES_ = 0;
+    i = 0;
+    result = Humans;
+    if (result <= 0)
+    {
+        return result;
+    }
+    do
+    {
+        human = HumanGroup[i];
+        if ((human->attribute & ATTR_SUSPEND) == 0)
+        {
+            ControlHumanoid(human);
+        }
+        i++;
+        result = i < Humans;
+    } while (result != 0);
+    return result;
+}
+
+void draw_visible_characters_(void)
+{
+    s16 i;
+    Humanoid *cs;
+
+    for (i = 0; i < VISIBLE_ENEMIES_; i++)
+    {
+        cs = VISIBLE_CHARACTERS_ON_STAGE_[i];
+        DrawTMDmode = DrawModeSave[i];
+        DrawModelArchive(cs->model, -i);
+        if (cs->weapon[WEAPON_SLOT_ACTIVE_0] != 0)
+        {
+            DrawOrnament(cs->weapon[WEAPON_SLOT_ACTIVE_0]);
+        }
+        if (cs->weapon[WEAPON_SLOT_ACTIVE_1] != 0)
+        {
+            DrawOrnament(cs->weapon[WEAPON_SLOT_ACTIVE_1]);
+        }
+        if (cs->illusion[WEAPON_HAND_0] != 0)
+        {
+            DrawAfterimage(cs->illusion[WEAPON_HAND_0], 1);
+        }
+        if (cs->illusion[WEAPON_HAND_1] != 0)
+        {
+            DrawAfterimage(cs->illusion[WEAPON_HAND_1], 1);
+        }
+    }
+}
+
+Humanoid *GetHumanoid(character_kind type)
+{
+    short i;
+
+    for (i = 0; i < Humans; i++)
+    {
+        if (HumanGroup[i]->type == type)
+        {
+            return HumanGroup[i];
+        }
+    }
+    return 0;
+}
+
+s32 is_humanoid_on_stage_(Humanoid *human)
+{
+    s32 i;
+
+    for (i = 0; i < Humans; i++)
+    {
+        if (HumanGroup[i] == human)
+            break;
+    }
+    return i != Humans;
+}
+
+void MoveHumanoid(Humanoid *human, short ordr, short side)
+{
+    int sine, cosine;
+    int order_value;
+    short order_speed, side_speed;
+
+    order_value = ordr;
+    order_speed = ordr;
+    side_speed = side;
+    if (order_value != 0 || side != 0)
+    {
+        sine = -rsin(human->rotate->vy);
+        cosine = -rcos(human->rotate->vy);
+        /* Sign-extend only when the upper bits are clear; callers may pass wider values. */
+        if ((order_value & MOTION_BYTE_UPPER_MASK) == MOTION_BYTE_SIGN_BIT)
+        {
+            order_speed = ordr - MOTION_BYTE_RANGE;
+        }
+        if ((side & MOTION_BYTE_UPPER_MASK) == MOTION_BYTE_SIGN_BIT)
+        {
+            side_speed = side - MOTION_BYTE_RANGE;
+        }
+        human->vector.vx = (short)(((short)sine * order_speed -
+                                    (short)cosine * side_speed) >> FIXED_SHIFT);
+        human->vector.vz = (short)(((short)cosine * order_speed +
+                                    (short)sine * side_speed) >> FIXED_SHIFT);
+    }
+    else
+    {
+        human->vector.vz = 0;
+        human->vector.vx = 0;
+    }
+}
+
+void GetMoveSpeed(SVECTOR *vect, short ry, short ordr, short side)
+{
+    int s, c;
+
+    s = -rsin(ry);
+    c = -rcos(ry);
+    vect->vy = 0;
+    vect->vx = (short)(((short)s * ordr - (short)c * side) >> FIXED_SHIFT);
+    vect->vz = (short)(((short)c * ordr + (short)s * side) >> FIXED_SHIFT);
+}
+
+static __inline__ s16 FoldRelativeDirection(s32 difference)
+{
+    s16 signed_difference;
+    s16 result;
+
+    signed_difference = difference;
+    result = difference;
+    if (signed_difference > ANGLE_HALF)
+    {
+        result = ANGLE_FULL - difference;
+    }
+    else if (signed_difference <= -ANGLE_HALF)
+    {
+        result = difference + ANGLE_FULL;
+    }
+    return result;
+}
+
+s16 GetDirection(s32 dx, s32 dz, s32 roty)
+{
+    s32 difference;
+
+    difference = ratan2(-dx, -dz) - roty;
+    return FoldRelativeDirection(difference);
+}
+
+long GetTargetDistance(Humanoid *human, short *deg)
+{
+    s32 dx, dz;
+    s32 angle;
+    s32 vy;
+    s32 diff;
+    s16 deg2;
+
+    dx = human->target->coord.t[0] - human->locate->vx;
+    dz = human->target->coord.t[2] - human->locate->vz;
+    vy = (u16)human->rotate->vy;
+    angle = ratan2(-dx, -dz);
+    diff = angle - vy;
+    deg2 = FoldRelativeDirection(diff);
+    *deg = deg2;
+    return SquareRoot0(dx * dx + dz * dz);
+}
+
+Humanoid *GetNearestHumanoid(Humanoid *human, short distance)
+{
+    Humanoid *cur;
+    Humanoid *best;
+    s32 dx, dz;
+    s32 dist;
+    s32 best_dist;
+    int i;
+
+    best = 0;
+    best_dist = 20000;
+    if (human->map.height != 0)
+    {
+        return best;
+    }
+    for (i = 0; i < Humans; i++)
+    {
+        cur = HumanGroup[i];
+        if (cur == human || cur->status == STAT_DEAD ||
+            (cur->attribute & ATTR_SUSPEND) != 0)
+        {
+            continue;
+        }
+        dx = PAGE_CIVILIAN; /* parked in dx before its delta-x role */
+        if ((cur->type & PAGE_MASK) == dx || cur->life < 0)
+        {
+            continue;
+        }
+        dx = __builtin_abs(cur->locate->vx - human->locate->vx);
+        dz = __builtin_abs(cur->locate->vz - human->locate->vz);
+        dist = SquareRoot0(dx * dx + dz * dz);
+        if (dist < distance && dist < best_dist)
+        {
+            best_dist = dist;
+            best = cur;
+        }
+    }
+    return best;
+}
+
+TraceLine *SetupTraceLine(Humanoid *human, TracePoint *point)
+{
+    TraceLine *trcl;
+
+    if (point == 0)
+    {
+        SystemOut(msg_no_trace_point);
+    }
+    trcl = (TraceLine *)valloc(sizeof(TraceLine));
+    trcl->count = 0;
+    trcl->index = 0;
+    trcl->point = point;
+    while (point->pad != TRACE_POINT_END)
+    {
+        point++;
+    }
+    point->x = human->locate->vx;
+    point->z = human->locate->vz;
+    point->range = (s16)(human->locate->vy / 100);
+    human->trace = trcl;
+    human->attribute |= ATTR_TRACE;
+    return trcl;
+}
