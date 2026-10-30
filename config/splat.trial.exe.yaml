@@ -91,7 +91,7 @@ segments:
       - { start: 0x32c4, type: .rodata, name: EDITORUTIL, linker_section_order: .text }
       - [0x34cc, textbin]
       - { start: 0x3570, type: .rodata, name: PrepareTrialTileLabel, linker_section_order: .text }
-      - [0x35b8, textbin]
+      - { start: 0x35b8, type: .rodata, name: PrepareTrialPatrolLabel, linker_section_order: .text }
       - { start: 0x35d4, type: .rodata, name: SaveTrialEditorMission, linker_section_order: .text }
       - [0x3610, textbin]
       - { start: 0x3614, type: .rodata, name: SetupTrialObjectivePlacements, linker_section_order: .text }
@@ -143,9 +143,9 @@ segments:
       - [0x3631c, c, DrawTrialMissionTimer]
       - [0x36538, c, UpdateTrialTimeNotice]
       - [0x366a4, c, DrawTrialEnemyCandles]
-      - [0x36858, c, FUN_80047058]
-      - [0x369d0, c, FUN_800471d0]
-      - [0x36eb0, c, FUN_800476b0]
+      - [0x36858, c, InitTrialTrapMap]
+      - [0x369d0, c, UpdateTrialArrowTraps]
+      - [0x36eb0, c, UpdateTrialCollapsingFloors]
       - [0x37124, c, SCORE]
       - [0x372dc, c, DrawTrialFailureBanner]
       - [0x3736c, c, IMAGES]
@@ -207,12 +207,12 @@ segments:
       - [0x46804, c, FUN_80057004]
       - [0x46b4c, c, PrepareTrialTileLabel]
       - [0x46cec, c, FUN_800574ec]
-      - [0x47044, c, FUN_80057844]
+      - [0x47044, c, DrawTrialEditorOverviewFrame]
       - [0x472cc, c, EditTrialCharacters]
-      - [0x47f80, c, FUN_80058780]
+      - [0x47f80, c, DrawTrialCharacterThumbnail]
       - [0x481a8, c, FUN_800589a8]
       - [0x4846c, c, EditTrialPatrols]
-      - [0x499a8, c, FUN_8005a1a8]
+      - [0x499a8, c, PrepareTrialPatrolLabel]
       - [0x49b74, c, SaveTrialEditorMission]
       - [0x49eb0, c, EDITORUTIL]
       - [0x4a290, c, ShowTrialTextEntry]
@@ -928,6 +928,7 @@ segments:
       - [0x7de34, .data, EDITORUTIL]
       - [0x7e014, .data, PrepareTrialTileLabel]
       - [0x7e058, data]
+      - [0x7e068, .data, PrepareTrialPatrolLabel]
       - [0x7e090, .data, SaveTrialEditorMission]
       - [0x7e098, data]
       - { start: 0x868d0, type: .sdata, name: PREVIEW, linker_section_order: .data }
@@ -956,7 +957,8 @@ segments:
       - { start: 0x86f34, type: .sdata, name: EditTrialMission, linker_section_order: .data }
       - [0x86f3c, data]
       - { start: 0x86f40, type: .sdata, name: PrepareTrialTileLabel, linker_section_order: .data }
-      - [0x86f90, data]
+      - { start: 0x86f90, type: .sdata, name: PrepareTrialPatrolLabel, linker_section_order: .data }
+      - [0x86fc8, data]
       - { start: 0x86fd4, type: .sdata, name: LoadTrialTextGraphics, linker_section_order: .data }
       - [0x86fdc, data]
   - [0x87800]

@@ -953,16 +953,33 @@ height table plus caption pointers/strings add 240 C-owned data bytes. The
 previously guarded `FillTrialMissionMap` is now ordinary exact C; the other
 text-entry and record-save drafts retain their assembly fallbacks.
 
+Six more routines add 3,912 exact C bytes. `InitTrialTrapMap` packs pressure
+triggers and arrow launchers into a named 32x32 byte grid. `UpdateTrialArrowTraps`
+checks for a newly occupied trigger once per second, chooses the nearest launcher
+with random tie-breaking, and launches an arrow with the original height,
+direction jitter, and range. `UpdateTrialCollapsingFloors` sinks disguised covers
+under active characters and removes their collision support when they collapse.
+The last trigger coordinates and collapse flag now have descriptive names.
+
+`PrepareTrialPatrolLabel` owns its ten full-width digit pointers, Japanese
+labels, and format strings: another 124 bytes of C-owned data. It distinguishes
+fixed placements, unset routes, route length, and remaining capacity.
+`DrawTrialEditorOverviewFrame` draws the gray overview border and red viewport
+box. `DrawTrialCharacterThumbnail` renders a scaled 32x64 atlas image around a
+bottom-center anchor and shares the existing 57-entry `TrialCharacterLabels`
+table with the label lookup. Its depth argument is an `int`, as confirmed by
+callers passing the untruncated projected depth.
+
 The combined text-entry/playtest/save probe passes again at this checkpoint:
 83 mission polls, four activation calls, 82 timer/notice updates, and all 7,484
 saved payload bytes verified before returning at VSync 3,066. This remains a
 default-map scenario; rotated ramps, a populated ornament list, patrol
 truncation, and special terrain/trap branches are not individually exercised.
 
-The 544-function checkpoint passes all six executable hashes and all 40 focused
+The 550-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 544/1,216 exact TRIAL rows and 255,592/466,728 TRIAL code
-bytes. Across all targets it records 1,476 complete functions and 676,780
+3,449 units, including 550/1,216 exact TRIAL rows and 259,504/466,728 TRIAL code
+bytes. Across all targets it records 1,482 complete functions and 680,692
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -977,8 +994,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 562/586 rows and 261,964/307,784 bytes; 24 compiled game
-routines / 45,820 bytes remain. The assembly classification adds no decomp.dev
+game completion is 568/586 rows and 265,876/307,784 bytes; 18 compiled game
+routines / 41,908 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

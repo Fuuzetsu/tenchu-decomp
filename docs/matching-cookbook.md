@@ -3387,3 +3387,41 @@ but schedules the buffer/table address loads differently around the prologue.
 The integrated lookup matches 416 bytes. Its static pointer initializer emits
 the seventeen Shift-JIS literals in reverse order within each size-selected
 section, matching the original `.rodata` and `.sdata` spans.
+
+### TRIAL traps, overview edges, and atlas coordinates
+
+`UpdateTrialArrowTraps` resets the persistent coordinates and then the local
+coordinates in separate statements. Chaining all four assignments loses a
+four-byte promotion copy. Place the trigger sound before initializing the
+nearest-launcher scan; cc1 schedules the independent initializers before the
+call. Keep the scanned trap byte separate from the selected launcher's packed
+byte: merging their identities hoists the player pointer and changes the
+bit extraction schedule. A separate integer `launch_range` also retains the
+random range's +4 before adding the launch height. All 1,248 bytes match.
+
+For world-to-grid Z conversion, division by `-2000` produces the original
+sign-correction subtraction. `-(z / 2000)` instead retains a separate negation
+in these routines. `UpdateTrialCollapsingFloors` calculates each full cell-center
+expression in turn; splitting both divisions from both multiplications changes
+scheduling. The original remainder check narrows `node->y % 30` to a short.
+The whole 628-byte routine matches, including the two collapse sound phases.
+
+`DrawTrialEditorOverviewFrame` uses `center + (condition ? offset : -offset)`.
+The promoted center lives across the selection. Writing two complete
+`center +/- offset` arms, even as separate `if` stores, lets cc1 narrow the
+arithmetic and merge stores. It removes the original hoisted constants and
+produces 576 rather than 648 bytes. Factoring the center recovers both rectangles
+and all 648 bytes.
+
+`DrawTrialCharacterThumbnail` derives the later UVs from the quad's first UV
+fields. Fresh scalar UV temporaries let cc1 prove low bits zero and replace
+original additions with ORs. Move the short x/y anchor parameters before
+filling the four screen corners. Compute scaled dimensions before assigning
+tpage/clut, and retain the caller-proven integer depth parameter. Together
+these recover all 552 bytes and the original `GsIMAGE` stack layout.
+
+`PrepareTrialPatrolLabel` indexes the ones digit as `(short)(count % 10)`
+inside the table subscript. A separate assignment delays the table address
+load. The eight-byte declaration of the two-digit text buffer is also necessary:
+an unknown-size array makes cc1 emit an explicit absolute first-byte store,
+which a later `--gp-extern` flag cannot turn into the original GP store.

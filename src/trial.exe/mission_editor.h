@@ -109,6 +109,13 @@ extern TrialMapCell TrialEditorMap[TRIAL_MAP_HEIGHT][TRIAL_MAP_WIDTH];
 
 extern char TrialTileLabelText[];
 char *PrepareTrialTileLabel(short tile);
+extern char TrialPatrolCountText[8];
+extern char TrialPatrolLabelText[];
+char *PrepareTrialPatrolLabel(TrialPlacement *placement, short remaining);
+void DrawTrialEditorOverviewFrame(short cursor_x, short cursor_z,
+                                 short center_x, short center_z);
+void DrawTrialCharacterThumbnail(short kind, short x, short y,
+                                 int depth, short scale);
 
 void LoadTrialEditorTheme(short theme);
 void DisposeTrialTerrainModel(ModelType *model);

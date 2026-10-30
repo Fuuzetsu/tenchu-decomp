@@ -9,13 +9,7 @@ u16 TrialDefaultTiles[TRIAL_THEME_COUNT] = {
 
 /* Character IDs are shared with the engine; labels are the editor's own
  * Japanese names, including the herb objective and final fallback. */
-typedef struct TrialCharacterLabel
-{
-    s16 kind;
-    char *text;
-} TrialCharacterLabel;
-
-static TrialCharacterLabel CharacterLabels[] = {
+TrialCharacterLabel TrialCharacterLabels[] = {
     { RIKIMARU_0, "\203\166\203\214\203\103\203\204\201\133" }, /* プレイヤー */
     { TONO, "\223\141\201\100" }, /* 殿　 */
     { HIME, "\213\145\225\120" }, /* 菊姫 */
@@ -140,12 +134,12 @@ char *PrepareTrialCharacterLabel(short kind)
 {
     short i = 0;
 
-    while (CharacterLabels[i].kind != CHARACTER_KIND_END)
+    while (TrialCharacterLabels[i].kind != CHARACTER_KIND_END)
     {
-        if (CharacterLabels[i].kind == kind)
+        if (TrialCharacterLabels[i].kind == kind)
             break;
         i++;
     }
-    SetupTelop(CharacterLabels[i].text, 0);
-    return CharacterLabels[i].text;
+    SetupTelop(TrialCharacterLabels[i].text, 0);
+    return TrialCharacterLabels[i].text;
 }

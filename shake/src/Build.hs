@@ -564,6 +564,11 @@ maspsxGpExterns src = extra (takeBaseName src) <>
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "ActivateTrialHumans" = ["StagePlayer"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "UpdateTrialArrowTraps" =
+          ["TrialLastTriggerX", "TrialLastTriggerZ", "StagePlayer"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "PrepareTrialPatrolLabel" = ["TrialPatrolCountText"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src `elem` ["LoadTrialGlyphGrid", "PopulateTrialKeyboard"] =
           ["TrialKeyboardCursor"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
@@ -588,6 +593,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     -- Files whose original code divides by a *variable* need ASPSX's guarded
     -- div expansion (bnez/break 7/break 6); scoped per-file so nothing else
     -- in the image can change.
+    extra "UpdateTrialArrowTraps" = ["--expand-div"]
     extra "FindOrAddTrialTerrainVertex" = ["--expand-div"]
     extra "EDITORUTIL" = ["--expand-div"]
     extra "CONFLICT" = ["--expand-div"]

@@ -99,6 +99,15 @@ typedef struct TrialThemeNames
 {
     const char *text[TRIAL_THEME_COUNT];
 } TrialThemeNames;
+
+/* The thumbnail atlas follows this table's character order, including the
+ * final fallback image. The two-byte kind field is followed by alignment. */
+typedef struct TrialCharacterLabel
+{
+    s16 kind;
+    char *text;
+} TrialCharacterLabel;
+extern TrialCharacterLabel TrialCharacterLabels[];
 extern const TrialThemeNames TrialDefaultThemeNames;
 extern const char path_trial_settings[];
 extern const char fmt_trial_default_title[];
