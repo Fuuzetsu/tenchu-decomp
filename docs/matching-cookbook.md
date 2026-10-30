@@ -3501,3 +3501,20 @@ also lets cc1 drop the original signed promotions. The ordinary multiplication
 and offset-first addition close the full 4,064-byte match. The ornament count
 increments after the instance fields; a post-increment subscript schedules
 that store too early.
+
+
+### TRIAL graphics: share the inlined loader and express UV field reuse
+
+`LoadTrialEditorGraphics` inlines `LoadTrialSpriteStrip` nine times. A shared
+`extern __inline__` definition, with an opt-in out-of-line definition in
+`EDITORUTIL.C`, reproduces the copies and keeps the existing helper exact.
+Its late-expanded constant frame counts retain variable-division instructions
+and the original ASPSX guards; use the same guarded-division assembler handling.
+
+The two cursor sprites are one record: references to the palette sprite use
+offsets from the map cursor's base. Splitting them into independent globals
+changes address formation. For the compass quad, assign `u0`/`v0`, derive
+`u1`/`v2` from those fields and the inclusive dimensions, then copy the shared
+corners. Inventing separate U/V temporaries changes promotions, register
+allocation, and scheduling. Ordinary field reuse, as in the matched character
+thumbnail renderer, matches every instruction without extra temporaries.

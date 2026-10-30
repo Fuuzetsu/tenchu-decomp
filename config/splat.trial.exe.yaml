@@ -89,7 +89,7 @@ segments:
       - { start: 0x308c, type: .rodata, name: UpdateTrialCardSave, linker_section_order: .text }
       - { start: 0x3278, type: .rodata, name: LoadTrialEditorTheme, linker_section_order: .text }
       - { start: 0x32c4, type: .rodata, name: EDITORUTIL, linker_section_order: .text }
-      - [0x34cc, textbin]
+      - { start: 0x34cc, type: .rodata, name: LoadTrialEditorGraphics, linker_section_order: .text }
       - { start: 0x3570, type: .rodata, name: PrepareTrialTileLabel, linker_section_order: .text }
       - { start: 0x35b8, type: .rodata, name: PrepareTrialPatrolLabel, linker_section_order: .text }
       - { start: 0x35d4, type: .rodata, name: SaveTrialEditorMission, linker_section_order: .text }

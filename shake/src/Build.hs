@@ -555,6 +555,8 @@ maspsxGpExterns src = extra (takeBaseName src) <>
            "TrialTerrainPrimitiveCount", "TrialTileDefinitions", "TrialTerrainScale",
            "TrialTerrainOrnamentCount"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "LoadTrialEditorGraphics" = ["TrialEditorBackground"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "GetTrialTerrainHeight" = ["TrialTileDefinitions"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "FindOrAddTrialTerrainVertex" =
@@ -609,6 +611,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
     extra "UpdateTrialArrowTraps" = ["--expand-div"]
     extra "FindOrAddTrialTerrainVertex" = ["--expand-div"]
     extra "EDITORUTIL" = ["--expand-div"]
+    extra "LoadTrialEditorGraphics" = ["--expand-div"]
     extra "CONFLICT" = ["--expand-div"]
     extra "ACTION" = ["--expand-div"]
     extra "OPMOVIE" = ["--expand-div"]

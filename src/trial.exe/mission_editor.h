@@ -108,6 +108,16 @@ extern GsSPRITE TrialEditorCommandLabels[TRIAL_EDITOR_COMMAND_COUNT];
 extern GsSPRITE TrialEditorCommandBackground;
 extern GsSPRITE TrialEditorResumeHint;
 extern GsSPRITE TrialEditorConfirmButtons;
+extern GsSPRITE TrialEditorScrollArrows[4];
+typedef struct TrialEditorCursorSprites
+{
+    GsSPRITE map;
+    GsSPRITE palette;
+} TrialEditorCursorSprites;
+extern TrialEditorCursorSprites TrialEditorCursors;
+/* Moving arrows followed by the four wait-at-waypoint arrows. */
+extern GsSPRITE TrialPatrolArrows[8];
+extern GsSPRITE TrialPatrolWaitDigits[10];
 extern POLY_FT4 TrialPreviewDirectionQuad;
 extern TrialMapCell TrialEditorMap[TRIAL_MAP_HEIGHT][TRIAL_MAP_WIDTH];
 
