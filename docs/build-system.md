@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-30): 489 matching C functions /
-218,800 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-30): 491 matching C functions /
+219,920 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -705,6 +705,15 @@ also uses the character. The signed 16-bit cue intermediate and boolean
 stealth increment are retained. The old confirmation-sprite and shared-format
 `D_` aliases are removed; the origin-icon alias is still referenced by an
 unrecovered data table.
+
+OPTIONGRAPHICS adds two functions / 1,120 bytes and its 28-byte sprite-pointer
+table. The decoded NINSET.ARC identifies the checkmark cursor, twelve theme
+labels, five objectives, no/yes stealth labels, arrows, create/edit headings,
+and control hints. The loader slices those strips, clones the right arrow,
+selects the current theme preview in edit mode, and hides the next-step hint
+while editing an existing mission. Disposal frees and clears every allocation.
+Thirty-two unused stack bytes precede the pointer table; their original type
+cannot be recovered from accesses and is left explicitly unidentified.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.
 Its behavior is understood (poll unless inhibited, update the held-button

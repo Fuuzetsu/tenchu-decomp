@@ -3253,3 +3253,9 @@ while clearing its sprite origins. Using an interior `GsSPRITE *` adds address
 arithmetic; rereading the pointer array between stores adds a reload. Define the
 loop index normally and initialize it in the `for`, after loading the background:
 cc1 hoists its initialization into the original call-setup position.
+
+In `LoadTrialOptionGraphics`, halving a sprite's unsigned 16-bit width/height
+with `>>= 1`, then computing its midpoint with another `>> 1`, avoids the
+extra narrowing mask emitted for `/= 2`. A 32-bit temporary also removes the
+mask but changes the load/result register tie. The shift form matches the
+original 816 bytes and directly expresses selecting one half of an atlas strip.

@@ -1021,6 +1021,13 @@
         "ChooseTrialCharacter",
         "UpdateTrialCharacterSelection"
       ]
+    },
+    {
+      "source": "OPTIONGRAPHICS.C",
+      "functions": [
+        "DisposeTrialOptionGraphics",
+        "LoadTrialOptionGraphics"
+      ]
     }
   ]
 }

@@ -99,6 +99,16 @@ extern Sprite3D *TrialConfirmationSprites[TRIAL_CONFIRM_SPRITES];
 extern Sprite3D *TrialOptionArrows[2];
 extern s16 TrialOptionLimits[TRIAL_OPTION_COUNT];
 extern TrialOptionArrowPair TrialOptionArrowPositions[TRIAL_OPTION_COUNT];
+extern ArcFile *TrialSettingsArchive;
+extern ArcFile *TrialSettingsPreviewArchive;
+extern BackGround *TrialSettingsBackground;
+extern Sprite3D *TrialOptionCursor;
+extern Sprite3D *TrialOptionThemeLabels;
+extern Sprite3D *TrialOptionObjectiveLabels;
+extern Sprite3D *TrialOptionStealthLabels;
+extern Sprite3D *TrialOptionHeading;
+extern Sprite3D *TrialOptionHelp;
+extern Sprite3D *TrialOptionThemePreview;
 extern s16 TrialPresetId;
 
 void DrawTrialMissionList(TrialMissionPreview *previews, short selected,
@@ -124,6 +134,8 @@ void LoadTrialConfirmationGraphics(void);
 short GetTrialMissionNarrationCue(void);
 void ResetTrialConfirmationGraphics(void);
 void DisposeTrialConfirmationGraphics(void);
+void DisposeTrialOptionGraphics(void);
+void LoadTrialOptionGraphics(short editing);
 void DrawTrialOptionArrows(short row, short value, short first_row_maximum);
 short GetTrialUnlockedThemes(short themes[TRIAL_THEME_COUNT]);
 

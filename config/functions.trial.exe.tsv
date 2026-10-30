@@ -15,8 +15,8 @@
 0x80018224	432	LoadTrialConfirmationGraphics
 0x800183d4	248	GetTrialMissionNarrationCue
 0x800184cc	916	ConfigureTrialMission
-0x80018860	304	FUN_80018860
-0x80018990	816	FUN_80018990
+0x80018860	304	DisposeTrialOptionGraphics
+0x80018990	816	LoadTrialOptionGraphics
 0x80018cc0	2520	FUN_80018cc0
 0x80019698	284	VerifyTrialMissionPassword
 0x800197b4	352	FUN_800197b4
