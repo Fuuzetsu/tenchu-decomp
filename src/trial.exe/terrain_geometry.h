@@ -2,6 +2,7 @@
 #define TENCHU_TRIAL_TERRAIN_GEOMETRY_H
 
 #include "mission_editor.h"
+#include "../main.exe/tmdfast.h"
 
 enum { TRIAL_TERRAIN_UNIT_VERTEX_COUNT = 32, TRIAL_TERRAIN_FACE_CAPACITY = 22 };
 
@@ -13,6 +14,14 @@ typedef struct TrialTerrainFace
     u8 half, texture;
     u8 vertex[4];
 } TrialTerrainFace;
+
+typedef struct TrialTerrainGridOffset
+{
+    s16 x, z;
+} TrialTerrainGridOffset;
+
+extern TrialTerrainGridOffset TrialTerrainNeighborOffsets[4];
+extern TmdTexturedGouraudQuadRecord *TrialTerrainPrimitives;
 
 extern SVECTOR TrialTerrainUnitVertices[TRIAL_TERRAIN_UNIT_VERTEX_COUNT];
 extern TrialTerrainFace TrialTerrainFaces[10][TRIAL_TERRAIN_FACE_CAPACITY];

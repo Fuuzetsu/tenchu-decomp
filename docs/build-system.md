@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 555 matching C functions /
-264,440 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 556 matching C functions /
+268,504 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -992,9 +992,18 @@ indices within their height rings, clips covered sides against neighbor
 heights, and darkens vertical faces. Its four cache values, TMD header, 32 unit
 vertices, and both ten-kind face tables add 3,824 C-owned data bytes. The
 mission table splits tall sides into more textured bands than the editor table.
-Those shared tables live with `BuildTrialTerrainModel`; that builder's body
-still uses its assembly scaffold and receives no C credit. The renderer retains
+Those shared tables live with `BuildTrialTerrainModel`. The renderer retains
 the original 32-byte unused stack reservation, whose former purpose is unknown.
+
+`BuildTrialTerrainModel` adds 4,064 exact C bytes. Its three passes assign
+corner lighting, emit exposed textured faces, and collect ornament instances.
+The recovered code preserves ramp joins and quarter-turns, skips hidden sides,
+uses a finer temporary vertex scale for water, compacts the allocated buffers,
+and constructs a mapped TMD with the fast renderer's first-primitive batch count.
+Its named primitive buffer/count and shared cardinal-neighbor table clarify
+ownership; the latter adds another 16 C-owned data bytes. The height/vertex/
+primitive helpers expose their signed-short results, and the existing aligned
+`TmdTexturedGouraudQuadRecord` provides the original 44-byte word copies.
 
 Taking ownership of the face tables also requires retaining the pre-existing
 `D_8008E120` SDK symbol explicitly. `rcos` uses it as the sine-table base minus
@@ -1011,10 +1020,10 @@ updates) and verifies the same 7,484-byte saved mission. The final editor return
 is at VSync 3,276 with 133 terrain polls. This still uses the default mission;
 nonflat terrain, populated ornaments, and special traps need separate scenarios.
 
-The 555-function checkpoint passes all six executable hashes and all 40 focused
+The 556-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 555/1,216 exact TRIAL rows and 264,440/466,728 TRIAL code
-bytes. Across all targets it records 1,487 complete functions and 685,628
+3,449 units, including 556/1,216 exact TRIAL rows and 268,504/466,728 TRIAL code
+bytes. Across all targets it records 1,488 complete functions and 689,692
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1029,8 +1038,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 573/586 rows and 270,812/307,784 bytes; 13 compiled game
-routines / 36,972 bytes remain. The assembly classification adds no decomp.dev
+game completion is 574/586 rows and 274,876/307,784 bytes; 12 compiled game
+routines / 32,908 bytes remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` remains an assembly scaffold and is not counted as C.

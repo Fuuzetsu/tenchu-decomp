@@ -3468,3 +3468,36 @@ face table. Splitting those roles into a short kind and byte shade leaves a
 saved-register swap throughout the otherwise exact function. Reusing the short
 restores the full 1,336-byte match. Keep the previous cached height skew for
 ornaments: the original only refreshes that cache afterward for ground geometry.
+
+
+### TRIAL terrain builder: distinct cases can matter before tail merging
+
+`BuildTrialTerrainModel` keeps turning ramps and equal-height ramps as separate
+cases, each setting the neighboring edge height to zero; the remaining case
+raises the edge by one. Combining the two zero cases with `||` produces the
+same final branch structure but changes cc1's register-use accounting before
+tail merging. The neighbor-height array base then spills permanently instead
+of being saved around calls: a 216-byte frame and 4,044-byte function replace
+the original 208-byte frame and 4,064-byte body. The `.lreg` dump shows the
+base used 19 weighted times across five calls; the separate cases give it
+21. A bounded permuter run pointed to this region with an artificial one-shot
+loop, which was rejected. Keeping the actual two cases separately recovers
+the required allocation with ordinary `if / else if / else` code.
+
+The primitive uses the existing word-aligned `TmdTexturedGouraudQuadRecord`.
+Assigning the SDK's halfword-aligned `TMD_P_TNG4` instead emits runtime alignment
+checks and unaligned copies. The four neighbor heights and the current height
+form one local aggregate, placing the current height at `sp+0x48` before the
+spilled parameters. Initialize the inner lighting scan's counter before its
+flag accumulator (`j = 0, kind = 0`). `GetTrialTerrainHeight` returns a short:
+that prototype fixes the promotion copies at its two `abs` consumers without
+changing previously matched functions. Keep the random shade's sum narrowed
+before subtracting height darkening.
+
+Finally, the corner-lighting X argument is `(x - center_x) * 2 + unit.vz`.
+Swapping the sum's operands preserves the arithmetic but changes reload-register
+choice and moves a Z-coordinate reload earlier. Writing the double as a shift
+also lets cc1 drop the original signed promotions. The ordinary multiplication
+and offset-first addition close the full 4,064-byte match. The ornament count
+increments after the instance fields; a post-increment subscript schedules
+that store too early.

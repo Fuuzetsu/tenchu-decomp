@@ -550,6 +550,11 @@ maspsxGpExterns src = extra (takeBaseName src) <>
         takeBaseName src == "DrawTrialTerrainOrnaments" =
           ["TrialTerrainOrnamentCount", "TrialThemeOrnaments"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
+        takeBaseName src == "BuildTrialTerrainModel" =
+          ["TrialTerrainVertices", "TrialTerrainPrimitives", "TrialTerrainVertexCount",
+           "TrialTerrainPrimitiveCount", "TrialTileDefinitions", "TrialTerrainScale",
+           "TrialTerrainOrnamentCount"]
+      | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "GetTrialTerrainHeight" = ["TrialTileDefinitions"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "FindOrAddTrialTerrainVertex" =

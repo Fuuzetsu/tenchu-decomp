@@ -5,7 +5,7 @@
  * TrialTerrainScale. The extreme entries also mark pits and tall obstacles. */
 s16 TrialTerrainHeights[10] = { 0, -1, -2, -3, -4, -1, -2, -99, 99, 0 };
 
-int GetTrialTerrainHeight(short x, short z, short layers)
+short GetTrialTerrainHeight(short x, short z, short layers)
 {
     short height = 0;
     u8 tile;

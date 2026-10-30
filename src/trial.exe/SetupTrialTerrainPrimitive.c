@@ -4,7 +4,7 @@
 
 /* A tile uses a 64-pixel square texture. Split faces select its upper (1)
  * or lower (2) half; the caller fills the four vertex indices separately. */
-int SetupTrialTerrainPrimitive(TMD_P_TNG4 *primitive, short texture, short half)
+short SetupTrialTerrainPrimitive(TMD_P_TNG4 *primitive, short texture, short half)
 {
     u8 height = 63;
     u8 u, v;

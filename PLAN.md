@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  555 functions / 264,440 bytes now compile as exact C, including startup,
+  556 functions / 268,504 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -27,7 +27,8 @@ byte-identical `main.exe`.
   rendering, tile captions, map initialization, and placement/patrol validation
   now compile exactly too. Trigger/arrow traps, collapsing floors, patrol captions,
   the overview frame, character thumbnails, terrain/character viewports, chunk
-  rendering, the interactive L1 preview, and cached tile rendering are also exact C. A repeatable
+  rendering, the interactive L1 preview, cached tile rendering, and the terrain-model
+  builder are also exact C. A repeatable
   PCSX-Redux check enters terrain editing through Create/settings/card check and verifies
   cursor movement. Its save scenario also verifies the complete on-card mission
   payload after returning to the editor. The keyboard scenario verifies category
@@ -40,12 +41,12 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  573/586 rows and 270,812/307,784 bytes. Graphics preserves TRIAL's larger
+  574/586 rows and 274,876/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with the 13 remaining compiled routines (36,972 bytes): terrain/collision
-  builders, editor UI, mission setup/execution, and the remaining
+  with the 12 remaining compiled routines (32,908 bytes): the collision-map
+  builder, editor UI, mission setup/execution, and the remaining
   text/record/pad drafts. Full-image equality
   and readable source remain required; this is not a completion claim.
   See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).

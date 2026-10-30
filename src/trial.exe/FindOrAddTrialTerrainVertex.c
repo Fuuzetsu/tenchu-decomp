@@ -3,7 +3,7 @@
 
 /* Adjacent faces share vertices. Their fourth SVECTOR component carries
  * terrain shading, with height darkening and occasional darker speckles. */
-int FindOrAddTrialTerrainVertex(short x, short y, short z)
+short FindOrAddTrialTerrainVertex(short x, short y, short z)
 {
     short i;
 

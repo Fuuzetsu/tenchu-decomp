@@ -924,7 +924,6 @@ segments:
       - [0x7cdc4, .data, ShowTrialResultPage]
       - [0x7cdd4, data]
       - [0x7cf20, .data, BuildTrialTerrainModel]
-      - [0x7dde0, data]
       - [0x7ddf0, .data, GetTrialTerrainHeight]
       - [0x7de04, .data, DrawTrialEditorTile]
       - [0x7de2c, data]
