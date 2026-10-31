@@ -2685,3 +2685,50 @@ is invalid evidence. Pool-pointer rebinding, consumed dispatch-kind values,
 input ordering, direct aggregate-field reads, and explicit parameter/texture
 union views do not improve the five-byte readable grouped-input draft.
 The aggregate API remains scratch-only; production retains its scalar API.
+
+### Image quantity analysis and misc input probes (2026-11-01)
+
+The image investigation now has a self-validated local-allocation diagnosis
+(`images-quantity-analysis.log`). `regalloc.local_alloc_view` reproduces every
+compiler-assigned home for the exact, unfenced, completion-macro, and combined
+page/completion drafts. The reference spans and relocations are checked against
+the current production object before this analysis.
+
+In the exact FT4 function, left U combines with the pixel-X load and shift into
+an eight-reference quantity spanning 66 allocation positions (priority 3,636).
+Width/right U is another eight-reference quantity spanning 68 positions
+(3,529). Top/bottom V has seven references across 72 positions (1,944).
+Removing the empty boundary separates right U from width; right U then takes
+`$v0` and its addition moves before the X/Y additions. These are the existing
+ten differing bytes, not a new arithmetic mismatch.
+
+A shared completion operation restores that instruction ordering and the
+width/right-U tie, but weights the three quantities differently: left U has
+11 references (5,000), width/right U has 12 (5,294), and V has 13 (5,416).
+V therefore takes `$a1` instead of left U. It also raises both screen-coordinate
+quantities above the pixel mode. A shared mode/page initializer fixes that
+saved-register order but moves the mode load/mask; including polygon
+initialization instead leaves a first-call save/delay-slot difference. The
+best such combined draft is 288/324 bytes with equal relocations and 25
+differing bytes in each function (`images-phase-types-init-page-u32-u8`).
+It is not adopted and does not improve on the simpler ten-byte draft.
+Narrowing texture values, using running UV values or inline page helpers,
+and spelling the corner additions as packed-halfword arithmetic do not close
+these gaps. Future work should address the quantity partition and call
+boundary together, rather than repeat scalar type-only sweeps.
+
+`AddMisc`'s immutable grouped inputs keep the same five-byte residual; making
+the pool pointer const changes the scan layout instead. Signed/unsigned
+halfword union members for texture-scroll steps add eight bytes per converted
+working value. Initializing the pool base and cursor through a two-output
+operation changes the prologue and input-register order. Moving the consumed
+texture index before the name-table copy does not change its allocation;
+reading it back from the slot adds four bytes. Forwarding the scalar API to
+an inline grouped-payload implementation adds twenty bytes with a compound
+argument, or 48 with a named local. A scalar-only inline implementation stays
+532 bytes but has twelve differences. Separating slot configuration into an
+inline helper also adds code (at least four bytes). None is adopted.
+
+Production remains at `5e7a1e053`, whose six executable checks and handwritten
+audit passed. This investigation changes no source or report counts and adds
+no runtime claim. The four-routine humanisation queue remains active.
