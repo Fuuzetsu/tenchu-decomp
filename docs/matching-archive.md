@@ -2362,3 +2362,64 @@ Future rendering API experiments must update a coherent scratch copy of the
 shared header too: its new prototypes now correctly reject inconsistent
 context-shaped definitions. Do not restore caller-only incompatible
 declarations to bypass that check in production.
+
+### Adaptive renderer pointer temporaries recovered (2026-11-01)
+
+`adiv_tng4_` and `adiv_tnf4_` now keep two reused destinations as pointers:
+`ot_or_depth0` starts at `ot->org` and later addresses vertex 0's depth;
+`screen0_or_depth1` starts at vertex 0's projected XY word and later addresses
+vertex 1's depth. Their `u_long *` types eliminate the previous integer
+address round trips, including the casts at the GTE calls. The third scratch
+value is named `shift_or_depth2` to expose its existing mixed role explicitly.
+The signed-depth-to-unsigned-GTE-word pointer views remain appropriate to the
+GTE interface.
+
+Each renderer retains all 920 bytes and relocations. Splitting the
+screen/depth destinations into separate locals leaves 22 differing bytes;
+splitting the shift/depth value, or storing `shift` directly and keeping only
+the depth pointer, leaves 98. Splitting the OT and depth-0 lifetimes emits
+932 bytes. Those larger rewrites remain scratch-only. The two non-hardware
+volatile parameters and the scalar limit/vertical-bound stores remain open.
+
+All six executable checks pass (`adiv-typed-output-check.log` in the ignored
+scratch directory). The local report is regenerated at 3,449 units, without
+new matching credit. The 18 handwritten routines / 6,372 bytes and their
+dispatch table remain verified. The recursive scanner still reports nine
+candidate files; no new runtime coverage is claimed.
+
+Other measurements from this pass are not production changes:
+
+- `AddMisc`: after their initial values have been stored, the scalar `b` and
+  `c` parameters can carry the texture-scrolling Y/Z arguments just before
+  `SetupTexScroll`. This removes both wrapper loops in a 532-byte draft with
+  thirteen differing bytes and equal relocations; also using `a` for the
+  texture selection index leaves twelve. A grouped-parameter draft that uses
+  `a` for that index and `c` for the final Z argument leaves seven: only the
+  retained pool base and initial C value exchange `$a0`/`$t0`. Other working
+  value permutations, field/aggregate stores, scalar argument copies,
+  selected-slot aliases and pool-bound predicates do not close the gap. The
+  grouped API is still not adopted.
+- `AfsGetEntry`: counted-allocation helpers retain the seven-byte first-wrapper
+  difference; out-parameter allocation forms add code. Validating a temporary
+  before retaining the owner leaves eleven. Null-predicate return/argument
+  types do not close its two-byte failed-free difference. A value-returning
+  indexed-byte accessor retains the full no-wrapper draft's eight-byte
+  difference; typed-record accessors add four bytes. Single-field ownership
+  records and installation/cleanup helpers do not improve these drafts.
+- `SetupImageToPoly*`: the no-loop and exact drafts have the same substantive
+  combine RTL. The empty-loop notes create the scheduling boundary before
+  right-U calculation. Shared corner-offset macros restore that order but
+  change register allocation (39 differing bytes). Separate corner outputs
+  and texture-edge records do not produce an exact ordinary implementation.
+- `subdivide_quad_`: field-copy helpers, including conventional statement
+  macros, do not close the wrapper-free draft. Keeping the destination load
+  inside a macro's evaluated argument preserves size but retains the 183-byte
+  pointer-register swap; putting it before the macro adds four bytes. Frame
+  cursor advancement, parameter/local selection and depth-phase copies also
+  remain nonmatching. An initial scratch generator omitted the packet-pointer
+  assignment; those undefined-value results were rejected, the generator was
+  corrected, and all recorded field-copy results use the complete code.
+
+The humanisation goal remains active for the seven shared routines. These
+measurements are not additional recovered functions or completed scaffolding
+removals.

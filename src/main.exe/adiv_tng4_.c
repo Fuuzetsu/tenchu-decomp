@@ -10,14 +10,14 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
 {
     int hwd;
     int vwd;
-    u_long t0;
+    u_long *ot_or_depth0;
     int cd;
     int code;
     int cnt;
     int init;
     ADIV_WORK *work;
-    u_long t1;
-    u_long t2;
+    u_long shift_or_depth2;
+    u_long *screen0_or_depth1;
     ADIV_VERT *v0;
     ADIV_FRAME *frame;
     u_char b;
@@ -36,16 +36,16 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     vp = frame->vp;
     work->adivw = (short)(hwd / 2);
     ADIV_SCALAR_SHORT(work, adivh) = (short)(vwd / 2);
-    t0 = (u_long)ot->org;
-    t1 = shift;
+    ot_or_depth0 = ot->org;
+    shift_or_depth2 = shift;
     init = 150;
     work->adivz = init;
-    work->shift = t1;
+    work->shift = shift_or_depth2;
     setlen(&work->packet, GPU_POLY_GT4_LENGTH);
     code = GPU_POLY_GT4_CODE;
     work->out = packet;
     setcode(&work->packet, code);
-    work->org = (u_long *)t0;
+    work->org = ot_or_depth0;
     cnt = count;
     if (cnt != 0)
     {
@@ -90,8 +90,8 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                 primitive->stream.texture[0].coordinates;
             work->v[1].texture.coordinates =
                 primitive->stream.texture[1].coordinates;
-            t2 = (u_long)&work->v[0].screen.word;
-            gte_stsxy3((u_long *)t2,
+            screen0_or_depth1 = &work->v[0].screen.word;
+            gte_stsxy3(screen0_or_depth1,
                        &work->v[1].screen.word,
                        &work->v[2].screen.word);
             gte_nclip();
@@ -114,10 +114,11 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                 work->v[3].color.word = primitive->stream.color[3].word;
                 work->v[3].color.channel.cd = b;
                 gte_stsxy((u_long *)&work->v[3].screen.word);
-                t0 = (u_long)&work->v[0].sz;
-                t2 = (u_long)&work->v[1].sz;
-                t1 = (u_long)&work->v[2].sz;
-                gte_stsz4((u_long *)t0, (u_long *)t2, (u_long *)t1,
+                ot_or_depth0 = (u_long *)&work->v[0].sz;
+                screen0_or_depth1 = (u_long *)&work->v[1].sz;
+                shift_or_depth2 = (u_long)&work->v[2].sz;
+                gte_stsz4(ot_or_depth0, screen0_or_depth1,
+                           (u_long *)shift_or_depth2,
                            (u_long *)&work->v[3].sz);
                 work->packet.clut =
                     primitive->stream.texture[0].component.metadata;

@@ -3828,6 +3828,15 @@ code: four differing bytes in either adaptive renderer, and eight additional
 bytes in each fast renderer. Recheck comments claiming a declaration is
 required against the current complete unit before preserving that mismatch.
 
+The adaptive renderers' working addresses can also be typed independently of
+their remaining parameter constraint. Keeping the OT/depth-0 and
+screen-0/depth-1 values as `u_long *`, with direct pointer assignments and GTE
+arguments, preserves both 920-byte functions and all relocations. Retain the
+actual reused lifetimes: splitting screen/depth into separate locals leaves
+22 differing bytes, and separating the shift/depth-2 value leaves 98. A
+pointer-only value does not need integer round trips just because another
+scratch value in the same routine still mixes an integer and an address.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;

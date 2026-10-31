@@ -45,6 +45,9 @@ byte-identical `main.exe`.
   The fast and adaptive rendering dispatchers now share the six renderers'
   actual `int` count declarations in `tmdfast.h`, removing conflicting local
   prototypes without changing either dispatcher's bytes.
+  Both adaptive renderers now keep their OT/depth-0 and screen-0/depth-1
+  scratch destinations as typed pointers, removing integer round trips and
+  naming the reused values' roles. Each renderer remains 920 bytes exact.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
   and `SetupImageToPolyGT4`. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
