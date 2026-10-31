@@ -2153,3 +2153,37 @@ is claimed. The remaining humanisation goal stays active.
 Nested rendering-context drafts do not close the subdivision caller residual:
 a nested sorting record retains twelve differing bytes, while grouping the
 OT/workspace pointers under a nested member leaves 25. They are scratch-only.
+
+### Follow-up boundary measurements after the escape cleanup
+
+The remaining drafts are still scratch-only; none changes the verified images:
+
+- `decode_tmd_adiv_`: the initial RTL for the exact scalar call and the
+  twelve-byte context draft has the same packet-then-count load order. The
+  aggregate argument adds a block-memory clobber and marks its three outgoing
+  stack stores as structure accesses. The count moves before the packet load
+  later in compilation. Const objects/fields do not help: compound literals
+  retain the twelve-byte residual, while named contexts emit 584 or 592 bytes
+  rather than 540. Packed-word, union, and bit-field count reads still emit
+  the same halfword load and retain twelve differing bytes; capturing those
+  counts in a local leaves twenty. No header or API change is adopted.
+- `SetupImageToPoly*`: inline geometry helpers that return the right U
+  coordinate retain the ten-byte residual. Including UV stores leaves
+  seventeen; widening a narrowed-width return adds code. Returning this value
+  does not provide the useful lifetime boundary found in `Think3escape`.
+- `AfsGetEntry`: inline record decoders returning an advanced input, output,
+  or packed cursor emit 580–604 bytes instead of 564. Keeping marker checks or
+  the final name terminator inside the helper does not close the difference.
+- `AddMisc`: moving slot configuration and dispatch selection to an inline
+  helper returning a pointer, success flag, or procedure changes the control
+  graph and emits 512–568 bytes. Neither the original scalar arguments nor
+  the grouped spawn-parameter draft becomes exact.
+- `subdivide_quad_`: using the original parameters directly retains 3,796
+  bytes but leaves 179 differing bytes. A named corner-array view adds four
+  bytes; unifying the two next-frame cursors removes eight. Neither is adopted.
+- `GetAreaMapVector`: a centre-probe helper taking the coordinate values,
+  either returning the level or writing it directly, retains the fourteen-byte
+  residual. Passing the position record instead adds eight bytes.
+
+The source remains at the two successful wall-push and escape-AI checkpoints
+above. The humanisation goal is active.
