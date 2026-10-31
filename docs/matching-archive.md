@@ -2732,3 +2732,24 @@ inline helper also adds code (at least four bytes). None is adopted.
 Production remains at `5e7a1e053`, whose six executable checks and handwritten
 audit passed. This investigation changes no source or report counts and adds
 no runtime claim. The four-routine humanisation queue remains active.
+
+### Subdivider's final standalone wrapper removed (2026-11-01)
+
+Current-source range and sorting helpers did not close the remaining
+frame/work register exchange. Initial min/max helpers restore the registers
+but rearrange branches; endpoint sampling supplies the useful boundary.
+`READ_ADIV_EDGE` captures the frame once and reads its two selected vertex
+pointers. All five midpoint paths consume both outputs. With this shared
+statement operation, the standalone `zA` load wrapper can be deleted and
+all 3,796 bytes and relocations still match. Captured and direct frame
+arguments both match; production uses the captured form. Plain blocks retain
+the 183-byte exchange. Scratch evidence is `subdivide-edge-inputs.log`.
+
+All six executable checks pass in 2.25 seconds
+(`subdivide-edge-inputs-check.log`), the local report is regenerated at
+3,449 units, and the handwritten audit verifies 18 routines / 6,372 bytes
+and the primitive dispatch table. The scanner now reports five candidate
+files, including legitimate byte addressing; no standalone subdivision
+wrapper remains. Three routines remain open: the two image-setup functions
+and `AddMisc`. TRIAL's 568 exact C routines / 301,412 bytes and runtime
+coverage are unchanged.

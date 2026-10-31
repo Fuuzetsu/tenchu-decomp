@@ -3906,9 +3906,16 @@ to screen, texture, and colour. Both are conventional statement macros with
 real copy operations. Bind the output packet in the first channel operation's
 destination argument: hoisting that binding ahead of the operation changes
 the instruction schedule. This removes the original pair of nested layout
-wrappers independently of the remaining depth-load wrapper. Removing that
-last wrapper still exchanges the frame/work registers (183 differing bytes),
-so a successful leaf cleanup does not establish a fully wrapper-free match.
+wrappers independently of the depth-load wrapper. Removing that last wrapper
+alone exchanges the frame/work registers (183 differing bytes). A shared
+`READ_ADIV_EDGE(frame, first, second, a, b)` operation resolves that difference:
+capture the frame pointer, then read both endpoint pointers into the distinct
+output locals. Use it for all five interpolated edges. Its conventional
+statement-macro form preserves every instruction and relocation; a plain
+block leaves the register exchange. Whole min/max helpers instead reorder
+branches, and wrapping the entire interpolator changes midpoint allocation.
+The useful boundary here is the repeated input read, not the arithmetic or
+the unrelated depth sample.
 
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half

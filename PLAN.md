@@ -62,11 +62,13 @@ byte-identical `main.exe`.
   by four, removing its manual negative-value bias and shift. All 3,796 bytes
   remain exact. Its leaf packet now uses one shared four-corner channel-copy
   operation for screen, texture, and colour, replacing the two nested copy
-  wrappers. The separate depth-load wrapper remains in the queue below.
+  wrappers. A shared endpoint reader now supplies both vertex pointers for
+  each of its five interpolated edges, removing the last depth-load wrapper
+  without changing any bytes. All six executable checks pass.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
   and `SetupImageToPolyGT4`. The wider audit also tracks nonempty wrappers in
-  `AddMisc` and `subdivide_quad_`.
+  `AddMisc`; three routines remain.
   The scanner now reports these review candidates too. These readability
   changes add no matching credit.
   568 functions / 301,412 bytes now compile as exact C, including startup,

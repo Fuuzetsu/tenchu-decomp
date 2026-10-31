@@ -1242,8 +1242,8 @@ report and handwritten-assembly audit are unchanged in scope and counts.
 
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops.
-Additional shared-source work is the nonempty wrappers in
-`AddMisc` and `subdivide_quad_`.
+Additional shared-source work is the nonempty wrappers in `AddMisc`;
+three routines remain.
 The artificial `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_` are
 now removed. Both functions take an `ADIV_RENDER_CONTEXT` value containing
 their shift, ordering table, and workspace. Limit and clipping bounds are
@@ -1270,9 +1270,12 @@ all 3,796 bytes. Its leaf packet now uses `COPY_ADIV_QUAD_FIELD` for the four
 corners of each packed channel. `COPY_ADIV_QUAD` binds the output packet and
 applies that operation to screen, texture, and colour. This replaces the two
 nested copy wrappers with reusable statement macros and retains the exact
-load/store order. The separate depth-load wrapper remains unresolved. All
-six image checks and the handwritten audit pass, and the local report is
-regenerated without additional matching credit.
+load/store order. `READ_ADIV_EDGE` now captures the frame pointer and supplies
+both endpoints at all five interpolation sites. This shared two-output
+operation also permits removing the separate depth-load wrapper, preserving
+all 3,796 bytes and relocations. All six image checks and the handwritten
+audit pass, and the local report is regenerated without additional matching
+credit.
 `AfsGetEntry` now retains and walks typed `AFSIndexEntry` records, accesses
 their marker/name fields directly, and advances with `record++`. All 564 bytes
 and all six executables remain exact, and the local report is regenerated
@@ -1285,7 +1288,7 @@ in both inlined searches and remains 560 bytes exact. The macro's conventional
 statement wrapper contains these two real updates; no layout-only loop remains
 in the loader. All six executable checks and the handwritten audit pass, and
 the local report is regenerated without new matching credit.
-The expanded scan currently reports six files with review
+The expanded scan currently reports five files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

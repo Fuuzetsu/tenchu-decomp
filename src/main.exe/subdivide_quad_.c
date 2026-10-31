@@ -39,6 +39,14 @@
         work->out += sizeof(GpuPolyGT3Packet);                                \
     }
 
+/* Read an edge's endpoints from one subdivision frame. */
+#define READ_ADIV_EDGE(frame, first, second, a, b)                            \
+    do {                                                                     \
+        ADIV_FRAME *edge_frame = (frame);                                    \
+        (a) = edge_frame->vp[first];                                         \
+        (b) = edge_frame->vp[second];                                        \
+    } while (0)
+
 /* Average one edge before recursing; the first vertex supplies the OT depth. */
 #define INTERPOLATE_ADIV_VERTEX(storage, midpoint, a, b)                      \
     storage.pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);                    \
@@ -121,10 +129,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
         work->zmax = fp->vp[1]->sz;
         work->zmin = fp->vp[0]->sz;
     }
-    do
-    {
-        zA = fp->vp[2]->sz;
-    } while (0);
+    zA = fp->vp[2]->sz;
     if (zA < work->zmin)
     {
         work->zmin = zA;
@@ -231,22 +236,17 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                 }
                 else
                 {
-                    a = fp->vp[0];
-                    b = fp->vp[1];
+                    READ_ADIV_EDGE(fp, 0, 1, a, b);
                     INTERPOLATE_ADIV_VERTEX(fp->mid[0], m01, a, b);
-                    a = fp->vp[0];
-                    b = fp->vp[2];
+                    READ_ADIV_EDGE(fp, 0, 2, a, b);
                     INTERPOLATE_ADIV_VERTEX(fp->mid[1], m02, a, b);
-                    a = fp->vp[2];
-                    b = fp->vp[3];
+                    READ_ADIV_EDGE(fp, 2, 3, a, b);
                     INTERPOLATE_ADIV_VERTEX(fp->mid[2], m23, a, b);
                     gte_ldv3(&m01->pos, &m02->pos, &m23->pos);
                     gte_rtpt();
-                    a = fp->vp[3];
-                    b = fp->vp[1];
+                    READ_ADIV_EDGE(fp, 3, 1, a, b);
                     INTERPOLATE_ADIV_VERTEX(fp->mid[3], m31, a, b);
-                    a = fp->vp[0];
-                    b = fp->vp[3];
+                    READ_ADIV_EDGE(fp, 0, 3, a, b);
                     fp->mid[4].pos.vx = (short)((a->pos.vx + b->pos.vx) / 2);
                     m03 = &fp->mid[4];
                     m03->pos.vy = (short)((a->pos.vy + b->pos.vy) / 2);
