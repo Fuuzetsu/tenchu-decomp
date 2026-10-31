@@ -2187,3 +2187,32 @@ The remaining drafts are still scratch-only; none changes the verified images:
 
 The source remains at the two successful wall-push and escape-AI checkpoints
 above. The humanisation goal is active.
+
+### Typed archive input traversal (2026-11-01)
+
+`AfsGetEntry` now uses `AFSIndexEntry *record` and `*records` for its input
+cursor and retained allocation. The name and marker accesses use their named
+fields, the cursor advances with `record++`, and the short reader's inputs
+are const-qualified. All 564 bytes remain exact. The separate packed-field
+cursor and all three layout wrappers remain; this is a typed-access cleanup,
+not completion of the archive-loader humanisation.
+
+All six executable checks pass, the local report is regenerated with unchanged
+counts, and the 18 approved handwritten routines / 6,372 bytes plus their
+dispatch table remain verified. Parameter names agree with PSX.SYM. No new
+runtime coverage is claimed.
+
+The same typed-cursor conversion preserves the eight- and ten-byte residuals
+in the ordinary indexed-loop drafts. Selecting an actual input record by
+index instead retains 564 bytes but leaves 27 differing bytes: nineteen come
+from moving the packed base back from marker byte one to the record start,
+and eight are the existing loop-update schedule difference. Deriving that
+record from the marker cursor adds four bytes. Postincrement selection and
+output-pointer advancement while decoding create extra induction code and
+emit 580–596 bytes. Reusing allocation pointers across their two ownership
+phases does not close either the allocation-only or complete-loop draft.
+
+A complete reusable image-rectangle statement macro also does not remove
+the image helpers' empty loops exactly. Its ordinary block variants retain
+the ten-byte residual; conventional do/while macro bodies change register
+allocation and leave 66 differing bytes. These remain scratch-only.

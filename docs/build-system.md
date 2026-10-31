@@ -1235,6 +1235,11 @@ typed field; their limit and vertical-bound stores still use scalar views.
 All six image checks pass after that change. A by-value rendering context
 removes the qualifiers and remaining scalar views in exact callee drafts,
 but its caller still differs, so that API change is not adopted.
+`AfsGetEntry` now retains and walks typed `AFSIndexEntry` records, accesses
+their marker/name fields directly, and advances with `record++`. All 564 bytes
+and all six executables remain exact, and the local report is regenerated
+with unchanged counts. This removes byte-cursor arithmetic and a record cast;
+the three layout wrappers are still unresolved.
 The expanded scan currently reports nine files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,

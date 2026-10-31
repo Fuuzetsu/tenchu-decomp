@@ -35,6 +35,8 @@ byte-identical `main.exe`.
   `Think3escape` now builds the packed turn hold in a small value-returning
   helper, removing all three artificial conditions while preserving its
   280 bytes in MAIN and TRIAL.
+  `AfsGetEntry` now walks typed on-disc records with named marker/name fields
+  and `record++`; its three layout wrappers remain under investigation.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
   and `SetupImageToPolyGT4`; the collision probe's redundant mode aliases

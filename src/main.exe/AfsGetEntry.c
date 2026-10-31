@@ -9,7 +9,7 @@ extern char msg_afsgetenty_no_memory[];    /* AfsGetEnty: memory not enough! */
 extern char msg_afsgetentry_no_memory[];   /* AfsGetEntry: memory not enough! */
 extern char msg_illigal_index[];
 
-static __inline__ void AfsGetShort(u16 *dst, u8 *src, u8 *next)
+static __inline__ void AfsGetShort(u16 *dst, const u8 *src, const u8 *next)
 {
     *dst = ((u16)src[0] << 8) | next[0];
 }
@@ -18,8 +18,8 @@ int AfsGetEntry(TAFS *handle)
 {
     TAFSElement *elements;
     TAFSElement *element;
-    u8 *buffer;
-    u8 *raw;
+    AFSIndexEntry *record;
+    AFSIndexEntry *records;
     u8 *packed;
     u32 i;
     u16 marker;
@@ -41,8 +41,8 @@ int AfsGetEntry(TAFS *handle)
         }
     } while (0);
 
-    buffer = valloc(handle->maxElements * sizeof(AFSIndexEntry));
-    if (buffer == 0)
+    record = valloc(handle->maxElements * sizeof(AFSIndexEntry));
+    if (record == 0)
     {
         AdtMessageBox(msg_afsgetentry_no_memory);
         return 1;
@@ -50,10 +50,10 @@ int AfsGetEntry(TAFS *handle)
 
     cd_seek(handle->fpVol, handle->posElement, CDSEEK_SET);
     i = 0;
-    cd_read(handle->fpVol, buffer,
+    cd_read(handle->fpVol, record,
             handle->maxElements * sizeof(AFSIndexEntry));
 
-    raw = buffer;
+    records = record;
     /* Wrapper loops retain the original control-flow boundaries; their source form is unknown. */
     do
     {
@@ -62,7 +62,7 @@ int AfsGetEntry(TAFS *handle)
             if (handle->maxElements != 0)
             {
                 element = elements;
-                packed = raw + 1;
+                packed = records->marker + 1;
             entry_loop:
                 /* Retail carries this cursor one byte into the record;
                  * step back only for the typed wire-format view. */
@@ -75,17 +75,17 @@ int AfsGetEntry(TAFS *handle)
                 element->psize = AFS_READ_BE32(
                     ((AFSIndexEntry *)(packed - 1))->packed_size);
                 strncpy((char *)element->name,
-                        (char *)((AFSIndexEntry *)buffer)->name,
+                        (char *)record->name,
                         sizeof(element->name) - 1);
                 element->name[sizeof(element->name) - 1] = 0;
-                AfsGetShort(&marker, buffer, packed);
+                AfsGetShort(&marker, record->marker, packed);
                 if (marker != AFS_ELEMENT_MARK)
                 {
                     AdtMessageBox(msg_illigal_index);
                     return 1;
                 }
                 packed += sizeof(AFSIndexEntry);
-                buffer += sizeof(AFSIndexEntry);
+                record++;
                 element->name[sizeof(element->name) - 1] = 0;
                 element++;
                 if (handle->maxElements > ++i)
@@ -98,6 +98,6 @@ int AfsGetEntry(TAFS *handle)
 
     handle->pElement = elements;
     handle->maxElementArea = handle->maxElements;
-    vfree(raw);
+    vfree(records);
     return 0;
 }
