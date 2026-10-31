@@ -2339,3 +2339,26 @@ report is regenerated without new matching credit, and the 18 handwritten
 routines / 6,372 bytes plus their dispatch table remain verified. No new
 runtime coverage is claimed. The known wrapper, empty-loop and volatile
 parameter queue remains active.
+
+The remaining scratch investigations from this pass do not change production:
+
+- An inline allocation-null predicate reduces the allocation-wrapper-only
+  `AfsGetEntry` draft from seven differing bytes to two, at unchanged size and
+  relocations. Its only remaining instruction is `move a0,s5` at `+0x74`
+  instead of `move a0,zero` for `vfree` on the failed allocation path. Making
+  that known-null argument explicit restores the seven-byte owner-register
+  swap. Pointer declaration order and const-qualified retained owners do not
+  close it. Capturing the output cursor at allocation time removes four bytes;
+  allocate-and-read helpers and allocation-validation helpers add code.
+- Inlining image coordinate/width intermediates, reusing a consumed pixel
+  mode or shift as a texture coordinate, and reusing completed screen
+  coordinates for texture edges do not improve the ten-byte no-loop draft.
+- A complete adaptive-workspace initialization helper emits 932 rather than
+  920 bytes. A caller helper returning the packet pointer or count through an
+  output parameter emits 548–564 instead of 540. Neither closes the ordinary
+  parameter or rendering-context draft.
+
+Future rendering API experiments must update a coherent scratch copy of the
+shared header too: its new prototypes now correctly reject inconsistent
+context-shaped definitions. Do not restore caller-only incompatible
+declarations to bypass that check in production.
