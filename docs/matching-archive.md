@@ -2285,3 +2285,29 @@ The recursive scanner still reports nine candidate files because it did not
 detect the removed restore. No new runtime coverage is claimed. Image setup,
 archive loading, miscellaneous-object setup, subdivision, and the adaptive
 rendering context remain the active humanisation queue.
+
+Follow-up measurements remain scratch-only:
+
+- `AfsGetEntry`: a separate next index calculated after the final terminator,
+  or a value-returning indexed-element selector, retains the eight-byte
+  residual. Calculating the next index earlier emits 600–604 bytes; an
+  advance-and-terminate helper emits 576 rather than 564.
+- `SetupImageToPoly*`: a shared right-U value helper, with signed/unsigned
+  word or halfword inputs and either direct return or consumed-width update,
+  does not improve the ten-byte residual. Returning a byte adds code.
+- Adaptive rendering contexts: splitting the three stack fields into
+  contiguous records or singleton wrappers does not produce an exact caller
+  and both exact callees together. The three-field draft's scheduler records
+  a count-load anti-dependency on the outgoing aggregate's block clobber;
+  the packet-global load has no such dependency. The scalar call lacks that
+  clobber. This confirms the scheduling boundary rather than merely a
+  difference in source argument order. No prototype change is adopted.
+- `AddMisc`: mixing direct grouped-parameter fields with scalar local copies,
+  including a const-qualified parameter, does not improve the eleven-byte
+  draft. Retaining all three locals is still the closest of these forms.
+- `subdivide_quad_`: conventional do/while bodies for the existing reusable
+  interpolation/emission macros do not remove the three artificial wrappers
+  exactly (269 or 818 differing bytes). A value-returning edge-interpolation
+  helper retains 3,796 bytes but differs by 339. Direct midpoint-field and
+  next-frame views change the function size; keeping the packet prototype
+  pointer live through triangle emission adds code. None is adopted.
