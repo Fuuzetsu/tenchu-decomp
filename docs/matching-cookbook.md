@@ -3802,3 +3802,16 @@ retains the original halfword-load/sign-extension sequence, matching all
 simply deleting the artificial cast branch instead folds the load and sign
 extension and emits 288 bytes. Establish the actual data-selection boundary
 before trying more elaborate scalar casts.
+
+`Think3escape` removes its three artificial identical-arm conditions by
+separating packed-command construction from the actor-field store. An inline
+`GetEscapeTurnHold(human, direction)` calculates the duration and returns
+`PAD_HOLD(PADLright, frames)` or `PAD_HOLD(PADLleft, frames)` through ordinary
+sign branches. The caller assigns that result to `human->pad_hold`. Combined
+with `__builtin_abs` for the second direction magnitude, this preserves all
+280 bytes, including the actor-pointer copy in the hold-check branch delay
+slot. A helper that performs the store itself leaves fifteen differing bytes;
+the value-returning boundary is significant. The first magnitude can then use
+`__builtin_abs` too, and the returned input can be an ordinary `s16`, both
+without changing code. All of these are real data operations; no condition
+exists solely to prolong an unrelated variable's lifetime.

@@ -1216,8 +1216,15 @@ preserving all 296 bytes. All six executable checks pass, the approved
 handwritten assembly remains verified, and the local report is regenerated
 without changing the matching counts.
 
+`Think3escape` now uses an inline helper that returns the packed turn hold,
+leaving its assignment with the caller. Together with ordinary absolute-value
+operations, this removes all three artificial identical-arm conditions.
+Both MAIN and TRIAL retain their exact 280-byte functions. All six image
+checks and the handwritten-assembly audit pass, and the local report is
+regenerated with unchanged counts.
+
 The humanisation goal is still active. Known remaining work is the two
-`SetupImageToPoly*` empty loops and the identical arms in `Think3escape`.
+`SetupImageToPoly*` empty loops.
 The collision probe's redundant mode aliases still need separate review.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
 `AddMisc` and `subdivide_quad_`, plus
@@ -1228,7 +1235,7 @@ typed field; their limit and vertical-bound stores still use scalar views.
 All six image checks pass after that change. A by-value rendering context
 removes the qualifiers and remaining scalar views in exact callee drafts,
 but its caller still differs, so that API change is not adopted.
-The expanded scan currently reports ten files with review
+The expanded scan currently reports nine files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

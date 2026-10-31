@@ -32,11 +32,13 @@ byte-identical `main.exe`.
   `push_from_walls_` now selects signed movement components in the real
   full/half probe paths, removing its artificial branch and redundant casts
   while preserving all 296 bytes.
+  `Think3escape` now builds the packed turn hold in a small value-returning
+  helper, removing all three artificial conditions while preserving its
+  280 bytes in MAIN and TRIAL.
   The humanisation goal remains active: following shared C
-  includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
-  `SetupImageToPolyGT4`, and
-  `Think3escape`; the collision probe's redundant mode aliases also need
-  review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
+  includes exposed remaining scaffolding in `SetupImageToPolyFT4`
+  and `SetupImageToPolyGT4`; the collision probe's redundant mode aliases
+  also need review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
   `AddMisc` and `subdivide_quad_`, plus
   the two adaptive quad renderers' non-hardware volatile parameters.
   The scanner now reports these review candidates too. These readability

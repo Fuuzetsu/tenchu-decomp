@@ -1879,6 +1879,24 @@ s16 Think3attack(void)
     return input;
 }
 
+enum
+{
+    ESCAPE_CLEAR_RANGE = 16500,
+    ESCAPE_TURN_ANGLE = 1000
+};
+
+static inline s32 GetEscapeTurnHold(Humanoid *human, s32 direction)
+{
+    s32 frames;
+
+    frames = ESCAPE_TURN_ANGLE / human->turn;
+    if (direction > 0)
+    {
+        return PAD_HOLD(PADLright, frames);
+    }
+    return PAD_HOLD(PADLleft, frames);
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -1896,79 +1914,46 @@ s16 Think3attack(void)
 
 s16 Think3escape(void)
 {
-    s32 result;
-    s32 degree;
+    s16 input;
+    s32 absolute_degree;
 
-    result = 0;
-    if (Distance < 16500 && SR != SR_GONE)
+    input = 0;
+    if (Distance < ESCAPE_CLEAR_RANGE && SR != SR_GONE)
     {
         SR = SR_NONE;
     }
     if (Degree > 0)
     {
-        result = (s16)PADLleft;
+        input = (s16)PADLleft;
     }
     else if (Degree < 0)
     {
-        if (result != 0)
-        {
-            result = PADLright;
-        }
-        else
-        {
-            result = PADLright;
-        }
+        input = PADLright;
     }
-    degree = Degree;
-    if (degree < 0)
+    absolute_degree = __builtin_abs(Degree);
+    if (absolute_degree < ESCAPE_TURN_ANGLE)
     {
-        degree = -degree;
-    }
-    if (degree < 1000)
-    {
-        result |= PADLdown;
+        input |= PADLdown;
     }
     else
     {
-        result |= PADLup;
+        input |= PADLup;
     }
     if (Attrib & ATTR_WALL)
     {
         Humanoid *human;
-        s32 degree2;
-        s32 abs_degree2;
+        s32 direction;
+        s32 absolute_direction;
 
-        degree2 = Degree;
-        if (result != 0)
+        direction = Degree;
+        absolute_direction = __builtin_abs(direction);
+        if (absolute_direction > ESCAPE_TURN_ANGLE && Me->pad_hold == 0)
         {
-            abs_degree2 = degree2;
-        }
-        else
-        {
-            abs_degree2 = degree2;
-        }
-        if (degree2 < 0)
-        {
-            abs_degree2 = -abs_degree2;
-        }
-        if (abs_degree2 > 1000 && Me->pad_hold == 0)
-        {
-            s32 quotient;
-
-            if (result != 0)
-            {
-                human = Me;
-            }
-            else
-            {
-                human = Me;
-            }
-            quotient = 1000 / human->turn;
-            human->pad_hold =
-                PAD_HOLD(degree2 > 0 ? PADLright : PADLleft, quotient);
+            human = Me;
+            human->pad_hold = GetEscapeTurnHold(human, direction);
         }
     }
-    return result;
+    return input;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

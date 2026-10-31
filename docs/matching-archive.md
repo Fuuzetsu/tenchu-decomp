@@ -2126,3 +2126,30 @@ Other scratch investigations from this checkpoint remain unadopted:
   not close it.
 
 The remaining humanisation goal stays active.
+
+### Escape-AI artificial conditions removed (2026-11-01)
+
+The fifteen-byte escape-AI residual is resolved by an inline helper that
+returns the packed turn hold instead of storing it. The actor assignment
+stays in `Think3escape`. This ordinary value boundary restores the original
+input, direction, and actor registers, including the actor-pointer copy in
+the hold-check delay slot. Both signed and unsigned 32-bit helper returns
+match; the adopted signed return agrees with `Humanoid.pad_hold`.
+
+The helper's left/right branches can use an early return, the first direction
+magnitude can use `__builtin_abs`, and the input local can be `s16`; all
+combinations remain exact. The final source names the escape range and turn
+angle and removes all three artificial conditions in MAIN and TRIAL.
+Returning the input through a store-performing helper instead leaves five
+different bytes; an output-parameter helper leaves fifteen. These alternatives
+are not adopted.
+
+All six executables remain byte-identical. The local report is regenerated
+without extra matching credit, the 18 handwritten routines / 6,372 bytes and
+dispatch table remain verified, and parameter names agree with PSX.SYM.
+The recursive scan now reports nine candidate files. No new runtime coverage
+is claimed. The remaining humanisation goal stays active.
+
+Nested rendering-context drafts do not close the subdivision caller residual:
+a nested sorting record retains twelve differing bytes, while grouping the
+OT/workspace pointers under a nested member leaves 25. They are scratch-only.
