@@ -320,11 +320,6 @@ typedef struct
  * adiv_tng4_/adiv_tnf4_ into the recursive subdivide_quad_).  The entry
  * renderer fills the header and the four root vertices; the subdivider
  * walks frames from frame[0] down the remaining scratch.
- *
- * The renderers use this layout directly for their frames, vertices, packet
- * template and persistent state. Only the initial limit and vertical-bound
- * stores retain a generic scalar lvalue; that alias shape controls GCC 2.8's
- * entry scheduling without obscuring the rest of the workspace.
  */
 typedef struct
 {
@@ -351,13 +346,6 @@ typedef struct
     ADIV_VERT v[4];      /* 0x80 the root quad's vertices */
     ADIV_FRAME frame[1]; /* 0xe0 recursion frames, one per depth level */
 } ADIV_WORK;
-
-/* Generic lvalues for the two entry stores described above. */
-#define ADIV_FIELD_OFFSET(member) ((u_long)&((ADIV_WORK *)0)->member)
-#define ADIV_SCALAR_SHORT(work, member)                                   \
-    (*(short *)((u8 *)(work) + ADIV_FIELD_OFFSET(member)))
-#define ADIV_SCALAR_WORD(work, member)                                    \
-    (*(u_long *)((u8 *)(work) + ADIV_FIELD_OFFSET(member)))
 
 PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                    PACKET *packet, int count, u_long shift,

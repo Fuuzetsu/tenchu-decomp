@@ -3837,6 +3837,16 @@ actual reused lifetimes: splitting screen/depth into separate locals leaves
 pointer-only value does not need integer round trips just because another
 scratch value in the same routine still mixes an integer and an address.
 
+For the two remaining adaptive-workspace stores, a typed field pointer also
+preserves the scalar access shape: `recursion_limit = &work->limit;
+*recursion_limit = init;` and the corresponding `short *vertical_bound` store
+match both renderers exactly. Their old `u8 *` plus null-base member-offset
+macros are unnecessary. A direct `work->member` assignment is not equivalent
+for GCC 2.8's alias/scheduling decisions, even though both C forms designate
+the same field. Try an ordinary typed address before retaining raw-offset
+accessors. This removes the access workaround independently of the unresolved
+volatile OT parameter; it does not establish that a plain parameter matches.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;

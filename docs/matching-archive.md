@@ -2423,3 +2423,38 @@ Other measurements from this pass are not production changes:
 The humanisation goal remains active for the seven shared routines. These
 measurements are not additional recovered functions or completed scaffolding
 removals.
+
+### Adaptive renderer field stores recovered (2026-11-01)
+
+Both adaptive quad renderers now initialize `limit` through a `u_long *`
+obtained from `&work->limit`, and `adivh` through a `short *` obtained from
+`&work->adivh`. These ordinary typed destinations retain all 920 bytes and
+relocations in each renderer. The raw-offset `ADIV_SCALAR_WORD`,
+`ADIV_SCALAR_SHORT` and `ADIV_FIELD_OFFSET` macros have no remaining users and
+are removed from `tmdfast.h`. Pointer locals, indexed pointer stores and
+inline typed-field helpers all matched in scratch; the production change
+uses the straightforward pointer locals.
+
+All six executable checks pass (`adiv-field-pointers-check.log`), the local
+report is regenerated at 3,449 units, and the handwritten audit still verifies
+18 routines / 6,372 bytes plus their dispatch table. TRIAL's exact C count
+remains 568 / 301,412 bytes; readability work earns no matching credit. The
+recursive scanner still reports nine candidate files. No new runtime coverage
+is claimed. The seven shared routines' wrapper/volatile queue remains active.
+
+Other scratch probes from this pass were not adopted:
+
+- `AddMisc`: first-entry jumps into real search loops still let the compiler
+  hoist dispatch/texture invariants and derive a pause-field cursor, changing
+  the target code. Bounded next-slot helpers add instructions. Texture-table
+  records and selector aliases do not improve the earlier seven-byte grouped
+  draft. Loop notes add a reference for each enclosed occurrence; they are not
+  an eightfold frequency multiplier.
+- `AfsGetEntry`: updating the input record from the index in the loop header,
+  selecting it in the body, and advancing it in the marker argument do not
+  close the eight-byte no-wrapper draft. These variants add code or change
+  instruction order and relocations.
+- `SetupImageToPoly*`: coordinate types and consumed mode/width values inside
+  the shared corner-offset macro do not close its register-allocation gap.
+  The best tested type variants retain 288/324 bytes with 38 differing bytes;
+  the simpler unfenced source remains ten bytes different.

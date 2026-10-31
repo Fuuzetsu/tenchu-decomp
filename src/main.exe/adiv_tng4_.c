@@ -25,17 +25,20 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     ADIV_VERT *v2;
     ADIV_VERT *v1;
     ADIV_VERT **vp;
+    u_long *recursion_limit;
+    short *vertical_bound;
 
-    /* The limit and vertical bound retain the scalar scratch view. */
     work = wp;
     hwd = HWD0;
     init = 4;
-    ADIV_SCALAR_WORD(work, limit) = init;
+    recursion_limit = &work->limit;
+    *recursion_limit = init;
     frame = &work->frame[0];
     vwd = VWD0;
     vp = frame->vp;
     work->adivw = (short)(hwd / 2);
-    ADIV_SCALAR_SHORT(work, adivh) = (short)(vwd / 2);
+    vertical_bound = &work->adivh;
+    *vertical_bound = (short)(vwd / 2);
     ot_or_depth0 = ot->org;
     shift_or_depth2 = shift;
     init = 150;
