@@ -11,7 +11,8 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE game/editor byte-exact recovery is complete (2026-10-31).**
-  The follow-up humanisation pass removes `ActATTACK`'s discarded volatile
+  **The follow-up humanisation audit is complete (2026-11-01).**
+  It removes `ActATTACK`'s discarded volatile
   read, `ActSTICKON`'s cancelling arithmetic and empty loop, and `DrawImpact`'s
   empty loop. Three unnamed text-entry halfwords are represented by natural
   alignment; two unaccessed fields are explicitly documented. The preview
@@ -68,11 +69,15 @@ byte-identical `main.exe`.
   `AddMisc` now separates authored-parameter setup, type validation, and
   cursor advancement, removing both standalone wrappers. Its scalar API and
   all 532 bytes remain unchanged, and all six executable checks pass.
-  The humanisation goal remains active: following shared C
-  includes exposed remaining scaffolding in `SetupImageToPolyFT4`
-  and `SetupImageToPolyGT4`; these two routines remain.
-  The scanner now reports these review candidates too. These readability
-  changes add no matching credit.
+  `SetupImageToPolyFT4` and `SetupImageToPolyGT4` now share TIM rectangle
+  mapping, removing the final two empty loops. Captured halfword TIM flags
+  supply the texture-page call, then the normalized mode supplies pixel
+  geometry. Both functions retain all 288/324 bytes. All six executable
+  checks, 25 focused source/scanner/inventory tests, and the handwritten
+  assembly audit pass. The recursive source/header scan leaves only reviewed
+  byte addressing in four files; no known compiler-only scaffolding remains
+  in the audited TRIAL sources. Documentation and the local report are
+  updated. These readability changes add no matching credit or runtime coverage.
   568 functions / 301,412 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and

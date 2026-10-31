@@ -1240,8 +1240,6 @@ code generation was disproved against the current build. The shared header
 now lets the compiler check definitions and callers together. The local
 report and handwritten-assembly audit are unchanged in scope and counts.
 
-The humanisation goal is still active. Known remaining work is the two
-`SetupImageToPoly*` empty loops.
 `AddMisc` now removes both standalone wrappers with explicit type validation,
 an authored-payload assignment operation, and a cursor/continuation step.
 The validity flag is calculated before slot initialization and consumed
@@ -1294,15 +1292,33 @@ in both inlined searches and remains 560 bytes exact. The macro's conventional
 statement wrapper contains these two real updates; no layout-only loop remains
 in the loader. All six executable checks and the handwritten audit pass, and
 the local report is regenerated without new matching credit.
-The expanded scan currently reports four files with review
-candidates; that count includes the legitimate byte addressing below.
-The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
-`VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not
-automatically defects: for example, direct `[z][x]` access in the trap-map
-initializer changes instruction order. The evidence-backed release `DBG`
-sites and documented original stack reservations remain. The scan is a
-heuristic, not a proof that every possible readability improvement has been
-exhausted. See the follow-up notes in
+
+The final two empty loops in `SetupImageToPolyFT4` and `SetupImageToPolyGT4`
+are removed through shared TIM rectangle mapping. Each caller captures the
+TIM flags in a `u16`, sets the texture page using the masked mode, then passes
+the working value to the shared mapper. After palette setup, the mapper
+normalizes that mode for the width shift and texture mask. Its shared U
+conversion and far-corner operations perform real, consumed calculations;
+the flat and Gouraud layouts supply their own colour setters. All 288/324
+bytes and relocations match, with the existing public signatures.
+
+The follow-up humanisation audit is complete (2026-11-01). All six executable
+checks, 25 focused source/scanner/inventory tests, and the 18-routine
+handwritten-assembly audit pass. The local report is regenerated at 3,449
+units; TRIAL remains at 568 exact C functions / 301,412 bytes, separately
+from 18 handwritten routines / 6,372 bytes and the SDK/CRT assembly. This
+cleanup adds no matching credit, remote publication, or runtime coverage.
+
+The final recursive source/header scan reports only five byte-addressing
+hits in four files: archive-relative offsets in `IMAGES`, block splitting in
+`VALLOC`, tile-layer addressing in `InitTrialTrapMap`, and variable-size
+primitive stepping in the packed TMD dispatcher. All are reviewed operations
+with named sizes or fields. Direct `[z][x]` access in the trap-map initializer,
+for example, changes instruction order. No known artificial loops, branches,
+or volatile-object scaffolding remain in the audited TRIAL sources. The
+evidence-backed release `DBG` sites and documented original stack reservations
+remain. The scan is a heuristic, not a proof that every possible readability
+improvement has been exhausted. See the follow-up notes in
 [`matching-cookbook.md`](matching-cookbook.md#trial-follow-up-remove-matching-scaffolding-through-real-value-lifetimes).
 
 The final `--preview --text-entry --patrols --playtest --save` PCSX-Redux run

@@ -2821,3 +2821,42 @@ Earlier probes in this pass—horizontal-span operations, width/right-U union
 views, texture-axis grouping, corner statement expressions, texture-scale
 helpers, and by-value position inputs—also remain scratch-only. Production
 is unchanged after `58493e97c`; the two image routines remain open.
+
+### Image mapping exact; TRIAL humanisation audit complete (2026-11-01)
+
+The final image solution keeps `SetPoly*` and `GetTPage` in the public
+functions and begins the shared mapper with palette setup. A `u16` captures
+the raw TIM flags before the page call. The call consumes their masked pixel
+mode; the shared mapper then normalizes that same working value for its width
+shift and texture mask. This closes the saved-register exchange while keeping
+the original call schedule. Both complete routines match: FT4 is 288 bytes,
+GT4 is 324, with zero differing bytes and equal relocations.
+
+The adopted mapping code shares the screen/texture stores, two-step U
+conversion, and two-output far-corner update. The packet layouts supply their
+own colour setters. Every argument and intermediate is consumed; the two
+empty loops are deleted. `images-mode-views-u16-raw-shared` is the exact
+scratch candidate (`images-mode-views.log`). Wider raw captures and a
+pre-masked halfword each leave 25 differing bytes; collapsing the U conversion
+changes 15 (`probe_images_final_width.py`). Only reviewed function/helper splices
+were applied to the current production source, followed by semantic naming
+and comments.
+
+The production gate passes all six executable comparisons in 3.21 seconds
+(`images-shared-map-check.log`). The local report has 3,449 units, with TRIAL
+unchanged at 568 exact C functions / 301,412 bytes. The separate handwritten
+audit verifies 18 routines / 6,372 bytes and the primitive dispatch table;
+SDK/CRT remains outside the recovered game/editor C count. All 25 focused
+tests in `test_humanscan`, `test_source_units`, and `test_target_inventory`
+pass. No new runtime coverage or remote report publication is claimed.
+
+The final audit rereads the original action/effect fixes, all five reviewed
+header fields, and the remaining scanner hits. The recursive source/header
+scan now has only five byte-addressing hits in four files: two archive-offset
+conversions in `IMAGES`, allocator block splitting, tile-layer addressing,
+and packed TMD primitive stepping. These are reviewed real operations, with
+no known artificial loops, branches, or volatile-object scaffolding left in
+the audited TRIAL sources. The three text-entry gaps use inferred natural
+alignment; the tile and preview fields remain explicitly unused, and the
+preview field's original purpose remains unknown. The humanisation goal is
+complete without additional matching credit.

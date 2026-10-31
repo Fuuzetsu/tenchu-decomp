@@ -100,6 +100,68 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
     }
 }
 
+/* Convert the VRAM word coordinate to a texel offset within its page. */
+#define GET_IMAGE_TEXTURE_U(texture_u, vram_x, shift, mask)                   \
+    do {                                                                     \
+        (texture_u) = (vram_x) << (shift);                                    \
+        (texture_u) &= (mask);                                                \
+    } while (0)
+
+/* Advance both screen coordinates to the opposite rectangle corner. */
+#define OFFSET_IMAGE_CORNER(x, y, width, height)                             \
+    do {                                                                     \
+        (x) += (width);                                                      \
+        (y) += (height);                                                     \
+    } while (0)
+
+#define SHADE_IMAGE_FT4(p) (setRGB0(p, 0x7F, 0x7F, 0x7F))
+#define SHADE_IMAGE_GT4(p)                                                    \
+    (setRGB0(p, 0x7F, 0x7F, 0x7F), setRGB1(p, 0x7F, 0x7F, 0x7F),           \
+     setRGB2(p, 0x7F, 0x7F, 0x7F), setRGB3(p, 0x7F, 0x7F, 0x7F))
+
+/*
+ * Shared TIM rectangle mapping for the flat and Gouraud packet layouts.
+ * The caller has set the texture page from the captured TIM flags. Normalize
+ * that working mode for pixel geometry, and advance the working x/y values
+ * after storing the near corner. Each packet layout supplies its colour setter.
+ */
+#define MAP_IMAGE_QUAD(image, polygon, x, y, mode, shade)                     \
+    do {                                                                     \
+        s32 width_shift;                                                     \
+        s32 pixel_width;                                                     \
+        u32 left_u;                                                          \
+        u16 right_u;                                                         \
+        s32 vram_x;                                                          \
+        u8 top_v;                                                            \
+        u32 word_width;                                                      \
+        u32 height;                                                          \
+        u32 u_mask;                                                          \
+                                                                             \
+        (polygon)->clut = GetClut((image)->cx, (image)->cy);                   \
+        (mode) = TIM_PIXEL_MODE(mode);                                       \
+        width_shift = 2 - (mode);                                            \
+        u_mask = (1 << (8 - (mode))) - 1;                                     \
+        vram_x = (image)->px;                                                \
+        top_v = (u8)(image)->py;                                             \
+        word_width = (image)->pw;                                            \
+        height = (image)->ph;                                                \
+        shade(polygon);                                                      \
+        (polygon)->x0 = (x);                                                 \
+        (polygon)->y0 = (y);                                                 \
+        (polygon)->y1 = (y);                                                 \
+        (polygon)->x2 = (x);                                                 \
+        GET_IMAGE_TEXTURE_U(left_u, vram_x, width_shift, u_mask);             \
+        pixel_width = word_width << width_shift;                             \
+        OFFSET_IMAGE_CORNER(x, y, pixel_width, height);                       \
+        right_u = left_u + pixel_width;                                      \
+        (polygon)->x1 = (x);                                                 \
+        (polygon)->y2 = (y);                                                 \
+        (polygon)->x3 = (x);                                                 \
+        (polygon)->y3 = (y);                                                 \
+        setUV4(polygon, left_u, top_v, right_u, top_v,                        \
+               left_u, top_v + height, right_u, top_v + height);             \
+    } while (0)
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -120,44 +182,12 @@ void InitSprite(GsIMAGE *image, GsSPRITE *sprite)
 
 void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
 {
-    s32 tp;
-    s32 sh;
-    s32 tw;
-    u32 tx;
-    u16 tx2;
-    s32 px;
-    u8 ty;
-    u32 pw;
-    u32 th;
+    u16 tim_mode;
 
     SetPolyFT4(ply);
-    tp = TIM_PIXEL_MODE((u16)image->pmode);
-    ply->tpage = GetTPage(tp, 1, image->px, image->py);
-    ply->clut = GetClut(image->cx, image->cy);
-    sh = 2 - tp;
-    px = image->px;
-    ty = (u8)image->py;
-    pw = image->pw;
-    th = image->ph;
-    setRGB0(ply, 0x7F, 0x7F, 0x7F);
-    ply->x0 = x;
-    ply->y0 = y;
-    ply->y1 = y;
-    ply->x2 = x;
-    tx = (px << sh) & ((1 << (8 - tp)) - 1);
-    tw = pw << sh;
-    x += tw;
-    y += th;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
-    do
-    {
-    } while (0);
-    tx2 = tx + tw;
-    ply->x1 = x;
-    ply->y2 = y;
-    ply->x3 = x;
-    ply->y3 = y;
-    setUV4(ply, tx, ty, tx2, ty, tx, ty + th, tx2, ty + th);
+    tim_mode = (u16)image->pmode;
+    ply->tpage = GetTPage(TIM_PIXEL_MODE(tim_mode), 1, image->px, image->py);
+    MAP_IMAGE_QUAD(image, ply, x, y, tim_mode, SHADE_IMAGE_FT4);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
@@ -180,52 +210,14 @@ void SetupImageToPolyFT4(GsIMAGE *image, POLY_FT4 *ply, short x, short y)
 
 void SetupImageToPolyGT4(GsIMAGE *image, POLY_GT4 *ply, int x_arg, int y_arg)
 {
-    short x;
-    short y;
-    s32 tp;
-    s32 sh;
-    s32 tw;
-    u32 tx;
-    u16 tx2;
-    s32 px;
-    u8 ty;
-    u32 pw;
-    u32 th;
-
-    x = x_arg;
-    y = y_arg;
+    short x = x_arg;
+    short y = y_arg;
+    u16 tim_mode;
 
     SetPolyGT4(ply);
-    tp = TIM_PIXEL_MODE((u16)image->pmode);
-    ply->tpage = GetTPage(tp, 1, image->px, image->py);
-    ply->clut = GetClut(image->cx, image->cy);
-    sh = 2 - tp;
-    px = image->px;
-    ty = (u8)image->py;
-    pw = image->pw;
-    th = image->ph;
-    setRGB0(ply, 0x7F, 0x7F, 0x7F);
-    setRGB1(ply, 0x7F, 0x7F, 0x7F);
-    setRGB2(ply, 0x7F, 0x7F, 0x7F);
-    setRGB3(ply, 0x7F, 0x7F, 0x7F);
-    ply->x0 = x;
-    ply->y0 = y;
-    ply->y1 = y;
-    ply->x2 = x;
-    tx = (px << sh) & ((1 << (8 - tp)) - 1);
-    tw = pw << sh;
-    x += tw;
-    y += th;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
-    do
-    {
-    } while (0);
-    tx2 = tx + tw;
-    ply->x1 = x;
-    ply->y2 = y;
-    ply->x3 = x;
-    ply->y3 = y;
-    setUV4(ply, tx, ty, tx2, ty, tx, ty + th, tx2, ty + th);
+    tim_mode = (u16)image->pmode;
+    ply->tpage = GetTPage(TIM_PIXEL_MODE(tim_mode), 1, image->px, image->py);
+    MAP_IMAGE_QUAD(image, ply, x, y, tim_mode, SHADE_IMAGE_GT4);
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

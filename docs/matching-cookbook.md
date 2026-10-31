@@ -3954,3 +3954,21 @@ the value-returning boundary is significant. The first magnitude can then use
 `__builtin_abs` too, and the returned input can be an ordinary `s16`, both
 without changing code. All of these are real data operations; no condition
 exists solely to prolong an unrelated variable's lifetime.
+
+`SetupImageToPolyFT4` and `SetupImageToPolyGT4` remove their final empty loops
+with one shared TIM rectangle mapper. Keep polygon initialization and texture
+page setup in the public functions. Capture the raw TIM flags in a `u16`, use
+`TIM_PIXEL_MODE(tim_mode)` for `GetTPage`, and normalize the same working value
+inside the mapper after its palette lookup. The normalized mode supplies both
+the pixel-width shift and the U mask. This distinguishes the captured flags'
+lifetime from their geometry use without an extra image-field read.
+
+The mapper shares actual screen/texture stores across the two packet layouts;
+each layout supplies its RGB setter. Its U conversion shifts then masks, and
+its far-corner operation advances both working screen coordinates. These
+reused statement operations contain real consumed work. Together with the
+halfword flag capture, they preserve all 288/324 bytes and relocations. A
+word-sized capture or pre-masked halfword leaves a saved-register exchange;
+folding the two-step U conversion into one expression changes scheduling too.
+The successful boundary follows the real mapping operation and its input
+lifetimes; no empty fence, dummy condition, or unused macro parameter remains.
