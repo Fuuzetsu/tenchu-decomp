@@ -26,7 +26,7 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     ADIV_VERT *v1;
     ADIV_VERT **vp;
 
-    /* These setup stores retain the workspace's scalar scratch view. */
+    /* The limit and vertical bound retain the scalar scratch view. */
     work = wp;
     hwd = HWD0;
     init = 4;
@@ -34,7 +34,7 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     frame = &work->frame[0];
     vwd = VWD0;
     vp = frame->vp;
-    ADIV_SCALAR_SHORT(work, adivw) = (short)(hwd / 2);
+    work->adivw = (short)(hwd / 2);
     ADIV_SCALAR_SHORT(work, adivh) = (short)(vwd / 2);
     t0 = (u_long)ot->org;
     t1 = shift;

@@ -1217,7 +1217,12 @@ Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
 `AddMisc` and `subdivide_quad_`, plus
 the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
 are documented compiler constraints, not evidence of hardware-backed parameter
-objects. The expanded scan currently reports eleven files with review
+objects. Both renderers now write the horizontal clipping bound through its
+typed field; their limit and vertical-bound stores still use scalar views.
+All six image checks pass after that change. A by-value rendering context
+removes the qualifiers and remaining scalar views in exact callee drafts,
+but its caller still differs, so that API change is not adopted.
+The expanded scan currently reports eleven files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

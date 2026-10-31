@@ -2055,3 +2055,41 @@ Further scratch measurements, not adopted source changes:
   ten- and fourteen-byte residuals.
 
 The remaining humanisation goal stays active.
+
+### Subdivision entry-field cleanup and context investigation
+
+Both `adiv_tng4_` and `adiv_tnf4_` can write `work->adivw` directly with no
+other changes: all 920 bytes and relocations match. That small cleanup is
+adopted, and the workspace comment now identifies the two remaining scalar
+entry stores (`limit` and `adivh`). All six executable checks pass and the
+local report is regenerated with unchanged counts. No runtime check was added.
+
+The more substantial context draft is still scratch-only. A by-value record
+containing `ot` and `wp`, or `shift`/`ot`/`wp`, lets **both complete callees**
+drop the non-hardware `volatile` qualifier and all three scalar-store macros
+while remaining exact. Grouping just `shift` and `ot` also works. Reading the
+record fields directly matters: copying them to ordinary scalar locals at
+entry reproduces the earlier mismatch. Wrapping only one pointer does not
+help. Including the register-passed `count` adds a four-byte spill. These are
+inferred source representations, not recovered declarations.
+
+The caller is the unresolved gate. `decode_tmd_adiv_` with a three-field
+compound context literal retains 540 bytes but differs by twelve bytes: the
+count loads at `+0xf4` and `+0x13c` move before the output-packet loads to
+`+0xec` and `+0x134`. The two-field sorting context has the same residual;
+grouping only `ot`/workspace leaves 25 differing bytes. Named local contexts
+add stack traffic. Scoped count/packet snapshots, designated initializers,
+count-reading helpers, inline call adapters, and complete draw-submission
+helpers do not close the twelve-byte draft. A struct-returning context
+constructor adds code. Typed count access only at the call does not help;
+using it for the subsequent count reads too folds required reloads and
+shortens the function. No prototype or caller change is adopted.
+
+Further ordinary-source probes did not improve the other residuals. Indexed
+archive-decoder helpers and real loop-exit arrangements leave its best
+eight-byte difference. Separating `AddMisc` declarations from initialization
+does not improve the grouped-parameter draft, and indexed slot scans change
+its instruction graph. Typed image-corner helpers and alternate width/UV
+value lifetimes do not improve the ten-byte draft. Escape-AI early-return,
+actor-selection, and out-parameter helpers do not remove its three artificial
+conditions exactly. The goal remains active.

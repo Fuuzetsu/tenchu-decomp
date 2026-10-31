@@ -317,7 +317,7 @@ typedef struct
  * walks frames from frame[0] down the remaining scratch.
  *
  * The renderers use this layout directly for their frames, vertices, packet
- * template and persistent state.  Only the initial limit and clip-bound
+ * template and persistent state. Only the initial limit and vertical-bound
  * stores retain a generic scalar lvalue; that alias shape controls GCC 2.8's
  * entry scheduling without obscuring the rest of the workspace.
  */
@@ -347,7 +347,7 @@ typedef struct
     ADIV_FRAME frame[1]; /* 0xe0 recursion frames, one per depth level */
 } ADIV_WORK;
 
-/* Generic lvalues for the three entry stores described above. */
+/* Generic lvalues for the two entry stores described above. */
 #define ADIV_FIELD_OFFSET(member) ((u_long)&((ADIV_WORK *)0)->member)
 #define ADIV_SCALAR_SHORT(work, member)                                   \
     (*(short *)((u8 *)(work) + ADIV_FIELD_OFFSET(member)))
