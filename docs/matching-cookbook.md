@@ -3792,8 +3792,7 @@ after removing the arms swaps those registers (nine differing bytes); the
 word-sized local preserves all 548 bytes. The older `mode`/`rawmode` aliases
 were then reduced: the redundant attribute conditional and duplicate flag
 alias can be removed together without changing code. The remaining saved
-values are named `probe_flags` and `probe_mode`; the final unused mode restore
-inside the valid-neighbour path is still under review.
+values are named `probe_flags` and `probe_mode`.
 
 The same function also replaces its XOR-based missing-floor comparison with
 an inline `IsMissingAreaLevel(level)` predicate, used for both centre and
@@ -3802,6 +3801,21 @@ Writing that equality directly at the centre check instead makes GCC replace
 the fallback's returned level with a newly loaded constant: one instruction
 and four bytes differ. The shared predicate preserves the existing value
 copy and all 548 bytes, without obscuring the sentinel test in arithmetic.
+
+The final unused mode restore is removed by keeping a word-sized current
+direction bit and using the consumed mode parameter to calculate the next
+bit: `mode = direction_bit << 1; direction_bit = mode;`. The three mask
+updates use a shared inline value helper whose body is
+`return direction_bit | mask;`, with `int direction_bit` and `u8 mask`
+parameters and an `int` result. Both pieces are needed: the ordinary direct
+OR expressions leave six differing bytes (operand order at three sites),
+while using `mode` itself as the loop mask leaves eight (its initial stack
+load moves two instructions early). The compiler's pre-allocation scheduler
+shows that extending the parameter's lifetime through the loop changes that
+load's priority. Keeping the current bit separate restores its original
+schedule. A short current bit introduces extra sign extension; `int`,
+`unsigned int`, and `long` all match. Every working-value assignment is
+consumed; no dead restore, artificial branch, or loop remains in this routine.
 
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half

@@ -2254,3 +2254,34 @@ The miscellaneous-object search investigation is also scratch-only. An inline
 free-slot finder returning a slot or null/end changes the control graph and
 emits 532–572 bytes. The same-size grouped-argument draft remains substantially
 different. The humanisation goal stays active.
+
+### Collision-probe direction step recovered (2026-11-01)
+
+`GetAreaMapVector` now removes the last unused `mode = probe_flags` restore.
+The current direction is an `int direction_bit`. After its classification
+stores, the consumed mode parameter calculates the next direction bit and
+that value advances the loop. A shared inline `ProbeMaskWithDirection`
+returns the union of the current bit and each byte-sized classification
+mask. All 548 bytes and relocations are exact.
+
+The two changes close independent differences. Reusing the parameter as the
+current loop mask and returning mask updates through the helper leaves eight
+different bytes: its initial stack load occurs at `+0x44` instead of `+0x4c`.
+The pre-allocation scheduler gives this long-lived parameter load lower
+priority. Keeping a separate current bit and using the parameter only for
+the next-bit calculation restores that schedule. Direct OR expressions then
+leave six differing bytes, one operand-order difference at each mask store;
+the shared value helper closes all three. Its direction argument and result
+are `int`, and its mask argument is `u8`. A short current bit adds narrowing
+instructions, while `int`, `unsigned int`, and `long` are exact. A chained
+assignment is also exact; the adopted two statements keep calculation and
+advancement explicit.
+
+All six executable checks pass (`conflict-direction-step-check.log` in the
+ignored scratch directory), the local report is regenerated without extra
+matching credit, and the 18 approved handwritten routines / 6,372 bytes plus
+their dispatch table remain verified. Parameter names agree with PSX.SYM.
+The recursive scanner still reports nine candidate files because it did not
+detect the removed restore. No new runtime coverage is claimed. Image setup,
+archive loading, miscellaneous-object setup, subdivision, and the adaptive
+rendering context remain the active humanisation queue.

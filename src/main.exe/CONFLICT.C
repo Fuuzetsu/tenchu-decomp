@@ -283,6 +283,11 @@ static inline int IsMissingAreaLevel(long level)
     return level == LEVEL_NONE;
 }
 
+static inline int ProbeMaskWithDirection(int direction_bit, u8 mask)
+{
+    return direction_bit | mask;
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -325,7 +330,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     long x, y, z;
     long level2;
     short i;
-    short v;
+    int direction_bit;
     long initial_level;
     long probe_mode;
     long probe_flags;
@@ -358,7 +363,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     }
 
     i = 0;
-    v = 1;
+    direction_bit = 1;
     mvp->angleH = 0;
     mvp->angleL = 0;
     mvp->vector = 0;
@@ -371,22 +376,22 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
              !(((u16)mvp->attrib | (u16)FieldAttrib) &
                (MAP_SLOPE_X | MAP_SLOPE_Z))))
         {
-            mvp->vector |= v;
+            mvp->vector = ProbeMaskWithDirection(direction_bit, mvp->vector);
         }
         else
         {
             if (mvp->level < level2)
             {
-                mvp->angleL |= v;
+                mvp->angleL = ProbeMaskWithDirection(direction_bit, mvp->angleL);
             }
             else if (level2 < mvp->level)
             {
-                mvp->angleH |= v;
+                mvp->angleH = ProbeMaskWithDirection(direction_bit, mvp->angleH);
             }
-            /* Matched mode restore; its original source form is unresolved. */
-            mode = probe_flags;
         }
-        v <<= 1;
+        /* The query flags are retained above; use mode for the next bit. */
+        mode = direction_bit << 1;
+        direction_bit = mode;
         i++;
     }
     return mvp->level;
