@@ -3899,6 +3899,17 @@ arithmetic and temporary. Repeating the quotient expression instead emits an
 extra instruction. Check the consumed result's lifetime as well as the usual
 division idiom before retaining a manually spelled bias/shift sequence.
 
+The subdivider's leaf copy can be factored by packed channel without changing
+its bytes. `COPY_ADIV_QUAD_FIELD` captures the packet and frame pointers and
+copies one named field across all four corners; `COPY_ADIV_QUAD` applies it
+to screen, texture, and colour. Both are conventional statement macros with
+real copy operations. Bind the output packet in the first channel operation's
+destination argument: hoisting that binding ahead of the operation changes
+the instruction schedule. This removes the original pair of nested layout
+wrappers independently of the remaining depth-load wrapper. Removing that
+last wrapper still exchanges the frame/work registers (183 differing bytes),
+so a successful leaf cleanup does not establish a fully wrapper-free match.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;

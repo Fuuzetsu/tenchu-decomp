@@ -2617,3 +2617,71 @@ allocation. Its loop-weighted midpoint references cross the allocator's
 checkpoints, not evidence that any remaining wrapper is necessary or that
 the humanisation goal is complete. Production and the six verified images
 are unchanged by this scratch work.
+
+### Subdivision scheduling probes after the context cleanup (2026-11-01)
+
+A 180-second bounded search from the 26-byte next-frame binding draft made
+2,616 attempts. Dummy-code, type-randomization, AST-removal, and expression-
+expansion passes were disabled. Its one retained improvement only moves the
+packet-template address calculation before the binding. Reapplying that
+ordinary statement move to the readable draft preserves 3,796 bytes and
+relocations with nineteen differing bytes:
+`subdivide-binding-template-work-frame-prototype-bind`. The next-frame
+calculation remains too late, and the template calculation occupies the
+earlier schedule. Reordering the four initial assignments does not close it.
+Inline binding helpers add four or twenty bytes; binding the current frame
+and its vertex-array view adds four bytes too. None is adopted.
+
+A distinct depth-sampling draft keeps the original prologue and register
+allocation. It snapshots the current minimum, then uses one shared operation
+to read a vertex depth and calculate its below-minimum flag. Both flag and
+depth are consumed. `subdivide-depth-sample-snapshot-do-int` retains 3,796
+bytes with equal relocations and 24 differing bytes: the two minimum loads
+move before their vertex-pointer/depth loads and use `$a0` instead of `$v0`.
+Reading the bound field inside the operation returns to the 183-byte
+frame/work allocation difference; a typed bound pointer does not resolve it.
+
+The other joint probes are also scratch-only. Splitting the leaf copies into
+two-vertex rows adds four bytes. A local template view in the last triangle
+reduces the workspace reference count, but changes its two halfword loads and
+the midpoint/DMA-mask register allocation (35 differing bytes). Template views
+at all triangle sites add code. Shared image-dimension/rectangle snapshots do
+not improve the ten-byte unfenced image drafts. Const/register-qualified misc
+input copies do not improve the eight-byte scalar draft. The four-routine
+scaffolding queue remains open, with no production or matching-count change.
+
+### Leaf channel copies humanised independently (2026-11-01)
+
+The captured channel-copy draft is exact when the separate depth-load wrapper
+is retained. Production now uses `COPY_ADIV_QUAD_FIELD` to copy one packed
+field across four corners, with captured packet/frame pointers. The outer
+`COPY_ADIV_QUAD` binds the output packet and invokes that operation for screen,
+texture, and colour. These are actual reusable copy operations in conventional
+statement macros; they replace the two nested layout-only copy wrappers.
+The packet binding remains in the first operation's destination argument.
+All 3,796 bytes and relative relocations match.
+
+All six executable checks pass in 2.26 seconds
+(`subdivide-leaf-channel-check.log`), and the local report is regenerated with
+3,449 units. The separate handwritten audit still verifies 18 routines /
+6,372 bytes and the primitive dispatch table. TRIAL remains 568 exact C
+routines / 301,412 bytes; no matching credit or runtime coverage is added.
+The scanner still lists six candidate files, including legitimate byte
+addressing. It now reports one standalone wrapper in the subdivider, two in
+`AddMisc`, and the two image-setup empty loops. Four routines remain open.
+
+Further subdivision probes are not adopted. Capturing frame/vertex-array
+views at either macro level does not remove the 183-byte register exchange
+when the depth-load wrapper is deleted. By-value frame/work inputs add
+52 bytes; including depth adds 88. Const/register-qualified local pointer
+initializers leave 179 or 183 differing bytes with equal relocations.
+
+The corrected 180-second `AddMisc` search isolates the function before
+scoring. It completes 5,411 attempts with 75 compile errors and no retained
+improvement. Its minimum score of 75 consists of the five register differences
+plus ten callback-relocation spelling differences between the combined
+target object and extracted candidate. The earlier whole-object-scored run
+is invalid evidence. Pool-pointer rebinding, consumed dispatch-kind values,
+input ordering, direct aggregate-field reads, and explicit parameter/texture
+union views do not improve the five-byte readable grouped-input draft.
+The aggregate API remains scratch-only; production retains its scalar API.

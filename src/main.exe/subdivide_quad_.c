@@ -57,6 +57,30 @@
     midpoint->texture.component.v =                                           \
         (u8)((a->texture.component.v + b->texture.component.v) >> 1)
 
+/* Copy one packed channel across all four corners of a leaf quad. */
+#define COPY_ADIV_QUAD_FIELD(destination, frame, field)                       \
+    do {                                                                     \
+        GpuPolyGT4Packet *copy_packet = (destination);                        \
+        ADIV_FRAME *copy_frame = (frame);                                    \
+        copy_packet->gpu.vertex[0].field.word =                              \
+            copy_frame->vp[0]->field.word;                                   \
+        copy_packet->gpu.vertex[1].field.word =                              \
+            copy_frame->vp[1]->field.word;                                   \
+        copy_packet->gpu.vertex[2].field.word =                              \
+            copy_frame->vp[2]->field.word;                                   \
+        copy_packet->gpu.vertex[3].field.word =                              \
+            copy_frame->vp[3]->field.word;                                   \
+    } while (0)
+
+/* Bind the output packet and copy its screen, texture, and colour channels. */
+#define COPY_ADIV_QUAD(packet, source, frame)                                 \
+    do {                                                                     \
+        COPY_ADIV_QUAD_FIELD(                                                 \
+            ((packet) = (GpuPolyGT4Packet *)(source)), frame, screen);        \
+        COPY_ADIV_QUAD_FIELD(packet, frame, texture);                         \
+        COPY_ADIV_QUAD_FIELD(packet, frame, color);                           \
+    } while (0)
+
 void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
 {
     ADIV_FRAME *fp;
@@ -193,37 +217,7 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
                     ((work->maxx - work->minx < 0xff) &&
                      (work->maxy - work->miny < 0x7f)))
                 {
-                    do
-                    {
-                        do
-                        {
-                            packet = (GpuPolyGT4Packet *)work->out;
-                            packet->gpu.vertex[0].screen.word =
-                                fp->vp[0]->screen.word;
-                            packet->gpu.vertex[1].screen.word =
-                                fp->vp[1]->screen.word;
-                            packet->gpu.vertex[2].screen.word =
-                                fp->vp[2]->screen.word;
-                            packet->gpu.vertex[3].screen.word =
-                                fp->vp[3]->screen.word;
-                            packet->gpu.vertex[0].texture.word =
-                                fp->vp[0]->texture.word;
-                            packet->gpu.vertex[1].texture.word =
-                                fp->vp[1]->texture.word;
-                            packet->gpu.vertex[2].texture.word =
-                                fp->vp[2]->texture.word;
-                            packet->gpu.vertex[3].texture.word =
-                                fp->vp[3]->texture.word;
-                            packet->gpu.vertex[0].color.word =
-                                fp->vp[0]->color.word;
-                            packet->gpu.vertex[1].color.word =
-                                fp->vp[1]->color.word;
-                            packet->gpu.vertex[2].color.word =
-                                fp->vp[2]->color.word;
-                            packet->gpu.vertex[3].color.word =
-                                fp->vp[3]->color.word;
-                        } while (0);
-                    } while (0);
+                    COPY_ADIV_QUAD(packet, work->out, fp);
                     packet->packet.clut = proto->clut;
                     packet->packet.tpage = proto->tpage;
                     *(u_long *)work->out = proto->tag;

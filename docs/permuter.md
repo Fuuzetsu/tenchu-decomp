@@ -47,5 +47,16 @@ On success it prints the winning source
   the first record. The lower scores were invalid candidates, not progress.
   Disable this pass for such searches and review all retained changes for
   preserved behavior; a search score is not an equivalence check.
+- When preparing a custom search from a combined translation unit, isolate
+  the target function for the scorer. Its default disassembly includes every
+  function in `target.o`, even when the candidate contains only the selected
+  function. A high score from that comparison is meaningless. A custom
+  `objdump_command` can filter both sides using the ELF symbol's address and
+  size; also discard relocations printed before the function header by
+  `objdump -dr --disassemble=Name`. Check a debug run before starting the
+  search. Local callback relocations may still appear as `.text+offset` on
+  the complete-object side and as named symbols on the extracted side, adding
+  a fixed penalty. Compare retained candidates' complete function bytes and
+  relative relocations with the production object before claiming a match.
 - Validated by re-discovering the `GetRealPad` match from the natural
   (non-matching) C.

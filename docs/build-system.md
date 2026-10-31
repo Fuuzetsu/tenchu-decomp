@@ -1266,9 +1266,13 @@ the same context type; no conflicting ABI declaration is used.
 `subdivide_quad_` also replaces its expanded signed-division sequence with
 `work->zmax /= 4` and compares the resulting field directly. This removes the
 negative-value bias, arithmetic shift, and extra temporary while preserving
-all 3,796 bytes. Its three nonempty wrappers remain unresolved. All six image
-checks and the handwritten audit pass, and the local report is regenerated
-without additional matching credit.
+all 3,796 bytes. Its leaf packet now uses `COPY_ADIV_QUAD_FIELD` for the four
+corners of each packed channel. `COPY_ADIV_QUAD` binds the output packet and
+applies that operation to screen, texture, and colour. This replaces the two
+nested copy wrappers with reusable statement macros and retains the exact
+load/store order. The separate depth-load wrapper remains unresolved. All
+six image checks and the handwritten audit pass, and the local report is
+regenerated without additional matching credit.
 `AfsGetEntry` now retains and walks typed `AFSIndexEntry` records, accesses
 their marker/name fields directly, and advances with `record++`. All 564 bytes
 and all six executables remain exact, and the local report is regenerated
