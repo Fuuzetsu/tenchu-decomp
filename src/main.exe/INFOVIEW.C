@@ -216,7 +216,8 @@ static void PutStrain(s32 x, s32 y)
     GsSPRITE *spr;
     s32 delta;
     s32 s;
-    u16 phase;
+    /* Saved number-image U, then the pulse phase once the digits are drawn. */
+    u16 value;
 
     ratio = StrainRatio;
     if (ratio == STRAIN_NO_THREAT)
@@ -245,7 +246,6 @@ static void PutStrain(s32 x, s32 y)
     else
     {
         GsSPRITE *img;
-        u8 base;
         s32 newpow;
         s32 r;
 
@@ -255,21 +255,18 @@ static void PutStrain(s32 x, s32 y)
         NumberImage.w = 4;
         img = &NumberImage;
         img->x = (s16)(x + 0x22);
-        base = img->u;
+        value = img->u;
         img->y = (s16)(y + 8);
         newpow = (STRAIN_DISPLAY_DISTANCE - ratio) / STRAIN_DISTANCE_UNIT;
     strainloop:
         r = newpow / 10;
-        img->u = base + (newpow % 10) * 4;
+        img->u = value + (newpow % 10) * 4;
         GsSortSprite(img, OTablePt, 0);
         img->x -= 6;
         newpow = r;
         if (newpow != 0)
             goto strainloop;
-        do
-        {
-            img->u = base;
-        } while (0);
+        img->u = value;
     }
 
     delta = STRAIN_DISPLAY_DISTANCE - ratio;
@@ -279,10 +276,10 @@ static void PutStrain(s32 x, s32 y)
 
     spr->x = (s16)x;
     spr->y = (s16)y;
-    phase = StrainPhase + (s >> 5);
-    StrainPhase = phase;
+    value = StrainPhase + (s >> 5);
+    StrainPhase = value;
     spr->r = spr->g = spr->b =
-        rsin(phase) * 0x60 / FIXED_ONE + STRAIN_BRIGHTNESS_RANGE / 2;
+        rsin(value) * 0x60 / FIXED_ONE + STRAIN_BRIGHTNESS_RANGE / 2;
     spr->scaley = spr->scalex =
         (s16)((delta << 0xb) / STRAIN_DISPLAY_DISTANCE) + FIXED_HALF;
     GsSortSprite(spr, OTablePt, 0);

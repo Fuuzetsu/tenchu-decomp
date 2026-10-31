@@ -17,12 +17,17 @@ byte-identical `main.exe`.
   alignment; two unaccessed fields are explicitly documented. The preview
   field's original purpose remains unknown. The shared handoff helper now
   uses an indexed copy, and the collision probe no longer has three identical
-  return branches. The humanisation goal remains active: following shared C
+  return branches. `PutStrain` also restores its digit texture coordinate
+  without a layout-only wrapper, reusing the consumed value for its pulse
+  phase. The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
   `SetupImageToPolyGT4`, `PlayVoice`, `push_from_walls_`, `PutLifeBar`, and
   `Think3escape`; the collision probe's redundant mode aliases also need
-  review. The expanded scanner reports these rather than treating wrappers
-  as clean. These readability changes add no matching credit.
+  review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
+  `SetCameraMode`, `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
+  the two adaptive quad renderers' non-hardware volatile parameters.
+  The scanner now reports these review candidates too. These readability
+  changes add no matching credit.
   568 functions / 301,412 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and

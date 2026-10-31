@@ -48,6 +48,8 @@ PATTERNS = [
     )),
     ("empty_loop", re.compile(r"\bdo\s*\{\s*\}\s*while\s*\(\s*0\s*\)")),
     ("discarded_volatile", re.compile(r"\(\s*void\s*\)\s*\*\s*\([^;]*\bvolatile\b[^;]*;")),
+    # Review object qualifiers separately from legitimate asm volatile (...).
+    ("volatile_object", re.compile(r"\bvolatile\b(?!\s*\()")),
     ("cancelled_update", re.compile(r"\b([A-Za-z_]\w*)\s*\+=\s*[A-Za-z_]\w*\s*-\s*\1\s*;")),
     ("identical_arms", re.compile(r"\bif\s*\([^;{}]*\)\s*\{\s*([^{}]+?)\s*\}\s*else\s*\{\s*\1\s*\}")),
     ("unknown_field", re.compile(r"\bunknown[0-9a-fA-F]+\b")),
@@ -61,10 +63,16 @@ DUMP_MARKERS = (
 
 
 def strip_comments(text):
-    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
-    text = re.sub(r"//[^\n]*", " ", text)
-    text = re.sub(r'"(?:[^"\\]|\\.)*"', '""', text)
-    return text
+    # Match literals together with comments so comment delimiters inside a
+    # string, or braces inside character literals, cannot change the scan.
+    pattern = (
+        r'/\*.*?\*/|//[^\n]*'
+        r'|"(?:[^"\\]|\\.)*"'
+        r"|'(?:[^'\\]|\\.)*'"
+    )
+    return re.sub(pattern,
+                  lambda match: "\n" * match[0].count("\n") + " ",
+                  text, flags=re.S)
 
 
 def without_directives(code):
@@ -76,6 +84,27 @@ def without_directives(code):
         continued = directive and line.rstrip().endswith("\\")
         lines.append("" if directive else line)
     return "\n".join(lines)
+
+
+def nonempty_one_shot_loops(code):
+    """Find ordinary do/while(0) bodies, including nested wrappers.
+
+    These are review candidates: a body with an early break may be intentional.
+    Empty loops have their own counter, and statement macros are excluded by
+    the caller. Balance braces instead of letting a regex cross loop bodies.
+    """
+    bodies = []
+    for start in re.finditer(r"\bdo\s*\{", code):
+        depth = 1
+        end = start.end()
+        while end < len(code) and depth:
+            depth += (code[end] == "{") - (code[end] == "}")
+            end += 1
+        if not depth and re.match(r"\s*while\s*\(\s*0\s*\)", code[end:]):
+            body = code[start.end():end - 1].strip()
+            if body:
+                bodies.append(body)
+    return bodies
 
 
 def with_shared_sources(paths):
@@ -131,6 +160,8 @@ def main():
                 n = len(set(matches))
             counts[key] = n
             total += n
+        counts["one_shot_loop"] = len(nonempty_one_shot_loops(ordinary_code))
+        total += counts["one_shot_loop"]
         if total:
             lines = raw.count("\n") + 1
             rows.append((total, lines, name, guarded, counts))

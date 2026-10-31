@@ -3673,6 +3673,14 @@ ordinary reuse removes its empty loop and keeps the original coordinate-load
 schedule. All 772 bytes match. Deleting only the fence leaves seven differing
 bytes, so inspect the preceding value's lifetime too.
 
+`PutStrain` has the same kind of consumed-value reuse: a `u16` working value
+first saves/restores `NumberImage.u`, then holds the pulse phase. That removes
+the single-pass wrapper around the restore and matches all 584 bytes in both
+MAIN and TRIAL. Simply deleting the wrapper swaps the sprite and saved-U
+registers (ten byte differences). A normal `do/while` digit loop instead hoists
+the division-by-ten multiplier across sprite calls, adds a saved register and
+eight bytes, so that loop conversion is a separate unresolved change.
+
 `ActSTICKON` keeps a full-width running scatter angle and a signed low-halfword
 direction for `rsin`/`rcos`. Sharing the direction and sine temporaries between
 the scatter and ordinary throw branches, and sign-extending the direction in
@@ -3692,12 +3700,15 @@ saved angle into a temporary shift register and changes three bytes. Retain
 the explicit sign extension here; the complete 3,104-byte function matches.
 
 `tools/humanscan.py --target trial.exe --headers` now detects standalone empty
-loops, discarded volatile reads, cancelling updates, identical branches,
+and nonempty one-shot loops, object volatile qualifiers, discarded volatile
+reads, cancelling updates, identical branches,
 and `unknownNN` fields in addition to its earlier decompiler patterns. It
 follows quoted C and `.inc` includes: a wrapper cannot certify the shared
 implementation's readability. It skips preprocessor
-definitions for the empty-loop check, since the evidence-backed `DBG` wrapper
-is an intentional release macro. Hits remain review prompts. The
+definitions for both loop checks, since the evidence-backed `DBG` wrapper
+is an intentional release macro. Nonempty bodies with meaningful early breaks
+may also be intentional; `asm volatile` is excluded from the object-qualifier
+check. Hits remain review prompts. The
 `InitTrialTrapMap` hit is real byte addressing of two-byte tile-layer arrays
 using named sizes, not an untyped record of unknown layout. Direct `[z][x]`
 addressing changes 15 bytes; replacing it just to clear the scanner would

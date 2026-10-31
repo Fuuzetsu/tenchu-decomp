@@ -13,6 +13,7 @@ class HumanScanTests(unittest.TestCase):
         samples = {
             "empty_loop": "do { } while (0);",
             "discarded_volatile": "(void)*(Actor *volatile *)&CurrentActor;",
+            "volatile_object": "GsOT *volatile ot;",
             "cancelled_update": "angle += next_angle - angle;",
             "identical_arms": "if (value) { result = next; } else { result = next; }",
             "unknown_field": "u16 unknown0a;",
@@ -26,6 +27,7 @@ class HumanScanTests(unittest.TestCase):
         self.assertNotRegex("angle += jitter - bias;", patterns["cancelled_update"])
         self.assertNotRegex("if (value) { a = next; } else { a = previous; }",
                             patterns["identical_arms"])
+        self.assertNotRegex('asm volatile ("nop");', patterns["volatile_object"])
 
     def test_release_macros_do_not_hide_a_standalone_empty_loop(self):
         source = (
@@ -48,6 +50,28 @@ class HumanScanTests(unittest.TestCase):
             nested.write_text('#include "SHARED.C"\n')
             self.assertEqual(list(humanscan.with_shared_sources([wrapper, shared])),
                              [wrapper.resolve(), shared.resolve(), nested.resolve()])
+
+    def test_nonempty_one_shot_loops_include_nested_bodies_but_not_macros(self):
+        source = (
+            "#define WRITE(x) do { write(x); } while (0)\n"
+            "do { if (ready) { work(); } } while (ready);\n"
+            "do { do { copy(); } while (0); } while (0);\n"
+            "do { } while (0);\n"
+            "do { if (failed) break; work(); } while (0);\n"
+        )
+        bodies = humanscan.nonempty_one_shot_loops(humanscan.without_directives(source))
+        self.assertEqual(len(bodies), 3)
+        self.assertIn("copy();", bodies)
+        self.assertIn("if (failed) break; work();", bodies)
+
+    def test_literals_do_not_change_wrapper_braces_or_hide_later_code(self):
+        source = '''
+            const char *message = "/* not a comment";
+            do { putchar('}'); } while (0);
+            do { putchar('{'); } while (0);
+        '''
+        bodies = humanscan.nonempty_one_shot_loops(humanscan.strip_comments(source))
+        self.assertEqual(len(bodies), 2)
 
     def test_target_and_headers_include_the_shared_implementation(self):
         with tempfile.TemporaryDirectory() as temporary:

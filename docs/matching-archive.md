@@ -1850,3 +1850,43 @@ were checked against the actual TRIAL objects. When inserting a helper into
 a combined source, match the function definition including its opening brace:
 a bare prototype search can insert the helper into a PSX.SYM comment and
 silently compile an implicit out-of-line call instead.
+
+### Broader wrapper audit and threat-indicator cleanup
+
+The next checkpoint removes `PutStrain`'s last one-shot wrapper in both MAIN
+and TRIAL. Sharing a `u16` working scalar between the completed digit-U save
+and the subsequent pulse phase is exact (584 bytes); the cookbook records the
+mechanism. The expanded scanner balances braces for nonempty standalone
+`do/while(0)` bodies and reports object volatile qualifiers too. It excludes
+statement macros and `asm volatile`, and masks character literals and quoted
+comment delimiters before checking braces. The goal remains active.
+
+Newly included residuals, measured against the current complete-unit objects:
+
+| Routine | Ordinary rewrite measured | Remaining issue |
+| --- | --- | --- |
+| `AfsGetEntry` | Removing its three wrappers keeps 564 bytes but changes 246 bytes and relocation positions. | A real entry `do/while` or `for` loop instead emits 596 bytes. The allocation-failure boundary and packed-entry scan still need a coherent source reconstruction. |
+| `SetCameraMode` | Remove the four-transform wrapper: 832 rather than 844 bytes. | Transform setup, pointer lifetimes, and scheduling change together. |
+| `GetAreaMapLevel` | Remove the outer wrapper: 1,168 bytes, 82 differing bytes, identical relocations. | The broad terrain-query region changes allocation. |
+| `AddMisc` | Remove both wrappers: 532 rather than 540 bytes. | Slot selection and initialization boundaries remain unresolved. |
+| `subdivide_quad_` | Remove the depth-read wrapper and two packet-copy wrappers: 3,796 bytes, 183 differing bytes, identical relocations. | Depth and packet-emission lifetimes still need reconstruction. |
+| `adiv_tng4_` / `adiv_tnf4_` | Make `ot` ordinary: both retain 920 bytes, with 94/89 differing bytes and changed relocation positions. | These are non-hardware parameter qualifiers retained for compiler scheduling. Pairing their removal with ordinary workspace fields does not close the match; the best tested Gouraud combination is 42 bytes different. |
+
+Two earlier residuals have closer drafts, neither adopted. Reusing the incoming
+collision mode as the later direction mask keeps `GetAreaMapVector` at 548
+bytes with fourteen byte differences and identical relocations: the initial
+stack load moves two instructions earlier, and three ORs exchange operands.
+The loop's real roles now reproduce every register allocation. A separate
+per-iteration short mask adds a copy; narrowing the initial mode changes the
+prologue and allocation. Reusing `PutLifeBar`'s saved digit-U variable for the
+later saved height or scaled fill reduces its clean draft to twelve byte
+differences; the later value then occupies the wrong register and the sprite
+argument still moves early. Scoped digit locals and chained RGB stores do not
+fix it. `RECT` aggregates in the quad setup routines spill to the stack and
+are worse than their ten-byte residual.
+
+Validation for the adopted checkpoint: all six image hashes, 46 focused tests,
+and all 18 handwritten routines pass. The local report is regenerated with
+unchanged counts. The thirteen scanner rows include reviewed byte-addressing
+idioms, not thirteen newly unmatched routines. No new runtime coverage or
+remote publication is claimed.

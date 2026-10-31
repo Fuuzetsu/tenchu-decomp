@@ -1174,10 +1174,26 @@ same fallback return three times; keeping its sign-extended probe mode in a
 word-sized local preserves all 548 bytes. Both changes also preserve the
 other executable images that share their source.
 
+The next checkpoint removes `PutStrain`'s wrapper around the number-image
+texture-coordinate restore in both TRIAL and MAIN. A `u16` working value holds
+that saved coordinate, then the pulse phase after the number has been drawn;
+every assignment is consumed. Both routines retain all 584 bytes. The scanner
+now also reports nonempty standalone `do/while(0)` bodies and object `volatile`
+qualifiers, while excluding statement macros and `asm volatile`. Its literal
+handling prevents quoted comment delimiters and character braces from hiding
+later source. All six image checks, 46 focused tests, and the handwritten
+assembly check pass; local progress counts remain unchanged.
+
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops, `PlayVoice`'s empty loop and identical arms,
 and the identical arms in `push_from_walls_`, `PutLifeBar`, and `Think3escape`.
 The collision probe's redundant mode aliases still need separate review.
+Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
+`SetCameraMode`, `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
+the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
+are documented compiler constraints, not evidence of hardware-backed parameter
+objects. The expanded scan currently reports thirteen files with review
+candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not
 automatically defects: for example, direct `[z][x]` access in the trap-map
