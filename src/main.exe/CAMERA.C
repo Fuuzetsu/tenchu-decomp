@@ -410,54 +410,47 @@ void AntiWall(GsRVIEW2 *vinfo, GsRVIEW2 *target)
 
 void push_from_walls_(VECTOR *pos, s32 amount)
 {
-    MapVector v1;
-    MapVector v2;
-    s32 half;
-    u32 vec;
-    u16 xAdj;
-    s32 signedX;
-    u16 zAdj;
+    MapVector full_probe;
+    MapVector half_probe;
+    s32 half_amount;
+    s16 x_direction;
+    s16 z_direction;
 
-    GetAreaMapVector(GlobalAreaMap, &v1, pos, amount, AREA_LEVEL_DEFAULT);
-    if (v1.level == LEVEL_NONE)
+    GetAreaMapVector(GlobalAreaMap, &full_probe, pos, amount, AREA_LEVEL_DEFAULT);
+    if (full_probe.level == LEVEL_NONE)
     {
         return;
     }
-    if (v1.vector == 0)
+    if (full_probe.vector == 0)
     {
         return;
     }
-    half = amount / 2;
-    GetAreaMapVector(GlobalAreaMap, &v2, pos, half, AREA_LEVEL_DEFAULT);
-    vec = v2.vector;
-    if (vec == 0)
+    half_amount = amount / 2;
+    GetAreaMapVector(GlobalAreaMap, &half_probe, pos, half_amount, AREA_LEVEL_DEFAULT);
+    if (half_probe.vector == 0)
     {
-        amount = half;
-        vec = v1.vector;
-    }
-    xAdj = RefrectMove[vec][0];
-    zAdj = RefrectMove[vec][1];
-    if (xAdj != 0)
-    {
-        signedX = (s16)xAdj;
+        amount = half_amount;
+        x_direction = RefrectMove[full_probe.vector][0];
+        z_direction = RefrectMove[full_probe.vector][1];
     }
     else
     {
-        signedX = (s16)xAdj;
+        x_direction = RefrectMove[half_probe.vector][0];
+        z_direction = RefrectMove[half_probe.vector][1];
     }
-    if (signedX > 0)
+    if (x_direction > 0)
     {
         pos->vx += amount;
     }
-    else if (signedX < 0)
+    else if (x_direction < 0)
     {
         pos->vx -= amount;
     }
-    if ((s16)zAdj > 0)
+    if (z_direction > 0)
     {
         pos->vz += amount;
     }
-    else if ((s16)zAdj < 0)
+    else if (z_direction < 0)
     {
         pos->vz -= amount;
     }

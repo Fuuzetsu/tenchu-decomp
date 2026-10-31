@@ -1209,9 +1209,15 @@ working value saves/restores the digit U before holding the fill scale.
 Both 540-byte functions and all six executables remain byte-identical.
 The local report is regenerated without additional matching credit.
 
+`push_from_walls_` selects its signed X/Z movement components inside the
+full/half probe choice. This removes the artificial identical-arm branch,
+the redundant unsigned-to-signed casts, and two temporary locals while
+preserving all 296 bytes. All six executable checks pass, the approved
+handwritten assembly remains verified, and the local report is regenerated
+without changing the matching counts.
+
 The humanisation goal is still active. Known remaining work is the two
-`SetupImageToPoly*` empty loops and the identical arms in `push_from_walls_`
-and `Think3escape`.
+`SetupImageToPoly*` empty loops and the identical arms in `Think3escape`.
 The collision probe's redundant mode aliases still need separate review.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
 `AddMisc` and `subdivide_quad_`, plus
@@ -1222,7 +1228,7 @@ typed field; their limit and vertical-bound stores still use scalar views.
 All six image checks pass after that change. A by-value rendering context
 removes the qualifiers and remaining scalar views in exact callee drafts,
 but its caller still differs, so that API change is not adopted.
-The expanded scan currently reports eleven files with review
+The expanded scan currently reports ten files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

@@ -3791,3 +3791,14 @@ allocation of the width and probe-mode registers. Leaving `m` as a short
 after removing the arms swaps those registers (nine differing bytes); the
 word-sized local preserves all 548 bytes. The older `mode`/`rawmode` aliases
 are still under review; removing them at the same time does not yet match.
+
+`push_from_walls_` removes its artificial identical-arm cast by loading both
+movement components inside the real probe-selection branches. If the half
+probe is clear, use the full probe's direction with half the displacement;
+otherwise use the half probe's direction with the original displacement.
+Both components are ordinary `s16` locals. GCC merges the lookup tails but
+retains the original halfword-load/sign-extension sequence, matching all
+296 bytes. Moving only one component read into these paths does not match;
+simply deleting the artificial cast branch instead folds the load and sign
+extension and emits 288 bytes. Establish the actual data-selection boundary
+before trying more elaborate scalar casts.

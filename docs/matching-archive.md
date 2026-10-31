@@ -2093,3 +2093,36 @@ its instruction graph. Typed image-corner helpers and alternate width/UV
 value lifetimes do not improve the ten-byte draft. Escape-AI early-return,
 actor-selection, and out-parameter helpers do not remove its three artificial
 conditions exactly. The goal remains active.
+
+### Wall-push probe selection recovered (2026-11-01)
+
+`push_from_walls_` now matches all 296 bytes with signed movement-component
+locals and no artificial branch. The X/Z component pair is selected inside
+the existing full/half probe choice. The resulting source no longer needs
+the vector-index temporary, a second X scalar, or explicit sign casts.
+GCC merges the common lookup tails while retaining the target's unsigned
+halfword load followed by sign extension. Selecting only X or only Z inside
+the branch emits 308–332 bytes; selecting both is exact. The direct probe
+indices and either signed component local independently preserve that match.
+
+All six executable checks pass, the report is regenerated with unchanged
+counts, and all 18 handwritten routines / 6,372 bytes plus their primitive
+dispatch table remain verified. The scanner reports ten candidate files.
+No new runtime coverage is claimed.
+
+Other scratch investigations from this checkpoint remain unadopted:
+
+- `AfsGetEntry`: a guarded persistent packed cursor with indexed output emits
+  580–588 bytes. Replacing output accesses by indexed views and selecting the
+  next output element after a real exit guard do not improve the best
+  eight-byte residual.
+- `Think3escape`: removing the artificial arms, using `__builtin_abs`, and
+  expressing the final left/right choice as real store branches gives
+  280 bytes with fifteen differing bytes and identical relocations. It
+  recovers the direction register and absolute-value instruction, but the
+  pad/actor registers and actor-pointer delay-slot copy still differ.
+  This form has no discarded assignment. Separating the sign paths earlier,
+  duplicating the wall-check tail, or using switch/early-return forms does
+  not close it.
+
+The remaining humanisation goal stays active.

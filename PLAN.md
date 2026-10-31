@@ -29,9 +29,12 @@ byte-identical `main.exe`.
   `PutLifeBar` now has explicit normal/flashing colour paths and reuses its
   completed digit-U working value for the signed fill scale, removing its
   artificial branch while preserving all 540 bytes in MAIN and TRIAL.
+  `push_from_walls_` now selects signed movement components in the real
+  full/half probe paths, removing its artificial branch and redundant casts
+  while preserving all 296 bytes.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
-  `SetupImageToPolyGT4`, `push_from_walls_`, and
+  `SetupImageToPolyGT4`, and
   `Think3escape`; the collision probe's redundant mode aliases also need
   review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
   `AddMisc` and `subdivide_quad_`, plus
