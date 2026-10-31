@@ -1191,12 +1191,17 @@ filename before the table. Together these changes preserve all 756 bytes and
 all six executable hashes; applying only one of them does not. The local
 report is regenerated without additional matching credit.
 
+`SetCameraMode`'s four-transform wrapper is removed too. The candidate's
+reference and position endpoints are represented as two arrays; a working
+point cursor fills the position pair and resets for the ground trace. Every
+pointer value is consumed, and all 832 bytes and six executable hashes match.
+
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops and the identical arms in `push_from_walls_`,
 `PutLifeBar`, and `Think3escape`.
 The collision probe's redundant mode aliases still need separate review.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
-`SetCameraMode`, `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
+`GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
 the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
 are documented compiler constraints, not evidence of hardware-backed parameter
 objects. The expanded scan currently reports thirteen files with review

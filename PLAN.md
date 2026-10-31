@@ -21,12 +21,14 @@ byte-identical `main.exe`.
   without a layout-only wrapper, reusing the consumed value for its pulse
   phase. Shared `PlayVoice` now uses one indexed bank-lookup helper and direct
   language selection, removing its empty loop and duplicated branches.
+  `SetCameraMode` uses endpoint arrays and a working point cursor in place of
+  its transform wrapper, preserving all 832 bytes.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
   `SetupImageToPolyGT4`, `push_from_walls_`, `PutLifeBar`, and
   `Think3escape`; the collision probe's redundant mode aliases also need
   review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
-  `SetCameraMode`, `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
+  `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
   the two adaptive quad renderers' non-hardware volatile parameters.
   The scanner now reports these review candidates too. These readability
   changes add no matching credit.

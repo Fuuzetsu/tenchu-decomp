@@ -1866,9 +1866,9 @@ Newly included residuals, measured against the current complete-unit objects:
 | Routine | Ordinary rewrite measured | Remaining issue |
 | --- | --- | --- |
 | `AfsGetEntry` | Removing its three wrappers keeps 564 bytes but changes 246 bytes and relocation positions. | A real entry `do/while` or `for` loop instead emits 596 bytes. The allocation-failure boundary and packed-entry scan still need a coherent source reconstruction. |
-| `SetCameraMode` | Remove the four-transform wrapper: 832 rather than 844 bytes. | Transform setup, pointer lifetimes, and scheduling change together. |
+| `SetCameraMode` (resolved below) | Remove only the four-transform wrapper: 844 rather than 832 bytes. | Endpoint arrays and a working position cursor now remove it exactly. |
 | `GetAreaMapLevel` | Remove the outer wrapper: 1,168 bytes, 82 differing bytes, identical relocations. | The broad terrain-query region changes allocation. |
-| `AddMisc` | Remove both wrappers: 532 rather than 540 bytes. | Slot selection and initialization boundaries remain unresolved. |
+| `AddMisc` | Remove both wrappers: 540 rather than 532 bytes. | Slot selection and initialization boundaries remain unresolved. |
 | `subdivide_quad_` | Remove the depth-read wrapper and two packet-copy wrappers: 3,796 bytes, 183 differing bytes, identical relocations. | Depth and packet-emission lifetimes still need reconstruction. |
 | `adiv_tng4_` / `adiv_tnf4_` | Make `ot` ordinary: both retain 920 bytes, with 94/89 differing bytes and changed relocation positions. | These are non-hardware parameter qualifiers retained for compiler scheduling. Pairing their removal with ordinary workspace fields does not close the match; the best tested Gouraud combination is 42 bytes different. |
 
@@ -1909,3 +1909,31 @@ loops at the same 1,168-byte size but remains 88 bytes different without its
 outer wrapper; an inline floor-search split emits 1,180 bytes. Replacing its
 raw row cursor with direct `NodeIndexType` fields gives 1,136 bytes, while
 real outer/inner loops introduce additional induction setup. None is adopted.
+
+### Critical-camera transform wrapper removed
+
+`SetCameraMode` now groups its reference and position endpoints in two arrays.
+A point cursor fills the position pair, then resets to its first element for
+the ground trace. Every assignment is used and the 832-byte function is exact
+without the old wrapper. Grouping or scoping the vectors alone still emits
+844 bytes; a cursor left at its second endpoint emits 836 because that address
+stays cached across the transform. Resetting it for the trace removes the
+extra cache. The two ordinary braces around the rotation setup and transform
+calls were also unnecessary and are removed. All six executable checks pass;
+the local report retains the same matching counts.
+
+The size directions in the earlier `SetCameraMode` and `AddMisc` rows were
+corrected against the built TRIAL objects: their targets are 832 and 532
+bytes, while unwrapping alone emits 844 and 540, respectively. The scratch
+baselines agree byte-for-byte and relocation-for-relocation with those objects.
+
+Further measured forms: a canonical bounded camera `for` loop emits 824 bytes;
+direct `tbl[cs->OldMode]` indexing retains 832 but exchanges one ADDU's operands.
+`AfsGetEntry`'s allocation-failure wrapper alone leaves a seven-byte owner-pointer
+register swap; positive success/else branches do not fix it. Capturing the raw
+allocation earlier moves the copy across CD calls, and initializing the output
+cursor at allocation time removes a required four-byte copy. `AddMisc`'s bottom
+wrapper alone leaves six byte differences; removing its initializer wrapper
+causes later stack-parameter loads and emits 540 bytes. A compound parameter
+assignment does not fix those loads, and a local parameter snapshot adds stack
+traffic. These drafts remain scratch-only.

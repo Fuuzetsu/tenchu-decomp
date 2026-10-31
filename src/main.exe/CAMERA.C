@@ -926,10 +926,9 @@ void CameraType1(Humanoid *pl, GsRVIEW2 *vDif)
 
 void SetCameraMode(TCameraMode mode)
 {
-    VECTOR va;
-    VECTOR vb;
-    VECTOR vc;
-    VECTOR vd;
+    /* The candidate's reference and position endpoints in world coordinates. */
+    VECTOR reference[2];
+    VECTOR position[2];
     long flag;
     s32 rx;
     s32 ry;
@@ -937,6 +936,7 @@ void SetCameraMode(TCameraMode mode)
     TCameraPos *tbl;
     long *fp;
     VECTOR *pos;
+    VECTOR *point;
     SVECTOR *rot;
     TCameraPos *camera;
     s32 i;
@@ -960,26 +960,24 @@ void SetCameraMode(TCameraMode mode)
                 camera = (TCameraPos *)(cs->OldMode * sizeof(*tbl) + (s32)tbl);
                 pos = cs->Owner->locate;
                 rot = cs->Owner->rotate;
-                {
-                    scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
-                    scratch_rot_1f800040.vy = rot->vy;
-                    scratch_rot_1f800040.vz = rot->vz;
-                    RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
-                                 (MATRIX *)TENCHU_SCRATCHPAD(0x80));
-                }
+                scratch_rot_1f800040.vx = rot->vx + camera_terrain_pitch_(cs->Owner);
+                scratch_rot_1f800040.vy = rot->vy;
+                scratch_rot_1f800040.vz = rot->vz;
+                RotMatrixYXZ((SVECTOR *)TENCHU_SCRATCHPAD(0x40),
+                             (MATRIX *)TENCHU_SCRATCHPAD(0x80));
                 scratch_trans_1f800094[0] = pos->vx;
                 scratch_trans_1f800094[1] = pos->vy;
                 scratch_trans_z_1f80009c = pos->vz;
                 SetRotMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
                 SetTransMatrix((MATRIX *)TENCHU_SCRATCHPAD(0x80));
-                do
-                {
-                    RotTrans(&camera->r1, &va, fp);
-                    RotTrans(&camera->r2, &vb, fp);
-                    RotTrans(&camera->p1, &vc, fp);
-                    RotTrans(&camera->p2, &vd, fp);
-                } while (0);
-                hitf = trace_ground_(&vc, &vd, 0, 0) >= FIXED_HALF;
+                RotTrans(&camera->r1, &reference[0], fp);
+                RotTrans(&camera->r2, &reference[1], fp);
+                point = position;
+                RotTrans(&camera->p1, point, fp);
+                point++;
+                RotTrans(&camera->p2, point, fp);
+                point = position;
+                hitf = trace_ground_(point, point + 1, 0, 0) >= FIXED_HALF;
                 if (hitf)
                     goto hit;
                 continue;

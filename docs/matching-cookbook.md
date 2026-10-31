@@ -3713,6 +3713,27 @@ registers. Reversing the two selection statements then closes the match.
 Filename-first selection became exact only after the scope correction;
 single-edit failures did not rule out this combined ordinary source shape.
 
+`SetCameraMode` removes its four-`RotTrans` wrapper by representing the two
+position endpoints as an array and using an ordinary point cursor:
+
+```c
+point = position;
+RotTrans(&camera->p1, point, fp);
+point++;
+RotTrans(&camera->p2, point, fp);
+point = position;
+hitf = trace_ground_(point, point + 1, 0, 0) >= FIXED_HALF;
+```
+
+All three pointer assignments are consumed; the reset selects the beginning
+of the actual two-point segment. A pointer left at the second endpoint makes
+GCC cache that address across the transform and adds four bytes. With the
+reset, all 832 bytes match. Deleting only the wrapper instead hoists both
+endpoint addresses and emits 844 bytes. Moving declarations into the case or
+loop, or grouping the points without the cursor, does not prevent that.
+The reference pair can also be represented as an array exactly. These are
+inferred local representations, not recovered original declarations.
+
 `tools/humanscan.py --target trial.exe --headers` now detects standalone empty
 and nonempty one-shot loops, object volatile qualifiers, discarded volatile
 reads, cancelling updates, identical branches,
