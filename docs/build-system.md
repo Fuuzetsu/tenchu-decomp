@@ -1203,15 +1203,21 @@ one-shot wrapper, every traversal label, and the raw row-offset macros while
 preserving all 1,168 bytes. All six executable checks and 46 focused tests
 pass; the local report retains its existing matching counts.
 
+`PutLifeBar`'s artificial digit-U condition is removed in MAIN and TRIAL.
+The normal and flashing colour paths share an inline helper; a signed-short
+working value saves/restores the digit U before holding the fill scale.
+Both 540-byte functions and all six executables remain byte-identical.
+The local report is regenerated without additional matching credit.
+
 The humanisation goal is still active. Known remaining work is the two
-`SetupImageToPoly*` empty loops and the identical arms in `push_from_walls_`,
-`PutLifeBar`, and `Think3escape`.
+`SetupImageToPoly*` empty loops and the identical arms in `push_from_walls_`
+and `Think3escape`.
 The collision probe's redundant mode aliases still need separate review.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
 `AddMisc` and `subdivide_quad_`, plus
 the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
 are documented compiler constraints, not evidence of hardware-backed parameter
-objects. The expanded scan currently reports twelve files with review
+objects. The expanded scan currently reports eleven files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

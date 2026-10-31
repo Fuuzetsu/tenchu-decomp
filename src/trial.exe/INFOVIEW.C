@@ -227,24 +227,48 @@ static void PutStrain(s32 x, s32 y)
 }
 
 
+static inline void SetLifeBarColour(GsSPRITE *sprite, s32 life, s32 maximum)
+{
+    enum
+    {
+        CRITICAL_DIVISOR = 4,
+        NORMAL_BRIGHTNESS = 0x80,
+        FLASH_BRIGHTNESS = 0xe6
+    };
+
+    if (maximum / CRITICAL_DIVISOR < life)
+    {
+        sprite->b = NORMAL_BRIGHTNESS;
+        sprite->g = NORMAL_BRIGHTNESS;
+        sprite->r = NORMAL_BRIGHTNESS;
+        return;
+    }
+    if (GameClock & 1)
+    {
+        sprite->b = FLASH_BRIGHTNESS;
+        sprite->g = FLASH_BRIGHTNESS;
+        sprite->r = FLASH_BRIGHTNESS;
+        return;
+    }
+    sprite->b = NORMAL_BRIGHTNESS;
+    sprite->g = NORMAL_BRIGHTNESS;
+    sprite->r = NORMAL_BRIGHTNESS;
+}
+
 static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
 {
     enum life_bar_rendering
     {
         LIFE_BAR_DIGIT_WIDTH = 4,
-        LIFE_BAR_DIGIT_GAP = 6,
-        LIFE_BAR_CRITICAL_DIVISOR = 4,
-        LIFE_BAR_NORMAL_BRIGHTNESS = 0x80,
-        LIFE_BAR_FLASH_BRIGHTNESS = 0xe6
+        LIFE_BAR_DIGIT_GAP = 6
     };
     GsSPRITE *digit_sprite;
     GsSPRITE *bar_sprite;
     s32 fill_height;
     s16 saved_height;
-    s32 brightness;
     s32 number_offset_x;
     s32 number_offset_y;
-    s32 digit_base_u;
+    s16 value; /* Saved digit U, then the signed fill scale. */
 
     {
         s32 px;
@@ -256,7 +280,7 @@ static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
         number_offset_y = LifeBarStyle[style].dy;
         NumberImage.w = LIFE_BAR_DIGIT_WIDTH;
         digit_sprite = &NumberImage;
-        digit_base_u = digit_sprite->u;
+        value = digit_sprite->u;
         px = x + number_offset_x;
         py = y + number_offset_y;
         digit_sprite->x = px;
@@ -267,8 +291,7 @@ static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
 
         loop:
             next_count = count / 10;
-            digit_sprite->u = digit_base_u +
-                              (count % 10) * LIFE_BAR_DIGIT_WIDTH;
+            digit_sprite->u = value + (count % 10) * LIFE_BAR_DIGIT_WIDTH;
             GsSortSprite(digit_sprite, OTablePt, 0);
             digit_sprite->x -= LIFE_BAR_DIGIT_GAP;
             count = next_count;
@@ -276,38 +299,20 @@ static void PutLifeBar(s32 x, s32 y, s32 n, s32 mx, life_bar_style style)
         if (count != 0)
             goto loop;
     }
-    digit_sprite->u = digit_base_u;
+    digit_sprite->u = value;
 
     bar_sprite = &LifeBarStyle[style].frame;
     bar_sprite->x = x;
     bar_sprite->y = y;
     GsSortSprite(bar_sprite, OTablePt, 1);
 
-    fill_height = LifeBarStyle[style].scale * n / mx;
+    value = LifeBarStyle[style].scale;
+    fill_height = value * n / mx;
     bar_sprite = &LifeBarStyle[style].fill;
     saved_height = bar_sprite->h;
     bar_sprite->h = LifeBarStyle[style].base + fill_height;
 
-    if (mx / LIFE_BAR_CRITICAL_DIVISOR < n)
-        brightness = LIFE_BAR_NORMAL_BRIGHTNESS;
-    else
-    {
-        brightness = GameClock & 1;
-        if (brightness != 0)
-            brightness = LIFE_BAR_FLASH_BRIGHTNESS;
-        else
-            brightness = LIFE_BAR_NORMAL_BRIGHTNESS;
-    }
-    bar_sprite->b = brightness;
-    bar_sprite->g = brightness;
-    if (digit_base_u != 0)
-    {
-        bar_sprite->r = brightness;
-    }
-    else
-    {
-        bar_sprite->r = brightness;
-    }
+    SetLifeBarColour(bar_sprite, n, mx);
 
     bar_sprite->x = x;
     bar_sprite->y = y;

@@ -3683,6 +3683,17 @@ registers (ten byte differences). A normal `do/while` digit loop instead hoists
 the division-by-ten multiplier across sprite calls, adds a saved register and
 eight bytes, so that loop conversion is a separate unresolved change.
 
+`PutLifeBar` also reuses a consumed digit-U value, but its next role and width
+matter. A signed short saves/restores `NumberImage.u`, then reads the signed
+`LifeBarStyle.scale` field before the full-width height calculation. Its byte
+and halfword inputs both fit that working type. Reusing a full-width value for
+the quotient instead leaves two register operands wrong. An inline colour
+helper with separate normal-health and critical-flash return paths also
+keeps the sprite argument after the RGB stores. Together these changes remove
+the artificial digit-U branch and match all 540 bytes in MAIN and TRIAL.
+Neither consumed-value reuse nor the colour helper alone closes the match;
+all arithmetic and saved sprite state remain meaningful.
+
 `ActSTICKON` keeps a full-width running scatter angle and a signed low-halfword
 direction for `rsin`/`rcos`. Sharing the direction and sine temporaries between
 the scatter and ordinary throw branches, and sign-extending the direction in

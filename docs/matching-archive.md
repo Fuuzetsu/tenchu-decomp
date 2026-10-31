@@ -2011,3 +2011,47 @@ register choices, but retains one extra pointer copy and captures the raw
 allocation before the target does. Indexing all three cursors emits 556 bytes;
 moving the base into a guarded scope or extracting an inline decoder does not
 close either draft. These remain scratch measurements, not source changes.
+
+### Life-bar colour branch removed (2026-11-01)
+
+`PutLifeBar` now matches all 540 bytes in MAIN and TRIAL without its artificial
+digit-U condition. A real colour helper handles normal health, the flashing
+critical phase, and the normal critical phase. Its early returns restore the
+original sprite-argument schedule. Sharing a signed-short working value
+between the completed digit-U save/restore and the signed fill scale then
+closes the allocation difference. Sharing the quotient or saved bar height
+instead leaves two register operands wrong; sharing the final narrowed height
+leaves twelve byte differences. The successful combination is recorded in the
+cookbook. No compiler option or assembly classification changes.
+
+All six executable checks pass, the local report is regenerated with unchanged
+counts, and all 18 handwritten routines / 6,372 bytes plus their primitive
+dispatch table remain verified. Parameter names still agree with PSX.SYM.
+The recursive scanner now reports eleven candidate files. No new runtime
+coverage is claimed. The broader 414-test tooling run passed 412 tests and
+exposed two pre-existing configuration-mirror failures in
+`test_matching_tools.BuildConfigurationTests`: `permute.py`'s small-global
+table has drifted from the build, and its division-expansion table lacks five
+MENU/TRIAL entries. Those tables and the build configuration were unchanged
+by this checkpoint; the complete image checks use the authoritative build.
+
+Further scratch measurements, not adopted source changes:
+
+- `AfsGetEntry`: an ordinary indexed loop now reaches 564 bytes with eight
+  differing bytes and identical relocations. It selects the output element
+  in the `for` initializer/update and derives the packed cursor from a
+  first-byte base in the body. Only the packed, name-buffer, and output-cursor
+  update schedule differs. Retaining the allocation wrapper does not improve
+  it; signedness, equivalent address expressions, and update splitting do not
+  close the residual.
+- `AddMisc`: passing the existing `MiscSpawnParameters` by value and copying
+  its fields into locals removes both wrappers at 532 bytes with eleven byte
+  differences, all register allocation. Matching fifth-argument aggregate
+  constructions were found for both callers (`LoadConstruction` and the debug
+  effect menu), but the callee does not match, so no API change is adopted.
+- `subdivide_quad_`: real early culling returns and inline packet emission
+  still leave the frame/workspace register swap (183 bytes). Image coordinate
+  type probes and a typed collision-mask return helper do not improve their
+  ten- and fourteen-byte residuals.
+
+The remaining humanisation goal stays active.

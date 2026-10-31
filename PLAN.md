@@ -26,9 +26,12 @@ byte-identical `main.exe`.
   `GetAreaMapLevel` now uses typed index fields and ordinary traversal loops;
   its wrapper, raw row-offset accessors, and all traversal labels are removed
   while preserving all 1,168 bytes.
+  `PutLifeBar` now has explicit normal/flashing colour paths and reuses its
+  completed digit-U working value for the signed fill scale, removing its
+  artificial branch while preserving all 540 bytes in MAIN and TRIAL.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
-  `SetupImageToPolyGT4`, `push_from_walls_`, `PutLifeBar`, and
+  `SetupImageToPolyGT4`, `push_from_walls_`, and
   `Think3escape`; the collision probe's redundant mode aliases also need
   review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
   `AddMisc` and `subdivide_quad_`, plus
