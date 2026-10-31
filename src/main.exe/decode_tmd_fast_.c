@@ -2,23 +2,6 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 
-extern PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *primitive,
-                          VERT *vertices,
-                          PACKET *packet, u_short count,
-                          TMD_FAST_WORK *work);
-extern PACKET *fast_tnf4_(TmdTexturedFlatQuadRecord *primitive,
-                          VERT *vertices,
-                          PACKET *packet, u_short count,
-                          TMD_FAST_WORK *work);
-extern PACKET *fast_tnf3_(TmdTexturedFlatTriangleRecord *primitive,
-                          VERT *vertices,
-                          PACKET *packet, u_short count,
-                          TMD_FAST_WORK *work);
-extern PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *primitive,
-                          VERT *vertices,
-                          PACKET *packet, u_short count,
-                          TMD_FAST_WORK *work);
-
 void decode_tmd_fast_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
                       TMD_FAST_WORK *work)
 {

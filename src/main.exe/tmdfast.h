@@ -276,11 +276,16 @@ enum
     TMD_FAST_FOG_Z = 15000
 };
 
-/* The renderers take (typed primitive records, Sony's VERT table, output
- * packet list, record count, work).  The dispatcher deliberately declares the
- * count parameter u_short at its call sites (the retail caller codegen
- * depends on it), while the definitions widen it to int — so the
- * prototypes live with the callers, not here. */
+/* The linked stream stores a u16 batch count; the game renderers accept its
+ * promoted int value. Keep one declaration for both dispatcher and renderer. */
+PACKET *fast_tng4_(TmdTexturedGouraudQuadRecord *record, VERT *vertices,
+                   PACKET *packet, int count, TMD_FAST_WORK *work);
+PACKET *fast_tnf4_(TmdTexturedFlatQuadRecord *record, VERT *vertices,
+                   PACKET *packet, int count, TMD_FAST_WORK *work);
+PACKET *fast_tng3_(TmdTexturedGouraudTriangleRecord *record, VERT *vertices,
+                   PACKET *packet, int count, TMD_FAST_WORK *work);
+PACKET *fast_tnf3_(TmdTexturedFlatTriangleRecord *record, VERT *vertices,
+                   PACKET *packet, int count, TMD_FAST_WORK *work);
 
 /*
  * One subdivision vertex of the active-subdivision cluster: object-space
@@ -354,6 +359,12 @@ typedef struct
 #define ADIV_SCALAR_WORD(work, member)                                    \
     (*(u_long *)((u8 *)(work) + ADIV_FIELD_OFFSET(member)))
 
+PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
+                   PACKET *packet, int count, u_long shift,
+                   GsOT *ot, ADIV_WORK *work);
+PACKET *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
+                   PACKET *packet, int count, u_long shift,
+                   GsOT *ot, ADIV_WORK *work);
 void subdivide_quad_(ADIV_FRAME *frame, ADIV_WORK *work, int depth);
 
 enum

@@ -2,14 +2,6 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 
-extern PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive,
-                          VERT *vertices,
-                          PACKET *packet, u_short count, u_long shift,
-                          GsOT *ot, ADIV_WORK *work);
-extern PACKET *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive,
-                          VERT *vertices,
-                          PACKET *packet, u_short count, u_long shift,
-                          GsOT *ot, ADIV_WORK *work);
 void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
                       void *work)
 {

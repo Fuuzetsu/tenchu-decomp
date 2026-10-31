@@ -2311,3 +2311,31 @@ Follow-up measurements remain scratch-only:
   helper retains 3,796 bytes but differs by 339. Direct midpoint-field and
   next-frame views change the function size; keeping the packet prototype
   pointer live through triangle emission adds code. None is adopted.
+
+### Rendering count declarations reconciled (2026-11-01)
+
+The source audit found that both TMD dispatchers declared their game
+renderers with `u_short count`, while all six definitions take `int`.
+`tmdfast.h` explicitly withheld shared prototypes on the claim that the
+narrower caller type was required for exact code generation. That claim is
+false for the current sources: changing the caller declarations to `int`
+retains all 540 bytes of `decode_tmd_adiv_` and all 636 bytes of
+`decode_tmd_fast_`, including relocations. An unsigned word parameter also
+retains those bytes, but the existing signed definitions need no change.
+
+The six prototypes now live in `tmdfast.h` with `int count`, where the compiler
+can check both calls and definitions. The conflicting local declarations and
+stale workaround comment are removed. The stream still stores a 16-bit count;
+the dispatchers' existing halfword reads promote it to the renderer argument.
+The separate SDK renderer declarations are unchanged.
+
+Narrowing the definitions is not the solution: either adaptive renderer
+retains 920 bytes but differs by four, and each fast renderer gains eight
+bytes (1,268 instead of 1,260 for quads; 992 instead of 984 for triangles).
+The caller-only fix preserves every definition and removes the type mismatch.
+
+All six image checks pass (`tmd-shared-count-prototypes-check.log`), the local
+report is regenerated without new matching credit, and the 18 handwritten
+routines / 6,372 bytes plus their dispatch table remain verified. No new
+runtime coverage is claimed. The known wrapper, empty-loop and volatile
+parameter queue remains active.

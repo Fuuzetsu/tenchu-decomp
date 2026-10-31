@@ -3817,6 +3817,17 @@ schedule. A short current bit introduces extra sign extension; `int`,
 `unsigned int`, and `long` all match. Every working-value assignment is
 consumed; no dead restore, artificial branch, or loop remains in this routine.
 
+The fast/adaptive TMD dispatcher audit disproves another historical compiler
+workaround: caller-only `u_short count` prototypes are not required when the
+actual renderer definitions take `int`. `TMD_BATCH_COUNT` already reads a
+zero-extended halfword, so both dispatchers retain their exact 636/540 bytes
+with the real `int` prototypes. Keep the six declarations in `tmdfast.h`,
+visible to both sides, instead of maintaining incompatible function types
+across translation units. Narrowing the definitions instead does change
+code: four differing bytes in either adaptive renderer, and eight additional
+bytes in each fast renderer. Recheck comments claiming a declaration is
+required against the current complete unit before preserving that mismatch.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;

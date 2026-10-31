@@ -1231,6 +1231,15 @@ alias and missing-floor predicate cleanup, this keeps all 548 bytes exact.
 All six executable checks and the handwritten-assembly audit pass, and the
 local report is regenerated with unchanged counts.
 
+The rendering declaration audit also removes the caller-only `u_short`
+count prototypes for all six fast/adaptive renderers. Both dispatchers now
+use shared `tmdfast.h` declarations with the definitions' `int` parameter.
+Their 636- and 540-byte functions remain exact, as do all six executable
+images. The old claim that the narrower prototypes were required for caller
+code generation was disproved against the current build. The shared header
+now lets the compiler check definitions and callers together. The local
+report and handwritten-assembly audit are unchanged in scope and counts.
+
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
