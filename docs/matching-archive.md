@@ -1838,7 +1838,7 @@ byte differences are local object comparisons, not new matching credit.
 | Routine | Best ordinary rewrite measured | Remaining issue |
 | --- | --- | --- |
 | `SetupImageToPolyFT4` / `SetupImageToPolyGT4` | Delete the empty loop: 288/324 bytes, ten differing bytes each, identical relocations. | UV-right addition moves before the screen-edge additions and uses a different register. A 256-combination width/type sweep, SDK rectangle macros, and consumed edge temporaries did not improve that score. |
-| `PlayVoice` | Delete its empty loop and select filename/table by `CHOSEN_LANGUAGE`: 756 bytes, four differing bytes. An inline indexed lookup also removes the localized branch's identical arms at that same score. | Filename/table address formation swaps registers. A normal pointer lookup for the nonlocalized branch removes its identical arm but leaves 32 differing bytes with both lookups cleaned up. A direct indexed lookup there adds four bytes. |
+| `PlayVoice` (resolved below) | The initial clean selector left four differing bytes; a function-wide input pointer also made an indexed intro/Tora search add a copy. | One indexed helper, separate branch-local input pointers, and filename-before-table selection remove all three scaffolds exactly. |
 | `push_from_walls_` | Delete the identical cast arms: 288 rather than 296 bytes. | The unsigned halfword load plus sign-extension becomes a signed load. Explicit sign-extension and an inline per-axis operation still fuse it. |
 | `PutLifeBar` | Delete the identical color-store arms: 540 bytes, 22 differing bytes. | The digit-base and maximum-value registers swap; the sprite argument moves earlier. Reusing digit, fill, or offset scalars for brightness did not close it. |
 | `Think3escape` | Delete all three identical arms: 280 bytes, 18 differing bytes; using builtin absolute value narrows that to 15. | Output-pad and degree registers swap, one absolute-value source changes, and the actor-pointer copy disappears. Early-return and inline hold-operation forms did not close it. |
@@ -1890,3 +1890,22 @@ and all 18 handwritten routines pass. The local report is regenerated with
 unchanged counts. The thirteen scanner rows include reviewed byte-addressing
 idioms, not thirteen newly unmatched routines. No new runtime coverage or
 remote publication is claimed.
+
+### Voice lookup completed
+
+`PlayVoice` now uses the same ordinary indexed `FindVoiceRecord` inline helper
+for both bank paths. Giving each selection branch its own `voice` pointer
+removes the intro/Tora loop's extra copy; selecting `FileName` before `voice`
+then fixes the last four address-register differences. This removes both
+duplicated-branch sequences, the selector's empty loop, and the unnecessary
+pointer-difference calculation of the language index. The complete 756 bytes
+and all six executable hashes match; the local report is regenerated with
+unchanged counts. The cookbook records the successful source shape.
+
+Additional scratch results to avoid repeating: the clean collision-mode
+180-second search made 8,811 attempts without improving its fourteen-byte
+draft. `GetAreaMapLevel`'s index traversal can be written as ordinary `while`
+loops at the same 1,168-byte size but remains 88 bytes different without its
+outer wrapper; an inline floor-search split emits 1,180 bytes. Replacing its
+raw row cursor with direct `NodeIndexType` fields gives 1,136 bytes, while
+real outer/inner loops introduce additional induction setup. None is adopted.

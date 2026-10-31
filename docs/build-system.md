@@ -1184,9 +1184,16 @@ handling prevents quoted comment delimiters and character braces from hiding
 later source. All six image checks, 46 focused tests, and the handwritten
 assembly check pass; local progress counts remain unchanged.
 
+Shared `PlayVoice` is now free of its empty selector loop and duplicated
+lookup branches too. A single inline indexed search serves both voice-bank
+paths. Each path owns its table pointer, and language selection reads the
+filename before the table. Together these changes preserve all 756 bytes and
+all six executable hashes; applying only one of them does not. The local
+report is regenerated without additional matching credit.
+
 The humanisation goal is still active. Known remaining work is the two
-`SetupImageToPoly*` empty loops, `PlayVoice`'s empty loop and identical arms,
-and the identical arms in `push_from_walls_`, `PutLifeBar`, and `Think3escape`.
+`SetupImageToPoly*` empty loops and the identical arms in `push_from_walls_`,
+`PutLifeBar`, and `Think3escape`.
 The collision probe's redundant mode aliases still need separate review.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
 `SetCameraMode`, `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus

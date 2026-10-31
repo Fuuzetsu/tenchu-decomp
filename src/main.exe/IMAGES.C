@@ -339,15 +339,25 @@ static inline void BuildVoiceLocation(CdlLOC *loc, u8 min, u8 sec)
     CdIntToPos(pos * 2 + OFFSET, loc);
 }
 
+/* Search a sentinel-terminated voice bank without changing its records. */
+static inline TVoiceTable *FindVoiceRecord(TVoiceTable *table, int id)
+{
+    int i;
+
+    for (i = 0; table[i].id != SOUND_TABLE_END; i++)
+    {
+        if (id == table[i].id)
+            return &table[i];
+    }
+    return NULL;
+}
+
 void PlayVoice(int id)
 {
     u8 *FileName;
-    TVoiceTable *voice;
     s32 volume;
     TVoiceTable *match;
     TVoiceTable *cursor;
-    TVoiceTable *next;
-    int end_marker;
     TVoiceTable *fallback;
     int fallback_end;
     u8 *filenames[N_LANGUAGES] = {
@@ -366,6 +376,8 @@ void PlayVoice(int id)
 
     if (id >= VOICE_ID_INTRO_BASE)
     {
+        TVoiceTable *voice;
+
         if (id >= VOICE_ID_TORA_BASE)
         {
             voice = ToraVoiceTable;
@@ -378,74 +390,17 @@ void PlayVoice(int id)
             FileName = IntroVoiceXaName;
             id -= VOICE_ID_INTRO_BASE;
         }
-        match = 0;
-        if (voice->id != SOUND_TABLE_END)
-        {
-            do
-            {
-                next = cursor = voice;
-                if (id != 0)
-                {
-                    voice = next;
-                }
-                else
-                {
-                    voice = next;
-                }
-                match = voice;
-                if (id == cursor->id)
-                    break;
-                next = cursor + 1;
-                voice = next;
-            } while (next->id != SOUND_TABLE_END);
-            if (id != cursor->id)
-                match = 0;
-        }
+        match = FindVoiceRecord(voice, id);
     }
     else
     {
+        TVoiceTable *voice;
         int language;
-        u8 **filename_entry;
-        TVoiceTable **voice_entry;
 
-        filename_entry = filenames + CHOSEN_LANGUAGE;
-        language = filename_entry - filenames;
-        voice_entry = tables + language;
-        /* Empty loop retained for code layout; its original source construct is unknown. */
-        do
-        {
-        } while (0);
-        voice = *voice_entry;
-        FileName = *filename_entry;
-        match = 0;
-        if (voice->id != SOUND_TABLE_END)
-        {
-            end_marker = SOUND_TABLE_END;
-            cursor = voice;
-            do
-            {
-                next = match = cursor;
-                if (id != 0)
-                {
-                    cursor = next;
-                }
-                else
-                {
-                    if (voice != 0)
-                    {
-                        cursor = next;
-                    }
-                    else
-                    {
-                        cursor = next;
-                    }
-                }
-                if (id == cursor->id)
-                    break;
-                cursor++;
-                match = 0;
-            } while (cursor->id != end_marker);
-        }
+        language = CHOSEN_LANGUAGE;
+        FileName = filenames[language];
+        voice = tables[language];
+        match = FindVoiceRecord(voice, id);
     }
     if (match == 0)
     {

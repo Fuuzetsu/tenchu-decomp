@@ -3699,6 +3699,20 @@ The simpler `(s16)direction` cast was tested: local allocation forwards the
 saved angle into a temporary shift register and changes three bytes. Retain
 the explicit sign extension here; the complete 3,104-byte function matches.
 
+`PlayVoice` removes its empty loop, pointer-difference language calculation,
+and both duplicated lookup-branch sequences with three connected changes:
+
+- Use one inline indexed search over the sentinel-terminated `TVoiceTable`.
+- Keep each bank's input table pointer local to its own selection branch.
+- Select `FileName = filenames[language]` before `voice = tables[language]`.
+
+All 756 bytes match. With a function-wide input pointer, the indexed search
+adds an unwanted copy in the intro/Tora loop. Giving each branch its own
+pointer removes that copy, leaving four differing bytes in the filename/table
+registers. Reversing the two selection statements then closes the match.
+Filename-first selection became exact only after the scope correction;
+single-edit failures did not rule out this combined ordinary source shape.
+
 `tools/humanscan.py --target trial.exe --headers` now detects standalone empty
 and nonempty one-shot loops, object volatile qualifiers, discarded volatile
 reads, cancelling updates, identical branches,

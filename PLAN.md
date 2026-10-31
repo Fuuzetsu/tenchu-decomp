@@ -19,9 +19,11 @@ byte-identical `main.exe`.
   uses an indexed copy, and the collision probe no longer has three identical
   return branches. `PutStrain` also restores its digit texture coordinate
   without a layout-only wrapper, reusing the consumed value for its pulse
-  phase. The humanisation goal remains active: following shared C
+  phase. Shared `PlayVoice` now uses one indexed bank-lookup helper and direct
+  language selection, removing its empty loop and duplicated branches.
+  The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
-  `SetupImageToPolyGT4`, `PlayVoice`, `push_from_walls_`, `PutLifeBar`, and
+  `SetupImageToPolyGT4`, `push_from_walls_`, `PutLifeBar`, and
   `Think3escape`; the collision probe's redundant mode aliases also need
   review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
   `SetCameraMode`, `GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
