@@ -1937,3 +1937,38 @@ wrapper alone leaves six byte differences; removing its initializer wrapper
 causes later stack-parameter loads and emits 540 bytes. A compound parameter
 assignment does not fix those loads, and a local parameter snapshot adds stack
 traffic. These drafts remain scratch-only.
+
+The next bounded set of probes did not produce another acceptable match:
+
+- `AfsGetEntry`: inline allocation/error helpers, a shared error exit, and
+  moving owner captures around the CD calls do not close the seven-byte
+  allocation-wrapper residual. Ordinary entry loops also create extra
+  induction pointers for the name terminator and packed fields. Walking a
+  consumed field cursor introduces real pointer updates instead of removing
+  those differences.
+- `AddMisc`: inline initialization, a separate slot search, and ordinary
+  bounded loops do not match. A real `do/while` scan reaches the correct
+  532-byte size but changes induction pointers and hoists switch/table setup.
+  Naming the end pointer does not fix the bottom-wrapper register swap.
+- `subdivide_quad_`: removing any nonempty wrapper, or all three, produces
+  the same 183-byte difference: the frame and workspace exchange `s0`/`s1`.
+  Their clean allocation counts are 74 references over 666 instructions and
+  108 over 743, respectively. An inline leaf-packet emitter preserves that
+  residual; a shared range-initialization macro adds scheduling differences.
+  None of these wrappers was merely redundant with its neighbours.
+- `PutLifeBar`: an inline decimal-number routine with the existing backedge
+  reproduces the clean 22-byte residual. A genuine `do/while` digit loop fixes
+  the saved-U/maximum register order at the correct 540-byte size, but hoists
+  the division-by-ten multiplier into a saved register. The sprite argument
+  still moves ahead of the colour stores. Early-exit forms, ordinary colour
+  helpers, and explicit critical-health calculations do not close the match.
+- `Think3escape`: removing the duplicate arms individually or in combinations
+  does not match either; ordinary bitmask accumulation is not sufficient.
+  Reusing the wall-push working value for both axes still lets GCC fuse the
+  X-component load/sign-extension. Typed collision-mask helpers retain the
+  fourteen-byte `GetAreaMapVector` residual. Deriving image UV widths from
+  the completed screen edges adds instructions.
+
+These are failed source-shape measurements, not evidence that further
+humanisation is impossible. The goal and the complete residual queue above
+remain active; the checked camera change is still the latest code checkpoint.
