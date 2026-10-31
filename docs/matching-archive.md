@@ -2002,3 +2002,12 @@ remaining humanisation queue and goal stay active.
 
 The image helpers' additional `ty`/`th`/`px` local-type probes also did not
 improve their ten-byte residual. Their empty loops remain unresolved.
+
+Applying the indexed-leaf lesson to `AfsGetEntry` improves its ordinary-loop
+drafts but does not yet match. Indexing both the output element and the packed
+cursor, while retaining the moving name-source buffer, emits 568 bytes rather
+than 564. Giving the packed view an explicit first-byte base reproduces all
+register choices, but retains one extra pointer copy and captures the raw
+allocation before the target does. Indexing all three cursors emits 556 bytes;
+moving the base into a guarded scope or extracting an inline decoder does not
+close either draft. These remain scratch measurements, not source changes.
