@@ -2216,3 +2216,41 @@ A complete reusable image-rectangle statement macro also does not remove
 the image helpers' empty loops exactly. Its ordinary block variants retain
 the ten-byte residual; conventional do/while macro bodies change register
 allocation and leave 66 differing bytes. These remain scratch-only.
+
+### Collision-probe alias and predicate cleanup (2026-11-01)
+
+`GetAreaMapVector` now removes the redundant `mvp->attrib == 0` conditional
+and the duplicate `rawmode` alias. Either change is independently exact, and
+their combination is exact. The two real retained values are named
+`probe_flags` (original flags) and `probe_mode` (the signed low-halfword mode
+passed to neighbour queries).
+
+A shared inline `IsMissingAreaLevel` predicate replaces the XOR comparison
+and is used for both the centre and neighbour checks. Its ordinary equality
+expression preserves the variable return on the missing-centre path. A direct
+equality at that call site is four bytes different: at `+0xa8`, GCC emits a
+constant load instead of copying the existing level value. Both signed and
+unsigned predicate parameters, and expression or early-return predicate
+bodies, are exact. The adopted helper uses `long`, matching the queried
+level's type, and returns the equality expression directly.
+
+All 548 bytes and all six executables remain exact. The local report is
+regenerated with unchanged counts, and the approved 18 handwritten routines /
+6,372 bytes plus their dispatch table remain verified. Parameter names agree
+with PSX.SYM. No new runtime coverage is claimed.
+
+The last unused `mode = probe_flags` assignment remains explicitly marked in
+the source. Deleting it from the cleaned version leaves 44 differing bytes;
+reusing the consumed mode parameter as the direction mask leaves the existing
+fourteen-byte residual. These results also hold with the new predicate.
+Real per-classification early continues add code, and a classifier returning
+the next direction bit does not close either form. Narrowing that bit at each
+iteration adds eight bytes. A general blocked-probe predicate adds code too.
+Using the mode parameter as a consumed mask accumulator emits 556–564 bytes.
+Changing its public type to unsigned or the existing flag enum shortens the
+function to 544 bytes; no prototype change is adopted.
+
+The miscellaneous-object search investigation is also scratch-only. An inline
+free-slot finder returning a slot or null/end changes the control graph and
+emits 532–572 bytes. The same-size grouped-argument draft remains substantially
+different. The humanisation goal stays active.

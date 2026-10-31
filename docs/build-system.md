@@ -1225,7 +1225,11 @@ regenerated with unchanged counts.
 
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops.
-The collision probe's redundant mode aliases still need separate review.
+The collision probe's final unused mode restore still needs separate review.
+Its redundant attribute conditional and duplicate flag alias are removed,
+and a shared missing-floor predicate replaces the XOR comparison. This keeps
+all 548 bytes exact. All six executable checks and the handwritten-assembly
+audit pass, and the local report is regenerated with unchanged counts.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
 `AddMisc` and `subdivide_quad_`, plus
 the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers

@@ -37,10 +37,13 @@ byte-identical `main.exe`.
   280 bytes in MAIN and TRIAL.
   `AfsGetEntry` now walks typed on-disc records with named marker/name fields
   and `record++`; its three layout wrappers remain under investigation.
+  `GetAreaMapVector` drops the redundant attribute conditional and duplicate
+  mode alias, and uses a shared missing-floor predicate instead of the XOR
+  comparison. Its 548 bytes remain exact; one unused mode restore remains.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
-  and `SetupImageToPolyGT4`; the collision probe's redundant mode aliases
-  also need review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
+  and `SetupImageToPolyGT4`; the collision probe's final mode restore
+  also needs review. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
   `AddMisc` and `subdivide_quad_`, plus
   the two adaptive quad renderers' non-hardware volatile parameters.
   The scanner now reports these review candidates too. These readability

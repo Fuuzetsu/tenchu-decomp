@@ -278,6 +278,11 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
     return ret;
 }
 
+static inline int IsMissingAreaLevel(long level)
+{
+    return level == LEVEL_NONE;
+}
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -322,9 +327,8 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     short i;
     short v;
     long initial_level;
-    long m;
-    long rawmode;
-    long mode2;
+    long probe_mode;
+    long probe_flags;
 
     x = pos->vx;
     y = pos->vy;
@@ -334,14 +338,9 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     mvp->attrib = FieldAttrib;
     mvp->area = FieldArea;
     mvp->index = FieldIndex;
-    mode2 = mode;
-    rawmode = mode2;
+    probe_flags = mode;
     initial_level = mvp->level;
-    if (mvp->attrib == 0)
-    {
-        mode = rawmode;
-    }
-    if ((initial_level ^ (u32)LEVEL_NONE) == 0)
+    if (IsMissingAreaLevel(initial_level))
     {
         mvp->height = 0;
         if (!(mode & AREA_LEVEL_ALLOW_DEEP))
@@ -363,12 +362,12 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     mvp->angleH = 0;
     mvp->angleL = 0;
     mvp->vector = 0;
-    m = (short)mode2;
+    probe_mode = (short)probe_flags;
     while (i < N_MAP_PROBE_DIRECTIONS)
     {
-        level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, m);
-        if (level2 == (u32)LEVEL_NONE ||
-            ((level2 - y < -500) && !(mode2 & AREA_LEVEL_ALLOW_DEEP) &&
+        level2 = GetAreaMapLevel(area, x + direction[i][0] * wide, y, z + direction[i][1] * wide, probe_mode);
+        if (IsMissingAreaLevel(level2) ||
+            ((level2 - y < -500) && !(probe_flags & AREA_LEVEL_ALLOW_DEEP) &&
              !(((u16)mvp->attrib | (u16)FieldAttrib) &
                (MAP_SLOPE_X | MAP_SLOPE_Z))))
         {
@@ -384,7 +383,8 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
             {
                 mvp->angleH |= v;
             }
-            mode = rawmode;
+            /* Matched mode restore; its original source form is unresolved. */
+            mode = probe_flags;
         }
         v <<= 1;
         i++;

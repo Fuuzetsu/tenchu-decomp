@@ -3790,7 +3790,18 @@ sign-extended from the low halfword, but its promoted lifetime restores the
 allocation of the width and probe-mode registers. Leaving `m` as a short
 after removing the arms swaps those registers (nine differing bytes); the
 word-sized local preserves all 548 bytes. The older `mode`/`rawmode` aliases
-are still under review; removing them at the same time does not yet match.
+were then reduced: the redundant attribute conditional and duplicate flag
+alias can be removed together without changing code. The remaining saved
+values are named `probe_flags` and `probe_mode`; the final unused mode restore
+inside the valid-neighbour path is still under review.
+
+The same function also replaces its XOR-based missing-floor comparison with
+an inline `IsMissingAreaLevel(level)` predicate, used for both centre and
+neighbour levels. Its body is the ordinary `level == LEVEL_NONE` expression.
+Writing that equality directly at the centre check instead makes GCC replace
+the fallback's returned level with a newly loaded constant: one instruction
+and four bytes differ. The shared predicate preserves the existing value
+copy and all 548 bytes, without obscuring the sentinel test in arithmetic.
 
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
