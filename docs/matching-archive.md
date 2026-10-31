@@ -2586,3 +2586,34 @@ ten-byte residual. A shared four-vertex next-frame initializer restores the
 subdivider's frame/work register order but changes other saved registers and
 adds twelve bytes at two sites (twenty at four sites). Plain blocks retain
 the 183-byte residual. These variants are not production changes.
+
+### Four-routine queue: narrower scratch residuals (2026-11-01)
+
+`AddMisc`'s best grouped-parameter draft now has five differing bytes, equal
+relocations, and the correct 532-byte length. It combines the counted pointer
+step with consumed texture working values: `a = x` before selecting the TIM
+name, then `b = y` immediately before `SetupTexScroll`. Only the pool base and
+initial `b` exchange `$a0`/`$a3`. The scratch label is
+`misc-phase-step-grouped-3-late`. The scalar API draft
+`misc-phase-step-scalar-7-late` is eight bytes different: its initial a/b/c
+registers rotate, with all instructions and relocations otherwise retained.
+Explicit short/unsigned-short texture conversions do not change either
+residual. An actual base/current-pointer cursor record spills and adds
+108 bytes. These are not adopted API or implementation changes.
+
+The subdivider's next-frame binding has a separate 26-byte checkpoint:
+`subdivide-next-binding-subdivide-captured-packet-call-argument-do-False-do-frame-first`.
+It combines the captured leaf-channel copies with a statement operation that
+binds an `ADIV_FRAME *` and its `ADIV_VERT **` array view. All 3,796 bytes,
+relocation positions, and register choices are preserved except the prologue
+schedule: `next = fp + 1` and its saved-register copy move after the register
+saves. Changing the order of the work/frame copies does not resolve this.
+A plain-block binding returns to the 183-byte frame/work register exchange.
+
+A shared midpoint-position operation is also 3,796 bytes with equal
+relocations, but has 91 differing bytes from the midpoint/mask register
+allocation. Its loop-weighted midpoint references cross the allocator's
+16-reference threshold; it is not an exact solution. These are useful distinct
+checkpoints, not evidence that any remaining wrapper is necessary or that
+the humanisation goal is complete. Production and the six verified images
+are unchanged by this scratch work.
