@@ -66,7 +66,6 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     PACKET *tail;
     int zA;
     int zB;
-    int zC;
     GpuPolyGT4Packet *packet;
     ADIV_VERT *pv;
     ADIV_VERT *pv2;
@@ -119,13 +118,8 @@ void subdivide_quad_(ADIV_FRAME *afp, ADIV_WORK *awp, int depth)
     {
         work->zmax = zB;
     }
-    zC = work->zmax;
-    if (zC < 0)
-    {
-        zC += 3;
-    }
-    work->zmax = zC >> 2;
-    if (work->adivz <= zC >> 2)
+    work->zmax /= 4;
+    if (work->adivz <= work->zmax)
     {
         if (fp->vp[0]->screen.component.vx >
             fp->vp[1]->screen.component.vx)

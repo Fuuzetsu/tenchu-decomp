@@ -2512,3 +2512,28 @@ coverage claimed. The recursive scanner now reports eight candidate files.
 The active queue is six shared routines: the two image-setup functions,
 `AddMisc`, `subdivide_quad_`, and the two adaptive renderers' volatile OT
 parameters.
+
+### Subdivision depth division simplified (2026-11-01)
+
+`subdivide_quad_` now uses `work->zmax /= 4`, followed by comparison with that
+field. GCC 2.8.1 supplies the original negative-value bias and arithmetic
+shift for signed division toward zero. This removes the manually expanded
+sequence and its extra local while preserving all 3,796 bytes and relocations.
+The three nonempty wrappers remain; this is an independent readability gain.
+
+All six complete image checks pass (`subdivide-division-check.log`), the local
+report is regenerated, and the handwritten audit still verifies 18 routines /
+6,372 bytes plus their dispatch table. The recursive scanner remains at eight
+candidate files. TRIAL's 568 exact C routines / 301,412 bytes and the six-routine
+humanisation queue are unchanged; no runtime coverage or matching credit is
+added.
+
+The separate wrapper probes remain scratch-only. Captured coordinate-read
+macros can restore the frame/work pointer allocation, but their scheduling
+boundaries add eight bytes per coordinate pair. Snapshotting the existing
+minimum before the operation does not prevent GCC from folding that read;
+including the comparison in a scalar-output macro reduces the increase to
+four bytes per pair, still not exact. Shared image-corner calculations and
+narrower UV working values do not improve the ten-byte unfenced image-setup
+draft. `AddMisc` initialization/step operations retain 532 bytes, but still
+have allocation and dispatch-scheduling differences.

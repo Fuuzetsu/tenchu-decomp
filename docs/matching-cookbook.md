@@ -3867,6 +3867,13 @@ macro instead adds four bytes in the loader. Keep the actual index/continuation
 updates and both call sites when judging this source form, not just the absence
 of a scanner finding.
 
+`subdivide_quad_`'s negative-depth bias and arithmetic shift are the compiler's
+ordinary signed division by four. `work->zmax /= 4`, followed by comparison
+with the updated field, preserves all 3,796 bytes while removing the expanded
+arithmetic and temporary. Repeating the quotient expression instead emits an
+extra instruction. Check the consumed result's lifetime as well as the usual
+division idiom before retaining a manually spelled bias/shift sequence.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;

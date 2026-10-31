@@ -53,6 +53,9 @@ byte-identical `main.exe`.
   Their limit and vertical clipping bound now also use typed field pointers;
   the raw-offset access macros and their null-pointer member-offset calculation
   are removed. All six executable checks still pass.
+  `subdivide_quad_` now expresses depth bucketing as ordinary signed division
+  by four, removing its manual negative-value bias and shift. All 3,796 bytes
+  remain exact; its three nonempty wrappers remain in the queue below.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
   and `SetupImageToPolyGT4`. The wider audit also tracks nonempty wrappers in

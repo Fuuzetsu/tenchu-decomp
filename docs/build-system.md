@@ -1260,6 +1260,12 @@ pass, and the local report is regenerated with unchanged counts.
 A by-value rendering context
 removes the qualifiers and allows direct member stores in exact callee drafts,
 but its caller still differs, so that API change is not adopted.
+`subdivide_quad_` also replaces its expanded signed-division sequence with
+`work->zmax /= 4` and compares the resulting field directly. This removes the
+negative-value bias, arithmetic shift, and extra temporary while preserving
+all 3,796 bytes. Its three nonempty wrappers remain unresolved. All six image
+checks and the handwritten audit pass, and the local report is regenerated
+without additional matching credit.
 `AfsGetEntry` now retains and walks typed `AFSIndexEntry` records, accesses
 their marker/name fields directly, and advances with `record++`. All 564 bytes
 and all six executables remain exact, and the local report is regenerated
