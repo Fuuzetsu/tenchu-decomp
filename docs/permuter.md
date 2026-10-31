@@ -41,5 +41,11 @@ On success it prints the winning source
 - It only nudges register allocation / scheduling. If the *instructions* are
   wrong, fix the C (or, for gp/div/nop issues, that's maspsx — see
   [toolchain.md](toolchain.md)), not the permuter.
+- Review variable expansion across manual goto loops. In the AfsGetEntry
+  humanisation search, `perm_expand_expr` substituted an advancing cursor's
+  pre-loop initializer at reads inside the loop, making later iterations read
+  the first record. The lower scores were invalid candidates, not progress.
+  Disable this pass for such searches and review all retained changes for
+  preserved behavior; a search score is not an equivalence check.
 - Validated by re-discovering the `GetRealPad` match from the natural
   (non-matching) C.

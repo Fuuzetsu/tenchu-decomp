@@ -2458,3 +2458,29 @@ Other scratch probes from this pass were not adopted:
   the shared corner-offset macro do not close its register-allocation gap.
   The best tested type variants retain 288/324 bytes with 38 differing bytes;
   the simpler unfenced source remains ten bytes different.
+
+The subsequent AFS control-flow probe has a useful separate checkpoint:
+placing the invalid-index error label between the record-allocation failure
+path and `read_index` restores the original block layout without any wrapper
+loops. The complete 564-byte draft has equal relocations and nineteen
+differing bytes, all from the handle and loop counter exchanging `$s3`/`$s4`.
+It is saved as `afs-error-island-separate-before-0` in the ignored scratch
+directory. Working-count phases reduce the raw difference to thirteen but
+move other values into saved registers; none is exact. Value-returning index
+and count helpers retain nineteen. Passing the counter by address puts it on
+the stack; multi-field cursor records and a separate inline decoder change
+the code further. These are not production changes.
+
+A 180-second search from that nineteen-byte draft made 5,330 attempts. All
+three lower-scoring retained candidates are semantically invalid: expression
+expansion replaces some reads through the advancing `packed` cursor with
+`records->marker + 1`, which still addresses the first record after the goto
+backedge. They are rejected, regardless of the search score. A future search
+from this manual loop must disable that expansion and still review every
+candidate's behavior. The source search is not an equivalence proof.
+
+Shared FT4/GT4 mapping macros, with conventional corner-operation macros,
+also remain scratch-only. Depending on initialization placement, they retain
+288/324 bytes with 24–29 differing bytes; they do not improve the simple
+ten-byte unfenced draft. An initial captured-coordinate generator shadowed
+its input names; it was corrected and rerun before recording these results.
