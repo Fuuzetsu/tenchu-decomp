@@ -2783,3 +2783,41 @@ bytes plus the primitive dispatch table. The scanner now reports four
 candidate files, including reviewed byte addressing. Only the two image-setup
 empty loops remain in the active queue. C totals and runtime coverage do not
 change.
+
+### Image mapping: call-boundary checkpoints (2026-11-01)
+
+The remaining image probes now have a distinct alternative to the simple
+unfenced ten-byte residual. A shared mapping operation combines a two-step
+left-U conversion (shift, then mask), a precomputed texture mask, and the
+two-output far-corner update. The screen and texture stores, their register
+allocation, and their arithmetic order all match in both functions.
+
+`images-snapshot-mapping-inside-early` retains 288/324 bytes and equal
+relocations with fourteen differing bytes. Its only differences are the
+texture-mode halfword load and mask moving earlier around the `GetTPage`
+argument loads. The four tested mask-snapshot positions give the same code.
+Including polygon initialization in the shared operation instead gives
+`images-page-arguments-True-none-before-mode`: ten differing bytes, entirely
+at the first `SetPolyFT4`/`SetPolyGT4` call. Its packet argument move fills
+the delay slot instead of the saved-mode-register store. Everything after
+that call matches. This is a different residual from the simpler unfenced
+draft's right-U register/scheduling difference, not a new exact result.
+
+The local-allocation model validates every assigned home in both new drafts.
+In the fourteen-byte FT4 draft, packet/image quantities have 44/19 references,
+left U has 20, width/right U has 17, and V has 14; the mode remains in `$s2`.
+Putting initialization inside raises the packet count to 45. Plain input
+snapshots, pointer captures, pointer-binding qualifiers, and a typed inline
+forwarder do not change the respective call residual. Moving the mapping
+boundary after page/palette setup or adding a page helper does not close it.
+The capture probe was corrected to use distinct local names before its final
+results were recorded; the shared drafts also retain an unused macro argument
+that must be removed before any adoption.
+
+Evidence is in `images-snapshot-mapping.log`, `images-page-arguments.log`,
+`images-mapping-captures.log`, `images-mapping-inline.log`,
+`images-page-operation.log`, and `images-geometry-phase.log`.
+Earlier probes in this pass—horizontal-span operations, width/right-U union
+views, texture-axis grouping, corner statement expressions, texture-scale
+helpers, and by-value position inputs—also remain scratch-only. Production
+is unchanged after `58493e97c`; the two image routines remain open.
