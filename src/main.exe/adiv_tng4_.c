@@ -15,7 +15,11 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     int cnt;
     int init;
     ADIV_WORK *work;
-    u_long shift_or_depth2;
+    union
+    {
+        u_long shift;
+        u_long *depth2;
+    } sort;
     u_long *screen0_or_depth1;
     ADIV_VERT *v0;
     ADIV_FRAME *frame;
@@ -35,10 +39,10 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
     work->adivw = (short)(hwd / 2);
     work->adivh = (short)(vwd / 2);
     ot_or_depth0 = context.ot->org;
-    shift_or_depth2 = context.shift;
+    sort.shift = context.shift;
     init = 150;
     work->adivz = init;
-    work->shift = shift_or_depth2;
+    work->shift = sort.shift;
     setlen(&work->packet, GPU_POLY_GT4_LENGTH);
     code = GPU_POLY_GT4_CODE;
     work->out = packet;
@@ -114,9 +118,9 @@ PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
                 gte_stsxy((u_long *)&work->v[3].screen.word);
                 ot_or_depth0 = (u_long *)&work->v[0].sz;
                 screen0_or_depth1 = (u_long *)&work->v[1].sz;
-                shift_or_depth2 = (u_long)&work->v[2].sz;
+                sort.depth2 = (u_long *)&work->v[2].sz;
                 gte_stsz4(ot_or_depth0, screen0_or_depth1,
-                           (u_long *)shift_or_depth2,
+                           sort.depth2,
                            (u_long *)&work->v[3].sz);
                 work->packet.clut =
                     primitive->stream.texture[0].component.metadata;

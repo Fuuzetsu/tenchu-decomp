@@ -3864,6 +3864,14 @@ still observe the primitive after rendering. Do not extend this operation to
 the fast triangle paths without checking them: that changes their scheduling.
 Definitions and calls use one coherent header declaration throughout.
 
+Recheck scalar lifetime splits after adopting the rendering context. The flat
+adaptive renderer can now separate the shift and depth-2 values and the
+screen-0 and depth-1 pointers with no code change. Gouraud still changes
+allocation when those lifetimes are split, but explicit `shift` and `depth2`
+union members preserve its exact code and remove the integer address round
+trip. Each member is assigned before it is read; this is typed storage reuse,
+not reinterpretation of an integer as a pointer. Both remain 920 bytes exact.
+
 `AfsGetEntry` removes all three layout wrappers with two independent changes.
 An explicit invalid-index error exit, placed before the successful read path,
 preserves the original shared reporting block. That alone leaves nineteen

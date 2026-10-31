@@ -55,6 +55,9 @@ byte-identical `main.exe`.
   snapshots its packet cursor and batch count through one shared operation;
   both 920-byte renderers and the 540-byte dispatcher remain exact. All six
   executable checks still pass.
+  Their last integer address round trip is also removed: the flat renderer
+  separates its shift, screen, and depth values, while the Gouraud renderer
+  gives its reused shift/depth storage explicit union members.
   `subdivide_quad_` now expresses depth bucketing as ordinary signed division
   by four, removing its manual negative-value bias and shift. All 3,796 bytes
   remain exact; its three nonempty wrappers remain in the queue below.

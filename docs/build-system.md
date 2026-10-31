@@ -1252,11 +1252,14 @@ temporaries. The dispatcher snapshots its packet cursor and batch count
 through the shared `READ_ADIV_BATCH_INPUTS` operation before each adaptive
 call. This conventional statement macro contains those two real reads and
 produces values consumed by the call; it has no empty scheduling loop.
-Their OT/depth-0 and screen-0/depth-1 working destinations are now `u_long *`
-values, removing integer address round trips without changing either 920-byte
-routine. The three formerly register-named scratch values now identify their
-roles. The shift/depth-2 value still spans an integer and an address; splitting
-those lifetimes changes code. The 540-byte dispatcher also matches. All six
+Their GTE output destinations now remain typed pointers throughout, removing
+the last integer address round trip without changing either 920-byte routine.
+The flat renderer separates its shift, screen-0, depth-1, and depth-2 locals.
+The Gouraud renderer uses explicit shift and depth-2 union members for its
+reused storage; each member is written before use, without type punning.
+Both retain a typed OT/depth-0 pointer, and Gouraud also retains its typed
+screen-0/depth-1 pointer. Splitting those remaining pointer lifetimes changes
+code. The 540-byte dispatcher also matches. All six
 image checks and the handwritten audit pass, and the local report is
 regenerated with unchanged counts. The caller and callee declarations share
 the same context type; no conflicting ABI declaration is used.

@@ -2563,3 +2563,26 @@ shared routines: the two image-setup functions, `AddMisc`, and
 `subdivide_quad_`. The renderer's mixed shift/depth-2 scratch lifetime is still
 documented; this change does not split it. TRIAL remains 568 exact C routines /
 301,412 bytes, with no new matching credit or runtime coverage claimed.
+
+### Adaptive scratch values typed throughout (2026-11-01)
+
+With the new context API, the flat renderer can separate the shift/depth-2
+and screen-0/depth-1 lifetimes while retaining all 920 bytes. Gouraud still
+changes allocation when either pair is separated. A union with explicit
+`shift` and `depth2` members preserves Gouraud's code and removes the last
+integer address round trip; the members are written and read in separate
+phases, with no type punning. Splitting the OT/depth-0 pointer still adds
+twelve bytes in either renderer, so that typed pointer remains shared.
+
+All six image checks pass (`adiv-depth-values-check.log`, 2.31 seconds), the
+local report is regenerated, and the 18 routines / 6,372 bytes handwritten
+audit and dispatch table pass. Matching counts and runtime coverage do not
+change. The four-routine scaffolding queue remains open.
+
+Additional scratch-only probes do not close the image/subdivision gaps.
+Shared screen-rectangle macros retain 288/324 bytes with at least 78 differing
+bytes in statement-wrapper form; ordinary blocks return to the existing
+ten-byte residual. A shared four-vertex next-frame initializer restores the
+subdivider's frame/work register order but changes other saved registers and
+adds twelve bytes at two sites (twenty at four sites). Plain blocks retain
+the 183-byte residual. These variants are not production changes.
