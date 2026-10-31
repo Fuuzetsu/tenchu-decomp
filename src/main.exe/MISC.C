@@ -815,6 +815,21 @@ static inline void ProcMiscSprite(TMisc *m, TMiscMessage msg)
     }
 }
 
+/* Copy the three authored words into a slot's initialization payload. */
+#define SET_MISC_SPAWN_PARAMETERS(destination, pa, pb, pc)                    \
+    do {                                                                     \
+        (destination).a = (pa);                                              \
+        (destination).b = (pb);                                              \
+        (destination).c = (pc);                                              \
+    } while (0)
+
+/* Advance the pool cursor and retain the original signed address test. */
+#define ADVANCE_MISC_SLOT(slot, limit, more)                                 \
+    do {                                                                     \
+        ++(slot);                                                            \
+        (more) = (s32)(slot) < (s32)(limit);                                  \
+    } while (0)
+
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's
  * debug symbols. Regenerate with `tools/symnote.py --write`; see
  * docs/psx-sym.md. Do not hand-edit.
@@ -843,6 +858,8 @@ void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
 {
     TMisc *base = misc;
     TMisc *p;
+    int more_slots;
+    int valid_type;
     u8 *tim_names[7];
     GsIMAGE tm;
     u8 **name_table = tim_names;
@@ -854,15 +871,14 @@ void AddMisc(MiscType type, s32 x, s32 y, s32 z, s32 a, s32 b, s32 c)
 loop:
     if (p->proc == 0)
     {
-        do
+        valid_type = (u32)type <= MISC_SOUND;
+        p->mode = 0;
+        p->x = x;
+        p->y = y;
+        p->z = z;
+        SET_MISC_SPAWN_PARAMETERS(p->param.init, a, b, c);
+        if (valid_type)
         {
-            p->mode = 0;
-            p->x = x;
-            p->y = y;
-            p->z = z;
-            p->param.init.a = a;
-            p->param.init.b = b;
-            p->param.init.c = c;
             switch (type)
             {
             case MISC_FIRE:
@@ -897,22 +913,20 @@ loop:
             case MISC_SOUND:
                 p->proc = proc_misc_sound_;
                 break;
-            default:
-                AdtMessageBox(fmt_undefined_effect, type);
-                return;
             }
-            p->proc(p, MM_CREATE);
-            p->pause = MISC_PAUSED;
-        } while (0);
+        }
+        else
+        {
+            AdtMessageBox(fmt_undefined_effect, type);
+            return;
+        }
+        p->proc(p, MM_CREATE);
+        p->pause = MISC_PAUSED;
         return;
     }
-    do
-    {
-        p++;
-        /* The original ownership test compares the addresses as signed values. */
-        if ((s32)p < (s32)(base + MaxMisc))
-            goto loop;
-    } while (0);
+    ADVANCE_MISC_SLOT(p, base + MaxMisc, more_slots);
+    if (more_slots)
+        goto loop;
 }
 
 /* BEGIN PSX.SYM — the original source's own facts, from the demo disc's

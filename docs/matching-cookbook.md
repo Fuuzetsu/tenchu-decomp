@@ -3917,6 +3917,20 @@ branches, and wrapping the entire interpolator changes midpoint allocation.
 The useful boundary here is the repeated input read, not the arithmetic or
 the unrelated depth sample.
 
+`AddMisc` can retain its scalar API and remove both standalone wrappers.
+`SET_MISC_SPAWN_PARAMETERS` assigns the three authored payload words;
+`ADVANCE_MISC_SLOT` advances the cursor and returns its signed-address
+continuation flag. With these operations, all registers match, but the
+switch's range comparison moves after the initialization stores. Snapshot
+`valid_type = (u32)type <= MISC_SOUND` before those stores, then use a real
+`if (valid_type)` around dispatch with the error report in its `else`.
+The compiler merges the explicit and switch range checks, preserving all
+532 bytes and relocations. Slot writes still precede the invalid-type error.
+The callback/pause update follows valid dispatch. Ordinary scan loops change
+layout, and a parameter-pointer helper adds code; neither is needed for this
+exact form. The payload and cursor macros contain actual multi-output
+operations, without artificial conditions or a wrapper around dispatch.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;

@@ -1242,8 +1242,14 @@ report and handwritten-assembly audit are unchanged in scope and counts.
 
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops.
-Additional shared-source work is the nonempty wrappers in `AddMisc`;
-three routines remain.
+`AddMisc` now removes both standalone wrappers with explicit type validation,
+an authored-payload assignment operation, and a cursor/continuation step.
+The validity flag is calculated before slot initialization and consumed
+afterward; invalid types still initialize the slot before reporting the error.
+The callback and pause assignment remain after valid dispatch. Its existing
+scalar API and all 532 bytes are retained. All six image checks pass, the
+handwritten audit passes, and the local report is regenerated without new
+matching credit.
 The artificial `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_` are
 now removed. Both functions take an `ADIV_RENDER_CONTEXT` value containing
 their shift, ordering table, and workspace. Limit and clipping bounds are
@@ -1288,7 +1294,7 @@ in both inlined searches and remains 560 bytes exact. The macro's conventional
 statement wrapper contains these two real updates; no layout-only loop remains
 in the loader. All six executable checks and the handwritten audit pass, and
 the local report is regenerated without new matching credit.
-The expanded scan currently reports five files with review
+The expanded scan currently reports four files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

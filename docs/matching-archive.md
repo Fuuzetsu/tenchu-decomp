@@ -2753,3 +2753,33 @@ files, including legitimate byte addressing; no standalone subdivision
 wrapper remains. Three routines remain open: the two image-setup functions
 and `AddMisc`. TRIAL's 568 exact C routines / 301,412 bytes and runtime
 coverage are unchanged.
+
+### Misc parameter setup and dispatch humanised (2026-11-01)
+
+A fresh scalar-API draft separates the three authored parameter stores into
+`SET_MISC_SPAWN_PARAMETERS` and uses `ADVANCE_MISC_SLOT` for the consumed
+cursor/continuation outputs. This restores all registers without reusing
+the parameters as texture working values. The remaining seventeen differing
+bytes are one moved instruction: the switch's unsigned range comparison
+comes after the stores instead of before them. Computing the validity flag
+before initialization and consuming it afterward removes that difference.
+An ordinary `if (valid_type) { switch (...) ... } else { report; return; }`
+matches exactly, so the final source needs no error label inside the switch.
+Both standalone wrappers are removed; the seven scalar parameters and all
+532 bytes/relocations are preserved. No grouped API is adopted.
+
+The probes are `misc-parameter-operation.log`, `misc-dispatch-guard.log`,
+`misc-guard-simplification.log`, and `probe_misc_guard_structure.py`.
+Direct payload stores without the operation add eight bytes; a captured
+payload pointer adds four, and a pointer-taking inline helper adds eight in
+the scalar draft. True scan loops change layout. These alternatives are not
+production changes. The final two statement operations contain the real
+three-word payload assignment and cursor/continuation update, respectively.
+
+All six executable checks pass in 2.57 seconds
+(`misc-parameter-operation-check.log`), the local report is regenerated with
+3,449 units, and the handwritten audit still verifies 18 routines / 6,372
+bytes plus the primitive dispatch table. The scanner now reports four
+candidate files, including reviewed byte addressing. Only the two image-setup
+empty loops remain in the active queue. C totals and runtime coverage do not
+change.
