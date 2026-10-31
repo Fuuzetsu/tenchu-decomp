@@ -1243,23 +1243,23 @@ report and handwritten-assembly audit are unchanged in scope and counts.
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops.
 Additional shared-source work is the nonempty wrappers in
-`AddMisc` and `subdivide_quad_`, plus
-the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
-are documented compiler constraints, not evidence of hardware-backed parameter
-objects. Both renderers now write the horizontal clipping bound through its
-typed field and the limit and vertical bound through typed field pointers.
-The raw-offset scalar macros and their null-pointer member-offset calculation
-are removed; the two pointer stores preserve the required alias shape without
-byte arithmetic.
+`AddMisc` and `subdivide_quad_`.
+The artificial `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_` are
+now removed. Both functions take an `ADIV_RENDER_CONTEXT` value containing
+their shift, ordering table, and workspace. Limit and clipping bounds are
+ordinary member assignments, without raw-offset macros or field-pointer
+temporaries. The dispatcher snapshots its packet cursor and batch count
+through the shared `READ_ADIV_BATCH_INPUTS` operation before each adaptive
+call. This conventional statement macro contains those two real reads and
+produces values consumed by the call; it has no empty scheduling loop.
 Their OT/depth-0 and screen-0/depth-1 working destinations are now `u_long *`
 values, removing integer address round trips without changing either 920-byte
 routine. The three formerly register-named scratch values now identify their
 roles. The shift/depth-2 value still spans an integer and an address; splitting
-those lifetimes changes code. All six image checks and the handwritten audit
-pass, and the local report is regenerated with unchanged counts.
-A by-value rendering context
-removes the qualifiers and allows direct member stores in exact callee drafts,
-but its caller still differs, so that API change is not adopted.
+those lifetimes changes code. The 540-byte dispatcher also matches. All six
+image checks and the handwritten audit pass, and the local report is
+regenerated with unchanged counts. The caller and callee declarations share
+the same context type; no conflicting ABI declaration is used.
 `subdivide_quad_` also replaces its expanded signed-division sequence with
 `work->zmax /= 4` and compares the resulting field directly. This removes the
 negative-value bias, arithmetic shift, and extra temporary while preserving
@@ -1278,7 +1278,7 @@ in both inlined searches and remains 560 bytes exact. The macro's conventional
 statement wrapper contains these two real updates; no layout-only loop remains
 in the loader. All six executable checks and the handwritten audit pass, and
 the local report is regenerated without new matching credit.
-The expanded scan currently reports eight files with review
+The expanded scan currently reports six files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

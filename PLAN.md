@@ -50,17 +50,18 @@ byte-identical `main.exe`.
   Both adaptive renderers now keep their OT/depth-0 and screen-0/depth-1
   scratch destinations as typed pointers, removing integer round trips and
   naming the reused values' roles. Each renderer remains 920 bytes exact.
-  Their limit and vertical clipping bound now also use typed field pointers;
-  the raw-offset access macros and their null-pointer member-offset calculation
-  are removed. All six executable checks still pass.
+  A shared by-value rendering context now removes both artificial volatile
+  parameters and permits direct limit/clipping-field assignments. The caller
+  snapshots its packet cursor and batch count through one shared operation;
+  both 920-byte renderers and the 540-byte dispatcher remain exact. All six
+  executable checks still pass.
   `subdivide_quad_` now expresses depth bucketing as ordinary signed division
   by four, removing its manual negative-value bias and shift. All 3,796 bytes
   remain exact; its three nonempty wrappers remain in the queue below.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
   and `SetupImageToPolyGT4`. The wider audit also tracks nonempty wrappers in
-  `AddMisc` and `subdivide_quad_`, plus
-  the two adaptive quad renderers' non-hardware volatile parameters.
+  `AddMisc` and `subdivide_quad_`.
   The scanner now reports these review candidates too. These readability
   changes add no matching credit.
   568 functions / 301,412 bytes now compile as exact C, including startup,

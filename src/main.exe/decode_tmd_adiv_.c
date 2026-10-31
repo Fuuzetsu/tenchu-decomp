@@ -2,9 +2,19 @@
 #include "main.exe.h"
 #include "tmdfast.h"
 
+/* Snapshot the packet cursor and primitive count for one adaptive batch.
+ * The two output arguments are distinct scalar variables. */
+#define READ_ADIV_BATCH_INPUTS(primitive, packet, count) \
+    do { \
+        (packet) = GsOUT_PACKET_P; \
+        (count) = TMD_BATCH_COUNT(primitive); \
+    } while (0)
+
 void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
                       void *work)
 {
+    PACKET *batch_packet;
+    int batch_count;
     int step;
     int count;
     TmdObjectRecord *tmd;
@@ -27,19 +37,19 @@ void decode_tmd_adiv_(GsDOBJ2 *obj, GsOT *ot, u_long shift,
         switch (prim->batch.mode & TMD_PRIMITIVE_MODE_MASK)
         {
         case TMD_PRIM_GT4:
+            READ_ADIV_BATCH_INPUTS(prim, batch_packet, batch_count);
             GsOUT_PACKET_P = adiv_tng4_(&prim->gt4, vertices,
-                                        GsOUT_PACKET_P,
-                                        TMD_BATCH_COUNT(prim), shift, ot,
-                                        work);
+                                        batch_packet, batch_count,
+                                        (ADIV_RENDER_CONTEXT){shift, ot, work});
             n -= TMD_BATCH_COUNT(prim);
             step = TMD_BATCH_COUNT(prim) * TMD_MEMBER_WORDS(prim, gt4);
             step <<= 2;
             break;
         case TMD_PRIM_FT4:
+            READ_ADIV_BATCH_INPUTS(prim, batch_packet, batch_count);
             GsOUT_PACKET_P = adiv_tnf4_(&prim->ft4, vertices,
-                                        GsOUT_PACKET_P,
-                                        TMD_BATCH_COUNT(prim), shift, ot,
-                                        work);
+                                        batch_packet, batch_count,
+                                        (ADIV_RENDER_CONTEXT){shift, ot, work});
             n -= TMD_BATCH_COUNT(prim);
             step = TMD_BATCH_COUNT(prim) * TMD_MEMBER_BYTES(prim, ft4);
             break;

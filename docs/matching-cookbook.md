@@ -3847,6 +3847,23 @@ the same field. Try an ordinary typed address before retaining raw-offset
 accessors. This removes the access workaround independently of the unresolved
 volatile OT parameter; it does not establish that a plain parameter matches.
 
+The adaptive renderers subsequently remove that qualifier with a shared
+`ADIV_RENDER_CONTEXT` value containing shift, OT, and workspace. This also
+permits direct limit and vertical-bound stores, eliminating those temporary
+field pointers. Check the caller too: the aggregate alone matches both
+920-byte callees but moves the caller's batch-count load before its packet
+load, leaving twelve differing bytes and displaced relocations.
+
+`READ_ADIV_BATCH_INPUTS` snapshots the packet cursor and primitive count
+together before each call. It is a shared two-output statement macro with
+ordinary consumed scalar outputs. Reading the packet first in its conventional
+wrapper preserves all 540 caller bytes and relocations. A plain block retains
+the twelve-byte difference, while out-parameter inline helpers add code.
+Keep the input snapshot separate from the post-call count read, which must
+still observe the primitive after rendering. Do not extend this operation to
+the fast triangle paths without checking them: that changes their scheduling.
+Definitions and calls use one coherent header declaration throughout.
+
 `AfsGetEntry` removes all three layout wrappers with two independent changes.
 An explicit invalid-index error exit, placed before the successful read path,
 preserves the original shared reporting block. That alone leaves nineteen

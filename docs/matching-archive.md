@@ -2537,3 +2537,29 @@ four bytes per pair, still not exact. Shared image-corner calculations and
 narrower UV working values do not improve the ten-byte unfenced image-setup
 draft. `AddMisc` initialization/step operations retain 532 bytes, but still
 have allocation and dispatch-scheduling differences.
+
+### Adaptive renderer volatile parameters removed (2026-11-01)
+
+Both adaptive quad renderers now take `ADIV_RENDER_CONTEXT` by value, grouping
+their shift, OT, and workspace. Their artificial volatile parameter objects
+are gone, and the limit and vertical-bound assignments use ordinary members
+instead of temporary field pointers. The shared declarations and both call
+sites agree; the original seven machine argument words remain unchanged.
+
+The earlier twelve-byte caller residual is resolved by
+`READ_ADIV_BATCH_INPUTS`: a reusable statement macro reads the current packet
+cursor, then the batch count into separate scalar outputs. Both values feed
+the adaptive call, whose context is a compound literal. The two 920-byte
+callees and their 540-byte dispatcher have exact instructions and relocations.
+Plain-block snapshots retain the twelve-byte residual. Reusing the separate
+post-call `count` local leaves eight differing bytes; applying the snapshot to
+the fast triangle paths leaves twelve. Neither variation is adopted.
+
+All six executable checks pass (`adiv-context-inputs-check.log`, 5.07 seconds),
+the local report is regenerated at 3,449 units, and the handwritten audit
+verifies 18 routines / 6,372 bytes plus their dispatch table. The scanner drops
+from eight to six candidate files. The active scaffolding queue is now four
+shared routines: the two image-setup functions, `AddMisc`, and
+`subdivide_quad_`. The renderer's mixed shift/depth-2 scratch lifetime is still
+documented; this change does not split it. TRIAL remains 568 exact C routines /
+301,412 bytes, with no new matching credit or runtime coverage claimed.

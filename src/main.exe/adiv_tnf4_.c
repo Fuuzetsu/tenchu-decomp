@@ -5,8 +5,7 @@
 
 PACKET *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
                    PACKET *packet,
-                   int count, u_long shift, GsOT *volatile ot,
-                   ADIV_WORK *wp)
+                   int count, ADIV_RENDER_CONTEXT context)
 {
     int hwd;
     int vwd;
@@ -25,22 +24,18 @@ PACKET *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
     ADIV_VERT *v2;
     ADIV_VERT *v1;
     ADIV_VERT **vp;
-    u_long *recursion_limit;
-    short *vertical_bound;
 
-    work = wp;
+    work = context.work;
     hwd = HWD0;
     init = 4;
-    recursion_limit = &work->limit;
-    *recursion_limit = init;
+    work->limit = init;
     frame = &work->frame[0];
     vp = frame->vp;
     vwd = VWD0;
     work->adivw = (short)(hwd / 2);
-    vertical_bound = &work->adivh;
-    *vertical_bound = (short)(vwd / 2);
-    shift_or_depth2 = shift;
-    ot_or_depth0 = ot->org;
+    work->adivh = (short)(vwd / 2);
+    shift_or_depth2 = context.shift;
+    ot_or_depth0 = context.ot->org;
     init = 150;
     work->adivz = init;
     setlen(&work->packet, GPU_POLY_GT4_LENGTH);

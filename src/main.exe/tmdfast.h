@@ -347,12 +347,18 @@ typedef struct
     ADIV_FRAME frame[1]; /* 0xe0 recursion frames, one per depth level */
 } ADIV_WORK;
 
+/* Per-batch ordering-table settings and the subdivision workspace. */
+typedef struct
+{
+    u_long shift;
+    GsOT *ot;
+    ADIV_WORK *work;
+} ADIV_RENDER_CONTEXT;
+
 PACKET *adiv_tng4_(TmdTexturedGouraudQuadRecord *primitive, VERT *vertices,
-                   PACKET *packet, int count, u_long shift,
-                   GsOT *ot, ADIV_WORK *work);
+                   PACKET *packet, int count, ADIV_RENDER_CONTEXT context);
 PACKET *adiv_tnf4_(TmdTexturedFlatQuadRecord *primitive, VERT *vertices,
-                   PACKET *packet, int count, u_long shift,
-                   GsOT *ot, ADIV_WORK *work);
+                   PACKET *packet, int count, ADIV_RENDER_CONTEXT context);
 void subdivide_quad_(ADIV_FRAME *frame, ADIV_WORK *work, int depth);
 
 enum
