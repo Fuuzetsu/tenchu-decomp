@@ -3639,3 +3639,17 @@ typed time store invalidates the cached preset-field read, reproducing its
 it; changing only the destination to scalar pointer arithmetic restored the
 reload but materialized the wrong constant-address form. Use a consistent,
 meaningful record layout across callers, and verify their complete image too.
+
+**Repeated address loads can be a spilled buffer pointer, not missed hoisting.**
+`BuildTrialCollisionMap` needs a working `TrialCollisionData *map` initialized
+at function entry, after its scalar initializers, and used for clearing,
+copying, and bounding the packed nodes. Its lifetime spans the tile-building
+and merging passes. In the matching RTL, that pointer has no hard-register
+assignment; reload rematerializes its known address where the packing loops
+use it. Direct global accesses instead retain a base across `memset` and hoist
+the node base, producing 3,348 instead of 3,360 bytes. The named pointer fixes
+the body without changing the real loops, layout, frame, or compiler options.
+Returning the buffer symbol directly places the final LUI before register
+restoration; returning the working pointer moves it after the restores. The
+former closes the complete match. Declaration/initialization order matters:
+placing this pointer before the scalar initializers changes earlier allocation.

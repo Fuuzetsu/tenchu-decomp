@@ -10,8 +10,8 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  567 functions / 298,052 bytes now compile as exact C, including startup,
+- **TRIAL.EXE game/editor decompilation and humanisation is complete (2026-10-31).**
+  568 functions / 301,412 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -28,9 +28,9 @@ byte-identical `main.exe`.
   now compile exactly too. Trigger/arrow traps, collapsing floors, patrol captions,
   the overview frame, character thumbnails, terrain/character viewports, chunk
   rendering, the interactive L1 preview, cached tile rendering, and the terrain-model
-  builder, editor resource loader, menu input, preset-record saving, and terrain,
-  character, and patrol editing
-  controllers are also exact C. A repeatable
+  builder, collision-map generation, editor resource loader, menu input,
+  preset-record saving, and terrain, character, and patrol editing controllers
+  are also exact C. A repeatable
   PCSX-Redux check enters terrain editing through Create/settings/card check and verifies
   cursor movement. Its save scenario also verifies the complete on-card mission
   payload after returning to the editor. The keyboard scenario verifies category
@@ -47,13 +47,13 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  585/586 rows and 304,424/307,784 bytes. Graphics preserves TRIAL's larger
+  586/586 rows and 307,784/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
-  and AI state are C-owned. Continue
-  with the one remaining compiled routine: the 3,360-byte collision-map
-  builder. Full-image equality
-  and readable source remain required; this is not a completion claim.
+  and AI state are C-owned. The complete 555,008-byte TRIAL.EXE matches retail;
+  all six executable checks and 40 focused tests pass. The local decomp.dev
+  report is updated. Its whole-image denominator includes 630 SDK/CRT routines
+  that remain assembly and are excluded from game/editor completion.
   See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).
 - **ENDING.EXE game/engine decompilation is complete (2026-10-21).** All
   175 functions / 42,760 bytes compile from readable, exact C in fifteen

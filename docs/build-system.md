@@ -474,8 +474,12 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 567 matching C functions /
-298,052 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL game/editor recovery is complete (2026-10-31): 568 matching C functions /
+301,412 bytes, plus 18 verified canonical handwritten routines / 6,372 bytes.
+All 586 game/editor functions / 307,784 bytes are recovered, and the complete
+555,008-byte executable matches retail. The 630 SDK/CRT routines remain
+assembly and are excluded from that game/editor count.
+The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -1035,12 +1039,14 @@ characters can occupy multiple slots. Placement resets the patrol length, and
 Select/L1 retain the command-menu and preview transitions. The screen shares
 the recovered terrain-support classifier and named editor sprites.
 
-`BuildTrialCollisionMap` now has a readable guarded draft covering tile and
+`BuildTrialCollisionMap` now matches all 3,360 bytes as readable C covering tile and
 ornament surfaces, two rectangle-merging passes, and height-indexed packing.
-Its four thin-ornament edge masks (eight bytes) are C-owned. The default build
-still uses its assembly fallback: the draft is 3,348 bytes against 3,360, with
-constant-address hoisting and register allocation unresolved in the packing
-pass. It receives no C-function credit; see the collision investigation in
+Its four thin-ornament edge masks (eight bytes) are C-owned. A working buffer
+pointer initialized alongside the scalar locals spans the whole build and
+preserves the original address rematerialization in the packing loops. The
+return uses the buffer symbol directly, preserving the epilogue's address-load
+order. The full 0x4450-byte frame, 1,088-node workspace, two merge passes,
+eleven level headers, and zero terminator match. See the collision investigation in
 [the matching archive](matching-archive.md#trial-collision-builder--2026-10-31).
 
 Taking ownership of the face tables also requires retaining the pre-existing
@@ -1133,12 +1139,21 @@ to the editor. It preserves the route and verifies the complete 7,484-byte
 mission payload after saving, returning at VSync 3,976. Mission completion
 and each failure sequence still lack dedicated runtime scenarios.
 
-The 567-function checkpoint passes all six executable hashes and all 40 focused
+The 568-function completion checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 567/1,216 exact TRIAL rows and 298,052/466,728 TRIAL code
-bytes. Across all targets it records 1,499 complete functions and 719,240
+3,449 units, including 568/1,216 exact TRIAL rows and 301,412/466,728 TRIAL code
+bytes. Across all targets it records 1,500 complete functions and 722,600
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
+
+The final `--preview --text-entry --patrols --playtest --save` PCSX-Redux run
+also passes with the collision builder compiled. It verifies text export,
+43 preview polls, 144 character-placement polls, 231 patrol-editing polls,
+and 83 mission polls with four activation calls and 82 timer/notice updates.
+It returns to terrain editing at VSync 4,816 and verifies the full 7,484-byte
+`BISLPS-01901M015b6c0` payload on the temporary memory card. This covers the
+generated test terrain and abort path; obstacle/ornament collision variants
+and each mission completion/failure path still lack dedicated runtime scenarios.
 
 TRIAL also contains all 18 of MAIN's already-approved handwritten originals:
 `eval_spline_gte_`, `DrawTMD`, and the sixteen primitive handlers. The spline
@@ -1151,8 +1166,8 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 585/586 rows and 304,424/307,784 bytes; the compiled
-collision-map builder / 3,360 bytes remains. The assembly classification adds no decomp.dev
+game completion is 586/586 rows and 307,784/307,784 bytes; no compiled
+game/editor assembly fallbacks remain. The assembly classification adds no decomp.dev
 C credit.
 
 `ReadTrialMenuPad` now matches all 84 bytes as readable C: poll unless

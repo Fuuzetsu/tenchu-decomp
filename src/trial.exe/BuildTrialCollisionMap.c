@@ -22,12 +22,7 @@ extern TrialCollisionData TrialCollisionMap;
  * belong to a thin ornament; exposed edges extend that raised surface. */
 static u16 TrialThinOrnamentEdgeMasks[];
 
-/* STATUS: NON_MATCHING. The readable draft is 3348 bytes against retail's
- * 3360. Constant-address hoisting in the final packing pass changes register
- * allocation; keep the original routine until the complete image matches. */
-#ifndef NON_MATCHING
-INCLUDE_ASM(".shake/gen/trial.exe/asm/nonmatchings/BuildTrialCollisionMap", BuildTrialCollisionMap);
-#else
+/* Build and merge terrain surfaces, then serialize them by collision level. */
 AreaMapType *BuildTrialCollisionMap(void)
 {
     AreaNodeType nodes[TRIAL_COLLISION_NODE_CAPACITY];
@@ -40,6 +35,7 @@ AreaMapType *BuildTrialCollisionMap(void)
     short neighbor_x, neighbor_z;
     short mask;
     short axis, merged;
+    TrialCollisionData *map = &TrialCollisionMap;
 
     /* The collision map uses tenths of the renderer's world coordinates. */
     for (; z >= 0; z -= ++x >= TRIAL_MAP_WIDTH ? (x = 0, 1) : 0)
@@ -224,7 +220,7 @@ AreaMapType *BuildTrialCollisionMap(void)
 
     /* Emit levels -8..0 and the death floor at +30. The eleventh header
      * remains zero as the engine's index terminator. */
-    memset(&TrialCollisionMap, 0, sizeof(TrialCollisionMap));
+    memset(map, 0, sizeof(TrialCollisionMap));
     i = 0;
     for (axis = -8; axis <= 30; axis += axis < 0 ? 1 : 30)
     {
@@ -236,9 +232,9 @@ AreaMapType *BuildTrialCollisionMap(void)
                 ((nodes[j].y == axis * 100 && nodes[j].dy == 0) ||
                  (axis == 0 && nodes[j].y <= 0)))
             {
-                TrialCollisionMap.nodes[i] = nodes[j];
-                if (TrialCollisionMap.nodes[i].attribute & MAP_WATER)
-                    TrialCollisionMap.nodes[i].y += 10;
+                map->nodes[i] = nodes[j];
+                if (map->nodes[i].attribute & MAP_WATER)
+                    map->nodes[i].y += 10;
                 nodes[j].division = 0;
                 i++;
                 level->n++;
@@ -248,7 +244,7 @@ AreaMapType *BuildTrialCollisionMap(void)
         level->x2 = level->z2 = -32768;
         for (j = level->index; j < i; j++)
         {
-            node = &TrialCollisionMap.nodes[j];
+            node = &map->nodes[j];
             if (node->x1 < level->x1) level->x1 = node->x1;
             if (node->x2 > level->x2) level->x2 = node->x2;
             if (node->z1 < level->z1) level->z1 = node->z1;
@@ -260,8 +256,6 @@ AreaMapType *BuildTrialCollisionMap(void)
     }
     return (AreaMapType *)&TrialCollisionMap;
 }
-
-#endif
 
 static u16 TrialThinOrnamentEdgeMasks[4] __attribute__((section(".data"))) = {
     0xf000, 0x8888, 0x000f, 0x1111

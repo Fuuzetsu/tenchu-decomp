@@ -250,6 +250,7 @@ def draft_shape(name):
 # small globals the function's ORIGINAL translation unit defined).
 GP_EXTERNS = {
     "UpdateTrialRecordSave": ["TrialResultsButtons", "TrialSelectedMission"],
+    "BuildTrialCollisionMap": ["TrialTileDefinitions"],
     "WORLD": ["StageID", "mma", "ObjectArc", "ThinkBudgetRaw", "ThinkBudget", "ThinkCount"],
     "3DCTRL": ["GameClock", "SkipFrame", "DrawingPage", "PacketUsed", "OTablePt", "time"],
     "FILEIO": ["AccessPower", "ReadMode", "TotalIO", "MemoryLoadAddress", "MDfat"],

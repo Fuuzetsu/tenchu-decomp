@@ -1722,6 +1722,9 @@ complete `+0x10004` growth proof still pass.
 
 ## TRIAL collision builder — 2026-10-31
 
+Historical investigation; all three residuals below were resolved in the
+completion follow-up at the end of this section.
+
 `BuildTrialCollisionMap` has a guarded 3,348-byte draft; retail is 3,360 bytes.
 The default build retains the original assembly. Its eight-byte cardinal edge
 mask table is now C-owned. The draft names the 1,088-node workspace, eleven
@@ -1778,3 +1781,39 @@ and inhibit types, declaration order, reads through the updated pointer, and
 small polling/rising-edge helpers leave the residual. A two-field snapshot
 aggregate adds stack traffic (96 bytes). The plain scalar version is retained;
 all three routines remain excluded from exact C progress.
+
+### TRIAL completion follow-up — 2026-10-31
+
+All three routines now match in the complete executable using ordinary C.
+`ReadTrialMenuPad` computes a changed-button mask, stores the current snapshot,
+then reduces the original working value to the newly pressed subset. That
+value's extended lifetime prevents CSE from reversing the initial load/copy.
+The 84-byte routine needs neither an artificial operation nor a fence.
+
+`UpdateTrialRecordSave` exposed a declaration problem: the adjacent preset
+index and file-kind halfwords are now one inferred `TrialSelectedMission`
+record. A typed time write correctly invalidates the cached preset-field
+read, reproducing the original reload and all 316 bytes. Every menu/card
+caller uses the same record and the full image remains identical. The old
+destination-cast experiments had been correcting the wrong side of aliasing.
+
+For `BuildTrialCollisionMap`, changing storage views, using an incomplete
+array or opaque storage type, caching individual node pointers, and spelling
+the inner scans as explicit backedges did not match. Small-object anchor
+declarations were diagnostic only and were not adopted. The solution keeps
+the full, correctly sized `TrialCollisionData` declaration: initialize a
+working `map` pointer after the scalar initializers, before the tile loop,
+and use it for `memset`, output-node copies, and output-node bounds. Its long
+lifetime makes global allocation leave it without a hard register; reload
+rematerializes the address at the original sites. The frame remains 0x4450.
+Returning `map` left exactly one LUI displaced across the epilogue restores
+(26 differing image bytes). Returning the buffer symbol directly closes the
+full 3,360-byte match. No source-level loop changes are needed.
+
+The completion checkpoint is 568 C routines / 301,412 bytes plus 18 approved
+handwritten routines / 6,372 bytes: all 586 game/editor routines / 307,784
+bytes. All six complete executable checks and 40 focused tests pass. The
+local decomp.dev report records 1,500 complete functions and 722,600 complete
+code bytes across targets; canonical assembly receives no C credit.
+The final combined preview/text/patrol/playtest/save emulator probe also passes,
+including the full 7,484-byte saved-mission payload comparison.
