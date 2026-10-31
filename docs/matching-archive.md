@@ -1867,7 +1867,7 @@ Newly included residuals, measured against the current complete-unit objects:
 | --- | --- | --- |
 | `AfsGetEntry` | Removing its three wrappers keeps 564 bytes but changes 246 bytes and relocation positions. | A real entry `do/while` or `for` loop instead emits 596 bytes. The allocation-failure boundary and packed-entry scan still need a coherent source reconstruction. |
 | `SetCameraMode` (resolved below) | Remove only the four-transform wrapper: 844 rather than 832 bytes. | Endpoint arrays and a working position cursor now remove it exactly. |
-| `GetAreaMapLevel` | Remove the outer wrapper: 1,168 bytes, 82 differing bytes, identical relocations. | The broad terrain-query region changes allocation. |
+| `GetAreaMapLevel` (resolved below) | Remove the outer wrapper: 1,168 bytes, 82 differing bytes, identical relocations. | Typed fields, indexed traversal, and separate floor-acceptance cases now remove it exactly. |
 | `AddMisc` | Remove both wrappers: 540 rather than 532 bytes. | Slot selection and initialization boundaries remain unresolved. |
 | `subdivide_quad_` | Remove the depth-read wrapper and two packet-copy wrappers: 3,796 bytes, 183 differing bytes, identical relocations. | Depth and packet-emission lifetimes still need reconstruction. |
 | `adiv_tng4_` / `adiv_tnf4_` | Make `ot` ordinary: both retain 920 bytes, with 94/89 differing bytes and changed relocation positions. | These are non-hardware parameter qualifiers retained for compiler scheduling. Pairing their removal with ordinary workspace fields does not close the match; the best tested Gouraud combination is 42 bytes different. |
@@ -1972,3 +1972,33 @@ The next bounded set of probes did not produce another acceptable match:
 These are failed source-shape measurements, not evidence that further
 humanisation is impossible. The goal and the complete residual queue above
 remain active; the checked camera change is still the latest code checkpoint.
+
+### Terrain-height traversal completed
+
+`GetAreaMapLevel` now matches all 1,168 bytes without its outer wrapper. It uses
+`NodeIndexType` fields directly, ordinary backward/forward row searches, and
+indexed row and leaf loops. The unused raw row-offset macros are removed from
+`game_types.h`. All traversal labels disappear: invalid grid cells continue
+the row loop; first-hit and final-material results break the leaf loop.
+
+The successful combination was measured in stages. Typed row traversal with
+the old leaf backedge leaves 24 bytes different (height/count registers).
+Computing `node = &list[n]` inside a real leaf `for` loop preserves the exact
+instruction sequence and size but leaves 40 bytes different (X/Z/count
+registers). Keeping distinct first-valid-floor and closer-replacement cases
+then closes the match. Each change on its own misses; their combination is
+ordinary C and exact. The compiler merges their common material/height update.
+Explicitly maintaining both node and integer induction variables in the real
+leaf loop instead adds 36 bytes. Normalizing return forms, local types,
+initialization order, and inline grid/coordinate helpers did not close the
+intermediate residuals.
+
+All six executable checks pass, the local report is regenerated, 46 focused
+tests pass, and all 18 handwritten routines / 6,372 bytes plus their primitive
+dispatch table remain verified. The recursive humanisation scan now reports
+12 candidate files, including the already-reviewed byte-addressing idioms.
+Matching counts are unchanged; no new runtime coverage is claimed. The
+remaining humanisation queue and goal stay active.
+
+The image helpers' additional `ty`/`th`/`px` local-type probes also did not
+improve their ten-byte residual. Their empty loops remain unresolved.

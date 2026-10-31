@@ -405,18 +405,6 @@ struct NodeIndexType
     s16 z2;     /* 0x0E */
 }; /* 0x10 */
 
-/* GetAreaMapLevel's load-bearing cursor is based at NodeIndexType.index.
- * These accessors retain that address shape while naming the surrounding
- * halfword fields. */
-#define NODE_INDEX_BYTE_OFFSET(member) \
-    ((s32)&((NodeIndexType *)0)->member)
-#define NODE_INDEX_ROW_S16_OFFSET(member)                              \
-    ((NODE_INDEX_BYTE_OFFSET(member) - NODE_INDEX_BYTE_OFFSET(index)) / \
-     (s32)sizeof(s16))
-#define NODE_INDEX_ROW_FIELD(row, member) \
-    (((s16 *)(row))[NODE_INDEX_ROW_S16_OFFSET(member)])
-#define NODE_INDEX_ROW_WORDS (sizeof(NodeIndexType) / sizeof(s32))
-
 /* CONFLICT.C's lookup table for a subdivided area-node list. The leading
  * word is an offset on disk and an AreaNodeType pointer after relocation. */
 #define AREA_INDEX_AXIS_SIZE 4

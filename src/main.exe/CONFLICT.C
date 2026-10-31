@@ -160,7 +160,6 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
                      enum area_level_mode_flag mode)
 {
     long n;
-    long *row;
     NodeIndexType *index;
     AreaNodeType *node;
     AreaNodeType *list;
@@ -180,124 +179,100 @@ long GetAreaMapLevel(AreaMapType *area, long x, long y, long z,
     z = z / 10;
     y2 = y / 10;
     yy = LEVEL_NONE;
-    /* Wrapper retained for code layout; its original source construct is unknown. */
-    do
+    if (mode & AREA_LEVEL_STEP_DOWN)
+        y2 -= 150;
+
+    if (y2 == AreaMapLastY && (mode & AREA_LEVEL_REUSE_CACHED) &&
+        FieldArea->x1 <= x && x <= FieldArea->x2 &&
+        FieldArea->z1 <= z && z <= FieldArea->z2)
     {
-        if (mode & AREA_LEVEL_STEP_DOWN)
-            y2 -= 150;
+        yy = ComputeAreaLevel(FieldArea, x, z);
+    }
+    AreaMapLastY = y2;
 
-        if (y2 == AreaMapLastY && (mode & AREA_LEVEL_REUSE_CACHED) &&
-            FieldArea->x1 <= x && x <= FieldArea->x2 &&
-            FieldArea->z1 <= z && z <= FieldArea->z2)
-        {
-            yy = ComputeAreaLevel(FieldArea, x, z);
-        }
-        AreaMapLastY = y2;
-
-        if (index != (NodeIndexType *)area)
-        {
-        down:
-            if (y2 < index->y)
-            {
-                index--;
-                if (index != (NodeIndexType *)area)
-                    goto down;
-            }
-        }
+    while (index != (NodeIndexType *)area && y2 < index->y)
+        index--;
+    if (index->index != 0)
+    {
+        while (index->index != 0 && index->y < y2)
+            index++;
         if (index->index != 0)
         {
-        up:
-            if (index->y < y2)
+            first_hit = mode16 & AREA_LEVEL_FIRST_HIT;
+            for (; index->index != 0 && yy == (u32)LEVEL_NONE; index++)
             {
-                index++;
-                if (index->index != 0)
-                    goto up;
-            }
-            if (index->index != 0)
-            {
-                row = &index->index;
-                first_hit = mode16 & AREA_LEVEL_FIRST_HIT;
-            loop:
-                if (yy == (u32)LEVEL_NONE)
+                if (index->x1 <= x && x <= index->x2 &&
+                    index->z1 <= z && z <= index->z2)
                 {
-                    if (NODE_INDEX_ROW_FIELD(row, x1) <= x &&
-                        x <= NODE_INDEX_ROW_FIELD(row, x2) &&
-                        NODE_INDEX_ROW_FIELD(row, z1) <= z &&
-                        z <= NODE_INDEX_ROW_FIELD(row, z2))
+                    nn = index->n;
+                    list = (AreaNodeType *)index->index;
+                    n = 0;
+                    if (nn < 0)
                     {
-                        nn = NODE_INDEX_ROW_FIELD(row, n);
-                        list = (AreaNodeType *)*row;
-                        n = 0;
-                        if (nn < 0)
+                        /* A negative count selects a spatially indexed list. */
+                        qx = (x - index->x1) * AREA_INDEX_AXIS_SIZE /
+                             (index->x2 - index->x1);
+                        qz = (z - index->z1) * AREA_INDEX_AXIS_SIZE /
+                             (index->z2 - index->z1);
+                        n = ((IndexArrayType *)index->index)->array[qz][qx];
+                        if (n == AREA_NODE_INDEX_NONE)
+                            continue;
+                        list = (AreaNodeType *)((IndexArrayType *)index->index)->index;
+                        nn = -nn;
+                    }
+                    for (; n < nn; n++)
+                    {
+                        node = &list[n];
+                        if (z < node->z1)
+                            break;
+                        if (node->x1 <= x && x <= node->x2 && z <= node->z2)
                         {
-                            qx = (x - NODE_INDEX_ROW_FIELD(row, x1)) *
-                                     AREA_INDEX_AXIS_SIZE /
-                                 (NODE_INDEX_ROW_FIELD(row, x2) -
-                                  NODE_INDEX_ROW_FIELD(row, x1));
-                            qz = (z - NODE_INDEX_ROW_FIELD(row, z1)) *
-                                     AREA_INDEX_AXIS_SIZE /
-                                 (NODE_INDEX_ROW_FIELD(row, z2) -
-                                  NODE_INDEX_ROW_FIELD(row, z1));
-                            n = ((IndexArrayType *)*row)->array[qz][qx];
-                            if (n == AREA_NODE_INDEX_NONE)
-                                goto next;
-                            list = (AreaNodeType *)((IndexArrayType *)*row)->index;
-                            nn = -nn;
-                        }
-                        if (n < nn)
-                        {
-                            node = (AreaNodeType *)(n * (long)sizeof(AreaNodeType) +
-                                                    (long)list);
-                        inner:
-                            if (z >= node->z1)
+                            FieldIndex = index;
+                            FieldArea = node;
+                            if (first_hit)
                             {
-                                if (node->x1 <= x && x <= node->x2 && z <= node->z2)
+                                if (node->division == AREA_DIVISION_ALL)
+                                    yy = node->y;
+                                else
+                                    yy = ComputeAreaLevel(node, x, z);
+                                FieldAttrib = FieldArea->attribute;
+                                break;
+                            }
+                            sy = ComputeAreaLevel(node, x, z);
+                            if (yy == (u32)LEVEL_NONE)
+                            {
+                                /* The first floor must satisfy the query height. */
+                                if (y2 <= sy)
                                 {
-                                    FieldIndex = index;
-                                    FieldArea = node;
-                                    if (first_hit)
-                                    {
-                                        if (node->division == AREA_DIVISION_ALL)
-                                            yy = node->y;
-                                        else
-                                            yy = ComputeAreaLevel(node, x, z);
-                                        FieldAttrib = FieldArea->attribute;
-                                        goto next;
-                                    }
-                                    sy = ComputeAreaLevel(node, x, z);
-                                    if ((yy == (u32)LEVEL_NONE || sy < yy) && y2 <= sy)
-                                    {
-                                        FieldAttrib = FieldArea->attribute;
-                                        yy = sy;
-                                        if (FieldAttrib & MAP_RESULT_FINAL)
-                                            goto next;
-                                    }
+                                    FieldAttrib = FieldArea->attribute;
+                                    yy = sy;
+                                    if (FieldAttrib & MAP_RESULT_FINAL)
+                                        break;
                                 }
-                                n++;
-                                node++;
-                                if (n < nn)
-                                    goto inner;
+                            }
+                            else if (sy < yy && y2 <= sy)
+                            {
+                                /* Replace it only with a closer eligible floor. */
+                                FieldAttrib = FieldArea->attribute;
+                                yy = sy;
+                                if (FieldAttrib & MAP_RESULT_FINAL)
+                                    break;
                             }
                         }
                     }
-                next:
-                    row += NODE_INDEX_ROW_WORDS;
-                    index++;
-                    if (*row != 0)
-                        goto loop;
                 }
             }
         }
-        if (yy == (u32)LEVEL_NONE || FieldAttrib & MAP_BUOYANT)
-            return LEVEL_NONE;
-        yy = yy * 10;
-        y2 = yy - y;
-        if (y2 < -1000 && (mode16 & AREA_LEVEL_ALLOW_DEEP) == 0)
-        {
-            return LEVEL_NONE;
-        }
-        ret = yy;
-    } while (0);
+    }
+    if (yy == (u32)LEVEL_NONE || FieldAttrib & MAP_BUOYANT)
+        return LEVEL_NONE;
+    yy = yy * 10;
+    y2 = yy - y;
+    if (y2 < -1000 && (mode16 & AREA_LEVEL_ALLOW_DEEP) == 0)
+    {
+        return LEVEL_NONE;
+    }
+    ret = yy;
     if (mode16 & AREA_LEVEL_RETURN_DELTA)
         ret = y2;
     return ret;

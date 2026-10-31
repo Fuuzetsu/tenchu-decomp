@@ -1018,8 +1018,10 @@ decides notes, hoisting, rotation, and delay-slot fills:**
 - **Humanising gotos: try ACYCLIC guard inversion before any goto->loop
   conversion** (round-7 doctrine, 2026-08-31, 10 gotos + 10 labels removed
   across four files). Converting a goto loop into `while`/`for`/`do` adds
-  NOTE_INSN_LOOP_BEG/END and re-weights every ref in the body (GetAreaMapLevel
-  remains 216/196). Always test the whole graph, though: PlayMusicFormID's
+  NOTE_INSN_LOOP_BEG/END and re-weights every ref in the body. Always test the
+  whole graph, though: `GetAreaMapLevel` is now exact with ordinary loops
+  after the connected changes described in the TRIAL follow-up below.
+  PlayMusicFormID's
   five natural loop forms looked 43 lines wrong only while its invented table
   aliases, integer-address helper, and fence remained; removing those together
   makes the direct sentinel `while` exact. The same labels often come off with
@@ -3733,6 +3735,23 @@ endpoint addresses and emits 844 bytes. Moving declarations into the case or
 loop, or grouping the points without the cursor, does not prevent that.
 The reference pair can also be represented as an array exactly. These are
 inferred local representations, not recovered original declarations.
+
+`GetAreaMapLevel` removes its one-shot wrapper and all traversal labels with
+three connected changes: direct `NodeIndexType` fields, real index/leaf loops,
+and separate first-floor/replacement acceptance cases. In the leaf loop,
+derive `node = &list[n]` from its index each iteration. Explicitly incrementing
+both `n` and `node` in a real loop instead creates extra induction setup and
+emits 1,204 bytes. Indexed access gives the target 1,168 bytes; the two distinct
+acceptance cases then close the register-allocation residual. Their shared
+material/height updates merge in generated code. The old raw row-offset macros
+are no longer needed.
+
+The partial results explain why these changes must be evaluated together:
+typed index traversal with the old leaf backedge leaves 24 differing bytes;
+converting only the leaf scan to indexed `for` leaves 40; separating the
+acceptance cases alone also leaves 40. The complete source is exact. Replacing
+the remaining row-exit gotos with `break` or `continue`, and removing the old
+wrapper's plain scope, then preserves the match too.
 
 `tools/humanscan.py --target trial.exe --headers` now detects standalone empty
 and nonempty one-shot loops, object volatile qualifiers, discarded volatile

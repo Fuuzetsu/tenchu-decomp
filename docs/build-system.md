@@ -1196,15 +1196,22 @@ reference and position endpoints are represented as two arrays; a working
 point cursor fills the position pair and resets for the ground trace. Every
 pointer value is consumed, and all 832 bytes and six executable hashes match.
 
+`GetAreaMapLevel` now accesses `NodeIndexType` directly and traverses both
+index rows and leaf nodes with ordinary loops. The first eligible floor and
+a closer replacement have separate acceptance cases. This removes the
+one-shot wrapper, every traversal label, and the raw row-offset macros while
+preserving all 1,168 bytes. All six executable checks and 46 focused tests
+pass; the local report retains its existing matching counts.
+
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops and the identical arms in `push_from_walls_`,
 `PutLifeBar`, and `Think3escape`.
 The collision probe's redundant mode aliases still need separate review.
 Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
-`GetAreaMapLevel`, `AddMisc`, and `subdivide_quad_`, plus
+`AddMisc` and `subdivide_quad_`, plus
 the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
 are documented compiler constraints, not evidence of hardware-backed parameter
-objects. The expanded scan currently reports thirteen files with review
+objects. The expanded scan currently reports twelve files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not
