@@ -49,7 +49,7 @@ void PrepareTrialCardIcon(TCardHeader *header, s16 operation)
     switch (operation)
     {
     case TRIAL_CARD_ICON_LOAD:
-        if (TrialUserMission != 0)
+        if (TrialSelectedMission.is_user_mission != 0)
         {
             sprintf(filename, CardPathFormat, path_trial_card_image_root,
                     archives[TrialMission.header.theme]);
@@ -106,7 +106,7 @@ card_result SaveCard(s32 target, u8 *name, void *mem, s32 size, s16 overwrite)
     memset(header->Title, 0, sizeof(header->Title));
     channel = MEMCARD_CHANNEL_0;
     data = block.payload;
-    if (TrialUserMission != 0)
+    if (TrialSelectedMission.is_user_mission != 0)
     {
         sprintf(header->Title, fmt_trial_save_title, TrialMission.header.title);
     }

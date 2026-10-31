@@ -249,6 +249,7 @@ def draft_shape(name):
 # shake/src/Build.hs (ASPSX gp-addresses only TU-local definitions; these are the
 # small globals the function's ORIGINAL translation unit defined).
 GP_EXTERNS = {
+    "UpdateTrialRecordSave": ["TrialResultsButtons", "TrialSelectedMission"],
     "WORLD": ["StageID", "mma", "ObjectArc", "ThinkBudgetRaw", "ThinkBudget", "ThinkCount"],
     "3DCTRL": ["GameClock", "SkipFrame", "DrawingPage", "PacketUsed", "OTablePt", "time"],
     "FILEIO": ["AccessPower", "ReadMode", "TotalIO", "MemoryLoadAddress", "MDfat"],

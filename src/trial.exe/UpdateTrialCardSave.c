@@ -89,13 +89,13 @@ short UpdateTrialCardSave(u_long pressed, short records_only)
         }
         break;
     case SAVE_CHECK_ID:
-        if (!TrialUserMission || TrialMission.header.checksum)
+        if (!TrialSelectedMission.is_user_mission || TrialMission.header.checksum)
             TrialCardSaveState = SAVE_FIND_FILE;
         else
             TrialCardSaveState = SAVE_ACCEPT_CARD;
         break;
     case SAVE_FIND_FILE:
-        if (TrialUserMission)
+        if (TrialSelectedMission.is_user_mission)
             sprintf(filename, fmt_trial_card_path, TrialCardMissionPrefix,
                 TrialMission.header.checksum);
         else
@@ -143,7 +143,7 @@ short UpdateTrialCardSave(u_long pressed, short records_only)
         TrialCardSaveState = SAVE_NEW_WAIT_1;
         break;
     case SAVE_NEW_CHECKSUM:
-        if (!TrialUserMission)
+        if (!TrialSelectedMission.is_user_mission)
         {
             TrialCardSaveState = SAVE_CREATE_GAME;
             break;
@@ -192,7 +192,7 @@ short UpdateTrialCardSave(u_long pressed, short records_only)
         if (!records_only)
             TrialCardSavePage = TRIAL_CARD_PAGE_OVERWRITE_PROMPT;
         else
-            TrialCardSavePage = TrialUserMission ? TRIAL_CARD_PAGE_OVERWRITE_PROMPT
+            TrialCardSavePage = TrialSelectedMission.is_user_mission ? TRIAL_CARD_PAGE_OVERWRITE_PROMPT
                 : CARD_PAGE_OVERWRITE_GAME_DATA_PROMPT;
         break;
     case SAVE_OVERWRITE_ACCEPTED:
@@ -235,7 +235,7 @@ short UpdateTrialCardSave(u_long pressed, short records_only)
             break;
         }
         TrialCardSaveRetry = 0;
-        if (!TrialUserMission)
+        if (!TrialSelectedMission.is_user_mission)
         {
             TrialCardSaveState = SAVE_OVERWRITE_GAME;
             break;

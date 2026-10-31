@@ -11,7 +11,7 @@ byte-identical `main.exe`.
 ## Status ✅
 
 - **TRIAL.EXE decompilation and humanisation in progress (2026-10-31).**
-  565 functions / 297,652 bytes now compile as exact C, including startup,
+  567 functions / 298,052 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
   humanoid, AI, HUD, pause, card-I/O, character-action, effects, and item variants.
@@ -28,7 +28,8 @@ byte-identical `main.exe`.
   now compile exactly too. Trigger/arrow traps, collapsing floors, patrol captions,
   the overview frame, character thumbnails, terrain/character viewports, chunk
   rendering, the interactive L1 preview, cached tile rendering, and the terrain-model
-  builder, editor resource loader, and terrain, character, and patrol editing
+  builder, editor resource loader, menu input, preset-record saving, and terrain,
+  character, and patrol editing
   controllers are also exact C. A repeatable
   PCSX-Redux check enters terrain editing through Create/settings/card check and verifies
   cursor movement. Its save scenario also verifies the complete on-card mission
@@ -46,12 +47,12 @@ byte-identical `main.exe`.
   at `0x80060b94` and remains assembly. A full-span relocation check proves
   that another 18 routines / 6,372 bytes are copies of MAIN's already-approved
   handwritten originals. These count separately from C: game completion is
-  583/586 rows and 304,024/307,784 bytes. Graphics preserves TRIAL's larger
+  585/586 rows and 304,424/307,784 bytes. Graphics preserves TRIAL's larger
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. Continue
-  with the three remaining compiled routines (3,760 bytes): the collision-map
-  builder, record saving, and menu input. Full-image equality
+  with the one remaining compiled routine: the 3,360-byte collision-map
+  builder. Full-image equality
   and readable source remain required; this is not a completion claim.
   See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).
 - **ENDING.EXE game/engine decompilation is complete (2026-10-21).** All

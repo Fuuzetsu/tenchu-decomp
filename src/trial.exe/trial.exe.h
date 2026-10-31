@@ -39,8 +39,14 @@ extern char TrialTextEntry[32];
 extern char path_trial_image_archive[];
 extern Sprite3D *TrialMenuCursor;
 extern BackGround *TrialMenuBackground;
-/* Zero selects preset scores in TENCHU; one selects a user Mxxxxxxx file. */
-extern short TrialUserMission;
+/* The selected mission's preset index and save-file kind occupy adjacent
+ * halfwords. A user mission saves to its Mxxxxxxx file instead of TENCHU. */
+typedef struct TrialMissionSelection
+{
+    s16 preset_id;
+    s16 is_user_mission;
+} TrialMissionSelection;
+extern TrialMissionSelection TrialSelectedMission;
 /* Mission execution enables pause input while the HUD is active. */
 extern s16 InfoViewPauseEnabled;
 

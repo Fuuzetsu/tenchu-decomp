@@ -16,7 +16,7 @@ short ShowTrialMainMenu(void)
     ClearTrialDisplay(320, 480);
     InitTrialMenuGraphics();
     LoadTrialMenuGraphics();
-    TrialUserMission = 1;
+    TrialSelectedMission.is_user_mission = 1;
     SetDispMask(1);
     DrawSync(0);
     VSync(0);

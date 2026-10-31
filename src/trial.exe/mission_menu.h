@@ -150,7 +150,6 @@ extern Sprite3D *TrialOptionStealthLabels;
 extern Sprite3D *TrialOptionHeading;
 extern Sprite3D *TrialOptionHelp;
 extern Sprite3D *TrialOptionThemePreview;
-extern s16 TrialPresetId;
 extern u_long TrialResultsButtons;
 
 void LoadTrialSpriteStrip(ArcFile *archive, GsSPRITE *sprites,

@@ -528,7 +528,7 @@ maspsxGpExterns src = extra (takeBaseName src) <>
            "TrialCardDirectoryCursor", "TrialCardStatus"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "UpdateTrialRecordSave" =
-          ["TrialResultsButtons", "TrialPresetId", "TrialUserMission"]
+          ["TrialResultsButtons", "TrialSelectedMission"]
       | takeFileName (takeDirectory src) == "trial.exe" &&
         takeBaseName src == "ShowTrialResults" = ["TrialRecordRank", "TrialResultTime"]
       | takeFileName (takeDirectory src) == "trial.exe" &&

@@ -3620,3 +3620,22 @@ shift into that slot and matches the complete executable. Local condition,
 assignment, helper, and early-continue variations did not change that result.
 Try the ordinary enclosing loop forms before treating such a delay-slot
 residual as below the source level.
+
+**Keep the edge-mask stages when a snapshot copy is reversed by CSE.**
+`ReadTrialMenuPad` first copies the previous buttons into the current value,
+optionally polls, computes `changed = buttons ^ current`, stores the new
+snapshot, then reduces `buttons = changed & current` and returns it. Reusing
+that working value for the result changes its lifetime and preserves the
+original load into the saved register. A single return expression reverses
+the initial copy; reducing the working value directly in both operations
+instead removes the copy. The staged version matches all 84 bytes without
+extra operations.
+
+**Check the type of a reloaded global as well as the destination store.**
+The adjacent preset index and save-file flag form `TrialSelectedMission`.
+With a shared four-byte record declaration, `UpdateTrialRecordSave`'s ordinary
+typed time store invalidates the cached preset-field read, reproducing its
+316 bytes. Declaring that field as an independent scalar allowed CSE to reuse
+it; changing only the destination to scalar pointer arithmetic restored the
+reload but materialized the wrong constant-address form. Use a consistent,
+meaningful record layout across callers, and verify their complete image too.

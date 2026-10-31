@@ -214,7 +214,7 @@ short SelectTrialMission(short saved_only)
                 switch (UpdateTrialCardLoad(pressed, &headers[selected], 1))
                 {
                 case -1:
-                    TrialUserMission = 1;
+                    TrialSelectedMission.is_user_mission = 1;
                     phase++;
                     break;
                 case 1:

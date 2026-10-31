@@ -474,8 +474,8 @@ format. Internally the mode is called
 TRIAL (`IMAGE\TRIAL%d.TPD`, `HUMAN\MOTION\TRIAL%d.AMD`). `menu.exe`, `main.exe`
 and `slps_019.01` all name it in their exec tables.
 
-TRIAL recovery is in progress (2026-10-31): 565 matching C functions /
-297,652 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
+TRIAL recovery is in progress (2026-10-31): 567 matching C functions /
+298,052 bytes. The initial engine modules are VALLOC, 3DCTRL, AUDIO, CONFLICT,
 PADCMD, ACTION, CAMERA, MISC, IMAGES, and OPAUDIO; all except 3DCTRL include
 MAIN's implementation. The next checkpoint adds startup, FILEIO, the editor
 mode controller, main menu, menu graphics and sprite helpers, and 41 shared
@@ -805,9 +805,10 @@ The resource paths and switch tables own another 768 bytes of data.
 `SaveTrialEditorMission` adds 828 exact bytes and owns its two Japanese prompts
 and switch table (68 bytes). It validates and copies the working map back into
 the serialized mission, updates the modification checksum, and offers saving
-before asking whether to leave without saving. `UpdateTrialRecordSave` has a
-readable guarded draft, but is not counted as exact C: the typed time store removes the original's
-preset-ID reload, while a scalar store changes fixed-address materialization.
+before asking whether to leave without saving. `UpdateTrialRecordSave` is now
+316 exact C bytes: preset leaderboards update the extended TENCHU save, while
+user-mission records remain in their mission file. Both use the card-save state
+machine, with the original success/cancel return mapping.
 
 `UpdateTrialCardSave` adds 2,320 exact bytes and owns 492 bytes of switch tables.
 It handles new saves, replacement, checksum-name collisions, retries, optional
@@ -942,8 +943,7 @@ new-record page uses the protagonist-specific background and retains its
 different number positions. `ClearTrialDisplay` and its two inlined copies
 in `ShowTrialResultPage` share `display.h`. The timer switch table, result-page
 dispatch table, statistic-pointer initializer, strings, and paths add 276
-C-owned bytes. The guarded `UpdateTrialRecordSave` draft still needs matching;
-recovering its callers does not make that final callback C-complete.
+C-owned bytes. The final `UpdateTrialRecordSave` callback is also exact C.
 
 Ten terrain/editor routines add another 4,884 exact C bytes. The recovered
 code initializes the two map layers, looks up terrain heights, deduplicates
@@ -1133,10 +1133,10 @@ to the editor. It preserves the route and verifies the complete 7,484-byte
 mission payload after saving, returning at VSync 3,976. Mission completion
 and each failure sequence still lack dedicated runtime scenarios.
 
-The 565-function checkpoint passes all six executable hashes and all 40 focused
+The 567-function checkpoint passes all six executable hashes and all 40 focused
 source/inventory tests. The local decomp.dev report has been regenerated with
-3,449 units, including 565/1,216 exact TRIAL rows and 297,652/466,728 TRIAL code
-bytes. Across all targets it records 1,497 complete functions and 718,840
+3,449 units, including 567/1,216 exact TRIAL rows and 298,052/466,728 TRIAL code
+bytes. Across all targets it records 1,499 complete functions and 719,240
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
@@ -1151,15 +1151,27 @@ Run it after `./Build check-all`; its committed evidence is
 `config/handwritten-asm.trial.exe.txt` applies the existing classification to
 these verified copies, without adding exceptions. `tools/progress.py --target
 trial.exe` reports their 6,372 bytes separately from recovered C. Combined
-game completion is 583/586 rows and 304,024/307,784 bytes; three compiled game
-routines / 3,760 bytes remain. The assembly classification adds no decomp.dev
+game completion is 585/586 rows and 304,424/307,784 bytes; the compiled
+collision-map builder / 3,360 bytes remains. The assembly classification adds no decomp.dev
 C credit.
 
-`ReadTrialMenuPad` now has a readable guarded C draft: poll unless inhibited,
-update the held-button snapshot, and return rising edges. Both the draft and
-original are 84 bytes; four bytes differ in the initial load/copy register
-pair. The default build retains the original assembly, and the routine remains
-excluded from the C count. It is not canonical handwritten assembly.
+`ReadTrialMenuPad` now matches all 84 bytes as readable C: poll unless
+inhibited, update the held-button snapshot, and return rising edges. Computing
+the changed mask separately before reducing the working button value keeps
+the original initial load/copy order through cc1's CSE pass.
+
+`TrialSelectedMission` models the adjacent preset index and user-file flag as
+one four-byte selection record. This is an inferred representation, rather
+than a recovered demo type. Reading its preset field after writing a record
+time preserves the original reload in `UpdateTrialRecordSave`; the earlier
+independent-scalar declaration incorrectly let cc1 reuse that value. All
+selection, menu, and card callers use the same type and still match exactly.
+No volatile accesses, fixed-address aliases, or special compiler flags are
+needed. A fresh `--text-entry --save` runtime check passes with both routines
+compiled: menu/category navigation and text export succeed, and all 7,484
+bytes of `BISLPS-01901M015f980` match the mission payload after saving. It
+returns to terrain editing at VSync 2,388. The preset-leaderboard save branch
+still lacks its own runtime scenario.
 
 The reviewed game/SDK boundary is `0x80060b94`, immediately after `AdtSelect`.
 The first two 16-byte spans match MAIN's `Exec` and `Krom2RawAdd`; the following

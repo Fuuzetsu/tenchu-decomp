@@ -121,7 +121,7 @@ void LoadTrialPresetMission(TrialMissionPreview *preview)
         __builtin_memcpy(TrialMission.header.records[i].name.text,
                          TRIAL_PRESET_RECORD_NAME(preview->id, i).text, 10);
     }
-    TrialPresetId = preview->id;
-    TrialUserMission = 0;
+    TrialSelectedMission.preset_id = preview->id;
+    TrialSelectedMission.is_user_mission = 0;
     vfree(loaded);
 }
