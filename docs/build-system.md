@@ -1146,6 +1146,47 @@ bytes. Across all targets it records 1,500 complete functions and 722,600
 complete code bytes out of 1,231,032. Those report denominators include SDK
 assembly; the game/editor-only denominators remain 586 rows and 307,784 bytes. No remote report was published.
 
+The first follow-up humanisation checkpoint removes the discarded volatile load in
+`ActATTACK`, the cancelling angle update and empty loop in `ActSTICKON`, and
+the empty loop in `DrawImpact`. Normal-motion restoration now shares an inline
+implementation with `NowReturnNormal`; the other two routines express the
+real scalar lifetimes and signed direction narrowing. No artificial reads,
+empty-loop fences, new assembly, or compiler-option exceptions are added.
+The full executable still matches retail, all six image checks and 44 focused
+tests pass, and the regenerated local report retains the counts above.
+Readability work earns no additional matching credit.
+
+The five previously unnamed TRIAL header fields were also reviewed. Natural
+pointer and tail alignment account for `TrialTextCursor`'s halfwords at 0x06
+and 0x16 and `TrialGlyphPage`'s halfword at 0x0a; removing the explicit fields
+preserves all offsets and the 0x18/0x1c sizes. This is a sufficient inferred
+layout, not proof of the original declarations. `TrialTileDefinition`'s halfword
+at 0x02 is never accessed and is zero in all 228 records across the twelve
+shipped `THEME*.LND` files. It is named `unused`. The preview record's word
+at 0x10 is likewise unaccessed and named `unused`, but its original purpose
+remains unknown; it is retained rather than called alignment padding.
+
+The scanner now follows the 62 shared C includes used by TRIAL and detects
+identical assignment branches too. That exposed additional inherited debt.
+`set_boot_exec_` now uses a normal indexed filename-copy loop, removing its
+empty loop and magic-value carrier. `GetAreaMapVector` no longer repeats the
+same fallback return three times; keeping its sign-extended probe mode in a
+word-sized local preserves all 548 bytes. Both changes also preserve the
+other executable images that share their source.
+
+The humanisation goal is still active. Known remaining work is the two
+`SetupImageToPoly*` empty loops, `PlayVoice`'s empty loop and identical arms,
+and the identical arms in `push_from_walls_`, `PutLifeBar`, and `Think3escape`.
+The collision probe's redundant mode aliases still need separate review.
+The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
+`VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not
+automatically defects: for example, direct `[z][x]` access in the trap-map
+initializer changes instruction order. The evidence-backed release `DBG`
+sites and documented original stack reservations remain. The scan is a
+heuristic, not a proof that every possible readability improvement has been
+exhausted. See the follow-up notes in
+[`matching-cookbook.md`](matching-cookbook.md#trial-follow-up-remove-matching-scaffolding-through-real-value-lifetimes).
+
 The final `--preview --text-entry --patrols --playtest --save` PCSX-Redux run
 also passes with the collision builder compiled. It verifies text export,
 43 preview polls, 144 character-placement polls, 231 patrol-editing polls,

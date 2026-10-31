@@ -1817,3 +1817,36 @@ local decomp.dev report records 1,500 complete functions and 722,600 complete
 code bytes across targets; canonical assembly receives no C credit.
 The final combined preview/text/patrol/playtest/save emulator probe also passes,
 including the full 7,484-byte saved-mission payload comparison.
+
+## TRIAL follow-up humanisation checkpoint (2026-10-31)
+
+The first three reported scaffolds are removed exactly: `ActATTACK` shares
+the real normal-motion restoration with `NowReturnNormal`; `DrawImpact`
+reuses a consumed color/coordinate scalar; `ActSTICKON` separates the running
+angle from its explicitly sign-extended direction. The cookbook records the
+successful forms. Three text-entry gaps are represented by ordinary alignment;
+the unaccessed tile and preview fields are documented without inventing their
+original purposes. The handoff copy and collision fallback branches are also
+cleaned up. All six image checks, 44 tests, and the 18-routine handwritten
+assembly check pass; report counts are unchanged. No new runtime coverage is
+claimed by this readability checkpoint.
+
+The goal remains active. Following shared C includes exposed more work than
+the original target-directory-only scan showed. Current residuals are below;
+byte differences are local object comparisons, not new matching credit.
+
+| Routine | Best ordinary rewrite measured | Remaining issue |
+| --- | --- | --- |
+| `SetupImageToPolyFT4` / `SetupImageToPolyGT4` | Delete the empty loop: 288/324 bytes, ten differing bytes each, identical relocations. | UV-right addition moves before the screen-edge additions and uses a different register. A 256-combination width/type sweep, SDK rectangle macros, and consumed edge temporaries did not improve that score. |
+| `PlayVoice` | Delete its empty loop and select filename/table by `CHOSEN_LANGUAGE`: 756 bytes, four differing bytes. An inline indexed lookup also removes the localized branch's identical arms at that same score. | Filename/table address formation swaps registers. A normal pointer lookup for the nonlocalized branch removes its identical arm but leaves 32 differing bytes with both lookups cleaned up. A direct indexed lookup there adds four bytes. |
+| `push_from_walls_` | Delete the identical cast arms: 288 rather than 296 bytes. | The unsigned halfword load plus sign-extension becomes a signed load. Explicit sign-extension and an inline per-axis operation still fuse it. |
+| `PutLifeBar` | Delete the identical color-store arms: 540 bytes, 22 differing bytes. | The digit-base and maximum-value registers swap; the sprite argument moves earlier. Reusing digit, fill, or offset scalars for brightness did not close it. |
+| `Think3escape` | Delete all three identical arms: 280 bytes, 18 differing bytes; using builtin absolute value narrows that to 15. | Output-pad and degree registers swap, one absolute-value source changes, and the actor-pointer copy disappears. Early-return and inline hold-operation forms did not close it. |
+| `GetAreaMapVector` | The three identical return arms are gone and the 548 bytes match with a word-sized sign-extended probe mode. | Redundant `mode`/`mode2`/`rawmode` assignments remain. Removing or turning them into an explicit mask/restore sequence has not yet matched. |
+
+The ignored `.shake/trial-humanisation/` directory retains the whole-unit
+probes, compiler RTL, and comparison scripts for this workspace. Baselines
+were checked against the actual TRIAL objects. When inserting a helper into
+a combined source, match the function definition including its opening brace:
+a bare prototype search can insert the helper into a PSX.SYM comment and
+silently compile an implicit out-of-line call instead.

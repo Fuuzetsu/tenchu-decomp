@@ -3,17 +3,16 @@
 
 #include "trial.exe.h"
 
-/* The keyboard and the edited text share a cursor/buffer layout. */
+/* The keyboard and the edited text share a cursor/buffer layout.
+ * Pointer/tail alignment accounts for the unaccessed halfwords at 0x06/0x16. */
 typedef struct TrialTextCursor
 {
     s16 column, row;
     u16 category;
-    s16 unknown6;
     u16 *characters;
     u16 *current;
     Sprite3D *sprite;
     u16 capacity;
-    s16 unknown16;
 } TrialTextCursor; /* 0x18 */
 
 typedef struct TrialKanjiRange TrialKanjiRange;
@@ -31,7 +30,7 @@ typedef struct TrialGlyphPage
     u16 code_base, first_visible_code;
     u16 first_column_code, last_column_code;
     s16 column_index;
-    s16 unknown0a;
+    /* Pointer alignment accounts for the unaccessed halfword at 0x0a. */
     const u8 *offsets;
     const u8 *visible_offsets;
     const u8 *range_indices;

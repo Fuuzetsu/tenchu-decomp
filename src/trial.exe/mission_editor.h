@@ -32,7 +32,7 @@ enum trial_editor_sound
 typedef struct TrialTileDefinition
 {
     u16 flags;
-    u16 unknown2;
+    u16 unused; /* Zero in all 228 shipped tile records; TRIAL never accesses it. */
     union
     {
         s16 textures[10];

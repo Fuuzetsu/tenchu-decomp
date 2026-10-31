@@ -10,7 +10,19 @@ byte-identical `main.exe`.
 
 ## Status ✅
 
-- **TRIAL.EXE game/editor decompilation and humanisation is complete (2026-10-31).**
+- **TRIAL.EXE game/editor byte-exact recovery is complete (2026-10-31).**
+  The follow-up humanisation pass removes `ActATTACK`'s discarded volatile
+  read, `ActSTICKON`'s cancelling arithmetic and empty loop, and `DrawImpact`'s
+  empty loop. Three unnamed text-entry halfwords are represented by natural
+  alignment; two unaccessed fields are explicitly documented. The preview
+  field's original purpose remains unknown. The shared handoff helper now
+  uses an indexed copy, and the collision probe no longer has three identical
+  return branches. The humanisation goal remains active: following shared C
+  includes exposed remaining scaffolding in `SetupImageToPolyFT4`,
+  `SetupImageToPolyGT4`, `PlayVoice`, `push_from_walls_`, `PutLifeBar`, and
+  `Think3escape`; the collision probe's redundant mode aliases also need
+  review. The expanded scanner reports these rather than treating wrappers
+  as clean. These readability changes add no matching credit.
   568 functions / 301,412 bytes now compile as exact C, including startup,
   the editor mode controller and main menu, file I/O, shared engine modules,
   archive/CD/font/render helpers, and TRIAL's appearance, sound-bank, and
@@ -51,7 +63,7 @@ byte-identical `main.exe`.
   packet buffers, renderer setup, and per-image texture-upload waits. The
   controller/camera/misc switch tables and constants, AI dispatch tables,
   and AI state are C-owned. The complete 555,008-byte TRIAL.EXE matches retail;
-  all six executable checks and 40 focused tests pass. The local decomp.dev
+  all six executable checks and 44 focused tests pass. The local decomp.dev
   report is updated. Its whole-image denominator includes 630 SDK/CRT routines
   that remain assembly and are excluded from game/editor completion.
   See [TRIAL recovery details](docs/build-system.md#the-other-five-executables).

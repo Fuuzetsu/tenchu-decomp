@@ -1492,9 +1492,13 @@ a volatile word view of an explicit spill slot only when independently proven
 (the former AddEnemy draft used one, but its exact human rewrite disproved it); a
 volatile-qualified parameter OBJECT for a single proven early stack read
 (CdaPlayXA). Never make a shared extern declaration volatile. Corroborate an
-otherwise-dead target load in another shipped build before encoding it
-(ActATTACK's trial-build `Me_MOTION_C` read); do not invent dead reads to fill
-bytes.
+otherwise-dead target load in another shipped build, then investigate its
+source operation before encoding it; do not invent dead reads to fill bytes.
+TRIAL's `ActATTACK` disproves the former volatile workaround: the load is
+the argument evaluation of an inlined normal-motion restoration. A shared
+`RestoreNormalMotion(Me_MOTION_C)` implementation also emits the public
+`NowReturnNormal` entry point exactly, including its global actor binding.
+Manually expanding only the later motion work had hidden that operation.
 
 ### 3.7 Stack objects, unions, frames
 
@@ -3653,3 +3657,61 @@ Returning the buffer symbol directly places the final LUI before register
 restoration; returning the working pointer moves it after the restores. The
 former closes the complete match. Declaration/initialization order matters:
 placing this pointer before the scalar initializers changes earlier allocation.
+
+### TRIAL follow-up: remove matching scaffolding through real value lifetimes
+
+`ActATTACK`'s stealth-kill tail and `NowReturnNormal` share the complete
+`RestoreNormalMotion` inline operation, including `Me_MOTION_C = human`.
+Calling it with the current actor reproduces the apparently dead actor load
+without a discarded volatile access. Both 6,720-byte and 196-byte functions
+match. A sibling binary confirming a load establishes the bytes, not a need
+for volatility.
+
+`DrawImpact` reuses a working scalar for the completed blue-channel value
+and then the X coordinate. Both assignments produce consumed values; this
+ordinary reuse removes its empty loop and keeps the original coordinate-load
+schedule. All 772 bytes match. Deleting only the fence leaves seven differing
+bytes, so inspect the preceding value's lifetime too.
+
+`ActSTICKON` keeps a full-width running scatter angle and a signed low-halfword
+direction for `rsin`/`rcos`. Sharing the direction and sine temporaries between
+the scatter and ordinary throw branches, and sign-extending the direction in
+two statements, removes both `angle += next_angle - angle` and the empty loop:
+
+```c
+angle = direction;
+direction = (u32)direction << 16;
+direction >>= 16;
+```
+
+The unsigned left shift avoids shifting a negative signed value; the signed
+right shift uses the target compiler's arithmetic-shift semantics. These
+operations perform the original narrowing rather than an algebraic no-op.
+The simpler `(s16)direction` cast was tested: local allocation forwards the
+saved angle into a temporary shift register and changes three bytes. Retain
+the explicit sign extension here; the complete 3,104-byte function matches.
+
+`tools/humanscan.py --target trial.exe --headers` now detects standalone empty
+loops, discarded volatile reads, cancelling updates, identical branches,
+and `unknownNN` fields in addition to its earlier decompiler patterns. It
+follows quoted C and `.inc` includes: a wrapper cannot certify the shared
+implementation's readability. It skips preprocessor
+definitions for the empty-loop check, since the evidence-backed `DBG` wrapper
+is an intentional release macro. Hits remain review prompts. The
+`InitTrialTrapMap` hit is real byte addressing of two-byte tile-layer arrays
+using named sizes, not an untyped record of unknown layout. Direct `[z][x]`
+addressing changes 15 bytes; replacing it just to clear the scanner would
+neither preserve the executable nor improve the evidence.
+
+`set_boot_exec_` confirms the indexed-copy rule above: writing the handoff
+magic directly and copying `file[i]` with a `for` loop removes the old empty
+loop and magic carrier. All 88 bytes match. A pointer-walking `for` is only
+84 bytes, so the loop form and fence removal must be considered together.
+
+`GetAreaMapVector`'s three identical fallback-return arms collapse to one
+ordinary return. Keep `m = (short)mode2` in a `long m`: the value is still
+sign-extended from the low halfword, but its promoted lifetime restores the
+allocation of the width and probe-mode registers. Leaving `m` as a short
+after removing the arms swaps those registers (nine differing bytes); the
+word-sized local preserves all 548 bytes. The older `mode`/`rawmode` aliases
+are still under review; removing them at the same time does not yet match.

@@ -20,26 +20,14 @@ typedef struct
 void set_boot_exec_(u8 *file, u32 stack, u32 size)
 {
     int i;
-    u32 magic;
     BootExecRecord *rec;
 
-    magic = BOOT_EXEC_MAGIC;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
-    do
-    {
-    } while (0);
     rec = (BootExecRecord *)TENCHU_EXECUTABLE_HANDOFF_ADDRESS;
     file += BOOT_EXEC_CDROM_PREFIX_SIZE;
-    rec->magic = magic;
-    i = 0;
-    if (*file != 0)
+    rec->magic = BOOT_EXEC_MAGIC;
+    for (i = 0; file[i] != 0; i++)
     {
-        do
-        {
-            rec->name[i] = *file;
-            file++;
-            i++;
-        } while (*file != 0);
+        rec->name[i] = file[i];
     }
     rec->name[i] = 0;
     rec->s_addr = stack;

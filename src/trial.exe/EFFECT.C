@@ -708,7 +708,7 @@ static void DrawImpact(TEffectSlot *ef)
     s32 inverse;
     s32 start;
     s32 start2;
-    s32 end;
+    s32 value;
     s32 end_raw;
     s32 size;
     s32 priority;
@@ -757,19 +757,16 @@ static void DrawImpact(TEffectSlot *ef)
         start2 += FIXED_TRUNC_BIAS;
     }
     start2 = start2 >> FIXED_SHIFT;
-    spr->b = start2 + (end_raw * ratio) / FIXED_ONE;
+    value = start2 + (end_raw * ratio) / FIXED_ONE;
+    spr->b = value;
 
-    end = param->px;
-    /* Empty loop retained for code layout; its original source construct is unknown. */
-    do
-    {
-    } while (0);
+    value = param->px;
     start2 = param->py;
     work = (s32)param->super;
     inverse = param->pz;
     if (work != 0)
     {
-        *SCREEN_PROJECTION_POINT_X = end;
+        *SCREEN_PROJECTION_POINT_X = value;
         *SCREEN_PROJECTION_POINT_Y = start2;
         *SCREEN_PROJECTION_POINT_Z = inverse;
         GsGetLs((GsCOORDINATE2 *)work, SCREEN_PROJECTION_MATRIX);
@@ -780,7 +777,7 @@ static void DrawImpact(TEffectSlot *ef)
     }
     else
     {
-        GetScreenPosition(end, start2, inverse, &scr);
+        GetScreenPosition(value, start2, inverse, &scr);
     }
 
     if (scr.vz > NEAR_DEPTH)

@@ -66,7 +66,7 @@ typedef struct TrialMissionPreview
     s16 theme;              /* 0x06 */
     char *title;            /* 0x08: points into the loaded mission header */
     char *author;           /* 0x0c */
-    u32 unknown10;          /* 0x10: not yet identified */
+    u32 unused;             /* 0x10: never accessed by TRIAL; original purpose unknown */
     char names[TRIAL_PREVIEW_RECORDS][10]; /* 0x14 */
     char times[TRIAL_PREVIEW_RECORDS][12]; /* 0x32: full-width Japanese text */
 } TrialMissionPreview; /* 0x58 */

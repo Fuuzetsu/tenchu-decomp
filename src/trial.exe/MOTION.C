@@ -2937,6 +2937,39 @@ static inline void TrackAttackTarget(GsCOORDINATE2 *target)
 }
 
 
+/* Select the actor's normal stance and apply it immediately. The public
+ * NowReturnNormal entry point and the end of a stealth kill share this work. */
+static __inline__ short RestoreNormalMotion(Humanoid *human)
+{
+    Humanoid *current;
+    MotionDataType *motion;
+    motion_id next_motion;
+    motion_move_mode apply_movement;
+
+    Me_MOTION_C = human;
+    ReturnNormal();
+    current = Me_MOTION_C;
+    next_motion = motID;
+    apply_movement = motMODE;
+    if (current->status == STAT_DEAD &&
+        current->motion->loop == MOTION_LOOP_DISABLED)
+    {
+        return 0;
+    }
+    if (UpdateMotion(current->motion, next_motion) ==
+        MOTION_UPDATE_NOT_FOUND)
+    {
+        return 0;
+    }
+    current->status = (s8)MOTION_STATUS(next_motion);
+    if (apply_movement != MOTION_MOVE_NONE)
+    {
+        motion = current->motion->motion;
+        MoveHumanoid(current, motion->orderspd, motion->sidespd);
+    }
+    return 1;
+}
+
 void ActATTACK(void)
 {
     enum
@@ -3327,10 +3360,7 @@ void ActATTACK(void)
     case MOT_ATTACK_STEALTH_SIDE_AYAME:
     {
         int conflict_id;
-        Humanoid *human;
         ModelType *waist;
-        motion_id saved_mid;
-        motion_move_mode apply_movement;
 
         if (dtM->count == 1)
         {
@@ -3351,27 +3381,9 @@ void ActATTACK(void)
             dtL->vx = ConflictObject[conflict_id].position.vx;
             dtL->vz = ConflictObject[conflict_id].position.vz;
         }
-        (void)*(Humanoid *volatile *)&Me_MOTION_C;
         waist->locate.coord.t[2] = 0;
         waist->locate.coord.t[0] = 0;
-        ReturnNormal();
-        saved_mid = motID;
-        apply_movement = motMODE;
-        human = Me_MOTION_C;
-        if (human->status != STAT_DEAD ||
-            human->motion->loop != MOTION_LOOP_DISABLED)
-        {
-            if (UpdateMotion(human->motion, saved_mid) !=
-                MOTION_UPDATE_NOT_FOUND)
-            {
-                human->status = MOTION_STATUS(saved_mid);
-                if (apply_movement != MOTION_MOVE_NONE)
-                {
-                    mot = human->motion->motion;
-                    MoveHumanoid(human, (u16)mot->orderspd, (u16)mot->sidespd);
-                }
-            }
-        }
+        RestoreNormalMotion(Me_MOTION_C);
         dtM->count = 0;
         dtM->loop = 0;
         PlayMotion(dtM, 1);
@@ -4594,6 +4606,8 @@ void ActSTICKON(void)
         VECTOR *position;
         PARAM_ITEM_LAUNCH item;
         s32 angle;
+        s32 direction;
+        s32 sine;
 
         if (dtM->count != 0 || dtM->loop == 0)
         {
@@ -4635,27 +4649,24 @@ void ActSTICKON(void)
 
         if (item.type == ITEM_MAKIBISHI)
         {
-            s32 next_angle;
-
             for (t = 0; t < MAKIBISHI_SCATTER_COUNT; t++)
             {
-                next_angle = angle - MAKIBISHI_ANGLE_JITTER;
-                next_angle += rand() % (MAKIBISHI_ANGLE_JITTER * 2);
-                angle += next_angle - angle;
-                /* Empty loop retained for code layout; its original source construct is unknown. */
-                do
-                {
-                } while (0);
-                y = next_angle;
+                direction = angle - MAKIBISHI_ANGLE_JITTER;
+                direction += rand() % (MAKIBISHI_ANGLE_JITTER * 2);
+                angle = direction;
+                /* Keep the running angle wide; trig uses its signed low halfword. */
+                direction = (u32)direction << 16;
+                direction >>= 16;
+                sine = rsin(direction);
                 item.end.vx =
-                    (rsin(y) *
+                    (sine *
                      (-MAKIBISHI_MIN_SPEED - rand() % MAKIBISHI_SPEED_RANGE)) >>
                     FIXED_SHIFT;
                 item.end.vy = rand();
                 item.end.vy =
                     -(item.end.vy % MAKIBISHI_VERTICAL_SPEED_RANGE);
                 item.end.vz =
-                    (rcos(y) *
+                    (rcos(direction) *
                      (-MAKIBISHI_MIN_SPEED - rand() % MAKIBISHI_SPEED_RANGE)) >>
                     FIXED_SHIFT;
                 ReqItemMakibishi((PARAM_ITEM_DROP *)&item);
@@ -4663,12 +4674,15 @@ void ActSTICKON(void)
         }
         else
         {
-            y = angle;
+            /* Sign-extend the low halfword for the launch direction. */
+            direction = (u32)angle << 16;
+            direction >>= 16;
+            sine = rsin(direction);
             item.end.vx =
-                (rsin(y) * -STICKON_THROW_SPEED) >> FIXED_SHIFT;
+                (sine * -STICKON_THROW_SPEED) >> FIXED_SHIFT;
             item.end.vy = 0;
             item.end.vz =
-                (rcos(y) * -STICKON_THROW_SPEED) >> FIXED_SHIFT;
+                (rcos(direction) * -STICKON_THROW_SPEED) >> FIXED_SHIFT;
             switch (item.type)
             {
             case ITEM_FIRE:
@@ -5280,33 +5294,7 @@ short SetNowMotion(Humanoid *human, motion_id mid, motion_move_mode move)
 
 short NowReturnNormal(Humanoid *human)
 {
-    Humanoid *current;
-    MotionDataType *motion;
-    motion_id next_motion;
-    motion_move_mode apply_movement;
-
-    Me_MOTION_C = human;
-    ReturnNormal();
-    current = Me_MOTION_C;
-    next_motion = motID;
-    apply_movement = motMODE;
-    if (current->status == STAT_DEAD &&
-        current->motion->loop == MOTION_LOOP_DISABLED)
-    {
-        return 0;
-    }
-    if (UpdateMotion(current->motion, next_motion) ==
-        MOTION_UPDATE_NOT_FOUND)
-    {
-        return 0;
-    }
-    current->status = (s8)MOTION_STATUS(next_motion);
-    if (apply_movement != MOTION_MOVE_NONE)
-    {
-        motion = current->motion->motion;
-        MoveHumanoid(current, motion->orderspd, motion->sidespd);
-    }
-    return 1;
+    return RestoreNormalMotion(human);
 }
 
 void dispose_weapon_data_of_char_(Humanoid *h, int mode)

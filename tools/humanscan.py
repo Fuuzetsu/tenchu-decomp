@@ -10,16 +10,23 @@ Artifacts are only counted in CODE — comments and strings are stripped
 first, so PSX.SYM fact blocks and prose headers don't rank a file.
 Files still containing INCLUDE_ASM are listed separately: they ship
 original bytes, so their reference dumps must stay until matched.
+Quoted C and .inc includes are followed so shared implementations are audited.
 
 Usage: tools/humanscan.py [N]        show top N (default 40)
+       tools/humanscan.py --target trial.exe --headers
+                                     audit another executable and its headers
        tools/humanscan.py --dumps    list matched files still carrying
                                      stale Ghidra/m2c/triage dumps
 """
+import argparse
+import os
 import pathlib
 import re
-import sys
 
-import source_units as SU
+try:
+    from . import source_units as SU
+except ImportError:
+    import source_units as SU
 
 SRC = pathlib.Path(__file__).resolve().parent.parent / "src/main.exe"
 
@@ -39,6 +46,11 @@ PATTERNS = [
         r"(?:\([^()]*\)\s*)?\1\s*\)\s*-\s*"
         r"(?:\([^()]*\)\s*)?\1\b"
     )),
+    ("empty_loop", re.compile(r"\bdo\s*\{\s*\}\s*while\s*\(\s*0\s*\)")),
+    ("discarded_volatile", re.compile(r"\(\s*void\s*\)\s*\*\s*\([^;]*\bvolatile\b[^;]*;")),
+    ("cancelled_update", re.compile(r"\b([A-Za-z_]\w*)\s*\+=\s*[A-Za-z_]\w*\s*-\s*\1\s*;")),
+    ("identical_arms", re.compile(r"\bif\s*\([^;{}]*\)\s*\{\s*([^{}]+?)\s*\}\s*else\s*\{\s*\1\s*\}")),
+    ("unknown_field", re.compile(r"\bunknown[0-9a-fA-F]+\b")),
 ]
 
 DUMP_MARKERS = (
@@ -55,45 +67,85 @@ def strip_comments(text):
     return text
 
 
+def without_directives(code):
+    """Keep ordinary source sites separate from conventional macro wrappers."""
+    lines = []
+    continued = False
+    for line in code.splitlines():
+        directive = continued or line.lstrip().startswith("#")
+        continued = directive and line.rstrip().endswith("\\")
+        lines.append("" if directive else line)
+    return "\n".join(lines)
+
+
+def with_shared_sources(paths):
+    """Visit each implementation once, including wrappers' quoted C includes."""
+    seen = set()
+
+    def visit(path):
+        path = path.resolve()
+        if path in seen:
+            return
+        seen.add(path)
+        yield path
+        for include in re.findall(r'^\s*#\s*include\s+"([^"]+)"',
+                                  path.read_text(errors="replace"), re.M):
+            if pathlib.Path(include).suffix.lower() in (".c", ".inc"):
+                yield from visit(path.parent / include)
+
+    for path in paths:
+        yield from visit(path)
+
+
 def main():
-    dumps_mode = "--dumps" in sys.argv
-    top = 40
-    for a in sys.argv[1:]:
-        if a.isdigit():
-            top = int(a)
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("top", nargs="?", type=int, default=40)
+    parser.add_argument("--target", default="main.exe",
+                        choices=("main.exe", "menu.exe", "ending.exe", "trial.exe",
+                                 "run.exe", "slps_019.01"))
+    parser.add_argument("--headers", action="store_true")
+    parser.add_argument("--dumps", action="store_true")
+    args = parser.parse_args()
+    source_dir = SRC.parent / args.target
+    sources = list(SU.iter_source_files(source_dir))
+    if args.headers:
+        sources += sorted(source_dir.glob("*.h"))
 
     rows = []
     dump_files = []
-    for p in SU.iter_source_files(SRC):
+    for p in with_shared_sources(sources):
         raw = p.read_text(errors="replace")
+        name = os.path.relpath(p, source_dir)
         guarded = re.search(r"^\s*INCLUDE_ASM\(", raw, re.M) is not None
         if not guarded and any(m in raw for m in DUMP_MARKERS):
-            dump_files.append(p.name)
+            dump_files.append(name)
         code = strip_comments(raw)
+        ordinary_code = without_directives(code)
         counts = {}
         total = 0
         for key, rx in PATTERNS:
-            if key in ("offset_cast", "byte_arith"):
-                n = len(rx.findall(code))
+            matches = rx.findall(ordinary_code if key == "empty_loop" else code)
+            if key in ("offset_cast", "byte_arith", "empty_loop", "discarded_volatile"):
+                n = len(matches)
             else:
-                n = len(set(rx.findall(code)))
+                n = len(set(matches))
             counts[key] = n
             total += n
         if total:
             lines = raw.count("\n") + 1
-            rows.append((total, lines, p.name, guarded, counts))
+            rows.append((total, lines, name, guarded, counts))
 
-    if dumps_mode:
+    if args.dumps:
         print(f"# {len(dump_files)} matched files still carry stale machine dumps")
         for name in dump_files:
             print(name)
         return
 
     rows.sort(key=lambda r: -r[0])
-    print(f"# {len(rows)} files with code-level artifacts"
+    print(f"# {len(rows)} files with potential artifacts in {args.target}"
           f" ('G' = still INCLUDE_ASM-guarded, ships original bytes)")
     print(f"{'score':>5} {'lines':>6}    file                                  detail")
-    for total, lines, name, guarded, c in rows[:top]:
+    for total, lines, name, guarded, c in rows[:args.top]:
         flag = "G" if guarded else " "
         detail = " ".join(f"{k}={v}" for k, v in c.items() if v)
         print(f"{total:5} {lines:6}  {flag} {name:36}  {detail}")

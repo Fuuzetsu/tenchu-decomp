@@ -347,7 +347,7 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
     short i;
     short v;
     long initial_level;
-    short m;
+    long m;
     long rawmode;
     long mode2;
 
@@ -371,34 +371,11 @@ long GetAreaMapVector(AreaMapType *area, MapVector *mvp, VECTOR *pos, long wide,
         mvp->height = 0;
         if (!(mode & AREA_LEVEL_ALLOW_DEEP))
         {
-            /* Retail keeps three identical branches here; their original distinctions are unknown. */
-            if (wide != 0)
-            {
-                if (y != 0)
-                {
-                    mvp->attrib = MAP_BUOYANT;
-                    mvp->angleH = MAP_PROBE_ALL;
-                    mvp->angleL = MAP_PROBE_ALL;
-                    mvp->vector = MAP_PROBE_ALL;
-                    return initial_level;
-                }
-                else
-                {
-                    mvp->attrib = MAP_BUOYANT;
-                    mvp->angleH = MAP_PROBE_ALL;
-                    mvp->angleL = MAP_PROBE_ALL;
-                    mvp->vector = MAP_PROBE_ALL;
-                    return initial_level;
-                }
-            }
-            else
-            {
-                mvp->attrib = MAP_BUOYANT;
-                mvp->angleH = MAP_PROBE_ALL;
-                mvp->angleL = MAP_PROBE_ALL;
-                mvp->vector = MAP_PROBE_ALL;
-                return initial_level;
-            }
+            mvp->attrib = MAP_BUOYANT;
+            mvp->angleH = MAP_PROBE_ALL;
+            mvp->angleL = MAP_PROBE_ALL;
+            mvp->vector = MAP_PROBE_ALL;
+            return initial_level;
         }
     }
     else
