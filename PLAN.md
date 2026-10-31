@@ -36,7 +36,9 @@ byte-identical `main.exe`.
   helper, removing all three artificial conditions while preserving its
   280 bytes in MAIN and TRIAL.
   `AfsGetEntry` now walks typed on-disc records with named marker/name fields
-  and `record++`; its three layout wrappers remain under investigation.
+  and `record++`. Its three layout wrappers are also removed: explicit error
+  exits and a shared counted-index step preserve all 564 bytes. `AfsFindFile`
+  uses the same traversal operation and retains all 560 bytes.
   `GetAreaMapVector` drops the redundant attribute conditional and duplicate
   mode alias, and uses a shared missing-floor predicate instead of the XOR
   comparison. Its last unused mode restore is now replaced by the consumed
@@ -53,7 +55,7 @@ byte-identical `main.exe`.
   are removed. All six executable checks still pass.
   The humanisation goal remains active: following shared C
   includes exposed remaining scaffolding in `SetupImageToPolyFT4`
-  and `SetupImageToPolyGT4`. The wider audit also tracks nonempty wrappers in `AfsGetEntry`,
+  and `SetupImageToPolyGT4`. The wider audit also tracks nonempty wrappers in
   `AddMisc` and `subdivide_quad_`, plus
   the two adaptive quad renderers' non-hardware volatile parameters.
   The scanner now reports these review candidates too. These readability

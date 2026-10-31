@@ -101,6 +101,15 @@ struct AFSIndexEntry
     (((u32)(bytes)[0] << 24) | ((u32)(bytes)[1] << 16) |                   \
      ((u32)(bytes)[2] << 8) | (u32)(bytes)[3])
 
+/* Advance a counted traversal and report whether another entry exists.
+ * index and more are separate scalar variables; count is the current limit. */
+#define AFS_ADVANCE_INDEX(index, count, more)                              \
+    do                                                                   \
+    {                                                                    \
+        ++(index);                                                       \
+        (more) = (index) < (count);                                        \
+    } while (0)
+
 struct TFileHandle
 {
     CdlFILE finfo;

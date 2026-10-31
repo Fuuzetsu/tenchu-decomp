@@ -1242,7 +1242,7 @@ report and handwritten-assembly audit are unchanged in scope and counts.
 
 The humanisation goal is still active. Known remaining work is the two
 `SetupImageToPoly*` empty loops.
-Additional shared-source work is the nonempty wrappers in `AfsGetEntry`,
+Additional shared-source work is the nonempty wrappers in
 `AddMisc` and `subdivide_quad_`, plus
 the `ot` parameter qualifiers in `adiv_tnf4_` and `adiv_tng4_`. Those qualifiers
 are documented compiler constraints, not evidence of hardware-backed parameter
@@ -1264,8 +1264,15 @@ but its caller still differs, so that API change is not adopted.
 their marker/name fields directly, and advances with `record++`. All 564 bytes
 and all six executables remain exact, and the local report is regenerated
 with unchanged counts. This removes byte-cursor arithmetic and a record cast;
-the three layout wrappers are still unresolved.
-The expanded scan currently reports nine files with review
+its three layout wrappers are now removed too. Explicit allocation/index-error
+exits preserve the report-block layout. A shared `AFS_ADVANCE_INDEX` operation
+increments the traversal index and supplies its continuation flag, after the
+caller snapshots the current entry count. `AfsFindFile` uses the same operation
+in both inlined searches and remains 560 bytes exact. The macro's conventional
+statement wrapper contains these two real updates; no layout-only loop remains
+in the loader. All six executable checks and the handwritten audit pass, and
+the local report is regenerated without new matching credit.
+The expanded scan currently reports eight files with review
 candidates; that count includes the legitimate byte addressing below.
 The scanner also reports reviewed byte addressing in `InitTrialTrapMap`,
 `VALLOC`, `IMAGES`, and the packed TMD subdivision wrapper. These are not

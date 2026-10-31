@@ -22,6 +22,8 @@ static __inline__ void AfsFilenameFixInline(char *path)
 static __inline__ u32 subAfsFindFileInline(TAFS *handle, char *name, u32 mask)
 {
     u32 i;
+    u32 entry_count;
+    int more_entries;
 
     i = 0;
     if (handle->maxElements != 0)
@@ -34,8 +36,9 @@ static __inline__ u32 subAfsFindFileInline(TAFS *handle, char *name, u32 mask)
             {
                 return i;
             }
-            i++;
-        } while (i < handle->maxElements);
+            entry_count = handle->maxElements;
+            AFS_ADVANCE_INDEX(i, entry_count, more_entries);
+        } while (more_entries);
     }
     return 0xffffffff;
 }

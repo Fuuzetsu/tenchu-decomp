@@ -2484,3 +2484,31 @@ also remain scratch-only. Depending on initialization placement, they retain
 288/324 bytes with 24–29 differing bytes; they do not improve the simple
 ten-byte unfenced draft. An initial captured-coordinate generator shadowed
 its input names; it was corrected and rerun before recording these results.
+
+### AFS traversal wrappers removed (2026-11-01)
+
+`AfsGetEntry` now has ordinary allocation guards, explicit invalid-index and
+read-path labels, and the existing pointer traversal without its three
+layout-only wrappers. `filesystem.h` shares the two-output
+`AFS_ADVANCE_INDEX(index, count, more)` operation: advance the index, then
+calculate whether another entry exists. Both archive loading and the two
+inlined filename searches use it after reading their current entry count.
+Its conventional statement-macro wrapper encloses only those real updates.
+It has no dummy branch, discarded value, dead restore, or fixed register.
+
+The loader retains all 564 bytes and relocations, and `AfsFindFile` retains
+all 560. The nineteen-byte manual-loop draft from the preceding checkpoint
+is now resolved. The count snapshot matters: reading `handle->maxElements`
+inside the step macro emits 568 bytes, while an ordinary block around the
+two updates retains the nineteen-byte saved-register exchange. The shared
+operation is exact in `AfsFindFile` with either form; both production callers
+use the same explicit count/step/continuation sequence.
+
+All six complete executables pass (`afs-index-step-check.log`). The local
+report is regenerated at 3,449 units, and the handwritten audit verifies
+18 routines / 6,372 bytes plus their dispatch table. TRIAL remains at
+568 exact C routines / 301,412 bytes, with no new matching credit or runtime
+coverage claimed. The recursive scanner now reports eight candidate files.
+The active queue is six shared routines: the two image-setup functions,
+`AddMisc`, `subdivide_quad_`, and the two adaptive renderers' volatile OT
+parameters.

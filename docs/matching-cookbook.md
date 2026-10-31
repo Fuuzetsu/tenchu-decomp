@@ -3847,6 +3847,26 @@ the same field. Try an ordinary typed address before retaining raw-offset
 accessors. This removes the access workaround independently of the unresolved
 volatile OT parameter; it does not establish that a plain parameter matches.
 
+`AfsGetEntry` removes all three layout wrappers with two independent changes.
+An explicit invalid-index error exit, placed before the successful read path,
+preserves the original shared reporting block. That alone leaves nineteen
+differing bytes: the archive handle and loop index trade saved registers.
+The shared `AFS_ADVANCE_INDEX(index, count, more)` statement macro then advances
+the index and calculates the continuation flag together. Both values are
+consumed by the traversal. Loading the current count before this operation
+preserves the handle's lifetime independently of the index step. The complete
+564-byte loader matches, as does the 560-byte `AfsFindFile`, whose two inlined
+searches use the same operation.
+
+This reusable two-output traversal operation uses a conventional statement
+macro. Its index and continuation arguments are distinct scalar variables;
+the count argument supplies the current limit. Replacing its wrapper with a
+plain block leaves the nineteen-byte difference; passing the index by address
+to an inline helper puts it on the stack. Reading the count field inside the
+macro instead adds four bytes in the loader. Keep the actual index/continuation
+updates and both call sites when judging this source form, not just the absence
+of a scanner finding.
+
 `push_from_walls_` removes its artificial identical-arm cast by loading both
 movement components inside the real probe-selection branches. If the half
 probe is clear, use the full probe's direction with half the displacement;
